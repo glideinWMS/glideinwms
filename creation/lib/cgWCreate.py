@@ -98,9 +98,7 @@ def create_condor_tar_fd(condor_base_dir):
                 raise RuntimeError("Cannot find %s" % os.path.join(condor_base_dir, f))
 
         # Get the list of dlls required
-        dlls = get_condor_dlls(
-            condor_base_dir, condor_bins + condor_opt_bins + condor_opt_libexecs
-        )
+        dlls = get_condor_dlls(condor_base_dir, condor_bins + condor_opt_bins + condor_opt_libexecs)
 
         # Get list of all the files & directories that exist
         for f in condor_opt_bins + condor_opt_libs + condor_opt_libexecs + dlls:
@@ -171,9 +169,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         else:
             proxy_url = None
         client_log_base_dir = conf.get_child("submit")["base_client_log_dir"]
-        submit_attrs = (
-            entry.get_child("config").get_child("submit").get_child_list("submit_attrs")
-        )
+        submit_attrs = entry.get_child("config").get_child("submit").get_child_list("submit_attrs")
         enc_input_files = []
 
         enc_input_files.append("$ENV(IDTOKENS_FILE)")
@@ -184,9 +180,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # Folders and files of tokens for glidein logging authentication
         # leos token stuff, left it in for now
         token_list = []
-        token_basedir = os.path.realpath(
-            os.path.join(os.getcwd(), "..", "server-credentials")
-        )
+        token_basedir = os.path.realpath(os.path.join(os.getcwd(), "..", "server-credentials"))
         token_entrydir = os.path.join(token_basedir, "entry_" + entry_name)
         url_dirs_desc_file = os.path.join(token_entrydir, "url_dirs.desc")
         if os.path.exists(url_dirs_desc_file):
@@ -206,9 +200,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         # Get the list of log recipients specified from the Factory for this entry
         factory_recipients = get_factory_log_recipients(entry)
-        frontend_recipients = (
-            []
-        )  # TODO: change when adding support for LOG_RECIPIENTS_CLIENT
+        frontend_recipients = []  # TODO: change when adding support for LOG_RECIPIENTS_CLIENT
         log_recipients = list(set(factory_recipients + frontend_recipients))
         if len(log_recipients) > 0:
             self.append(
@@ -261,16 +253,12 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         elif gridtype == "condor":
             # Condor-C is the same as normal grid with a few additions
             # so we first do the normal population
-            self.populate_standard_grid(
-                rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files
-            )
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
             # self.populate_standard_grid(rsl, auth_method, gridtype, token_files)
             # next we add the Condor-C additions
             self.populate_condorc_grid()
         else:
-            self.populate_standard_grid(
-                rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files
-            )
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
 
         self.populate_submit_attrs(submit_attrs, gridtype)
         self.populate_glidein_classad(proxy_url)
@@ -283,13 +271,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # GlideinSkipIdleRemoval is set instead in the submit_attr section of the Factory
         remove_expr = "(isUndefined(GlideinSkipIdleRemoval)==True || GlideinSkipIdleRemoval==False) && (JobStatus==1 && isInteger($ENV(GLIDEIN_IDLE_LIFETIME)) && $ENV(GLIDEIN_IDLE_LIFETIME)>0 && (time() - QDate)>$ENV(GLIDEIN_IDLE_LIFETIME))"
         max_walltime = next(
-            iter(
-                [
-                    x
-                    for x in entry.get_child_list("attrs")
-                    if x["name"] == "GLIDEIN_Max_Walltime"
-                ]
-            ),
+            iter([x for x in entry.get_child_list("attrs") if x["name"] == "GLIDEIN_Max_Walltime"]),
             None,
         )  # Get the GLIDEIN_Max_Walltime attribute
         if max_walltime:
@@ -456,9 +438,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 # Create init.d compatible startup file
 
 
-def create_initd_startup(
-    startup_fname, factory_dir, glideinWMS_dir, cfg_name, rpm_install=""
-):
+def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name, rpm_install=""):
     """
     Creates the factory startup script from the template.
     """
@@ -576,9 +556,7 @@ def ldd(file):
 
     rlist = []
     if os.path.exists(file) and shutil.which("ldd") is not None:
-        process = subprocess.Popen(
-            ["ldd", file], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
+        process = subprocess.Popen(["ldd", file], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         for line in process.stdout.readlines():
             tokens = line.split(b"=>")
             if len(tokens) == 2:

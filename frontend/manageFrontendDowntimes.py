@@ -24,9 +24,7 @@ def usage():
     print("Other options:")
     print("  -start [[[YYYY-]MM-]DD-]HH:MM[:SS] (start time for adding a downtime)")
     print("  -end [[[YYYY-]MM-]DD-]HH:MM[:SS]   (end time for adding a downtime)")
-    print(
-        "  -delay [HHh][MMm][SS[s]]           (delay a downtime for down, up, and check cmds)"
-    )
+    print("  -delay [HHh][MMm][SS[s]]           (delay a downtime for down, up, and check cmds)")
 
 
 # [[[YYYY-]MM-]DD-]HH:MM[:SS]
@@ -96,9 +94,7 @@ def delay2time(delayStr):
 
 def get_downtime_fd(work_dir):
     frontendDescript = glideinFrontendConfig.FrontendDescript(work_dir)
-    fd = glideinFrontendDowntimeLib.DowntimeFile(
-        os.path.join(work_dir, frontendDescript.data["DowntimesFile"])
-    )
+    fd = glideinFrontendDowntimeLib.DowntimeFile(os.path.join(work_dir, frontendDescript.data["DowntimesFile"]))
     return fd
 
 

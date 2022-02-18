@@ -28,13 +28,9 @@ from glideinwms.lib.defaults import BINARY_ENCODING, force_bytes
 def get_glideins(log_dir_name, date_arr, time_arr):
     glidein_list = []
 
-    cldata = glideFactoryLogParser.dirSummaryTimingsOutFull(
-        log_dir_name, cache_dir=None
-    )
+    cldata = glideFactoryLogParser.dirSummaryTimingsOutFull(log_dir_name, cache_dir=None)
     cldata.load(active_only=False)
-    glidein_data = cldata.data[
-        "Completed"
-    ]  # I am interested only in the completed ones
+    glidein_data = cldata.data["Completed"]  # I am interested only in the completed ones
 
     ref_ctime = time.mktime(date_arr + time_arr + (0, 0, -1))
 
@@ -71,9 +67,7 @@ def get_glidein_logs_entry(factory_dir, entry, date_arr, time_arr, ext="err"):
 def get_glidein_logs(factory_dir, entries, date_arr, time_arr, ext="err"):
     log_list = []
     for entry in entries:
-        entry_log_list = get_glidein_logs_entry(
-            factory_dir, entry, date_arr, time_arr, ext
-        )
+        entry_log_list = get_glidein_logs_entry(factory_dir, entry, date_arr, time_arr, ext)
         log_list += entry_log_list
 
     return log_list
@@ -122,9 +116,7 @@ def get_Compressed(log_fname, start_str):
 
 # extract the blob from a glidein log file
 def get_Simple(log_fname, start_str, end_str):
-    SL_START_RE = re.compile(
-        force_bytes(start_str, BINARY_ENCODING) + b"\n", re.M | re.DOTALL
-    )
+    SL_START_RE = re.compile(force_bytes(start_str, BINARY_ENCODING) + b"\n", re.M | re.DOTALL)
     SL_END_RE = re.compile(end_str, re.M | re.DOTALL)
     size = os.path.getsize(log_fname)
     if size == 0:

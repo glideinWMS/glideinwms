@@ -18,13 +18,6 @@ import unittest
 
 import xmlrunner
 
-from glideinwms.unittests.unittest_utils import TestImportError
-
-try:
-    from glideinwms.factory.glideFactoryConfig import FactoryConfig
-except ImportError as err:
-    raise TestImportError(str(err))
-
 from glideinwms.factory.glideFactoryConfig import (
     ConfigFile,
     EntryConfigFile,
@@ -37,6 +30,12 @@ from glideinwms.factory.glideFactoryConfig import (
     JoinConfigFile,
     SignatureFile,
 )
+from glideinwms.unittests.unittest_utils import TestImportError
+
+try:
+    from glideinwms.factory.glideFactoryConfig import FactoryConfig
+except ImportError as err:
+    raise TestImportError(str(err))
 
 
 class TestFactoryConfig(unittest.TestCase):
@@ -82,9 +81,7 @@ class TestFactoryConfig(unittest.TestCase):
         self.assertEqual(["vofrontend_service:frontend"], id)
 
     def test_get_frontend_name(self):
-        id = self.frontend_descript.get_frontend_name(
-            "vofrontend_service@fermicloud322.fnal.gov"
-        )
+        id = self.frontend_descript.get_frontend_name("vofrontend_service@fermicloud322.fnal.gov")
         self.assertEqual("vofrontend_service", id)
 
     def test__contains__(self):

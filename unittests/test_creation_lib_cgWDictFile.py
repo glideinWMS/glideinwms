@@ -18,15 +18,6 @@ import unittest
 
 import xmlrunner
 
-# from glideinwms.creation.lib.cgWDictFile import MonitorGroupDictFile
-# from glideinwms.creation.lib.cgWDictFile import InfoSysDictFile
-from glideinwms.unittests.unittest_utils import TestImportError
-
-try:
-    from glideinwms.creation.lib.cgWDictFile import CondorJDLDictFile
-except ImportError as err:
-    raise TestImportError(str(err))
-
 # from glideinwms.creation.lib.cgWDictFile import chmodClientDirSupport
 # from glideinwms.creation.lib.cgWDictFile import baseClientDirSupport
 # from glideinwms.creation.lib.cgWDictFile import clientSymlinksSupport
@@ -57,6 +48,16 @@ from glideinwms.creation.lib.cgWDictFile import (
 )
 from glideinwms.creation.lib.factoryXmlConfig import parse
 
+# from glideinwms.creation.lib.cgWDictFile import MonitorGroupDictFile
+# from glideinwms.creation.lib.cgWDictFile import InfoSysDictFile
+from glideinwms.unittests.unittest_utils import TestImportError
+
+try:
+    from glideinwms.creation.lib.cgWDictFile import CondorJDLDictFile
+except ImportError as err:
+    raise TestImportError(str(err))
+
+
 # import glideinwms.creation.lib.cWDictFile as cWDictFile
 
 
@@ -72,9 +73,7 @@ class TestcgWDictFile(unittest.TestCase):
         self.submit_dir = "fixtures/factory/work-dir"
         self.main_dicts = get_main_dicts(self.submit_dir, self.stage_dir)
         self.common_dicts = get_common_dicts(self.submit_dir, self.stage_dir)
-        self.entry_dicts = get_entry_dicts(
-            self.submit_dir, self.stage_dir, "entry_el8_osg34"
-        )
+        self.entry_dicts = get_entry_dicts(self.submit_dir, self.stage_dir, "entry_el8_osg34")
         # self.main_dicts.populate()
         # self.entry_dicts.populate()
 
@@ -140,9 +139,7 @@ class TestcgWDictFile(unittest.TestCase):
         want_comments = False
         self.assertEqual(expected, monitor_group_dict_file.file_header(want_comments))
         want_comments = True
-        self.assertNotEqual(
-            expected, monitor_group_dict_file.file_header(want_comments)
-        )
+        self.assertNotEqual(expected, monitor_group_dict_file.file_header(want_comments))
 
     def test_format_val_MonitorGroupDictFile(self):
         monitor_group_dict_file = self.entry_dicts["mongroup"]
@@ -414,9 +411,7 @@ class TestGlideinMainDicts(unittest.TestCase):
         self.assertTrue(isinstance(self.gmdicts, glideinMainDicts))
 
     def test_get_daemon_log_dir(self):
-        self.assertEqual(
-            "fixtures/factory", self.gmdicts.get_daemon_log_dir("fixtures")
-        )
+        self.assertEqual("fixtures/factory", self.gmdicts.get_daemon_log_dir("fixtures"))
 
     def test_get_main_dicts(self):
         md = self.gmdicts.get_main_dicts()

@@ -17,11 +17,7 @@ import sys
 import time
 import traceback
 
-from glideinwms.frontend import (
-    glideinFrontendConfig,
-    glideinFrontendInterface,
-    glideinFrontendLib,
-)
+from glideinwms.frontend import glideinFrontendConfig, glideinFrontendInterface, glideinFrontendLib
 
 # /var/lib/gwms-frontend/vofrontend/frontend.descript has hardcoded line
 # MatchExpr (True) and (getGlideinCpusNum(glidein) >=
@@ -45,10 +41,7 @@ def do_work(elementDescript, paramsDescript, signatureDescript):
         factory_identity = factory_pool[1]
         my_identity_at_factory_pool = factory_pool[2]
         try:
-            full_constraint = (
-                '(%s) && ((PubKeyType=?="RSA") && (GlideinAllowx509_Proxy=!=False))'
-                % factory_constraint
-            )
+            full_constraint = '(%s) && ((PubKeyType=?="RSA") && (GlideinAllowx509_Proxy=!=False))' % factory_constraint
             factory_glidein_dict = glideinFrontendInterface.findGlideins(
                 factory_pool_node,
                 None,
@@ -64,32 +57,24 @@ def do_work(elementDescript, paramsDescript, signatureDescript):
             factory_glidein_dict = {}
 
         for glidename in factory_glidein_dict.keys():
-            if (
-                "AuthenticatedIdentity" not in factory_glidein_dict[glidename]["attrs"]
-            ) or (
-                factory_glidein_dict[glidename]["attrs"]["AuthenticatedIdentity"]
-                != factory_identity
+            if ("AuthenticatedIdentity" not in factory_glidein_dict[glidename]["attrs"]) or (
+                factory_glidein_dict[glidename]["attrs"]["AuthenticatedIdentity"] != factory_identity
             ):
-                print(
-                    "Found an untrusted factory %s at %s; ignoring."
-                    % (glidename, factory_pool_node)
-                )
+                print(f"Found an untrusted factory {glidename} at {factory_pool_node}; ignoring.")
                 if "AuthenticatedIdentity" in factory_glidein_dict[glidename]["attrs"]:
                     print(
                         "Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'"
                         % (
                             glidename,
                             factory_pool_node,
-                            factory_glidein_dict[glidename]["attrs"][
-                                "AuthenticatedIdentity"
-                            ],
+                            factory_glidein_dict[glidename]["attrs"]["AuthenticatedIdentity"],
                             factory_identity,
                         )
                     )
             else:
-                glidein_dict[
-                    (factory_pool_node, glidename, my_identity_at_factory_pool)
-                ] = factory_glidein_dict[glidename]
+                glidein_dict[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_glidein_dict[
+                    glidename
+                ]
 
     # schedd
     condorq_format_list = elementDescript.merged_data["JobMatchAttrs"]
@@ -151,9 +136,7 @@ def main(work_dir, group_name):
     elementDescript = glideinFrontendConfig.ElementMergedDescript(work_dir, group_name)
 
     paramsDescript = glideinFrontendConfig.ParamsDescript(work_dir, group_name)
-    signatureDescript = glideinFrontendConfig.GroupSignatureDescript(
-        work_dir, group_name
-    )
+    signatureDescript = glideinFrontendConfig.GroupSignatureDescript(work_dir, group_name)
 
     # set the condor configuration and GSI setup globally, so I don't need to worry about it later on
     os.environ["CONDOR_CONFIG"] = elementDescript.frontend_data["CondorConfig"]
@@ -165,9 +148,7 @@ def main(work_dir, group_name):
     except KeyboardInterrupt:
         print("Received signal...exit")
     except:
-        tb = traceback.format_exception(
-            sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-        )
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
         print("Exception occurred: %s" % tb)
 
 

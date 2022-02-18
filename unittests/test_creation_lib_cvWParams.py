@@ -22,13 +22,10 @@ import tempfile
 import unittest
 
 from unittest import mock
+
 import xmlrunner
 
-from glideinwms.creation.lib.cvWParams import (
-    VOFrontendParams,
-    VOFrontendSubParams,
-    extract_attr_val,
-)
+from glideinwms.creation.lib.cvWParams import extract_attr_val, VOFrontendParams, VOFrontendSubParams
 from glideinwms.creation.lib.cWParams import Params, SubParams
 
 ARGV = ["fixtures/frontend.xml", "fixtures/frontend.xml"]

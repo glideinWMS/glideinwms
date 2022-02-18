@@ -156,9 +156,7 @@ def process_global(classad, glidein_descript, frontend_descript):
 
     try:
         # Get the frontend security name so that we can look up the username
-        sym_key_obj, frontend_sec_name = validate_frontend(
-            classad, frontend_descript, pub_key_obj
-        )
+        sym_key_obj, frontend_sec_name = validate_frontend(classad, frontend_descript, pub_key_obj)
 
         request_clientname = classad["ClientName"]
 
@@ -189,10 +187,7 @@ def process_global(classad, glidein_descript, frontend_descript):
 
             update_credential_file(username, cred_id, cred_data, request_clientname)
     except:
-        logSupport.log.debug(
-            "\nclassad %s\nfrontend_descript %s\npub_key_obj %s)"
-            % (classad, frontend_descript, pub_key_obj)
-        )
+        logSupport.log.debug(f"\nclassad {classad}\nfrontend_descript {frontend_descript}\npub_key_obj {pub_key_obj})")
         error_str = "Error occurred processing the globals classads."
         logSupport.log.exception(error_str)
         raise CredentialError(error_str)
@@ -245,24 +240,20 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
 
     # verify that the identity that the client claims to be is the identity that Condor thinks it is
     try:
-        enc_identity = sym_key_obj.decrypt_hex(classad["ReqEncIdentity"]).decode(
-            "utf-8"
-        )
+        enc_identity = sym_key_obj.decrypt_hex(classad["ReqEncIdentity"]).decode("utf-8")
     except:
         error_str = "Cannot decrypt ReqEncIdentity."
         logSupport.log.exception(error_str)
         raise CredentialError(error_str)
 
     if enc_identity != authenticated_identity:
-        error_str = (
-            "Client provided invalid ReqEncIdentity(%s!=%s). "
-            "Skipping for security reasons." % (enc_identity, authenticated_identity)
+        error_str = "Client provided invalid ReqEncIdentity(%s!=%s). " "Skipping for security reasons." % (
+            enc_identity,
+            authenticated_identity,
         )
         raise CredentialError(error_str)
     try:
-        frontend_sec_name = sym_key_obj.decrypt_hex(
-            classad["GlideinEncParamSecurityName"]
-        ).decode("utf-8")
+        frontend_sec_name = sym_key_obj.decrypt_hex(classad["GlideinEncParamSecurityName"]).decode("utf-8")
     except:
         error_str = "Cannot decrypt GlideinEncParamSecurityName."
         logSupport.log.exception(error_str)
@@ -271,15 +262,10 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
     # verify that the frontend is authorized to talk to the factory
     expected_identity = frontend_descript.get_identity(frontend_sec_name)
     if expected_identity is None:
-        error_str = (
-            "This frontend is not authorized by the factory.  Supplied security name: %s"
-            % frontend_sec_name
-        )
+        error_str = "This frontend is not authorized by the factory.  Supplied security name: %s" % frontend_sec_name
         raise CredentialError(error_str)
     if authenticated_identity != expected_identity:
-        error_str = (
-            "This frontend Authenticated Identity, does not match the expected identity"
-        )
+        error_str = "This frontend Authenticated Identity, does not match the expected identity"
         raise CredentialError(error_str)
 
     return sym_key_obj, frontend_sec_name
@@ -348,10 +334,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
         # Only v3+ protocol supports non grid entries
         # Verify that the glidein proxy was provided for non-proxy auth methods
         if "GlideinProxy" not in params:
-            raise CredentialError(
-                "Glidein proxy cannot be found for client %s, skipping request"
-                % client_int_name
-            )
+            raise CredentialError("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
 
         if "cert_pair" in auth_method_list:
             # Validate both the public and private certs were passed
@@ -424,9 +407,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
 
         else:
             # should never get here, unsupported main authentication method is checked at the beginning
-            raise CredentialError(
-                "Inconsistency between SUPPORTED_AUTH_METHODS and check_security_credentials"
-            )
+            raise CredentialError("Inconsistency between SUPPORTED_AUTH_METHODS and check_security_credentials")
 
     # No invalid credentials found
     return

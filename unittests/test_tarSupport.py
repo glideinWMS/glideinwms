@@ -20,18 +20,13 @@ import unittest
 
 import xmlrunner
 
-from glideinwms.unittests.unittest_utils import (
-    TestImportError,
-    create_random_string,
-    create_temp_file,
-)
+from glideinwms.lib.tarSupport import FileDoesNotExist, GlideinTar
+from glideinwms.unittests.unittest_utils import create_random_string, create_temp_file, TestImportError
 
 try:
     from glideinwms.lib.hashCrypto import extract_md5
 except ImportError as err:
     raise TestImportError(str(err))
-
-from glideinwms.lib.tarSupport import FileDoesNotExist, GlideinTar
 
 
 class TestTarSupport(unittest.TestCase):
@@ -66,9 +61,7 @@ class TestTarSupport(unittest.TestCase):
 
     def extract_archive_blob(self, blob):
         # handle the tarball
-        temp_path = create_temp_file(
-            file_dir=self.working_dir, write_path_to_file=False
-        )
+        temp_path = create_temp_file(file_dir=self.working_dir, write_path_to_file=False)
         # TODO #23166: Use context managers[with statement] when python 3
         # once we get rid of SL6 and tarballs
         temp_file = open(temp_path, "wb")
@@ -120,10 +113,9 @@ class TestTarSupport(unittest.TestCase):
 
         for file_dict in self.files:
             for extract_dict in extract_files:
-                if (
-                    os.path.basename(file_dict["path"])
-                    == os.path.basename(extract_dict["path"])
-                ) and (file_dict["md5sum"] == extract_dict["md5sum"]):
+                if (os.path.basename(file_dict["path"]) == os.path.basename(extract_dict["path"])) and (
+                    file_dict["md5sum"] == extract_dict["md5sum"]
+                ):
                     extract_files.remove(extract_dict)
                     break
         self.assertTrue(

@@ -197,13 +197,9 @@ def verifyRRD(fix_rrd=False):
         for file_name in f_list:
             if file_name == "Status_Attributes.rrd":
                 if os.path.basename(dir_name) == "total":
-                    verifyHelper(
-                        os.path.join(dir_name, file_name), status_total_dict, fix_rrd
-                    )
+                    verifyHelper(os.path.join(dir_name, file_name), status_total_dict, fix_rrd)
                 else:
-                    verifyHelper(
-                        os.path.join(dir_name, file_name), status_dict, fix_rrd
-                    )
+                    verifyHelper(os.path.join(dir_name, file_name), status_dict, fix_rrd)
 
     return not rrd_problems_found
 
@@ -245,9 +241,7 @@ def write_one_rrd(name, updated, data, fact=0):
                     val_dict[f"{tp_str}{a}"] = a_el
 
     glideinFrontendMonitoring.monitoringConfig.establish_dir("%s" % name)
-    glideinFrontendMonitoring.monitoringConfig.write_rrd_multi(
-        "%s" % name, "GAUGE", updated, val_dict
-    )
+    glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("%s" % name, "GAUGE", updated, val_dict)
 
 
 ##############################################################################
@@ -288,9 +282,7 @@ def aggregateStatus():
         try:
             group_data = xmlParse.xmlfile2dict(status_fname)
         except xmlParse.CorruptXML as e:
-            logSupport.log.error(
-                "Corrupt XML in %s; deleting (it will be recreated)." % (status_fname)
-            )
+            logSupport.log.error("Corrupt XML in %s; deleting (it will be recreated)." % (status_fname))
             os.unlink(status_fname)
             continue
         except OSError:
@@ -316,13 +308,9 @@ def aggregateStatus():
                         global_fact_totals[fos][fact][attribute] = {}
                         if attribute in list(this_fact.keys()):
                             for type_attribute in list(this_fact[attribute].keys()):
-                                this_type_attribute = this_fact[attribute][
-                                    type_attribute
-                                ]
+                                this_type_attribute = this_fact[attribute][type_attribute]
                                 try:
-                                    global_fact_totals[fos][fact][attribute][
-                                        type_attribute
-                                    ] = int(this_type_attribute)
+                                    global_fact_totals[fos][fact][attribute][type_attribute] = int(this_type_attribute)
                                 except:
                                     pass
                 else:
@@ -330,27 +318,21 @@ def aggregateStatus():
                     for attribute in list(type_strings.keys()):
                         if attribute in list(this_fact.keys()):
                             for type_attribute in list(this_fact[attribute].keys()):
-                                this_type_attribute = this_fact[attribute][
-                                    type_attribute
-                                ]
-                                if isinstance(
-                                    this_type_attribute, type(global_fact_totals[fos])
-                                ):
+                                this_type_attribute = this_fact[attribute][type_attribute]
+                                if isinstance(this_type_attribute, type(global_fact_totals[fos])):
                                     # dict, do nothing
                                     pass
                                 else:
                                     if attribute in list(
                                         global_fact_totals[fos][fact].keys()
-                                    ) and type_attribute in list(
-                                        global_fact_totals[fos][fact][attribute].keys()
-                                    ):
-                                        global_fact_totals[fos][fact][attribute][
-                                            type_attribute
-                                        ] += int(this_type_attribute)
+                                    ) and type_attribute in list(global_fact_totals[fos][fact][attribute].keys()):
+                                        global_fact_totals[fos][fact][attribute][type_attribute] += int(
+                                            this_type_attribute
+                                        )
                                     else:
-                                        global_fact_totals[fos][fact][attribute][
-                                            type_attribute
-                                        ] = int(this_type_attribute)
+                                        global_fact_totals[fos][fact][attribute][type_attribute] = int(
+                                            this_type_attribute
+                                        )
         # nr_groups+=1
         # status['groups'][group]={}
 
@@ -369,16 +351,12 @@ def aggregateStatus():
                     global_total[w] = {}
                     tel = global_total[w]
                     for a in list(el.keys()):  # coming from XML, everything is a string
-                        tel[a] = int(
-                            el[a]
-                        )  # pylint: disable=unsupported-assignment-operation
+                        tel[a] = int(el[a])  # pylint: disable=unsupported-assignment-operation
                 else:
                     # successive, sum
                     for a in list(el.keys()):
                         if a in tel:  # pylint: disable=unsupported-membership-test
-                            tel[a] += int(
-                                el[a]
-                            )  # pylint: disable=unsupported-assignment-operation
+                            tel[a] += int(el[a])  # pylint: disable=unsupported-assignment-operation
 
                     # if any attribute from prev. factories are not in the current one, remove from total
                     for a in list(tel.keys()):
@@ -449,9 +427,7 @@ def aggregateStatus():
             leading_tab=xmlFormat.DEFAULT_TAB,
         )
         + "\n"
-        + xmlFormat.class2string(
-            status["total"], inst_name="total", leading_tab=xmlFormat.DEFAULT_TAB
-        )
+        + xmlFormat.class2string(status["total"], inst_name="total", leading_tab=xmlFormat.DEFAULT_TAB)
         + "\n"
         + xmlFormat.dict2string(
             global_fact_totals["factories"],
@@ -498,9 +474,7 @@ def aggregateStatus():
         + "</VOFrontendStats>\n"
     )
 
-    glideinFrontendMonitoring.monitoringConfig.write_file(
-        monitorAggregatorConfig.status_relname, xml_str
-    )
+    glideinFrontendMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname, xml_str)
 
     # Write rrds
 

@@ -49,13 +49,8 @@ class PerfMetric:
     def event_lifetime(self, event_name, check_active_event=True):
         lifetime = -1
         if event_name in self.metric:
-            if ("start_time" in self.metric[event_name]) and (
-                "end_time" in self.metric[event_name]
-            ):
-                lifetime = (
-                    self.metric[event_name]["end_time"]
-                    - self.metric[event_name]["start_time"]
-                )
+            if ("start_time" in self.metric[event_name]) and ("end_time" in self.metric[event_name]):
+                lifetime = self.metric[event_name]["end_time"] - self.metric[event_name]["start_time"]
                 # Event still alive, consider current time instead of end time
                 if (lifetime < 0) and (check_active_event):
                     lifetime = time.time() - self.metric[event_name]["start_time"]

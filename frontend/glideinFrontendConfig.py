@@ -97,9 +97,7 @@ class ConfigFile:
                     % (fname, validate[0], vhash, validate[1])
                 )
 
-    def load(
-        self, fname, convert_function, validate=None
-    ):  # if defined, must be (hash_algo,value)
+    def load(self, fname, convert_function, validate=None):  # if defined, must be (hash_algo,value)
         self.data = {}
         with self.open(fname) as fd:
             data = fd.read()
@@ -165,13 +163,9 @@ class JoinConfigFile(ConfigFile):
         main_validate=None,
         group_validate=None,
     ):  # if defined, must be (hash_algo,value)
-        ConfigFile.__init__(
-            self, base_dir, config_file, convert_function, main_validate
-        )
+        ConfigFile.__init__(self, base_dir, config_file, convert_function, main_validate)
         self.group_name = group_name
-        group_obj = GroupConfigFile(
-            base_dir, group_name, config_file, convert_function, group_validate
-        )
+        group_obj = GroupConfigFile(base_dir, group_name, config_file, convert_function, group_validate)
         if group_validate is not None:
             self.group_hash_value = group_obj.hash_value
         # merge by overriding whatever is found in the subdir
@@ -250,9 +244,7 @@ class SignatureDescript(ConfigFile):
     def split_func(self, line, convert_function):
         larr = line.split(None)
         if len(larr) != 3:
-            raise RuntimeError(
-                "Invalid line (expected 3 elements, found %i)" % len(larr)
-            )
+            raise RuntimeError("Invalid line (expected 3 elements, found %i)" % len(larr))
         self.data[larr[2]] = (larr[0], larr[1])
 
 
@@ -271,9 +263,7 @@ class BaseSignatureDescript(ConfigFile):
     def split_func(self, line, convert_function):
         larr = line.split(None, 1)
         if len(larr) != 2:
-            raise RuntimeError(
-                "Invalid line (expected 2 elements, found %i)" % len(larr)
-            )
+            raise RuntimeError("Invalid line (expected 2 elements, found %i)" % len(larr))
         lval = larr[1]
         self.data[lval] = larr[0]
 
@@ -290,10 +280,7 @@ class ElementMergedDescript:
     def __init__(self, base_dir, group_name):
         self.frontend_data = FrontendDescript(base_dir).data
         if not (group_name in self.frontend_data["Groups"].split(",")):
-            raise RuntimeError(
-                "Group '%s' not supported: %s"
-                % (group_name, self.frontend_data["Groups"])
-            )
+            raise RuntimeError("Group '{}' not supported: {}".format(group_name, self.frontend_data["Groups"]))
 
         self.element_data = ElementDescript(base_dir, group_name).data
         self.group_name = group_name
@@ -306,16 +293,12 @@ class ElementMergedDescript:
         self.merged_data = {}
 
         for t in ("JobSchedds",):
-            self.merged_data[t] = self.split_list(
-                self.frontend_data[t]
-            ) + self.split_list(self.element_data[t])
+            self.merged_data[t] = self.split_list(self.frontend_data[t]) + self.split_list(self.element_data[t])
             if len(self.merged_data[t]) == 0:
                 raise RuntimeError("Found empty %s!" % t)
 
         for t in ("FactoryCollectors",):
-            self.merged_data[t] = eval(self.frontend_data[t]) + eval(
-                self.element_data[t]
-            )
+            self.merged_data[t] = eval(self.frontend_data[t]) + eval(self.element_data[t])
             if len(self.merged_data[t]) == 0:
                 raise RuntimeError("Found empty %s!" % t)
 
@@ -354,19 +337,13 @@ class ElementMergedDescript:
                 self.frontend_data[t],
                 self.element_data[t],
             )
-            self.merged_data[t + "CompiledObj"] = compile(
-                self.merged_data[t], "<string>", "eval"
-            )
+            self.merged_data[t + "CompiledObj"] = compile(self.merged_data[t], "<string>", "eval")
 
         self.merged_data["MatchPolicyModules"] = []
         if "MatchPolicyFile" in self.frontend_data:
-            self.merged_data["MatchPolicyModules"].append(
-                MatchPolicy(self.frontend_data["MatchPolicyFile"])
-            )
+            self.merged_data["MatchPolicyModules"].append(MatchPolicy(self.frontend_data["MatchPolicyFile"]))
         if "MatchPolicyFile" in self.element_data:
-            self.merged_data["MatchPolicyModules"].append(
-                MatchPolicy(self.element_data["MatchPolicyFile"])
-            )
+            self.merged_data["MatchPolicyModules"].append(MatchPolicy(self.element_data["MatchPolicyFile"]))
 
         # We use default ProxySelectionPlugin
         self.merged_data["ProxySelectionPlugin"] = "ProxyAll"
@@ -451,10 +428,7 @@ class StageFiles:
             validate_algo,
             (validate_algo, signature_hash),
         )
-        if (
-            self.stage_descript.hash_value
-            != self.signature_descript.data[descript_fname]
-        ):
+        if self.stage_descript.hash_value != self.signature_descript.data[descript_fname]:
             raise OSError(
                 "Descript file %s signature invalid, expected'%s' got '%s'"
                 % (
@@ -474,30 +448,21 @@ class StageFiles:
 
     def get_file_list(self, list_type):  # example list_type == 'preentry_file_list'
         if list_type not in self.stage_descript.data:
-            raise KeyError(
-                "Unknown list type '%s'; valid typtes are %s"
-                % (list_type, list(self.stage_descript.data.keys()))
-            )
+            raise KeyError(f"Unknown list type '{list_type}'; valid typtes are {list(self.stage_descript.data.keys())}")
 
         list_fname = self.stage_descript.data[list_type]
-        return self.get_stage_file(
-            self.stage_descript.data[list_type], lambda x: x.split(None, 4)
-        )
+        return self.get_stage_file(self.stage_descript.data[list_type], lambda x: x.split(None, 4))
 
 
 # this class knows how to interpret some of the files in the Stage area
 class ExtStageFiles(StageFiles):
     def __init__(self, base_URL, descript_fname, validate_algo, signature_hash):
-        StageFiles.__init__(
-            self, base_URL, descript_fname, validate_algo, signature_hash
-        )
+        StageFiles.__init__(self, base_URL, descript_fname, validate_algo, signature_hash)
         self.preentry_file_list = None
 
     def get_constants(self):
         self.load_preentry_file_list()
-        return self.get_stage_file(
-            self.preentry_file_list.data["constants.cfg"][0], repr
-        )
+        return self.get_stage_file(self.preentry_file_list.data["constants.cfg"][0], repr)
 
     def get_condor_vars(self):
         self.load_preentry_file_list()
@@ -527,9 +492,7 @@ class MergeStageFiles:
         group_signature_hash,
     ):
         self.group_name = group_name
-        self.main_stage = ExtStageFiles(
-            base_URL, main_descript_fname, validate_algo, main_signature_hash
-        )
+        self.main_stage = ExtStageFiles(base_URL, main_descript_fname, validate_algo, main_signature_hash)
         self.group_stage = ExtStageFiles(
             get_group_dir(base_URL, group_name),
             group_descript_fname,
@@ -581,9 +544,7 @@ class HistoryFile:
         """
         self.base_dir = base_dir
         self.group_name = group_name
-        self.fname = os.path.join(
-            get_group_dir(base_dir, group_name), frontendConfig.history_file
-        )
+        self.fname = os.path.join(get_group_dir(base_dir, group_name), frontendConfig.history_file)
         self.default_factory = default_factory
 
         # cannot use collections.defaultdict directly

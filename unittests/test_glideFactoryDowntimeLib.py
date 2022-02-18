@@ -27,12 +27,7 @@ from glideinwms.lib import condorMonitor, logSupport
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
-from glideinwms.unittests.unittest_utils import (
-    FakeLogger,
-    create_random_string,
-    create_temp_file,
-    runTest,
-)
+from glideinwms.unittests.unittest_utils import create_random_string, create_temp_file, FakeLogger, runTest
 
 # from glideinwms.frontend.glideinFrontendInterface import Credential
 
@@ -52,9 +47,7 @@ class TestDowntimes(unittest.TestCase):
         pass
 
     def test_downtimesfile(self):
-        self.downtime.startDowntime(
-            entry="All", comment="unittest downtime", create_if_empty=True
-        )
+        self.downtime.startDowntime(entry="All", comment="unittest downtime", create_if_empty=True)
         self.assertTrue(self.downtime.checkDowntime(entry="All", check_time=None))
         self.assertTrue(self.downtime.checkDowntime(entry="James", check_time=None))
         # Test downtime comments
@@ -102,9 +95,7 @@ class TestDowntimes(unittest.TestCase):
         # Make sure that is after the last downtime command
         now = int(time.time())
         self.assertFalse(self.downtime.checkDowntime(entry="All", check_time=now + 1))
-        self.assertFalse(
-            self.downtime.checkDowntime(entry="DougEntry", check_time=now + 1)
-        )
+        self.assertFalse(self.downtime.checkDowntime(entry="DougEntry", check_time=now + 1))
 
     def test_setdelayedperiod(self):
         now = int(time.time())
@@ -126,9 +117,7 @@ class TestDowntimes(unittest.TestCase):
         # Relative to the initial time (must be now2 < now + 7200)
         # Otherwise endDowntime() interrupts started downtime intervals
         if now2 < now + 7200:
-            self.assertTrue(
-                self.downtime.checkDowntime(entry="All", check_time=now + 9600)
-            )
+            self.assertTrue(self.downtime.checkDowntime(entry="All", check_time=now + 9600))
 
     def test_setfrontendsecclass(self):
         now = int(time.time())
@@ -143,9 +132,7 @@ class TestDowntimes(unittest.TestCase):
         )
         self.assertFalse(self.downtime.checkDowntime(entry="All", check_time=None))
         self.assertFalse(self.downtime.checkDowntime(entry="factory", check_time=None))
-        self.assertFalse(
-            self.downtime.checkDowntime(entry="TestEntry", check_time=None)
-        )
+        self.assertFalse(self.downtime.checkDowntime(entry="TestEntry", check_time=None))
         self.assertTrue(
             self.downtime.checkDowntime(
                 entry="TestEntry",

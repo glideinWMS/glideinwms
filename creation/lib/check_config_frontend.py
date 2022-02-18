@@ -39,10 +39,7 @@ def check_fail(msg):
 
 def check_attr(attr):
     # print ("MMDB: att %r (%s, %s)" % (attr,attr.attrib['name'],attr.attrib['value']))
-    if (
-        attr.attrib["name"] == "GLIDEIN_Singularity_Use"
-        and attr.attrib["value"] == "PREFERRED"
-    ):
+    if attr.attrib["name"] == "GLIDEIN_Singularity_Use" and attr.attrib["value"] == "PREFERRED":
         check_fail("'PREFERRED' value for GLIDEIN_Singularity_Use")
     if (
         attr.attrib["name"] == "SINGULARITY_IMAGES_DICT"

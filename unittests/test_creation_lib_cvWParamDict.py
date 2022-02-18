@@ -19,19 +19,6 @@ import unittest
 
 import xmlrunner
 
-from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
-
-# pylint: disable=no-member
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
-from glideinwms.unittests.unittest_utils import TestImportError, runTest
-
-try:
-    from glideinwms.creation.lib.cvWParamDict import populate_group_descript
-except ImportError as err:
-    raise TestImportError(str(err))
-
-
 from glideinwms.creation.lib import xslt
 from glideinwms.creation.lib.cvWParamDict import (
     apply_group_singularity_policy,
@@ -50,6 +37,18 @@ from glideinwms.creation.lib.cvWParamDict import (
 )
 from glideinwms.creation.lib.cvWParams import VOFrontendParams, VOFrontendSubParams
 from glideinwms.frontend import glideinFrontendLib
+from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
+
+# pylint: disable=no-member
+# unittest_utils will handle putting the appropriate directories on the python
+# path for us.
+from glideinwms.unittests.unittest_utils import runTest, TestImportError
+
+try:
+    from glideinwms.creation.lib.cvWParamDict import populate_group_descript
+except ImportError as err:
+    raise TestImportError(str(err))
+
 
 FRONTEND_DIR = os.path.dirname(glideinFrontendLib.__file__)
 STARTUP_DIR = "fixtures/frontend/web-base"
@@ -90,9 +89,7 @@ class TestFrontendMainDicts(unittest.TestCase):
 
     @unittest.skip("hmm")
     def test_apply_group_singularity_policy(self):
-        apply_group_singularity_policy(
-            self.fed.dicts["group_descript"], self.sub_params, self.params
-        )
+        apply_group_singularity_policy(self.fed.dicts["group_descript"], self.sub_params, self.params)
 
     @unittest.skip("hmm")
     def test_apply_multicore_policy(self):
@@ -161,9 +158,7 @@ class TestFrontendGroupDicts(unittest.TestCase):
 
     @unittest.skip("hmm")
     def test_apply_group_singularity_policy(self):
-        apply_group_singularity_policy(
-            self.fed.dicts["group_descript"], self.sub_params, self.params
-        )
+        apply_group_singularity_policy(self.fed.dicts["group_descript"], self.sub_params, self.params)
 
     @unittest.skip("hmm")
     def test_apply_multicore_policy(self):

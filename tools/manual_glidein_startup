@@ -79,9 +79,7 @@ def parse_opts(argv):
     description += "Example:\n"
     description += 'manual_glidein_startup --wms-collector=fermicloud145.fnal.gov:8618 --client-name=Frontend-master-v1_0.main --req-name=TEST_SITE_2@v1_0@GlideinFactory-master --cmd-out-file=/tmp/glidein_startup_wrapper --override-args="-proxy http://httpproxy.mydomain -v fast"'
 
-    parser = argparse.ArgumentParser(
-        description=description, formatter_class=argparse.RawTextHelpFormatter
-    )
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument(
         "--wms-collector",
@@ -171,10 +169,7 @@ def main(argv):
     client_name = options.client_name
     wms_collector = options.wms_collector.split(",")
 
-    constraint_gc = (
-        '(MyType=="glideclient") && (ClientName=="%s") && (ReqName=="%s")'
-        % (client_name, req_name)
-    )
+    constraint_gc = f'(MyType=="glideclient") && (ClientName=="{client_name}") && (ReqName=="{req_name}")'
     constraint_gf = '(MyType=="glidefactory") && (Name=="%s")' % (req_name)
 
     glidein_startup_args = {}
@@ -233,9 +228,7 @@ def main(argv):
             glidein_startup_args["-clientsigntype"] = ad_gc.get("WebSignType")
             glidein_startup_args["-clientsigngroup"] = ad_gc.get("WebGroupDescriptSign")
             glidein_startup_args["-clientdescript"] = ad_gc.get("WebDescriptFile")
-            glidein_startup_args["-clientdescriptgroup"] = ad_gc.get(
-                "WebGroupDescriptFile"
-            )
+            glidein_startup_args["-clientdescriptgroup"] = ad_gc.get("WebGroupDescriptFile")
             glidein_startup_args["-slotslayout"] = ad_gf.get("GLIDEIN_SlotsLayout")
             glidein_startup_args["-v"] = ad_gf.get("GLIDEIN_Verbosity")
             # Default para to add

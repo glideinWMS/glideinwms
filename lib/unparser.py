@@ -15,6 +15,7 @@ import ast
 import os
 import sys
 import tokenize
+
 from io import StringIO
 
 # Large float and imaginary literals get turned into infinities in the AST.
@@ -674,9 +675,7 @@ class Unparser:
         # Special case: 3.__abs__() is a syntax error, so if t.value
         # is an integer literal then we need to either parenthesize
         # it or add an extra space to get 3 .__abs__().
-        if isinstance(
-            t.value, getattr(ast, "Constant", getattr(ast, "Num", None))
-        ) and isinstance(t.value.n, int):
+        if isinstance(t.value, getattr(ast, "Constant", getattr(ast, "Num", None))) and isinstance(t.value.n, int):
             self.write(" ")
         self.write(".")
         self.write(t.attr)

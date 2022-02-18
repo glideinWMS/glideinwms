@@ -69,19 +69,13 @@ class ProxyFirst:
     def get_required_classad_attributes(self):
         return []
 
-    def update_usermap(
-        self, condorq_dict, condorq_dict_types, status_dict, status_dict_types
-    ):
+    def update_usermap(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
         return
 
     # get the proxies, given the condor_q and condor_status data
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         for cred in self.cred_list:
-            if (
-                (trust_domain is not None)
-                and (hasattr(cred, "trust_domain"))
-                and (cred.trust_domain != trust_domain)
-            ):
+            if (trust_domain is not None) and (hasattr(cred, "trust_domain")) and (cred.trust_domain != trust_domain):
                 continue
             if (
                 (credential_type is not None)
@@ -90,9 +84,7 @@ class ProxyFirst:
             ):
                 continue
             if params_obj is not None:
-                cred.add_usage_details(
-                    params_obj.min_nr_glideins, params_obj.max_run_glideins
-                )
+                cred.add_usage_details(params_obj.min_nr_glideins, params_obj.max_run_glideins)
             return [cred]
         return []
 
@@ -114,20 +106,14 @@ class ProxyAll:
     def get_required_classad_attributes(self):
         return []
 
-    def update_usermap(
-        self, condorq_dict, condorq_dict_types, status_dict, status_dict_types
-    ):
+    def update_usermap(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
         return
 
     # get the proxies, given the condor_q and condor_status data
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         rtnlist = []
         for cred in self.cred_list:
-            if (
-                (trust_domain is not None)
-                and (hasattr(cred, "trust_domain"))
-                and (cred.trust_domain != trust_domain)
-            ):
+            if (trust_domain is not None) and (hasattr(cred, "trust_domain")) and (cred.trust_domain != trust_domain):
                 continue
             if (
                 (credential_type is not None)
@@ -159,17 +145,13 @@ class ProxyUserCardinality:
     def get_required_classad_attributes(self):
         return []
 
-    def update_usermap(
-        self, condorq_dict, condorq_dict_types, status_dict, status_dict_types
-    ):
+    def update_usermap(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
         self.users_set = glideinFrontendLib.getCondorQUsers(condorq_dict)
         return
 
     # get the proxies, given the condor_q and condor_status data
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
-        rtnlist = self.get_proxies_from_cardinality(
-            len(self.users_set), credential_type, trust_domain
-        )
+        rtnlist = self.get_proxies_from_cardinality(len(self.users_set), credential_type, trust_domain)
         if params_obj is not None:
             rtnlist = fair_assign(rtnlist, params_obj)
 
@@ -183,16 +165,10 @@ class ProxyUserCardinality:
     #############################
 
     # return the proxies based on data held by the class
-    def get_proxies_from_cardinality(
-        self, nr_requested_proxies, credential_type=None, trust_domain=None
-    ):
+    def get_proxies_from_cardinality(self, nr_requested_proxies, credential_type=None, trust_domain=None):
         rtnlist = []
         for cred in self.cred_list:
-            if (
-                (trust_domain is not None)
-                and (hasattr(cred, "trust_domain"))
-                and (cred.trust_domain != trust_domain)
-            ):
+            if (trust_domain is not None) and (hasattr(cred, "trust_domain")) and (cred.trust_domain != trust_domain):
                 continue
             if (
                 (credential_type is not None)
@@ -222,9 +198,7 @@ class ProxyProjectName:
     def get_required_classad_attributes(self):
         return []
 
-    def update_usermap(
-        self, condorq_dict, condorq_dict_types, status_dict, status_dict_types
-    ):
+    def update_usermap(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
         self.project_count = {}
         self.total_jobs = 0
         # Get both set of users and number of jobs for each user
@@ -243,18 +217,12 @@ class ProxyProjectName:
 
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         if not params_obj:
-            logSupport.log.debug(
-                "params_obj is None returning the credentials without the project_id Information"
-            )
+            logSupport.log.debug("params_obj is None returning the credentials without the project_id Information")
             return self.proxy_list
         # Determine a base credential to use; we'll copy this and alter the project ID.
         base_cred = None
         for cred in self.proxy_list:
-            if (
-                (trust_domain is not None)
-                and (hasattr(cred, "trust_domain"))
-                and (cred.trust_domain != trust_domain)
-            ):
+            if (trust_domain is not None) and (hasattr(cred, "trust_domain")) and (cred.trust_domain != trust_domain):
                 continue
             if (
                 (credential_type is not None)
@@ -278,16 +246,8 @@ class ProxyProjectName:
                 cred_copy.project_id = project
                 creds.append(cred_copy)
 
-            cred_max = int(
-                math.ceil(
-                    job_count * params_obj.max_run_glideins / float(self.total_jobs)
-                )
-            )
-            cred_idle = int(
-                math.ceil(
-                    job_count * params_obj.min_nr_glideins / float(self.total_jobs)
-                )
-            )
+            cred_max = int(math.ceil(job_count * params_obj.max_run_glideins / float(self.total_jobs)))
+            cred_idle = int(math.ceil(job_count * params_obj.min_nr_glideins / float(self.total_jobs)))
             creds[-1].add_usage_details(cred_max, cred_idle)
         return creds
 
@@ -313,9 +273,7 @@ class ProxyUserRR:
     def get_required_classad_attributes(self):
         return []
 
-    def update_usermap(
-        self, condorq_dict, condorq_dict_types, status_dict, status_dict_types
-    ):
+    def update_usermap(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
         self.users_set = glideinFrontendLib.getCondorQUsers(condorq_dict)
         return
 
@@ -337,11 +295,7 @@ class ProxyUserRR:
         rtnlist = []
         num_cred = 0
         for cred in self.config_data["proxy_list"]:
-            if (
-                (trust_domain is not None)
-                and (hasattr(cred, "trust_domain"))
-                and (cred.trust_domain != trust_domain)
-            ):
+            if (trust_domain is not None) and (hasattr(cred, "trust_domain")) and (cred.trust_domain != trust_domain):
                 continue
             if (
                 (credential_type is not None)
@@ -383,9 +337,7 @@ class ProxyUserRR:
     def save(self):
         """save self.config_data into self.config_fname"""
         # tmp file name is now *.PID.tmp instead of *~
-        util.file_pickle_dump(
-            self.config_fname, self.config_data, protocol=0
-        )  # use ASCII version of protocol
+        util.file_pickle_dump(self.config_fname, self.config_data, protocol=0)  # use ASCII version of protocol
         return
 
     # shuffle a number of proxies from the internal data
@@ -418,9 +370,7 @@ class ProxyUserMapWRecycling:
     def get_required_classad_attributes(self):
         return []
 
-    def update_usermap(
-        self, condorq_dict, condorq_dict_types, status_dict, status_dict_types
-    ):
+    def update_usermap(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
         self.num_user_jobs = {}
         self.total_jobs = 0
         # Get both set of users and number of jobs for each user
@@ -430,9 +380,7 @@ class ProxyUserMapWRecycling:
                 job = condorq_data[jid]
                 if job["JobStatus"] == 1:
                     if job["User"] in self.num_user_jobs:
-                        self.num_user_jobs[job["User"]] = (
-                            self.num_user_jobs[job["User"]] + 1
-                        )
+                        self.num_user_jobs[job["User"]] = self.num_user_jobs[job["User"]] + 1
                     else:
                         self.num_user_jobs[job["User"]] = 1
                     self.total_jobs = self.total_jobs + 1
@@ -504,9 +452,7 @@ class ProxyUserMapWRecycling:
                     user_map[user] = user_map[new_key]
                     del user_map[new_key]
                 else:
-                    logSupport.log.error(
-                        "Could not find a suitable credential for user %s!" % user
-                    )
+                    logSupport.log.error("Could not find a suitable credential for user %s!" % user)
                     # We could not find a suitable credential!
                     continue
 
@@ -515,16 +461,8 @@ class ProxyUserMapWRecycling:
             # Out of the max_run glideins,
             # Allocate proportionally out of the total jobs
             if params_obj is not None:
-                this_max = (
-                    self.num_user_jobs[user]
-                    * params_obj.max_run_glideins
-                    / self.total_jobs
-                )
-                this_idle = (
-                    self.num_user_jobs[user]
-                    * params_obj.min_nr_glideins
-                    / self.total_jobs
-                )
+                this_max = self.num_user_jobs[user] * params_obj.max_run_glideins / self.total_jobs
+                this_idle = self.num_user_jobs[user] * params_obj.min_nr_glideins / self.total_jobs
                 if this_max <= 0:
                     this_max = 1
                 if this_idle <= 0:
@@ -580,9 +518,7 @@ class ProxyUserMapWRecycling:
             self.config_data = util.file_pickle_load(self.config_fname)
 
             # if proxies changed, remove old ones and insert the new ones
-            cached_proxies = (
-                set()
-            )  # here we will store the list of proxies in the cache
+            cached_proxies = set()  # here we will store the list of proxies in the cache
 
             user_map = self.config_data["user_map"]
 
@@ -610,9 +546,7 @@ class ProxyUserMapWRecycling:
     def save(self):
         """save self.config_data into self.config_fname"""
         # tmp file name is now *.PID.tmp instead of *~
-        util.file_pickle_dump(
-            self.config_fname, self.config_data, protocol=0
-        )  # use ASCII version of protocol
+        util.file_pickle_dump(self.config_fname, self.config_data, protocol=0)  # use ASCII version of protocol
         return
 
 
@@ -638,9 +572,7 @@ def createCredentialList(elementDescript):
     credential_list = []
     num = 0
     for proxy in elementDescript.merged_data["Proxies"]:
-        credential_list.append(
-            glideinFrontendInterface.Credential(num, proxy, elementDescript)
-        )
+        credential_list.append(glideinFrontendInterface.Credential(num, proxy, elementDescript))
         num += 1
     return credential_list
 

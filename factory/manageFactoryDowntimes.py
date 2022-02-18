@@ -40,20 +40,12 @@ def usage():
     print("Other options:")
     print("  -start [[[YYYY-]MM-]DD-]HH:MM[:SS] (start time for adding a downtime)")
     print("  -end [[[YYYY-]MM-]DD-]HH:MM[:SS]   (end time for adding a downtime)")
-    print(
-        "  -delay [HHh][MMm][SS[s]]           (delay a downtime for down, up, and check cmds)"
-    )
+    print("  -delay [HHh][MMm][SS[s]]           (delay a downtime for down, up, and check cmds)")
     print("  -ISinfo 'CEStatus'        (attribute used in ress for creating downtimes)")
-    print(
-        "  -security SECURITY_CLASS  (restricts a downtime to users of that security class)"
-    )
-    print(
-        "                            (If not specified, the downtime is for all users.)"
-    )
+    print("  -security SECURITY_CLASS  (restricts a downtime to users of that security class)")
+    print("                            (If not specified, the downtime is for all users.)")
     print("  -frontend SECURITY_NAME   (Limits a downtime to one frontend)")
-    print(
-        '  -comment "Comment here"   (user comment for the downtime. Not used by WMS.)'
-    )
+    print('  -comment "Comment here"   (user comment for the downtime. Not used by WMS.)')
     print()
 
 
@@ -101,9 +93,7 @@ def str2time(timeStr):
 # Create an array for each value in the frontend descript file
 def get_security_classes(factory_dir):
     sec_array = []
-    frontendDescript = glideFactoryConfig.ConfigFile(
-        factory_dir + "/frontend.descript", lambda s: s
-    )
+    frontendDescript = glideFactoryConfig.ConfigFile(factory_dir + "/frontend.descript", lambda s: s)
     for fe in list(frontendDescript.data.keys()):
         for sec_class in frontendDescript.data[fe]["usermap"]:
             sec_array.append(sec_class)
@@ -112,9 +102,7 @@ def get_security_classes(factory_dir):
 
 # Create an array for each frontend in the frontend descript file
 def get_frontends(factory_dir):
-    frontendDescript = glideFactoryConfig.ConfigFile(
-        factory_dir + "/frontend.descript", lambda s: s
-    )
+    frontendDescript = glideFactoryConfig.ConfigFile(factory_dir + "/frontend.descript", lambda s: s)
     return list(frontendDescript.data.keys())
 
 
@@ -207,9 +195,7 @@ def down(entry_name, opt_dict):
         end_time = str2time(opt_dict["end"])
     frontend = opt_dict["frontend"]
     sec_name = opt_dict["sec"]
-    if not down_fd.checkDowntime(
-        entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when
-    ):
+    if not down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when):
         # only add a new line if not in downtime at that time
         return down_fd.startDowntime(
             start_time=when,
@@ -278,9 +264,7 @@ def check(entry_or_id, opt_dict):
     entry_keys = sorted(config_els.keys())
     for entry in entry_keys:
         down_fd = config_els[entry]
-        in_downtime = down_fd.checkDowntime(
-            entry=entry, security_class=sec_name, check_time=when
-        )
+        in_downtime = down_fd.checkDowntime(entry=entry, security_class=sec_name, check_time=when)
         if in_downtime:
             print("%s\tDown" % entry)
         else:
@@ -338,9 +322,7 @@ def infosys_based(entry_name, opt_dict, infosys_types):
     # load the infosys info
 
     for entry in list(config_els.keys()):
-        infosys_fd = cgWDictFile.InfoSysDictFile(
-            cgWConsts.get_entry_submit_dir(".", entry), cgWConsts.INFOSYS_FILE
-        )
+        infosys_fd = cgWDictFile.InfoSysDictFile(cgWConsts.get_entry_submit_dir(".", entry), cgWConsts.INFOSYS_FILE)
         infosys_fd.load()
 
         if len(infosys_fd.keys) == 0:
@@ -388,13 +370,9 @@ def infosys_based(entry_name, opt_dict, infosys_types):
             for server in list(infosys_data_type.keys()):
                 infosys_data_server = infosys_data_type[server]
                 if infosys_type == "RESS":
-                    production_entries += get_production_ress_entries(
-                        server, infosys_data_server
-                    )
+                    production_entries += get_production_ress_entries(server, infosys_data_server)
                 else:
-                    raise RuntimeError(
-                        "Unknown infosys type '%s'" % infosys_type
-                    )  # should never get here
+                    raise RuntimeError("Unknown infosys type '%s'" % infosys_type)  # should never get here
 
     # Use the info to put the
     entry_keys = sorted(config_els.keys())

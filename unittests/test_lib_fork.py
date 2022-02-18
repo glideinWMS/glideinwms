@@ -28,15 +28,15 @@ import glideinwms.lib.logSupport
 # needed to manipulate the select seen by the functions in fork
 from glideinwms.lib import fork
 from glideinwms.lib.fork import (
-    ForkManager,
-    ForkResultError,
     fetch_fork_result,
     fetch_fork_result_list,
     fetch_ready_fork_result_list,
     fork_in_bg,
+    ForkManager,
+    ForkResultError,
     wait_for_pids,
 )
-from glideinwms.unittests.unittest_utils import FakeLogger, create_temp_file
+from glideinwms.unittests.unittest_utils import create_temp_file, FakeLogger
 
 LOG_FILE = create_temp_file()
 
@@ -61,9 +61,7 @@ def sleep_fn(sleep_tm=None):
 class TestForkResultError(unittest.TestCase):
     def test___init__(self):
         try:
-            fork_result_error = ForkResultError(
-                nr_errors=1, good_results=None, failed=1
-            )
+            fork_result_error = ForkResultError(nr_errors=1, good_results=None, failed=1)
         except ForkResultError as err:
             self.assertEqual("", str(err))
             self.assertEqual("", str(fork_result_error))
@@ -168,15 +166,11 @@ class TestForkManager(unittest.TestCase):
 
     def test_fork_and_wait(self):
         expected = self.load_forks()
-        results = (
-            self.fork_manager.fork_and_wait()
-        )  # pylint: disable=assignment-from-no-return
+        results = self.fork_manager.fork_and_wait()  # pylint: disable=assignment-from-no-return
         self.assertEqual(None, results)
         return
 
-    @unittest.skipUnless(
-        sys.platform.lower().startswith("linux"), "epoll available only on Linux"
-    )
+    @unittest.skipUnless(sys.platform.lower().startswith("linux"), "epoll available only on Linux")
     def test_bounded_fork_and_collect_use_epoll(self):
         #
         # the following 3 tests are better if run in order
@@ -186,9 +180,7 @@ class TestForkManager(unittest.TestCase):
         # if platform.system() != 'Linux':
         #    return
         expected = self.load_forks()
-        results = self.fork_manager.bounded_fork_and_collect(
-            max_forks=50, log_progress=True, sleep_time=0.1
-        )
+        results = self.fork_manager.bounded_fork_and_collect(max_forks=50, log_progress=True, sleep_time=0.1)
         self.assertEqual(expected, results)
         fd = open(LOG_FILE)
         log_contents = fd.read()
@@ -206,9 +198,7 @@ class TestForkManager(unittest.TestCase):
         if hasattr(fork.select, "epoll"):
             del fork.select.epoll
         expected = self.load_forks()
-        results = self.fork_manager.bounded_fork_and_collect(
-            max_forks=50, log_progress=True, sleep_time=0.1
-        )
+        results = self.fork_manager.bounded_fork_and_collect(max_forks=50, log_progress=True, sleep_time=0.1)
         # restore select (fork.select) after running the test
         del sys.modules["select"]
         import select
@@ -231,9 +221,7 @@ class TestForkManager(unittest.TestCase):
         if hasattr(fork.select, "poll"):
             del fork.select.poll
         expected = self.load_forks()
-        results = self.fork_manager.bounded_fork_and_collect(
-            max_forks=50, log_progress=True, sleep_time=0.1
-        )
+        results = self.fork_manager.bounded_fork_and_collect(max_forks=50, log_progress=True, sleep_time=0.1)
         # restore select (fork.select) after running the test
         del sys.modules["select"]
         import select

@@ -64,9 +64,7 @@ def usage():
 
 
 def parse_opts(argv):
-    parser = optparse.OptionParser(
-        usage=usage(), version=manager_version(), conflict_handler="resolve"
-    )
+    parser = optparse.OptionParser(usage=usage(), version=manager_version(), conflict_handler="resolve")
     parser.add_option(
         "--release-version",
         dest="relVersion",
@@ -138,11 +136,7 @@ def parse_opts(argv):
 
 def required_args_present(options):
     try:
-        if (
-            (options.relVersion is None)
-            or (options.srcDir is None)
-            or (options.relDir is None)
-        ):
+        if (options.relVersion is None) or (options.srcDir is None) or (options.relDir is None):
             return False
     except AttributeError:
         return False

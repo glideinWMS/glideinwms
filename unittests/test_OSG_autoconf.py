@@ -30,10 +30,7 @@ except ImportError as err:
 
 
 try:
-    from glideinwms.factory.tools.OSG_autoconf import (
-        create_missing_file_internal,
-        get_information_internal,
-    )
+    from glideinwms.factory.tools.OSG_autoconf import create_missing_file_internal, get_information_internal
     from glideinwms.lib.config_util import BEST_FIT_TAG
 except ImportError as err:
     raise TestImportError(str(err))
@@ -47,9 +44,7 @@ class TestOSGAutoconf(unittest.TestCase):
                 "Name": "hosted-ce36.opensciencegrid.org",
                 "OSG_Resource": "AMNH-HEL",  # Currently not used, an attribute will be added in the future
                 "OSG_ResourceGroup": "AMNH",
-                "OSG_ResourceCatalog": [
-                    {"Memory": 65536, "MaxWallTime": 2880, "CPUs": 8}
-                ],
+                "OSG_ResourceCatalog": [{"Memory": 65536, "MaxWallTime": 2880, "CPUs": 8}],
             }
         ]
         expected_out = {
@@ -84,9 +79,7 @@ class TestOSGAutoconf(unittest.TestCase):
                 "Name": "hosted-ce37.opensciencegrid.org",
                 "OSG_Resource": "AMNH-ARES",
                 "OSG_ResourceGroup": "AMNH",
-                "OSG_ResourceCatalog": [
-                    {"Memory": 32768, "MaxWallTime": 1440, "CPUs": 4}
-                ],
+                "OSG_ResourceCatalog": [{"Memory": 32768, "MaxWallTime": 1440, "CPUs": 4}],
             }
         )
         expected_out["AMNH"]["hosted-ce37.opensciencegrid.org"] = {
@@ -111,27 +104,27 @@ class TestOSGAutoconf(unittest.TestCase):
         self.assertEqual(get_information_internal(info), expected_out)
 
         # Add another resource to the OSG_ResourceCatalog for ce37. This is to check "Best Fit pilot" algorithm
-        info[1]["OSG_ResourceCatalog"].append(
-            {"Memory": 2000, "MaxWallTime": 1000, "CPUs": 6}
-        )
-        expected_out["AMNH"]["hosted-ce37.opensciencegrid.org"][BEST_FIT_TAG][
-            "DEFAULT_ENTRY"
-        ]["attrs"]["GLIDEIN_MaxMemMBs"] = {
+        info[1]["OSG_ResourceCatalog"].append({"Memory": 2000, "MaxWallTime": 1000, "CPUs": 6})
+        expected_out["AMNH"]["hosted-ce37.opensciencegrid.org"][BEST_FIT_TAG]["DEFAULT_ENTRY"]["attrs"][
+            "GLIDEIN_MaxMemMBs"
+        ] = {
             "value": 2000
         }  # The minimum memory
-        expected_out["AMNH"]["hosted-ce37.opensciencegrid.org"][BEST_FIT_TAG][
-            "DEFAULT_ENTRY"
-        ]["attrs"]["GLIDEIN_Max_Walltime"] = {
+        expected_out["AMNH"]["hosted-ce37.opensciencegrid.org"][BEST_FIT_TAG]["DEFAULT_ENTRY"]["attrs"][
+            "GLIDEIN_Max_Walltime"
+        ] = {
             "value": 1000 * 60 - 1800
         }  # The minimum walltime
-        expected_out["AMNH"]["hosted-ce37.opensciencegrid.org"][BEST_FIT_TAG][
-            "DEFAULT_ENTRY"
-        ]["attrs"]["GLIDEIN_CPUS"] = {
+        expected_out["AMNH"]["hosted-ce37.opensciencegrid.org"][BEST_FIT_TAG]["DEFAULT_ENTRY"]["attrs"][
+            "GLIDEIN_CPUS"
+        ] = {
             "value": 2
         }  # The GCD (greater common divisor)
-        expected_out["AMNH"]["hosted-ce37.opensciencegrid.org"][BEST_FIT_TAG][
-            "DEFAULT_ENTRY"
-        ]["submit_attrs"] = {"+maxWallTime": 1000, "+xcount": 2, "+maxMemory": 2000}
+        expected_out["AMNH"]["hosted-ce37.opensciencegrid.org"][BEST_FIT_TAG]["DEFAULT_ENTRY"]["submit_attrs"] = {
+            "+maxWallTime": 1000,
+            "+xcount": 2,
+            "+maxMemory": 2000,
+        }
         self.assertEqual(get_information_internal(info), expected_out)
 
         # Now check the "IsPilotEntry = true" case
@@ -208,9 +201,7 @@ class TestOSGAutoconf(unittest.TestCase):
             "limits": {"entry": {"glideins": 1000}},
         }
         expected_out["LSU"]["hosted-ce29.grid.uchicago.edu"]["WholeNode"] = {}
-        expected_out["LSU"]["hosted-ce29.grid.uchicago.edu"]["WholeNode"][
-            "DEFAULT_ENTRY"
-        ] = {
+        expected_out["LSU"]["hosted-ce29.grid.uchicago.edu"]["WholeNode"]["DEFAULT_ENTRY"] = {
             "gridtype": "condor",
             "attrs": {
                 "GLIDEIN_ResourceName": {"value": "LSU"},
@@ -222,9 +213,7 @@ class TestOSGAutoconf(unittest.TestCase):
             "limits": {"entry": {"glideins": 1000}},
         }
         expected_out["LSU"]["hosted-ce29.grid.uchicago.edu"]["default"] = {}
-        expected_out["LSU"]["hosted-ce29.grid.uchicago.edu"]["default"][
-            "DEFAULT_ENTRY"
-        ] = {
+        expected_out["LSU"]["hosted-ce29.grid.uchicago.edu"]["default"]["DEFAULT_ENTRY"] = {
             "gridtype": "condor",
             "attrs": {
                 "GLIDEIN_ResourceName": {"value": "LSU"},
@@ -311,88 +300,64 @@ class TestOSGAutoconf(unittest.TestCase):
         }
 
         missing_info = {}  # Info from the old missing.yml file
-        osg_info = copy.deepcopy(
-            info
-        )  # Information as in the old OSG.yml file (old=from the previous run)
-        whitelist_info = {
-            "ANOTHER_SITE": {"ce01.othersite.edu": {}}
-        }  # The operator's override file
-        osg_collector_data = copy.deepcopy(
-            info
-        )  # Information from the OSG collector. Just fetched.
+        osg_info = copy.deepcopy(info)  # Information as in the old OSG.yml file (old=from the previous run)
+        whitelist_info = {"ANOTHER_SITE": {"ce01.othersite.edu": {}}}  # The operator's override file
+        osg_collector_data = copy.deepcopy(info)  # Information from the OSG collector. Just fetched.
         self.assertEqual(
-            create_missing_file_internal(
-                missing_info, osg_info, whitelist_info, osg_collector_data
-            ),
+            create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data),
             {},
         )
 
         # One of the site is now missing from the collector data
         del osg_collector_data["ANOTHER_SITE"]
         self.assertEqual(
-            create_missing_file_internal(
-                missing_info, osg_info, whitelist_info, osg_collector_data
-            )["ANOTHER_SITE"],
+            create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data)["ANOTHER_SITE"],
             info["ANOTHER_SITE"],
         )
 
         # Now what happens if it is also missing from the old data?
         del osg_info["ANOTHER_SITE"]
         self.assertEqual(
-            create_missing_file_internal(
-                missing_info, osg_info, whitelist_info, osg_collector_data
-            ),
+            create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data),
             {},
         )
 
         # Now let's pretend it was in the missing yaml
         missing_info["ANOTHER_SITE"] = copy.deepcopy(info["ANOTHER_SITE"])
         self.assertEqual(
-            create_missing_file_internal(
-                missing_info, osg_info, whitelist_info, osg_collector_data
-            )["ANOTHER_SITE"],
+            create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data)["ANOTHER_SITE"],
             info["ANOTHER_SITE"],
         )
 
         # And if it is both in the missing file and the collector (CE is back up)? Missing should be empty.
-        osg_collector_data = copy.deepcopy(
-            info
-        )  # Information from the OSG collector. Just fetched.
+        osg_collector_data = copy.deepcopy(info)  # Information from the OSG collector. Just fetched.
         self.assertEqual(
-            create_missing_file_internal(
-                missing_info, osg_info, whitelist_info, osg_collector_data
-            ),
+            create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data),
             {},
         )
 
         # Let's test a bit what happens when just a CE is missing
         missing_info = {}
-        osg_info = copy.deepcopy(
-            info
-        )  # Information as in the old OSG.yml file (old=from the previous run)
+        osg_info = copy.deepcopy(info)  # Information as in the old OSG.yml file (old=from the previous run)
         whitelist_info = {"SITE_NAME": {"ce01.sitename.edu": {}}}
         self.assertEqual(
-            create_missing_file_internal(
-                missing_info, osg_info, whitelist_info, osg_collector_data
-            ),
+            create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data),
             {},
         )
 
         # CE missing from the collector: Restored from old OSG YAML
         del osg_collector_data["SITE_NAME"]["ce01.sitename.edu"]
         self.assertEqual(
-            create_missing_file_internal(
-                missing_info, osg_info, whitelist_info, osg_collector_data
-            )["SITE_NAME"]["ce01.sitename.edu"],
+            create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data)["SITE_NAME"][
+                "ce01.sitename.edu"
+            ],
             info["SITE_NAME"]["ce01.sitename.edu"],
         )
 
         # CE missing from the collector and can't be restored
         del osg_info["SITE_NAME"]["ce01.sitename.edu"]
         self.assertEqual(
-            create_missing_file_internal(
-                missing_info, osg_info, whitelist_info, osg_collector_data
-            ),
+            create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data),
             {},
         )
 
@@ -401,9 +366,9 @@ class TestOSGAutoconf(unittest.TestCase):
             info["SITE_NAME"]["ce01.sitename.edu"]
         )
         self.assertEqual(
-            create_missing_file_internal(
-                missing_info, osg_info, whitelist_info, osg_collector_data
-            )["SITE_NAME"]["ce01.sitename.edu"],
+            create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data)["SITE_NAME"][
+                "ce01.sitename.edu"
+            ],
             info["SITE_NAME"]["ce01.sitename.edu"],
         )
 
@@ -412,20 +377,14 @@ class TestOSGAutoconf(unittest.TestCase):
         del osg_collector_data["SITE_NAME"]["ce02.sitename.edu"]
         # restored from the OSG YAML
         self.assertEqual(
-            create_missing_file_internal(
-                missing_info, osg_info, whitelist_info, osg_collector_data
-            )["SITE_NAME"],
+            create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data)["SITE_NAME"],
             info["SITE_NAME"],
         )
         # restored from the missing file
         del osg_info["SITE_NAME"]["ce02.sitename.edu"]
-        missing_info["SITE_NAME"]["ce02.sitename.edu"] = copy.deepcopy(
-            info["SITE_NAME"]["ce02.sitename.edu"]
-        )
+        missing_info["SITE_NAME"]["ce02.sitename.edu"] = copy.deepcopy(info["SITE_NAME"]["ce02.sitename.edu"])
         self.assertEqual(
-            create_missing_file_internal(
-                missing_info, osg_info, whitelist_info, osg_collector_data
-            )["SITE_NAME"],
+            create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data)["SITE_NAME"],
             info["SITE_NAME"],
         )
 

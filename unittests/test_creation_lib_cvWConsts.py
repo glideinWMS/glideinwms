@@ -69,9 +69,7 @@ class TestGetGroupStageDir(unittest.TestCase):
 
 class TestGetGroupNameFromGroupStageDir(unittest.TestCase):
     def test_get_group_name_from_group_stage_dir(self):
-        self.assertEqual(
-            group_name, get_group_name_from_group_stage_dir(group_stage_dir)
-        )
+        self.assertEqual(group_name, get_group_name_from_group_stage_dir(group_stage_dir))
         try:
             get_group_name_from_group_stage_dir("/var/log/junk")
         except Exception as err:
@@ -80,16 +78,12 @@ class TestGetGroupNameFromGroupStageDir(unittest.TestCase):
 
 class TestGetGroupMonitorDir(unittest.TestCase):
     def test_get_group_monitor_dir(self):
-        self.assertEqual(
-            group_monitor_dir, get_group_monitor_dir(monitor_dir, group_name)
-        )
+        self.assertEqual(group_monitor_dir, get_group_monitor_dir(monitor_dir, group_name))
 
 
 class TestGetGroupNameFromGroupMonitorDir(unittest.TestCase):
     def test_get_group_name_from_group_monitor_dir(self):
-        self.assertEqual(
-            group_name, get_group_name_from_group_monitor_dir(group_monitor_dir)
-        )
+        self.assertEqual(group_name, get_group_name_from_group_monitor_dir(group_monitor_dir))
         try:
             get_group_name_from_group_monitor_dir("/var/log/junk")
         except Exception as err:

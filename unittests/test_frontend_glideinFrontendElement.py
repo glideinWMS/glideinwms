@@ -17,15 +17,17 @@ import os
 import unittest
 
 from unittest import mock
+
 import xmlrunner
 
 import glideinwms
 import glideinwms.lib.condorExe as condorExe
 import glideinwms.lib.condorMonitor as condorMonitor
+
 from glideinwms.frontend import glideinFrontendMonitoring
 from glideinwms.frontend.glideinFrontendElement import (
-    CounterWrapper,
     check_parent,
+    CounterWrapper,
     glideinFrontendElement,
     init_factory_stats_arr,
     log_and_sum_factory_line,
@@ -229,10 +231,7 @@ class TestGlideinFrontendElement(unittest.TestCase):
         # print('after iteration self.gfe=%s' % self.gfe)
         # print('dir self.gfe=%s' % dir(self.gfe))
         print("after iteration self.gfe.stats=%s" % dir(self.gfe.stats))
-        print(
-            'after iteration self.gfe.stats["group"].data=%s'
-            % self.gfe.stats["group"].data
-        )
+        print('after iteration self.gfe.stats["group"].data=%s' % self.gfe.stats["group"].data)
 
     @unittest.skip("for now")
     def test_log_and_print_total_stats(self):
@@ -278,9 +277,7 @@ class TestGlideinFrontendElement(unittest.TestCase):
             "Total": {"abs": 0, "dict": {}},
         }
         for key in expected:
-            self.assertTrue(
-                key in self.gfe.status_dict_types, self.gfe.status_dict_types
-            )
+            self.assertTrue(key in self.gfe.status_dict_types, self.gfe.status_dict_types)
 
     @unittest.skip("for now")
     def test_query_entries(self):
@@ -375,9 +372,7 @@ class TestLogAndSumFactoryLine(unittest.TestCase):
         old_factory_stat_arr = factory_stat_arr
         self.assertEqual(
             expected,
-            log_and_sum_factory_line(
-                factory, is_down, factory_stat_arr, old_factory_stat_arr
-            ),
+            log_and_sum_factory_line(factory, is_down, factory_stat_arr, old_factory_stat_arr),
         )
 
 

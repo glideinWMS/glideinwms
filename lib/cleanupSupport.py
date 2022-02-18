@@ -20,15 +20,10 @@ class Cleanup:
 
     def start_background_cleanup(self):
         if self.cleanup_pids:
-            logSupport.log.warning(
-                "Earlier cleanup PIDs %s still exist; skipping this cycle"
-                % self.cleanup_pids
-            )
+            logSupport.log.warning("Earlier cleanup PIDs %s still exist; skipping this cycle" % self.cleanup_pids)
         else:
             num_forks = 4  # arbitrary - could be configurable
-            cleanup_lists = [
-                self.cleanup_objects[x::num_forks] for x in range(num_forks)
-            ]
+            cleanup_lists = [self.cleanup_objects[x::num_forks] for x in range(num_forks)]
             for i in range(num_forks):
                 unregister_sighandler()
                 cl_pid = os.fork()
@@ -51,9 +46,7 @@ class Cleanup:
                     self.cleanup_pids.remove(pid)
             except OSError as e:
                 self.cleanup_pids.remove(pid)
-                logSupport.log.warning(
-                    f"Received error {e.strerror} while waiting for PID {pid}"
-                )
+                logSupport.log.warning(f"Received error {e.strerror} while waiting for PID {pid}")
 
     def cleanup(self):
         # foreground cleanup
@@ -153,9 +146,7 @@ class DirCleanupWSpace(DirCleanup):
         should_log=True,
         should_log_warnings=True,
     ):
-        DirCleanup.__init__(
-            self, dirname, fname_expression, maxlife, should_log, should_log_warnings
-        )
+        DirCleanup.__init__(self, dirname, fname_expression, maxlife, should_log, should_log_warnings)
         self.minlife = minlife
         self.maxspace = maxspace
 
@@ -184,9 +175,7 @@ class DirCleanupWSpace(DirCleanup):
             update_time = fstat[stat.ST_MTIME]
             fsize = fstat[stat.ST_SIZE]
 
-            if (update_time < treshold_time) or (
-                (update_time < min_treshold_time) and (used_space > self.maxspace)
-            ):
+            if (update_time < treshold_time) or ((update_time < min_treshold_time) and (used_space > self.maxspace)):
                 try:
                     os.unlink(fpath)
                     count_removes += 1
@@ -199,8 +188,7 @@ class DirCleanupWSpace(DirCleanup):
         if count_removes > 0:
             if self.should_log:
                 logSupport.log.info(
-                    "Removed %i files for %.2fMB."
-                    % (count_removes, count_removes_bytes / (1024.0 * 1024.0))
+                    "Removed %i files for %.2fMB." % (count_removes, count_removes_bytes / (1024.0 * 1024.0))
                 )
 
 

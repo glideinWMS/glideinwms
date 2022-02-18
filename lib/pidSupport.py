@@ -50,9 +50,7 @@ class PidSupport:
 
     # open the pid_file and gain the exclusive lock
     # also write in the PID information
-    def register(
-        self, pid=None, started_time=None  # if none, will default to os.getpid()
-    ):  # if none, use time.time()
+    def register(self, pid=None, started_time=None):  # if none, will default to os.getpid()  # if none, use time.time()
         if self.fd is not None:
             raise RuntimeError("Cannot register two pids in the same object!")
 
@@ -77,10 +75,7 @@ class PidSupport:
             self.lock_in_place = True
         except OSError:
             fd.close()
-            raise AlreadyRunning(
-                "Another process already running. Unable to acquire lock %s"
-                % self.pid_fname
-            )
+            raise AlreadyRunning("Another process already running. Unable to acquire lock %s" % self.pid_fname)
         fd.seek(0)
         fd.truncate()
         fd.write(self.format_pid_file_content())

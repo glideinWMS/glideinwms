@@ -42,11 +42,9 @@ class MatchPolicyLoadError(Exception):
         if self.file == "":
             err_str = "No match policy file provided"
         else:
-            err_str = (
-                "Failed to load policy from the file {} in the search path {}".format(
-                    self.file,
-                    self.searchPath,
-                )
+            err_str = "Failed to load policy from the file {} in the search path {}".format(
+                self.file,
+                self.searchPath,
             )
         return err_str
 
@@ -138,9 +136,7 @@ class MatchPolicy:
                     match_attrs[ma_name] = data
                 else:
                     # Raise error if match_attr is not of type dict
-                    raise MatchPolicyContentError(
-                        self.file, ma_name, type(ma_attr).__name__, "dict"
-                    )
+                    raise MatchPolicyContentError(self.file, ma_name, type(ma_attr).__name__, "dict")
         return match_attrs
 
     def __repr__(self):

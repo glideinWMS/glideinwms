@@ -223,25 +223,15 @@ def fetch_ready_fork_result_list(pipe_ids):
             try:
                 poll_obj.register(
                     read_fd,
-                    select.EPOLLIN
-                    | select.EPOLLHUP
-                    | select.EPOLLERR
-                    | select.EPOLLRDBAND
-                    | select.EPOLLRDNORM,
+                    select.EPOLLIN | select.EPOLLHUP | select.EPOLLERR | select.EPOLLRDBAND | select.EPOLLRDNORM,
                 )
             except OSError as err:
                 # Epoll (contrary to poll) complains about duplicate registrations:  IOError: [Errno 17] File exists
                 # All other errors are re-risen
                 if err.errno == errno.EEXIST:
-                    logSupport.log.warning(
-                        "Ignoring duplicate fd %s registration in epoll(): '%s'"
-                        % (read_fd, str(err))
-                    )
+                    logSupport.log.warning(f"Ignoring duplicate fd {read_fd} registration in epoll(): '{str(err)}'")
                 else:
-                    logSupport.log.warning(
-                        "Unsupported fd %s registration failure in epoll(): '%s'"
-                        % (read_fd, str(err))
-                    )
+                    logSupport.log.warning(f"Unsupported fd {read_fd} registration failure in epoll(): '{str(err)}'")
                     raise
         # File descriptors: [i[0] for i in poll_obj.poll(0) if i[1] & (select.EPOLLIN|select.EPOLLPRI)]
         # Filtering is not needed, done by epoll, both EPOLLIN and EPOLLPRI are OK
@@ -255,16 +245,12 @@ def fetch_ready_fork_result_list(pipe_ids):
             poll_obj = select.poll()
             poll_type = "poll"
             for read_fd in list(fds_to_entry.keys()):
-                poll_obj.register(
-                    read_fd, select.POLLIN | select.POLLHUP | select.POLLERR
-                )
+                poll_obj.register(read_fd, select.POLLIN | select.POLLHUP | select.POLLERR)
             readable_fds = [i[0] for i in poll_obj.poll(POLL_TIMEOUT)]
         except (AttributeError, OSError) as err:
             logSupport.log.warning("Failed to load select.poll(): %s" % str(err))
             # no epoll() or poll(), use select()
-            readable_fds = select.select(
-                list(fds_to_entry.keys()), [], [], POLL_TIMEOUT / 1000.0
-            )[0]
+            readable_fds = select.select(list(fds_to_entry.keys()), [], [], POLL_TIMEOUT / 1000.0)[0]
             poll_type = "select"
 
     count = 0
@@ -278,9 +264,7 @@ def fetch_ready_fork_result_list(pipe_ids):
             pid = pipe_ids[key]["pid"]
             out = fetch_fork_result(fd, pid)
             if poll_obj:
-                poll_obj.unregister(
-                    fd
-                )  # Is this needed? the poll object is no more used, next time will be a new one
+                poll_obj.unregister(fd)  # Is this needed? the poll object is no more used, next time will be a new one
             work_info[key] = out
             count += 1
         except (OSError, ValueError, KeyError, FetchError) as err:
@@ -378,10 +362,7 @@ class ForkManager:
             if forks_remaining == 0:
                 if log_progress:
                     # log here, since we will have to wait
-                    logSupport.log.info(
-                        "Active forks = %i, Forks to finish = %i"
-                        % (max_forks, functions_remaining)
-                    )
+                    logSupport.log.info("Active forks = %i, Forks to finish = %i" % (max_forks, functions_remaining))
             while forks_remaining == 0:
                 failed_keys = []
                 # Give some time for the processes to finish the work
@@ -417,8 +398,7 @@ class ForkManager:
 
         if log_progress:
             logSupport.log.info(
-                "Active forks = %i, Forks to finish = %i"
-                % (max_forks - forks_remaining, functions_remaining)
+                "Active forks = %i, Forks to finish = %i" % (max_forks - forks_remaining, functions_remaining)
             )
 
         # now we just have to wait for all to finish
@@ -449,8 +429,7 @@ class ForkManager:
             if len(post_work_info_subset) > 0:
                 if log_progress:
                     logSupport.log.info(
-                        "Active forks = %i, Forks to finish = %i"
-                        % (max_forks - forks_remaining, functions_remaining)
+                        "Active forks = %i, Forks to finish = %i" % (max_forks - forks_remaining, functions_remaining)
                     )
         # end while
 

@@ -15,9 +15,7 @@ FACTORY_DEFAULTS_XML = "factory_defaults.xml"
 xmlConfig.register_list_elements(
     {
         "allow_frontends": lambda d: d["name"],
-        "condor_tarballs": lambda d: "{},{},{}".format(
-            d["arch"], d["os"], d["version"]
-        ),
+        "condor_tarballs": lambda d: "{},{},{}".format(d["arch"], d["os"], d["version"]),
         "entries": lambda d: d["name"],
         "entry_sets": lambda d: d["alias"],
         "frontends": lambda d: d["name"],
@@ -44,15 +42,9 @@ class FactAttrElement(xmlConfig.AttrElement):
         is_param = eval(self["parameter"])
 
         if is_publish and (not is_const and not is_param):
-            raise RuntimeError(
-                self.err_str(
-                    'published attribute must either be "parameter" or "const"'
-                )
-            )
+            raise RuntimeError(self.err_str('published attribute must either be "parameter" or "const"'))
         if not is_publish and (not is_const or not is_param):
-            raise RuntimeError(
-                self.err_str('unpublished attribute must be "const" "parameter"')
-            )
+            raise RuntimeError(self.err_str('unpublished attribute must be "const" "parameter"'))
         self.check_overwrite_soundness()
 
     def check_overwrite_soundness(self):
@@ -67,15 +59,10 @@ class FactAttrElement(xmlConfig.AttrElement):
             return
         for att in attrs.get_children():
             if att["name"] == self["name"] and att["const"] != self["const"]:
-                entry = (
-                    "Global section"
-                    if isinstance(self.parent.parent, Config)
-                    else self.parent.parent.getName()
-                )
+                entry = "Global section" if isinstance(self.parent.parent, Config) else self.parent.parent.getName()
                 raise RuntimeError(
                     '%s: attribute %s is already defined in the global section, but it is const="%s". '
-                    "Please make sure the 'const' value is the same."
-                    % (entry, self["name"], att["const"])
+                    "Please make sure the 'const' value is the same." % (entry, self["name"], att["const"])
                 )
 
 
@@ -96,9 +83,7 @@ xmlConfig.register_tag_classes({"file": FactFileElement})
 class CondTarElement(xmlConfig.DictElement):
     def validate(self):
         if "tar_file" not in self and "base_dir" not in self:
-            raise RuntimeError(
-                self.err_str('must either define "tar_file" or "base_dir"')
-            )
+            raise RuntimeError(self.err_str('must either define "tar_file" or "base_dir"'))
 
 
 xmlConfig.register_tag_classes({"condor_tarball": CondTarElement})
@@ -128,15 +113,9 @@ class EntryElement(xmlConfig.DictElement):
         self.validate_sub_elements()
 
     def validate_sub_elements(self):
-        for per_fe in (
-            self.get_child("config")
-            .get_child("max_jobs")
-            .get_child_list("per_frontends")
-        ):
+        for per_fe in self.get_child("config").get_child("max_jobs").get_child_list("per_frontends"):
             per_fe.check_missing("name")
-        for submit_attr in (
-            self.get_child("config").get_child("submit").get_child_list("submit_attrs")
-        ):
+        for submit_attr in self.get_child("config").get_child("submit").get_child_list("submit_attrs"):
             submit_attr.check_missing("name")
         for allowed_fe in self.get_child_list("allow_frontends"):
             allowed_fe.check_missing("name")
@@ -159,11 +138,7 @@ class EntrySetElement(EntryElement):
         self.check_missing("alias")
         self.check_boolean("enabled")
         self.validate_sub_elements()
-        algo_name = (
-            self.get_child("config")
-            .children.get("entry_selection", {})
-            .get("algorithm_name")
-        )
+        algo_name = self.get_child("config").children.get("entry_selection", {}).get("algorithm_name")
         if algo_name:
             if not (
                 getattr(
@@ -173,8 +148,7 @@ class EntrySetElement(EntryElement):
                 )
             ):
                 raise RuntimeError(
-                    "Function name selectionAlgo%s not found in the glideFactorySelectionAlgorithms module"
-                    % algo_name
+                    "Function name selectionAlgo%s not found in the glideFactorySelectionAlgorithms module" % algo_name
                 )
 
     def select(self, entry):
@@ -238,9 +212,7 @@ class Config(xmlConfig.DictElement):
                 for subcode in splitstr:
                     int(subcode)
         except ValueError:
-            raise RuntimeError(
-                "recoverable_exitcodes should be list of integers. See configuration.html for more info"
-            )
+            raise RuntimeError("recoverable_exitcodes should be list of integers. See configuration.html for more info")
 
     #######################
     #
@@ -258,9 +230,7 @@ class Config(xmlConfig.DictElement):
 
     def set_stage_dir(self):
         if eval(self["factory_versioning"]):
-            self.stage_dir = os.path.join(
-                self.get_child("stage")["base_dir"], "glidein_%s" % self["glidein_name"]
-            )
+            self.stage_dir = os.path.join(self.get_child("stage")["base_dir"], "glidein_%s" % self["glidein_name"])
         else:
             self.stage_dir = self.get_child("stage")["base_dir"]
 
@@ -391,9 +361,7 @@ def parse(file):
                 conf.merge(_parse(os.path.join(conf_dir_path, f)))
 
     # assume FACTORY_DEFAULTS_XML is in factoryXmlConfig module directory
-    conf_def = _parse(
-        os.path.join(os.path.dirname(__file__), FACTORY_DEFAULTS_XML), True
-    )
+    conf_def = _parse(os.path.join(os.path.dirname(__file__), FACTORY_DEFAULTS_XML), True)
     conf.merge_defaults(conf_def)
 
     # now that we are validated, set the directories

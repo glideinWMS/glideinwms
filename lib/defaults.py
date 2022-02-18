@@ -38,8 +38,7 @@ def force_bytes(instr, encoding=BINARY_ENCODING_CRYPTO):
         # raise Exception("ALREADY str!")
         if instr.startswith("b'"):
             raise ValueError(
-                "Input was improperly converted into string (resulting in b'' characters added): %s"
-                % instr
+                "Input was improperly converted into string (resulting in b'' characters added): %s" % instr
             )
         return instr.encode(encoding)
     return instr

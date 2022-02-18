@@ -19,6 +19,7 @@ import unittest
 import xmlrunner
 
 import glideinwms.lib.subprocessSupport
+
 from glideinwms.unittests.unittest_utils import TestImportError
 
 try:

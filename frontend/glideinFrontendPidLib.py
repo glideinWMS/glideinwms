@@ -1,18 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #  Handle frontend pids
-#
-# Author:
-#   Igor Sfiligoi
-#
 
 import os
 
@@ -112,9 +102,7 @@ def get_frontend_action_type(startup_dir):
 
 class ElementPidSupport(pidSupport.PidWParentSupport):
     def __init__(self, startup_dir, group_name):
-        lock_file = os.path.join(
-            startup_dir, f"{startup_dir}/group_{group_name}/lock/frontend.lock"
-        )
+        lock_file = os.path.join(startup_dir, f"{startup_dir}/group_{group_name}/lock/frontend.lock")
         pidSupport.PidWParentSupport.__init__(self, lock_file)
 
 

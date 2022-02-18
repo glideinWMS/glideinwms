@@ -24,6 +24,7 @@ import shutil
 import subprocess
 import tempfile
 import time
+
 from base64 import b32encode
 
 # imports and global for flattenDict
@@ -294,16 +295,13 @@ def file_pickle_load(
                     if fname_time < current_time - expiration:
                         # if expired raise ExpiredFile (w/ timestamp)
                         raise ExpiredFileException(
-                            "File %s expired, older then %s seconds (file time: %s)"
-                            % (fname, expiration, fname_time)
+                            f"File {fname} expired, older then {expiration} seconds (file time: {fname_time})"
                         )
                 else:
                     try:
                         if fname_time <= last_time[fname]:
                             # expired
-                            raise ExpiredFileException(
-                                f"File {fname} already used at {last_time[fname]}"
-                            )
+                            raise ExpiredFileException(f"File {fname} already used at {last_time[fname]}")
                     except KeyError:
                         pass
                     last_time[fname] = fname_time
@@ -328,9 +326,7 @@ def file_pickle_load(
 # TODO: replace all definitions with this one
 
 
-def file_tmp2final(
-    fname, tmp_fname=None, bck_fname=None, do_backup=True, mask_exceptions=None
-):
+def file_tmp2final(fname, tmp_fname=None, bck_fname=None, do_backup=True, mask_exceptions=None):
     """Complete an atomic write by moving a file new version to its destination.
 
     If do_backup is True it removes the previous backup and copies the file to bak_fname.

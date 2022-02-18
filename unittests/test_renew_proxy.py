@@ -15,6 +15,7 @@ Author:
 import unittest
 
 from unittest import mock
+
 import xmlrunner
 
 from glideinwms.frontend import gwms_renew_proxies as proxy
@@ -80,18 +81,14 @@ class TestUtils(unittest.TestCase):
 
         for role, expected_val in [("NULL", "name"), ("pilot", "voms")]:
             mock_voms_attr.fqan = f"/Role={role}/Capability=NULL"
-            mock_voms_attr.voms = "/{}{}".format(
-                mock_voms_attr.name, mock_voms_attr.fqan
-            )
+            mock_voms_attr.voms = f"/{mock_voms_attr.name}{mock_voms_attr.fqan}"
             proxy.voms_proxy_init(mock_proxy, mock_voms_attr)
 
             command = mock_run_command.call_args[0][0]
             voms_opt = "-voms"
             order_opt = "-order"
             self.assertIn(voms_opt, command)
-            self.assertEqual(
-                get_opt_val(command, voms_opt), getattr(mock_voms_attr, expected_val)
-            )
+            self.assertEqual(get_opt_val(command, voms_opt), getattr(mock_voms_attr, expected_val))
             self.assertIn(order_opt, command)
             self.assertFalse("/Capability=" in get_opt_val(command, order_opt))
 

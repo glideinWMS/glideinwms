@@ -22,13 +22,6 @@ import hypothesis
 import hypothesis.strategies as st
 import xmlrunner
 
-from glideinwms.unittests.unittest_utils import TestImportError
-
-try:
-    from glideinwms.lib.symCrypto import SymKey
-except ImportError as err:
-    raise TestImportError(str(err))
-
 from glideinwms.lib import defaults
 from glideinwms.lib.symCrypto import (
     AutoSymKey,
@@ -40,6 +33,12 @@ from glideinwms.lib.symCrypto import (
     SymBlowfishKey,
     SymDESKey,
 )
+from glideinwms.unittests.unittest_utils import TestImportError
+
+try:
+    from glideinwms.lib.symCrypto import SymKey
+except ImportError as err:
+    raise TestImportError(str(err))
 
 
 class TestMutableSymKey(unittest.TestCase):

@@ -245,15 +245,7 @@ def class2string(
     if override_dictionary_type != None:
         DEFAULT_OVERRIDE_DICT.update({"TypeDict": override_dictionary_type})
 
-    (
-        head_str,
-        is_complete,
-        inst_attrs,
-        dict_attrs,
-        list_attrs,
-        tree_attrs,
-        text_attrs,
-    ) = class2head(
+    (head_str, is_complete, inst_attrs, dict_attrs, list_attrs, tree_attrs, text_attrs,) = class2head(
         inst,
         inst_name,
         params,
@@ -270,11 +262,7 @@ def class2string(
     res_arr = []
     res_arr.append(head_str)
     for attr in text_attrs:
-        res_arr.append(
-            leading_tab
-            + indent_tab
-            + f"<{attr}>\n{xml.sax.saxutils.escape(inst[attr], 1)}\n</{attr}>"
-        )
+        res_arr.append(leading_tab + indent_tab + f"<{attr}>\n{xml.sax.saxutils.escape(inst[attr], 1)}\n</{attr}>")
 
     for attr in inst_attrs:
         c = get_subclass_param(subclass_params, attr)
@@ -373,15 +361,7 @@ def class2file(
     if text_params is None:
         text_params = DEFAULT_TEXT_PARAMS
 
-    (
-        head_str,
-        is_complete,
-        inst_attrs,
-        dict_attrs,
-        list_attrs,
-        tree_attrs,
-        text_attrs,
-    ) = class2head(
+    (head_str, is_complete, inst_attrs, dict_attrs, list_attrs, tree_attrs, text_attrs,) = class2head(
         inst,
         inst_name,
         params,
@@ -397,11 +377,7 @@ def class2file(
         return fd
 
     for attr in text_attrs:
-        fd.write(
-            leading_tab
-            + indent_tab
-            + f"<{attr}>\n{xml.sax.saxutils.escape(inst[attr], 1)}\n</{attr}>\n"
-        )
+        fd.write(leading_tab + indent_tab + f"<{attr}>\n{xml.sax.saxutils.escape(inst[attr], 1)}\n</{attr}>\n")
     for attr in inst_attrs:
         c = get_subclass_param(subclass_params, attr)
         class2file(
@@ -507,10 +483,7 @@ def dict2string(
         elif type(el) in SIMPLE_TYPES:
             head_arr.append(f" {attr}={xml_quoteattr(el)}")
         else:
-            raise RuntimeError(
-                "Param attr %s is not a simple type (%s) (%s)"
-                % (attr, type(el), debug_str)
-            )
+            raise RuntimeError(f"Param attr {attr} is not a simple type ({type(el)}) ({debug_str})")
     head_arr.append(">")
     head_str = "".join(head_arr)
     res_arr.append(head_str)
@@ -528,14 +501,7 @@ def dict2string(
                 if DEFAULT_IGNORE_NONES:
                     continue  # ignore nones
             val = xml_quoteattr(el)
-            res_arr.append(
-                leading_tab
-                + indent_tab
-                + (
-                    '<%s %s="%s" %s=%s/>'
-                    % (el_name, dict_attr_name, idx, el_attr_name, val)
-                )
-            )
+            res_arr.append(leading_tab + indent_tab + (f'<{el_name} {dict_attr_name}="{idx}" {el_attr_name}={val}/>'))
         elif isinstance(el, DEFAULT_OVERRIDE_DICT["TypeDict"]):
             # print (idx,subtypes_params.keys())
             if "dict" in list(subtypes_params.keys()):
@@ -659,10 +625,7 @@ def dict2file(
         elif type(el) in SIMPLE_TYPES:
             head_arr.append(f" {attr}={xml_quoteattr(el)}")
         else:
-            raise RuntimeError(
-                "Param attr %s is not a simple type (%s) (%s)"
-                % (attr, type(el), debug_str)
-            )
+            raise RuntimeError(f"Param attr {attr} is not a simple type ({type(el)}) ({debug_str})")
     head_arr.append(">\n")
     head_str = "".join(head_arr)
     fd.write(head_str)
@@ -680,14 +643,7 @@ def dict2file(
                 if DEFAULT_IGNORE_NONES:
                     continue  # ignore nones
             val = xml_quoteattr(el)
-            fd.write(
-                leading_tab
-                + indent_tab
-                + (
-                    '<%s %s="%s" %s=%s/>\n'
-                    % (el_name, dict_attr_name, idx, el_attr_name, val)
-                )
-            )
+            fd.write(leading_tab + indent_tab + (f'<{el_name} {dict_attr_name}="{idx}" {el_attr_name}={val}/>\n'))
         elif isinstance(el, DEFAULT_OVERRIDE_DICT["TypeDict"]):
             # print (idx,subtypes_params.keys())
             if "dict" in list(subtypes_params.keys()):
@@ -786,9 +742,7 @@ def dict2file(
                 debug_str + (f"{dict_name}[{idx}]."),
             )
         else:
-            raise RuntimeError(
-                f"Unsupported type({type(el)}) at idx {idx} ({debug_str})"
-            )
+            raise RuntimeError(f"Unsupported type({type(el)}) at idx {idx} ({debug_str})")
 
     fd.write(leading_tab + ("</%s>\n" % dict_name))
 
@@ -838,10 +792,7 @@ def list2string(
         elif type(el) in SIMPLE_TYPES:
             head_arr.append(f" {attr}={xml_quoteattr(el)}")
         else:
-            raise RuntimeError(
-                "Param attr %s is not a simple type (%s) (%s)"
-                % (attr, type(el), debug_str)
-            )
+            raise RuntimeError(f"Param attr {attr} is not a simple type ({type(el)}) ({debug_str})")
     head_arr.append(">")
     head_str = "".join(head_arr)
     res_arr.append(head_str)
@@ -859,9 +810,7 @@ def list2string(
                 if DEFAULT_IGNORE_NONES:
                     continue  # ignore nones
             val = xml_quoteattr(el)
-            res_arr.append(
-                leading_tab + indent_tab + (f"<{el_name} {el_attr_name}={val}/>")
-            )
+            res_arr.append(leading_tab + indent_tab + (f"<{el_name} {el_attr_name}={val}/>"))
         elif isinstance(el, DEFAULT_OVERRIDE_DICT["TypeDict"]):
             if "dict" in list(subtypes_params.keys()):
                 sp = complete_dict_params(subtypes_params["dict"])
@@ -1003,10 +952,7 @@ def list2file(
         elif type(el) in SIMPLE_TYPES:
             head_arr.append(f" {attr}={xml_quoteattr(el)}")
         else:
-            raise RuntimeError(
-                "Param attr %s is not a simple type (%s) (%s)"
-                % (attr, type(el), debug_str)
-            )
+            raise RuntimeError(f"Param attr {attr} is not a simple type ({type(el)}) ({debug_str})")
     head_arr.append(">\n")
     head_str = "".join(head_arr)
     fd.write(head_str)
@@ -1024,9 +970,7 @@ def list2file(
                 if DEFAULT_IGNORE_NONES:
                     continue  # ignore nones
             val = xml_quoteattr(el)
-            fd.write(
-                leading_tab + indent_tab + (f"<{el_name} {el_attr_name}={val}/>\n")
-            )
+            fd.write(leading_tab + indent_tab + (f"<{el_name} {el_attr_name}={val}/>\n"))
         elif isinstance(el, DEFAULT_OVERRIDE_DICT["TypeDict"]):
             if "dict" in list(subtypes_params.keys()):
                 sp = complete_dict_params(subtypes_params["dict"])
@@ -1136,9 +1080,7 @@ def list2file(
 # a tree is a dictionary that have inside other dictionaries of the same type
 # all the clients are contained in an element of list type
 # only simple attributes are allowed and will be put in the header
-def tree2string(
-    tree, tree_name, child_element, indent_tab=DEFAULT_TAB, leading_tab="", debug_str=""
-):
+def tree2string(tree, tree_name, child_element, indent_tab=DEFAULT_TAB, leading_tab="", debug_str=""):
     res = []
     line = leading_tab + "<" + tree_name
     tree_keys = sorted(tree.keys())

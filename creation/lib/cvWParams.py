@@ -92,9 +92,7 @@ class VOFrontendParams(cWParams.CommonParams):
             "Max relative to number of matching jobs in the queue.",
             None,
         ]
-        group_config_defaults[
-            "running_glideins_per_entry"
-        ] = group_config_running_defaults
+        group_config_defaults["running_glideins_per_entry"] = group_config_running_defaults
         # This is a string because, we want to distinguish a value from missing (""), only a value overrides the corresponding  default or global setting
         group_config_defaults["ignore_down_entries"] = [
             "",
@@ -117,9 +115,7 @@ class VOFrontendParams(cWParams.CommonParams):
             "When should I start curbing glidein submission",
             None,
         ]
-        group_config_defaults[
-            "running_glideins_total"
-        ] = common_config_running_total_defaults
+        group_config_defaults["running_glideins_total"] = common_config_running_total_defaults
 
         group_config_idle_defaults = cWParams.CommentedOrderedDict()
         group_config_idle_defaults["max"] = [
@@ -743,18 +739,10 @@ class VOFrontendParams(cWParams.CommonParams):
             "If set the frontend will ignore down entries during matching counts",
             None,
         ]
-        global_config_defaults["idle_vms_total"] = copy.deepcopy(
-            common_config_vms_total_defaults
-        )
-        global_config_defaults["idle_vms_total_global"] = copy.deepcopy(
-            common_config_vms_total_defaults
-        )
-        global_config_defaults["running_glideins_total"] = copy.deepcopy(
-            common_config_running_total_defaults
-        )
-        global_config_defaults["running_glideins_total_global"] = copy.deepcopy(
-            common_config_running_total_defaults
-        )
+        global_config_defaults["idle_vms_total"] = copy.deepcopy(common_config_vms_total_defaults)
+        global_config_defaults["idle_vms_total_global"] = copy.deepcopy(common_config_vms_total_defaults)
+        global_config_defaults["running_glideins_total"] = copy.deepcopy(common_config_running_total_defaults)
+        global_config_defaults["running_glideins_total_global"] = copy.deepcopy(common_config_running_total_defaults)
         self.defaults["config"] = global_config_defaults
 
         self.defaults["groups"] = (
@@ -819,9 +807,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.validate_names()
 
         frontendVersioning = False
-        if "frontend_versioning" in self.data and safe_boolcomp(
-            self.data["frontend_versioning"], True
-        ):
+        if "frontend_versioning" in self.data and safe_boolcomp(self.data["frontend_versioning"], True):
             frontendVersioning = True
         self.stage_dir = self.buildDir(frontendVersioning, self.stage.base_dir)
         self.monitor_dir = self.buildDir(frontendVersioning, self.monitor.base_dir)
@@ -829,12 +815,8 @@ class VOFrontendParams(cWParams.CommonParams):
         self.log_dir = self.buildDir(frontendVersioning, self.work.base_log_dir)
         self.web_url = self.buildDir(frontendVersioning, self.stage.web_base_url)
         # print ("MMDB: %s, %s" % (type(self.monitor), self.monitor.data))
-        if hasattr(self.monitor, "web_base_url") and (
-            self.monitor.web_base_url is not None
-        ):
-            self.monitoring_web_url = self.buildDir(
-                frontendVersioning, self.monitor.web_base_url
-            )
+        if hasattr(self.monitor, "web_base_url") and (self.monitor.web_base_url is not None):
+            self.monitoring_web_url = self.buildDir(frontendVersioning, self.monitor.web_base_url)
         else:
             self.monitoring_web_url = self.web_url.replace("stage", "monitor")
 
@@ -849,9 +831,7 @@ class VOFrontendParams(cWParams.CommonParams):
                 has_collector &= "GLIDEIN_Collector" in self.groups[group_name].attrs
 
         if has_collector:
-            raise RuntimeError(
-                "Attribute GLIDEIN_Collector cannot be defined by the user"
-            )
+            raise RuntimeError("Attribute GLIDEIN_Collector cannot be defined by the user")
 
         ####################
         # MM TODO: should CCB be checked? it falls back to collector if missing (and collector is guaranteed from above)
@@ -878,9 +858,7 @@ class VOFrontendParams(cWParams.CommonParams):
             # security_name not defined at global level, look if defined in every group
             has_security_name = True
             for group_name in list(self.groups.keys()):
-                has_security_name &= (
-                    self.groups[group_name].security.security_name is not None
-                )
+                has_security_name &= self.groups[group_name].security.security_name is not None
 
         if not has_security_name:
             # explicity define one, so it will not change if config copied
@@ -896,9 +874,7 @@ class VOFrontendParams(cWParams.CommonParams):
         group_names = list(self.groups.keys())
         for group_name in group_names:
             for i in range(len(self.groups[group_name].security.credentials)):
-                pel = self.subparams.data["groups"][group_name]["security"][
-                    "credentials"
-                ][i]
+                pel = self.subparams.data["groups"][group_name]["security"]["credentials"][i]
                 if pel["security_class"] is None:
                     # define an explicit security, so the admin is aware of it
                     pel["security_class"] = "group_%s" % group_name
@@ -961,38 +937,22 @@ class VOFrontendParams(cWParams.CommonParams):
         if self.frontend_name is None:
             raise RuntimeError("Missing frontend name")
         if self.frontend_name.find(" ") != -1:
-            raise RuntimeError(
-                "Invalid frontend name '%s', contains a space." % self.frontend_name
-            )
+            raise RuntimeError("Invalid frontend name '%s', contains a space." % self.frontend_name)
         if not cWParams.is_valid_name(self.frontend_name):
-            raise RuntimeError(
-                "Invalid frontend name '%s', contains invalid characters."
-                % self.frontend_name
-            )
+            raise RuntimeError("Invalid frontend name '%s', contains invalid characters." % self.frontend_name)
         if self.frontend_name.find(".") != -1:
-            raise RuntimeError(
-                "Invalid frontend name '%s', contains a point." % self.frontend_name
-            )
+            raise RuntimeError("Invalid frontend name '%s', contains a point." % self.frontend_name)
 
         group_names = list(self.groups.keys())
         for group_name in group_names:
             if group_name.find(" ") != -1:
-                raise RuntimeError(
-                    "Invalid group name '%s', contains a space." % group_name
-                )
+                raise RuntimeError("Invalid group name '%s', contains a space." % group_name)
             if not cWParams.is_valid_name(group_name):
-                raise RuntimeError(
-                    "Invalid group name '%s', contains invalid characters." % group_name
-                )
+                raise RuntimeError("Invalid group name '%s', contains invalid characters." % group_name)
             if group_name[:4] == "XPVO":
-                raise RuntimeError(
-                    "Invalid group name '%s', starts with reserved sequence 'XPVO'."
-                    % group_name
-                )
+                raise RuntimeError("Invalid group name '%s', starts with reserved sequence 'XPVO'." % group_name)
             if group_name.find(".") != -1:
-                raise RuntimeError(
-                    "Invalid group name '%s', contains a point." % group_name
-                )
+                raise RuntimeError("Invalid group name '%s', contains a point." % group_name)
 
         attr_names = list(self.attrs.keys())
         for attr_name in attr_names:
@@ -1002,10 +962,7 @@ class VOFrontendParams(cWParams.CommonParams):
             attr_names = list(self.groups[group_name].attrs.keys())
             for attr_name in attr_names:
                 if not cWParams.is_valid_name(attr_name):
-                    raise RuntimeError(
-                        "Invalid group '%s' attribute name '%s'."
-                        % (group_name, attr_name)
-                    )
+                    raise RuntimeError(f"Invalid group '{group_name}' attribute name '{attr_name}'.")
         return
 
     # return attribute value in the proper python format
@@ -1020,13 +977,9 @@ class VOFrontendParams(cWParams.CommonParams):
         # Load global match_attrs from externally loaded match_policies
         if self.match_policy_modules["frontend"]:
             if self.match_policy_modules["frontend"].factoryMatchAttrs:
-                self.match.factory.match_attrs.data = self.match_policy_modules[
-                    "frontend"
-                ].factoryMatchAttrs
+                self.match.factory.match_attrs.data = self.match_policy_modules["frontend"].factoryMatchAttrs
             if self.match_policy_modules["frontend"].jobMatchAttrs:
-                self.match.job.match_attrs.data = self.match_policy_modules[
-                    "frontend"
-                ].jobMatchAttrs
+                self.match.job.match_attrs.data = self.match_policy_modules["frontend"].jobMatchAttrs
 
         # Load group match_attrs from externally loaded match_policies
         for group_name in list(self.groups.keys()):
@@ -1034,13 +987,9 @@ class VOFrontendParams(cWParams.CommonParams):
             group_module = self.match_policy_modules["groups"].get(group_name)
             if group_module:
                 if group_module.factoryMatchAttrs:
-                    self.groups[
-                        group_name
-                    ].match.factory.match_attrs.data = group_module.factoryMatchAttrs
+                    self.groups[group_name].match.factory.match_attrs.data = group_module.factoryMatchAttrs
                 if group_module.jobMatchAttrs:
-                    self.groups[
-                        group_name
-                    ].match.job.match_attrs.data = group_module.jobMatchAttrs
+                    self.groups[group_name].match.job.match_attrs.data = group_module.jobMatchAttrs
 
 
 ####################################################################
@@ -1051,10 +1000,7 @@ class VOFrontendParams(cWParams.CommonParams):
 # return attribute value in the proper python format
 def extract_attr_val(attr_obj):
     if not attr_obj.type in ("string", "int", "expr"):
-        raise RuntimeError(
-            "Wrong attribute type '%s', must be either 'int', 'string' or 'expr'"
-            % attr_obj.type
-        )
+        raise RuntimeError("Wrong attribute type '%s', must be either 'int', 'string' or 'expr'" % attr_obj.type)
 
     if attr_obj.type in ("string", "expr"):
         return str(attr_obj.value)

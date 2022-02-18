@@ -19,15 +19,7 @@ import shutil
 from glideinwms.lib import pubCrypto
 from glideinwms.lib.util import str2bool
 
-from . import (
-    cgWConsts,
-    cgWCreate,
-    cgWDictFile,
-    cWConsts,
-    cWDictFile,
-    cWExpand,
-    factoryXmlConfig,
-)
+from . import cgWConsts, cgWCreate, cgWDictFile, cWConsts, cWDictFile, cWExpand, factoryXmlConfig
 
 #
 # see the note in add_file_unparsed def below to understand
@@ -41,9 +33,7 @@ from . import (
 class UnconfiguredScheddError(Exception):
     def __init__(self, schedd):
         self.schedd = schedd
-        self.err_str = "Schedd '%s' used by one or more entries is not configured." % (
-            schedd
-        )
+        self.err_str = "Schedd '%s' used by one or more entries is not configured." % (schedd)
 
     def __str__(self):
         return repr(self.err_str)
@@ -76,20 +66,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             client_proxy_dirs,
         )
         self.monitor_dir = monitor_dir
-        self.add_dir_obj(
-            cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir)
-        )
+        self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
         self.monitor_jslibs_dir = os.path.join(self.monitor_dir, "jslibs")
-        self.add_dir_obj(
-            cWDictFile.simpleDirSupport(self.monitor_jslibs_dir, "monitor")
-        )
+        self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir, "monitor"))
         self.monitor_images_dir = os.path.join(self.monitor_dir, "images")
-        self.add_dir_obj(
-            cWDictFile.simpleDirSupport(self.monitor_images_dir, "monitor")
-        )
-        self.enable_expansion = str2bool(
-            conf.get("enable_attribute_expansion", "False")
-        )
+        self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_images_dir, "monitor"))
+        self.enable_expansion = str2bool(conf.get("enable_attribute_expansion", "False"))
         self.conf = conf
         self.active_sub_list = []
         self.disabled_sub_list = []
@@ -101,16 +83,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # put default files in place first
         # Why placeholder and right after the file? error_gen, error_augment, setup_script, should be removed?
         self.dicts["file_list"].add_placeholder("error_gen.sh", allow_overwrite=True)
-        self.dicts["file_list"].add_placeholder(
-            "error_augment.sh", allow_overwrite=True
-        )
+        self.dicts["file_list"].add_placeholder("error_augment.sh", allow_overwrite=True)
         self.dicts["file_list"].add_placeholder("setup_script.sh", allow_overwrite=True)
-        self.dicts["file_list"].add_placeholder(
-            cWConsts.CONSTS_FILE, allow_overwrite=True
-        )
-        self.dicts["file_list"].add_placeholder(
-            cWConsts.VARS_FILE, allow_overwrite=True
-        )
+        self.dicts["file_list"].add_placeholder(cWConsts.CONSTS_FILE, allow_overwrite=True)
+        self.dicts["file_list"].add_placeholder(cWConsts.VARS_FILE, allow_overwrite=True)
         self.dicts["file_list"].add_placeholder(
             cWConsts.UNTAR_CFG_FILE, allow_overwrite=True
         )  # this one must be loaded before any tarball
@@ -137,24 +113,14 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         ):
             self.dicts["file_list"].add_from_file(
                 file_name,
-                cWDictFile.FileDictFile.make_val_tuple(
-                    cWConsts.insert_timestr(file_name), "regular"
-                ),
+                cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(file_name), "regular"),
                 os.path.join(cgWConsts.WEB_BASE_DIR, file_name),
             )
         self.dicts["description"].add("condor_config", "condor_config")
-        self.dicts["description"].add(
-            "condor_config.multi_schedd.include", "condor_config_multi_include"
-        )
-        self.dicts["description"].add(
-            "condor_config.dedicated_starter.include", "condor_config_main_include"
-        )
-        self.dicts["description"].add(
-            "condor_config.monitor.include", "condor_config_monitor_include"
-        )
-        self.dicts["description"].add(
-            "condor_config.check.include", "condor_config_check_include"
-        )
+        self.dicts["description"].add("condor_config.multi_schedd.include", "condor_config_multi_include")
+        self.dicts["description"].add("condor_config.dedicated_starter.include", "condor_config_main_include")
+        self.dicts["description"].add("condor_config.monitor.include", "condor_config_monitor_include")
+        self.dicts["description"].add("condor_config.check.include", "condor_config_check_include")
         self.dicts["vars"].load(
             cgWConsts.WEB_BASE_DIR,
             "condor_vars.lst",
@@ -184,9 +150,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         ):
             self.dicts["file_list"].add_from_file(
                 script_name,
-                cWDictFile.FileDictFile.make_val_tuple(
-                    cWConsts.insert_timestr(script_name), "exec"
-                ),
+                cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), "exec"),
                 os.path.join(cgWConsts.WEB_BASE_DIR, script_name),
             )
 
@@ -195,13 +159,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         condor_tarballs = self.conf.get_child_list("condor_tarballs")
 
         prev_tar_dir_map = {}
-        if (
-            other is not None
-            and "CondorTarballDirMap" in other.main_dicts.dicts["glidein"]
-        ):
-            prev_tar_dir_map = eval(
-                other.main_dicts.dicts["glidein"]["CondorTarballDirMap"]
-            )
+        if other is not None and "CondorTarballDirMap" in other.main_dicts.dicts["glidein"]:
+            prev_tar_dir_map = eval(other.main_dicts.dicts["glidein"]["CondorTarballDirMap"])
 
         tar_dir_map = {}
 
@@ -227,14 +186,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             else:
                 # Create a new tarball as usual
                 condor_fd = cgWCreate.create_condor_tar_fd(condor_el["base_dir"])
-                tar_dir_map[condor_el["base_dir"]] = os.path.join(
-                    self.dicts["file_list"].dir, condor_fname
-                )
+                tar_dir_map[condor_el["base_dir"]] = os.path.join(self.dicts["file_list"].dir, condor_fname)
 
             for tar in condor_el_valid_tarballs:
-                condor_platform = "{}-{}-{}".format(
-                    tar["version"], tar["os"], tar["arch"]
-                )
+                condor_platform = "{}-{}-{}".format(tar["version"], tar["os"], tar["arch"])
                 cond_name = "CONDOR_PLATFORM_%s" % condor_platform
                 condor_platform_fname = cgWConsts.CONDOR_FILE % condor_platform
 
@@ -289,9 +244,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.conf.get_child_list("monitoring_collectors")
         )
         if factory_monitoring_collector is not None:
-            self.dicts["params"].add(
-                "GLIDEIN_Factory_Collector", str(factory_monitoring_collector)
-            )
+            self.dicts["params"].add("GLIDEIN_Factory_Collector", str(factory_monitoring_collector))
         populate_gridmap(self.conf, self.dicts["gridmap"])
 
         file_list_scripts = [
@@ -318,28 +271,17 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             "cvmfs_umount.sh",
         ]
         # Only execute scripts once
-        duplicate_scripts = list(
-            set(file_list_scripts).intersection(after_file_list_scripts)
-        )
-        duplicate_scripts += list(
-            set(file_list_scripts).intersection(at_file_list_scripts)
-        )
-        duplicate_scripts += list(
-            set(at_file_list_scripts).intersection(after_file_list_scripts)
-        )
+        duplicate_scripts = list(set(file_list_scripts).intersection(after_file_list_scripts))
+        duplicate_scripts += list(set(file_list_scripts).intersection(at_file_list_scripts))
+        duplicate_scripts += list(set(at_file_list_scripts).intersection(after_file_list_scripts))
         if duplicate_scripts:
-            raise RuntimeError(
-                "Duplicates found in the list of files to execute '%s'"
-                % ",".join(duplicate_scripts)
-            )
+            raise RuntimeError("Duplicates found in the list of files to execute '%s'" % ",".join(duplicate_scripts))
 
         # Load more system scripts
         for script_name in file_list_scripts:
             self.dicts["file_list"].add_from_file(
                 script_name,
-                cWDictFile.FileDictFile.make_val_tuple(
-                    cWConsts.insert_timestr(script_name), "exec"
-                ),
+                cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), "exec"),
                 os.path.join(cgWConsts.WEB_BASE_DIR, script_name),
             )
 
@@ -347,9 +289,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         x509script = "setup_x509.sh"
         self.dicts["file_list"].add_from_file(
             x509script,
-            cWDictFile.FileDictFile.make_val_tuple(
-                cWConsts.insert_timestr(x509script), "exec", 60, "NOPREFIX"
-            ),
+            cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(x509script), "exec", 60, "NOPREFIX"),
             os.path.join(cgWConsts.WEB_BASE_DIR, x509script),
         )
 
@@ -357,9 +297,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         drain_script = "check_wn_drainstate.sh"
         self.dicts["file_list"].add_from_file(
             drain_script,
-            cWDictFile.FileDictFile.make_val_tuple(
-                cWConsts.insert_timestr(drain_script), "exec", 60, "NOPREFIX"
-            ),
+            cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(drain_script), "exec", 60, "NOPREFIX"),
             os.path.join(cgWConsts.WEB_BASE_DIR, drain_script),
         )
 
@@ -367,9 +305,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         mjf_script = "mjf_setparams.sh"
         self.dicts["file_list"].add_from_file(
             mjf_script,
-            cWDictFile.FileDictFile.make_val_tuple(
-                cWConsts.insert_timestr(mjf_script), "exec", 1800, "MJF_"
-            ),
+            cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(mjf_script), "exec", 1800, "MJF_"),
             os.path.join(cgWConsts.WEB_BASE_DIR, mjf_script),
         )
 
@@ -377,9 +313,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         pychirp_tarball = "htchirp.tar.gz"
         self.dicts["file_list"].add_from_file(
             pychirp_tarball,
-            cWDictFile.FileDictFile.make_val_tuple(
-                cWConsts.insert_timestr(pychirp_tarball), "untar"
-            ),
+            cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(pychirp_tarball), "untar"),
             os.path.join(cgWConsts.WEB_BASE_DIR, pychirp_tarball),
         )
         self.dicts["untar_cfg"].add(pychirp_tarball, "lib/python/htchirp")
@@ -411,26 +345,20 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # put user attributes into config files
         for attr in self.conf.get_child_list("attrs"):
             # ignore attributes that need expansion in the global section
-            if (
-                str(attr.get_val()).find("$") == -1 or not self.enable_expansion
-            ):  # does not need to be expanded
+            if str(attr.get_val()).find("$") == -1 or not self.enable_expansion:  # does not need to be expanded
                 add_attr_unparsed(attr, self.dicts, "main")
 
         # add additional system scripts
         for script_name in at_file_list_scripts:
             self.dicts["at_file_list"].add_from_file(
                 script_name,
-                cWDictFile.FileDictFile.make_val_tuple(
-                    cWConsts.insert_timestr(script_name), "exec"
-                ),
+                cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), "exec"),
                 os.path.join(cgWConsts.WEB_BASE_DIR, script_name),
             )
         for script_name in after_file_list_scripts:
             self.dicts["after_file_list"].add_from_file(
                 script_name,
-                cWDictFile.FileDictFile.make_val_tuple(
-                    cWConsts.insert_timestr(script_name), "exec"
-                ),
+                cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), "exec"),
                 os.path.join(cgWConsts.WEB_BASE_DIR, script_name),
             )
 
@@ -471,9 +399,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.monitor_htmls.append(mfobj)
 
         # add the index page and its images
-        mfobj = cWDictFile.SimpleFile(
-            cgWConsts.WEB_BASE_DIR + "/factory/", "index.html"
-        )
+        mfobj = cWDictFile.SimpleFile(cgWConsts.WEB_BASE_DIR + "/factory/", "index.html")
         mfobj.load()
         self.monitor_htmls.append(mfobj)
         for imgfile in (
@@ -485,9 +411,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             "factoryStatus.png",
             "factoryStatusNow.png",
         ):
-            mfobj = cWDictFile.SimpleFile(
-                cgWConsts.WEB_BASE_DIR + "/factory/images/", imgfile
-            )
+            mfobj = cWDictFile.SimpleFile(cgWConsts.WEB_BASE_DIR + "/factory/images/", imgfile)
             mfobj.load()
             self.monitor_images.append(mfobj)
 
@@ -550,10 +474,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 key_obj.new(int(sec_el["key_length"]))
                 key_obj.save(rsa_key_fname)
         else:
-            raise RuntimeError(
-                "Invalid value for security.pub_key(%s), must be either None or RSA"
-                % sec_el["pub_key"]
-            )
+            raise RuntimeError("Invalid value for security.pub_key(%s), must be either None or RSA" % sec_el["pub_key"])
 
     def save_monitor(self):
         for fobj in self.monitor_jslibs:
@@ -567,9 +488,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
     ###################################
     # Create the monitor config file
     def save_monitor_config(self, work_dir, glidein_dict):
-        monitor_config_file = os.path.join(
-            self.conf.get_monitor_dir(), cgWConsts.MONITOR_CONFIG_FILE
-        )
+        monitor_config_file = os.path.join(self.conf.get_monitor_dir(), cgWConsts.MONITOR_CONFIG_FILE)
         monitor_config_line = []
 
         monitor_config_fd = open(monitor_config_file, "w")
@@ -579,15 +498,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             try:
                 for entry in self.conf.get_entries():
                     if eval(entry["enabled"], {}, {}):
-                        monitor_config_line.append(
-                            '    <entry name="%s">' % entry.getName()
-                        )
+                        monitor_config_line.append('    <entry name="%s">' % entry.getName())
                         monitor_config_line.append("      <monitorgroups>")
                         for group in entry.get_child_list("monitorgroups"):
-                            monitor_config_line.append(
-                                '        <monitorgroup group_name="%s">'
-                                % group["group_name"]
-                            )
+                            monitor_config_line.append('        <monitorgroup group_name="%s">' % group["group_name"])
                             monitor_config_line.append("        </monitorgroup>")
 
                         monitor_config_line.append("      </monitorgroups>")
@@ -633,13 +547,9 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             client_proxy_dirs,
         )
 
-        self.enable_expansion = str2bool(
-            conf.get("enable_attribute_expansion", "False")
-        )
+        self.enable_expansion = str2bool(conf.get("enable_attribute_expansion", "False"))
         self.monitor_dir = cgWConsts.get_entry_monitor_dir(monitor_dir, sub_name)
-        self.add_dir_obj(
-            cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir)
-        )
+        self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
 
     def erase(self):
         cgWDictFile.glideinEntryDicts.erase(self)
@@ -662,9 +572,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                     )
                 )
         else:
-            self.dicts["condor_jdl"] = [
-                cgWCreate.GlideinSubmitDictFile(self.work_dir, cgWConsts.SUBMIT_FILE)
-            ]
+            self.dicts["condor_jdl"] = [cgWCreate.GlideinSubmitDictFile(self.work_dir, cgWConsts.SUBMIT_FILE)]
 
     def load(self):
         cgWDictFile.glideinEntryDicts.load(self)
@@ -701,12 +609,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         """
         # put default files in place first
-        self.dicts["file_list"].add_placeholder(
-            cWConsts.CONSTS_FILE, allow_overwrite=True
-        )
-        self.dicts["file_list"].add_placeholder(
-            cWConsts.VARS_FILE, allow_overwrite=True
-        )
+        self.dicts["file_list"].add_placeholder(cWConsts.CONSTS_FILE, allow_overwrite=True)
+        self.dicts["file_list"].add_placeholder(cWConsts.VARS_FILE, allow_overwrite=True)
         self.dicts["file_list"].add_placeholder(
             cWConsts.UNTAR_CFG_FILE, allow_overwrite=True
         )  # this one must be loaded before any tarball
@@ -715,9 +619,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         file_name = cWConsts.BLACKLIST_FILE
         self.dicts["file_list"].add_from_file(
             file_name,
-            cWDictFile.FileDictFile.make_val_tuple(
-                file_name, "nocache", config_out="BLACKLIST_FILE"
-            ),
+            cWDictFile.FileDictFile.make_val_tuple(file_name, "nocache", config_out="BLACKLIST_FILE"),
             os.path.join(cgWConsts.WEB_BASE_DIR, file_name),
         )
 
@@ -726,9 +628,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         for script_name in ("cat_consts.sh", "check_blacklist.sh"):
             self.dicts["file_list"].add_from_file(
                 script_name,
-                cWDictFile.FileDictFile.make_val_tuple(
-                    cWConsts.insert_timestr(script_name), "exec"
-                ),
+                cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), "exec"),
                 os.path.join(cgWConsts.WEB_BASE_DIR, script_name),
             )
 
@@ -766,12 +666,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         restrictions = config.get_child("restrictions")
         submit = config.get_child("submit")
         for dtype in ("attrs", "consts"):
-            self.dicts[dtype].add(
-                "GLIDEIN_Gatekeeper", entry["gatekeeper"], allow_overwrite=True
-            )
-            self.dicts[dtype].add(
-                "GLIDEIN_GridType", entry["gridtype"], allow_overwrite=True
-            )
+            self.dicts[dtype].add("GLIDEIN_Gatekeeper", entry["gatekeeper"], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_GridType", entry["gridtype"], allow_overwrite=True)
             # MERGENOTE:
             # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users
             # without VOMS proxies can avoid sites that require VOMS proxies
@@ -781,35 +677,21 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                 restrictions["require_voms_proxy"],
                 allow_overwrite=True,
             )
-            self.dicts[dtype].add(
-                "GLIDEIN_TrustDomain", entry["trust_domain"], allow_overwrite=True
-            )
+            self.dicts[dtype].add("GLIDEIN_TrustDomain", entry["trust_domain"], allow_overwrite=True)
             self.dicts[dtype].add(
                 "GLIDEIN_SupportedAuthenticationMethod",
                 entry["auth_method"],
                 allow_overwrite=True,
             )
             if "rsl" in entry:
-                self.dicts[dtype].add(
-                    "GLIDEIN_GlobusRSL", entry["rsl"], allow_overwrite=True
-                )
+                self.dicts[dtype].add("GLIDEIN_GlobusRSL", entry["rsl"], allow_overwrite=True)
             if "bosco_dir" in entry:
-                self.dicts[dtype].add(
-                    "GLIDEIN_BoscoDir", entry["bosco_dir"], allow_overwrite=True
-                )
-            self.dicts[dtype].add(
-                "GLIDEIN_SlotsLayout", submit["slots_layout"], allow_overwrite=True
-            )
-            self.dicts[dtype].add(
-                "GLIDEIN_WorkDir", entry["work_dir"], allow_overwrite=True
-            )
-            self.dicts[dtype].add(
-                "GLIDEIN_Verbosity", entry["verbosity"], allow_overwrite=True
-            )
+                self.dicts[dtype].add("GLIDEIN_BoscoDir", entry["bosco_dir"], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_SlotsLayout", submit["slots_layout"], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_WorkDir", entry["work_dir"], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_Verbosity", entry["verbosity"], allow_overwrite=True)
             if "proxy_url" in entry:
-                self.dicts[dtype].add(
-                    "GLIDEIN_ProxyURL", entry["proxy_url"], allow_overwrite=True
-                )
+                self.dicts[dtype].add("GLIDEIN_ProxyURL", entry["proxy_url"], allow_overwrite=True)
 
         summed_attrs = {}
         if self.enable_expansion:
@@ -827,9 +709,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                     ):
                         self.dicts[dname].add(
                             attr_name,
-                            cWExpand.expand_DLR(
-                                self.dicts[dname][attr_name], summed_attrs
-                            ),
+                            cWExpand.expand_DLR(self.dicts[dname][attr_name], summed_attrs),
                             allow_overwrite=True,
                         )
 
@@ -854,9 +734,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         # populate monitorgroups
         for monitorgroup in entry.get_child_list("monitorgroups"):
-            self.dicts["mongroup"].add_extended(
-                monitorgroup["group_name"], allow_overwrite=True
-            )
+            self.dicts["mongroup"].add_extended(monitorgroup["group_name"], allow_overwrite=True)
 
         # populate complex files
         populate_job_descript(
@@ -878,9 +756,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                 for cj in self.dicts["condor_jdl"]:
                     cj_entryname = cj.fname.split(".")[1]
                     if cj_entryname == subentry.getName():
-                        cj.populate(
-                            cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry
-                        )
+                        cj.populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
                         break
                 entry.select(None)
         else:
@@ -897,9 +773,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             # increasing parameter list for this function, lets just pass params, sub_params, and the 2 other parameters
             # to the function and call it a day.
             ################################################################################################################
-            self.dicts["condor_jdl"][0].populate(
-                cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry
-            )
+            self.dicts["condor_jdl"][0].populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
 
     # reuse as much of the other as possible
     def reuse(self, other):  # other must be of the same class
@@ -943,9 +817,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
 
         self.monitor_dir = monitor_dir
         self.active_sub_list = []
-        self.enable_expansion = str2bool(
-            conf.get("enable_attribute_expansion", "False")
-        )
+        self.enable_expansion = str2bool(conf.get("enable_attribute_expansion", "False"))
 
         return
 
@@ -1076,17 +948,13 @@ def add_file_unparsed(user_file, dicts, is_factory):
     if is_executable:  # a script
         dicts[file_list_idx].add_from_file(
             relfname,
-            cWDictFile.FileDictFile.make_val_tuple(
-                cWConsts.insert_timestr(relfname), "exec", period_value, prefix
-            ),
+            cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), "exec", period_value, prefix),
             absfname,
         )
     elif is_wrapper:  # a source-able script for the wrapper
         dicts[file_list_idx].add_from_file(
             relfname,
-            cWDictFile.FileDictFile.make_val_tuple(
-                cWConsts.insert_timestr(relfname), "wrapper"
-            ),
+            cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), "wrapper"),
             absfname,
         )
     elif do_untar:  # a tarball
@@ -1094,9 +962,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
         if "dir" in untar_opts:
             wnsubdir = untar_opts["dir"]
         else:
-            wnsubdir = relfname.split(".", 1)[
-                0
-            ]  # default is relfname up to the first .
+            wnsubdir = relfname.split(".", 1)[0]  # default is relfname up to the first .
 
         if "absdir_outattr" in untar_opts:
             config_out = untar_opts["absdir_outattr"]
@@ -1120,9 +986,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
             val = "regular"
             dicts[file_list_idx].add_from_file(
                 relfname,
-                cWDictFile.FileDictFile.make_val_tuple(
-                    cWConsts.insert_timestr(relfname), val
-                ),
+                cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), val),
                 absfname,
             )
         else:
@@ -1141,9 +1005,7 @@ def add_attr_unparsed(attr, dicts, description):
     try:
         add_attr_unparsed_real(attr, dicts)
     except RuntimeError as e:
-        raise RuntimeError(
-            "Error parsing attr {}[{}]: {}".format(description, attr["name"], str(e))
-        )
+        raise RuntimeError("Error parsing attr {}[{}]: {}".format(description, attr["name"], str(e)))
 
 
 def validate_attribute(attr_name, attr_val):
@@ -1210,9 +1072,7 @@ def add_attr_unparsed_real(attr, dicts):
                 or ((attr["type"] == "expr") and (attr_var_type == "I"))
                 or ((attr["type"] == "string") and (attr_var_type == "I"))
             ):
-                raise RuntimeError(
-                    "Types not compatible ({},{})".format(attr["type"], attr_var_type)
-                )
+                raise RuntimeError("Types not compatible ({},{})".format(attr["type"], attr_var_type))
             attr_var_export = attr_var_el[4]
             if do_glidein_publish and (attr_var_export == "N"):
                 raise RuntimeError("Cannot force glidein publishing")
@@ -1268,9 +1128,7 @@ def populate_factory_descript(
     glidein_dict.add("WebURL", conf.get_web_url())
     glidein_dict.add("PubKeyType", sec_el["pub_key"])
     glidein_dict.add("OldPubKeyGraceTime", sec_el["reuse_oldkey_onstartup_gracetime"])
-    glidein_dict.add(
-        "MonitorUpdateThreadCount", conf.get_child("monitor")["update_thread_count"]
-    )
+    glidein_dict.add("MonitorUpdateThreadCount", conf.get_child("monitor")["update_thread_count"])
     glidein_dict.add("RemoveOldCredFreq", sec_el["remove_old_cred_freq"])
     glidein_dict.add("RemoveOldCredAge", sec_el["remove_old_cred_age"])
     del active_sub_list[:]  # clean
@@ -1300,9 +1158,7 @@ def populate_factory_descript(
     glidein_dict.add("MonitorDisplayText", mon_foot_el["display_txt"])
     glidein_dict.add("MonitorLink", mon_foot_el["href_link"])
 
-    monitoring_collectors = calc_primary_monitoring_collectors(
-        conf.get_child_list("monitoring_collectors")
-    )
+    monitoring_collectors = calc_primary_monitoring_collectors(conf.get_child_list("monitoring_collectors"))
     if monitoring_collectors is not None:
         glidein_dict.add("PrimaryMonitoringCollectors", str(monitoring_collectors))
 
@@ -1368,9 +1224,7 @@ def populate_job_descript(
 
     config = entry.get_child("config")
     max_jobs = config.get_child("max_jobs")
-    num_factories = int(
-        max_jobs.get("num_factories", num_factories)
-    )  # prefer entry settings
+    num_factories = int(max_jobs.get("num_factories", num_factories))  # prefer entry settings
 
     job_descript_dict.add("EntryName", sub_name)
     job_descript_dict.add("GridType", entry["gridtype"])
@@ -1392,21 +1246,13 @@ def populate_job_descript(
     job_descript_dict.add("Verbosity", entry["verbosity"])
     job_descript_dict.add("DowntimesFile", down_fname)
     per_entry = max_jobs.get_child("per_entry")
-    job_descript_dict.add(
-        "PerEntryMaxGlideins", int(per_entry["glideins"]) // num_factories
-    )
+    job_descript_dict.add("PerEntryMaxGlideins", int(per_entry["glideins"]) // num_factories)
     job_descript_dict.add("PerEntryMaxIdle", int(per_entry["idle"]) // num_factories)
     job_descript_dict.add("PerEntryMaxHeld", int(per_entry["held"]) // num_factories)
     def_per_fe = max_jobs.get_child("default_per_frontend")
-    job_descript_dict.add(
-        "DefaultPerFrontendMaxGlideins", int(def_per_fe["glideins"]) // num_factories
-    )
-    job_descript_dict.add(
-        "DefaultPerFrontendMaxIdle", int(def_per_fe["idle"]) // num_factories
-    )
-    job_descript_dict.add(
-        "DefaultPerFrontendMaxHeld", int(def_per_fe["held"]) // num_factories
-    )
+    job_descript_dict.add("DefaultPerFrontendMaxGlideins", int(def_per_fe["glideins"]) // num_factories)
+    job_descript_dict.add("DefaultPerFrontendMaxIdle", int(def_per_fe["idle"]) // num_factories)
+    job_descript_dict.add("DefaultPerFrontendMaxHeld", int(def_per_fe["held"]) // num_factories)
     submit = config.get_child("submit")
     job_descript_dict.add("MaxSubmitRate", submit["max_per_cycle"])
     job_descript_dict.add("SubmitCluster", submit["cluster_size"])
@@ -1432,19 +1278,11 @@ def populate_job_descript(
     max_held_frontend = ""
     max_idle_frontend = ""
     max_glideins_frontend = ""
-    for per_fe in (
-        entry.get_child("config").get_child("max_jobs").get_child_list("per_frontends")
-    ):
+    for per_fe in entry.get_child("config").get_child("max_jobs").get_child_list("per_frontends"):
         frontend_name = per_fe["name"]
-        max_held_frontend += (
-            frontend_name + ";" + str(int(per_fe["held"]) // num_factories) + ","
-        )
-        max_idle_frontend += (
-            frontend_name + ";" + str(int(per_fe["idle"]) // num_factories) + ","
-        )
-        max_glideins_frontend += (
-            frontend_name + ";" + str(int(per_fe["glideins"]) // num_factories) + ","
-        )
+        max_held_frontend += frontend_name + ";" + str(int(per_fe["held"]) // num_factories) + ","
+        max_idle_frontend += frontend_name + ";" + str(int(per_fe["idle"]) // num_factories) + ","
+        max_glideins_frontend += frontend_name + ";" + str(int(per_fe["glideins"]) // num_factories) + ","
     job_descript_dict.add("PerFrontendMaxGlideins", max_glideins_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxHeld", max_held_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxIdle", max_idle_frontend[:-1])
@@ -1458,9 +1296,7 @@ def populate_job_descript(
     if len(allowed_fes) > 0:
         white_mode = "On"
     for allowed_fe in allowed_fes:
-        allowed_vos = (
-            allowed_vos + allowed_fe["name"] + ":" + allowed_fe["security_class"] + ","
-        )
+        allowed_vos = allowed_vos + allowed_fe["name"] + ":" + allowed_fe["security_class"] + ","
     job_descript_dict.add("WhitelistMode", white_mode)
     job_descript_dict.add("AllowedVOs", allowed_vos[:-1])
 
@@ -1542,11 +1378,7 @@ def validate_condor_tarball_attrs(conf):
             common_os = attr["value"]
         elif attr["name"] == "CONDOR_ARCH":
             common_arch = attr["value"]
-        if (
-            common_version is not None
-            and common_os is not None
-            and common_arch is not None
-        ):
+        if common_version is not None and common_os is not None and common_arch is not None:
             break
 
     if common_version is None:
@@ -1698,10 +1530,7 @@ def calc_primary_monitoring_collectors(collectors):
             cWDictFile.validate_node(el["node"])
             # we only expect one per group
             if el["group"] in collector_nodes:
-                raise RuntimeError(
-                    "Duplicate primary monitoring collector found for group %s"
-                    % el["group"]
-                )
+                raise RuntimeError("Duplicate primary monitoring collector found for group %s" % el["group"])
             collector_nodes[el["group"]] = el["node"]
 
     if len(collector_nodes) == 0:

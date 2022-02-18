@@ -36,7 +36,7 @@ from glideinwms.factory import glideFactoryInterface as gfi
 from glideinwms.factory import glideFactoryLib as gfl
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.lib import classadSupport, cleanupSupport, logSupport
-from glideinwms.lib.fork import ForkManager, fetch_fork_result_list
+from glideinwms.lib.fork import fetch_fork_result_list, ForkManager
 from glideinwms.lib.pidSupport import register_sighandler, unregister_sighandler
 
 ############################################################
@@ -98,17 +98,13 @@ def check_parent(parent_pid, glideinDescript, my_entries):
                 entry.name,
             )
         except:
-            logSupport.log.warning(
-                "Failed to deadvertize monitoring for entry '%s'" % entry.name
-            )
+            logSupport.log.warning("Failed to deadvertize monitoring for entry '%s'" % entry.name)
 
     raise KeyboardInterrupt("Parent died. Quiting.")
 
 
 ############################################################
-def find_work(
-    factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries
-):
+def find_work(factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries):
     """
     Find work for all the entries in the group
 
@@ -149,9 +145,7 @@ def find_work(
     if old_pub_key_obj is not None:
         work_oldkey = {}
         # still using the old key in this cycle
-        logSupport.log.info(
-            "Old factory key is still valid. Trying to find work using old factory key."
-        )
+        logSupport.log.info("Old factory key is still valid. Trying to find work using old factory key.")
         work_oldkey = gfi.findGroupWork(
             gfl.factoryConfig.factory_name,
             gfl.factoryConfig.glidein_name,
@@ -166,8 +160,7 @@ def find_work(
             if w in work:
                 # This should not happen but still as a safegaurd warn
                 logSupport.log.warning(
-                    "Work task for %s exists using existing key and old key. Ignoring the work from old key."
-                    % w
+                    "Work task for %s exists using existing key and old key. Ignoring the work from old key." % w
                 )
                 continue
             work[w] = work_oldkey[w]
@@ -184,9 +177,7 @@ def find_work(
 def log_work_info(work, key=""):
     keylogstr = ""
     if key.strip() != "":
-        logSupport.log.info(
-            "Work tasks grouped by entries using %s factory key" % (key)
-        )
+        logSupport.log.info("Work tasks grouped by entries using %s factory key" % (key))
     else:
         logSupport.log.info("Work tasks grouped by entries")
 
@@ -221,9 +212,7 @@ def forked_check_and_perform_work(factory_in_downtime, entry, work):
     @param work: work requests for the entry
     @return: dictionary with entry state + work_done
     """
-    work_done = glideFactoryEntry.check_and_perform_work(
-        factory_in_downtime, entry, work
-    )
+    work_done = glideFactoryEntry.check_and_perform_work(factory_in_downtime, entry, work)
 
     # entry object now has updated info in the child process
     # This info is required for monitoring and advertising
@@ -241,9 +230,7 @@ def forked_update_entries_stats(factory_in_downtime, entries_list):
     :param entries_list:
     :return:
     """
-    entries_updated = glideFactoryEntry.update_entries_stats(
-        factory_in_downtime, entries_list
-    )
+    entries_updated = glideFactoryEntry.update_entries_stats(factory_in_downtime, entries_list)
 
     # entry objects now have updated info in the child process
     # This info is required for monitoring and advertising
@@ -303,9 +290,7 @@ def find_and_perform_work(
     # work includes all entries, empty value for entries w/ no work to do
     # to allow cleanup, ... (remove held glideins, ...)
 
-    work = find_work(
-        factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries
-    )
+    work = find_work(factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries)
 
     # Request from a Frontend group to an entry
     work_count = get_work_count(work)
@@ -334,9 +319,7 @@ def find_and_perform_work(
     work_info_read_err = False
 
     if parallel_workers <= 0:
-        logSupport.log.debug(
-            "Setting parallel_workers limit dynamically based on the available free memory"
-        )
+        logSupport.log.debug("Setting parallel_workers limit dynamically based on the available free memory")
         free_mem = os.sysconf("SC_AVPHYS_PAGES") * os.sysconf("SC_PAGE_SIZE")
         parallel_workers = int(free_mem / float(ENTRY_MEM_REQ_BYTES))
         if parallel_workers < 1:
@@ -401,17 +384,13 @@ def find_and_perform_work(
             groupwork_done[entry] = {"work_done": post_work_info[entry]["work_done"]}
             (my_entries[entry]).setState(post_work_info[entry])
         else:
-            logSupport.log.debug(
-                "No work found for entry %s from any frontends" % entry
-            )
+            logSupport.log.debug("No work found for entry %s from any frontends" % entry)
 
     if (
         "GWMS_ENTRIES_WITHOUT_WORK" in post_work_info
         and len(post_work_info["GWMS_ENTRIES_WITHOUT_WORK"]["entries"]) > 0
     ):
-        for entry, entry_state in post_work_info["GWMS_ENTRIES_WITHOUT_WORK"][
-            "entries"
-        ]:
+        for entry, entry_state in post_work_info["GWMS_ENTRIES_WITHOUT_WORK"]["entries"]:
             (my_entries[entry]).setState(entry_state)
 
     if work_info_read_err:
@@ -481,8 +460,7 @@ def iterate_one(
     gfc_filename = classadSupport.generate_classad_filename(prefix="gfi_adm_gfc")
 
     logSupport.log.info(
-        "Generating glidefactory (%s) and glidefactoryclient (%s) classads as needed"
-        % (gf_filename, gfc_filename)
+        f"Generating glidefactory ({gf_filename}) and glidefactoryclient ({gfc_filename}) classads as needed"
     )
 
     entries_to_advertise = []
@@ -490,9 +468,7 @@ def iterate_one(
         # Write classads to file if work was done or if advertise flag is set
         # Actual advertise is done using multi classad advertisement
         entrywork_done = 0
-        if (entry.name in groupwork_done) and (
-            "work_done" in groupwork_done[entry.name]
-        ):
+        if (entry.name in groupwork_done) and ("work_done" in groupwork_done[entry.name]):
             entrywork_done = groupwork_done[entry.name]["work_done"]
             done_something += entrywork_done
 
@@ -504,19 +480,14 @@ def iterate_one(
 
     if (do_advertize) or (done_something > 0):
         logSupport.log.debug(
-            "Generated glidefactory and glidefactoryclient classads for entries: %s"
-            % ", ".join(entries_to_advertise)
+            "Generated glidefactory and glidefactoryclient classads for entries: %s" % ", ".join(entries_to_advertise)
         )
         # ADVERTISE: glidefactory classads
         gfi.advertizeGlideinFromFile(gf_filename, remove_file=True, is_multi=True)
         # ADVERTISE: glidefactoryclient classads
-        gfi.advertizeGlideinClientMonitoringFromFile(
-            gfc_filename, remove_file=True, is_multi=True
-        )
+        gfi.advertizeGlideinClientMonitoringFromFile(gfc_filename, remove_file=True, is_multi=True)
     else:
-        logSupport.log.info(
-            "Not advertising glidefactory and glidefactoryclient classads this round"
-        )
+        logSupport.log.info("Not advertising glidefactory and glidefactoryclient classads this round")
 
     return done_something
 
@@ -569,9 +540,7 @@ def iterate(
     oldkey_gracetime = int(glideinDescript.data["OldPubKeyGraceTime"])
     oldkey_eoltime = starttime + oldkey_gracetime
 
-    factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(
-        glideinDescript.data["DowntimesFile"]
-    )
+    factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data["DowntimesFile"])
 
     while True:
 
@@ -581,14 +550,11 @@ def iterate(
         cleanupSupport.cleaners.start_background_cleanup()
 
         # Check if its time to invalidate factory's old key
-        if (time.time() > oldkey_eoltime) and (
-            glideinDescript.data["OldPubKeyObj"] is not None
-        ):
+        if (time.time() > oldkey_eoltime) and (glideinDescript.data["OldPubKeyObj"] is not None):
             # Invalidate the use of factory's old key
             logSupport.log.info("Retiring use of old key.")
             logSupport.log.info(
-                "Old key was valid from %s to %s ie grace of ~%s sec"
-                % (starttime, oldkey_eoltime, oldkey_gracetime)
+                f"Old key was valid from {starttime} to {oldkey_eoltime} ie grace of ~{oldkey_gracetime} sec"
             )
             glideinDescript.data["OldPubKeyType"] = None
             glideinDescript.data["OldPubKeyObj"] = None
@@ -625,13 +591,9 @@ def iterate(
                 pids = []
                 # generate a list of entries for each CPU
                 cpuCount = int(glideinDescript.data["MonitorUpdateThreadCount"])
-                logSupport.log.info(
-                    "Number of parallel writes for stats: %i" % cpuCount
-                )
+                logSupport.log.info("Number of parallel writes for stats: %i" % cpuCount)
 
-                entrylists = [
-                    list(my_entries.values())[cpu::cpuCount] for cpu in range(cpuCount)
-                ]
+                entrylists = [list(my_entries.values())[cpu::cpuCount] for cpu in range(cpuCount)]
 
                 # Fork's keyed by cpu number. Actual key is irrelevant
                 pipe_ids = {}
@@ -660,36 +622,24 @@ def iterate(
                                 entry.writeStats()
                                 return_dict[entry.name] = entry.getState()
                             except:
-                                entry.log.warning(
-                                    "Error writing stats for entry '%s'" % (entry.name)
-                                )
-                                entry.log.exception(
-                                    "Error writing stats for entry '%s': "
-                                    % (entry.name)
-                                )
+                                entry.log.warning("Error writing stats for entry '%s'" % (entry.name))
+                                entry.log.exception("Error writing stats for entry '%s': " % (entry.name))
 
                         try:
                             os.write(w, pickle.dumps(return_dict))
                         except:
                             # Catch and log exceptions if any to avoid
                             # runaway processes.
-                            entry.log.exception(
-                                "Error writing pickled state for entry '%s': "
-                                % (entry.name)
-                            )
+                            entry.log.exception("Error writing pickled state for entry '%s': " % (entry.name))
                         os.close(w)
                         # Exit without triggering SystemExit exception
                         os._exit(0)
 
                 try:
-                    logSupport.log.info(
-                        "Processing response from children after write stats"
-                    )
+                    logSupport.log.info("Processing response from children after write stats")
                     post_writestats_info = fetch_fork_result_list(pipe_ids)
                 except:
-                    logSupport.log.exception(
-                        "Error processing response from one or more children after write stats"
-                    )
+                    logSupport.log.exception("Error processing response from one or more children after write stats")
 
                 logSupport.roll_all_logs()
 
@@ -708,10 +658,7 @@ def iterate(
                 raise
             else:
                 # If not the first pass, just warn
-                logSupport.log.exception(
-                    "Exception occurred in the main loop of Factory Group %s: "
-                    % group_name
-                )
+                logSupport.log.exception("Exception occurred in the main loop of Factory Group %s: " % group_name)
 
         cleanupSupport.cleaners.wait_for_cleanup()
 
@@ -819,9 +766,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_names, group
             raise RuntimeError(msg)
 
         # Create entry objects
-        my_entries[entry] = glideFactoryEntry.Entry(
-            entry, startup_dir, glideinDescript, frontendDescript
-        )
+        my_entries[entry] = glideFactoryEntry.Entry(entry, startup_dir, glideinDescript, frontendDescript)
 
     # Create lock file for this group and register its parent
     pid_obj = glideFactoryPidLib.EntryGroupPidSupport(startup_dir, group_name)

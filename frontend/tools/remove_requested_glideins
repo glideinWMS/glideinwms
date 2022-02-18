@@ -18,9 +18,10 @@ import subprocess
 import sys
 import time
 
+from glideinwms.frontend import glideinFrontend, glideinFrontendPidLib
+
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
-from glideinwms.frontend import glideinFrontend, glideinFrontendPidLib
 
 FRONTEND_DIR = os.path.dirname(glideinFrontend.__file__)
 
@@ -50,24 +51,17 @@ def parse_args(argv):
         action="store_true",
         help="Remove only excess glideins (default: remove all of them)",
     )
-    argparser.add_option(
-        "-q", "--quiet", dest="quiet", action="store_true", help="Quiet mode"
-    )
+    argparser.add_option("-q", "--quiet", dest="quiet", action="store_true", help="Quiet mode")
     (options, other_args) = argparser.parse_args(argv[1:])
 
     if options.work_dir is None:
-        raise ValueError(
-            "FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting"
-        )
+        raise ValueError("FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting")
 
     if not os.path.isfile(os.path.join(options.work_dir, "frontend.descript")):
         raise ValueError("%s is not a valid FE work dir" % options.work_dir)
 
     if options.removal_type not in ("idle", "wait", "all"):
-        raise ValueError(
-            "Unexpected removal type %s (valid ones are idle, wait or all)"
-            % options.removal_type
-        )
+        raise ValueError("Unexpected removal type %s (valid ones are idle, wait or all)" % options.removal_type)
 
     if len(other_args) != 0:
         raise ValueError("Unexpected arguments found: %s" % str(other_args))
@@ -89,13 +83,9 @@ def main(argv):
 
     if running:
         if (action_type is None) or (action_type == "run"):
-            raise RuntimeError(
-                "The Frontend is currently running.\nYou have to stop it before issuing this command"
-            )
+            raise RuntimeError("The Frontend is currently running.\nYou have to stop it before issuing this command")
         else:
-            raise RuntimeError(
-                "The Frontend is currently busy (%s)\nPlease retry later" % action_type
-            )
+            raise RuntimeError("The Frontend is currently busy (%s)\nPlease retry later" % action_type)
 
     os.chdir(options.work_dir)
 
@@ -109,9 +99,7 @@ def main(argv):
         action,
     ]
 
-    child = subprocess.Popen(
-        command_list, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
+    child = subprocess.Popen(command_list, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # set it in non blocking mode to be on the safe side
     for fd in (child.stdout.fileno(), child.stderr.fileno()):

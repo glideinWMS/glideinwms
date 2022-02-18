@@ -57,13 +57,9 @@ class FrontendConfig:
         # Default the glideinWMS version string
         self.glideinwms_version = "glideinWMS UNKNOWN"
         try:
-            self.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(
-                "checksum.frontend"
-            ).version()
+            self.glideinwms_version = glideinWMSVersion.GlideinWMSDistro("checksum.frontend").version()
         except:
-            logSupport.log.exception(
-                "Exception occurred while trying to retrieve the glideinwms version: "
-            )
+            logSupport.log.exception("Exception occurred while trying to retrieve the glideinwms version: ")
 
         # String to prefix for the attributes
         self.glidein_attr_prefix = ""
@@ -192,9 +188,7 @@ def findMasterFrontendClassads(pool_name, frontend_name):
         "glideclientglobal",
         "glideclient",
     )
-    frontend_constraint = (
-        '(FrontendName=?="%s")&&(FrontendHAMode=!="slave")' % frontend_name
-    )
+    frontend_constraint = '(FrontendName=?="%s")&&(FrontendHAMode=!="slave")' % frontend_name
 
     status = condorMonitor.CondorStatus("any", pool_name=pool_name)
     # important, especially for proxy passing
@@ -235,9 +229,7 @@ def findGlideins(factory_pool, factory_identity, signtype, additional_constraint
     return format_condor_dict(data)
 
 
-def findGlideinClientMonitoring(
-    factory_pool, factory_identity, my_name, additional_constraint=None
-):
+def findGlideinClientMonitoring(factory_pool, factory_identity, my_name, additional_constraint=None):
     global frontendConfig
 
     status_constraint = '(GlideinMyType=?="%s")' % frontendConfig.factoryclient_id
@@ -393,15 +385,11 @@ class Credential:
         """
 
         if self.creation_script:
-            logSupport.log.debug(
-                "Creating credential using %s" % (self.creation_script)
-            )
+            logSupport.log.debug("Creating credential using %s" % (self.creation_script))
             try:
                 condorExe.iexe_cmd(self.creation_script)
             except:
-                logSupport.log.exception(
-                    "Creating credential using %s failed" % (self.creation_script)
-                )
+                logSupport.log.exception("Creating credential using %s failed" % (self.creation_script))
                 self.advertize = False
 
             # Recreating the credential can result in ID change
@@ -464,14 +452,10 @@ class Credential:
             return 0
 
         if ("grid_proxy" in self.type) or ("cert_pair" in self.type):
-            time_list = condorExe.iexe_cmd(
-                "openssl x509 -in %s -noout -enddate" % self.filename
-            )
+            time_list = condorExe.iexe_cmd("openssl x509 -in %s -noout -enddate" % self.filename)
             if "notAfter=" in time_list[0]:
                 time_str = time_list[0].split("=")[1].strip()
-                timeleft = calendar.timegm(
-                    time.strptime(time_str, "%b %d %H:%M:%S %Y %Z")
-                ) - int(time.time())
+                timeleft = calendar.timegm(time.strptime(time_str, "%b %d %H:%M:%S %Y %Z")) - int(time.time())
             return timeleft
         else:
             return -1
@@ -482,11 +466,7 @@ class Credential:
         Only works if type is grid_proxy or creation_script is provided
         """
         remaining = self.time_left()
-        if (
-            (remaining != -1)
-            and (self.update_frequency != -1)
-            and (remaining < self.update_frequency)
-        ):
+        if (remaining != -1) and (self.update_frequency != -1) and (remaining < self.update_frequency):
             self.create()
 
     def supports_auth_method(self, auth_method):
@@ -590,17 +570,14 @@ class FrontendDescript:
             'WebSignType = "%s"' % self.signtype,
             'WebDescriptFile = "%s"' % self.main_descript,
             'WebDescriptSign = "%s"' % self.main_sign,
-            'WebGroupURL = "%s"'
-            % os.path.join(self.web_url, "group_%s" % self.group_name),
+            'WebGroupURL = "%s"' % os.path.join(self.web_url, "group_%s" % self.group_name),
             'WebGroupDescriptFile = "%s"' % self.group_descript,
             'WebGroupDescriptSign = "%s"' % self.group_sign,
         )
 
 
 class FactoryKeys4Advertize:
-    def __init__(
-        self, classad_identity, factory_pub_key_id, factory_pub_key, glidein_symKey=None
-    ):
+    def __init__(self, classad_identity, factory_pub_key_id, factory_pub_key, glidein_symKey=None):
         """
 
         Args:
@@ -631,16 +608,11 @@ class FactoryKeys4Advertize:
         return (
             'ReqPubKeyID = "%s"' % self.factory_pub_key_id,
             'ReqEncKeyCode = "%s"'
-            % self.factory_pub_key.encrypt_hex(glidein_symKey_str).decode(
-                defaults.BINARY_ENCODING_CRYPTO
-            ),
+            % self.factory_pub_key.encrypt_hex(glidein_symKey_str).decode(defaults.BINARY_ENCODING_CRYPTO),
             # this attribute will be checked against the AuthenticatedIdentity
             # this will prevent replay attacks, as only who knows the symkey can change this field
             # no other changes needed, as HTCondor provides integrity of the whole classAd
-            'ReqEncIdentity = "%s"'
-            % self.encrypt_hex(self.classad_identity).decode(
-                defaults.BINARY_ENCODING_CRYPTO
-            ),
+            'ReqEncIdentity = "%s"' % self.encrypt_hex(self.classad_identity).decode(defaults.BINARY_ENCODING_CRYPTO),
         )
 
     def encrypt_hex(self, data):
@@ -661,13 +633,9 @@ class Key4AdvertizeBuilder:
     """
 
     def __init__(self):
-        self.keys_cache = (
-            {}
-        )  # will contain a tuple of (key_obj, creation_time, last_access_time)
+        self.keys_cache = {}  # will contain a tuple of (key_obj, creation_time, last_access_time)
 
-    def get_key_obj(
-        self, classad_identity, factory_pub_key_id, factory_pub_key, glidein_symKey=None
-    ):
+    def get_key_obj(self, classad_identity, factory_pub_key_id, factory_pub_key, glidein_symKey=None):
         """Get a key object
 
         Args:
@@ -684,9 +652,7 @@ class Key4AdvertizeBuilder:
 
         if glidein_symKey is not None:
             # when a key is explicitly given, cannot reuse a cached one
-            key_obj = FactoryKeys4Advertize(
-                classad_identity, factory_pub_key_id, factory_pub_key, glidein_symKey
-            )
+            key_obj = FactoryKeys4Advertize(classad_identity, factory_pub_key_id, factory_pub_key, glidein_symKey)
             # but I can use it for others
             if cache_id not in self.keys_cache:
                 now = time.time()
@@ -724,14 +690,10 @@ class Key4AdvertizeBuilder:
             delete_entry = False
 
             if created_after is not None:
-                delete_entry = delete_entry or (
-                    self.keys_cache[cache_id][1] < created_after
-                )
+                delete_entry = delete_entry or (self.keys_cache[cache_id][1] < created_after)
 
             if accessed_after is not None:
-                delete_entry = delete_entry or (
-                    self.keys_cache[cache_id][2] < accessed_after
-                )
+                delete_entry = delete_entry or (self.keys_cache[cache_id][2] < accessed_after)
 
             if delete_entry:
                 del self.keys_cache[cache_id]
@@ -766,8 +728,7 @@ class AdvertizeParams:
             remove_excess_str = "NO"
         elif not (remove_excess_str in ("NO", "WAIT", "IDLE", "ALL", "UNREG")):
             raise RuntimeError(
-                'Invalid remove_excess_str(%s), valid values are "NO","WAIT","IDLE","ALL","UNREG"'
-                % remove_excess_str
+                'Invalid remove_excess_str(%s), valid values are "NO","WAIT","IDLE","ALL","UNREG"' % remove_excess_str
             )
         self.remove_excess_str = remove_excess_str
         self.remove_excess_margin = remove_excess_margin
@@ -812,9 +773,7 @@ def advertizeWorkFromFile(factory_pool, fname, remove_file=True, is_multi=False)
 class MultiAdvertizeWork:
     def __init__(self, descript_obj):  # must be of type FrontendDescript
         self.descript_obj = descript_obj
-        self.factory_queue = (
-            {}
-        )  # will have a queue x factory, each element is list of tuples (params_obj, key_obj)
+        self.factory_queue = {}  # will have a queue x factory, each element is list of tuples (params_obj, key_obj)
         self.global_pool = []
         self.global_key = {}
         self.global_params = {}
@@ -892,9 +851,7 @@ class MultiAdvertizeWork:
         """
         self.x509_proxies_data = []
         if self.descript_obj.x509_proxies_plugin is not None:
-            self.x509_proxies_data = (
-                self.descript_obj.x509_proxies_plugin.get_credentials()
-            )
+            self.x509_proxies_data = self.descript_obj.x509_proxies_plugin.get_credentials()
             nr_credentials = len(self.x509_proxies_data)
         else:
             nr_credentials = 0
@@ -935,9 +892,7 @@ class MultiAdvertizeWork:
         Safe to run in parallel, guaranteed to not modify the self object state.
         """
         for factory_pool in filename_dict:
-            self.do_advertize_batch_one(
-                factory_pool, filename_dict[factory_pool], remove_files
-            )
+            self.do_advertize_batch_one(factory_pool, filename_dict[factory_pool], remove_files)
 
     def do_advertize_batch_one(self, factory_pool, filename_arr, remove_files=True):
         """
@@ -954,16 +909,12 @@ class MultiAdvertizeWork:
                     is_multi=frontendConfig.advertise_use_multi,
                 )
             except condorExe.ExeError:
-                logSupport.log.exception(
-                    "Advertising failed for factory pool %s: " % factory_pool
-                )
+                logSupport.log.exception("Advertising failed for factory pool %s: " % factory_pool)
 
     def get_advertize_factory_list(self):
         return tuple(set(self.global_pool).union(set(self.factory_queue.keys())))
 
-    def do_global_advertize(
-        self, adname=None, create_files_only=False, reset_unique_id=True
-    ):
+    def do_global_advertize(self, adname=None, create_files_only=False, reset_unique_id=True):
         """
         Advertize globals with credentials
         Returns a dictionary of files that still need to be advertised.
@@ -974,17 +925,13 @@ class MultiAdvertizeWork:
         if reset_unique_id:
             self.unique_id = 1
         for factory_pool in self.global_pool:
-            self.unique_id += (
-                1  # make sure ads for different factories don't end in the same file
-            )
+            self.unique_id += 1  # make sure ads for different factories don't end in the same file
             unpublished_files[factory_pool] = self.do_global_advertize_one(
                 factory_pool, adname, create_files_only, False
             )
         return unpublished_files
 
-    def do_global_advertize_one(
-        self, factory_pool, adname=None, create_files_only=False, reset_unique_id=True
-    ):
+    def do_global_advertize_one(self, factory_pool, adname=None, create_files_only=False, reset_unique_id=True):
         """
         Advertize globals with credentials to one factory
         Returns the list of files that still need to be advertised.
@@ -1016,9 +963,7 @@ class MultiAdvertizeWork:
                     is_multi=frontendConfig.advertise_use_multi,
                 )
             except condorExe.ExeError:
-                logSupport.log.exception(
-                    "Advertising globals failed for factory pool %s: " % factory_pool
-                )
+                logSupport.log.exception("Advertising globals failed for factory pool %s: " % factory_pool)
         return []  # no files left to be advertised
 
     def createGlobalAdvertizeWorkFile(self, factory_pool):
@@ -1059,9 +1004,9 @@ class MultiAdvertizeWork:
                     glidein_params_to_encrypt[cred_el.file_id(ld_fname)] = ld_data
                     if hasattr(cred_el, "security_class"):
                         # Convert the sec class to a string so the Factory can interpret the value correctly
-                        glidein_params_to_encrypt[
-                            "SecurityClass" + cred_el.file_id(ld_fname)
-                        ] = str(cred_el.security_class)
+                        glidein_params_to_encrypt["SecurityClass" + cred_el.file_id(ld_fname)] = str(
+                            cred_el.security_class
+                        )
 
             key_obj = None
             if factory_pool in self.global_key:
@@ -1069,14 +1014,9 @@ class MultiAdvertizeWork:
             if key_obj is not None:
                 fd.write("\n".join(key_obj.get_key_attrs()) + "\n")
                 for attr in list(glidein_params_to_encrypt.keys()):
-                    el = key_obj.encrypt_hex(glidein_params_to_encrypt[attr]).decode(
-                        defaults.BINARY_ENCODING_CRYPTO
-                    )
+                    el = key_obj.encrypt_hex(glidein_params_to_encrypt[attr]).decode(defaults.BINARY_ENCODING_CRYPTO)
                     escaped_el = el.replace('"', '\\"').replace("\n", "\\n")
-                    fd.write(
-                        '%s%s = "%s"\n'
-                        % (frontendConfig.encrypted_param_prefix, attr, escaped_el)
-                    )
+                    fd.write(f'{frontendConfig.encrypted_param_prefix}{attr} = "{escaped_el}"\n')
 
             # Update Sequence number information
             if classad_name in advertizeGCGounter:
@@ -1110,9 +1050,7 @@ class MultiAdvertizeWork:
         if reset_unique_id:
             self.unique_id = 1
         for factory_pool in list(self.factory_queue.keys()):
-            self.unique_id += (
-                1  # make sure ads for different factories don't end in the same file
-            )
+            self.unique_id += 1  # make sure ads for different factories don't end in the same file
             unpublished_files[factory_pool] = self.do_advertize_one(
                 factory_pool, file_id_cache, adname, create_files_only, False
             )
@@ -1165,18 +1103,15 @@ class MultiAdvertizeWork:
                 logSupport.log.warning(
                     "No security credentials match for factory pool %s, not advertising request;"
                     " if this is not intentional, check for typos frontend's credential "
-                    "trust_domain and type, vs factory's pool trust_domain and auth_method"
-                    % factory_pool
+                    "trust_domain and type, vs factory's pool trust_domain and auth_method" % factory_pool
                 )
             except condorExe.ExeError:
                 filename_arr = []  # don't try to advertise
                 logSupport.log.exception(
-                    "Error creating request files for factory pool %s, unable to advertise: "
-                    % factory_pool
+                    "Error creating request files for factory pool %s, unable to advertise: " % factory_pool
                 )
                 logSupport.log.error(
-                    "Error creating request files for factory pool %s, unable to advertise"
-                    % factory_pool
+                    "Error creating request files for factory pool %s, unable to advertise" % factory_pool
                 )
 
         del self.factory_queue[factory_pool]  # clean queue for this factory
@@ -1194,9 +1129,7 @@ class MultiAdvertizeWork:
                     is_multi=frontendConfig.advertise_use_multi,
                 )
             except condorExe.ExeError:
-                logSupport.log.exception(
-                    "Advertising request failed for factory pool %s: " % factory_pool
-                )
+                logSupport.log.exception("Advertising request failed for factory pool %s: " % factory_pool)
 
         return []  # No files left to be advertized
 
@@ -1225,9 +1158,7 @@ class MultiAdvertizeWork:
             raise NoCredentialException
 
         if len(values) > 1:
-            logSupport.log.error(
-                f"Found multiple lines that contain {prefix} in {filename}"
-            )
+            logSupport.log.error(f"Found multiple lines that contain {prefix} in {filename}")
             raise NoCredentialException
         elif len(values) == 0:
             logSupport.log.error(f"File {filename} does not contain {prefix}")
@@ -1236,9 +1167,7 @@ class MultiAdvertizeWork:
         logSupport.log.debug(f"Found {prefix} = {values[0]} from file {filename}")
         return values[0]
 
-    def createAdvertizeWorkFile(
-        self, factory_pool, params_obj, key_obj=None, file_id_cache=None
-    ):
+    def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None, file_id_cache=None):
         """
         Create the advertize file
         Expects the object variables
@@ -1293,15 +1222,10 @@ class MultiAdvertizeWork:
                 req_max_run = 0
                 if True:  # for historical reasons... to preserve indentation
                     credential_el = credentials_with_requests[i]
-                    logSupport.log.debug(
-                        "Checking Credential file %s ..." % (credential_el.filename)
-                    )
+                    logSupport.log.debug("Checking Credential file %s ..." % (credential_el.filename))
                     if credential_el.supports_auth_method("scitoken"):
                         if token_util.token_file_expired(credential_el.filename):
-                            logSupport.log.warning(
-                                "Credential file %s is expired, skipping"
-                                % credential_el.filename
-                            )
+                            logSupport.log.warning("Credential file %s is expired, skipping" % credential_el.filename)
                             continue
                     if credential_el.advertize == False:
                         # We already determined it cannot be used
@@ -1311,9 +1235,7 @@ class MultiAdvertizeWork:
                         continue
 
                 credential_el = credentials_with_requests[i]
-                logSupport.log.debug(
-                    "Checking Credential file %s ..." % (credential_el.filename)
-                )
+                logSupport.log.debug("Checking Credential file %s ..." % (credential_el.filename))
                 if credential_el.advertize == False:
                     # We already determined it cannot be used
                     # if hasattr(credential_el,'filename'):
@@ -1322,9 +1244,7 @@ class MultiAdvertizeWork:
                     continue
 
                 if params_obj.request_name in self.factory_constraint:
-                    if (factory_auth != "Any") and (
-                        not credential_el.supports_auth_method(factory_auth)
-                    ):
+                    if (factory_auth != "Any") and (not credential_el.supports_auth_method(factory_auth)):
                         logSupport.log.warning(
                             "Credential %s does not match auth method %s (for %s), skipping..."
                             % (
@@ -1334,9 +1254,7 @@ class MultiAdvertizeWork:
                             )
                         )
                         continue
-                    if (credential_el.trust_domain != factory_trust) and (
-                        factory_trust != "Any"
-                    ):
+                    if (credential_el.trust_domain != factory_trust) and (factory_trust != "Any"):
                         logSupport.log.warning(
                             "Credential %s does not match %s (for %s) domain, skipping..."
                             % (
@@ -1347,18 +1265,10 @@ class MultiAdvertizeWork:
                         )
                         continue
                 # Convert the sec class to a string so the Factory can interpret the value correctly
-                glidein_params_to_encrypt["SecurityClass"] = str(
-                    credential_el.security_class
-                )
-                classad_name = (
-                    credential_el.file_id(credential_el.filename, ignoredn=True)
-                    + "_"
-                    + classad_name
-                )
+                glidein_params_to_encrypt["SecurityClass"] = str(credential_el.security_class)
+                classad_name = credential_el.file_id(credential_el.filename, ignoredn=True) + "_" + classad_name
                 if "username_password" in credential_el.type:
-                    glidein_params_to_encrypt["Username"] = file_id_cache.file_id(
-                        credential_el, credential_el.filename
-                    )
+                    glidein_params_to_encrypt["Username"] = file_id_cache.file_id(credential_el, credential_el.filename)
                     glidein_params_to_encrypt["Password"] = file_id_cache.file_id(
                         credential_el, credential_el.key_fname
                     )
@@ -1381,9 +1291,7 @@ class MultiAdvertizeWork:
                         credential_el, credential_el.key_fname
                     )
                 if "auth_file" in credential_el.type:
-                    glidein_params_to_encrypt["AuthFile"] = file_id_cache.file_id(
-                        credential_el, credential_el.filename
-                    )
+                    glidein_params_to_encrypt["AuthFile"] = file_id_cache.file_id(credential_el, credential_el.filename)
                 if "vm_id" in credential_el.type:
                     if credential_el.vm_id_fname:
                         glidein_params_to_encrypt["VMId"] = self.vm_attribute_from_file(
@@ -1393,9 +1301,7 @@ class MultiAdvertizeWork:
                         glidein_params_to_encrypt["VMId"] = str(credential_el.vm_id)
                 if "vm_type" in credential_el.type:
                     if credential_el.vm_type_fname:
-                        glidein_params_to_encrypt[
-                            "VMType"
-                        ] = self.vm_attribute_from_file(
+                        glidein_params_to_encrypt["VMType"] = self.vm_attribute_from_file(
                             credential_el.vm_type_fname, "VM_TYPE"
                         )
                     else:
@@ -1408,16 +1314,10 @@ class MultiAdvertizeWork:
                         credential_el, credential_el.pilot_fname
                     )
 
-                if (
-                    credential_el.remote_username
-                ):  # MM: or "username" in credential_el.type
-                    glidein_params_to_encrypt["RemoteUsername"] = str(
-                        credential_el.remote_username
-                    )
+                if credential_el.remote_username:  # MM: or "username" in credential_el.type
+                    glidein_params_to_encrypt["RemoteUsername"] = str(credential_el.remote_username)
                 if credential_el.project_id:
-                    glidein_params_to_encrypt["ProjectId"] = str(
-                        credential_el.project_id
-                    )
+                    glidein_params_to_encrypt["ProjectId"] = str(credential_el.project_id)
 
                 (req_idle, req_max_run) = credential_el.get_usage_details()
                 logSupport.log.debug(
@@ -1430,9 +1330,7 @@ class MultiAdvertizeWork:
                     )
                 )
 
-                glidein_monitors_this_cred = params_obj.glidein_monitors_per_cred.get(
-                    credential_el.getId(), {}
-                )
+                glidein_monitors_this_cred = params_obj.glidein_monitors_per_cred.get(credential_el.getId(), {})
 
                 if frontendConfig.advertise_use_multi is True:
                     fname = self.adname
@@ -1446,9 +1344,7 @@ class MultiAdvertizeWork:
 
                 fd.write('MyType = "%s"\n' % frontendConfig.client_id)
                 fd.write('GlideinMyType = "%s"\n' % frontendConfig.client_id)
-                fd.write(
-                    'GlideinWMSVersion = "%s"\n' % frontendConfig.glideinwms_version
-                )
+                fd.write('GlideinWMSVersion = "%s"\n' % frontendConfig.glideinwms_version)
                 fd.write('Name = "%s"\n' % classad_name)
                 fd.write("\n".join(descript_obj.get_id_attrs()) + "\n")
                 fd.write('ReqName = "%s"\n' % params_obj.request_name)
@@ -1462,16 +1358,14 @@ class MultiAdvertizeWork:
                 if key_obj is not None:
                     fd.write("\n".join(key_obj.get_key_attrs()) + "\n")
                     for attr in glidein_params_to_encrypt:
-                        encrypted_params[attr] = key_obj.encrypt_hex(
-                            glidein_params_to_encrypt[attr]
-                        ).decode(defaults.BINARY_ENCODING_CRYPTO)
+                        encrypted_params[attr] = key_obj.encrypt_hex(glidein_params_to_encrypt[attr]).decode(
+                            defaults.BINARY_ENCODING_CRYPTO
+                        )
 
                 fd.write("ReqIdleGlideins = %i\n" % req_idle)
                 fd.write("ReqMaxGlideins = %i\n" % req_max_run)
                 fd.write('ReqRemoveExcess = "%s"\n' % params_obj.remove_excess_str)
-                fd.write(
-                    "ReqRemoveExcessMargin = %i\n" % params_obj.remove_excess_margin
-                )
+                fd.write("ReqRemoveExcessMargin = %i\n" % params_obj.remove_excess_margin)
                 fd.write('ReqIdleLifetime = "%s"\n' % params_obj.idle_lifetime)
                 fd.write('WebMonitoringURL = "%s"\n' % descript_obj.monitoring_web_url)
 
@@ -1490,16 +1384,12 @@ class MultiAdvertizeWork:
                     # attr_value = params_obj.glidein_monitors[attr_name]
                     if (attr_name == "RunningHere") and glidein_monitors_this_cred:
                         # This double check is for backward compatibility
-                        attr_value = glidein_monitors_this_cred.get(
-                            "GlideinsRunning", 0
-                        )
+                        attr_value = glidein_monitors_this_cred.get("GlideinsRunning", 0)
                     elif (attr_name == "Running") and glidein_monitors_this_cred:
                         # This double check is for backward compatibility
                         attr_value = glidein_monitors_this_cred.get("ScaledRunning", 0)
                     else:
-                        attr_value = glidein_monitors_this_cred.get(
-                            attr_name, params_obj.glidein_monitors[attr_name]
-                        )
+                        attr_value = glidein_monitors_this_cred.get(attr_name, params_obj.glidein_monitors[attr_name])
                     writeTypedClassadAttrToFile(fd, f"{prefix}{attr_name}", attr_value)
 
                 # Update Sequence number information
@@ -1507,9 +1397,7 @@ class MultiAdvertizeWork:
                     advertizeGCCounter[classad_name] += 1
                 else:
                     advertizeGCCounter[classad_name] = 0
-                fd.write(
-                    "UpdateSequenceNumber = %s\n" % advertizeGCCounter[classad_name]
-                )
+                fd.write("UpdateSequenceNumber = %s\n" % advertizeGCCounter[classad_name])
 
                 # add a final empty line... useful when appending
                 fd.write("\n")
@@ -1615,9 +1503,7 @@ class ResourceClassad(classadSupport.Classad):
 
         global advertizeGRCounter
 
-        classadSupport.Classad.__init__(
-            self, "glideresource", "UPDATE_AD_GENERIC", "INVALIDATE_ADS_GENERIC"
-        )
+        classadSupport.Classad.__init__(self, "glideresource", "UPDATE_AD_GENERIC", "INVALIDATE_ADS_GENERIC")
 
         self.adParams["GlideinWMSVersion"] = frontendConfig.glideinwms_version
         self.adParams["GlideFactoryName"] = "%s" % factory_ref
@@ -1629,9 +1515,7 @@ class ResourceClassad(classadSupport.Classad):
             advertizeGRCounter[self.adParams["Name"]] += 1
         else:
             advertizeGRCounter[self.adParams["Name"]] = 0
-        self.adParams["UpdateSequenceNumber"] = advertizeGRCounter[
-            self.adParams["Name"]
-        ]
+        self.adParams["UpdateSequenceNumber"] = advertizeGRCounter[self.adParams["Name"]]
 
     def setFrontendDetails(self, frontend_name, group_name, ha_mode):
         """
@@ -1661,9 +1545,7 @@ class ResourceClassad(classadSupport.Classad):
         """
         self.adParams["GlideClientMatchingGlideinCondorExpr"] = "%s" % match_expr
         self.adParams["GlideClientConstraintJobCondorExpr"] = "%s" % job_query_expr
-        self.adParams["GlideClientMatchingInternalPythonExpr"] = (
-            "%s" % factory_query_expr
-        )
+        self.adParams["GlideClientMatchingInternalPythonExpr"] = "%s" % factory_query_expr
         self.adParams["GlideClientConstraintFactoryCondorExpr"] = "%s" % start_expr
 
     def setInDownTime(self, downtime):
@@ -1735,9 +1617,7 @@ class ResourceClassad(classadSupport.Classad):
             ad_key = attr
             if attr.startswith(frontendConfig.glidein_config_prefix):
                 # Condvert GlideinConfig -> GlideFactoryConfig
-                ad_key = attr.replace(
-                    frontendConfig.glidein_config_prefix, "GlideFactoryConfig", 1
-                )
+                ad_key = attr.replace(frontendConfig.glidein_config_prefix, "GlideFactoryConfig", 1)
             self.adParams[ad_key] = info[attr]
 
     def setEntryMonitorInfo(self, info):
@@ -1769,11 +1649,7 @@ class ResourceClassad(classadSupport.Classad):
         for key in info:
             ad_key = key
             if not key.startswith("TotalClientMonitor"):
-                if (
-                    key.startswith("Total")
-                    or key.startswith("Status")
-                    or key.startswith("Requested")
-                ):
+                if key.startswith("Total") or key.startswith("Status") or key.startswith("Requested"):
                     ad_key = "GlideFactoryMonitor" + key
                     self.adParams[ad_key] = info[key]
 
@@ -1848,9 +1724,7 @@ class FrontendMonitorClassad(classadSupport.Classad):
 
         global advertizeGFMCounter
 
-        classadSupport.Classad.__init__(
-            self, "glidefrontendmonitor", "UPDATE_AD_GENERIC", "INVALIDATE_ADS_GENERIC"
-        )
+        classadSupport.Classad.__init__(self, "glidefrontendmonitor", "UPDATE_AD_GENERIC", "INVALIDATE_ADS_GENERIC")
 
         self.adParams["GlideinWMSVersion"] = frontendConfig.glideinwms_version
         self.adParams["Name"] = "%s" % (frontend_ref)
@@ -1860,9 +1734,7 @@ class FrontendMonitorClassad(classadSupport.Classad):
             advertizeGFMCounter[self.adParams["Name"]] += 1
         else:
             advertizeGFMCounter[self.adParams["Name"]] = 0
-        self.adParams["UpdateSequenceNumber"] = advertizeGFMCounter[
-            self.adParams["Name"]
-        ]
+        self.adParams["UpdateSequenceNumber"] = advertizeGFMCounter[self.adParams["Name"]]
 
     def setFrontendDetails(self, frontend_name, groups, ha_mode):
         """
@@ -1944,9 +1816,7 @@ class FrontendMonitorClassadAdvertiser(classadSupport.ClassadAdvertiser):
 
 def exe_condor_advertise(fname, command, pool, is_multi=False):
     logSupport.log.debug(f"CONDOR ADVERTISE {fname} {command} {pool} {is_multi}")
-    return condorManager.condorAdvertise(
-        fname, command, frontendConfig.advertise_use_tcp, is_multi, pool
-    )
+    return condorManager.condorAdvertise(fname, command, frontendConfig.advertise_use_tcp, is_multi, pool)
 
 
 class NoCredentialException(Exception):

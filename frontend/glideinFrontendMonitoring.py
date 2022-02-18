@@ -41,9 +41,7 @@ class MonitoringConfig:
         # set default values
         # user should modify if needed
         self.rrd_step = 300  # default to 5 minutes
-        self.rrd_heartbeat = (
-            1800  # default to 30 minutes, should be at least twice the loop time
-        )
+        self.rrd_heartbeat = 1800  # default to 30 minutes, should be at least twice the loop time
         self.rrd_archives = [
             ("AVERAGE", 0.8, 1, 740),  # max precision, keep 2.5 days
             ("AVERAGE", 0.92, 12, 740),  # 1 h precision, keep for a month (30 days)
@@ -74,9 +72,7 @@ class MonitoringConfig:
             os.mkdir(dname)
         return
 
-    def write_rrd_multi(
-        self, relative_fname, ds_type, time, val_dict, min_val=None, max_val=None
-    ):
+    def write_rrd_multi(self, relative_fname, ds_type, time, val_dict, min_val=None, max_val=None):
         """
         Create a RRD file, using rrdtool.
         """
@@ -98,12 +94,8 @@ class MonitoringConfig:
 
                 ds_arr = []
                 for ds_name in ds_names:
-                    ds_arr.append(
-                        (ds_name, ds_type, self.rrd_heartbeat, min_val, max_val)
-                    )
-                self.rrd_obj.create_rrd_multi(
-                    fname, self.rrd_step, rrd_archives, ds_arr
-                )
+                    ds_arr.append((ds_name, ds_type, self.rrd_heartbeat, min_val, max_val))
+                self.rrd_obj.create_rrd_multi(fname, self.rrd_step, rrd_archives, ds_arr)
 
             # print "Updating RRD "+fname
             try:
@@ -182,9 +174,7 @@ class groupStats:
 
         self.updated = time.time()
 
-    def logMatchedGlideins(
-        self, factory, total, idle, running, failed, totalcores, idlecores, runningcores
-    ):
+    def logMatchedGlideins(self, factory, total, idle, running, failed, totalcores, idlecores, runningcores):
         factory_or_state_d = self.get_factory_dict(factory)
 
         factory_or_state_d["MatchedGlideins"] = {
@@ -232,13 +222,7 @@ class groupStats:
             dict_name="factories",
             el_name="factory",
             subtypes_params={
-                "class": {
-                    "subclass_params": {
-                        "Requested": {
-                            "dicts_params": {"Parameters": {"el_name": "Parameter"}}
-                        }
-                    }
-                }
+                "class": {"subclass_params": {"Requested": {"dicts_params": {"Parameters": {"el_name": "Parameter"}}}}}
             },
             indent_tab=indent_tab,
             leading_tab=leading_tab,
@@ -254,22 +238,14 @@ class groupStats:
             dict_name="states",
             el_name="state",
             subtypes_params={
-                "class": {
-                    "subclass_params": {
-                        "Requested": {
-                            "dicts_params": {"Parameters": {"el_name": "Parameter"}}
-                        }
-                    }
-                }
+                "class": {"subclass_params": {"Requested": {"dicts_params": {"Parameters": {"el_name": "Parameter"}}}}}
             },
             indent_tab=indent_tab,
             leading_tab=leading_tab,
         )
 
     def get_xml_updated(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
-        return xmlFormat.time2xml(
-            self.updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""
-        )
+        return xmlFormat.time2xml(self.updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab="")
 
     def get_total(self):
         total = {
@@ -317,16 +293,12 @@ class groupStats:
 
     def get_xml_total(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
         total = self.get_total()
-        return xmlFormat.class2string(
-            total, inst_name="total", indent_tab=indent_tab, leading_tab=leading_tab
-        )
+        return xmlFormat.class2string(total, inst_name="total", indent_tab=indent_tab, leading_tab=leading_tab)
 
     def write_file(self):
         global monitoringConfig
 
-        if (self.files_updated is not None) and (
-            (self.updated - self.files_updated) < 5
-        ):
+        if (self.files_updated is not None) and ((self.updated - self.files_updated) < 5):
             # files updated recently, no need to redo it
             return
 
@@ -334,21 +306,13 @@ class groupStats:
         xml_str = (
             '<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'
             + "<VOFrontendGroupStats>\n"
-            + self.get_xml_updated(
-                indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB
-            )
+            + self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB)
             + "\n"
-            + self.get_xml_factories_data(
-                indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB
-            )
+            + self.get_xml_factories_data(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB)
             + "\n"
-            + self.get_xml_states_data(
-                indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB
-            )
+            + self.get_xml_states_data(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB)
             + "\n"
-            + self.get_xml_total(
-                indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB
-            )
+            + self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB)
             + "\n"
             + "</VOFrontendGroupStats>\n"
         )
@@ -432,9 +396,7 @@ class groupStats:
                         val_dict[f"{tp_str}{a}"] = a_el
 
         monitoringConfig.establish_dir("%s" % name)
-        monitoringConfig.write_rrd_multi(
-            "%s/Status_Attributes" % name, "GAUGE", self.updated, val_dict
-        )
+        monitoringConfig.write_rrd_multi("%s/Status_Attributes" % name, "GAUGE", self.updated, val_dict)
 
 
 ########################################################################
@@ -543,9 +505,7 @@ class factoryStats:
 
         if "LastHeardFrom" in client_internals:
             el["InfoAge"] = int(time.time() - int(client_internals["LastHeardFrom"]))
-            el[
-                "InfoAgeAvgCounter"
-            ] = 1  # used for totals since we need an avg in totals, not absnum
+            el["InfoAgeAvgCounter"] = 1  # used for totals since we need an avg in totals, not absnum
 
         self.updated = time.time()
 
@@ -556,9 +516,7 @@ class factoryStats:
             for w in list(fe.keys()):
                 el = fe[w]
                 for a in list(el.keys()):
-                    if (
-                        a[-10:] == "AvgCounter"
-                    ):  # do not publish avgcounter fields... they are internals
+                    if a[-10:] == "AvgCounter":  # do not publish avgcounter fields... they are internals
                         del el[a]
 
         return data1
@@ -570,13 +528,7 @@ class factoryStats:
             dict_name="frontends",
             el_name="frontend",
             subtypes_params={
-                "class": {
-                    "subclass_params": {
-                        "Requested": {
-                            "dicts_params": {"Parameters": {"el_name": "Parameter"}}
-                        }
-                    }
-                }
+                "class": {"subclass_params": {"Requested": {"dicts_params": {"Parameters": {"el_name": "Parameter"}}}}}
             },
             indent_tab=indent_tab,
             leading_tab=leading_tab,
@@ -632,21 +584,15 @@ class factoryStats:
 
     def get_xml_total(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
         total = self.get_total()
-        return xmlFormat.class2string(
-            total, inst_name="total", indent_tab=indent_tab, leading_tab=leading_tab
-        )
+        return xmlFormat.class2string(total, inst_name="total", indent_tab=indent_tab, leading_tab=leading_tab)
 
     def get_xml_updated(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
-        return xmlFormat.time2xml(
-            self.updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""
-        )
+        return xmlFormat.time2xml(self.updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab="")
 
     def write_file(self):
         global monitoringConfig
 
-        if (self.files_updated is not None) and (
-            (self.updated - self.files_updated) < 5
-        ):
+        if (self.files_updated is not None) and ((self.updated - self.files_updated) < 5):
             # files updated recently, no need to redo it
             return
 
@@ -654,17 +600,11 @@ class factoryStats:
         xml_str = (
             '<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'
             + "<glideFactoryEntryQStats>\n"
-            + self.get_xml_updated(
-                indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB
-            )
+            + self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB)
             + "\n"
-            + self.get_xml_data(
-                indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB
-            )
+            + self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB)
             + "\n"
-            + self.get_xml_total(
-                indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB
-            )
+            + self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB)
             + "\n"
             + "</glideFactoryEntryQStats>\n"
         )
@@ -713,9 +653,7 @@ class factoryStats:
                         if not isinstance(a_el, dict):  # ignore subdictionaries
                             val_dict[f"{tp_str}{a}"] = a_el
 
-            monitoringConfig.write_rrd_multi(
-                "%s/Status_Attributes" % fe_dir, "GAUGE", self.updated, val_dict
-            )
+            monitoringConfig.write_rrd_multi("%s/Status_Attributes" % fe_dir, "GAUGE", self.updated, val_dict)
 
         self.files_updated = self.updated
         return

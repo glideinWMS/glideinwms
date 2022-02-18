@@ -14,9 +14,10 @@ import os.path
 import re
 import sys
 
+from glideinwms.creation.lib import cgWParams
+
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../.."))
-from glideinwms.creation.lib import cgWParams
 
 ################################################################################
 
@@ -96,27 +97,19 @@ def preserve_el_comments(new_arr, old_arr):
 
 
 def add_entry(params, other_params, entry_name):
-    params.subparams.data["entries"][entry_name] = copy.deepcopy(
-        other_params.subparams.data["entries"][entry_name]
-    )
+    params.subparams.data["entries"][entry_name] = copy.deepcopy(other_params.subparams.data["entries"][entry_name])
     for e in ("schedd_name", "allow_frontends"):
         # these are likely different between installations
         if e in params.subparams.data["entries"][entry_name]:
             if type(params.entry_defaults[e]) == type(()):
-                params.subparams.data["entries"][entry_name][e] = copy.deepcopy(
-                    params.entry_defaults[e][0]
-                )
+                params.subparams.data["entries"][entry_name][e] = copy.deepcopy(params.entry_defaults[e][0])
             else:
-                params.subparams.data["entries"][entry_name][e] = copy.deepcopy(
-                    params.entry_defaults[e]
-                )
+                params.subparams.data["entries"][entry_name][e] = copy.deepcopy(params.entry_defaults[e])
 
 
 def merge_entry(params, other_params, entry_name, preserve_enable, preserve_comments):
     org_entry = params.subparams.data["entries"][entry_name]
-    params.subparams.data["entries"][entry_name] = copy.deepcopy(
-        other_params.subparams.data["entries"][entry_name]
-    )
+    params.subparams.data["entries"][entry_name] = copy.deepcopy(other_params.subparams.data["entries"][entry_name])
     new_entry = params.subparams.data["entries"][entry_name]
 
     preserve_els = ["schedd_name", "allow_frontends", "downtimes"]
@@ -236,16 +229,12 @@ def load():
         sys.exit(1)
 
     try:
-        params = cgWParams.GlideinParams(
-            usage_prefix, os.path.join(STARTUP_DIR, "web_base"), argv
-        )
+        params = cgWParams.GlideinParams(usage_prefix, os.path.join(STARTUP_DIR, "web_base"), argv)
     except RuntimeError as e:
         if debug:
             import traceback
 
-            tb = traceback.format_exception(
-                sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-            )
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             print("\n".join(tb))
         print(e)
         sys.exit(1)
@@ -253,16 +242,12 @@ def load():
     try:
         other_argv = copy.deepcopy(argv)
         other_argv[1] = other_fname
-        other_params = cgWParams.GlideinParams(
-            usage_prefix, os.path.join(STARTUP_DIR, "web_base"), other_argv
-        )
+        other_params = cgWParams.GlideinParams(usage_prefix, os.path.join(STARTUP_DIR, "web_base"), other_argv)
     except RuntimeError as e:
         if debug:
             import traceback
 
-            tb = traceback.format_exception(
-                sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-            )
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             print("\n".join(tb))
         print(e)
         sys.exit(1)

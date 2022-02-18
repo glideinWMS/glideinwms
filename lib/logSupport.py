@@ -17,6 +17,7 @@ import re
 import stat
 import sys  # for alternate_log
 import time
+
 from logging.handlers import BaseRotatingHandler
 
 # Compressions depend on the available module
@@ -44,9 +45,7 @@ disable_rotate = False
 handlers = []
 
 DEFAULT_FORMATTER = logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s")
-DEBUG_FORMATTER = logging.Formatter(
-    "[%(asctime)s] %(levelname)s: %(module)s:%(lineno)d: %(message)s"
-)
+DEBUG_FORMATTER = logging.Formatter("[%(asctime)s] %(levelname)s: %(module)s:%(lineno)d: %(message)s")
 
 # Adding in the capability to use the built in Python logging Module
 # This will allow us to log anything, anywhere
@@ -123,9 +122,7 @@ class GlideinHandler(BaseRotatingHandler):
         mode = "a"
         BaseRotatingHandler.__init__(self, filename, mode, encoding=None)
         self.backupCount = backupCount
-        self.maxBytes = (
-            maxMBytes * 1024.0 * 1024.0
-        )  # Convert the MB to bytes as needed by the base class
+        self.maxBytes = maxMBytes * 1024.0 * 1024.0  # Convert the MB to bytes as needed by the base class
         self.min_lifetime = minDays * 24 * 60 * 60  # Convert min days to seconds
         self.interval = maxDays * 24 * 60 * 60  # Convert max days (interval) to seconds
 
@@ -317,9 +314,7 @@ def add_processlog_handler(
     mylog = logging.getLogger(logger_name)
     mylog.setLevel(logging.DEBUG)
 
-    handler = GlideinHandler(
-        logfile, maxDays, minDays, maxMBytes, backupCount, compression
-    )
+    handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount, compression)
     handler.setFormatter(DEFAULT_FORMATTER)
     handler.setLevel(logging.DEBUG)
 

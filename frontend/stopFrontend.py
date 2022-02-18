@@ -37,17 +37,12 @@ def get_element_pids(work_dir, frontend_pid):
     element_pids = {}
     for group in groups:
         try:
-            element_pid, element_ppid = glideinFrontendPidLib.get_element_pid(
-                work_dir, group
-            )
+            element_pid, element_ppid = glideinFrontendPidLib.get_element_pid(work_dir, group)
         except RuntimeError as e:
             print(e)
             continue  # report error and go to next group
         if element_ppid != frontend_pid:
-            print(
-                "Group '%s' has an unexpected Parent PID: %s!=%s"
-                % (group, element_ppid, frontend_pid)
-            )
+            print(f"Group '{group}' has an unexpected Parent PID: {element_ppid}!={frontend_pid}")
             continue  # report error and go to next group
         element_pids[group] = element_pid
 
@@ -87,10 +82,7 @@ def main(work_dir, force=False):
             return 0  # frontend dead
 
     if not force:
-        print(
-            "Frontend did not die after the timeout of %s sec"
-            % (retries_count * sleep_in_retries)
-        )
+        print("Frontend did not die after the timeout of %s sec" % (retries_count * sleep_in_retries))
         return 1
 
     # Retry soft kill the frontend ... should exit now

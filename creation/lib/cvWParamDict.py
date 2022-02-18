@@ -25,12 +25,7 @@ from glideinwms.lib import x509Support
 from glideinwms.lib.util import str2bool
 
 from . import cvWConsts, cvWCreate, cvWDictFile, cWConsts, cWDictFile, cWExpand
-from .cWParamDict import (
-    add_file_unparsed,
-    has_file_wrapper,
-    has_file_wrapper_params,
-    is_true,
-)
+from .cWParamDict import add_file_unparsed, has_file_wrapper, has_file_wrapper_params, is_true
 
 # from .cvWParams import MatchPolicy
 from .matchPolicy import MatchPolicy
@@ -61,16 +56,12 @@ def translate_match_attrs(loc_str, match_attrs_name, match_attrs):
         try:
             translated_attrs[attr_name] = translations[attr_type]
         except KeyError as e:
-            raise RuntimeError(
-                f"Invalid {loc_str} {match_attrs_name} attr type '{attr_type}'"
-            )
+            raise RuntimeError(f"Invalid {loc_str} {match_attrs_name} attr type '{attr_type}'")
 
     return translated_attrs
 
 
-def validate_match(
-    loc_str, match_str, factory_attrs, job_attrs, attr_dict, policy_modules
-):
+def validate_match(loc_str, match_str, factory_attrs, job_attrs, attr_dict, policy_modules):
     """Validate match_expr, factory_match_attrs, job_match_attrs,
     <attrs> and their equivalents in policy_modules, by actually evaluating
     the match_expr string.
@@ -122,9 +113,7 @@ def validate_match(
         #            import pdb;pdb.set_trace()
         eval(match_obj, env)
     except KeyError as e:
-        raise RuntimeError(
-            f"Invalid {loc_str} match_expr '{match_str}': Missing attribute {e}"
-        )
+        raise RuntimeError(f"Invalid {loc_str} match_expr '{match_str}': Missing attribute {e}")
     except Exception as e:
         raise RuntimeError(f"Invalid {loc_str} match_expr '{match_str}': {e}")
 
@@ -135,14 +124,10 @@ def validate_match(
                 match_result = pmodule.pyObject.match(env["job"], env["glidein"])
         except KeyError as e:
             raise RuntimeError(
-                "Error in %s policy module's %s.match(job, glidein): Missing attribute %s"
-                % (loc_str, pmodule.name, e)
+                f"Error in {loc_str} policy module's {pmodule.name}.match(job, glidein): Missing attribute {e}"
             )
         except Exception as e:
-            raise RuntimeError(
-                "Error in %s policy module's %s.match(job, glidein): %s"
-                % (loc_str, pmodule.name, e)
-            )
+            raise RuntimeError(f"Error in {loc_str} policy module's {pmodule.name}.match(job, glidein): {e}")
 
     return
 
@@ -210,9 +195,7 @@ def derive_and_validate_match(
     factory_attrs = {}
     for d in factory_attr_list_pair:
         for attr_name in d.keys():
-            if (attr_name in factory_attrs) and (
-                factory_attrs[attr_name] != d[attr_name]["type"]
-            ):
+            if (attr_name in factory_attrs) and (factory_attrs[attr_name] != d[attr_name]["type"]):
                 raise RuntimeError(
                     "Conflicting factory attribute type %s (%s,%s)"
                     % (attr_name, factory_attrs[attr_name], d[attr_name]["type"])
@@ -229,9 +212,7 @@ def derive_and_validate_match(
     job_attrs = {}
     for d in job_attr_list_pair:
         for attr_name in d.keys():
-            if (attr_name in job_attrs) and (
-                job_attrs[attr_name]["type"] != d[attr_name]["type"]
-            ):
+            if (attr_name in job_attrs) and (job_attrs[attr_name]["type"] != d[attr_name]["type"]):
                 raise RuntimeError(
                     "Conflicting job attribute type %s (%s,%s)"
                     % (attr_name, job_attrs[attr_name], d[attr_name]["type"])
@@ -276,17 +257,11 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             log_dir=params.log_dir,
         )
         self.monitor_dir = params.monitor_dir
-        self.add_dir_obj(
-            cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir)
-        )
+        self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
         self.monitor_jslibs_dir = os.path.join(self.monitor_dir, "jslibs")
-        self.add_dir_obj(
-            cWDictFile.simpleDirSupport(self.monitor_jslibs_dir, "monitor")
-        )
+        self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir, "monitor"))
         self.params = params
-        self.enable_expansion = str2bool(
-            self.params.data.get("enable_attribute_expansion", "False")
-        )
+        self.enable_expansion = str2bool(self.params.data.get("enable_attribute_expansion", "False"))
         self.active_sub_list = []
         self.monitor_jslibs = []
         self.monitor_htmls = []
@@ -308,12 +283,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         outdict = {"descript": {}}
 
         # put default files in place first
-        self.dicts["preentry_file_list"].add_placeholder(
-            cWConsts.CONSTS_FILE, allow_overwrite=True
-        )
-        self.dicts["preentry_file_list"].add_placeholder(
-            cWConsts.VARS_FILE, allow_overwrite=True
-        )
+        self.dicts["preentry_file_list"].add_placeholder(cWConsts.CONSTS_FILE, allow_overwrite=True)
+        self.dicts["preentry_file_list"].add_placeholder(cWConsts.VARS_FILE, allow_overwrite=True)
         self.dicts["preentry_file_list"].add_placeholder(
             cWConsts.UNTAR_CFG_FILE, allow_overwrite=True
         )  # this one must be loaded before any tarball
@@ -325,9 +296,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         file_name = cWConsts.BLACKLIST_FILE
         self.dicts["preentry_file_list"].add_from_file(
             file_name,
-            cWDictFile.FileDictFile.make_val_tuple(
-                file_name, "nocache", config_out="BLACKLIST_FILE"
-            ),
+            cWDictFile.FileDictFile.make_val_tuple(file_name, "nocache", config_out="BLACKLIST_FILE"),
             os.path.join(params.src_dir, file_name),
         )
 
@@ -336,9 +305,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         for script_name in ("cat_consts.sh", "check_blacklist.sh"):
             self.dicts["preentry_file_list"].add_from_file(
                 script_name,
-                cWDictFile.FileDictFile.make_val_tuple(
-                    cWConsts.insert_timestr(script_name), "exec"
-                ),
+                cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), "exec"),
                 os.path.join(params.src_dir, script_name),
             )
         # TODO: gwms25073 change the following lines, this file will have to be fixed w/ special type/time
@@ -346,9 +313,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         for script_name in ("setup_prejob.sh",):
             self.dicts["preentry_file_list"].add_from_file(
                 script_name,
-                cWDictFile.FileDictFile.make_val_tuple(
-                    cWConsts.insert_timestr(script_name), "regular"
-                ),
+                cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), "regular"),
                 os.path.join(params.src_dir, script_name),
             )
 
@@ -372,8 +337,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                 # delete from the internal structure... that's legacy only
                 del params.data["attrs"][attr_name]
             elif (
-                params.attrs[attr_name].value.find("$") == -1
-                or not self.enable_expansion
+                params.attrs[attr_name].value.find("$") == -1 or not self.enable_expansion
             ):  # does not need to be expanded
                 add_attr_unparsed(attr_name, params, self.dicts, "main")
             # ignore attributes in the global section that need expansion
@@ -395,15 +359,11 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             self.dicts["consts"].add("GLIDECLIENT_Start", "True")
 
         # create GLIDEIN_Collector attribute
-        self.dicts["params"].add_extended(
-            "GLIDEIN_Collector", False, str(calc_glidein_collectors(params.collectors))
-        )
+        self.dicts["params"].add_extended("GLIDEIN_Collector", False, str(calc_glidein_collectors(params.collectors)))
         # create GLIDEIN_CCB attribute only if CCBs list is in config file
         tmp_glidein_ccbs_string = str(calc_glidein_ccbs(params.ccbs))
         if tmp_glidein_ccbs_string:
-            self.dicts["params"].add_extended(
-                "GLIDEIN_CCB", False, tmp_glidein_ccbs_string
-            )
+            self.dicts["params"].add_extended("GLIDEIN_CCB", False, tmp_glidein_ccbs_string)
         populate_gridmap(params, self.dicts["gridmap"])
 
         if self.dicts["preentry_file_list"].is_placeholder(
@@ -412,17 +372,13 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             self.dicts["preentry_file_list"].remove(cWConsts.GRIDMAP_FILE)
 
         # Tell condor to advertise GLIDECLIENT_ReqNode
-        self.dicts["vars"].add_extended(
-            "GLIDECLIENT_ReqNode", "string", None, None, False, True, False
-        )
+        self.dicts["vars"].add_extended("GLIDECLIENT_ReqNode", "string", None, None, False, True, False)
 
         # derive attributes
         populate_common_attrs(self.dicts)
 
         # populate complex files
-        populate_frontend_descript(
-            self.work_dir, self.dicts["frontend_descript"], self.active_sub_list, params
-        )
+        populate_frontend_descript(self.work_dir, self.dicts["frontend_descript"], self.active_sub_list, params)
         populate_common_descript(self.dicts["frontend_descript"], params)
 
         # some of the descript attributes may need expansion... push them into group
@@ -433,13 +389,9 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                 and self.enable_expansion
             ):
                 # needs to be expanded, put in group
-                outdict["descript"][attr_name] = self.dicts["frontend_descript"][
-                    attr_name
-                ]
+                outdict["descript"][attr_name] = self.dicts["frontend_descript"][attr_name]
                 # set it to the default True value here
-                self.dicts["frontend_descript"].add(
-                    attr_name, "True", allow_overwrite=True
-                )
+                self.dicts["frontend_descript"].add(attr_name, "True", allow_overwrite=True)
 
         # Apply multicore policy so frontend can deal with multicore
         # glideins and requests correctly
@@ -581,13 +533,9 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
             base_log_dir=params.log_dir,
         )
         self.monitor_dir = cvWConsts.get_group_monitor_dir(params.monitor_dir, sub_name)
-        self.add_dir_obj(
-            cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir)
-        )
+        self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
         self.params = params
-        self.enable_expansion = str2bool(
-            self.params.data.get("enable_attribute_expansion", "False")
-        )
+        self.enable_expansion = str2bool(self.params.data.get("enable_attribute_expansion", "False"))
         self.client_security = {}
 
     def populate(self, promote_dicts, main_dicts, params=None):
@@ -597,12 +545,8 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         sub_params = params.groups[self.sub_name]
 
         # put default files in place first
-        self.dicts["preentry_file_list"].add_placeholder(
-            cWConsts.CONSTS_FILE, allow_overwrite=True
-        )
-        self.dicts["preentry_file_list"].add_placeholder(
-            cWConsts.VARS_FILE, allow_overwrite=True
-        )
+        self.dicts["preentry_file_list"].add_placeholder(cWConsts.CONSTS_FILE, allow_overwrite=True)
+        self.dicts["preentry_file_list"].add_placeholder(cWConsts.VARS_FILE, allow_overwrite=True)
         self.dicts["preentry_file_list"].add_placeholder(
             cWConsts.UNTAR_CFG_FILE, allow_overwrite=True
         )  # this one must be loaded before any tarball
@@ -611,9 +555,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         file_name = cWConsts.BLACKLIST_FILE
         self.dicts["preentry_file_list"].add_from_file(
             file_name,
-            cWDictFile.FileDictFile.make_val_tuple(
-                file_name, "nocache", config_out="BLACKLIST_FILE"
-            ),
+            cWDictFile.FileDictFile.make_val_tuple(file_name, "nocache", config_out="BLACKLIST_FILE"),
             os.path.join(params.src_dir, file_name),
         )
 
@@ -625,9 +567,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         for script_name in ("cat_consts.sh", "check_blacklist.sh"):
             self.dicts["preentry_file_list"].add_from_file(
                 script_name,
-                cWDictFile.FileDictFile.make_val_tuple(
-                    cWConsts.insert_timestr(script_name), "exec"
-                ),
+                cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), "exec"),
                 os.path.join(params.src_dir, script_name),
             )
 
@@ -680,12 +620,8 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         populate_common_attrs(self.dicts)
 
         # populate complex files
-        populate_group_descript(
-            self.work_dir, self.dicts["group_descript"], self.sub_name, sub_params
-        )
-        populate_common_descript(
-            self.dicts["group_descript"], sub_params
-        )  # MMDB 5345 , self.dicts['attrs'])
+        populate_group_descript(self.work_dir, self.dicts["group_descript"], self.sub_name, sub_params)
+        populate_common_descript(self.dicts["group_descript"], sub_params)  # MMDB 5345 , self.dicts['attrs'])
 
         # Apply group specific singularity policy
         validate_singularity(self.dicts, sub_params, params, self.sub_name)
@@ -746,9 +682,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                         attr_name,
                         (
                             self.dicts[dname][attr_name][0],
-                            cWExpand.expand_DLR(
-                                self.dicts[dname][attr_name][1], summed_attrs
-                            ),
+                            cWExpand.expand_DLR(self.dicts[dname][attr_name][1], summed_attrs),
                         ),
                         allow_overwrite=True,
                     )
@@ -789,9 +723,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         # Create a local copy of the policy file so we are not impacted
         # if the admin is changing the file and if it has errors
         if self.params.groups[self.sub_name].match["policy_file"]:
-            shutil.copy(
-                self.params.groups[self.sub_name].match["policy_file"], self.work_dir
-            )
+            shutil.copy(self.params.groups[self.sub_name].match["policy_file"], self.work_dir)
 
     ########################################
     # INTERNAL
@@ -853,9 +785,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
 
         self.local_populate(params)
         for sub_name in self.sub_list:
-            self.sub_dicts[sub_name].populate(
-                promote_dicts, self.main_dicts.dicts, params
-            )
+            self.sub_dicts[sub_name].populate(promote_dicts, self.main_dicts.dicts, params)
 
     # reuse as much of the other as possible
     def reuse(self, other):  # other must be of the same class
@@ -956,9 +886,7 @@ def add_attr_unparsed_real(attr_name, params, dicts):
                 or ((attr_obj.type == "expr") and (attr_var_type == "I"))
                 or ((attr_obj.type == "string") and (attr_var_type == "I"))
             ):
-                raise RuntimeError(
-                    f"Types not compatible ({attr_obj.type},{attr_var_type})"
-                )
+                raise RuntimeError(f"Types not compatible ({attr_obj.type},{attr_var_type})")
             attr_var_export = attr_var_el[4]
             if do_glidein_publish and (attr_var_export == "N"):
                 raise RuntimeError("Cannot force glidein publishing")
@@ -979,31 +907,21 @@ def add_attr_unparsed_real(attr_name, params, dicts):
 
 ###################################
 # Create the frontend descript file
-def populate_frontend_descript(
-    work_dir, frontend_dict, active_sub_list, params  # will be modified
-):
+def populate_frontend_descript(work_dir, frontend_dict, active_sub_list, params):  # will be modified
 
     frontend_dict.add("DowntimesFile", params.downtimes_file)
     frontend_dict.add("FrontendName", params.frontend_name)
     frontend_dict.add("WebURL", params.web_url)
-    if hasattr(params, "monitoring_web_url") and (
-        params.monitoring_web_url is not None
-    ):
+    if hasattr(params, "monitoring_web_url") and (params.monitoring_web_url is not None):
         frontend_dict.add("MonitoringWebURL", params.monitoring_web_url)
     else:
-        frontend_dict.add(
-            "MonitoringWebURL", params.web_url.replace("stage", "monitor")
-        )
+        frontend_dict.add("MonitoringWebURL", params.web_url.replace("stage", "monitor"))
 
     if params.security.classad_proxy is None:
         raise RuntimeError("Missing security.classad_proxy")
-    params.subparams.data["security"]["classad_proxy"] = os.path.abspath(
-        params.security.classad_proxy
-    )
+    params.subparams.data["security"]["classad_proxy"] = os.path.abspath(params.security.classad_proxy)
     if not os.path.isfile(params.security.classad_proxy):
-        raise RuntimeError(
-            "security.classad_proxy(%s) is not a file" % params.security.classad_proxy
-        )
+        raise RuntimeError("security.classad_proxy(%s) is not a file" % params.security.classad_proxy)
     frontend_dict.add("ClassAdProxy", params.security.classad_proxy)
 
     frontend_dict.add("SymKeyType", params.security.sym_key)
@@ -1025,9 +943,7 @@ def populate_frontend_descript(
     frontend_dict.add("MonitorDisplayText", params.monitor_footer.display_txt)
     frontend_dict.add("MonitorLink", params.monitor_footer.href_link)
 
-    frontend_dict.add(
-        "CondorConfig", os.path.join(work_dir, cvWConsts.FRONTEND_CONDOR_CONFIG_FILE)
-    )
+    frontend_dict.add("CondorConfig", os.path.join(work_dir, cvWConsts.FRONTEND_CONDOR_CONFIG_FILE))
 
     frontend_dict.add("LogDir", params.log_dir)
     frontend_dict.add("ProcessLogs", str(params.log_retention["process_logs"]))
@@ -1036,75 +952,43 @@ def populate_frontend_descript(
     frontend_dict.add("MaxIdleVMsTotal", params.config.idle_vms_total.max)
     frontend_dict.add("CurbIdleVMsTotal", params.config.idle_vms_total.curb)
     frontend_dict.add("MaxIdleVMsTotalGlobal", params.config.idle_vms_total_global.max)
-    frontend_dict.add(
-        "CurbIdleVMsTotalGlobal", params.config.idle_vms_total_global.curb
-    )
+    frontend_dict.add("CurbIdleVMsTotalGlobal", params.config.idle_vms_total_global.curb)
     frontend_dict.add("MaxRunningTotal", params.config.running_glideins_total.max)
     frontend_dict.add("CurbRunningTotal", params.config.running_glideins_total.curb)
-    frontend_dict.add(
-        "MaxRunningTotalGlobal", params.config.running_glideins_total_global.max
-    )
-    frontend_dict.add(
-        "CurbRunningTotalGlobal", params.config.running_glideins_total_global.curb
-    )
+    frontend_dict.add("MaxRunningTotalGlobal", params.config.running_glideins_total_global.max)
+    frontend_dict.add("CurbRunningTotalGlobal", params.config.running_glideins_total_global.curb)
     frontend_dict.add("HighAvailability", params.high_availability)
 
 
 #######################
 # Populate group descript
-def populate_group_descript(
-    work_dir, group_descript_dict, sub_name, sub_params  # will be modified
-):
+def populate_group_descript(work_dir, group_descript_dict, sub_name, sub_params):  # will be modified
 
     group_descript_dict.add("GroupName", sub_name)
 
     group_descript_dict.add("MapFile", os.path.join(work_dir, cvWConsts.GROUP_MAP_FILE))
-    group_descript_dict.add(
-        "MapFileWPilots", os.path.join(work_dir, cvWConsts.GROUP_WPILOTS_MAP_FILE)
-    )
+    group_descript_dict.add("MapFileWPilots", os.path.join(work_dir, cvWConsts.GROUP_WPILOTS_MAP_FILE))
 
     group_descript_dict.add("IgnoreDownEntries", sub_params.config.ignore_down_entries)
-    group_descript_dict.add(
-        "MaxRunningPerEntry", sub_params.config.running_glideins_per_entry.max
-    )
-    group_descript_dict.add(
-        "MinRunningPerEntry", sub_params.config.running_glideins_per_entry.min
-    )
+    group_descript_dict.add("MaxRunningPerEntry", sub_params.config.running_glideins_per_entry.max)
+    group_descript_dict.add("MinRunningPerEntry", sub_params.config.running_glideins_per_entry.min)
     group_descript_dict.add(
         "FracRunningPerEntry",
         sub_params.config.running_glideins_per_entry.relative_to_queue,
     )
-    group_descript_dict.add(
-        "MaxIdlePerEntry", sub_params.config.idle_glideins_per_entry.max
-    )
-    group_descript_dict.add(
-        "ReserveIdlePerEntry", sub_params.config.idle_glideins_per_entry.reserve
-    )
-    group_descript_dict.add(
-        "IdleLifetime", sub_params.config.idle_glideins_lifetime.max
-    )
-    group_descript_dict.add(
-        "MaxIdleVMsPerEntry", sub_params.config.idle_vms_per_entry.max
-    )
-    group_descript_dict.add(
-        "CurbIdleVMsPerEntry", sub_params.config.idle_vms_per_entry.curb
-    )
+    group_descript_dict.add("MaxIdlePerEntry", sub_params.config.idle_glideins_per_entry.max)
+    group_descript_dict.add("ReserveIdlePerEntry", sub_params.config.idle_glideins_per_entry.reserve)
+    group_descript_dict.add("IdleLifetime", sub_params.config.idle_glideins_lifetime.max)
+    group_descript_dict.add("MaxIdleVMsPerEntry", sub_params.config.idle_vms_per_entry.max)
+    group_descript_dict.add("CurbIdleVMsPerEntry", sub_params.config.idle_vms_per_entry.curb)
     group_descript_dict.add("MaxIdleVMsTotal", sub_params.config.idle_vms_total.max)
     group_descript_dict.add("CurbIdleVMsTotal", sub_params.config.idle_vms_total.curb)
-    group_descript_dict.add(
-        "MaxRunningTotal", sub_params.config.running_glideins_total.max
-    )
-    group_descript_dict.add(
-        "CurbRunningTotal", sub_params.config.running_glideins_total.curb
-    )
-    group_descript_dict.add(
-        "MaxMatchmakers", sub_params.config.processing_workers.matchmakers
-    )
+    group_descript_dict.add("MaxRunningTotal", sub_params.config.running_glideins_total.max)
+    group_descript_dict.add("CurbRunningTotal", sub_params.config.running_glideins_total.curb)
+    group_descript_dict.add("MaxMatchmakers", sub_params.config.processing_workers.matchmakers)
     group_descript_dict.add("RemovalType", sub_params.config.glideins_removal.type)
     group_descript_dict.add("RemovalWait", sub_params.config.glideins_removal.wait)
-    group_descript_dict.add(
-        "RemovalRequestsTracking", sub_params.config.glideins_removal.requests_tracking
-    )
+    group_descript_dict.add("RemovalRequestsTracking", sub_params.config.glideins_removal.requests_tracking)
     group_descript_dict.add("RemovalMargin", sub_params.config.glideins_removal.margin)
 
 
@@ -1130,9 +1014,7 @@ def apply_group_singularity_policy(descript_dict, sub_params, params):
     if glidein_singularity_use:
         descript_dict.add("GLIDEIN_Singularity_Use", glidein_singularity_use)
 
-        if (
-            glidein_singularity_use == "REQUIRED"
-        ):  # avoid NEVER and undefiled (probably will not have Singularity)
+        if glidein_singularity_use == "REQUIRED":  # avoid NEVER and undefiled (probably will not have Singularity)
             # NOTE: 3.5 behavior is different from 3.4.x or earlier, the SINGULARITY_BIN meaning changes
             #  SINGULARITY_BIN is no more used as flag to select Singularity, only for the binary selection
             query_expr = (
@@ -1140,8 +1022,7 @@ def apply_group_singularity_policy(descript_dict, sub_params, params):
                 % query_expr
             )
             match_expr = (
-                '(%s) and (glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "NEVER") != "NEVER")'
-                % match_expr
+                '(%s) and (glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "NEVER") != "NEVER")' % match_expr
             )
             ma_arr.append(("GLIDEIN_SINGULARITY_REQUIRE", "s"))
         elif glidein_singularity_use == "NEVER":  # avoid REQUIRED, REQUIRED_GWMS
@@ -1150,16 +1031,13 @@ def apply_group_singularity_policy(descript_dict, sub_params, params):
                 % query_expr
             )
             match_expr = (
-                '(%s) and (glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "NEVER")[:8] != "REQUIRED")'
-                % match_expr
+                '(%s) and (glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "NEVER")[:8] != "REQUIRED")' % match_expr
             )
             ma_arr.append(("GLIDEIN_SINGULARITY_REQUIRE", "s"))
 
         if ma_arr:
             match_attrs = eval(descript_dict["FactoryMatchAttrs"]) + ma_arr
-            descript_dict.add(
-                "FactoryMatchAttrs", repr(match_attrs), allow_overwrite=True
-            )
+            descript_dict.add("FactoryMatchAttrs", repr(match_attrs), allow_overwrite=True)
 
         descript_dict.add("FactoryQueryExpr", query_expr, allow_overwrite=True)
         descript_dict.add("MatchExpr", match_expr, allow_overwrite=True)
@@ -1201,10 +1079,7 @@ def apply_multicore_policy(descript_dict):
     match_expr = descript_dict["MatchExpr"]
 
     # Only consider sites that provide enough GLIDEIN_CPUS (GLIDEIN_ESTIMATED_CPUS) for jobs to run
-    match_expr = (
-        '(%s) and (getGlideinCpusNum(glidein) >= int(job.get("RequestCpus", 1)))'
-        % match_expr
-    )
+    match_expr = '(%s) and (getGlideinCpusNum(glidein) >= int(job.get("RequestCpus", 1)))' % match_expr
     descript_dict.add("MatchExpr", match_expr, allow_overwrite=True)
 
     # Add GLIDEIN_CPUS, GLIDEIN_ESTIMATED_CPUS and GLIDEIN_NODES to the list of attrs queried in glidefactory classad
@@ -1250,10 +1125,7 @@ def match_attrs_to_array(match_attrs):
     for attr_name in list(match_attrs.keys()):
         attr_type = match_attrs[attr_name]["type"]
         if not (attr_type in MATCH_ATTR_CONV):
-            raise RuntimeError(
-                "match_attr type '%s' not one of %s"
-                % (attr_type, list(MATCH_ATTR_CONV.keys()))
-            )
+            raise RuntimeError(f"match_attr type '{attr_type}' not one of {list(MATCH_ATTR_CONV.keys())}")
         ma_array.append((str(attr_name), MATCH_ATTR_CONV[attr_type]))
 
     return ma_array
@@ -1284,9 +1156,7 @@ def populate_common_descript(descript_dict, params):
             "MatchPolicyModuleJobMatchAttrs",
             match_attrs_to_array(policy_module.jobMatchAttrs),
         )
-        descript_dict.add(
-            "MatchPolicyModuleFactoryQueryExpr", policy_module.factoryQueryExpr
-        )
+        descript_dict.add("MatchPolicyModuleFactoryQueryExpr", policy_module.factoryQueryExpr)
         descript_dict.add("MatchPolicyModuleJobQueryExpr", policy_module.jobQueryExpr)
 
     for tel in (("factory", "Factory"), ("job", "Job")):
@@ -1302,13 +1172,9 @@ def populate_common_descript(descript_dict, params):
     collectors = []
     for el in params.match.factory.collectors:
         if el["factory_identity"][-9:] == "@fake.org":
-            raise RuntimeError(
-                "factory_identity for %s not set! (i.e. it is fake)" % el["node"]
-            )
+            raise RuntimeError("factory_identity for %s not set! (i.e. it is fake)" % el["node"])
         if el["my_identity"][-9:] == "@fake.org":
-            raise RuntimeError(
-                "my_identity for %s not set! (i.e. it is fake)" % el["node"]
-            )
+            raise RuntimeError("my_identity for %s not set! (i.e. it is fake)" % el["node"])
         cWDictFile.validate_node(el["node"])
         collectors.append((el["node"], el["factory_identity"], el["my_identity"]))
     descript_dict.add("FactoryCollectors", repr(collectors))
@@ -1320,9 +1186,7 @@ def populate_common_descript(descript_dict, params):
     descript_dict.add("JobSchedds", ",".join(schedds))
 
     if params.security.proxy_selection_plugin is not None:
-        descript_dict.add(
-            "ProxySelectionPlugin", params.security.proxy_selection_plugin
-        )
+        descript_dict.add("ProxySelectionPlugin", params.security.proxy_selection_plugin)
 
     if len(params.security.credentials) > 0:
         proxies = []
@@ -1362,8 +1226,7 @@ def populate_common_descript(descript_dict, params):
                 attr = proxy_attr_type_list.get(i)
                 if attr and pel[attr] is None:
                     raise RuntimeError(
-                        "Required attribute '%s' ('%s') missing in credential type '%s'"
-                        % (attr, i, pel["type"])
+                        "Required attribute '{}' ('{}') missing in credential type '{}'".format(attr, i, pel["type"])
                     )
             if (pel["pool_idx_len"] is None) and (pel["pool_idx_list"] is None):
                 # only one
@@ -1383,9 +1246,7 @@ def populate_common_descript(descript_dict, params):
         descript_dict.add("Proxies", repr(proxies))
         for attr in proxy_attrs:
             if len(list(proxy_descript_values[attr].keys())) > 0:
-                descript_dict.add(
-                    proxy_attr_names[attr], repr(proxy_descript_values[attr])
-                )
+                descript_dict.add(proxy_attr_names[attr], repr(proxy_descript_values[attr]))
 
     match_expr = params.match.match_expr
     descript_dict.add("MatchExpr", match_expr)
@@ -1472,9 +1333,7 @@ def populate_gridmap(params, gridmap_dict):
         for el in coll_list:
             dn = el.DN
             if dn is None:
-                raise RuntimeError(
-                    "DN not defined for pool collector or CCB %s" % el.node
-                )
+                raise RuntimeError("DN not defined for pool collector or CCB %s" % el.node)
             if not (dn in collector_dns):  # skip duplicates
                 collector_dns.append(dn)
                 gridmap_dict.add(dn, "collector%i" % len(collector_dns))

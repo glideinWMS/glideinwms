@@ -95,9 +95,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
 
                 file_ok = (
                     (fsize > 0)
-                    and (  # log files are ==0 only before Condor_G transfers them back
-                        ftime > (end_time - 300)
-                    )
+                    and (ftime > (end_time - 300))  # log files are ==0 only before Condor_G transfers them back
                     and (ftime < (now - 5))  # same here
                 )  # make sure it is not being written into
             except OSError:
@@ -251,9 +249,7 @@ class dirSummarySimple:
 
     def mkTempLogObj(self):
         if self.wrapperClass is not None:
-            dummyobj = self.wrapperClass.getObj(
-                logname=os.path.join("/tmp", "dummy.txt"), cache_dir="/tmp"
-            )
+            dummyobj = self.wrapperClass.getObj(logname=os.path.join("/tmp", "dummy.txt"), cache_dir="/tmp")
         else:
             dummyobj = self.logClass(os.path.join("/tmp", "dummy.txt"), "/tmp")
         # dummyobj=self.logClass(os.path.join('/tmp','dummy.txt'),'/tmp')
@@ -320,9 +316,7 @@ class dirSummaryTimingsOutFull(condorLogParser.cacheDirClass):
     regardless of client name.
     """
 
-    def __init__(
-        self, dirname, cache_dir, inactive_files=None, inactive_timeout=24 * 3600
-    ):
+    def __init__(self, dirname, cache_dir, inactive_files=None, inactive_timeout=24 * 3600):
         self.cdInit(
             lambda ln, cd: logSummaryTimingsOut(ln, cd, "all"),
             dirname,
@@ -342,24 +336,16 @@ class dirSummaryTimingsOutFull(condorLogParser.cacheDirClass):
 #     P R I V A T E
 #########################################################
 
-ELD_RC_VALIDATE_END = re.compile(
-    "=== Last script starting .* after validating for (?P<secs>[0-9]+) ==="
-)
+ELD_RC_VALIDATE_END = re.compile("=== Last script starting .* after validating for (?P<secs>[0-9]+) ===")
 ELD_RC_CONDOR_START = re.compile("=== Condor starting.*===")
 ELD_RC_CONDOR_END = re.compile("=== Condor ended.*after (?P<secs>[0-9]+) ===")
 ELD_RC_CONDOR_SLOT = re.compile(
     r"=== Stats of (?P<slot>\S+) ===(?P<content>.*)=== End Stats of (?P<slot2>\S+) ===",
     re.M | re.DOTALL,
 )
-ELD_RC_CONDOR_SLOT_CONTENT_COUNT = re.compile(
-    "Total(?P<name>.*)jobs (?P<jobsnr>[0-9]+) .*utilization (?P<secs>[0-9]+)"
-)
-ELD_RC_CONDOR_SLOT_ACTIVATIONS_COUNT = re.compile(
-    "Total number of activations/claims: (?P<nr>[0-9]+)"
-)
-ELD_RC_GLIDEIN_END = re.compile(
-    "=== Glidein ending .* with code (?P<code>[0-9]+) after (?P<secs>[0-9]+) ==="
-)
+ELD_RC_CONDOR_SLOT_CONTENT_COUNT = re.compile("Total(?P<name>.*)jobs (?P<jobsnr>[0-9]+) .*utilization (?P<secs>[0-9]+)")
+ELD_RC_CONDOR_SLOT_ACTIVATIONS_COUNT = re.compile("Total number of activations/claims: (?P<nr>[0-9]+)")
+ELD_RC_GLIDEIN_END = re.compile("=== Glidein ending .* with code (?P<code>[0-9]+) after (?P<secs>[0-9]+) ===")
 
 KNOWN_SLOT_STATS = ["Total", "goodZ", "goodNZ", "badSignal", "badOther"]
 
@@ -420,13 +406,9 @@ def extractLogData(fname):
                     while slot_re is not None:
                         buf_idx = slot_re.end() + 1
                         slot_name = slot_re.group("slot")
-                        if (
-                            slot_name[-1] != "1"
-                        ):  # ignore slot 1, it is used for monitoring only
+                        if slot_name[-1] != "1":  # ignore slot 1, it is used for monitoring only
                             slot_buf = slot_re.group("content")
-                            count_re = ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(
-                                slot_buf, 0
-                            )
+                            count_re = ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(slot_buf, 0)
                             while count_re is not None:
                                 count_name = count_re.group("name")
                                 # need to trim it, comes out with spaces
@@ -441,18 +423,14 @@ def extractLogData(fname):
                                 except:
                                     jobsnr = None
 
-                                if (
-                                    jobsnr is not None
-                                ):  # check I had no errors in integer conversion
+                                if jobsnr is not None:  # check I had no errors in integer conversion
                                     if count_name not in slot_stats:
                                         slot_stats[count_name] = {
                                             "jobsnr": jobsnr,
                                             "secs": secs,
                                         }
 
-                                count_re = ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(
-                                    slot_buf, count_re.end() + 1
-                                )
+                                count_re = ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(slot_buf, count_re.end() + 1)
                                 # end while count_re
 
                         slot_re = ELD_RC_CONDOR_SLOT.search(buf, buf_idx)

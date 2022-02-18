@@ -18,12 +18,14 @@ Project:
 import os
 import unittest
 
-import jsonpickle
 from unittest import mock
+
+import jsonpickle
 import xmlrunner
 
 import glideinwms.lib.condorExe
 import glideinwms.lib.condorMonitor as condorMonitor
+
 from glideinwms.frontend import glideinFrontendInterface, glideinFrontendMonitoring
 from glideinwms.lib.fork import ForkManager
 from glideinwms.lib.util import safe_boolcomp
@@ -128,28 +130,16 @@ class FEElementTestCase(unittest.TestCase):
         self.debug_output = os.environ.get("DEBUG_OUTPUT")
         glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
         condorMonitor.USE_HTCONDOR_PYTHON_BINDINGS = False
-        self.frontendDescript = (
-            glideinwms.frontend.glideinFrontendConfig.FrontendDescript(
-                "fixtures/frontend"
-            )
-        )
+        self.frontendDescript = glideinwms.frontend.glideinFrontendConfig.FrontendDescript("fixtures/frontend")
 
         with mock.patch.object(glideinFrontendConfig.ConfigFile, "load") as m_load:
             # simpler data structures
-            self.attrDescript = glideinwms.frontend.glideinFrontendConfig.AttrsDescript(
-                "", ""
-            )
-            self.paramsDescript = (
-                glideinwms.frontend.glideinFrontendConfig.ParamsDescript("", "")
-            )
+            self.attrDescript = glideinwms.frontend.glideinFrontendConfig.AttrsDescript("", "")
+            self.paramsDescript = glideinwms.frontend.glideinFrontendConfig.ParamsDescript("", "")
 
             # bases for derived data structures
-            elementDescriptBase = (
-                glideinwms.frontend.glideinFrontendConfig.ElementDescript("", "")
-            )
-            signatureDescript = (
-                glideinwms.frontend.glideinFrontendConfig.SignatureDescript("")
-            )
+            elementDescriptBase = glideinwms.frontend.glideinFrontendConfig.ElementDescript("", "")
+            signatureDescript = glideinwms.frontend.glideinFrontendConfig.SignatureDescript("")
             signatureDescript.data = {
                 "group_group1": (
                     "ad0f57615c3df8bbb2130d96cfdf09363f4bd3ed",
@@ -211,29 +201,15 @@ class FEElementTestCase(unittest.TestCase):
             "RemovalMargin": "0",
         }
 
-        with mock.patch.object(
-            glideinFrontendConfig, "SignatureDescript"
-        ) as m_signatureDescript:
+        with mock.patch.object(glideinFrontendConfig, "SignatureDescript") as m_signatureDescript:
             m_signatureDescript.return_value = signatureDescript
-            self.groupSignatureDescript = (
-                glideinwms.frontend.glideinFrontendConfig.GroupSignatureDescript(
-                    "", "group1"
-                )
-            )
+            self.groupSignatureDescript = glideinwms.frontend.glideinFrontendConfig.GroupSignatureDescript("", "group1")
 
-        with mock.patch.object(
-            glideinFrontendConfig, "ElementDescript"
-        ) as m_elementDescript:
-            with mock.patch.object(
-                glideinFrontendConfig, "FrontendDescript"
-            ) as m_feDescript:
+        with mock.patch.object(glideinFrontendConfig, "ElementDescript") as m_elementDescript:
+            with mock.patch.object(glideinFrontendConfig, "FrontendDescript") as m_feDescript:
                 m_elementDescript.return_value = elementDescriptBase
                 m_feDescript.return_value = self.frontendDescript
-                self.elementDescript = (
-                    glideinwms.frontend.glideinFrontendConfig.ElementMergedDescript(
-                        "", "group1"
-                    )
-                )
+                self.elementDescript = glideinwms.frontend.glideinFrontendConfig.ElementMergedDescript("", "group1")
 
         @mock.patch("glideinwms.frontend.glideinFrontendConfig.ElementMergedDescript")
         @mock.patch("glideinwms.frontend.glideinFrontendConfig.ParamsDescript")
@@ -250,9 +226,7 @@ class FEElementTestCase(unittest.TestCase):
             m_ParamsDescript.return_value = self.paramsDescript
             m_ElementMergedDescript.return_value = self.elementDescript
 
-            self.gfe = glideinFrontendElement.glideinFrontendElement(
-                1, "", "group1", ""
-            )
+            self.gfe = glideinFrontendElement.glideinFrontendElement(1, "", "group1", "")
             self.gfe.elementDescript = self.elementDescript
 
         # @mock.patch defines these so disable pylint complaint
@@ -265,9 +239,7 @@ class FEElementTestCase(unittest.TestCase):
                 m_exe_cmd.return_value = f.readlines()
                 cq = self.gfe.get_condor_q("schedd1")
 
-        self.assertCountEqual(
-            list(cq["schedd1"].fetchStored().keys()), [(12345, x) for x in range(0, 13)]
-        )
+        self.assertCountEqual(list(cq["schedd1"].fetchStored().keys()), [(12345, x) for x in range(0, 13)])
 
     def test_compute_glidein_max_run(self):
         self.assertEqual(self.gfe.compute_glidein_max_run({"Idle": 412}, 971, 0), 1591)
@@ -304,9 +276,7 @@ class FEElementTestCase(unittest.TestCase):
         # data loaded includes both legal True, False, 'True', 'False' , 'TRUE' etc
         # and obviously bad data 1, 0, etc
 
-        with mock.patch.object(
-            ForkManager, "fork_and_collect", return_value=fork_and_collect_side_effect()
-        ):
+        with mock.patch.object(ForkManager, "fork_and_collect", return_value=fork_and_collect_side_effect()):
             with mock.patch.object(
                 ForkManager,
                 "bounded_fork_and_collect",
@@ -319,9 +289,7 @@ class FEElementTestCase(unittest.TestCase):
                         "glideinFrontendInterface.ResourceClassadAdvertiser.advertiseAllClassads",
                         return_value=None,
                     ):
-                        with mock.patch.object(
-                            glideinFrontendInterface, "ResourceClassadAdvertiser"
-                        ):
+                        with mock.patch.object(glideinFrontendInterface, "ResourceClassadAdvertiser"):
                             with mock.patch.object(
                                 self.gfe,
                                 "refresh_entry_token",
@@ -344,12 +312,8 @@ class FEElementTestCase(unittest.TestCase):
                 glideid_str = f"{str(elm[1])}@{str(elm[0])}"
                 gdata = self.gfe.glidein_dict[elm]["attrs"]
                 glideids.append(glideid_str)
-                in_downtime[glideid_str] = safe_boolcomp(
-                    gdata.get("GLIDEIN_In_Downtime"), True
-                )
-                req_voms[glideid_str] = safe_boolcomp(
-                    gdata.get("GLIDEIN_REQUIRE_VOMS"), True
-                )
+                in_downtime[glideid_str] = safe_boolcomp(gdata.get("GLIDEIN_In_Downtime"), True)
+                req_voms[glideid_str] = safe_boolcomp(gdata.get("GLIDEIN_REQUIRE_VOMS"), True)
 
         if self.debug_output:
             print("info log %s " % LOG_INFO_DATA)
@@ -385,9 +349,7 @@ class FEElementTestCase(unittest.TestCase):
                 use_voms = req_voms[gid]
 
                 if in_downtime[gid]:
-                    self.assertTrue(
-                        upordown == "Down", f"{gid} logs this as {upordown}"
-                    )
+                    self.assertTrue(upordown == "Down", f"{gid} logs this as {upordown}")
                 else:
                     self.assertTrue(upordown == "Up", f"{gid} logs this as {upordown}")
 
@@ -416,9 +378,7 @@ class FEElementTestCase(unittest.TestCase):
             },
         }
         self.gfe.populate_pubkey()
-        self.assertTrue(
-            "bad_id" not in self.gfe.globals_dict, "Bad public key was not removed"
-        )
+        self.assertTrue("bad_id" not in self.gfe.globals_dict, "Bad public key was not removed")
         self.assertTrue(
             "good_id" in self.gfe.globals_dict,
             "good public key was removed when it shouldnt have been",

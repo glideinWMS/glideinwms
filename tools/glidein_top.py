@@ -12,9 +12,9 @@
 import os.path
 import sys
 
-sys.path.append(os.path.join(sys.path[0], "../.."))
-
 from glideinwms.tools.lib import glideinCmd
+
+sys.path.append(os.path.join(sys.path[0], "../.."))
 
 
 def argv_top(argv):

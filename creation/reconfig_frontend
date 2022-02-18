@@ -17,15 +17,6 @@ import signal
 import sys
 import tempfile
 
-STARTUP_DIR = sys.path[0]
-
-# Change this if you have changed the source for the
-# For instance, in the frontend RPM
-WEB_BASE_DIR = os.path.join(STARTUP_DIR, "web_base")
-fix_rrd = False
-
-
-sys.path.append(os.path.join(STARTUP_DIR, "../.."))
 from glideinwms.creation.lib import (
     check_config_frontend,
     check_python3_expr,
@@ -38,11 +29,17 @@ from glideinwms.creation.lib import (
     xslt,
 )
 from glideinwms.frontend import glideinFrontendLib, glideinFrontendMonitorAggregator
-from glideinwms.lib.util import (
-    HOOK_POST_RECONFIG_DIRNAME,
-    HOOK_PRE_RECONFIG_DIRNAME,
-    handle_hooks,
-)
+from glideinwms.lib.util import handle_hooks, HOOK_POST_RECONFIG_DIRNAME, HOOK_PRE_RECONFIG_DIRNAME
+
+STARTUP_DIR = sys.path[0]
+
+# Change this if you have changed the source for the
+# For instance, in the frontend RPM
+WEB_BASE_DIR = os.path.join(STARTUP_DIR, "web_base")
+fix_rrd = False
+
+
+sys.path.append(os.path.join(STARTUP_DIR, "../.."))
 
 FRONTEND_DIR = os.path.dirname(glideinFrontendLib.__file__)
 ################################################################################
@@ -87,9 +84,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
         # recreate the init.d startup file
         # This will never happen in RPM installations (because of the init.d file)
         frontend_dir = frontend_dicts_obj.main_dicts.work_dir
-        startup_fname = os.path.join(
-            frontend_dicts_obj.main_dicts.work_dir, cvWConsts.INITD_STARTUP_FILE
-        )
+        startup_fname = os.path.join(frontend_dicts_obj.main_dicts.work_dir, cvWConsts.INITD_STARTUP_FILE)
 
         # Remove startup file if already exists
         if os.path.exists(os.path.join(frontend_dir, startup_fname)):
@@ -105,9 +100,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
         if update_def_cfg == "yes":
             print2("...Updated default config file location to: %s" % params.cfg_name)
 
-    cfgfile = os.path.join(
-        frontend_dicts_obj.main_dicts.work_dir, cvWConsts.XML_CONFIG_FILE
-    )
+    cfgfile = os.path.join(frontend_dicts_obj.main_dicts.work_dir, cvWConsts.XML_CONFIG_FILE)
 
     # save config into file (with backup, since the old one already exists)
     # This is the current working version of the frontend in the frontend instance dir
@@ -217,9 +210,7 @@ if __name__ == "__main__":
 
     try:
         transformed_xmlfile = tempfile.NamedTemporaryFile()
-        transformed_xmlfile.write(
-            xslt.xslt_xml(old_xmlfile=xml, xslt_plugin_dir=xslt_plugin_dir)
-        )
+        transformed_xmlfile.write(xslt.xslt_xml(old_xmlfile=xml, xslt_plugin_dir=xslt_plugin_dir))
         transformed_xmlfile.flush()
 
         args = [argv[0], transformed_xmlfile.name]
@@ -237,10 +228,7 @@ if __name__ == "__main__":
         if params.frontend_name != force_name:
             print2(usage)
             print("")
-            print2(
-                "This is not a '%s' config file ('%s' found)"
-                % (force_name, params.frontend_name)
-            )
+            print2(f"This is not a '{force_name}' config file ('{params.frontend_name}' found)")
             sys.exit(1)
 
     if not (writeback in ("yes", "no")):
@@ -261,9 +249,7 @@ if __name__ == "__main__":
         # print old_config_file
         if os.path.exists(old_config_file):
             try:
-                old_params = cvWParams.VOFrontendParams(
-                    usage, WEB_BASE_DIR, [argv[0], old_config_file]
-                )
+                old_params = cvWParams.VOFrontendParams(usage, WEB_BASE_DIR, [argv[0], old_config_file])
             except RuntimeError as e:
                 raise RuntimeError("Failed to load %s" % old_config_file)
         else:
@@ -284,10 +270,7 @@ if __name__ == "__main__":
         if writeback == "yes":
             # Only writeback the config in the .cfg directly if explicitly asked to
             params.save_into_file_wbackup(params.cfg_name)
-            print2(
-                "...Overriding the frontend config file in %s to the current configuration "
-                % params.cfg_name
-            )
+            print2("...Overriding the frontend config file in %s to the current configuration " % params.cfg_name)
     except:
         print2("Writing back config file failed")
         sys.exit(1)

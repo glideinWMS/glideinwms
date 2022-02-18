@@ -1,20 +1,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This module implements the functions needed to keep the
 #   required number of idle glideins
 #   plus other miscelaneous functions
-#
-# Author:
-#   Igor Sfiligoi (Sept 19th 2006)
-#
 
 import math
 import os
@@ -88,9 +78,7 @@ def getIdleVomsCondorQ(condorq_dict):
     for schedd_name in list(condorq_dict.keys()):
         sq = condorMonitor.SubQuery(
             condorq_dict[schedd_name],
-            lambda el: (
-                (el.get("JobStatus") == 1) and ("x509UserProxyFirstFQAN" in el)
-            ),
+            lambda el: ((el.get("JobStatus") == 1) and ("x509UserProxyFirstFQAN" in el)),
         )
         sq.load()
         out[schedd_name] = sq
@@ -175,13 +163,20 @@ def appendRealRunning(condorq_dict, status_dict):
                 condorq[jid]["RunningOn"] = "UNKNOWN"
 
 
-#
-# Return a dictionary of schedds containing old jobs
-# Each element is a condorQ
-#
-# Use the output of getCondorQ
-#
 def getOldCondorQ(condorq_dict, min_age):
+    """Return a dictionary of schedds containing old jobs
+
+    Each element returned is a condorQ
+    Uses the output of getCondorQ
+
+    Args:
+        condorq_dict (dict):
+        min_age (int):
+
+    Returns:
+        dict: dictionary of schedds containing old jobs.
+        Each element is a condorQ
+    """
     out = {}
     for schedd_name in list(condorq_dict.keys()):
         sq = condorMonitor.SubQuery(
@@ -413,9 +408,7 @@ def countMatch(
                 try:
                     # Do not match downtime entries
                     if ignore_down_entries and safe_boolcomp(
-                        glidein_dict[glidename]["attrs"].get(
-                            "GLIDEIN_In_Downtime", False
-                        ),
+                        glidein_dict[glidename]["attrs"].get("GLIDEIN_In_Downtime", False),
                         True,
                     ):
                         match = False
@@ -451,26 +444,18 @@ def countMatch(
 
                         # Since all jobs are same figure out how many cpus
                         # are required for this cluster based on one job
-                        cpu_schedd_count += job.get("RequestCpus", 1) * len(
-                            cq_dict_clusters_el[jh]
-                        )
-                        first_t = (
-                            first_jid[0] * procid_mul + first_jid[1]
-                        ) * nr_schedds + scheddIdx
+                        cpu_schedd_count += job.get("RequestCpus", 1) * len(cq_dict_clusters_el[jh])
+                        first_t = (first_jid[0] * procid_mul + first_jid[1]) * nr_schedds + scheddIdx
                         all_jobs_clusters[first_t] = cluster_arr
                         sjobs_arr += [first_t]
                 except KeyError as e:
-                    tb = traceback.format_exception(
-                        sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-                    )
+                    tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
                     key = ((tb[-1].split(":"))[1]).strip()
                     missing_keys.add(key)
 
                 except Exception as e:
                     tb_count = tb_count + 1
-                    recent_tb = traceback.format_exception(
-                        sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-                    )
+                    recent_tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
 
             if missing_keys:
                 logSupport.log.debug(
@@ -540,9 +525,7 @@ def countMatch(
     # of indexes, may not be an integer.
     for vtuple in outvals:
         for site_index in vtuple[0]:
-            new_out_counts[site_index] = new_out_counts[site_index] + (
-                1.0 * len(vtuple[1]) / len(vtuple[0])
-            )
+            new_out_counts[site_index] = new_out_counts[site_index] + (1.0 * len(vtuple[1]) / len(vtuple[0]))
         # if the site has jobs unique to it
         if len(vtuple[0]) == 1:
             temp_sites = vtuple[0]
@@ -568,11 +551,7 @@ def countMatch(
         site = list_of_sites[site_index]
         final_out_counts[site] = math.ceil(new_out_counts[site_index])
         if out_glidein_counts[site] > 0:
-            glidein_cpus_nodes = (
-                1.0
-                * getGlideinCpusNum(glidein_dict[site])
-                * getGlideinNodesNum(glidein_dict[site])
-            )
+            glidein_cpus_nodes = 1.0 * getGlideinCpusNum(glidein_dict[site]) * getGlideinNodesNum(glidein_dict[site])
             # new_out_counts is based on 1 cpu jobs
             # For a site, out_glidein_counts translates to out_cpu_counts
             # Figure out corresponding out_cpu_counts for new_out_counts
@@ -582,13 +561,9 @@ def countMatch(
             # of nodes in one submission if multi-node submissions are enabled
 
             # rounding only the result, prop_out_count and prop_cpus are float
-            prop_cpus = (
-                out_cpu_counts[site] * new_out_counts[site_index]
-            ) / out_glidein_counts[site]
+            prop_cpus = (out_cpu_counts[site] * new_out_counts[site_index]) / out_glidein_counts[site]
             prop_out_count = prop_cpus / glidein_cpus_nodes
-            final_out_cpu_counts[site] = math.ceil(
-                prop_out_count
-            )  # math.ceil(float) returns a float (N.0)
+            final_out_cpu_counts[site] = math.ceil(prop_out_count)  # math.ceil(float) returns a float (N.0)
 
         final_unique[site] = unique_to_site[site_index]
 
@@ -726,16 +701,12 @@ def countRealRunning(
                                 glidein_id = "%d %s" % (scheddIdx, jid)
                             glidein_ids.add(glidein_id)
                 except KeyError as e:
-                    tb = traceback.format_exception(
-                        sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-                    )
+                    tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
                     key = ((tb[-1].split(":"))[1]).strip()
                     missing_keys.add(key)
                 except Exception as e:
                     tb_count = tb_count + 1
-                    recent_tb = traceback.format_exception(
-                        sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-                    )
+                    recent_tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             if missing_keys:
                 logSupport.log.debug(
                     "Failed to evaluate resource match in countRealRunning. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way."
@@ -827,9 +798,7 @@ def getCondorStatus(
     if want_glideins_only:
         type_constraint += "&&(IS_MONITOR_VM=!=True)&&(GLIDEIN_Factory=!=UNDEFINED)&&(GLIDEIN_Name=!=UNDEFINED)&&(GLIDEIN_Entry_Name=!=UNDEFINED)"
 
-    return getCondorStatusConstrained(
-        collector_names, type_constraint, constraint, format_list
-    )
+    return getCondorStatusConstrained(collector_names, type_constraint, constraint, format_list)
 
 
 def getCondorStatusNonDynamic(status_dict):
@@ -843,9 +812,7 @@ def getCondorStatusNonDynamic(status_dict):
     out = {}
     for collector_name in list(status_dict.keys()):
         # Exclude partitionable slots with no free memory/cpus
-        sq = condorMonitor.SubQuery(
-            status_dict[collector_name], lambda el: (el.get("SlotType") != "Dynamic")
-        )
+        sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el: (el.get("SlotType") != "Dynamic"))
         sq.load()
         out[collector_name] = sq
     return out
@@ -915,14 +882,8 @@ def getRunningCondorStatus(status_dict):
         sq = condorMonitor.SubQuery(
             status_dict[collector_name],
             lambda el: (
-                (
-                    (el.get("State") == "Claimed")
-                    and (el.get("Activity") in ("Busy", "Retiring"))
-                )
-                or (
-                    (el.get("PartitionableSlot") == True)
-                    and (el.get("TotalSlots", 1) > 1)
-                )
+                ((el.get("State") == "Claimed") and (el.get("Activity") in ("Busy", "Retiring")))
+                or ((el.get("PartitionableSlot") == True) and (el.get("TotalSlots", 1) > 1))
             ),
         )
         sq.load()
@@ -942,9 +903,7 @@ def getRunningPSlotCondorStatus(status_dict):
         # Get p-slot where there is atleast one dynamic slot
         sq = condorMonitor.SubQuery(
             status_dict[collector_name],
-            lambda el: (
-                (el.get("PartitionableSlot") == True) and (el.get("TotalSlots", 1) > 1)
-            ),
+            lambda el: ((el.get("PartitionableSlot") == True) and (el.get("TotalSlots", 1) > 1)),
         )
 
         sq.load()
@@ -969,10 +928,7 @@ def getRunningJobsCondorStatus(status_dict):
 
         sq = condorMonitor.SubQuery(
             status_dict[collector_name],
-            lambda el: (
-                (el.get("State") == "Claimed")
-                and (el.get("Activity") in ("Busy", "Retiring"))
-            ),
+            lambda el: ((el.get("State") == "Claimed") and (el.get("Activity") in ("Busy", "Retiring"))),
         )
         sq.load()
         out[collector_name] = sq
@@ -984,9 +940,7 @@ def getFailedCondorStatus(status_dict):
     for collector_name in list(status_dict.keys()):
         sq = condorMonitor.SubQuery(
             status_dict[collector_name],
-            lambda el: (
-                (el.get("State") == "Drained") and (el.get("Activity") == "Retiring")
-            ),
+            lambda el: ((el.get("State") == "Drained") and (el.get("Activity") == "Retiring")),
         )
         sq.load()
         out[collector_name] = sq
@@ -1064,10 +1018,7 @@ def getClientCondorStatusCredIdOnly(status_dict, cred_id):
     for collector_name, collector_status in status_dict.items():
         sq = condorMonitor.SubQuery(
             collector_status,
-            lambda el: (
-                "GLIDEIN_CredentialIdentifier" in el
-                and (el["GLIDEIN_CredentialIdentifier"] == cred_id)
-            ),
+            lambda el: ("GLIDEIN_CredentialIdentifier" in el and (el["GLIDEIN_CredentialIdentifier"] == cred_id)),
         )
         sq.load()
         out[collector_name] = sq
@@ -1080,9 +1031,7 @@ def getClientCondorStatusCredIdOnly(status_dict, cred_id):
 #
 # Use the output of getCondorStatus
 #
-def getClientCondorStatusPerCredId(
-    status_dict, frontend_name, group_name, request_name, cred_id
-):
+def getClientCondorStatusPerCredId(status_dict, frontend_name, group_name, request_name, cred_id):
     step1 = getClientCondorStatus(status_dict, frontend_name, group_name, request_name)
     out = getClientCondorStatusCredIdOnly(step1, cred_id)
     return out
@@ -1108,9 +1057,7 @@ def countRunningCondorStatus(status_dict):
     # Running sstatus dict has p-slot corresponding to the dynamic slots
     # The loop will skip elements where slot is p-slot
     for collector_name in status_dict:
-        for glidein_name, glidein_details in (
-            status_dict[collector_name].fetchStored().items()
-        ):
+        for glidein_name, glidein_details in status_dict[collector_name].fetchStored().items():
             if not glidein_details.get("PartitionableSlot", False):
                 count += 1
     return count
@@ -1169,9 +1116,7 @@ def countTotalCoresCondorStatus(status_dict):
     count = 0
     # The loop will skip elements where Cpus or TotalSlotCpus are not defined
     for collector_name in status_dict:
-        for glidein_name, glidein_details in (
-            status_dict[collector_name].fetchStored().items()
-        ):
+        for glidein_name, glidein_details in status_dict[collector_name].fetchStored().items():
             # TotalSlotCpus should always be the correct number but
             # is not defined pre partitionable slots
             if glidein_details.get("PartitionableSlot", False):
@@ -1193,9 +1138,7 @@ def countIdleCoresCondorStatus(status_dict):
     count = 0
     # The loop will skip elements where Cpus or TotalSlotCpus are not defined
     for collector_name in status_dict:
-        for glidein_name, glidein_details in (
-            status_dict[collector_name].fetchStored().items()
-        ):
+        for glidein_name, glidein_details in status_dict[collector_name].fetchStored().items():
             count += glidein_details.get("Cpus", 0)
     return count
 
@@ -1212,9 +1155,7 @@ def countRunningCoresCondorStatus(status_dict):
     count = 0
     # The loop will skip elements where Cpus or TotalSlotCpus are not defined
     for collector_name in status_dict:
-        for glidein_name, glidein_details in (
-            status_dict[collector_name].fetchStored().items()
-        ):
+        for glidein_name, glidein_details in status_dict[collector_name].fetchStored().items():
             if not glidein_details.get("PartitionableSlot", False):
                 count += glidein_details.get("Cpus", 0)
     return count
@@ -1254,9 +1195,7 @@ def getFactoryEntryList(status_dict):
 #
 # Return the schedd classads
 #
-def getCondorStatusSchedds(
-    collector_names, constraint=None, format_list=None, want_format_completion=True
-):
+def getCondorStatusSchedds(collector_names, constraint=None, format_list=None, want_format_completion=True):
     if format_list is not None:
         if want_format_completion:
             format_list = condorMonitor.complete_format_list(
@@ -1294,9 +1233,7 @@ def getCondorStatusSchedds(
 # If not all the jobs of the schedd has to be considered,
 # specify the appropriate additional constraint
 #
-def getCondorQConstrained(
-    schedd_names, type_constraint, constraint=None, format_list=None
-):
+def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format_list=None):
     out_condorq_dict = {}
     for schedd in schedd_names:
         if schedd == "":
@@ -1316,14 +1253,10 @@ def getCondorQConstrained(
             # If schedd not found it is equivalent to no jobs in the queue
             continue
         except RuntimeError:
-            logSupport.log.exception(
-                "Runtime Error. Failed to talk to schedd %s" % schedd
-            )
+            logSupport.log.exception("Runtime Error. Failed to talk to schedd %s" % schedd)
             continue
         except Exception:
-            logSupport.log.exception(
-                "Unknown Exception. Failed to talk to schedd %s" % schedd
-            )
+            logSupport.log.exception("Unknown Exception. Failed to talk to schedd %s" % schedd)
 
     return out_condorq_dict
 
@@ -1349,9 +1282,7 @@ def getCondorStatusConstrained(
             full_constraint = f"({full_constraint}) && ({constraint})"
 
         try:
-            status = condorMonitor.CondorStatus(
-                subsystem_name=subsystem_name, pool_name=collector
-            )
+            status = condorMonitor.CondorStatus(subsystem_name=subsystem_name, pool_name=collector)
             status.load(full_constraint, format_list)
         except condorMonitor.QueryError:
             if collector is not None:

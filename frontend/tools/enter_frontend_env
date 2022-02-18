@@ -16,9 +16,10 @@ import optparse
 import os
 import sys
 
-sys.path.append(os.path.join(sys.path[0], "../../.."))
 # from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend.tools.lib import frontenvparse
+
+sys.path.append(os.path.join(sys.path[0], "../../.."))
 
 
 ############################################################
@@ -48,25 +49,15 @@ def main(argv):
     feconfig.set_environment(wpilots=(options.nopilots != True))
 
     if options.quiet != True:
-        sys.stdout.write(
-            "Set the environment variables needed to emulate the environment of\n"
-        )
+        sys.stdout.write("Set the environment variables needed to emulate the environment of\n")
         sys.stdout.write("frontend\t%s\n" % options.work_dir)
         sys.stdout.write("group\t\t%s\n\n" % options.group_name)
         if options.nopilots == True:
-            sys.stdout.write(
-                "Pilot DNs will not be trusted, so you cannot contact the glideins.\n"
-            )
-            sys.stdout.write(
-                "This is analogous to what happens in the frontend processes themselves.\n\n"
-            )
+            sys.stdout.write("Pilot DNs will not be trusted, so you cannot contact the glideins.\n")
+            sys.stdout.write("This is analogous to what happens in the frontend processes themselves.\n\n")
         else:
-            sys.stdout.write(
-                "Pilot DNs are also trusted, so you can contact and manage the glideins.\n"
-            )
-            sys.stdout.write(
-                "(unlike what happens in the frontend processes themselves)\n\n"
-            )
+            sys.stdout.write("Pilot DNs are also trusted, so you can contact and manage the glideins.\n")
+            sys.stdout.write("(unlike what happens in the frontend processes themselves)\n\n")
 
         sys.stdout.write("Executing shell %s\n\n" % os.environ["SHELL"])
         sys.stdout.flush()

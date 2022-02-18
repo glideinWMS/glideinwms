@@ -160,9 +160,7 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
     stdout_data = ""
     try:
         # invoking subprocessSupport.iexe_cmd w/ text=True (default), stdin_data and returned output are str
-        stdout_data = subprocessSupport.iexe_cmd(
-            cmd, stdin_data=stdin_data, child_env=child_env
-        )
+        stdout_data = subprocessSupport.iexe_cmd(cmd, stdin_data=stdin_data, child_env=child_env)
     except Exception as ex:
         msg = "Unexpected Error running '{}'. Details: {}. Stdout: {}".format(
             cmd,
@@ -189,9 +187,7 @@ def init1():
     global condor_bin_path
     # try using condor commands to find it out
     try:
-        condor_bin_path = iexe_cmd("condor_config_val BIN")[
-            0
-        ].strip()  # remove trailing newline
+        condor_bin_path = iexe_cmd("condor_config_val BIN")[0].strip()  # remove trailing newline
     except ExeError as e:
         # try to find the RELEASE_DIR, and append bin
         try:
@@ -216,12 +212,8 @@ def init1():
                 except ExeError as e:
                     try:
                         # RELEASE_DIR = <path>
-                        release_def = iexe_cmd(
-                            'grep "^ *RELEASE_DIR" %s' % condor_config
-                        )
-                        condor_bin_path = os.path.join(
-                            release_def[0].strip().split()[2], "bin"
-                        )
+                        release_def = iexe_cmd('grep "^ *RELEASE_DIR" %s' % condor_config)
+                        condor_bin_path = os.path.join(release_def[0].strip().split()[2], "bin")
                     except ExeError as e:
                         pass  # don't know what else to try
 
@@ -231,9 +223,7 @@ def init2():
     global condor_sbin_path
     # try using condor commands to find it out
     try:
-        condor_sbin_path = iexe_cmd("condor_config_val SBIN")[
-            0
-        ].strip()  # remove trailing newline
+        condor_sbin_path = iexe_cmd("condor_config_val SBIN")[0].strip()  # remove trailing newline
     except ExeError as e:
         # try to find the RELEASE_DIR, and append bin
         try:
@@ -258,12 +248,8 @@ def init2():
                 except ExeError as e:
                     try:
                         # RELEASE_DIR = <path>
-                        release_def = iexe_cmd(
-                            'grep "^ *RELEASE_DIR" %s' % condor_config
-                        )
-                        condor_sbin_path = os.path.join(
-                            release_def[0].strip().split()[2], "sbin"
-                        )
+                        release_def = iexe_cmd('grep "^ *RELEASE_DIR" %s' % condor_config)
+                        condor_sbin_path = os.path.join(release_def[0].strip().split()[2], "sbin")
                     except ExeError as e:
                         pass  # don't know what else to try
 

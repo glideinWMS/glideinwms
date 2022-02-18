@@ -247,14 +247,12 @@ def get_limits_str(limits):
                 held = min(max(int(glideins * value["held"] / 100), 5), glideins)
                 idle = min(max(int(glideins * value["idle"] / 100), 10), glideins)
                 if name == "entry":
-                    out += (
-                        '\n               <per_entry glideins="%s" held="%s" idle="%s"/>'
-                        % (glideins, held, idle)
-                    )
+                    out += f'\n               <per_entry glideins="{glideins}" held="{held}" idle="{idle}"/>'
                 elif name == "frontend":
-                    out += (
-                        '\n               <default_per_frontend glideins="%s" held="%s" idle="%s"/>'
-                        % (glideins, held, idle)
+                    out += '\n               <default_per_frontend glideins="{}" held="{}" idle="{}"/>'.format(
+                        glideins,
+                        held,
+                        idle,
                     )
 
     return out

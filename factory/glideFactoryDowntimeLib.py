@@ -44,12 +44,8 @@ class DowntimeFile:
         return printDowntime(self.fname, entry, check_time)
 
     # if check_time==None, use current time
-    def checkDowntime(
-        self, entry="Any", frontend="Any", security_class="Any", check_time=None
-    ):
-        (msg, rtn) = checkDowntime(
-            self.fname, entry, frontend, security_class, check_time
-        )
+    def checkDowntime(self, entry="Any", frontend="Any", security_class="Any", check_time=None):
+        (msg, rtn) = checkDowntime(self.fname, entry, frontend, security_class, check_time)
         self.downtime_comment = msg
         return rtn
 
@@ -109,9 +105,7 @@ class DowntimeFile:
         security_class="All",
         comment="",
     ):
-        return endDowntime(
-            self.fname, end_time, entry, frontend, security_class, comment
-        )
+        return endDowntime(self.fname, end_time, entry, frontend, security_class, comment)
 
     # if cut time<0, use current_time-abs(cut_time)
     def purgeOldPeriods(self, cut_time=None, raise_on_error=False):
@@ -229,9 +223,7 @@ def printDowntime(fname, entry="Any", check_time=None):
 
 
 # if check_time==None, use current time
-def checkDowntime(
-    fname, entry="Any", frontend="Any", security_class="Any", check_time=None
-):
+def checkDowntime(fname, entry="Any", frontend="Any", security_class="Any", check_time=None):
     if check_time is None:
         check_time = int(time.time())
     time_list = read(fname)
@@ -283,8 +275,7 @@ def addPeriod(
         fcntl.flock(fd, fcntl.LOCK_EX)
         if not exists:  # new file, create header
             fd.write(
-                "#%-29s %-30s %-20s %-30s %-20s # %s\n"
-                % ("Start", "End", "Entry", "Frontend", "Sec_Class", "Comment")
+                "#%-29s %-30s %-20s %-30s %-20s # %s\n" % ("Start", "End", "Entry", "Frontend", "Sec_Class", "Comment")
             )
         if end_time is not None:
             fd.write(
@@ -348,9 +339,7 @@ def purgeOldPeriods(fname, cut_time=None, raise_on_error=False):
             arr = line.split()
             if len(arr) < 2:
                 if raise_on_error:
-                    raise ValueError(
-                        "%s:%i: Expected pair, got '%s'" % (fname, lnr, line)
-                    )
+                    raise ValueError("%s:%i: Expected pair, got '%s'" % (fname, lnr, line))
                 else:
                     outlines.append(long_line)
                     continue  # pass on malformed lines
@@ -389,9 +378,7 @@ def purgeOldPeriods(fname, cut_time=None, raise_on_error=False):
 
 # end a downtime (not a scheduled one)
 # if end_time==None, use current time
-def endDowntime(
-    fname, end_time=None, entry="All", frontend="All", security_class="All", comment=""
-):
+def endDowntime(fname, end_time=None, entry="All", frontend="All", security_class="All", comment=""):
     comment = comment.replace("\r", " ")
     comment = comment.replace("\n", " ")
     if end_time is None:
@@ -434,11 +421,7 @@ def endDowntime(
                 outlines.append(long_line)
                 continue
             # make sure that this time tuple applies to this security_class
-            if (
-                (security_class != "All")
-                and (len(arr) > 4)
-                and (security_class != arr[4])
-            ):
+            if (security_class != "All") and (len(arr) > 4) and (security_class != arr[4]):
                 outlines.append(long_line)
                 continue
             cur_start_time = 0
@@ -447,13 +430,9 @@ def endDowntime(
             if arr[1] != "None":
                 cur_end_time = timeConversion.extractISO8601_Local(arr[1])
             # logic short circuit guarantees that cur_end_time is defined (arr[1] != 'None')
-            if arr[1] == "None" or (
-                (cur_start_time < int(time.time())) and (cur_end_time > end_time)
-            ):
+            if arr[1] == "None" or ((cur_start_time < int(time.time())) and (cur_end_time > end_time)):
                 # open period -> close
-                outlines.append(
-                    "%-30s %-30s" % (arr[0], timeConversion.getISO8601_Local(end_time))
-                )
+                outlines.append("%-30s %-30s" % (arr[0], timeConversion.getISO8601_Local(end_time)))
                 if len(arr) > 2:
                     sep = " "
                     t = 2

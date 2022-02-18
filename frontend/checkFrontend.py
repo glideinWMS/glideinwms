@@ -44,10 +44,7 @@ if __name__ == "__main__":
         req_action_type = "run"
 
     if action_type != req_action_type:
-        print(
-            'Not running my type (note that conflicting "%s" type is running).'
-            % action_type
-        )
+        print('Not running my type (note that conflicting "%s" type is running).' % action_type)
         sys.exit(2)
 
     print("Running")

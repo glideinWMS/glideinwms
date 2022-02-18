@@ -373,7 +373,5 @@ def exe_condor_advertise(fname, command, pool, is_multi=False, use_tcp=False):
     Wrapper to execute condorAdvertise from the condorManager
     """
 
-    logSupport.log.debug(
-        f"CONDOR ADVERTISE {fname} {command} {pool} {is_multi} {use_tcp}"
-    )
+    logSupport.log.debug(f"CONDOR ADVERTISE {fname} {command} {pool} {is_multi} {use_tcp}")
     return condorManager.condorAdvertise(fname, command, use_tcp, is_multi, pool)

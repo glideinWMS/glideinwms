@@ -26,9 +26,7 @@ import M2Crypto
 from . import defaults
 
 
-def passphrase_callback(
-    v: bool, prompt1: str = "Enter passphrase:", prompt2: str = "Verify passphrase:"
-):
+def passphrase_callback(v: bool, prompt1: str = "Enter passphrase:", prompt2: str = "Verify passphrase:"):
     str3 = prompt1 + prompt2
     pass
 
@@ -382,9 +380,7 @@ class RSAKey(PubRSAKey):
         """
         if self.rsa_key is None:
             raise KeyError("No RSA key")
-        return self.rsa_key.save_key_bio(
-            bio, self.private_cipher, self.private_callback
-        )
+        return self.rsa_key.save_key_bio(bio, self.private_cipher, self.private_callback)
 
     ###########################################
     # generate key function

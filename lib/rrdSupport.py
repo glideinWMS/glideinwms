@@ -15,17 +15,17 @@
 #   Igor Sfiligoi
 #
 
+import shlex
 import string
+import subprocess
 import time
+
+from . import subprocessSupport
 
 try:
     import rrdtool  # pylint: disable=import-error
 except:
     pass
-import shlex
-import subprocess
-
-from . import subprocessSupport
 
 
 class BaseRRDSupport:
@@ -228,9 +228,7 @@ class BaseRRDSupport:
 
         multi_rrd_files = []
         for rrd_file in rrd_files:
-            multi_rrd_files.append(
-                (rrd_file[0], rrd_file[1], ds_name, ds_type, rrd_file[2], rrd_file[3])
-            )
+            multi_rrd_files.append((rrd_file[0], rrd_file[1], ds_name, ds_type, rrd_file[2], rrd_file[3]))
         return self.rrd2graph_multi(
             fname,
             rrd_step,
@@ -485,9 +483,7 @@ class BaseRRDSupport:
         )
 
     ###################################################
-    def fetch_rrd(
-        self, filename, CF, resolution=None, start=None, end=None, daemon=None
-    ):
+    def fetch_rrd(self, filename, CF, resolution=None, start=None, end=None, daemon=None):
         """
         Fetch will analyze the RRD and try to retrieve the data in the
         resolution requested.
@@ -621,9 +617,7 @@ class rrdtool_exe:
     """
 
     def __init__(self):
-        self.rrd_bin = (
-            subprocessSupport.iexe_cmd("which rrdtool").split("\n")[0]
-        ).strip()
+        self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool").split("\n")[0]).strip()
 
     def create(self, *args):
         cmdline = f"{self.rrd_bin} create {string_quote_join(args)}"
@@ -680,9 +674,7 @@ class rrdtool_exe:
         for line in outstr:
             if len(line) == 0:
                 continue
-            lines.append(
-                tuple(float(i) if i != "-nan" else None for i in line.split()[1:])
-            )
+            lines.append(tuple(float(i) if i != "-nan" else None for i in line.split()[1:]))
         tstep = int(outstr[2].split(":")[0]) - int(outstr[1].split(":")[0])
         ftime = int(outstr[1].split(":")[0]) - tstep
         ltime = int(outstr[-2].split(":")[0])

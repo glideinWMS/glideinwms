@@ -20,11 +20,12 @@ import os.path
 import sys
 import time
 
+from glideinwms.factory import glideFactoryConfig
+from glideinwms.factory.tools.lib import gWftArgsHelper, gWftLogParser
+
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 
-from glideinwms.factory import glideFactoryConfig
-from glideinwms.factory.tools.lib import gWftArgsHelper, gWftLogParser
 
 USAGE = "Usage: find_StartdLogs.py <factory> YY/MM/DD [hh:mm:ss]"
 
@@ -70,9 +71,7 @@ def main():
     )
     for fname in log_list:
         sys.stdout.write("%s\n" % fname)
-        sys.stdout.write(
-            "===========================================================\n"
-        )
+        sys.stdout.write("===========================================================\n")
         sys.stdout.write("%s\n" % gWftLogParser.get_CondorLog(fname, "CondorLog"))
 
 

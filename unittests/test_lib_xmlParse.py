@@ -23,11 +23,11 @@ import xmlrunner
 # TODO: should OrderedDict be removed, it is the one from the stdlib. But tests are texting XML conversion as well
 #       should be directly: from collections import OrderedDict
 from glideinwms.lib.xmlParse import (
-    OrderedDict,
     domel2dict,
     getXMLAttributes,
     getXMLElements,
     is_singular_of,
+    OrderedDict,
     xmlfile2dict,
     xmlstring2dict,
 )
@@ -128,9 +128,7 @@ class TestOrderedDict(unittest.TestCase):
 
         dict1 = xmlstring2dict(xmlstr, use_ord_dict=False, always_singular_list=[])
         ordered_dict = OrderedDict(dict1)
-        self.assertEqual(
-            ordered_dict_values_repr, list(ordered_dict.values()).__repr__()
-        )
+        self.assertEqual(ordered_dict_values_repr, list(ordered_dict.values()).__repr__())
 
 
 class TestXmlfile2dict(unittest.TestCase):
@@ -144,9 +142,7 @@ class TestXmlstring2dict(unittest.TestCase):
     def test_xmlstring2dict(self):
         self.assertEqual(
             xmlstr_dict_repr,
-            xmlstring2dict(
-                xmlstr, use_ord_dict=True, always_singular_list=[]
-            ).__repr__(),
+            xmlstring2dict(xmlstr, use_ord_dict=True, always_singular_list=[]).__repr__(),
         )
 
 
@@ -158,50 +154,34 @@ class TestXmlstring2dict(unittest.TestCase):
 class TestGetXMLElements(unittest.TestCase):
     def test_get_xml_elements(self):
         doc = xml.dom.minidom.parseString("<xml><foo></foo></xml>")
-        self.assertTrue(
-            "DOM Element: foo" in getXMLElements(doc.documentElement).__repr__()
-        )
+        self.assertTrue("DOM Element: foo" in getXMLElements(doc.documentElement).__repr__())
 
 
 class TestGetXMLAttributes(unittest.TestCase):
     def test_get_xml_attributes(self):
-        doc = xml.dom.minidom.parseString(
-            """<xml><foo><param name="x" value="12"/></foo></xml>"""
-        )
-        self.assertEqual(
-            "{}", getXMLAttributes(doc.documentElement, use_ord_dict=True).__repr__()
-        )
+        doc = xml.dom.minidom.parseString("""<xml><foo><param name="x" value="12"/></foo></xml>""")
+        self.assertEqual("{}", getXMLAttributes(doc.documentElement, use_ord_dict=True).__repr__())
 
 
 class TestIsSingularOf(unittest.TestCase):
     def test_is_singular_of(self):
 
-        self.assertEqual(
-            True, is_singular_of(mysin="dog", myplu="dogs", always_singular_list=[])
-        )
+        self.assertEqual(True, is_singular_of(mysin="dog", myplu="dogs", always_singular_list=[]))
         self.assertEqual(
             True,
-            is_singular_of(
-                mysin="goose", myplu="geese", always_singular_list=["goose", "dog"]
-            ),
+            is_singular_of(mysin="goose", myplu="geese", always_singular_list=["goose", "dog"]),
         )
         self.assertEqual(
             False,
-            is_singular_of(
-                mysin="moose", myplu="meese", always_singular_list=["goose", "dog"]
-            ),
+            is_singular_of(mysin="moose", myplu="meese", always_singular_list=["goose", "dog"]),
         )
         self.assertEqual(
             True,
-            is_singular_of(
-                mysin="miss", myplu="misses", always_singular_list=["goose", "dog"]
-            ),
+            is_singular_of(mysin="miss", myplu="misses", always_singular_list=["goose", "dog"]),
         )
         self.assertEqual(
             True,
-            is_singular_of(
-                mysin="army", myplu="armies", always_singular_list=["goose", "dog"]
-            ),
+            is_singular_of(mysin="army", myplu="armies", always_singular_list=["goose", "dog"]),
         )
 
 

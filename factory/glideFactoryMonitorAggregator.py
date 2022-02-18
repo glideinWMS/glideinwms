@@ -245,9 +245,7 @@ def verifyRRD(fix_rrd=False):
     for dir_name, sdir_name, f_list in os.walk(mon_dir):
         for file_name in f_list:
             if file_name in list(rrdict.keys()):
-                verifyHelper(
-                    os.path.join(dir_name, file_name), rrdict[file_name], fix_rrd
-                )
+                verifyHelper(os.path.join(dir_name, file_name), rrdict[file_name], fix_rrd)
 
     return not rrd_problems_found
 
@@ -346,9 +344,7 @@ def aggregateStatus(in_downtime):
                         if a in tel:
                             tel[a] += int(el[a])
                     # if any attribute from prev. frontends is not in the current one, remove from total
-                    for a in list(
-                        tel
-                    ):  # making a copy of the keys because the dict is being modified
+                    for a in list(tel):  # making a copy of the keys because the dict is being modified
                         if a not in el:
                             del tel[a]
                             tmp_list_removed.append(a)
@@ -385,9 +381,7 @@ def aggregateStatus(in_downtime):
                         #  'w' is frontend attribute name, ie 'ClientMonitor' or 'Downtime'
                         #  'a' is sub-field, such as 'GlideIdle' or 'status'
                         if w == "Downtime" and a == "status":
-                            ela_val = (
-                                ela[a] != "False"
-                            )  # Check if 'True' or 'False' but default to True if neither
+                            ela_val = ela[a] != "False"  # Check if 'True' or 'False' but default to True if neither
                             try:
                                 tela[a] = tela[a] and ela_val
                             except KeyError:
@@ -401,17 +395,13 @@ def aggregateStatus(in_downtime):
                                 if a in tela:
                                     tela[a] += int(ela[a])
                                 else:
-                                    if (
-                                        fe_first
-                                    ):  # to avoid adding back attributes that were not in other frontends
+                                    if fe_first:  # to avoid adding back attributes that were not in other frontends
                                         tela[a] = int(ela[a])
                             except:
                                 pass  # not an int, not Downtime, so do nothing
                     # if any attribute from prev. frontends is not in the current one, remove from total
                     if not fe_first and w != "Downtime":
-                        for a in list(
-                            tela
-                        ):  # making a copy of the keys because the dict is being modified
+                        for a in list(tela):  # making a copy of the keys because the dict is being modified
                             if a not in ela:
                                 del tela[a]
                                 tmp_list_removed.append(a)
@@ -422,9 +412,7 @@ def aggregateStatus(in_downtime):
                             )
                             tmp_list_removed = []
 
-    for w in list(
-        global_total
-    ):  # making a copy of the keys because the dict is being modified
+    for w in list(global_total):  # making a copy of the keys because the dict is being modified
         if global_total[w] is None:
             del global_total[w]  # remove entry if not defined
         else:
@@ -494,9 +482,7 @@ def aggregateStatus(in_downtime):
             leading_tab=xmlFormat.DEFAULT_TAB,
         )
         + "\n"
-        + xmlFormat.class2string(
-            status["total"], inst_name="total", leading_tab=xmlFormat.DEFAULT_TAB
-        )
+        + xmlFormat.class2string(status["total"], inst_name="total", leading_tab=xmlFormat.DEFAULT_TAB)
         + "\n"
         + xmlFormat.dict2string(
             status_fe["frontends"],
@@ -521,9 +507,7 @@ def aggregateStatus(in_downtime):
         + "\n"
         + "</glideFactoryQStats>\n"
     )
-    glideFactoryMonitoring.monitoringConfig.write_file(
-        monitorAggregatorConfig.status_relname, xml_str
-    )
+    glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname, xml_str)
 
     # write json
     glideFactoryMonitoring.monitoringConfig.write_completed_json(
@@ -550,15 +534,11 @@ def aggregateStatus(in_downtime):
                 a_el = int(tp_el[a])
                 val_dict[f"{tp_str}{a}"] = a_el
 
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi(
-        "total/Status_Attributes", "GAUGE", updated, val_dict
-    )
+    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/Status_Attributes", "GAUGE", updated, val_dict)
 
     # Frontend total rrds across all factories
     for fe in list(status_fe["frontends"].keys()):
-        glideFactoryMonitoring.monitoringConfig.establish_dir(
-            "total/%s" % ("frontend_" + fe)
-        )
+        glideFactoryMonitoring.monitoringConfig.establish_dir("total/%s" % ("frontend_" + fe))
         for tp in list(status_fe["frontends"][fe].keys()):
             # values (RRD type) - Status or Requested
             if not (tp in list(type_strings.keys())):
@@ -613,9 +593,7 @@ def aggregateJobsSummary():
             continue
         schedd_name = entry_joblist.get("schedd_name", None)
         pool_name = entry_joblist.get("collector_name", None)
-        jobinfo.setdefault((schedd_name, pool_name), {}).update(
-            entry_joblist["joblist"]
-        )
+        jobinfo.setdefault((schedd_name, pool_name), {}).update(entry_joblist["joblist"])
     return jobinfo
 
 
@@ -701,9 +679,7 @@ def aggregateLogSummary():
         )
 
         try:
-            entry_data = xmlParse.xmlfile2dict(
-                status_fname, always_singular_list=["Fraction", "TimeRange", "Range"]
-            )
+            entry_data = xmlParse.xmlfile2dict(status_fname, always_singular_list=["Fraction", "TimeRange", "Range"])
         except OSError:
             continue  # file not found, ignore
 
@@ -725,29 +701,21 @@ def aggregateLogSummary():
                 "Sum": {},
             }
             for tkey in list(fe_el["CompletedCounts"]["Sum"].keys()):
-                out_fe_el["CompletedCounts"]["Sum"][tkey] = int(
-                    fe_el["CompletedCounts"]["Sum"][tkey]
-                )
+                out_fe_el["CompletedCounts"]["Sum"][tkey] = int(fe_el["CompletedCounts"]["Sum"][tkey])
             for k in glideFactoryMonitoring.getAllJobTypes():
                 for w in ("Waste", "WasteTime"):
                     out_fe_el["CompletedCounts"][w][k] = {}
                     for t in glideFactoryMonitoring.getAllMillRanges():
-                        out_fe_el["CompletedCounts"][w][k][t] = int(
-                            fe_el["CompletedCounts"][w][k][t]["val"]
-                        )
+                        out_fe_el["CompletedCounts"][w][k][t] = int(fe_el["CompletedCounts"][w][k][t]["val"])
             for t in glideFactoryMonitoring.getAllTimeRanges():
-                out_fe_el["CompletedCounts"]["Lasted"][t] = int(
-                    fe_el["CompletedCounts"]["Lasted"][t]["val"]
-                )
+                out_fe_el["CompletedCounts"]["Lasted"][t] = int(fe_el["CompletedCounts"]["Lasted"][t]["val"])
             out_fe_el["CompletedCounts"]["JobsDuration"] = {}
             for t in glideFactoryMonitoring.getAllTimeRanges():
                 out_fe_el["CompletedCounts"]["JobsDuration"][t] = int(
                     fe_el["CompletedCounts"]["JobsDuration"][t]["val"]
                 )
             for t in glideFactoryMonitoring.getAllJobRanges():
-                out_fe_el["CompletedCounts"]["JobsNr"][t] = int(
-                    fe_el["CompletedCounts"]["JobsNr"][t]["val"]
-                )
+                out_fe_el["CompletedCounts"]["JobsNr"][t] = int(fe_el["CompletedCounts"]["JobsNr"][t]["val"])
             out_data[frontend] = out_fe_el
 
         status["entries"][entry] = {"frontends": out_data}
@@ -771,12 +739,8 @@ def aggregateLogSummary():
                 "JobsDuration": {},
             }
             for tkey in list(entry_data["total"]["CompletedCounts"]["Sum"].keys()):
-                local_total["CompletedCounts"]["Sum"][tkey] = int(
-                    entry_data["total"]["CompletedCounts"]["Sum"][tkey]
-                )
-                global_total["CompletedCounts"]["Sum"][tkey] += int(
-                    entry_data["total"]["CompletedCounts"]["Sum"][tkey]
-                )
+                local_total["CompletedCounts"]["Sum"][tkey] = int(entry_data["total"]["CompletedCounts"]["Sum"][tkey])
+                global_total["CompletedCounts"]["Sum"][tkey] += int(entry_data["total"]["CompletedCounts"]["Sum"][tkey])
             for k in glideFactoryMonitoring.getAllJobTypes():
                 for w in ("Waste", "WasteTime"):
                     local_total["CompletedCounts"][w][k] = {}
@@ -873,17 +837,13 @@ def aggregateLogSummary():
         + xmlFormat.class2string(
             status["total"],
             inst_name="total",
-            subclass_params={
-                "CompletedCounts": glideFactoryMonitoring.get_completed_stats_xml_desc()
-            },
+            subclass_params={"CompletedCounts": glideFactoryMonitoring.get_completed_stats_xml_desc()},
             leading_tab=xmlFormat.DEFAULT_TAB,
         )
         + "\n"
         + "</glideFactoryLogSummary>\n"
     )
-    glideFactoryMonitoring.monitoringConfig.write_file(
-        monitorAggregatorConfig.logsummary_relname, xml_str
-    )
+    glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.logsummary_relname, xml_str)
 
     # Write rrds
     writeLogSummaryRRDs("total", status["total"])
@@ -923,9 +883,7 @@ def writeLogSummaryRRDs(fe_dir, status_el):
     val_dict_waste = {}
     val_dict_wastetime = {}
     for s in ("Wait", "Idle", "Running", "Held", "Completed", "Removed"):
-        if not (
-            s in ("Completed", "Removed")
-        ):  # I don't have their numbers from inactive logs
+        if not (s in ("Completed", "Removed")):  # I don't have their numbers from inactive logs
             count = sdata[s]
             val_dict_counts["Status%s" % s] = count
             val_dict_counts_desc["Status%s" % s] = {"ds_type": "GAUGE"}
@@ -949,9 +907,7 @@ def writeLogSummaryRRDs(fe_dir, status_el):
             for timerange in list(count_entered_times.keys()):
                 val_dict_stats["Lasted_%s" % timerange] = count_entered_times[timerange]
                 # they all use the same indexes
-                val_dict_stats["JobsLasted_%s" % timerange] = count_jobs_duration[
-                    timerange
-                ]
+                val_dict_stats["JobsLasted_%s" % timerange] = count_jobs_duration[timerange]
 
             # save jobsnr
             for jobrange in list(count_jobnrs.keys()):
@@ -1010,14 +966,10 @@ def aggregateRRDStats(log=logSupport.log):
                 rrd_site(rrd),
             )
             try:
-                stats[entry] = xmlParse.xmlfile2dict(
-                    rrd_fname, always_singular_list={"timezone": {}}
-                )
+                stats[entry] = xmlParse.xmlfile2dict(rrd_fname, always_singular_list={"timezone": {}})
             except OSError:
                 if os.path.exists(rrd_fname):
-                    log.debug(
-                        "aggregateRRDStats %s exception: parse_xml, IOError" % rrd_fname
-                    )
+                    log.debug("aggregateRRDStats %s exception: parse_xml, IOError" % rrd_fname)
                 else:
                     log.debug(
                         "aggregateRRDStats %s exception: parse_xml, IOError, File not existing (OK if first time)"
@@ -1080,9 +1032,7 @@ def aggregateRRDStats(log=logSupport.log):
                                 # not all the entries have all the frontends
                                 try:
                                     aggregate_output[client][res][data_set] += float(
-                                        stats[entry]["frontends"][client]["periods"][
-                                            res
-                                        ][data_set]
+                                        stats[entry]["frontends"][client]["periods"][res][data_set]
                                     )
                                 except KeyError:
                                     missing_client_data = True
@@ -1094,9 +1044,7 @@ def aggregateRRDStats(log=logSupport.log):
         if missing_total_data:
             log.debug("aggregate_data, missing total data from file %s" % rrd_site(rrd))
         if missing_client_data:
-            log.debug(
-                "aggregate_data, missing client data from file %s" % rrd_site(rrd)
-            )
+            log.debug("aggregate_data, missing client data from file %s" % rrd_site(rrd))
 
         # write an aggregate XML file
 
@@ -1188,9 +1136,7 @@ def aggregateRRDStats(log=logSupport.log):
             log.debug("frontend_data, TypeError")
         frontend_xml_str += 2 * tab + "</frontends>\n"
 
-        data_str = (
-            tab + "<total>\n" + total_xml_str + frontend_xml_str + tab + "</total>\n"
-        )
+        data_str = tab + "<total>\n" + total_xml_str + frontend_xml_str + tab + "</total>\n"
 
         # putting it all together
         updated = time.time()

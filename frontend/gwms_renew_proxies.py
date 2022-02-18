@@ -56,9 +56,7 @@ class Proxy:
     ):
         self.cert = cert
         self.key = key
-        self.tmp_output_fd = tempfile.NamedTemporaryFile(
-            dir=os.path.dirname(output), delete=False
-        )
+        self.tmp_output_fd = tempfile.NamedTemporaryFile(dir=os.path.dirname(output), delete=False)
         self.output = output
         self.lifetime = lifetime
         self.uid = uid
@@ -110,10 +108,7 @@ class VO:
         elif fqan.startswith("/Role="):
             fqan = f"/{vo}{fqan}"
         else:
-            raise ValueError(
-                'Malformed FQAN does not begin with "/%s/Role=" or "/Role=". Verify %s.'
-                % (vo, CONFIG)
-            )
+            raise ValueError(f'Malformed FQAN does not begin with "/{vo}/Role=" or "/Role=". Verify {CONFIG}.')
         self.fqan = fqan
         # intended argument for -voms option "vo:command" format, see voms-proxy-init man page
         self.voms = ":".join([vo, fqan])
@@ -279,26 +274,17 @@ def main():
         # control this via the 'frequency' config option. If more than 'frequency' hours have elapsed in a proxy's
         # lifetime, renew it. Otherwise, skip the renewal.
         def has_time_left(time_remaining):
-            return (
-                int(proxy.lifetime) * 3600 - time_remaining
-                < int(proxy_config["frequency"]) * 3600
-            )
+            return int(proxy.lifetime) * 3600 - time_remaining < int(proxy_config["frequency"]) * 3600
 
         if proxy_section == "FRONTEND":
             if has_time_left(proxy.timeleft()):
-                print(
-                    "Skipping renewal of %s: time remaining within the specified frequency"
-                    % proxy.output
-                )
+                print("Skipping renewal of %s: time remaining within the specified frequency" % proxy.output)
                 proxy.cleanup()
                 continue
             stdout, stderr, client_rc = voms_proxy_init(proxy)
         elif proxy_section.startswith("PILOT"):
             if has_time_left(proxy.timeleft()) and has_time_left(proxy.actimeleft()):
-                print(
-                    "Skipping renewal of %s: time remaining within the specified frequency"
-                    % proxy.output
-                )
+                print("Skipping renewal of %s: time remaining within the specified frequency" % proxy.output)
                 proxy.cleanup()
                 continue
 
@@ -315,9 +301,7 @@ def main():
                     retcode = 1
                     print(
                         f"ERROR: Failed to renew proxy {proxy.output}: "
-                        + "Could not find entry in {} for {}. ".format(
-                            vomses, vo_attr.cert
-                        )
+                        + f"Could not find entry in {vomses} for {vo_attr.cert}. "
                         + "Please verify your VO data installation."
                     )
                     proxy.cleanup()
@@ -325,15 +309,11 @@ def main():
                 stdout, stderr, client_rc = voms_proxy_fake(proxy, vo_attr)
         else:
             print(
-                "WARNING: Unrecognized configuration section %s found in %s.\n"
-                % (proxy, CONFIG)
+                f"WARNING: Unrecognized configuration section {proxy} found in {CONFIG}.\n"
                 + "Valid configuration sections: 'FRONTEND' or 'PILOT'."
             )
             client_rc = -1
-            stderr = (
-                "Unrecognized configuration section '%s', renewal not attempted."
-                % proxy_section
-            )
+            stderr = "Unrecognized configuration section '%s', renewal not attempted." % proxy_section
             stdout = ""
 
         if client_rc == 0:
@@ -342,10 +322,7 @@ def main():
         else:
             retcode = 1
             # don't raise an exception here to continue renewing other proxies
-            print(
-                "ERROR: Failed to renew proxy %s:\n%s%s"
-                % (proxy.output, stdout, stderr)
-            )
+            print(f"ERROR: Failed to renew proxy {proxy.output}:\n{stdout}{stderr}")
             proxy.cleanup()
 
     return retcode

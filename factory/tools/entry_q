@@ -13,10 +13,11 @@
 import os
 import sys
 
+from glideinwms.factory import glideFactoryConfig
+
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 
-from glideinwms.factory import glideFactoryConfig
 
 USAGE = "Usage: entry_q entry|-l [-dir <dir>] [-printschedd] [condor_q options]"
 
@@ -88,9 +89,10 @@ def main(argv):
     factory_name = glideinDescript.data["FactoryName"]
     glidein_name = glideinDescript.data["GlideinName"]
     schedd_name = jobDescript.data["Schedd"]
-    const_str = (
-        '(GlideinFactory=?="%s")&&(GlideinName=?="%s")&&(GlideinEntryName=?="%s")'
-        % (factory_name, glidein_name, entry)
+    const_str = '(GlideinFactory=?="{}")&&(GlideinName=?="{}")&&(GlideinEntryName=?="{}")'.format(
+        factory_name,
+        glidein_name,
+        entry,
     )
 
     cq_argv = argv[i:]
@@ -113,9 +115,7 @@ def main(argv):
     # must flush out before forking, or any buffered content wil be lost
     sys.__stdout__.flush()
     sys.__stderr__.flush()
-    os.execvp(
-        "condor_q", ["condor_q", "-name", schedd_name, "-const", const_str] + cq_argv
-    )
+    os.execvp("condor_q", ["condor_q", "-name", schedd_name, "-const", const_str] + cq_argv)
 
 
 if __name__ == "__main__":

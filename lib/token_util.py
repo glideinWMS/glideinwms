@@ -17,6 +17,7 @@ import time
 import uuid
 
 import jwt
+
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -182,9 +183,7 @@ def sign_token(identity, issuer, kid, master_key, duration=None, scope=None):
     return encoded
 
 
-def create_and_sign_token(
-    pwd_file, issuer=None, identity=None, kid=None, duration=None, scope=None
-):
+def create_and_sign_token(pwd_file, issuer=None, identity=None, kid=None, duration=None, scope=None):
     """
     Create an HTCondor IDTOKEN
 

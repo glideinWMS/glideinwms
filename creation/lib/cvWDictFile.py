@@ -45,10 +45,7 @@ class ParamsDictFile(cWDictFile.DictFile):
         if len(val) != 2:
             raise RuntimeError("Values '%s' not (Type,Val)" % str(val))
         if not (val[0] in ("EXPR", "CONST")):
-            raise RuntimeError(
-                "Invalid var type '%s', should be either EXPR or CONST val: %s"
-                % (val[0], str(val))
-            )
+            raise RuntimeError(f"Invalid var type '{val[0]}', should be either EXPR or CONST val: {str(val)}")
 
         return cWDictFile.DictFile.add(self, key, val, allow_overwrite)
 
@@ -72,10 +69,7 @@ class ParamsDictFile(cWDictFile.DictFile):
         if len(arr) == 0:
             return  # empty line
         if len(arr) != 3:
-            raise RuntimeError(
-                "Not a valid var line (expected 3, found %i elements): '%s'"
-                % (len(arr), line)
-            )
+            raise RuntimeError("Not a valid var line (expected 3, found %i elements): '%s'" % (len(arr), line))
 
         key = arr[0]
         return self.add(key, (arr[1], eval(arr[2])))
@@ -88,9 +82,7 @@ class ParamsDictFile(cWDictFile.DictFile):
 ################################################
 
 # internal, do not use from outside the module
-def get_common_dicts(
-    work_dir, stage_dir, simple_work_dir
-):  # if True, do not create params
+def get_common_dicts(work_dir, stage_dir, simple_work_dir):  # if True, do not create params
     common_dicts = {
         "description": cWDictFile.DescriptionDictFile(
             stage_dir,
@@ -138,15 +130,9 @@ def get_common_dicts(
 
 def get_main_dicts(work_dir, stage_dir, simple_work_dir, assume_groups):
     main_dicts = get_common_dicts(work_dir, stage_dir, simple_work_dir)
-    main_dicts["summary_signature"] = cWDictFile.SummarySHA1DictFile(
-        work_dir, cWConsts.SUMMARY_SIGNATURE_FILE
-    )
-    main_dicts["frontend_descript"] = cWDictFile.StrDictFile(
-        work_dir, cvWConsts.FRONTEND_DESCRIPT_FILE
-    )
-    main_dicts["gridmap"] = cWDictFile.GridMapDict(
-        stage_dir, cWConsts.insert_timestr(cWConsts.GRIDMAP_FILE)
-    )
+    main_dicts["summary_signature"] = cWDictFile.SummarySHA1DictFile(work_dir, cWConsts.SUMMARY_SIGNATURE_FILE)
+    main_dicts["frontend_descript"] = cWDictFile.StrDictFile(work_dir, cvWConsts.FRONTEND_DESCRIPT_FILE)
+    main_dicts["gridmap"] = cWDictFile.GridMapDict(stage_dir, cWConsts.insert_timestr(cWConsts.GRIDMAP_FILE))
     if assume_groups:
         main_dicts["aftergroup_file_list"] = cWDictFile.FileDictFile(
             stage_dir,
@@ -164,9 +150,7 @@ def get_main_dicts(work_dir, stage_dir, simple_work_dir, assume_groups):
 
 def get_group_dicts(group_work_dir, group_stage_dir, group_name, simple_work_dir):
     group_dicts = get_common_dicts(group_work_dir, group_stage_dir, simple_work_dir)
-    group_dicts["group_descript"] = cWDictFile.StrDictFile(
-        group_work_dir, cvWConsts.GROUP_DESCRIPT_FILE
-    )
+    group_dicts["group_descript"] = cWDictFile.StrDictFile(group_work_dir, cvWConsts.GROUP_DESCRIPT_FILE)
     return group_dicts
 
 
@@ -209,9 +193,7 @@ def load_main_dicts(main_dicts):  # update in place
     main_dicts["description"].load(fname=main_dicts["summary_signature"]["main"][1])
     # all others are keyed in the description
     if "aftergroup_file_list" in main_dicts:
-        main_dicts["aftergroup_file_list"].load(
-            fname=main_dicts["description"].vals2["aftergroup_file_list"]
-        )
+        main_dicts["aftergroup_file_list"].load(fname=main_dicts["description"].vals2["aftergroup_file_list"])
         # no need for another test, always paired
         main_dicts["aftergroup_preentry_file_list"].load(
             fname=main_dicts["description"].vals2["aftergroup_preentry_file_list"]
@@ -222,9 +204,7 @@ def load_main_dicts(main_dicts):  # update in place
 def load_group_dicts(group_dicts, group_name, summary_signature):  # update in place
     group_dicts["group_descript"].load()
     # load the description (name from summary_signature)
-    group_dicts["description"].load(
-        fname=summary_signature[cvWConsts.get_group_stage_dir("", group_name)][1]
-    )
+    group_dicts["description"].load(fname=summary_signature[cvWConsts.get_group_stage_dir("", group_name)][1])
     # all others are keyed in the description
     load_common_dicts(group_dicts, group_dicts["description"])
 
@@ -238,9 +218,7 @@ def load_group_dicts(group_dicts, group_name, summary_signature):  # update in p
 
 def refresh_description(dicts):  # update in place
     description_dict = dicts["description"]
-    description_dict.add(
-        dicts["signature"].get_fname(), "signature", allow_overwrite=True
-    )
+    description_dict.add(dicts["signature"].get_fname(), "signature", allow_overwrite=True)
     for k in (
         "preentry_file_list",
         "file_list",
@@ -251,49 +229,31 @@ def refresh_description(dicts):  # update in place
             description_dict.add(dicts[k].get_fname(), k, allow_overwrite=True)
 
 
-def refresh_file_list(
-    dicts, is_main, files_set_readonly=True, files_reset_changed=True  # update in place
-):
+def refresh_file_list(dicts, is_main, files_set_readonly=True, files_reset_changed=True):  # update in place
     file_dict = dicts["preentry_file_list"]
     file_dict.add_from_bytes(
         cWConsts.CONSTS_FILE,
-        cWDictFile.FileDictFile.make_val_tuple(
-            dicts["consts"].get_fname(), "regular", config_out="CONSTS_FILE"
-        ),
-        dicts["consts"].save_into_bytes(
-            set_readonly=files_set_readonly, reset_changed=files_reset_changed
-        ),
+        cWDictFile.FileDictFile.make_val_tuple(dicts["consts"].get_fname(), "regular", config_out="CONSTS_FILE"),
+        dicts["consts"].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
         allow_overwrite=True,
     )
     file_dict.add_from_bytes(
         cWConsts.VARS_FILE,
-        cWDictFile.FileDictFile.make_val_tuple(
-            dicts["vars"].get_fname(), "regular", config_out="CONDOR_VARS_FILE"
-        ),
-        dicts["vars"].save_into_bytes(
-            set_readonly=files_set_readonly, reset_changed=files_reset_changed
-        ),
+        cWDictFile.FileDictFile.make_val_tuple(dicts["vars"].get_fname(), "regular", config_out="CONDOR_VARS_FILE"),
+        dicts["vars"].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
         allow_overwrite=True,
     )
     file_dict.add_from_bytes(
         cWConsts.UNTAR_CFG_FILE,
-        cWDictFile.FileDictFile.make_val_tuple(
-            dicts["untar_cfg"].get_fname(), "regular", config_out="UNTAR_CFG_FILE"
-        ),
-        dicts["untar_cfg"].save_into_bytes(
-            set_readonly=files_set_readonly, reset_changed=files_reset_changed
-        ),
+        cWDictFile.FileDictFile.make_val_tuple(dicts["untar_cfg"].get_fname(), "regular", config_out="UNTAR_CFG_FILE"),
+        dicts["untar_cfg"].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
         allow_overwrite=True,
     )
     if is_main:
         file_dict.add_from_bytes(
             cWConsts.GRIDMAP_FILE,
-            cWDictFile.FileDictFile.make_val_tuple(
-                dicts["gridmap"].get_fname(), "regular", config_out="GRIDMAP"
-            ),
-            dicts["gridmap"].save_into_bytes(
-                set_readonly=files_set_readonly, reset_changed=files_reset_changed
-            ),
+            cWDictFile.FileDictFile.make_val_tuple(dicts["gridmap"].get_fname(), "regular", config_out="GRIDMAP"),
+            dicts["gridmap"].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
             allow_overwrite=True,
         )
 
@@ -324,9 +284,7 @@ def refresh_signature(dicts):  # update in place
         if k in dicts:
             filedict = dicts[k]
             for fname in filedict.get_immutable_files():
-                signature_dict.add_from_file(
-                    os.path.join(filedict.dir, fname), allow_overwrite=True
-                )
+                signature_dict.add_from_file(os.path.join(filedict.dir, fname), allow_overwrite=True)
 
 
 ################################################
@@ -505,9 +463,7 @@ class frontendMainDicts(cWDictFile.fileMainDicts):
         log_dir=None,
     ):  # used only if simple_work_dir=False
         self.assume_groups = assume_groups
-        cWDictFile.fileMainDicts.__init__(
-            self, work_dir, stage_dir, workdir_name, simple_work_dir, log_dir
-        )
+        cWDictFile.fileMainDicts.__init__(self, work_dir, stage_dir, workdir_name, simple_work_dir, log_dir)
 
     ######################################
     # Redefine methods needed by parent
@@ -531,9 +487,7 @@ class frontendMainDicts(cWDictFile.fileMainDicts):
 
     # Overwritting the empty one
     def get_main_dicts(self):
-        return get_main_dicts(
-            self.work_dir, self.stage_dir, self.simple_work_dir, self.assume_groups
-        )
+        return get_main_dicts(self.work_dir, self.stage_dir, self.simple_work_dir, self.assume_groups)
 
 
 ################################################
@@ -550,9 +504,7 @@ class frontendGroupDicts(cWDictFile.fileSubDicts):
         load_group_dicts(self.dicts, self.sub_name, self.summary_signature)
 
     def save(self, set_readonly=True):
-        save_group_dicts(
-            self.dicts, self.sub_name, self.summary_signature, set_readonly=set_readonly
-        )
+        save_group_dicts(self.dicts, self.sub_name, self.summary_signature, set_readonly=set_readonly)
 
     def save_final(self, set_readonly=True):
         pass  # nothing to do
@@ -576,9 +528,7 @@ class frontendGroupDicts(cWDictFile.fileSubDicts):
         return cvWConsts.get_group_stage_dir(base_dir, self.sub_name)
 
     def get_sub_dicts(self):
-        return get_group_dicts(
-            self.work_dir, self.stage_dir, self.sub_name, self.simple_work_dir
-        )
+        return get_group_dicts(self.work_dir, self.stage_dir, self.sub_name, self.simple_work_dir)
 
     def reuse_nocheck(self, other):
         reuse_group_dicts(self.dicts, other.dicts, self.sub_name)

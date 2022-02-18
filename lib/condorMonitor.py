@@ -21,6 +21,7 @@ import os
 import socket
 import sys
 import xml.parsers.expat
+
 from itertools import groupby
 
 from . import condorExe, condorSecurity
@@ -190,9 +191,7 @@ class LocalScheddCache(NoneScheddCache):
     # Can raise exceptions
     def iGetEnv(self, schedd_name, pool_name):
         global disk_cache
-        data = disk_cache.get(
-            schedd_name + ".igetenv"
-        )  # pylint: disable=assignment-from-none
+        data = disk_cache.get(schedd_name + ".igetenv")  # pylint: disable=assignment-from-none
         if data is None:
             cs = CondorStatus("schedd", pool_name)
             data = cs.fetch(
@@ -213,9 +212,7 @@ class LocalScheddCache(NoneScheddCache):
             return None
         if "ScheddIpAddr" not in el:
             # This should never happen
-            raise RuntimeError(
-                "Schedd '%s' is not advertising ScheddIpAddr" % schedd_name
-            )
+            raise RuntimeError("Schedd '%s' is not advertising ScheddIpAddr" % schedd_name)
 
         schedd_ip = el["ScheddIpAddr"][1:].split(":")[0]
         if schedd_ip in self.my_ips:  # seems local, go for the dir
@@ -260,9 +257,7 @@ def condorq_attrs(q_constraint, attribute_list):
     for attr in attribute_list:
         attr_str += " -attr %s" % attr
 
-    xml_data = condorExe.exe_cmd(
-        "condor_q", f"-g -l {attr_str} -xml -constraint '{q_constraint}'"
-    )
+    xml_data = condorExe.exe_cmd("condor_q", f"-g -l {attr_str} -xml -constraint '{q_constraint}'")
 
     classads_xml = []
     tmp_list = []
@@ -362,9 +357,7 @@ class CondorQEdit:
         attributes = attributes or []
         values = values or []
         if not (len(joblist) == len(attributes) == len(values)):
-            raise QueryError(
-                "Arguments to QEdit.executeAll should have the same length"
-            )
+            raise QueryError("Arguments to QEdit.executeAll should have the same length")
         try:
             htcondor_full_reload()
             if self.pool_name:
@@ -373,13 +366,9 @@ class CondorQEdit:
                 collector = htcondor.Collector()
 
             if self.schedd_name:
-                schedd_ad = disk_cache.get(
-                    self.schedd_name + ".locate"
-                )  # pylint: disable=assignment-from-none
+                schedd_ad = disk_cache.get(self.schedd_name + ".locate")  # pylint: disable=assignment-from-none
                 if schedd_ad is None:
-                    schedd_ad = collector.locate(
-                        htcondor.DaemonTypes.Schedd, self.schedd_name
-                    )
+                    schedd_ad = collector.locate(htcondor.DaemonTypes.Schedd, self.schedd_name)
                     disk_cache.save(self.schedd_name + ".locate", schedd_ad)
 
                 schedd = htcondor.Schedd(schedd_ad)
@@ -445,9 +434,7 @@ class CondorQuery(StoredQuery):
 
         if security_obj is not None:
             if security_obj.has_saved_state():
-                raise RuntimeError(
-                    "Cannot use a security object which has saved state."
-                )
+                raise RuntimeError("Cannot use a security object which has saved state.")
             self.security_obj = copy.deepcopy(security_obj)
         else:
             self.security_obj = condorSecurity.ProtoRequest()
@@ -519,13 +506,9 @@ class CondorQuery(StoredQuery):
         """
         try:
             if USE_HTCONDOR_PYTHON_BINDINGS:
-                return self.fetch_using_bindings(
-                    constraint=constraint, format_list=format_list
-                )
+                return self.fetch_using_bindings(constraint=constraint, format_list=format_list)
             else:
-                return self.fetch_using_exe(
-                    constraint=constraint, format_list=format_list
-                )
+                return self.fetch_using_exe(constraint=constraint, format_list=format_list)
         except Exception as ex:
             err_str = (
                 "Error executing htcondor query to pool %s with constraint %s and format_list %s: %s. Env is %s"
@@ -565,16 +548,14 @@ class CondorQuery(StoredQuery):
             if full_xml:
                 xml_data = condorExe.exe_cmd(
                     self.exe_name,
-                    "%s -xml %s %s"
-                    % (self.resource_str, self.pool_str, constraint_str),
+                    f"{self.resource_str} -xml {self.pool_str} {constraint_str}",
                     env=self.env,
                 )
             else:
                 # format_str is defined because full_xml False means (format_list is not None)
                 xml_data = condorExe.exe_cmd(
                     self.exe_name,
-                    "%s %s -xml %s %s"
-                    % (self.resource_str, format_str, self.pool_str, constraint_str),
+                    f"{self.resource_str} {format_str} -xml {self.pool_str} {constraint_str}",
                     env=self.env,
                 )
         finally:
@@ -650,9 +631,7 @@ class CondorQ(CondorQuery):
     def fetch(self, constraint=None, format_list=None):
         if format_list is not None:
             # If format_list, make sure ClusterId and ProcId are present
-            format_list = complete_format_list(
-                format_list, [("ClusterId", "i"), ("ProcId", "i")]
-            )
+            format_list = complete_format_list(format_list, [("ClusterId", "i"), ("ProcId", "i")])
         return CondorQuery.fetch(self, constraint=constraint, format_list=format_list)
 
     def fetch_using_bindings(self, constraint=None, format_list=None):
@@ -682,13 +661,9 @@ class CondorQ(CondorQuery):
             if self.schedd_name is None:
                 schedd = htcondor.Schedd()
             else:
-                schedd_ad = disk_cache.get(
-                    self.schedd_name + ".locate"
-                )  # pylint: disable=assignment-from-none
+                schedd_ad = disk_cache.get(self.schedd_name + ".locate")  # pylint: disable=assignment-from-none
                 if schedd_ad is None:
-                    schedd_ad = collector.locate(
-                        htcondor.DaemonTypes.Schedd, self.schedd_name
-                    )
+                    schedd_ad = collector.locate(htcondor.DaemonTypes.Schedd, self.schedd_name)
                     disk_cache.save(self.schedd_name + ".locate", schedd_ad)
                 schedd = htcondor.Schedd(schedd_ad)
             results = schedd.query(constraint, attrs)
@@ -700,10 +675,7 @@ class CondorQ(CondorQuery):
             p = "default"
             if self.pool_name is not None:
                 p = self.pool_name
-            err_str = (
-                "Error querying schedd %s in pool %s using python bindings: %s"
-                % (s, p, ex)
-            )
+            err_str = f"Error querying schedd {s} in pool {p} using python bindings: {ex}"
             raise PBError(err_str).with_traceback(sys.exc_info()[2])
         finally:
             self.security_obj.restore_state()
@@ -721,9 +693,7 @@ class CondorStatus(CondorQuery):
             subsystem_str = ""
         else:
             subsystem_str = "-%s" % subsystem_name
-        CondorQuery.__init__(
-            self, "condor_status", subsystem_str, "Name", pool_name, security_obj, {}
-        )
+        CondorQuery.__init__(self, "condor_status", subsystem_str, "Name", pool_name, security_obj, {})
 
     def fetch(self, constraint=None, format_list=None):
         if format_list is not None:
@@ -796,9 +766,7 @@ class SubQuery(BaseSubQuery):
     """
 
     def __init__(self, query, constraint_func=None):
-        BaseSubQuery.__init__(
-            self, query, lambda d: applyConstraint(d, constraint_func)
-        )
+        BaseSubQuery.__init__(self, query, lambda d: applyConstraint(d, constraint_func))
 
     def __repr__(self):
         output = "%s:\n" % self.__class__.__name__
@@ -826,9 +794,7 @@ class Group(BaseSubQuery):
                           One argument: list of classad dictionaries
                           Returns: a summary classad dictionary
         """
-        BaseSubQuery.__init__(
-            self, query, lambda d: doGroup(d, group_key_func, group_data_func)
-        )
+        BaseSubQuery.__init__(self, query, lambda d: doGroup(d, group_key_func, group_data_func))
 
 
 class NestedGroup(BaseSubQuery):
@@ -848,9 +814,7 @@ class NestedGroup(BaseSubQuery):
                           If None, 'dict' is used
         """
 
-        BaseSubQuery.__init__(
-            self, query, lambda d: doNestedGroup(d, group_key_func, group_element_func)
-        )
+        BaseSubQuery.__init__(self, query, lambda d: doNestedGroup(d, group_key_func, group_element_func))
 
 
 class Summarize:
@@ -969,21 +933,17 @@ def xml2list_start_element(name, attrs):
     elif name == "b":
         xml2list_intype = "b"
         if "v" in attrs:
-            xml2list_inattr["val"] = attrs["v"] in (
+            xml2list_inattr["val"] = attrs["v"] in (  # pylint: disable=unsupported-assignment-operation
                 "T",
                 "t",
                 "1",
-            )  # pylint: disable=unsupported-assignment-operation
+            )
         else:
             # extended syntax... value in text area
-            xml2list_inattr[
-                "val"
-            ] = None  # pylint: disable=unsupported-assignment-operation
+            xml2list_inattr["val"] = None  # pylint: disable=unsupported-assignment-operation
     elif name == "un":
         xml2list_intype = "un"
-        xml2list_inattr[
-            "val"
-        ] = None  # pylint: disable=unsupported-assignment-operation
+        xml2list_inattr["val"] = None  # pylint: disable=unsupported-assignment-operation
     elif name in ("s", "e"):
         pass  # nothing to do
     elif name == "classads":
@@ -1000,9 +960,7 @@ def xml2list_end_element(name):
         xml2list_data.append(xml2list_inclassad)
         xml2list_inclassad = None
     elif name == "a":
-        xml2list_inclassad[xml2list_inattr["name"]] = xml2list_inattr[
-            "val"
-        ]  # pylint: disable=unsubscriptable-object
+        xml2list_inclassad[xml2list_inattr["name"]] = xml2list_inattr["val"]  # pylint: disable=unsubscriptable-object
         xml2list_inattr = None
     elif name in ("i", "b", "un", "r"):
         xml2list_intype = "s"
@@ -1298,10 +1256,7 @@ def fetch2count_flat(data, hash_func):
     :return: a dictionary with a count of the hash values returned
     """
     data_list = sorted(hash_func(v) for v in list(data.values()))
-    count = {
-        key: len(list(group))
-        for key, group in groupby([i for i in data_list if i is not None])
-    }
+    count = {key: len(list(group)) for key, group in groupby([i for i in data_list if i is not None])}
     return count
 
 
@@ -1463,9 +1418,7 @@ class CondorQLite(CondorQuery):
 
         schedd_str, env = schedd_lookup_cache.getScheddId(schedd_name, pool_name)
 
-        CondorQuery.__init__(
-            self, "condor_q", schedd_str, "ClusterId", pool_name, security_obj, env
-        )
+        CondorQuery.__init__(self, "condor_q", schedd_str, "ClusterId", pool_name, security_obj, env)
 
     def fetch(self, constraint=None, format_list=None):
         if format_list is not None:

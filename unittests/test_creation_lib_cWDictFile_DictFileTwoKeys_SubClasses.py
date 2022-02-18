@@ -56,23 +56,12 @@ class TestGridMapDict(unittest.TestCase):
         self.assertEqual(None, self.grid_map_dict.file_header(want_comments=False))
 
     def test_format_val(self):
-        key = (
-            "/DC=org/DC=opensciencegrid/O=Open Science "
-            + "Grid/OU=Services/CN=fermicloud308.fnal.gov"
-        )
-        expected = (
-            '"/DC=org/DC=opensciencegrid/O=Open Science '
-            + 'Grid/OU=Services/CN=fermicloud308.fnal.gov" factory'
-        )
-        self.assertEqual(
-            expected, self.grid_map_dict.format_val(key, want_comments=False)
-        )
+        key = "/DC=org/DC=opensciencegrid/O=Open Science " + "Grid/OU=Services/CN=fermicloud308.fnal.gov"
+        expected = '"/DC=org/DC=opensciencegrid/O=Open Science ' + 'Grid/OU=Services/CN=fermicloud308.fnal.gov" factory'
+        self.assertEqual(expected, self.grid_map_dict.format_val(key, want_comments=False))
 
     def test_parse_val(self):
-        mykey = (
-            "/DC=org/DC=opensciencegrid/O=Open Science Grid"
-            + "/OU=Services/CN=fermicloud204.fnal.gov"
-        )
+        mykey = "/DC=org/DC=opensciencegrid/O=Open Science Grid" + "/OU=Services/CN=fermicloud204.fnal.gov"
         line = """"%s" osg""" % mykey
         self.grid_map_dict.parse_val(line)
         self.assertTrue(mykey in self.grid_map_dict)

@@ -150,15 +150,9 @@ class TestImportError(Exception):
         for imp_lib in handled_import_errors:
             if imp_lib in err_msg:
                 if sys_ == "Darwin":
-                    err_msg += (
-                        """.  Hint: try brew install or conda install %s first."""
-                        % imp_lib
-                    )
+                    err_msg += """.  Hint: try brew install or conda install %s first.""" % imp_lib
                 elif sys_ == "Linux":
-                    err_msg += (
-                        """.  Hint: try yum install or apt-get install %s first."""
-                        % imp_lib
-                    )
+                    err_msg += """.  Hint: try yum install or apt-get install %s first.""" % imp_lib
                 else:
                     err_msg += """.  %s python package must be present.""" % imp_lib
                 print("%s" % err_msg)
@@ -173,9 +167,7 @@ def create_temp_file(
     text_access=True,
     write_path_to_file=True,
 ):
-    fd, path = tempfile.mkstemp(
-        suffix=file_suffix, prefix=file_prefix, dir=file_dir, text=text_access
-    )
+    fd, path = tempfile.mkstemp(suffix=file_suffix, prefix=file_prefix, dir=file_dir, text=text_access)
     if write_path_to_file:
         os.write(fd, path.encode("UTF-8"))
     os.close(fd)

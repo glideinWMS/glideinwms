@@ -122,18 +122,12 @@ def lookup_addrs(constr):
 
     # get the adds for all the requested glideins
     sts = condorMonitor.CondorStatus()
-    sts.require_integrity(
-        True
-    )  # we do not want to get tricked into shutting down unrelated masters
+    sts.require_integrity(True)  # we do not want to get tricked into shutting down unrelated masters
     try:
-        data = sts.fetch(
-            constr, [("GLIDEIN_MASTER_NAME", "s"), ("GLIDEIN_COLLECTOR_NAME", "s")]
-        )
+        data = sts.fetch(constr, [("GLIDEIN_MASTER_NAME", "s"), ("GLIDEIN_COLLECTOR_NAME", "s")])
     except:
         time.sleep(1)  # retry once
-        data = sts.fetch(
-            constr, [("GLIDEIN_MASTER_NAME", "s"), ("GLIDEIN_COLLECTOR_NAME", "s")]
-        )
+        data = sts.fetch(constr, [("GLIDEIN_MASTER_NAME", "s"), ("GLIDEIN_COLLECTOR_NAME", "s")])
     del sts
 
     if len(data) == 0:
@@ -143,9 +137,7 @@ def lookup_addrs(constr):
     master_collectors = {}
     for glidein_name in data:
         glidein_ad = data[glidein_name]
-        if ("GLIDEIN_MASTER_NAME" in glidein_ad) and (
-            "GLIDEIN_COLLECTOR_NAME" in glidein_ad
-        ):
+        if ("GLIDEIN_MASTER_NAME" in glidein_ad) and ("GLIDEIN_COLLECTOR_NAME" in glidein_ad):
             # ignore any malformed ads
             master_collector = glidein_ad["GLIDEIN_COLLECTOR_NAME"]
 
@@ -167,9 +159,7 @@ def lookup_addrs(constr):
         # but this way we distribute better the load
         random.shuffle(collector_name_arr)
         for collector_name in collector_name_arr:
-            sts = condorMonitor.CondorStatus(
-                subsystem_name="master", pool_name=collector_name
-            )
+            sts = condorMonitor.CondorStatus(subsystem_name="master", pool_name=collector_name)
             sts.require_integrity(True)  # same as above
             try:
                 data = sts.fetch(master_constr, [("MyAddress", "s")])
@@ -331,9 +321,7 @@ def main(argv):
             time.sleep(0.01)
 
         # clean up the threads
-        tk_list = (
-            started_threads.keys()
-        )  # since we are going to modify the dict, cannot use the iterator
+        tk_list = started_threads.keys()  # since we are going to modify the dict, cannot use the iterator
         for tk in tk_list:
             if not started_threads[tk].isAlive():
                 started_threads[tk].join()  # this should return immediately
@@ -349,9 +337,7 @@ def main(argv):
     while threading.activeCount() > 1:  # there is always one thread, myself
         time.sleep(0.01)
 
-    tk_list = (
-        started_threads.keys()
-    )  # since we are going to modify the dict, cannot use the iterator
+    tk_list = started_threads.keys()  # since we are going to modify the dict, cannot use the iterator
     for tk in tk_list:
         started_threads[tk].join(0.01)  # this should return immediately
         assert not started_threads[tk].isAlive(), "Found a lingering tread!"

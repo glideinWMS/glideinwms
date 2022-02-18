@@ -20,10 +20,11 @@ import optparse
 import os
 import sys
 
-sys.path.append(os.path.join(sys.path[0], "../../.."))
 from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend.tools.lib import frontenvparse
 from glideinwms.lib import condorExe
+
+sys.path.append(os.path.join(sys.path[0], "../../.."))
 
 
 ############################################################
@@ -54,9 +55,7 @@ def main(argv):
     feconfig.set_environment(wpilots=True)
 
     try:
-        out = condorExe.exe_cmd_sbin(
-            "condor_fetchlog", f"-startd {glidein_name} {log_type}"
-        )
+        out = condorExe.exe_cmd_sbin("condor_fetchlog", f"-startd {glidein_name} {log_type}")
         print("\n".join(out))
     except condorExe.ExeError as e:
         sys.stderr.write("%s\n" % e)

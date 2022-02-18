@@ -13,11 +13,12 @@
 import os.path
 import sys
 
-sys.path.append(os.path.join(sys.path[0], "../.."))
-
 from glideinwms.factory import glideFactoryConfig, glideFactoryInterface
 from glideinwms.frontend import glideinFrontendInterface
 from glideinwms.lib import xmlFormat
+
+sys.path.append(os.path.join(sys.path[0], "../.."))
+
 
 pool_name = None
 factory_name = None
@@ -73,16 +74,15 @@ if factory_name is not None:
             farr[0],
         )
     elif len(farr) == 3:
-        factory_constraints = (
-            '(FactoryName=?="%s")&&(GlideinName=?="%s")&&(EntryName=?="%s")'
-            % (farr[2], farr[1], farr[0])
+        factory_constraints = '(FactoryName=?="{}")&&(GlideinName=?="{}")&&(EntryName=?="{}")'.format(
+            farr[2],
+            farr[1],
+            farr[0],
         )
     else:
         raise RuntimeError("Invalid factory name; more than 2 @'s found")
 
-glideins_obj = glideinFrontendInterface.findGlideins(
-    pool_name, None, None, factory_constraints
-)
+glideins_obj = glideinFrontendInterface.findGlideins(pool_name, None, None, factory_constraints)
 
 factoryclient_constraints = None
 if factory_name is not None:
@@ -91,21 +91,18 @@ if factory_name is not None:
         # just the generic factory name
         factoryclient_constraints = 'ReqFactoryName=?="%s"' % factory_name
     elif len(farr) == 2:
-        factoryclient_constraints = (
-            f'(ReqFactoryName=?="{farr[1]}")&&(ReqGlideinName=?="{farr[0]}")'
-        )
+        factoryclient_constraints = f'(ReqFactoryName=?="{farr[1]}")&&(ReqGlideinName=?="{farr[0]}")'
     elif len(farr) == 3:
-        factoryclient_constraints = (
-            '(ReqFactoryName=?="%s")&&(ReqGlideinName=?="%s")&&(ReqEntryName=?="%s")'
-            % (farr[2], farr[1], farr[0])
+        factoryclient_constraints = '(ReqFactoryName=?="{}")&&(ReqGlideinName=?="{}")&&(ReqEntryName=?="{}")'.format(
+            farr[2],
+            farr[1],
+            farr[0],
         )
     else:
         raise RuntimeError("Invalid factory name; more than 2 @'s found")
 
 
-clientsmon_obj = glideinFrontendInterface.findGlideinClientMonitoring(
-    pool_name, None, factoryclient_constraints
-)
+clientsmon_obj = glideinFrontendInterface.findGlideinClientMonitoring(pool_name, None, factoryclient_constraints)
 
 # extract data
 glideins = list(glideins_obj.keys())

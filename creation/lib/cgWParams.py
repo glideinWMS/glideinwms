@@ -142,9 +142,7 @@ class GlideinParams(cWParams.CommonParams):
             "Maximum number of held glideins (default per frontend) before forcing the cleanup.",
             None,
         )
-        entry_config_max_jobs_defaults[
-            "default_per_frontend"
-        ] = max_jobs_default_per_frontend_defaults
+        entry_config_max_jobs_defaults["default_per_frontend"] = max_jobs_default_per_frontend_defaults
         max_jobs_per_frontend_defaults = cWParams.CommentedOrderedDict()
         max_jobs_per_frontend_defaults["name"] = (None, "string", "frontend name", None)
         max_jobs_per_frontend_defaults["held"] = (
@@ -330,9 +328,7 @@ class GlideinParams(cWParams.CommonParams):
         self.entry_defaults["attrs"] = sub_defaults["attrs"]
         self.entry_defaults["files"] = sub_defaults["files"]
         self.entry_defaults["infosys_refs"] = sub_defaults["infosys_refs"]
-        self.entry_defaults["monitorgroups"] = copy.deepcopy(
-            sub_defaults["monitorgroups"]
-        )
+        self.entry_defaults["monitorgroups"] = copy.deepcopy(sub_defaults["monitorgroups"])
         self.entry_defaults["allow_frontends"] = (
             OrderedDict(),
             "Dictionary of frontends",
@@ -472,13 +468,9 @@ class GlideinParams(cWParams.CommonParams):
             "Should condor_advertise use -multiple?",
             None,
         )
-        log_retention_defaults["summary_logs"] = copy.deepcopy(
-            one_log_retention_defaults
-        )
+        log_retention_defaults["summary_logs"] = copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["summary_logs"]["max_days"][0] = "31.0"
-        log_retention_defaults["condor_logs"] = copy.deepcopy(
-            one_log_retention_defaults
-        )
+        log_retention_defaults["condor_logs"] = copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["condor_logs"]["max_days"][0] = "14.0"
         self.defaults["log_retention"] = log_retention_defaults
 
@@ -708,14 +700,10 @@ class GlideinParams(cWParams.CommonParams):
             raise RuntimeError("Invalid glidein name '%s'" % self.glidein_name)
 
         if self.factory_collector == "default":
-            raise RuntimeError(
-                '"default" is a reserved keyword, cannot be used as factory_collector'
-            )
+            raise RuntimeError('"default" is a reserved keyword, cannot be used as factory_collector')
 
         factoryVersioning = False
-        if "factory_versioning" in self.data and safe_boolcomp(
-            self.data["factory_versioning"], True
-        ):
+        if "factory_versioning" in self.data and safe_boolcomp(self.data["factory_versioning"], True):
             factoryVersioning = True
 
         self.stage_dir = self.buildDir(factoryVersioning, self.stage.base_dir)
@@ -730,24 +718,17 @@ class GlideinParams(cWParams.CommonParams):
             if not cWParams.is_valid_name(fename):
                 raise RuntimeError("Invalid frontend name '%s'" % fename)
             if " " in self.security.frontends[fename].identity:
-                raise RuntimeError(
-                    "Invalid frontend identity '%s'"
-                    % self.security.frontends[fename].identity
-                )
+                raise RuntimeError("Invalid frontend identity '%s'" % self.security.frontends[fename].identity)
 
             for scname in list(self.security.frontends[fename].security_classes.keys()):
-                username = (
-                    self.security.frontends[fename].security_classes[scname].username
-                )
+                username = self.security.frontends[fename].security_classes[scname].username
                 self.client_log_dirs[username] = self.buildDir(
                     True,
                     os.path.join(self.submit.base_client_log_dir, "user_%s" % username),
                 )
                 self.client_proxies_dirs[username] = self.buildDir(
                     True,
-                    os.path.join(
-                        self.submit.base_client_proxies_dir, "user_%s" % username
-                    ),
+                    os.path.join(self.submit.base_client_proxies_dir, "user_%s" % username),
                 )
 
         if not cWParams.is_valid_name(self.factory_name):
@@ -766,10 +747,7 @@ class GlideinParams(cWParams.CommonParams):
             attr_names = list(self.entries[entry_name].attrs.keys())
             for attr_name in attr_names:
                 if not cWParams.is_valid_name(attr_name):
-                    raise RuntimeError(
-                        "Invalid entry '%s' attribute name '%s'."
-                        % (entry_name, attr_name)
-                    )
+                    raise RuntimeError(f"Invalid entry '{entry_name}' attribute name '{attr_name}'.")
 
     # return xml formatting
     def get_xml_format(self):

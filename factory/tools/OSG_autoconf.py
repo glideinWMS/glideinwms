@@ -19,13 +19,13 @@ import htcondor
 from glideinwms.lib.config_util import (
     BEST_FIT_TAG,
     ENTRY_STUB,
-    GLIDEIN_SUPPORTED_VO_MAP,
-    ProgramError,
     get_attr_str,
     get_limits_str,
     get_submission_speed,
     get_submit_attr_str,
     get_yaml_file_info,
+    GLIDEIN_SUPPORTED_VO_MAP,
+    ProgramError,
     update,
     write_to_xml_file,
     write_to_yaml_file,
@@ -199,9 +199,7 @@ def get_information_internal(ces):
     for celem in ces:
         if "OSG_ResourceGroup" in celem:
             resource = celem["OSG_ResourceGroup"] or celem["OSG_Resource"]
-            site = celem[
-                "OSG_Resource"
-            ]  # not used for now, but factory ops will add a new attribute 1in the future
+            site = celem["OSG_Resource"]  # not used for now, but factory ops will add a new attribute 1in the future
             gatekeeper = celem["Name"].lower()
             if resource:
                 result.setdefault(resource, {})[gatekeeper] = {}
@@ -213,18 +211,16 @@ def get_information_internal(ces):
                     ]
                     requires_bestfit = pilot_entries == []
                     if requires_bestfit:
-                        result[resource][gatekeeper].setdefault(BEST_FIT_TAG, {})[
-                            entry
-                        ] = get_bestfit_pilot(celem, resource)
+                        result[resource][gatekeeper].setdefault(BEST_FIT_TAG, {})[entry] = get_bestfit_pilot(
+                            celem, resource
+                        )
                     else:
                         for pentry in pilot_entries:
-                            result[resource][gatekeeper].setdefault(pentry["Name"], {})[
-                                entry
-                            ] = get_pilot(resource, pentry)
+                            result[resource][gatekeeper].setdefault(pentry["Name"], {})[entry] = get_pilot(
+                                resource, pentry
+                            )
                 else:
-                    print(
-                        gatekeeper + " CE does not have OSG_ResourceCatalog attribute"
-                    )
+                    print(gatekeeper + " CE does not have OSG_ResourceCatalog attribute")
             else:
                 print(gatekeeper + " CE does not have OSG_ResourceGroup attribute")
 
@@ -255,18 +251,12 @@ def get_entries_configuration(data):
                     # Probably we can use port from attribute AddressV1 or CollectorHost
                     entry_configuration["gatekeeper"] = celem + " " + celem + ":9619"
                     entry_configuration["rsl"] = ""
-                    entry_configuration["attrs"] = get_attr_str(
-                        entry_configuration["attrs"]
-                    )
+                    entry_configuration["attrs"] = get_attr_str(entry_configuration["attrs"])
                     if "submit_attrs" in entry_configuration:
-                        entry_configuration["submit_attrs"] = get_submit_attr_str(
-                            entry_configuration["submit_attrs"]
-                        )
+                        entry_configuration["submit_attrs"] = get_submit_attr_str(entry_configuration["submit_attrs"])
                     else:
                         entry_configuration["submit_attrs"] = ""
-                    entry_configuration["limits"] = get_limits_str(
-                        entry_configuration["limits"]
-                    )
+                    entry_configuration["limits"] = get_limits_str(entry_configuration["limits"])
                     entry_configuration["submission_speed"] = get_submission_speed(
                         entry_configuration["submission_speed"]
                     )
@@ -362,21 +352,11 @@ def manage_append_values(whitelist_info, osg_info):
         for ce_hostname, ce_information in site_information.items():
             for qelem, q_information in ce_information.items():
                 for entry, entry_information in q_information.items():
-                    for attribute, attribute_information in entry_information.get(
-                        "attrs", {}
-                    ).items():
-                        if (
-                            attribute_information is not None
-                            and "append_value" in attribute_information
-                        ):
-                            attribute_information.setdefault(
-                                "value", attribute_information["append_value"]
-                            )
+                    for attribute, attribute_information in entry_information.get("attrs", {}).items():
+                        if attribute_information is not None and "append_value" in attribute_information:
+                            attribute_information.setdefault("value", attribute_information["append_value"])
                             attribute_information["value"] += (
-                                ","
-                                + osg_info[site][ce_hostname][qelem]["DEFAULT_ENTRY"][
-                                    "attrs"
-                                ][attribute]["value"]
+                                "," + osg_info[site][ce_hostname][qelem]["DEFAULT_ENTRY"]["attrs"][attribute]["value"]
                             )
 
 
@@ -408,16 +388,11 @@ def merge_yaml(config, white_list):
     for additional_yaml_file in additional_yaml_files:
         additional_information.append(get_yaml_file_info(additional_yaml_file))
     # TODO remove this if once factory ops trims the default file
-    if (
-        "DEFAULT_ENTRY" not in default_information
-    ):  # fixup default file, I'd like to trim it down
+    if "DEFAULT_ENTRY" not in default_information:  # fixup default file, I'd like to trim it down
         default_information = default_information["DEFAULT_SITE"]["DEFAULT_GETEKEEPER"]
     for site, site_information in out.items():
         if site_information is None:
-            print(
-                "There is no site information for %s site in white list file. Skipping it."
-                % site
-            )
+            print("There is no site information for %s site in white list file. Skipping it." % site)
             del out[site]
             continue
         print("Merging %s" % site)
@@ -429,10 +404,7 @@ def merge_yaml(config, white_list):
             raise ProgramError(2)
         for ce_hostname, ce_information in site_information.items():
             if ce_information is None:
-                print(
-                    "There is no CE information for %s CE in white list file. Skipping it."
-                    % ce_hostname
-                )
+                print("There is no CE information for %s CE in white list file. Skipping it." % ce_hostname)
                 del out[site][ce_hostname]
                 continue
             if ce_hostname not in osg_info[site]:
@@ -469,40 +441,21 @@ def merge_yaml(config, white_list):
                         osg_info[site][ce_hostname][qelem]["DEFAULT_ENTRY"],
                         overwrite=False,
                     )
-                    if (
-                        osg_info[site][ce_hostname][qelem]["DEFAULT_ENTRY"]["gridtype"]
-                        == "condor"
-                    ):
+                    if osg_info[site][ce_hostname][qelem]["DEFAULT_ENTRY"]["gridtype"] == "condor":
                         if "submit_attrs" in entry_information:
                             whole_node = False
                             if "+WantWholeNode" in entry_information["submit_attrs"]:
-                                want_whole_node = entry_information["submit_attrs"][
-                                    "+WantWholeNode"
-                                ]
+                                want_whole_node = entry_information["submit_attrs"]["+WantWholeNode"]
                                 if is_true(want_whole_node):
                                     whole_node = True
-                                    entry_information = set_whole_node_entry(
-                                        entry_information
-                                    )
+                                    entry_information = set_whole_node_entry(entry_information)
                             if "Request_GPUs" in entry_information["submit_attrs"]:
-                                entry_information = set_gpu_entry(
-                                    entry_information, whole_node
-                                )
+                                entry_information = set_gpu_entry(entry_information, whole_node)
                     if "limits" in entry_information:
-                        if (
-                            "entry" in entry_information["limits"]
-                            and "frontend" not in entry_information["limits"]
-                        ):
-                            entry_information["limits"]["frontend"] = entry_information[
-                                "limits"
-                            ]["entry"]
-                        elif (
-                            "entry" not in entry_information["limits"]
-                            and "frontend" in entry_information["limits"]
-                        ):
-                            entry_information["limits"]["entry"] = entry_information[
-                                "limits"
-                            ]["frontend"]
+                        if "entry" in entry_information["limits"] and "frontend" not in entry_information["limits"]:
+                            entry_information["limits"]["frontend"] = entry_information["limits"]["entry"]
+                        elif "entry" not in entry_information["limits"] and "frontend" in entry_information["limits"]:
+                            entry_information["limits"]["entry"] = entry_information["limits"]["frontend"]
                     update(
                         entry_information,
                         default_information["DEFAULT_ENTRY"],
@@ -536,11 +489,7 @@ def set_gpu_entry(entry_information, want_whole_node):
         if want_whole_node:
             value = "GPUs,type=main"
         else:
-            value = (
-                "GPUs,"
-                + str(entry_information["submit_attrs"]["Request_GPUs"])
-                + ",type=main"
-            )
+            value = "GPUs," + str(entry_information["submit_attrs"]["Request_GPUs"]) + ",type=main"
         entry_information["attrs"]["GLIDEIN_Resource_Slots"] = {"value": value}
 
     return entry_information
@@ -593,13 +542,9 @@ def update_submit_attrs(entry_information, attr, submit_attr):
         if "submit_attrs" not in entry_information:
             entry_information["submit_attrs"] = {}
         if attr == "GLIDEIN_Max_Walltime":
-            entry_information["submit_attrs"][submit_attr] = (
-                int(entry_information["attrs"][attr]["value"] / 60) + 30
-            )
+            entry_information["submit_attrs"][submit_attr] = int(entry_information["attrs"][attr]["value"] / 60) + 30
         else:
-            entry_information["submit_attrs"][submit_attr] = entry_information["attrs"][
-                attr
-            ]["value"]
+            entry_information["submit_attrs"][submit_attr] = entry_information["attrs"][attr]["value"]
 
     return entry_information
 
@@ -615,38 +560,25 @@ def create_missing_file(config, osg_collector_data):
             "Skipping verification of missing files since OSG.yml does not exist. Is this the first time you run OSG_autoconf?"
         )
         return
-    missing_info = (
-        get_yaml_file_info(config["MISSING_YAML"])
-        if os.path.isfile(config["MISSING_YAML"])
-        else {}
-    )
+    missing_info = get_yaml_file_info(config["MISSING_YAML"]) if os.path.isfile(config["MISSING_YAML"]) else {}
 
     print("Verifying missing sites and CEs")
     for white_list in sorted(config["OSG_WHITELISTS"]):
-        print(
-            "Checking if any site or CE in %s is missing in the OSG collector"
-            % white_list
-        )
+        print("Checking if any site or CE in %s is missing in the OSG collector" % white_list)
         whitelist_info = get_yaml_file_info(white_list)
-        tmp = create_missing_file_internal(
-            missing_info, osg_info, whitelist_info, osg_collector_data
-        )
+        tmp = create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data)
         update(new_missing, tmp)
 
     write_to_yaml_file(config["MISSING_YAML"], new_missing)
 
 
-def create_missing_file_internal(
-    missing_info, osg_info, whitelist_info, osg_collector_data
-):
+def create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data):
     """Create the missing yaml file (internal function)."""
     new_missing = {}
     for site, site_information in whitelist_info.items():
         if site_information is None:
             continue
-        if (
-            site not in osg_collector_data
-        ):  # Check if the site disappeared from the OSG collector
+        if site not in osg_collector_data:  # Check if the site disappeared from the OSG collector
             if site in osg_info or site in missing_info:
                 print(
                     "WARNING! Site %s is in the whitelist file, but not in the collector. Retrieving it from old data (old OSG YAML or MISSING YAML), and saving it to the MISSING YAML"
@@ -663,18 +595,13 @@ def create_missing_file_internal(
             if ce_information is None:
                 continue
             if celem not in osg_collector_data[site]:
-                if celem in osg_info.get(site, {}) or celem in missing_info.get(
-                    site, {}
-                ):
+                if celem in osg_info.get(site, {}) or celem in missing_info.get(site, {}):
                     print(
                         "WARNING! CE %s of site %s is in the whitelist file, but not in the collector. Retrieving it from old data (old OSG YAML or MISSING YAML), and saving it to the MISSING YAML"
                         % (celem, site)
                     )
                     new_missing.setdefault(site, {})
-                    new_missing[site][celem] = (
-                        osg_info.get(site, {}).get(celem, False)
-                        or missing_info[site][celem]
-                    )
+                    new_missing[site][celem] = osg_info.get(site, {}).get(celem, False) or missing_info[site][celem]
                 else:
                     print(
                         "ERROR! CE %s of site %s is in the whitelist file, and I cant neither find it in the OSG YAML saved data, nor the MISSING YAML"
@@ -686,9 +613,9 @@ def create_missing_file_internal(
     for site, site_information in new_missing.items():
         for celem, ce_information in site_information.items():
             if "DEFAULT_ENTRY" in ce_information:
-                new_missing[site][celem].setdefault(BEST_FIT_TAG, {})[
+                new_missing[site][celem].setdefault(BEST_FIT_TAG, {})["DEFAULT_ENTRY"] = new_missing[site][celem][
                     "DEFAULT_ENTRY"
-                ] = new_missing[site][celem]["DEFAULT_ENTRY"]
+                ]
                 del new_missing[site][celem]["DEFAULT_ENTRY"]
 
     # Returning for unit tests
@@ -721,8 +648,6 @@ if __name__ == "__main__":
         sys.exit(merr.code)
     except:
         logging.exception("")
-        print(
-            "\033[91mUnexpected exception. Aborting automatic configuration generation!\033[0m"
-        )
+        print("\033[91mUnexpected exception. Aborting automatic configuration generation!\033[0m")
         raise
     sys.exit(0)

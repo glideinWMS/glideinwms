@@ -120,9 +120,7 @@ def checkDowntime(fname, check_time=None):
         if check_time < time_tuple[0]:  # check_time before start
             continue
 
-        if (
-            time_tuple[1] is None
-        ):  # downtime valid until the end of times, so here we go
+        if time_tuple[1] is None:  # downtime valid until the end of times, so here we go
             return True
 
         if check_time <= time_tuple[1]:  # within limit
@@ -152,9 +150,7 @@ def addPeriod(fname, start_time, end_time, create_if_empty=True):
                 )
             )
         else:
-            fd.write(
-                "%-30s %-30s\n" % (timeConversion.getISO8601_Local(start_time), "None")
-            )
+            fd.write("%-30s %-30s\n" % (timeConversion.getISO8601_Local(start_time), "None"))
 
     return 0
 
@@ -218,12 +214,8 @@ def endDowntime(fname, end_time=None):
             if arr[1] != "None":
                 cur_end_time = timeConversion.extractISO8601_Local(arr[1])
             # open period -> close
-            if arr[1] == "None" or (
-                (cur_start_time < int(time.time())) and (cur_end_time > end_time)
-            ):
-                outlines.append(
-                    "%-30s %-30s" % (arr[0], timeConversion.getISO8601_Local(end_time))
-                )
+            if arr[1] == "None" or ((cur_start_time < int(time.time())) and (cur_end_time > end_time)):
+                outlines.append("%-30s %-30s" % (arr[0], timeConversion.getISO8601_Local(end_time)))
                 outlines.append("\n")
                 closed_nr += 1
             else:

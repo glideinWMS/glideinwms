@@ -49,9 +49,7 @@ FRONTEND_DESCRIPT_FILE = "frontend.descript"
 
 INITD_STARTUP_FILE = "factory_startup"
 
-WEB_BASE_DIR = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "..", "web_base"
-)
+WEB_BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "web_base")
 
 STARTUP_FILE_PAYLOAD = (
     "add_config_line.source",

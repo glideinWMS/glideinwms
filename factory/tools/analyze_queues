@@ -11,18 +11,17 @@ import datetime
 import getopt
 import os
 import sys
-from urllib.request import urlopen
 
-STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
+from urllib.request import urlopen
 
 from glideinwms.factory.tools.lib import analyze
 from glideinwms.lib import xmlParse
 
+STARTUP_DIR = sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 
-def list_print(
-    frontend, zero_supp, entry_data, sorting, attr_list, sort_attribute, div
-):
+
+def list_print(frontend, zero_supp, entry_data, sorting, attr_list, sort_attribute, div):
 
     to_be_printed = []
     sum2 = 0
@@ -35,13 +34,9 @@ def list_print(
         unmatched_percent = 0
         rundiff_percent = 0
         if entry["StatusRunning"] != 0:
-            rundiff_percent = (
-                float(entry["RunDiff"]) / float(entry["StatusRunning"]) * 100
-            )
+            rundiff_percent = float(entry["RunDiff"]) / float(entry["StatusRunning"]) * 100
         if entry["ClientGlideTotal"] != 0:
-            unmatched_percent = (
-                float(entry["ClientGlideIdle"]) / float(entry["ClientGlideTotal"]) * 100
-            )
+            unmatched_percent = float(entry["ClientGlideIdle"]) / float(entry["ClientGlideTotal"]) * 100
         entry["UM"] = unmatched_percent
         entry["RD"] = rundiff_percent
 
@@ -299,9 +294,7 @@ USAGE:
                 if frontend != filter_frontend:
                     continue
 
-            for period, elements in rrd_data["entries"][entry]["frontends"][frontend][
-                "periods"
-            ].items():
+            for period, elements in rrd_data["entries"][entry]["frontends"][frontend]["periods"].items():
 
                 if int(period) not in data:
                     data[int(period)] = {}
@@ -314,9 +307,7 @@ USAGE:
                     if a not in data[int(period)][frontend][entry]:
                         data[int(period)][frontend][entry][a] = 0
                     try:
-                        data[int(period)][frontend][entry][a] += int(
-                            float(elements[a]) * int(period)
-                        )
+                        data[int(period)][frontend][entry][a] += int(float(elements[a]) * int(period))
                     except:
                         pass
 
@@ -436,33 +427,16 @@ IdleDiff (Idle - RequestedIdle):    %s
 """
             % (
                 title,
+                analyze.printline(period_data[period]["StatusRunning"], status_total, period),
+                analyze.printline(period_data[period]["StatusHeld"], status_total, period),
+                analyze.printline(period_data[period]["StatusIdle"], status_total, period),
+                analyze.printline(period_data[period]["StatusIdleOther"], status_total, period),
+                analyze.printline(period_data[period]["StatusPending"], status_total, period),
+                analyze.printline(period_data[period]["StatusWait"], status_total, period),
+                analyze.printline(period_data[period]["StatusStageIn"], status_total, period),
+                analyze.printline(period_data[period]["StatusStageOut"], status_total, period),
                 analyze.printline(
-                    period_data[period]["StatusRunning"], status_total, period
-                ),
-                analyze.printline(
-                    period_data[period]["StatusHeld"], status_total, period
-                ),
-                analyze.printline(
-                    period_data[period]["StatusIdle"], status_total, period
-                ),
-                analyze.printline(
-                    period_data[period]["StatusIdleOther"], status_total, period
-                ),
-                analyze.printline(
-                    period_data[period]["StatusPending"], status_total, period
-                ),
-                analyze.printline(
-                    period_data[period]["StatusWait"], status_total, period
-                ),
-                analyze.printline(
-                    period_data[period]["StatusStageIn"], status_total, period
-                ),
-                analyze.printline(
-                    period_data[period]["StatusStageOut"], status_total, period
-                ),
-                analyze.printline(
-                    period_data[period]["StatusRunning"]
-                    - period_data[period]["ClientGlideTotal"],
+                    period_data[period]["StatusRunning"] - period_data[period]["ClientGlideTotal"],
                     period_data[period]["StatusRunning"],
                     period,
                 ),

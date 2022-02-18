@@ -59,9 +59,7 @@ def condorSubmitOne(
     pool_name=None,
     schedd_lookup_cache=condorMonitor.local_schedd_cache,
 ):
-    outstr = cached_exe_cmd(
-        "condor_submit", submit_file, schedd_name, pool_name, schedd_lookup_cache
-    )
+    outstr = cached_exe_cmd("condor_submit", submit_file, schedd_name, pool_name, schedd_lookup_cache)
 
     # extract 'submitted to cluster xxx.' part
     j = re.search(r"submitted to cluster [0-9]+\.", " ".join(outstr))
@@ -86,9 +84,7 @@ def condorRemove(
     opts = "-constraint '%s' " % constraint
     if do_forcex:
         opts += "-forcex "
-    return cached_exe_cmd(
-        "condor_rm", opts, schedd_name, pool_name, schedd_lookup_cache
-    )
+    return cached_exe_cmd("condor_rm", opts, schedd_name, pool_name, schedd_lookup_cache)
 
 
 ##############################################
@@ -105,9 +101,7 @@ def condorRemoveOne(
     opts = "%s " % cluster_or_uname
     if do_forcex:
         opts += "-forcex "
-    return cached_exe_cmd(
-        "condor_rm", opts, schedd_name, pool_name, schedd_lookup_cache
-    )
+    return cached_exe_cmd("condor_rm", opts, schedd_name, pool_name, schedd_lookup_cache)
 
 
 ##############################################
@@ -121,9 +115,7 @@ def condorHold(
     schedd_lookup_cache=condorMonitor.local_schedd_cache,
 ):
     opts = "-constraint '%s' " % constraint
-    return cached_exe_cmd(
-        "condor_hold", opts, schedd_name, pool_name, schedd_lookup_cache
-    )
+    return cached_exe_cmd("condor_hold", opts, schedd_name, pool_name, schedd_lookup_cache)
 
 
 ##############################################
@@ -137,9 +129,7 @@ def condorHoldOne(
     schedd_lookup_cache=condorMonitor.local_schedd_cache,
 ):
     opts = "%s " % cluster_or_uname
-    return cached_exe_cmd(
-        "condor_hold", opts, schedd_name, pool_name, schedd_lookup_cache
-    )
+    return cached_exe_cmd("condor_hold", opts, schedd_name, pool_name, schedd_lookup_cache)
 
 
 ##############################################
@@ -153,9 +143,7 @@ def condorRelease(
     schedd_lookup_cache=condorMonitor.local_schedd_cache,
 ):
     opts = "-constraint '%s' " % constraint
-    return cached_exe_cmd(
-        "condor_release", opts, schedd_name, pool_name, schedd_lookup_cache
-    )
+    return cached_exe_cmd("condor_release", opts, schedd_name, pool_name, schedd_lookup_cache)
 
 
 ##############################################
@@ -169,9 +157,7 @@ def condorReleaseOne(
     schedd_lookup_cache=condorMonitor.local_schedd_cache,
 ):
     opts = "%s " % cluster_or_uname
-    return cached_exe_cmd(
-        "condor_release", opts, schedd_name, pool_name, schedd_lookup_cache
-    )
+    return cached_exe_cmd("condor_release", opts, schedd_name, pool_name, schedd_lookup_cache)
 
 
 ##############################################
@@ -207,9 +193,7 @@ def ismulti2str(is_multi):
 #
 # Remove a job from the queue
 #
-def condorAdvertise(
-    classad_fname, command, use_tcp=False, is_multi=False, pool_name=None
-):
+def condorAdvertise(classad_fname, command, use_tcp=False, is_multi=False, pool_name=None):
     cmd_opts = "{}{}{}{} {}".format(
         pool2str(pool_name),
         usetcp2str(use_tcp),

@@ -23,14 +23,7 @@ import pickle
 import re
 import time
 
-from glideinwms.lib import (
-    cleanupSupport,
-    logSupport,
-    rrdSupport,
-    timeConversion,
-    util,
-    xmlFormat,
-)
+from glideinwms.lib import cleanupSupport, logSupport, rrdSupport, timeConversion, util, xmlFormat
 
 # list of rrd files that each site has
 RRD_LIST = (
@@ -54,9 +47,7 @@ class MonitoringConfig:
         # set default values
         # user should modify if needed
         self.rrd_step = 300  # default to 5 minutes
-        self.rrd_heartbeat = (
-            1800  # default to 30 minutes, should be at least twice the loop time
-        )
+        self.rrd_heartbeat = 1800  # default to 30 minutes, should be at least twice the loop time
         self.rrd_ds_name = "val"
         self.rrd_archives = [
             ("AVERAGE", 0.8, 1, 740),  # max precision, keep 2.5 days
@@ -105,9 +96,7 @@ class MonitoringConfig:
             return  # nothing to do
         job_ids.sort()
 
-        relative_fname = "completed_jobs_%s.log" % time.strftime(
-            "%Y%m%d", time.localtime(now)
-        )
+        relative_fname = "completed_jobs_%s.log" % time.strftime("%Y%m%d", time.localtime(now))
         fname = os.path.join(self.log_dir, relative_fname)
         with open(fname, "a") as fd:
             for job_id in job_ids:
@@ -198,10 +187,7 @@ class MonitoringConfig:
             json.dump(data, f)
             # f.write(json.dumps(data, indent=4))
         except OSError as e:
-            self.log.err(
-                "unable to open and write to file %s in write_completed_json: %s"
-                % (str(fname), str(e))
-            )
+            self.log.err(f"unable to open and write to file {str(fname)} in write_completed_json: {str(e)}")
         finally:
             if f:
                 f.close()
@@ -214,9 +200,7 @@ class MonitoringConfig:
             os.mkdir(dname)
         return
 
-    def write_rrd_multi(
-        self, relative_fname, ds_type, time, val_dict, min_val=None, max_val=None
-    ):
+    def write_rrd_multi(self, relative_fname, ds_type, time, val_dict, min_val=None, max_val=None):
         """
         Create a RRD file, using rrdtool.
         """
@@ -241,12 +225,8 @@ class MonitoringConfig:
 
                 ds_arr = []
                 for ds_name in ds_names:
-                    ds_arr.append(
-                        (ds_name, ds_type, self.rrd_heartbeat, min_val, max_val)
-                    )
-                self.rrd_obj.create_rrd_multi(
-                    fname, self.rrd_step, rrd_archives, ds_arr
-                )
+                    ds_arr.append((ds_name, ds_type, self.rrd_heartbeat, min_val, max_val))
+                self.rrd_obj.create_rrd_multi(fname, self.rrd_step, rrd_archives, ds_arr)
 
             # print "Updating RRD "+fname
             try:
@@ -292,9 +272,7 @@ class MonitoringConfig:
                             ds_desc["max"],
                         )
                     )
-                self.rrd_obj.create_rrd_multi(
-                    fname, self.rrd_step, rrd_archives, ds_arr
-                )
+                self.rrd_obj.create_rrd_multi(fname, self.rrd_step, rrd_archives, ds_arr)
 
             # print "Updating RRD "+fname
             try:
@@ -349,7 +327,9 @@ class condorQStats:
         }
         # create a global downtime field since we want to propagate it in various places
         self.downtime = "True"
-        self.expected_cores = cores  # This comes from GLIDEIN_CPUS and GLIDEIN_ESTIMATED_CPUS, actual cores received may differ
+        self.expected_cores = (
+            cores  # This comes from GLIDEIN_CPUS and GLIDEIN_ESTIMATED_CPUS, actual cores received may differ
+        )
 
     def logSchedd(self, client_name, qc_status, qc_status_sf):
         """Create or update a dictionary with aggregated HTCondor stats
@@ -491,9 +471,7 @@ class condorQStats:
 
         self.updated = time.time()
 
-    def logClientMonitor(
-        self, client_name, client_monitor, client_internals, fraction=1.0
-    ):
+    def logClientMonitor(self, client_name, client_monitor, client_internals, fraction=1.0):
         """
         client_monitor is a dictionary of monitoring info (GlideinMonitor... from glideclient ClassAd)
         client_internals is a dictionary of internals  (from glideclient ClassAd)
@@ -552,14 +530,10 @@ class condorQStats:
 
         if "InfoAge" not in el:
             el["InfoAge"] = 0
-            el[
-                "InfoAgeAvgCounter"
-            ] = 0  # used for totals since we need an avg in totals, not absnum
+            el["InfoAgeAvgCounter"] = 0  # used for totals since we need an avg in totals, not absnum
 
         if "LastHeardFrom" in client_internals:
-            el["InfoAge"] += (
-                int(time.time() - int(client_internals["LastHeardFrom"])) * fraction
-            )
+            el["InfoAge"] += int(time.time() - int(client_internals["LastHeardFrom"])) * fraction
             el["InfoAgeAvgCounter"] += fraction
 
         self.updated = time.time()
@@ -582,9 +556,7 @@ class condorQStats:
             for w in list(fe.keys()):
                 el = fe[w]
                 for a in list(el.keys()):
-                    if (
-                        a[-10:] == "AvgCounter"
-                    ):  # do not publish avgcounter fields... they are internals
+                    if a[-10:] == "AvgCounter":  # do not publish avgcounter fields... they are internals
                         del el[a]
 
         return data1
@@ -603,13 +575,7 @@ class condorQStats:
             dict_name="frontends",
             el_name="frontend",
             subtypes_params={
-                "class": {
-                    "subclass_params": {
-                        "Requested": {
-                            "dicts_params": {"Parameters": {"el_name": "Parameter"}}
-                        }
-                    }
-                }
+                "class": {"subclass_params": {"Requested": {"dicts_params": {"Parameters": {"el_name": "Parameter"}}}}}
             },
             indent_tab=indent_tab,
             leading_tab=leading_tab,
@@ -680,9 +646,7 @@ class condorQStats:
         @param leading_tab: leading space
         @return: XML string
         """
-        return xmlFormat.class2string(
-            total, inst_name="total", indent_tab=indent_tab, leading_tab=leading_tab
-        )
+        return xmlFormat.class2string(total, inst_name="total", indent_tab=indent_tab, leading_tab=leading_tab)
 
     def get_xml_updated(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
         return xmlFormat.time2xml(self.updated, "updated", indent_tab, leading_tab)
@@ -712,9 +676,7 @@ class condorQStats:
         if monitoringConfig is None:
             monitoringConfig = globals()["monitoringConfig"]
 
-        if (self.files_updated is not None) and (
-            (self.updated - self.files_updated) < 5
-        ):
+        if (self.files_updated is not None) and ((self.updated - self.files_updated) < 5):
             # files updated recently, no need to redo it
             return
 
@@ -730,9 +692,7 @@ class condorQStats:
         xml_str = (
             '<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'
             + "<glideFactoryEntryQStats>\n"
-            + self.get_xml_updated(
-                indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB
-            )
+            + self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB)
             + "\n"
             + self.get_xml_downtime(leading_tab=xmlFormat.DEFAULT_TAB)
             + "\n"
@@ -791,9 +751,7 @@ class condorQStats:
                         if not isinstance(a_el, dict):  # ignore subdictionaries
                             val_dict[f"{tp_str}{a}"] = a_el
 
-            monitoringConfig.write_rrd_multi(
-                "%s/Status_Attributes" % fe_dir, "GAUGE", self.updated, val_dict
-            )
+            monitoringConfig.write_rrd_multi("%s/Status_Attributes" % fe_dir, "GAUGE", self.updated, val_dict)
 
         self.files_updated = self.updated
         return
@@ -817,9 +775,7 @@ class condorLogSummary:
         self.data = {}  # not used
         self.updated = time.time()
         self.updated_year = time.localtime(self.updated)[0]
-        self.current_stats_data = (
-            {}
-        )  # will contain dictionary client->username->dirSummarySimple
+        self.current_stats_data = {}  # will contain dictionary client->username->dirSummarySimple
         self.old_stats_data = {}
         self.stats_diff = {}  # will contain the differences
         self.job_statuses = (
@@ -915,9 +871,7 @@ class condorLogSummary:
 
         for username in list(stats.keys()):
             if username not in self.current_stats_data[client_name]:
-                self.current_stats_data[client_name][username] = stats[
-                    username
-                ].get_simple()
+                self.current_stats_data[client_name][username] = stats[username].get_simple()
             else:
                 self.current_stats_data[client_name][username].merge(stats[username])
 
@@ -957,9 +911,7 @@ class condorLogSummary:
         for client_name in list(self.current_stats_data.keys()):
             out_el = {}
             for s in self.job_statuses:
-                if not (
-                    s in ("Completed", "Removed")
-                ):  # I don't have their numbers from inactive logs
+                if not (s in ("Completed", "Removed")):  # I don't have their numbers from inactive logs
                     count = 0
                     for username in list(self.current_stats_data[client_name].keys()):
                         client_el = self.current_stats_data[client_name][username].data
@@ -1022,9 +974,7 @@ class condorLogSummary:
                 if enle_condor_duration is None:
                     enle_condor_duration = 0  # assume failed
 
-                if (
-                    enle_condor_duration > enle_glidein_duration
-                ):  # can happen... Condor-G has its delays
+                if enle_condor_duration > enle_glidein_duration:  # can happen... Condor-G has its delays
                     enle_glidein_duration = enle_condor_duration
 
                 # get waste numbers, in permill
@@ -1048,33 +998,21 @@ class condorLogSummary:
                     enle_jobs_duration = enle_condor_stats["Total"]["secs"]
                     enle_nr_jobs = enle_condor_stats["Total"]["jobsnr"]
                     enle_waste_mill = {
-                        "validation": 1000.0
-                        * enle_validation_duration
-                        / enle_glidein_duration,
-                        "idle": 1000.0
-                        * (enle_condor_duration - enle_jobs_duration)
-                        / enle_condor_duration,
+                        "validation": 1000.0 * enle_validation_duration / enle_glidein_duration,
+                        "idle": 1000.0 * (enle_condor_duration - enle_jobs_duration) / enle_condor_duration,
                     }
                     enle_goodput = enle_condor_stats["goodZ"]["secs"]
                     if enle_goodput > enle_jobs_duration:
                         enle_goodput = enle_jobs_duration  # cannot be more
                     if enle_jobs_duration > 0:
-                        enle_waste_mill["nosuccess"] = (
-                            1000.0
-                            * (enle_jobs_duration - enle_goodput)
-                            / enle_jobs_duration
-                        )
+                        enle_waste_mill["nosuccess"] = 1000.0 * (enle_jobs_duration - enle_goodput) / enle_jobs_duration
                     else:
                         enle_waste_mill["nosuccess"] = 0  # no jobs run, no failures
-                    enle_terminated_duration = (
-                        enle_goodput + enle_condor_stats["goodNZ"]["secs"]
-                    )
+                    enle_terminated_duration = enle_goodput + enle_condor_stats["goodNZ"]["secs"]
                     if enle_terminated_duration > enle_jobs_duration:
                         enle_terminated_duration = enle_jobs_duration  # cannot be more
                     enle_waste_mill["badput"] = (
-                        1000.0
-                        * (enle_glidein_duration - enle_terminated_duration)
-                        / enle_glidein_duration
+                        1000.0 * (enle_glidein_duration - enle_terminated_duration) / enle_glidein_duration
                     )
 
             out_list[enle_job_id] = {
@@ -1108,9 +1046,7 @@ class condorLogSummary:
 
         count_jobs_duration = {}
         for enle_jobs_duration_range in getAllTimeRanges():
-            count_jobs_duration[
-                enle_jobs_duration_range
-            ] = 0  # make sure all are intialized
+            count_jobs_duration[enle_jobs_duration_range] = 0  # make sure all are intialized
 
         count_total = getLogCompletedDefaults()
 
@@ -1123,9 +1059,7 @@ class condorLogSummary:
         for w in list(count_waste_mill.keys()):
             count_waste_mill_w = count_waste_mill[w]
             for enle_waste_mill_w_range in getAllMillRanges():
-                count_waste_mill_w[
-                    enle_waste_mill_w_range
-                ] = 0  # make sure all are intialized
+                count_waste_mill_w[enle_waste_mill_w_range] = 0  # make sure all are intialized
         time_waste_mill = {
             "validation": {},
             "idle": {},
@@ -1135,9 +1069,7 @@ class condorLogSummary:
         for w in list(time_waste_mill.keys()):
             time_waste_mill_w = time_waste_mill[w]
             for enle_waste_mill_w_range in getAllMillRanges():
-                time_waste_mill_w[
-                    enle_waste_mill_w_range
-                ] = 0  # make sure all are intialized
+                time_waste_mill_w[enle_waste_mill_w_range] = 0  # make sure all are intialized
 
         for enle_job in list(entered_list.keys()):
             enle = entered_list[enle_job]
@@ -1165,9 +1097,7 @@ class condorLogSummary:
             count_jobnrs[enle_jobrange] += 1
 
             if enle_jobs_nr > 0:
-                enle_jobs_duration_range = getTimeRange(
-                    enle_jobs_duration["total"] // enle_jobs_nr
-                )
+                enle_jobs_duration_range = getTimeRange(enle_jobs_duration["total"] // enle_jobs_nr)
             else:
                 enle_jobs_duration_range = getTimeRange(-1)
             count_jobs_duration[enle_jobs_duration_range] += 1
@@ -1224,9 +1154,7 @@ class condorLogSummary:
                         exited -= len(diff_el[s]["Exited"])
 
                 out_el["Entered"][s] = entered
-                if not (
-                    s in ("Completed", "Removed")
-                ):  # I don't have their numbers from inactive logs
+                if not (s in ("Completed", "Removed")):  # I don't have their numbers from inactive logs
                     count = 0
                     for username in list(self.current_stats_data[client_name].keys()):
                         stats_el = self.current_stats_data[client_name][username].data
@@ -1249,13 +1177,7 @@ class condorLogSummary:
             data,
             dict_name="frontends",
             el_name="frontend",
-            subtypes_params={
-                "class": {
-                    "subclass_params": {
-                        "CompletedCounts": get_completed_stats_xml_desc()
-                    }
-                }
-            },
+            subtypes_params={"class": {"subclass_params": {"CompletedCounts": get_completed_stats_xml_desc()}}},
             indent_tab=indent_tab,
             leading_tab=leading_tab,
         )
@@ -1284,9 +1206,7 @@ class condorLogSummary:
 
     def get_xml_stats_total(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
         total = self.get_stats_total_summary()
-        return xmlFormat.class2string(
-            total, inst_name="total", indent_tab=indent_tab, leading_tab=leading_tab
-        )
+        return xmlFormat.class2string(total, inst_name="total", indent_tab=indent_tab, leading_tab=leading_tab)
 
     def get_diff_summary(self):
         """
@@ -1319,9 +1239,7 @@ class condorLogSummary:
 
                         for e in list(tdata.keys()):
                             for sdel in sdiff[k][e]:
-                                tdata[e].append(
-                                    sdel
-                                )  # pylint: disable=unsubscriptable-object
+                                tdata[e].append(sdel)  # pylint: disable=unsubscriptable-object
             out_data[client_name] = client_el
         return out_data
 
@@ -1342,9 +1260,9 @@ class condorLogSummary:
                     sdiff = self.stats_diff[client_name][username]
                     if (sdiff is not None) and (k in list(sdiff.keys())):
                         for e in list(tdata.keys()):
-                            tdata[e] = (
-                                tdata[e] + sdiff[k][e]
-                            )  # pylint: disable=unsupported-assignment-operation,unsupported-assignment-operation,unsubscriptable-object
+                            tdata[e] = (  # pylint: disable=unsupported-assignment-operation
+                                tdata[e] + sdiff[k][e]  # pylint: disable=unsubscriptable-object
+                            )
         return total
 
     def get_total_summary(self):
@@ -1352,19 +1270,15 @@ class condorLogSummary:
         diff_total = self.get_diff_total()
         out_total = {"Current": {}, "Entered": {}, "Exited": {}}
         for k in list(diff_total.keys()):
-            out_total["Entered"][k] = len(
-                diff_total[k]["Entered"]
-            )  # pylint: disable=unsubscriptable-object
+            out_total["Entered"][k] = len(diff_total[k]["Entered"])  # pylint: disable=unsubscriptable-object
             if k in stats_total:
                 out_total["Current"][k] = len(stats_total[k])
                 # if no current, also exited does not have sense (terminal state)
-                out_total["Exited"][k] = len(
-                    diff_total[k]["Exited"]
-                )  # pylint: disable=unsubscriptable-object
+                out_total["Exited"][k] = len(diff_total[k]["Exited"])  # pylint: disable=unsubscriptable-object
             elif k == "Completed":
                 completed_stats = self.get_completed_stats(
-                    diff_total[k]["Entered"]
-                )  # pylint: disable=unsubscriptable-object
+                    diff_total[k]["Entered"]  # pylint: disable=unsubscriptable-object
+                )
                 completed_counts = self.summarize_completed_stats(completed_stats)
                 out_total["CompletedCounts"] = completed_counts
 
@@ -1388,9 +1302,7 @@ class condorLogSummary:
         if monitoringConfig is None:
             monitoringConfig = globals()["monitoringConfig"]
 
-        if (self.files_updated is not None) and (
-            (self.updated - self.files_updated) < 5
-        ):
+        if (self.files_updated is not None) and ((self.updated - self.files_updated) < 5):
             # files updated recently, no need to redo it
             return
 
@@ -1398,17 +1310,11 @@ class condorLogSummary:
         xml_str = (
             '<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'
             + "<glideFactoryEntryLogSummary>\n"
-            + self.get_xml_updated(
-                indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB
-            )
+            + self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB)
             + "\n"
-            + self.get_xml_data(
-                indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB
-            )
+            + self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB)
             + "\n"
-            + self.get_xml_total(
-                indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB
-            )
+            + self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB)
             + "\n"
             + "</glideFactoryEntryLogSummary>\n"
         )
@@ -1436,9 +1342,7 @@ class condorLogSummary:
             val_dict_waste = {}
             val_dict_wastetime = {}
             for s in self.job_statuses:
-                if not (
-                    s in ("Completed", "Removed")
-                ):  # I don't have their numbers from inactive logs
+                if not (s in ("Completed", "Removed")):  # I don't have their numbers from inactive logs
                     count = sdata[s]
                     val_dict_counts["Status%s" % s] = count
                     val_dict_counts_desc["Status%s" % s] = {"ds_type": "GAUGE"}
@@ -1474,13 +1378,9 @@ class condorLogSummary:
                     time_waste_mill = completed_counts["WasteTime"]
                     # save run times
                     for timerange in list(count_entered_times.keys()):
-                        val_dict_stats["Lasted_%s" % timerange] = count_entered_times[
-                            timerange
-                        ]
+                        val_dict_stats["Lasted_%s" % timerange] = count_entered_times[timerange]
                         # they all use the same indexes
-                        val_dict_stats[
-                            "JobsLasted_%s" % timerange
-                        ] = count_jobs_duration[timerange]
+                        val_dict_stats["JobsLasted_%s" % timerange] = count_jobs_duration[timerange]
 
                     # save jobsnr
                     for jobrange in list(count_jobnrs.keys()):
@@ -1512,18 +1412,14 @@ class condorLogSummary:
                 self.updated,
                 val_dict_completed,
             )
-            monitoringConfig.write_completed_json(
-                "%s/Log_Completed" % fe_dir, self.updated, val_dict_completed
-            )
+            monitoringConfig.write_completed_json("%s/Log_Completed" % fe_dir, self.updated, val_dict_completed)
             monitoringConfig.write_rrd_multi(
                 "%s/Log_Completed_Stats" % fe_dir,
                 "ABSOLUTE",
                 self.updated,
                 val_dict_stats,
             )
-            monitoringConfig.write_completed_json(
-                "%s/Log_Completed_Stats" % fe_dir, self.updated, val_dict_stats
-            )
+            monitoringConfig.write_completed_json("%s/Log_Completed_Stats" % fe_dir, self.updated, val_dict_stats)
             # Disable Waste RRDs... WasteTime much more useful
             # monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
             #                                 "ABSOLUTE",self.updated,val_dict_waste)
@@ -1554,17 +1450,10 @@ class condorLogSummary:
         for frontend in list(diff_summary.keys()):
             fe_dir = "frontend_" + frontend
 
-            completed_filename = (
-                os.path.join(monitoringConfig.monitor_dir, fe_dir)
-                + "/Log_Completed.json"
-            )
-            completed_stats_filename = (
-                os.path.join(monitoringConfig.monitor_dir, fe_dir)
-                + "/Log_Completed_Stats.json"
-            )
+            completed_filename = os.path.join(monitoringConfig.monitor_dir, fe_dir) + "/Log_Completed.json"
+            completed_stats_filename = os.path.join(monitoringConfig.monitor_dir, fe_dir) + "/Log_Completed_Stats.json"
             completed_wastetime_filename = (
-                os.path.join(monitoringConfig.monitor_dir, fe_dir)
-                + "/Log_Completed_WasteTime.json"
+                os.path.join(monitoringConfig.monitor_dir, fe_dir) + "/Log_Completed_WasteTime.json"
             )
 
             try:
@@ -1581,9 +1470,7 @@ class condorLogSummary:
                     "completed_wastetime": completed_wastetime_data,
                 }
             except OSError as e:
-                self.log.info(
-                    "Could not find files to aggregate in frontend %s" % fe_dir
-                )
+                self.log.info("Could not find files to aggregate in frontend %s" % fe_dir)
                 self.log.info(str(e))
                 continue
 
@@ -1623,18 +1510,14 @@ class condorLogSummary:
                             jobinfo["joblist"][jobid] = {
                                 # activation_claims is a new key in 3.2.19. Using "get" For backward compatiobility,
                                 # but it can be removed in future versions
-                                "activation_claims": jobstats.get(
-                                    "activations_claims", "unknown"
-                                ),
+                                "activation_claims": jobstats.get("activations_claims", "unknown"),
                                 "glidein_duration": jobstats["glidein_duration"],
                                 # condor_duration could be missing if the glidein had problems and condor was not started
                                 # set it to 0
                                 # and ser condor_started to None if missing
                                 "condor_duration": jobstats.get("condor_duration", 0),
                                 "condor_started": jobstats.get("condor_started", None),
-                                "numjobs": jobstats.get("stats", {})
-                                .get("Total", {})
-                                .get("jobsnr", "unknown"),
+                                "numjobs": jobstats.get("stats", {}).get("Total", {}).get("jobsnr", "unknown"),
                             }
 
         # cannot use monitorAggregatorConfig.jobsummary_relname, looks like a circular import
@@ -1669,9 +1552,7 @@ class FactoryStatusData:
 
     def getUpdated(self):
         """returns the time of last update"""
-        return xmlFormat.time2xml(
-            self.updated, "updated", indent_tab=self.tab, leading_tab=self.tab
-        )
+        return xmlFormat.time2xml(self.updated, "updated", indent_tab=self.tab, leading_tab=self.tab)
 
     def fetchData(self, rrd_file, pathway, res, start, end):
         """Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
@@ -1684,9 +1565,7 @@ class FactoryStatusData:
         # use rrdtool to fetch data
         baseRRDSupport = rrdSupport.rrdSupport()
         try:
-            fetched = baseRRDSupport.fetch_rrd(
-                pathway + rrd_file, "AVERAGE", resolution=res, start=start, end=end
-            )
+            fetched = baseRRDSupport.fetch_rrd(pathway + rrd_file, "AVERAGE", resolution=res, start=start, end=end)
         except:
             # probably not created yet
             self.log.debug("Failed to load %s" % (pathway + rrd_file))
@@ -1761,18 +1640,12 @@ class FactoryStatusData:
             for res_raw in self.resolution:
                 # calculate the best resolution
                 res_idx = 0
-                rrd_res = (
-                    monitoringConfig.rrd_archives[res_idx][2]
-                    * monitoringConfig.rrd_step
-                )
+                rrd_res = monitoringConfig.rrd_archives[res_idx][2] * monitoringConfig.rrd_step
                 period_mul = int(res_raw / rrd_res)
                 while period_mul >= monitoringConfig.rrd_archives[res_idx][3]:
                     # not all elements in the higher bucket, get next lower resolution
                     res_idx += 1
-                    rrd_res = (
-                        monitoringConfig.rrd_archives[res_idx][2]
-                        * monitoringConfig.rrd_step
-                    )
+                    rrd_res = monitoringConfig.rrd_archives[res_idx][2] * monitoringConfig.rrd_step
                     period_mul = int(res_raw / rrd_res)
 
                 period = period_mul * rrd_res
@@ -1791,9 +1664,7 @@ class FactoryStatusData:
                         res=rrd_res,
                     )
                     for data_set in fetched_data:
-                        self.data[rrd][client][period][data_set] = self.average(
-                            fetched_data[data_set]
-                        )
+                        self.data[rrd][client][period][data_set] = self.average(fetched_data[data_set])
                 except TypeError:
                     self.log.exception("FactoryStatusData:fetchData: ")
 
@@ -1989,9 +1860,7 @@ class Descript2XML:
 
     def getUpdated(self):
         """returns the time of last update"""
-        return xmlFormat.time2xml(
-            time.time(), "updated", indent_tab=self.tab, leading_tab=self.tab
-        )
+        return xmlFormat.time2xml(time.time(), "updated", indent_tab=self.tab, leading_tab=self.tab)
 
     def writeFile(self, path, xml_str, singleEntry=False):
         if singleEntry:

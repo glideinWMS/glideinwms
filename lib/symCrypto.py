@@ -64,9 +64,7 @@ class SymKey:
         'des3'
     """
 
-    def __init__(
-        self, cypher_name, key_len, iv_len, key_str=None, iv_str=None, key_iv_code=None
-    ):
+    def __init__(self, cypher_name, key_len, iv_len, key_str=None, iv_str=None, key_iv_code=None):
         """Constructor
 
         Args:
@@ -106,10 +104,7 @@ class SymKey:
             # just in case it was unicode"
             key_str = defaults.force_bytes(key_str)
             if len(key_str) != (self.key_len * 2):
-                raise ValueError(
-                    "Key must be exactly %i long, got %i"
-                    % (self.key_len * 2, len(key_str))
-                )
+                raise ValueError("Key must be exactly %i long, got %i" % (self.key_len * 2, len(key_str)))
 
             if iv_str is None:
                 # if key_str defined, one needs the iv_str, too
@@ -118,8 +113,7 @@ class SymKey:
             else:
                 if len(iv_str) != (self.iv_len * 2):
                     raise ValueError(
-                        "Initialization vector must be exactly %i long, got %i"
-                        % (self.iv_len * 2, len(iv_str))
+                        "Initialization vector must be exactly %i long, got %i" % (self.iv_len * 2, len(iv_str))
                     )
                 # just in case it was unicode"
                 iv_str = defaults.force_bytes(iv_str)
@@ -129,9 +123,7 @@ class SymKey:
             ki_arr = key_iv_code.split(b",")
             if len(ki_arr) != 3:
                 raise ValueError("Invalid format, commas not found")
-            if ki_arr[0] != (
-                b"cypher:%b" % self.cypher_name.encode(defaults.BINARY_ENCODING_CRYPTO)
-            ):
+            if ki_arr[0] != (b"cypher:%b" % self.cypher_name.encode(defaults.BINARY_ENCODING_CRYPTO)):
                 raise ValueError("Invalid format, not my cypher(%s)" % self.cypher_name)
             if ki_arr[1][:4] != b"key:":
                 raise ValueError("Invalid format, key not found")
@@ -399,9 +391,7 @@ class AutoSymKey(MutableSymKey):
             self.cypher_name = None
             self.key_str = None
         else:
-            key_iv_code = defaults.force_bytes(
-                key_iv_code
-            )  # just in case it was unicode"
+            key_iv_code = defaults.force_bytes(key_iv_code)  # just in case it was unicode"
             ki_arr = key_iv_code.split(b",")
             if len(ki_arr) != 3:
                 raise ValueError("Invalid format, commas not found")
@@ -415,9 +405,7 @@ class AutoSymKey(MutableSymKey):
                 raise ValueError("Invalid format, iv not found")
             iv_str = ki_arr[2][3:]
             cypher_params = cypher_dict[cypher_name]
-            self.redefine(
-                cypher_name, cypher_params[0], cypher_params[1], key_str, iv_str
-            )
+            self.redefine(cypher_name, cypher_params[0], cypher_params[1], key_str, iv_str)
 
 
 ##########################################################################

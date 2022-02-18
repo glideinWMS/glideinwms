@@ -13,21 +13,13 @@ Author:
 """
 
 
-import unittest
-
-import xmlrunner
-
-from glideinwms.unittests.unittest_utils import TestImportError
-
-try:
-    import glideinwms.factory.glideFactoryLib
-except ImportError as err:
-    raise TestImportError(str(err))
-
 # from glideinwms.factory import glideFactoryConfig
 import os
+import unittest
 
 from unittest import mock
+
+import xmlrunner
 
 # from glideinwms.factory.glideFactoryLib import GlideinTotals
 # from glideinwms.factory.glideFactoryLib import isGlideinHeldNTimes
@@ -68,9 +60,9 @@ from unittest import mock
 # from glideinwms.factory.glideFactoryLib import get_submit_environment
 # from glideinwms.factory.glideFactoryLib import isGlideinWithinHeldLimits
 from glideinwms.factory.glideFactoryLib import (
-    FactoryConfig,
     days2sec,
     env_list2dict,
+    FactoryConfig,
     getCondorQCredentialList,
     getCondorQData,
     getCondorStatusData,
@@ -86,7 +78,12 @@ from glideinwms.factory.glideFactoryLib import (
     set_condor_integrity_checks,
     which,
 )
-from glideinwms.unittests.unittest_utils import FakeLogger
+from glideinwms.unittests.unittest_utils import FakeLogger, TestImportError
+
+try:
+    import glideinwms.factory.glideFactoryLib
+except ImportError as err:
+    raise TestImportError(str(err))
 
 
 class TestFactoryConfig(unittest.TestCase):
@@ -117,9 +114,7 @@ class TestFactoryConfig(unittest.TestCase):
         log_base_dir = "log_base_dir"
         client_log_base_dir = "client_log_base_dir"
         client_proxies_base_dir = "client_proxies_base_dir"
-        self.cnf.config_dirs(
-            submit_dir, log_base_dir, client_log_base_dir, client_proxies_base_dir
-        )
+        self.cnf.config_dirs(submit_dir, log_base_dir, client_log_base_dir, client_proxies_base_dir)
         self.assertEqual(self.cnf.submit_dir, "submit_dir")
 
     def test_config_remove_freq(self):
@@ -150,9 +145,7 @@ class TestFactoryConfig(unittest.TestCase):
         log_base_dir = "log_base_dir"
         client_log_base_dir = "client_log_base_dir"
         client_proxies_base_dir = "client_proxies_base_dir"
-        self.cnf.config_dirs(
-            submit_dir, log_base_dir, client_log_base_dir, client_proxies_base_dir
-        )
+        self.cnf.config_dirs(submit_dir, log_base_dir, client_log_base_dir, client_proxies_base_dir)
         factory_name = "factory_name"
         glidein_name = "glidein_name"
         self.cnf.config_whoamI(factory_name, glidein_name)
@@ -169,9 +162,7 @@ class TestFactoryConfig(unittest.TestCase):
         log_base_dir = "log_base_dir"
         client_log_base_dir = "client_log_base_dir"
         client_proxies_base_dir = "client_proxies_base_dir"
-        self.cnf.config_dirs(
-            submit_dir, log_base_dir, client_log_base_dir, client_proxies_base_dir
-        )
+        self.cnf.config_dirs(submit_dir, log_base_dir, client_log_base_dir, client_proxies_base_dir)
         factory_name = "factory_name"
         glidein_name = "glidein_name"
         self.cnf.config_whoamI(factory_name, glidein_name)
@@ -216,9 +207,7 @@ class TestFactoryConfig(unittest.TestCase):
         cred_secclass_sa = "fake"
         cred_id_sa = "fake"
 
-        crd = getQCredentials(
-            condorq, client_name, creds, client_sa, cred_secclass_sa, cred_id_sa
-        )
+        crd = getQCredentials(condorq, client_name, creds, client_sa, cred_secclass_sa, cred_id_sa)
         self.assertEqual(crd.schedd_name, condorq.schedd_name)
         self.assertEqual(crd.factory_name, condorq.factory_name)
         self.assertEqual(crd.glidein_name, condorq.glidein_name)
@@ -710,57 +699,39 @@ class TestIsGlideinUnrecoverable(unittest.TestCase):
 
         # Do not crash if jobInfo is empy
         jobInfo = {}
-        res = isGlideinUnrecoverable(
-            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
-        )
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
         self.assertTrue(res)
         # 7 is not a recoverable code
         jobInfo = {"HoldReasonCode": 7}
-        res = isGlideinUnrecoverable(
-            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
-        )
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
         self.assertTrue(res)
         # Should also work if 7 is passed as string
         jobInfo = {"HoldReasonCode": "7"}
-        res = isGlideinUnrecoverable(
-            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
-        )
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
         self.assertTrue(res)
         # now 24 is a recoverable code
         jobInfo = {"HoldReasonCode": 24}
-        res = isGlideinUnrecoverable(
-            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
-        )
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
         self.assertFalse(res)
         # Try it as a string as well
         jobInfo = {"HoldReasonCode": "24"}
-        res = isGlideinUnrecoverable(
-            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
-        )
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
         self.assertFalse(res)
         # Non integer values are ignored
         jobInfo = {"HoldReasonCode": "aaa24"}
-        res = isGlideinUnrecoverable(
-            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
-        )
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
         self.assertTrue(res)
         # 36 without subcode is unrecoverable
         jobInfo = {"HoldReasonCode": 36}
-        res = isGlideinUnrecoverable(
-            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
-        )
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
         self.assertTrue(res)
         # 36 with subcode 7 is recoverable
         jobInfo = {"HoldReasonCode": 36, "HoldReasonSubCode": 7}
-        res = isGlideinUnrecoverable(
-            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
-        )
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
         self.assertFalse(res)
         # test what happens with an empty string
         GlideinDescriptMock.data = {"RecoverableExitcodes": ""}
-        res = isGlideinUnrecoverable(
-            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
-        )
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
         self.assertTrue(res)
 
 

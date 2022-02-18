@@ -23,6 +23,7 @@ import os.path
 import string
 import sys
 import xml.parsers.expat
+
 from collections.abc import Mapping
 
 from glideinwms.lib import xmlFormat, xmlParse
@@ -67,10 +68,7 @@ class SubParams(Mapping):
         if name == "data":
             # needed because copy/deepcopy and pickle call __getattr__ on objects that have not been initialized
             # they will catch and ignore the AttributeError exception
-            raise AttributeError(
-                "%r has no attribute data: the init method has not been called"
-                % type(self)
-            )
+            raise AttributeError("%r has no attribute data: the init method has not been called" % type(self))
         # work around for pickle bug in Python 3.4
         # see http://bugs.python.org/issue16251
         if name == "__getnewargs_ex__" or name == "__getnewargs__":
@@ -115,25 +113,18 @@ class SubParams(Mapping):
                         # dictionary el elements
                         data_el = self[k]
                         for data_subkey in list(data_el.keys()):
-                            data_el[data_subkey].validate(
-                                subdef, f"{path_text}.{k}.{data_subkey}"
-                            )
+                            data_el[data_subkey].validate(subdef, f"{path_text}.{k}.{data_subkey}")
                     elif isinstance(defvalue, list):
                         # list of elements
                         if isinstance(self.data[k], OrderedDict):
                             if len(list(self.data[k].keys())) == 0:
                                 self.data[
                                     k
-                                ] = (
-                                    []
-                                )  # XML does not know if an empty list is a dictionary or not.. fix this
+                                ] = []  # XML does not know if an empty list is a dictionary or not.. fix this
 
                         mylist = self[k]
                         if not isinstance(mylist, list):
-                            raise RuntimeError(
-                                "Parameter %s.%s not a list: %s %s"
-                                % (path_text, k, type(mylist), mylist)
-                            )
+                            raise RuntimeError(f"Parameter {path_text}.{k} not a list: {type(mylist)} {mylist}")
                         for data_el in mylist:
                             data_el.validate(subdef, f"{path_text}.*.{k}")
                     else:
@@ -154,9 +145,7 @@ class SubParams(Mapping):
             if isinstance(defel, OrderedDict):
                 # subdictionary
                 if k not in self.data:
-                    self.data[
-                        k
-                    ] = OrderedDict()  # first create empty, if does not exist
+                    self.data[k] = OrderedDict()  # first create empty, if does not exist
 
                 # then, set defaults on all elements of subdictionary
                 self[k].use_defaults(defel)
@@ -167,9 +156,7 @@ class SubParams(Mapping):
                 if isinstance(defvalue, OrderedDict):
                     # dictionary el elements
                     if k not in self.data:
-                        self.data[
-                            k
-                        ] = OrderedDict()  # no elements yet, set and empty dictionary
+                        self.data[k] = OrderedDict()  # no elements yet, set and empty dictionary
                     else:
                         # need to set defaults on all elements in the dictionary
                         data_el = self[k]
@@ -280,9 +267,7 @@ class Params:
             # create derived values
             self.derive()
         except RuntimeError as e:
-            raise RuntimeError(
-                "Unexpected error occurred loading the configuration file.\n\n%s" % e
-            )
+            raise RuntimeError("Unexpected error occurred loading the configuration file.\n\n%s" % e)
 
     def derive(self):
         return  # by default nothing... children should overwrite this
@@ -298,9 +283,7 @@ class Params:
         xmlFormat.DEFAULT_DICTS_PARAMS = xml_format["dicts_params"]
         # hack needed to make xmlFormat to properly do the formating, using override_dictionary_type
         dict_override = type(OrderedDict())
-        out = xmlFormat.class2string(
-            self.data, self.get_top_element(), override_dictionary_type=dict_override
-        )
+        out = xmlFormat.class2string(self.data, self.get_top_element(), override_dictionary_type=dict_override)
         xmlFormat.DEFAULT_IGNORE_NONES = old_default_ignore_nones
         xmlFormat.DEFAULT_LISTS_PARAMS = old_default_lists_params
         xmlFormat.DEFAULT_DICTS_PARAMS = old_default_dicts_params
@@ -450,10 +433,7 @@ def extract_attr_val(attr_obj):
 
     """
     if not attr_obj.type in ("string", "int", "expr"):
-        raise RuntimeError(
-            "Wrong attribute type '%s', must be either 'int' or 'string'"
-            % attr_obj.type
-        )
+        raise RuntimeError("Wrong attribute type '%s', must be either 'int' or 'string'" % attr_obj.type)
 
     if attr_obj.type in ("string", "expr"):
         return str(attr_obj.value)
@@ -675,9 +655,7 @@ def col_wrap(text, width, indent):
             short_text = org_short_text
 
         # calc next lines
-        subtext = col_wrap(
-            indent + text[len(short_text) :].lstrip(" \t"), width, indent
-        )
+        subtext = col_wrap(indent + text[len(short_text) :].lstrip(" \t"), width, indent)
         # glue
         return short_text + "\n" + subtext
     else:
@@ -750,9 +728,7 @@ def defdict2string(defaults, indent, width=80):
     for k in final_keys:
         el = defaults[k]
         if isinstance(el, OrderedDict):  # sub-dictionary
-            outstrarr.append(
-                f"{indent}{k}:" + "\n" + defdict2string(el, indent + "\t", width)
-            )
+            outstrarr.append(f"{indent}{k}:" + "\n" + defdict2string(el, indent + "\t", width))
         else:
             # print el
             defvalue, ktype, txt, subdef = el

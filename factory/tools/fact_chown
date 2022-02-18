@@ -12,6 +12,7 @@ import pwd
 import subprocess
 import sys
 import tarfile
+
 from contextlib import closing  # python 2.6 tarfile does not support with
 
 import htcondor
@@ -21,9 +22,7 @@ from glideinwms.creation.lib import factoryXmlConfig
 
 def parse_opts():
     """Parse the command line options for this command"""
-    description = (
-        "Change the ownership of frontend directories to the specified user\n\n"
-    )
+    description = "Change the ownership of frontend directories to the specified user\n\n"
 
     parser = argparse.ArgumentParser(description=description)
 
@@ -142,29 +141,20 @@ def chown_dir(path, uid, gid, fuid, test):
                 target = os.path.join(dirpath, fname)
                 mychown(target, uid, gid, fuid, test)
         except OSError:
-            logging.warning(
-                "Cannot chown %s since the file does not exist anymore" % target
-            )
+            logging.warning("Cannot chown %s since the file does not exist anymore" % target)
 
 
 def fix_jobqueue(jobqueue_file, user, options):
     """Replace the username in the condor job_queue file to user"""
 
     if options.backup:
-        backup_name = (
-            os.path.dirname(jobqueue_file).split("/")[-2]
-            + "_"
-            + os.path.basename(jobqueue_file)
-        )
+        backup_name = os.path.dirname(jobqueue_file).split("/")[-2] + "_" + os.path.basename(jobqueue_file)
         backup_dir(backup_name + ".tar.gz", jobqueue_file)
     if options.test:
         logging.info("Test mode: not fixing %s" % jobqueue_file)
     else:
         logging.info("Fixing %s" % jobqueue_file)
-        cmd = (
-            "sed -i.bk -e 's/103 \\([-0-9.]*\\) Owner \".*\"/103 \\1 Owner \"'%s'\"/' %s"
-            % (user, jobqueue_file)
-        )
+        cmd = f"sed -i.bk -e 's/103 \\([-0-9.]*\\) Owner \".*\"/103 \\1 Owner \"'{user}'\"/' {jobqueue_file}"
         logging.debug("Executing: %s" % cmd)
         subprocess.call(cmd, shell=True)
         logging.info(
@@ -190,10 +180,7 @@ def main():
     if not options.skipchown:
         for client_dir_dict in dir_dicts:
             for fe_user, fe_client_dir in client_dir_dict.items():
-                logging.info(
-                    "Working on %s: changing ownership from %s to %s"
-                    % (fe_client_dir, fe_user, options.user)
-                )
+                logging.info(f"Working on {fe_client_dir}: changing ownership from {fe_user} to {options.user}")
                 if options.backup:
                     logging.info("Backing it up in the current directory first")
                     backup_dir(fe_user + ".tar.gz", fe_client_dir)
@@ -212,9 +199,7 @@ def main():
             try:
                 jobqueue_file = htcondor.param["SCHEDDGLIDEINS%s.JOB_QUEUE_LOG" % i]
             except KeyError:
-                logging.warning(
-                    "Cannot find 'SCHEDDGLIDEINS%s.JOB_QUEUE_LOG'. Skipping it." % i
-                )
+                logging.warning("Cannot find 'SCHEDDGLIDEINS%s.JOB_QUEUE_LOG'. Skipping it." % i)
                 continue
             fix_jobqueue(jobqueue_file, options.user, options)
 

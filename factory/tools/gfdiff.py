@@ -17,7 +17,7 @@ import uuid
 import requests
 
 from glideinwms.creation.lib.factoryXmlConfig import EntryElement  # , parse
-from glideinwms.creation.lib.factoryXmlConfig import FactAttrElement, _parse
+from glideinwms.creation.lib.factoryXmlConfig import _parse, FactAttrElement
 from glideinwms.creation.lib.xmlConfig import DictElement, ListElement
 
 g_entry_a = None
@@ -63,10 +63,7 @@ def check_list_diff(list_a, list_b):
             if len(elem_b) == 1:
                 check_dict_diff(elem, elem_b[0], FactAttrElement.items)
             elif len(elem_b) == 0:
-                print(
-                    "\t" * (tabs + 1)
-                    + "{}: not present in {}".format(elem["name"], g_entry_b.getName())
-                )
+                print("\t" * (tabs + 1) + "{}: not present in {}".format(elem["name"], g_entry_b.getName()))
             else:
                 print("More than one FactAttrElement")
         else:
@@ -75,10 +72,7 @@ def check_list_diff(list_a, list_b):
         if isinstance(elem, FactAttrElement):
             elem_a = [x for x in list_a.children if x["name"] == elem["name"]]
             if len(elem_a) == 0:
-                print(
-                    "\t" * (tabs + 1)
-                    + "{}: not present in {}".format(elem["name"], g_entry_a.getName())
-                )
+                print("\t" * (tabs + 1) + "{}: not present in {}".format(elem["name"], g_entry_a.getName()))
 
 
 @count_tabs
@@ -100,21 +94,11 @@ def check_dict_diff(dict_a, dict_b, itemfunc=EntryElement.items, print_name=True
             check_dict_diff(
                 tmp_dict_a[key],
                 tmp_dict_b[key],
-                lambda e: list(e.children.items())
-                if len(e.children) > 0
-                else list(e.items()),
+                lambda e: list(e.children.items()) if len(e.children) > 0 else list(e.items()),
             )
         elif tmp_dict_a[key] != tmp_dict_b[key]:
-            keystr = (
-                tmp_dict_a["name"] + ": "
-                if print_name and "name" in tmp_dict_a
-                else last_key[-2] + ": "
-            )
-            print(
-                "\t" * tabs
-                + "%sKey %s is different: (%s vs %s)"
-                % (keystr, key, tmp_dict_a[key], tmp_dict_b[key])
-            )
+            keystr = tmp_dict_a["name"] + ": " if print_name and "name" in tmp_dict_a else last_key[-2] + ": "
+            print("\t" * tabs + f"{keystr}Key {key} is different: ({tmp_dict_a[key]} vs {tmp_dict_b[key]})")
         last_key.pop()
     for key, val in list(tmp_dict_b.items()):
         if key in SKIP_KEYS:
@@ -127,9 +111,7 @@ def parse_opts():
     """Parse the command line options for this command"""
     description = "Do a diff of two entries\n\n"
 
-    parser = argparse.ArgumentParser(
-        description=description, formatter_class=argparse.RawTextHelpFormatter
-    )
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument(
         "--confA",
@@ -176,9 +158,7 @@ def get_entry_text(entry, conf):
     """Get an entry text from the xml configuration file"""
     with open(conf) as fdesc:
         text = fdesc.read()
-        return re.search(
-            '.*( +<entry name="%s".*?</entry>)' % entry, text, re.DOTALL
-        ).group(1)
+        return re.search('.*( +<entry name="%s".*?</entry>)' % entry, text, re.DOTALL).group(1)
 
 
 def handle_mergely(entry_a, conf_a, entry_b, conf_b, mergely_only):
@@ -220,16 +200,10 @@ def main():
     # pylint: disable=no-member, maybe-no-member
     entry_b = [e for e in conf_b.get_entries() if e.getName() == entry_b]
     if len(entry_a) != 1:
-        print(
-            "Cannot find entry %s in the configuration file %s"
-            % (options.entry_a, options.conf_a)
-        )
+        print(f"Cannot find entry {options.entry_a} in the configuration file {options.conf_a}")
         sys.exit(1)
     if len(entry_b) != 1:
-        print(
-            "Cannot find entry %s in the configuration file %s"
-            % (options.entry_b, options.conf_b)
-        )
+        print(f"Cannot find entry {options.entry_b} in the configuration file {options.conf_b}")
         sys.exit(1)
     g_entry_a = entry_a[0]
     g_entry_b = entry_b[0]

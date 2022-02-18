@@ -67,9 +67,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
     if relfname is None:
         relfname = os.path.basename(absfname)  # default is the final part of absfname
     if len(relfname) < 1:
-        raise RuntimeError(
-            "Found a file element with an empty relfname: %s" % user_file
-        )
+        raise RuntimeError("Found a file element with an empty relfname: %s" % user_file)
 
     is_const = is_true(user_file.const)
     is_executable = is_true(user_file.executable)
@@ -100,16 +98,11 @@ def add_file_unparsed(user_file, dicts, is_factory):
     # period has 0 as default (in dictionary definition). Should I still protect against it not being defined?
     if period_value > 0:
         if not is_executable:
-            raise RuntimeError(
-                "A file cannot have an execution period if it is not executable: %s"
-                % user_file
-            )
+            raise RuntimeError("A file cannot have an execution period if it is not executable: %s" % user_file)
 
     if is_executable:  # a script
         if not is_const:
-            raise RuntimeError(
-                "A file cannot be executable if it is not constant: %s" % user_file
-            )
+            raise RuntimeError("A file cannot be executable if it is not constant: %s" % user_file)
         if do_untar:
             raise RuntimeError("A tar file cannot be executable: %s" % user_file)
         if is_wrapper:
@@ -118,16 +111,11 @@ def add_file_unparsed(user_file, dicts, is_factory):
         if user_file.type:
             if user_file.type == "run:s" or user_file.type == "run:singularity":
                 if file_list_idx.endswith("preentry_file_list"):
-                    raise RuntimeError(
-                        "An executable cannot use singularity before the entry setup: %s"
-                        % user_file
-                    )
+                    raise RuntimeError("An executable cannot use singularity before the entry setup: %s" % user_file)
                 file_type = "exec:s"
             else:
                 if not user_file.type.startswith("run"):
-                    raise RuntimeError(
-                        "An executable file type must start with 'run': $s" % user_file
-                    )
+                    raise RuntimeError("An executable file type must start with 'run': $s" % user_file)
         dicts[file_list_idx].add_from_file(
             relfname,
             cWDictFile.FileDictFile.make_val_tuple(
@@ -141,29 +129,21 @@ def add_file_unparsed(user_file, dicts, is_factory):
 
     elif is_wrapper:  # a source-able script for the wrapper
         if not is_const:
-            raise RuntimeError(
-                "A file cannot be a wrapper if it is not constant: %s" % user_file
-            )
+            raise RuntimeError("A file cannot be a wrapper if it is not constant: %s" % user_file)
         if do_untar:
             raise RuntimeError("A tar file cannot be a wrapper: %s" % user_file)
         dicts[file_list_idx].add_from_file(
             relfname,
-            cWDictFile.FileDictFile.make_val_tuple(
-                cWConsts.insert_timestr(relfname), "wrapper"
-            ),
+            cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), "wrapper"),
             absfname,
         )
     elif do_untar:  # a tarball
         if not is_const:
-            raise RuntimeError(
-                "A file cannot be untarred if it is not constant: %s" % user_file
-            )
+            raise RuntimeError("A file cannot be untarred if it is not constant: %s" % user_file)
 
         wnsubdir = user_file.untar_options.dir
         if wnsubdir is None:
-            wnsubdir = relfname.split(".", 1)[
-                0
-            ]  # default is relfname up to the first .
+            wnsubdir = relfname.split(".", 1)[0]  # default is relfname up to the first .
 
         config_out = user_file.untar_options.absdir_outattr
         if config_out is None:
@@ -187,9 +167,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
             val = "regular"
             dicts[file_list_idx].add_from_file(
                 relfname,
-                cWDictFile.FileDictFile.make_val_tuple(
-                    cWConsts.insert_timestr(relfname), val
-                ),
+                cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), val),
                 absfname,
             )
         else:

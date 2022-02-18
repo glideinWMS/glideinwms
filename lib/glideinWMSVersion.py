@@ -80,13 +80,9 @@ class GlideinWMSDistro:
                     fd = None
                     try:
                         # In the RPM, all files are in site-packages
-                        rpm_dir = os.path.dirname(
-                            os.path.dirname(sys.modules[__name__].__file__)
-                        )
+                        rpm_dir = os.path.dirname(os.path.dirname(sys.modules[__name__].__file__))
                         fd = open(
-                            os.path.join(
-                                rpm_dir, os.path.dirname(file), os.path.basename(file)
-                            ),
+                            os.path.join(rpm_dir, os.path.dirname(file), os.path.basename(file)),
                         )
 
                         chksum = md5(fd.read()).hexdigest()
@@ -132,9 +128,7 @@ def version(chksumFile=None):
 
 
 def usage():
-    print(
-        "Usage: glideinWMSVersion.py <Path to glideinWMS distribution> [<Checksum file>]"
-    )
+    print("Usage: glideinWMSVersion.py <Path to glideinWMS distribution> [<Checksum file>]")
 
 
 ##############################################################################

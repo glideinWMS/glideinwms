@@ -24,9 +24,7 @@ from glideinwms.lib.util import chmod
 
 #########################################
 # Create init.d compatible startup file
-def create_initd_startup(
-    startup_fname, frontend_dir, glideinWMS_dir, cfg_name, rpm_install=""
-):
+def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, rpm_install=""):
     """
     Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
     """
@@ -50,9 +48,7 @@ def create_initd_startup(
 
 #########################################
 # Create frontend-specific mapfile
-def create_client_mapfile(
-    mapfile_fname, my_DN, factory_DNs, schedd_DNs, collector_DNs, pilot_DNs=[]
-):
+def create_client_mapfile(mapfile_fname, my_DN, factory_DNs, schedd_DNs, collector_DNs, pilot_DNs=[]):
     """Write a HTCondor map file and add all the provided DNs and map them to the corresponding condor user
 
     Used to create a frontend-specific mapfile used by the tools
@@ -96,9 +92,7 @@ def create_client_mapfile(
 
 #########################################
 # Create frontend-specific condor_config
-def create_client_condor_config(
-    config_fname, mapfile_fname, collector_nodes, classad_proxy
-):
+def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, classad_proxy):
     attrs = condorExe.exe_cmd("condor_config_val", "-dump")
     def_attrs = filter_unwanted_config_attrs(attrs)
 

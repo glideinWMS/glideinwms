@@ -22,7 +22,7 @@ import unittest
 
 import xmlrunner
 
-from glideinwms.unittests.unittest_utils import TestImportError, create_temp_file
+from glideinwms.unittests.unittest_utils import create_temp_file, TestImportError
 
 try:
     from glideinwms.creation.lib.cWDictFile import DictFileTwoKeys
@@ -38,14 +38,10 @@ class TestDictFileTwoKeys(unittest.TestCase):
     """
 
     def test___getitem__(self):
-        self.assertEqual(
-            "'True'", self.dict_file.__getitem__("GLIDECLIENT_Group_Start")
-        )
+        self.assertEqual("'True'", self.dict_file.__getitem__("GLIDECLIENT_Group_Start"))
 
     def setUp(self):
-        self.dict_file = DictFileTwoKeys(
-            dir="fixtures/frontend/group_group1", fname="attrs.cfg", sort_keys=True
-        )
+        self.dict_file = DictFileTwoKeys(dir="fixtures/frontend/group_group1", fname="attrs.cfg", sort_keys=True)
         self.dict_file.load()
         self.dict_file.add("a", "b")
         self.dict_file.add("c", "d")
@@ -125,11 +121,7 @@ class TestDictFileTwoKeys(unittest.TestCase):
                     cd = bool(cd)
                     cf = bool(cf)
                     ck = bool(ck)
-                    self.assertTrue(
-                        self.dict_file.is_equal(
-                            other, compare_dir=cd, compare_fname=cf, compare_keys=ck
-                        )
-                    )
+                    self.assertTrue(self.dict_file.is_equal(other, compare_dir=cd, compare_fname=cf, compare_keys=ck))
         other.add("foo", "bar", allow_overwrite=True)
         for cd in range(0, 2):
             for cf in range(0, 2):
@@ -137,43 +129,23 @@ class TestDictFileTwoKeys(unittest.TestCase):
                     cd = bool(cd)
                     cf = bool(cf)
                     ck = bool(ck)
-                    self.assertFalse(
-                        self.dict_file.is_equal(
-                            other, compare_dir=cd, compare_fname=cf, compare_keys=ck
-                        )
-                    )
+                    self.assertFalse(self.dict_file.is_equal(other, compare_dir=cd, compare_fname=cf, compare_keys=ck))
         other = copy.deepcopy(self.dict_file)
         other.dir = "/tmp"
         for cf in range(0, 2):
             for ck in range(0, 2):
                 cf = bool(cf)
                 ck = bool(ck)
-                self.assertTrue(
-                    self.dict_file.is_equal(
-                        other, compare_dir=False, compare_fname=cf, compare_keys=ck
-                    )
-                )
-                self.assertFalse(
-                    self.dict_file.is_equal(
-                        other, compare_dir=True, compare_fname=cf, compare_keys=ck
-                    )
-                )
+                self.assertTrue(self.dict_file.is_equal(other, compare_dir=False, compare_fname=cf, compare_keys=ck))
+                self.assertFalse(self.dict_file.is_equal(other, compare_dir=True, compare_fname=cf, compare_keys=ck))
         other = copy.deepcopy(self.dict_file)
         other.fname = "foo"
         for cd in range(0, 2):
             for ck in range(0, 2):
                 cd = bool(cd)
                 ck = bool(ck)
-                self.assertTrue(
-                    self.dict_file.is_equal(
-                        other, compare_dir=cd, compare_fname=False, compare_keys=ck
-                    )
-                )
-                self.assertFalse(
-                    self.dict_file.is_equal(
-                        other, compare_dir=cd, compare_fname=True, compare_keys=ck
-                    )
-                )
+                self.assertTrue(self.dict_file.is_equal(other, compare_dir=cd, compare_fname=False, compare_keys=ck))
+                self.assertFalse(self.dict_file.is_equal(other, compare_dir=cd, compare_fname=True, compare_keys=ck))
         other = copy.deepcopy(self.dict_file)
         other.remove("a")
         other.remove("c")
@@ -189,16 +161,12 @@ class TestDictFileTwoKeys(unittest.TestCase):
                 cd = bool(cd)
                 cf = bool(cf)
                 self.assertTrue(
-                    self.dict_file.is_equal(
-                        other, compare_dir=cd, compare_fname=cf, compare_keys=ck
-                    ),
+                    self.dict_file.is_equal(other, compare_dir=cd, compare_fname=cf, compare_keys=ck),
                     fmt_str % (asck, ck, sdf.save_into_str(), other.save_into_str()),
                 )
                 ck = True
                 self.assertFalse(
-                    self.dict_file.is_equal(
-                        other, compare_dir=cd, compare_fname=cf, compare_keys=ck
-                    ),
+                    self.dict_file.is_equal(other, compare_dir=cd, compare_fname=cf, compare_keys=ck),
                     fmt_str % (asck, ck, sdf.save_into_str(), other.save_into_str()),
                 )
 

@@ -94,9 +94,7 @@ class ConfigFile:
 # load from the entry subdir
 class EntryConfigFile(ConfigFile):
     def __init__(self, entry_name, config_file, convert_function=repr):
-        ConfigFile.__init__(
-            self, os.path.join("entry_" + entry_name, config_file), convert_function
-        )
+        ConfigFile.__init__(self, os.path.join("entry_" + entry_name, config_file), convert_function)
         self.entry_name = entry_name
         self.config_file_short = config_file
 
@@ -150,14 +148,10 @@ class GlideinKey:
                 self.rsa_key.save(key_fname)
 
             self.pub_rsa_key = self.rsa_key.PubRSAKey()
-            self.pub_key_id = md5(
-                b" ".join((self.pub_key_type.encode("utf-8"), self.pub_rsa_key.get()))
-            ).hexdigest()
+            self.pub_key_id = md5(b" ".join((self.pub_key_type.encode("utf-8"), self.pub_rsa_key.get()))).hexdigest()
             self.sym_class = symCrypto.AutoSymKey
         else:
-            raise RuntimeError(
-                "Invalid pub key type value(%s), only RSA supported" % self.pub_key_type
-            )
+            raise RuntimeError("Invalid pub key type value(%s), only RSA supported" % self.pub_key_type)
 
     def get_pub_key_type(self):
         return self.pub_key_type[0:]
@@ -166,9 +160,7 @@ class GlideinKey:
         if self.pub_key_type == "RSA":
             return self.pub_rsa_key.get()
         else:
-            raise RuntimeError(
-                "Invalid pub key type value(%s), only RSA supported" % self.pub_key_type
-            )
+            raise RuntimeError("Invalid pub key type value(%s), only RSA supported" % self.pub_key_type)
 
     def get_pub_key_id(self):
         return self.pub_key_id[0:]
@@ -189,20 +181,14 @@ class GlideinKey:
             sym_key_code = self.rsa_key.decrypt_hex(enc_sym_key)
             return self.sym_class(sym_key_code)
         else:
-            raise RuntimeError(
-                "Invalid pub key type value(%s), only RSA supported" % self.pub_key_type
-            )
+            raise RuntimeError("Invalid pub key type value(%s), only RSA supported" % self.pub_key_type)
 
 
 class GlideinDescript(ConfigFile):
     def __init__(self):
         global factoryConfig
-        ConfigFile.__init__(
-            self, factoryConfig.glidein_descript_file, repr
-        )  # convert everything in strings
-        if (not ("FactoryCollector" in self.data)) or (
-            self.data["FactoryCollector"] == "None"
-        ):
+        ConfigFile.__init__(self, factoryConfig.glidein_descript_file, repr)  # convert everything in strings
+        if (not ("FactoryCollector" in self.data)) or (self.data["FactoryCollector"] == "None"):
             self.data["FactoryCollector"] = None
         if self.data["PubKeyType"] == "None":
             self.data["PubKeyType"] = None
@@ -248,9 +234,7 @@ class GlideinDescript(ConfigFile):
 
         if self.data["OldPubKeyType"] is not None:
             try:
-                self.data["OldPubKeyObj"] = GlideinKey(
-                    self.data["OldPubKeyType"], key_fname=self.backup_rsakey_fname
-                )
+                self.data["OldPubKeyObj"] = GlideinKey(self.data["OldPubKeyType"], key_fname=self.backup_rsakey_fname)
             except:
                 self.data["OldPubKeyType"] = None
                 self.data["OldPubKeyObj"] = None
@@ -322,9 +306,7 @@ class FrontendDescript(ConfigFile):
 
     def __init__(self):
         global factoryConfig
-        ConfigFile.__init__(
-            self, factoryConfig.frontend_descript_file, lambda s: s
-        )  # values are in python format
+        ConfigFile.__init__(self, factoryConfig.frontend_descript_file, lambda s: s)  # values are in python format
 
     def get_identity(self, frontend):
         """
@@ -401,9 +383,7 @@ class FrontendDescript(ConfigFile):
 class SignatureFile(ConfigFile):
     def __init__(self):
         global factoryConfig
-        ConfigFile.__init__(
-            self, factoryConfig.signatures_file, lambda s: s
-        )  # values are in python format
+        ConfigFile.__init__(self, factoryConfig.signatures_file, lambda s: s)  # values are in python format
 
     def load(self, fname, convert_function):
         """Load the signatures.sha1 file into the class as a dictionary.  The

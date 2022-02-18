@@ -20,10 +20,10 @@ import unittest
 import xmlrunner
 
 from glideinwms.lib.servicePerformance import (
-    PerfMetric,
     endPerfMetricEvent,
     getPerfMetric,
     getPerfMetricEventLifetime,
+    PerfMetric,
     startPerfMetricEvent,
 )
 
@@ -68,9 +68,7 @@ class TestPerfMetric(unittest.TestCase):
         perf_metric = PerfMetric(name)
         perf_metric.event_start(event_name, event_begin)
         perf_metric.event_end(event_name, event_end)
-        self.assertEqual(
-            1000, perf_metric.event_lifetime(event_name, check_active_event=True)
-        )
+        self.assertEqual(1000, perf_metric.event_lifetime(event_name, check_active_event=True))
 
     def test_event_start(self):
         perf_metric = PerfMetric(name)

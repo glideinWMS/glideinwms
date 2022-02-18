@@ -61,9 +61,7 @@ class EnvState:
             if env_key in os.environ:
                 saved_state[condor_key] = os.environ[env_key]
             else:
-                saved_state[
-                    condor_key
-                ] = None  # unlike requests, we want to remember there was nothing
+                saved_state[condor_key] = None  # unlike requests, we want to remember there was nothing
         self.state = saved_state
 
 
@@ -207,16 +205,10 @@ class EnvProtoState(SecEnvState):
             # validate filter
             for c in list(filter.keys()):
                 if not (c in CONDOR_CONTEXT_LIST):
-                    raise ValueError(
-                        "Invalid contex '%s'. Must be one of %s"
-                        % (c, CONDOR_CONTEXT_LIST)
-                    )
+                    raise ValueError(f"Invalid contex '{c}'. Must be one of {CONDOR_CONTEXT_LIST}")
                 for f in filter[c]:
                     if not (f in CONDOR_PROTO_FEATURE_LIST):
-                        raise ValueError(
-                            "Invalid feature '%s'. Must be one of %s"
-                            % (f, CONDOR_PROTO_FEATURE_LIST)
-                        )
+                        raise ValueError(f"Invalid feature '{f}'. Must be one of {CONDOR_PROTO_FEATURE_LIST}")
         else:
             # do not filter anything out... add all
             filter = {}
@@ -261,9 +253,7 @@ class ProtoRequest(SecEnvRequest):
 
 
 class GSIRequest(ProtoRequest):
-    def __init__(
-        self, x509_proxy=None, allow_fs=True, allow_idtokens=True, proto_requests=None
-    ):
+    def __init__(self, x509_proxy=None, allow_fs=True, allow_idtokens=True, proto_requests=None):
         if allow_idtokens:
             auth_str = "IDTOKENS,GSI"
         else:
@@ -283,9 +273,7 @@ class GSIRequest(ProtoRequest):
                 auth_list = proto_requests[context]["AUTHENTICATION"].split(",")
                 if not ("GSI" in auth_list):
                     if not ("IDTOKENS" in auth_list):
-                        raise ValueError(
-                            "Must specify either IDTOKENS or GSI as one of the options"
-                        )
+                        raise ValueError("Must specify either IDTOKENS or GSI as one of the options")
             else:
                 proto_requests[context]["AUTHENTICATION"] = auth_str
 
@@ -311,9 +299,7 @@ class GSIRequest(ProtoRequest):
         if "X509_USER_PROXY" in os.environ:
             self.x509_proxy_saved_state = os.environ["X509_USER_PROXY"]
         else:
-            self.x509_proxy_saved_state = (
-                None  # unlike requests, we want to remember there was nothing
-            )
+            self.x509_proxy_saved_state = None  # unlike requests, we want to remember there was nothing
         ProtoRequest.save_state(self)
 
     def restore_state(self):

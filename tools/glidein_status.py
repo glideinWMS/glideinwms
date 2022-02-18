@@ -11,9 +11,10 @@ import os.path
 import sys
 import time
 
+from glideinwms.lib import condorMonitor
+
 sys.path.append(os.path.join(sys.path[0], "../.."))
 
-from glideinwms.lib import condorMonitor
 
 ################################################################################
 # GLOBAL
@@ -30,9 +31,7 @@ def help():
     print("Options:")
     print(" -gatekeeper   : Print out the glidein gatekeeper")
     print(" -glidecluster : Print out the glidein cluster nr")
-    print(
-        " -singularity  : Print out if singularity is used and its mode (if available)"
-    )
+    print(" -singularity  : Print out if singularity is used and its mode (if available)")
     print(" -withmonitor  : Print out the monitoring VMs, too")
     print(" -bench        : Print out the benchmarking numbers, too")
     print(" -total        : Print out only the totals (skip details)")
@@ -100,9 +99,7 @@ def entry_cmp(x, y):
 
 
 def get_opts():
-    parser = argparse.ArgumentParser(
-        description="Equivalent to condor_status but with glidein specific info"
-    )
+    parser = argparse.ArgumentParser(description="Equivalent to condor_status but with glidein specific info")
     parser.add_argument(
         "-gatekeeper",
         "--gatekeeper",

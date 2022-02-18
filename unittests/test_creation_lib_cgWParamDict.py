@@ -18,14 +18,9 @@ Author:
 import unittest
 
 from unittest import mock
+
 import xmlrunner
 
-from glideinwms.unittests.unittest_utils import TestImportError
-
-try:
-    from glideinwms.creation.lib import cgWParamDict
-except ImportError as err:
-    raise TestImportError(str(err))
 from glideinwms.creation.lib import factoryXmlConfig
 from glideinwms.creation.lib.cgWParamDict import (
     add_attr_unparsed,
@@ -43,10 +38,13 @@ from glideinwms.creation.lib.cgWParamDict import (
     populate_job_descript,
     validate_condor_tarball_attrs,
 )
-from glideinwms.creation.lib.cWParamDict import (
-    has_file_wrapper,
-    has_file_wrapper_params,
-)
+from glideinwms.creation.lib.cWParamDict import has_file_wrapper, has_file_wrapper_params
+from glideinwms.unittests.unittest_utils import TestImportError
+
+try:
+    from glideinwms.creation.lib import cgWParamDict
+except ImportError as err:
+    raise TestImportError(str(err))
 
 XML = "fixtures/factory/glideinWMS.xml"
 

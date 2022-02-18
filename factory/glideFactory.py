@@ -37,6 +37,7 @@ import urllib.parse
 import urllib.request
 
 import jwt
+
 from M2Crypto.RSA import RSAError
 
 from glideinwms.factory import (
@@ -50,13 +51,7 @@ from glideinwms.factory import (
     glideFactoryMonitoring,
     glideFactoryPidLib,
 )
-from glideinwms.lib import (
-    cleanupSupport,
-    condorMonitor,
-    glideinWMSVersion,
-    logSupport,
-    util,
-)
+from glideinwms.lib import cleanupSupport, condorMonitor, glideinWMSVersion, logSupport, util
 from glideinwms.lib.condorMonitor import CondorQEdit, QueryError
 from glideinwms.lib.pubCrypto import RSAKey
 
@@ -109,9 +104,7 @@ def update_classads():
                 values=list(map(json.dumps, list(joblist.values()))),
             )
         except QueryError as qerr:
-            logSupport.log.error(
-                "Failed to add monitoring info to the glidein job classads: %s" % qerr
-            )
+            logSupport.log.error("Failed to add monitoring info to the glidein job classads: %s" % qerr)
 
 
 def save_stats(stats, fname):
@@ -202,16 +195,13 @@ def generate_log_tokens(startup_dir, glideinDescript):
     entries = [ed[len("entry_") :] for ed in glob.glob("entry_*") if os.path.isdir(ed)]
 
     # Retrieve the factory secret key (manually delivered) for token generation
-    credentials_dir = os.path.realpath(
-        os.path.join(startup_dir, "..", "server-credentials")
-    )
+    credentials_dir = os.path.realpath(os.path.join(startup_dir, "..", "server-credentials"))
     jwt_key = os.path.join(credentials_dir, "jwt_secret.key")
     if not os.path.exists(jwt_key):
         # create one and log if it doesnt exist, otherwise needs a
         # manual undocumented step to start factory
         logSupport.log.info(
-            "creating %s -manually install  this key for " % (jwt_key)
-            + "authenticating to external web sites"
+            "creating %s -manually install  this key for " % (jwt_key) + "authenticating to external web sites"
         )
         rsa = RSAKey()
         rsa.new(2048)
@@ -221,9 +211,7 @@ def generate_log_tokens(startup_dir, glideinDescript):
         with open(os.path.join(credentials_dir, "jwt_secret.key")) as keyfile:
             secret = keyfile.readline().strip()
     except OSError:
-        logSupport.log.exception(
-            "Cannot find the key for JWT generation (must be manually deposited)."
-        )
+        logSupport.log.exception("Cannot find the key for JWT generation (must be manually deposited).")
         raise
 
     factory_name = glideinDescript.data["FactoryName"]
@@ -233,11 +221,7 @@ def generate_log_tokens(startup_dir, glideinDescript):
 
         # Get the list of recipients
         if "LOG_RECIPIENTS_FACTORY" in glideFactoryConfig.JobParams(entry).data:
-            log_recipients = (
-                glideFactoryConfig.JobParams(entry)
-                .data["LOG_RECIPIENTS_FACTORY"]
-                .split()
-            )
+            log_recipients = glideFactoryConfig.JobParams(entry).data["LOG_RECIPIENTS_FACTORY"].split()
         else:
             log_recipients = []
 
@@ -254,8 +238,7 @@ def generate_log_tokens(startup_dir, glideinDescript):
                 os.makedirs(tokens_dir)
             except OSError as oe:
                 logSupport.log.exception(
-                    "Unable to create JWT entry dir (%s): %s"
-                    % (os.path.join(tokens_dir, entry), oe.strerror)
+                    f"Unable to create JWT entry dir ({os.path.join(tokens_dir, entry)}): {oe.strerror}"
                 )
                 raise
 
@@ -297,9 +280,7 @@ def generate_log_tokens(startup_dir, glideinDescript):
                 with open(token_filepath, "w") as tkfile:
                     tkfile.write(token)
                 # Write to url_dirs.desc
-                with open(
-                    os.path.join(entry_dir, "url_dirs.desc"), "a"
-                ) as url_dirs_desc:
+                with open(os.path.join(entry_dir, "url_dirs.desc"), "a") as url_dirs_desc:
                     url_dirs_desc.write(f"{recipient_url} {recipient_safe_url}\n")
             except OSError:
                 logSupport.log.exception("Unable to create JWT file: ")
@@ -307,9 +288,7 @@ def generate_log_tokens(startup_dir, glideinDescript):
 
         # Create and write tokens.tgz
         try:
-            tokens_tgz = tarfile.open(
-                os.path.join(entry_dir, "tokens.tgz"), "w:gz", dereference=True
-            )
+            tokens_tgz = tarfile.open(os.path.join(entry_dir, "tokens.tgz"), "w:gz", dereference=True)
             tokens_tgz.add(tokens_dir, arcname=os.path.basename(tokens_dir))
         except tarfile.TarError as te:
             logSupport.log.exception("TarError: %s" % str(te))
@@ -514,9 +493,7 @@ def spawn(
 
     childs_uptime = {}
 
-    factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(
-        glideinDescript.data["DowntimesFile"]
-    )
+    factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data["DowntimesFile"])
 
     logSupport.log.info("Available Entries: %s" % entries)
 
@@ -590,16 +567,12 @@ def spawn(
         curr_time = 0  # To ensure curr_time is always initialized
         if int(glideinDescript.data["RemoveOldCredFreq"]) > 0:
             # Convert credential removal frequency from hours to seconds
-            remove_old_cred_freq = (
-                int(glideinDescript.data["RemoveOldCredFreq"]) * 60 * 60
-            )
+            remove_old_cred_freq = int(glideinDescript.data["RemoveOldCredFreq"]) * 60 * 60
             curr_time = time.time()
             update_time = curr_time + remove_old_cred_freq
 
             # Convert credential removal age from days to seconds
-            remove_old_cred_age = (
-                int(glideinDescript.data["RemoveOldCredAge"]) * 60 * 60 * 24
-            )
+            remove_old_cred_age = int(glideinDescript.data["RemoveOldCredAge"]) * 60 * 60 * 24
 
             # Create cleaners for old credential files
             logSupport.log.info("Adding cleaners for old credentials")
@@ -622,15 +595,11 @@ def spawn(
 
             if iteration_timediff >= 3600:  # every hour
                 iteration_basetime = time.time()  # reset the start time
-                fronmonpath = os.path.join(
-                    startup_dir, "monitor", "frontendmonitorlink.txt"
-                )
+                fronmonpath = os.path.join(startup_dir, "monitor", "frontendmonitorlink.txt")
                 fronmonconstraint = '(MyType=="glideclient")'
                 fronmonformat_list = [("WebMonitoringURL", "s"), ("FrontendName", "s")]
                 fronmonstatus = condorMonitor.CondorStatus(subsystem_name="any")
-                fronmondata = fronmonstatus.fetch(
-                    constraint=fronmonconstraint, format_list=fronmonformat_list
-                )
+                fronmondata = fronmonstatus.fetch(constraint=fronmonconstraint, format_list=fronmonformat_list)
                 fronmon_list_names = list(fronmondata.keys())
                 if fronmon_list_names is not None:
                     urlset = set()
@@ -653,31 +622,22 @@ def spawn(
             # If a compromised key is left around and if attacker can somehow
             # trigger FactoryEntry process crash, we do not want the entry
             # to pick up the old key again when factory auto restarts it.
-            if (
-                time.time() > oldkey_eoltime
-                and glideinDescript.data["OldPubKeyObj"] is not None
-            ):
+            if time.time() > oldkey_eoltime and glideinDescript.data["OldPubKeyObj"] is not None:
                 glideinDescript.data["OldPubKeyObj"] = None
                 glideinDescript.data["OldPubKeyType"] = None
                 try:
                     glideinDescript.remove_old_key()
                     logSupport.log.info(
-                        "Removed the old public key after its grace time of %s seconds"
-                        % oldkey_gracetime
+                        "Removed the old public key after its grace time of %s seconds" % oldkey_gracetime
                     )
                 except:
                     # Do not crash if delete fails. Just log it.
-                    logSupport.log.warning(
-                        "Failed to remove the old public key after its grace time"
-                    )
+                    logSupport.log.warning("Failed to remove the old public key after its grace time")
 
             # Only removing credentials in the v3+ protocol
             # Affects Corral Frontend which only supports the v3+ protocol.
             # IF freq < zero, do not do cleanup.
-            if (
-                int(glideinDescript.data["RemoveOldCredFreq"]) > 0
-                and curr_time >= update_time
-            ):
+            if int(glideinDescript.data["RemoveOldCredFreq"]) > 0 and curr_time >= update_time:
                 logSupport.log.info("Checking credentials for cleanup")
 
                 # Query queue for glideins. Don't remove proxies in use.
@@ -700,20 +660,14 @@ def spawn(
             try:
                 classads = glideFactoryCredentials.get_globals_classads()
             except Exception:
-                logSupport.log.error(
-                    "Error occurred retrieving globals classad -- is Condor running?"
-                )
+                logSupport.log.error("Error occurred retrieving globals classad -- is Condor running?")
 
             for classad_key in classads:
                 classad = classads[classad_key]
                 try:
-                    glideFactoryCredentials.process_global(
-                        classad, glideinDescript, frontendDescript
-                    )
+                    glideFactoryCredentials.process_global(classad, glideinDescript, frontendDescript)
                 except:
-                    logSupport.log.exception(
-                        "Error occurred processing the globals classads: "
-                    )
+                    logSupport.log.exception("Error occurred processing the globals classads: ")
 
             logSupport.log.info("Checking EntryGroups %s" % list(childs.keys()))
             for group in childs:
@@ -737,16 +691,11 @@ def spawn(
                 # look for exited child
                 if child.poll():
                     # the child exited
-                    logSupport.log.warning(
-                        "EntryGroup %s exited. Checking if it should be restarted."
-                        % (group)
-                    )
+                    logSupport.log.warning("EntryGroup %s exited. Checking if it should be restarted." % (group))
                     tempOut = child.stdout.readlines()
                     tempErr = child.stderr.readlines()
 
-                    if is_crashing_often(
-                        childs_uptime[group], restart_interval, restart_attempts
-                    ):
+                    if is_crashing_often(childs_uptime[group], restart_interval, restart_attempts):
                         del childs[group]
                         raise RuntimeError(
                             "EntryGroup '%s' has been crashing too often, quit the whole factory:\n%s\n%s"
@@ -785,18 +734,14 @@ def spawn(
                         ):
                             fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                             fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-                        logSupport.log.warning(
-                            f"EntryGroup startup/restart times: {childs_uptime}"
-                        )
+                        logSupport.log.warning(f"EntryGroup startup/restart times: {childs_uptime}")
 
             # Aggregate Monitoring data periodically
             logSupport.log.info("Aggregate monitoring data")
             stats = aggregate_stats(factory_downtimes.checkDowntime())
             save_stats(
                 stats,
-                os.path.join(
-                    startup_dir, glideFactoryConfig.factoryConfig.aggregated_stats_file
-                ),
+                os.path.join(startup_dir, glideFactoryConfig.factoryConfig.aggregated_stats_file),
             )
 
             # Aggregate job data periodically
@@ -872,15 +817,10 @@ def increase_process_limit(new_limit=10000):
             resource.setrlimit(resource.RLIMIT_NPROC, (new_limit, hard))
             logSupport.log.info("Raised RLIMIT_NPROC from %d to %d" % (soft, new_limit))
         except ValueError:
-            logSupport.log.info(
-                "Warning: could not raise RLIMIT_NPROC "
-                "from %d to %d" % (soft, new_limit)
-            )
+            logSupport.log.info("Warning: could not raise RLIMIT_NPROC " "from %d to %d" % (soft, new_limit))
 
     else:
-        logSupport.log.info(
-            "RLIMIT_NPROC already %d, not changing to %d" % (soft, new_limit)
-        )
+        logSupport.log.info("RLIMIT_NPROC already %d, not changing to %d" % (soft, new_limit))
 
 
 ############################################################
@@ -902,9 +842,7 @@ def main(startup_dir):
     frontendDescript = glideFactoryConfig.FrontendDescript()
 
     # set factory_collector at a global level, since we do not expect it to change
-    glideFactoryInterface.factoryConfig.factory_collector = glideinDescript.data[
-        "FactoryCollector"
-    ]
+    glideFactoryInterface.factoryConfig.factory_collector = glideinDescript.data["FactoryCollector"]
 
     # Setup the glideFactoryLib.factoryConfig so that we can process the
     # globals classads
@@ -958,16 +896,12 @@ def main(startup_dir):
         logSupport.log.error(log_msg)
         sys.exit(1)
 
-    write_descript(
-        glideinDescript, frontendDescript, os.path.join(startup_dir, "monitor/")
-    )
+    write_descript(glideinDescript, frontendDescript, os.path.join(startup_dir, "monitor/"))
 
     try:
         os.chdir(startup_dir)
     except:
-        logSupport.log.exception(
-            "Failed starting Factory. Unable to change to startup_dir: "
-        )
+        logSupport.log.exception("Failed starting Factory. Unable to change to startup_dir: ")
         raise
 
     try:
@@ -988,9 +922,7 @@ def main(startup_dir):
             logSupport.log.info("Loading old key")
             glideinDescript.load_old_rsa_key()
     except RSAError as e:
-        logSupport.log.exception(
-            "Failed starting Factory. Exception occurred loading factory keys: "
-        )
+        logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
         key_fname = getattr(e, "key_fname", None)
         cwd = getattr(e, "cwd", None)
         if key_fname and cwd:
@@ -1004,40 +936,33 @@ def main(startup_dir):
             )
         raise
     except OSError as ioe:
-        logSupport.log.exception(
-            "Failed starting Factory. Exception occurred loading factory keys: "
-        )
+        logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
         if ioe.filename == "rsa.key" and ioe.errno == 2:
-            logSupport.log.error(
-                "Missing rsa.key file. Please, reconfigure the factory to recreate it"
-            )
+            logSupport.log.error("Missing rsa.key file. Please, reconfigure the factory to recreate it")
         raise
     except:
-        logSupport.log.exception(
-            "Failed starting Factory. Exception occurred loading factory keys: "
-        )
+        logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
         raise
 
-    glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name = (
-        "%s@%s"
-        % (glideinDescript.data["GlideinName"], glideinDescript.data["FactoryName"])
+    glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name = "{}@{}".format(
+        glideinDescript.data["GlideinName"],
+        glideinDescript.data["FactoryName"],
     )
 
-    glideFactoryInterface.factoryConfig.advertise_use_tcp = glideinDescript.data[
-        "AdvertiseWithTCP"
-    ] in ("True", "1")
-    glideFactoryInterface.factoryConfig.advertise_use_multi = glideinDescript.data[
-        "AdvertiseWithMultiple"
-    ] in ("True", "1")
+    glideFactoryInterface.factoryConfig.advertise_use_tcp = glideinDescript.data["AdvertiseWithTCP"] in ("True", "1")
+    glideFactoryInterface.factoryConfig.advertise_use_multi = glideinDescript.data["AdvertiseWithMultiple"] in (
+        "True",
+        "1",
+    )
     sleep_time = int(glideinDescript.data["LoopDelay"])
     advertize_rate = int(glideinDescript.data["AdvertiseDelay"])
     restart_attempts = int(glideinDescript.data["RestartAttempts"])
     restart_interval = int(glideinDescript.data["RestartInterval"])
 
     try:
-        glideFactoryInterface.factoryConfig.glideinwms_version = (
-            glideinWMSVersion.GlideinWMSDistro("checksum.factory").version()
-        )
+        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(
+            "checksum.factory"
+        ).version()
     except:
         logSupport.log.exception(
             "Non critical Factory error. Exception occurred while trying to retrieve the glideinwms version: "

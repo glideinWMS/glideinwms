@@ -18,19 +18,8 @@ import sys
 import unittest
 
 from unittest import mock
+
 import xmlrunner
-
-from glideinwms.unittests.unittest_utils import FakeLogger, TestImportError
-
-try:
-    import glideinwms.factory.glideFactoryEntry
-    import glideinwms.factory.glideFactoryLib
-    from glideinwms.factory.glideFactoryEntry import Entry
-
-    # TODO - to remove - code commented in glideFactoryEntry.py because unused
-    # from glideinwms.factory.glideFactoryEntry import dump_obj
-except ImportError as err:
-    raise TestImportError(str(err))
 
 # from glideinwms.factory.glideFactoryEntry import X509Proxies
 # from glideinwms.factory.glideFactoryEntry import check_and_perform_work
@@ -39,6 +28,18 @@ except ImportError as err:
 # from glideinwms.factory.glideFactoryEntry import write_descript
 # from glideinwms.factory.glideFactoryEntry import termsignal
 from glideinwms.factory.glideFactoryConfig import FrontendDescript, GlideinDescript
+from glideinwms.unittests.unittest_utils import FakeLogger, TestImportError
+
+try:
+    import glideinwms.factory.glideFactoryEntry
+    import glideinwms.factory.glideFactoryLib
+
+    from glideinwms.factory.glideFactoryEntry import Entry
+
+    # TODO - to remove - code commented in glideFactoryEntry.py because unused
+    # from glideinwms.factory.glideFactoryEntry import dump_obj
+except ImportError as err:
+    raise TestImportError(str(err))
 
 
 class TestEntry(unittest.TestCase):
@@ -49,9 +50,7 @@ class TestEntry(unittest.TestCase):
         self.startup_dir = os.path.join(self.testdir, self.datadir)
         self.entry_name = "el8_osg34"
         os.chdir(self.datadir)
-        self.monitorDir = os.path.join(
-            self.startup_dir, "monitor/entry_%s" % self.entry_name
-        )
+        self.monitorDir = os.path.join(self.startup_dir, "monitor/entry_%s" % self.entry_name)
         try:
             os.makedirs(self.monitorDir)
         except Exception:

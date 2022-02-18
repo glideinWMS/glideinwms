@@ -106,10 +106,7 @@ class Release:
             task = self.tasks[i]
             print("************* Executing %s *************" % (self.tasks[i]).name)
             task.execute()
-            print(
-                "************* %s Status %s *************"
-                % ((self.tasks[i]).name, (self.tasks[i]).status)
-            )
+            print(f"************* {(self.tasks[i]).name} Status {(self.tasks[i]).status} *************")
 
     def printReport(self):
         print(35 * "_")
@@ -212,19 +209,16 @@ class TaskTar(TaskRelease):
         # cmd = 'cd %s/..; /bin/tar %s -czf %s/%s glideinwms' % \
         #      (self.release.sourceDir, exclude, self.release.releaseDir, self.releaseFilename)
         src_dir = f"{self.release.releaseDir}/../src/{self.release.version}"
-        cmd = (
-            "rm -rf %s; mkdir -p %s; cp -r %s %s/glideinwms; cd %s; %s %s -czf %s/%s glideinwms"
-            % (
-                src_dir,
-                src_dir,
-                self.release.sourceDir,
-                src_dir,
-                src_dir,
-                self.tarExe,
-                exclude,
-                self.release.releaseDir,
-                self.releaseFilename,
-            )
+        cmd = "rm -rf {}; mkdir -p {}; cp -r {} {}/glideinwms; cd {}; {} {} -czf {}/{} glideinwms".format(
+            src_dir,
+            src_dir,
+            self.release.sourceDir,
+            src_dir,
+            src_dir,
+            self.tarExe,
+            exclude,
+            self.release.releaseDir,
+            self.releaseFilename,
         )
         print("%s" % cmd)
         execute_cmd(cmd)
@@ -234,15 +228,9 @@ class TaskTar(TaskRelease):
 class TaskVersionFile(TaskRelease):
     def __init__(self, rel):
         TaskRelease.__init__(self, "VersionFile", rel)
-        self.releaseChksumFile = os.path.normpath(
-            os.path.join(self.release.sourceDir, "etc/checksum")
-        )
-        self.frontendChksumFile = os.path.normpath(
-            os.path.join(self.release.sourceDir, "etc/checksum.frontend")
-        )
-        self.factoryChksumFile = os.path.normpath(
-            os.path.join(self.release.sourceDir, "etc/checksum.factory")
-        )
+        self.releaseChksumFile = os.path.normpath(os.path.join(self.release.sourceDir, "etc/checksum"))
+        self.frontendChksumFile = os.path.normpath(os.path.join(self.release.sourceDir, "etc/checksum.frontend"))
+        self.factoryChksumFile = os.path.normpath(os.path.join(self.release.sourceDir, "etc/checksum.factory"))
         self.excludes = PackageExcludes()
         self.checksumFilePattern = "etc/checksum*"
         self.chksumBin = os.path.normpath(os.path.join(sys.path[0], "chksum.sh"))
@@ -254,9 +242,7 @@ class TaskVersionFile(TaskRelease):
         self.status = "COMPLETE"
 
     def checksumRelease(self, chksumFile, exclude):
-        excludePattern = (
-            self.checksumFilePattern + " install/templates CVS config_examples "
-        )
+        excludePattern = self.checksumFilePattern + " install/templates CVS config_examples "
         if len(exclude) > 0:
             excludePattern = '"' + "%s " % excludePattern + " ".join(exclude) + '"'
         cmd = "cd {}; {} {} {} {}".format(
@@ -280,13 +266,9 @@ class TaskRPM(TaskTar):
         self.releaseFile = os.path.join(self.release.releaseDir, self.releaseFilename)
         self.rpmPkgDir = os.path.join(self.release.sourceDir, "build/packaging/rpm")
         self.specFileTemplate = os.path.join(self.rpmPkgDir, "glideinwms.spec")
-        self.specFile = os.path.join(
-            self.release.rpmbuildDir, "SPECS", "glideinwms.spec"
-        )
+        self.specFile = os.path.join(self.release.rpmbuildDir, "SPECS", "glideinwms.spec")
         # self.rpmmacrosFile = os.path.join(os.path.expanduser('~'),
-        self.rpmmacrosFile = os.path.join(
-            os.path.dirname(self.release.rpmbuildDir), ".rpmmacros"
-        )
+        self.rpmmacrosFile = os.path.join(os.path.dirname(self.release.rpmbuildDir), ".rpmmacros")
         self.sourceFilenames = [
             "chksum.sh",
             "factory_startup",
@@ -360,14 +342,11 @@ class TaskRPM(TaskTar):
             self.python_version,
         )
         execute_cmd(cmd)
-        cmd = (
-            "mock --no-clean -r epel-%s-x86_64 --macro-file=%s --resultdir=%s/RPMS rebuild %s"
-            % (
-                self.release.rpmOSVersion[1],
-                self.rpmmacrosFile,
-                self.release.rpmbuildDir,
-                self.release.srpmFile,
-            )
+        cmd = "mock --no-clean -r epel-{}-x86_64 --macro-file={} --resultdir={}/RPMS rebuild {}".format(
+            self.release.rpmOSVersion[1],
+            self.rpmmacrosFile,
+            self.release.rpmbuildDir,
+            self.release.srpmFile,
         )
         execute_cmd(cmd)
 

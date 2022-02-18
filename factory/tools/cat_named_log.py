@@ -19,9 +19,10 @@
 import os.path
 import sys
 
+from glideinwms.factory.tools.lib import gWftLogParser
+
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
-from glideinwms.factory.tools.lib import gWftLogParser
 
 USAGE = "Usage: cat_named_log.py [-monitor] <HTC_log> <GWMS_logname>"
 

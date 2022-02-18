@@ -26,10 +26,10 @@ repos:
       - id: python-check-blanket-noqa
       - id: python-check-blanket-type-ignore
       - id: python-use-type-annotations
-#  - repo: "https://github.com/pycqa/isort"
-#    rev: 5.10.1
-#    hooks:
-#      - id: isort
+  - repo: "https://github.com/pycqa/isort"
+    rev: 5.10.1
+    hooks:
+      - id: isort
   - repo: "https://github.com/psf/black"
     rev: 22.1.0
     hooks:
@@ -55,19 +55,6 @@ repos:
       - id: reuse
         additional_dependencies:
           - python-debian==0.1.40
-#  jsonnetfmt requires golang 1.11+ and git 2.0, uncomment when we are compatible
-#  - repo: https://github.com/google/go-jsonnet.git
-#    rev: 2f2f6d664f06d064c4b3525ea34a789c1ac95cda
-#    hooks:
-#      - id: jsonnet-format
-#        language_version: "1.11"
-#        exclude: "empty.*|invalid.jsonnet"
-#        args:
-#          - "--in-place"
-#          - "--string-style"
-#          - "d"
-#          - "--comment-style"
-#          - "s"
 #  sort-all requires python 3.8+, uncomment when we are compatible
 #  - repo: "https://github.com/aio-libs/sort-all"
 #    rev: v1.1.0

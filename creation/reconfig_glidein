@@ -17,30 +17,17 @@ import sys
 import tarfile
 import tempfile
 
-STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR, "../.."))
-
 # from glideinwms.creation.lib import cWConsts
 # from glideinwms.creation.lib import cgWParams
 # from glideinwms.creation.lib import cgWDictFile
-from glideinwms.creation.lib import (
-    cgWConsts,
-    cgWCreate,
-    cgWParamDict,
-    factoryXmlConfig,
-    xslt,
-)
-from glideinwms.factory import (
-    glideFactoryConfig,
-    glideFactoryLib,
-    glideFactoryMonitorAggregator,
-)
+from glideinwms.creation.lib import cgWConsts, cgWCreate, cgWParamDict, factoryXmlConfig, xslt
+from glideinwms.factory import glideFactoryConfig, glideFactoryLib, glideFactoryMonitorAggregator
 from glideinwms.lib import logSupport
-from glideinwms.lib.util import (
-    HOOK_POST_RECONFIG_DIRNAME,
-    HOOK_PRE_RECONFIG_DIRNAME,
-    handle_hooks,
-)
+from glideinwms.lib.util import handle_hooks, HOOK_POST_RECONFIG_DIRNAME, HOOK_PRE_RECONFIG_DIRNAME
+
+STARTUP_DIR = sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR, "../.."))
+
 
 FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 
@@ -160,33 +147,24 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         # create tarball of files to be later sourced and shared between scripts
         tar_file_list = cgWConsts.STARTUP_FILE_PAYLOAD
         try:
-            with tarfile.open(
-                "tar_utils.tar.gz", "w:gz", dereference=True
-            ) as tar_utils:
+            with tarfile.open("tar_utils.tar.gz", "w:gz", dereference=True) as tar_utils:
                 for util_file in tar_file_list:
                     util_file_path = os.path.join(cgWConsts.WEB_BASE_DIR, util_file)
-                    tar_utils.add(
-                        util_file_path, arcname=os.path.basename(util_file_path)
-                    )
+                    tar_utils.add(util_file_path, arcname=os.path.basename(util_file_path))
         except tarfile.TarError as te:
             print2("Unable to pack the startup file payload. TarError: %s" % str(te))
             sys.exit(1)
         # append the the tarball to glidein_startup.sh
         try:
             with open(
-                os.path.join(
-                    glidein_dicts_obj.main_dicts.work_dir, cgWConsts.STARTUP_FILE
-                ),
+                os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.STARTUP_FILE),
                 "ab",
             ) as st_file:
                 st_file.write(b"exit 0\n#EOF\n")
                 with open("tar_utils.tar.gz", "rb") as tar_utils:
                     shutil.copyfileobj(tar_utils, st_file)
         except OSError as ioe:
-            print2(
-                "Unable to append the payload to the startup file. IOError [%d]: %s"
-                % (ioe.errno, ioe.strerror)
-            )
+            print2("Unable to append the payload to the startup file. IOError [%d]: %s" % (ioe.errno, ioe.strerror))
             sys.exit(1)
         os.remove("tar_utils.tar.gz")
         print2("...Updated the glidein_startup.sh and local_start.sh scripts")
@@ -211,9 +189,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
     if update_def_cfg == "yes" or update_scripts == "yes":
         # recreate the init.d startup file
         # This will never happen in RPM installations (because of the init.d file)
-        startup_fname = os.path.join(
-            glidein_dicts_obj.main_dicts.work_dir, cgWConsts.INITD_STARTUP_FILE
-        )
+        startup_fname = os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.INITD_STARTUP_FILE)
         factory_dir = glidein_dicts_obj.main_dicts.work_dir
 
         # Remove startup file if already exists
@@ -314,9 +290,7 @@ if __name__ == "__main__":
 
     try:
         transformed_xmlfile = tempfile.NamedTemporaryFile()
-        transformed_xmlfile.write(
-            xslt.xslt_xml(old_xmlfile=xml, xslt_plugin_dir=xslt_plugin_dir)
-        )
+        transformed_xmlfile.write(xslt.xslt_xml(old_xmlfile=xml, xslt_plugin_dir=xslt_plugin_dir))
         transformed_xmlfile.flush()
 
         args = [argv[0], transformed_xmlfile.name]
@@ -324,18 +298,13 @@ if __name__ == "__main__":
         glidein_name = conf["glidein_name"]
         if force_name is not None:
             if glidein_name != force_name:
-                raise UsageError(
-                    "This is not a '%s' config file ('%s' found)"
-                    % (force_name, glidein_name)
-                )
+                raise UsageError(f"This is not a '{force_name}' config file ('{glidein_name}' found)")
 
         if not (writeback in ("yes", "no")):
             raise UsageError("-writeback must be yes or no, found '%s'" % writeback)
 
         if not (update_def_cfg in ("yes", "no")):
-            raise UsageError(
-                "-update_def_cfg must be yes or no, found '%s'" % update_def_cfg
-            )
+            raise UsageError("-update_def_cfg must be yes or no, found '%s'" % update_def_cfg)
 
         try:
             # This is the current running version, saved in the glidein work dir

@@ -22,16 +22,12 @@ def xslt_xml(old_xmlfile, xslt_plugin_dir):
 
     """
 
-    old_xml_fd = open(
-        old_xmlfile, "rb"
-    )  # Opening as binary, to be consistent w/ the pipe from Popen
+    old_xml_fd = open(old_xmlfile, "rb")  # Opening as binary, to be consistent w/ the pipe from Popen
     if not xslt_plugin_dir:
         return old_xml_fd.read()
 
     try:
-        plugins = [
-            os.path.join(xslt_plugin_dir, f) for f in os.listdir(xslt_plugin_dir)
-        ]
+        plugins = [os.path.join(xslt_plugin_dir, f) for f in os.listdir(xslt_plugin_dir)]
     except OSError as e:
         print(f"Error opening {xslt_plugin_dir} directory: {e.strerror}")
         return old_xml_fd.read()

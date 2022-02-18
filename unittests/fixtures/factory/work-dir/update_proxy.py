@@ -49,9 +49,7 @@ def compress_credential(credential_data):
         f.close()
         return base64.b64encode(cfile.getvalue())
     except:
-        tb = traceback.format_exception(
-            sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-        )
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
         msg = "Error compressing credential: \n%s" % tb
         raise CompressionError(msg)
 
@@ -121,9 +119,7 @@ def main():
         update_credential(fname, credential_data)
         if fname_compressed:
             compressed_credential = compress_credential(credential_data)
-            update_credential(
-                fname_compressed, "glidein_credentials=%s" % compressed_credential
-            )
+            update_credential(fname_compressed, "glidein_credentials=%s" % compressed_credential)
             # in branch_v3_2 after migration_3_1 WAS: update_credential(fname_compressed, compressed_credential)
     except ProxyEnvironmentError as ex:
         sys.stderr.write(str(ex))

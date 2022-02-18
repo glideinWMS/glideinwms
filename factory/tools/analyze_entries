@@ -10,13 +10,14 @@ import getopt
 import os
 import re
 import sys
-from urllib.request import urlopen
 
-STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
+from urllib.request import urlopen
 
 from glideinwms.factory.tools.lib import analyze
 from glideinwms.lib import xmlParse
+
+STARTUP_DIR = sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 
 
 def frontend_print(
@@ -55,25 +56,15 @@ def frontend_print(
                 frontend.lstrip("frontend_"),
                 analyze.km(float(d["total_time"]) / float(div)),
                 analyze.km(float(d["used"]) / float(div)),
-                (float(d["used"]) / float(div))
-                / (float(d["total_time"]) / float(div))
-                * 100.0,
+                (float(d["used"]) / float(div)) / (float(d["total_time"]) / float(div)) * 100.0,
                 analyze.km(float(d["validation"]) / float(div)),
-                (float(d["validation"]) / float(div))
-                / (float(d["total_time"]) / float(div))
-                * 100.0,
+                (float(d["validation"]) / float(div)) / (float(d["total_time"]) / float(div)) * 100.0,
                 analyze.km(float(d["idle"]) / float(div)),
-                (float(d["idle"]) / float(div))
-                / (float(d["total_time"]) / float(div))
-                * 100.0,
+                (float(d["idle"]) / float(div)) / (float(d["total_time"]) / float(div)) * 100.0,
                 analyze.km(float(d["waste"]) / float(div)),
-                (float(d["waste"]) / float(div))
-                / (float(d["total_time"]) / float(div))
-                * 100.0,
+                (float(d["waste"]) / float(div)) / (float(d["total_time"]) / float(div)) * 100.0,
                 analyze.km(float(d["badput"]) / float(div)),
-                (float(d["badput"]) / float(div))
-                / (float(d["total_time"]) / float(div))
-                * 100.0,
+                (float(d["badput"]) / float(div)) / (float(d["total_time"]) / float(div)) * 100.0,
                 float(d["used"]) / float(d["used"] + d["waste"]),
             ),
         )
@@ -83,9 +74,7 @@ def frontend_print(
 
 def blockprint(title, d, p, pd):
     if pd != 0:
-        s = " - %.1f%% of total" % (
-            float(d["glideins"]) / float(pd["glideins"]) * 100.0
-        )
+        s = " - %.1f%% of total" % (float(d["glideins"]) / float(pd["glideins"]) * 100.0)
         t = ""
     else:
         s = ""
@@ -300,9 +289,7 @@ USAGE:
     min_limit = {}
 
     try:
-        opts, args = getopt.getopt(
-            sys.argv[1:], "x:hwf:l:pms:", ["source=", "ms", "mh", "msort=", "nb"]
-        )
+        opts, args = getopt.getopt(sys.argv[1:], "x:hwf:l:pms:", ["source=", "ms", "mh", "msort=", "nb"])
     except getopt.GetoptError:
         print("\n Option not recognized or missing parameters.")
         print(" Use -h for usage.\n")
@@ -509,17 +496,10 @@ USAGE:
                 i = 0
                 for x_data in [c_data, j_data, w_data]:
                     try:
-                        for a, b in x_data["entries"][entry]["frontends"][frontend][
-                            "periods"
-                        ][period].items():
-                            data[int(period)][frontend][entry][a] = int(
-                                float(b) * int(period)
-                            )
+                        for a, b in x_data["entries"][entry]["frontends"][frontend]["periods"][period].items():
+                            data[int(period)][frontend][entry][a] = int(float(b) * int(period))
                     except:
-                        print(
-                            "\nEntry %s in %s is missing %s; continuing\n"
-                            % (entry, rrd_name_list[i], frontend)
-                        )
+                        print(f"\nEntry {entry} in {rrd_name_list[i]} is missing {frontend}; continuing\n")
                     i = i + 1
 
     ######################################################################
@@ -636,16 +616,12 @@ Glidein log analysis for frontend %s - %s
                 ]:
                     if a not in entry_data_all_frontends[period][entry]:
                         try:
-                            entry_data_all_frontends[period][entry][a] = data[period][
-                                frontend
-                            ][entry][a]
+                            entry_data_all_frontends[period][entry][a] = data[period][frontend][entry][a]
                         except:
                             entry_data_all_frontends[period][entry][a] = 0
                     else:
                         try:
-                            entry_data_all_frontends[period][entry][a] += data[period][
-                                frontend
-                            ][entry][a]
+                            entry_data_all_frontends[period][entry][a] += data[period][frontend][entry][a]
                         except:
                             entry_data_all_frontends[period][entry][a] = 0
 

@@ -52,9 +52,7 @@ FROM_TAG_FILE = [
     KNOWN_ISSUE,
 ]
 FROM_TAG_FILE_EXT = (
-    [BACKPORT, NOTE, NOTE_FACTORY, NOTE_FRONTEND, NOT_BACKWARD_COMPATIBLE]
-    + BUGFIX_ALIASES
-    + KNOWN_ISSUE_ALIASES
+    [BACKPORT, NOTE, NOTE_FACTORY, NOTE_FRONTEND, NOT_BACKWARD_COMPATIBLE] + BUGFIX_ALIASES + KNOWN_ISSUE_ALIASES
 )
 TAG_ALIAS = {
     BACKPORT: BACKPORT,
@@ -219,10 +217,7 @@ def load_txt(infile):
                             rel_line = f"{rel_line}\n{current.lstrip()}"
                             continue
                         elif indent < block_indent:
-                            raise Exception(
-                                "Error parsing TAG file %s: malformed indentation: %s"
-                                % (infile, current)
-                            )
+                            raise Exception(f"Error parsing TAG file {infile}: malformed indentation: {current}")
                         # indent == block_indent (new item)
                         rel_lines.append(rel_line)
                         rel_line = current.lstrip()
@@ -321,10 +316,7 @@ def release2html(v, tags):
     """
     tar_string = ""
     if tags["Tarball"]:
-        tar_string = (
-            ',<a href="http://glideinwms.fnal.gov/glideinWMS_%s.tgz">Tarball</a>'
-            % tags["Name"]
-        )
+        tar_string = ',<a href="http://glideinwms.fnal.gov/glideinWMS_%s.tgz">Tarball</a>' % tags["Name"]
     tmp = (
         """<li>
   <a id="{Name}"><b>{Name}</b></a> released on {Date} (<a href="http://glideinwms.fnal.gov/doc.{Name}/index.html">Manual</a>,
@@ -400,27 +392,16 @@ def dump_history(release_tags, h_file="doc/history.html"):
         with open("%s.new.html" % h_file, "w") as h_new:
             end_string = None
             for line in h_old:
-                if (
-                    line.strip() == "<!-- start stable -->"
-                    or line.strip() == "<!-- start development -->"
-                ):
+                if line.strip() == "<!-- start stable -->" or line.strip() == "<!-- start development -->":
                     if line.strip() == "<!-- start stable -->":
                         # stable series list
                         # From 3.4 on
-                        release = [
-                            r
-                            for r in release_all
-                            if r.startswith("v3_") and int(r[3]) % 2 == 0
-                        ]
+                        release = [r for r in release_all if r.startswith("v3_") and int(r[3]) % 2 == 0]
                         end_string = "<!-- end stable -->"
                     elif line.strip() == "<!-- start development -->":
                         # for development
                         # From 3.3 on
-                        release = [
-                            r
-                            for r in release_all
-                            if r.startswith("v3_") and int(r[3]) % 2 == 1
-                        ]
+                        release = [r for r in release_all if r.startswith("v3_") and int(r[3]) % 2 == 1]
                         end_string = "<!-- end development -->"
                     else:
                         # There are only 2 option
@@ -438,9 +419,7 @@ def dump_history(release_tags, h_file="doc/history.html"):
                     h_new.write(line)
     # closing both files
     if release or end_string:
-        raise Exception(
-            "Wrong history.html file format, section not closed (%s)" % end_string
-        )
+        raise Exception("Wrong history.html file format, section not closed (%s)" % end_string)
 
 
 def test(release_tags):

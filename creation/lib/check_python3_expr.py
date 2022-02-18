@@ -19,6 +19,7 @@ import ast
 import difflib
 import sys
 import xml.etree.ElementTree as ET
+
 from types import SimpleNamespace
 
 # Initialize a refactoring tool if 2to3 is available
@@ -68,9 +69,7 @@ def check_types(expression, factory_attrs, job_attrs):
 
     try:
         job = {attr: default_value[type] for (attr, type) in job_attrs}
-        glidein = {
-            "attrs": {attr: default_value[type] for (attr, type) in factory_attrs}
-        }
+        glidein = {"attrs": {attr: default_value[type] for (attr, type) in factory_attrs}}
     except KeyError as e:
         return f"Invalid match_attr type: {e.args[0]}"
 
@@ -99,14 +98,8 @@ def check_2to3(code, patch=False, refactoring_tool=rt):
     suggestion = None
     if refactoring_tool:
         try:
-            suggested_code = str(refactoring_tool.refactor_string(f"{code}\n", None))[
-                :-1
-            ]
-            diff = "\n".join(
-                difflib.unified_diff(
-                    code.split("\n"), suggested_code.split("\n"), lineterm=""
-                )
-            )
+            suggested_code = str(refactoring_tool.refactor_string(f"{code}\n", None))[:-1]
+            diff = "\n".join(difflib.unified_diff(code.split("\n"), suggested_code.split("\n"), lineterm=""))
             if len(diff) > 0:
                 if patch:
                     suggestion = diff
@@ -234,12 +227,8 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
             _log("\nSyntax check: ", silent)
             error = check_syntax(expr)
             if not error:
-                factory_attrs = match_attrs_to_tuples(
-                    element.data.find("./factory/match_attrs")
-                )
-                job_attrs = match_attrs_to_tuples(
-                    element.data.find("./job/match_attrs")
-                )
+                factory_attrs = match_attrs_to_tuples(element.data.find("./factory/match_attrs"))
+                job_attrs = match_attrs_to_tuples(element.data.find("./job/match_attrs"))
                 if factory_attrs or job_attrs:
                     error = check_types(expr, factory_attrs, job_attrs)
             if not error:
@@ -314,13 +303,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Validate expressions in frontend.xml for compatibility with Python 3."
     )
-    parser.add_argument(
-        "-f", "--file", metavar="PATH", type=str, help="path to the configuration file"
-    )
+    parser.add_argument("-f", "--file", metavar="PATH", type=str, help="path to the configuration file")
     parser.add_argument("-s", "--silent", action="store_true", help="silent mode")
-    parser.add_argument(
-        "--enforce-2to3", action="store_true", help="treats 2to3 suggestions as errors"
-    )
+    parser.add_argument("--enforce-2to3", action="store_true", help="treats 2to3 suggestions as errors")
     args = parser.parse_args()
 
     if args.file:

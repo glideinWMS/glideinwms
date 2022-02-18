@@ -35,6 +35,6 @@ combine_star = "True"
 float_to_top = "True"
 order_by_type = "True"
 dedup_headings = "True"
-known_first_party = ["decisionengine"]
+known_first_party = ["glideinwms"]
 lines_between_types = 1
 force_alphabetical_sort_within_sections = "True"

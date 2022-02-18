@@ -45,9 +45,7 @@ class TestLogSupport(unittest.TestCase):
         self.log_base_dir = tempfile.mkdtemp()
         self.format = "%Y-%m-%d_%H-%M"
 
-        config_file = "%s/test_logSupport.yaml" % os.path.join(
-            sys.path[0], "test_configurations"
-        )
+        config_file = "%s/test_logSupport.yaml" % os.path.join(sys.path[0], "test_configurations")
         self.config = yaml.load(open(config_file), Loader=yaml.FullLoader)
         self.replace = Replacer()
         self.replace(

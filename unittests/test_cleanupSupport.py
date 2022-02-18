@@ -23,7 +23,7 @@ import unittest
 import xmlrunner
 
 from glideinwms.lib import cleanupSupport, logSupport
-from glideinwms.unittests.unittest_utils import FakeLogger, create_temp_file
+from glideinwms.unittests.unittest_utils import create_temp_file, FakeLogger
 
 
 class TestCleanupSupport(unittest.TestCase):
@@ -94,9 +94,7 @@ class TestCleanupSupport(unittest.TestCase):
         @return: Number in cleanup files found
         """
         files = os.listdir(self.cleanup_dir)
-        files = [
-            filename for filename in files if filename.endswith(self.cleanup_extension)
-        ]
+        files = [filename for filename in files if filename.endswith(self.cleanup_extension)]
         return len(files)
 
     def check_for_noncleanup_files(self):
@@ -107,9 +105,7 @@ class TestCleanupSupport(unittest.TestCase):
         @return: Number in non-cleanup files found
         """
         files = os.listdir(self.cleanup_dir)
-        files = [
-            filename for filename in files if filename.endswith(self.keep_extension)
-        ]
+        files = [filename for filename in files if filename.endswith(self.keep_extension)]
         return len(files)
 
     def test_DirCleanupWSpace(self):
@@ -119,17 +115,14 @@ class TestCleanupSupport(unittest.TestCase):
         presence of cleanup files.  Fail if any exist.  Also check for the presence of
         the other files created.  Fail if any were deleted.
         """
-        cleaner = cleanupSupport.DirCleanupWSpace(
-            self.cleanup_dir, r".*\%s" % self.cleanup_extension, 0, 0, 0
-        )
+        cleaner = cleanupSupport.DirCleanupWSpace(self.cleanup_dir, r".*\%s" % self.cleanup_extension, 0, 0, 0)
         cleaner.cleanup()
         num_cleanup_files_left = self.check_for_cleanup_files()
         num_noncleanup_files_left = self.check_for_noncleanup_files()
         self.assertEqual(
             num_cleanup_files_left,
             0,
-            "The cleaner left %s files that should have been deleted."
-            % str(num_cleanup_files_left),
+            "The cleaner left %s files that should have been deleted." % str(num_cleanup_files_left),
         )
         self.assertEqual(
             num_noncleanup_files_left,

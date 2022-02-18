@@ -5,6 +5,7 @@
 
 import os
 import sys
+
 from subprocess import PIPE, Popen
 
 
@@ -64,11 +65,7 @@ def check_output(*popenargs, **kwargs):
 def main():
     number_of_forks = 50
     for _ in range(0, number_of_forks):
-        check_output(
-            [
-                "/home/tiradani/workspace/glideinwms/unittests/worker_scripts/log_writer.py"
-            ]
-        )
+        check_output(["/home/tiradani/workspace/glideinwms/unittests/worker_scripts/log_writer.py"])
 
 
 if __name__ == "__main__":

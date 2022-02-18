@@ -20,6 +20,7 @@ import shutil
 import string
 
 import glideinwms.lib.subprocessSupport
+
 from glideinwms.lib.util import chmod
 
 from . import cgWConsts, cWConsts, cWDictFile
@@ -29,10 +30,7 @@ from . import cgWConsts, cWConsts, cWDictFile
 class MonitorGroupDictFile(cWDictFile.DictFile):
     def file_header(self, want_comments):
         if want_comments:
-            return (
-                "<!-- This entry is part of following monitoring groups -->\n"
-                + "<monitorgroups>"
-            )
+            return "<!-- This entry is part of following monitoring groups -->\n" + "<monitorgroups>"
         else:
             return "<monitorgroups>"
 
@@ -66,10 +64,7 @@ class MonitorGroupDictFile(cWDictFile.DictFile):
         if len(arr) == 0:
             return  # empty line
         if len(arr) != 4:
-            raise RuntimeError(
-                "Not a valid var line (expected 4, found %i elements): '%s'"
-                % (len(arr), line)
-            )
+            raise RuntimeError("Not a valid var line (expected 4, found %i elements): '%s'" % (len(arr), line))
 
         key = arr[-1]
         return self.add(key, arr[:-1])
@@ -123,10 +118,7 @@ class InfoSysDictFile(cWDictFile.DictFile):
         if len(arr) == 0:
             return  # empty line
         if len(arr) != 4:
-            raise RuntimeError(
-                "Not a valid var line (expected 4, found %i elements): '%s'"
-                % (len(arr), line)
-            )
+            raise RuntimeError("Not a valid var line (expected 4, found %i elements): '%s'" % (len(arr), line))
 
         key = arr[-1]
         return self.add(key, arr[:-1])
@@ -150,9 +142,7 @@ class CondorJDLDictFile(cWDictFile.DictFile):
         jobs_in_cluster=None,
         fname_idx=None,
     ):  # if none, use fname
-        cWDictFile.DictFile.__init__(
-            self, dir, fname, sort_keys, order_matters, fname_idx
-        )
+        cWDictFile.DictFile.__init__(self, dir, fname, sort_keys, order_matters, fname_idx)
         self.jobs_in_cluster = jobs_in_cluster
 
     def append(self, key, val):
@@ -168,10 +158,7 @@ class CondorJDLDictFile(cWDictFile.DictFile):
                 # should add some protection about correct quoting
                 self.add(f"{val[:-1]} {self[key][1:]}", True)
         else:
-            raise RuntimeError(
-                "CondorJDLDictFile append unsupported for key %s (val: %s)!"
-                % (key, val)
-            )
+            raise RuntimeError(f"CondorJDLDictFile append unsupported for key {key} (val: {val})!")
 
     def add_environment(self, val):
         curenv = self.get("environment")
@@ -225,9 +212,7 @@ class CondorJDLDictFile(cWDictFile.DictFile):
         compare_keys=None,
     ):  # if None, use order_matters
         if self.jobs_in_cluster == other.jobs_in_cluster:
-            return cWDictFile.DictFile.is_equal(
-                other, compare_dir, compare_fname, compare_keys
-            )
+            return cWDictFile.DictFile.is_equal(other, compare_dir, compare_fname, compare_keys)
         else:
             return False
 
@@ -280,16 +265,10 @@ def get_common_dicts(submit_dir, stage_dir):
 
 def get_main_dicts(submit_dir, stage_dir):
     main_dicts = get_common_dicts(submit_dir, stage_dir)
-    main_dicts["summary_signature"] = cWDictFile.SummarySHA1DictFile(
-        submit_dir, cWConsts.SUMMARY_SIGNATURE_FILE
-    )
+    main_dicts["summary_signature"] = cWDictFile.SummarySHA1DictFile(submit_dir, cWConsts.SUMMARY_SIGNATURE_FILE)
     main_dicts["glidein"] = cWDictFile.StrDictFile(submit_dir, cgWConsts.GLIDEIN_FILE)
-    main_dicts["frontend_descript"] = cWDictFile.ReprDictFile(
-        submit_dir, cgWConsts.FRONTEND_DESCRIPT_FILE
-    )
-    main_dicts["gridmap"] = cWDictFile.GridMapDict(
-        stage_dir, cWConsts.insert_timestr(cWConsts.GRIDMAP_FILE)
-    )
+    main_dicts["frontend_descript"] = cWDictFile.ReprDictFile(submit_dir, cgWConsts.FRONTEND_DESCRIPT_FILE)
+    main_dicts["gridmap"] = cWDictFile.GridMapDict(stage_dir, cWConsts.insert_timestr(cWConsts.GRIDMAP_FILE))
     main_dicts["at_file_list"] = cWDictFile.FileDictFile(
         stage_dir,
         cWConsts.insert_timestr(cgWConsts.AT_FILE_LISTFILE),
@@ -305,13 +284,9 @@ def get_main_dicts(submit_dir, stage_dir):
 
 def get_entry_dicts(entry_submit_dir, entry_stage_dir, entry_name):
     entry_dicts = get_common_dicts(entry_submit_dir, entry_stage_dir)
-    entry_dicts["job_descript"] = cWDictFile.StrDictFile(
-        entry_submit_dir, cgWConsts.JOB_DESCRIPT_FILE
-    )
+    entry_dicts["job_descript"] = cWDictFile.StrDictFile(entry_submit_dir, cgWConsts.JOB_DESCRIPT_FILE)
     entry_dicts["infosys"] = InfoSysDictFile(entry_submit_dir, cgWConsts.INFOSYS_FILE)
-    entry_dicts["mongroup"] = MonitorGroupDictFile(
-        entry_submit_dir, cgWConsts.MONITOR_CONFIG_FILE
-    )
+    entry_dicts["mongroup"] = MonitorGroupDictFile(entry_submit_dir, cgWConsts.MONITOR_CONFIG_FILE)
     return entry_dicts
 
 
@@ -352,15 +327,11 @@ def load_main_dicts(main_dicts):  # update in place
     # print "\ndebug %s dir(main_dicts['description']) = %s" % (__file__, dir(main_dicts['description']))
     # TODO: To remove if upgrade from older versions is not a problem
     try:
-        main_dicts["at_file_list"].load(
-            fname=main_dicts["description"].vals2["at_file_list"]
-        )
+        main_dicts["at_file_list"].load(fname=main_dicts["description"].vals2["at_file_list"])
     except KeyError:
         # when upgrading form older version the new at_file_list may not be in the description
         main_dicts["at_file_list"].load()
-    main_dicts["after_file_list"].load(
-        fname=main_dicts["description"].vals2["after_file_list"]
-    )
+    main_dicts["after_file_list"].load(fname=main_dicts["description"].vals2["after_file_list"])
     load_common_dicts(main_dicts, main_dicts["description"])
 
 
@@ -371,9 +342,7 @@ def load_entry_dicts(entry_dicts, entry_name, summary_signature):  # update in p
         pass  # ignore errors, this is optional
     entry_dicts["job_descript"].load()
     # load the description (name from summary_signature)
-    entry_dicts["description"].load(
-        fname=summary_signature[cgWConsts.get_entry_stage_dir("", entry_name)][1]
-    )
+    entry_dicts["description"].load(fname=summary_signature[cgWConsts.get_entry_stage_dir("", entry_name)][1])
     # all others are keyed in the description
     load_common_dicts(entry_dicts, entry_dicts["description"])
 
@@ -387,17 +356,13 @@ def load_entry_dicts(entry_dicts, entry_name, summary_signature):  # update in p
 
 def refresh_description(dicts):  # update in place
     description_dict = dicts["description"]
-    description_dict.add(
-        dicts["signature"].get_fname(), "signature", allow_overwrite=True
-    )
+    description_dict.add(dicts["signature"].get_fname(), "signature", allow_overwrite=True)
     for k in ("file_list", "at_file_list", "after_file_list"):
         if k in dicts:
             description_dict.add(dicts[k].get_fname(), k, allow_overwrite=True)
 
 
-def refresh_file_list(
-    dicts, is_main, files_set_readonly=True, files_reset_changed=True  # update in place
-):
+def refresh_file_list(dicts, is_main, files_set_readonly=True, files_reset_changed=True):  # update in place
     """Update in place the file lists dictionaries
 
     Args:
@@ -410,43 +375,27 @@ def refresh_file_list(
     file_dict = dicts["file_list"]  # FileDictFile
     file_dict.add_from_bytes(
         cWConsts.CONSTS_FILE,
-        cWDictFile.FileDictFile.make_val_tuple(
-            dicts["consts"].get_fname(), "regular", config_out="CONSTS_FILE"
-        ),
-        dicts["consts"].save_into_bytes(
-            set_readonly=files_set_readonly, reset_changed=files_reset_changed
-        ),
+        cWDictFile.FileDictFile.make_val_tuple(dicts["consts"].get_fname(), "regular", config_out="CONSTS_FILE"),
+        dicts["consts"].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
         allow_overwrite=True,
     )
     file_dict.add_from_bytes(
         cWConsts.VARS_FILE,
-        cWDictFile.FileDictFile.make_val_tuple(
-            dicts["vars"].get_fname(), "regular", config_out="CONDOR_VARS_FILE"
-        ),
-        dicts["vars"].save_into_bytes(
-            set_readonly=files_set_readonly, reset_changed=files_reset_changed
-        ),
+        cWDictFile.FileDictFile.make_val_tuple(dicts["vars"].get_fname(), "regular", config_out="CONDOR_VARS_FILE"),
+        dicts["vars"].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
         allow_overwrite=True,
     )
     file_dict.add_from_bytes(
         cWConsts.UNTAR_CFG_FILE,
-        cWDictFile.FileDictFile.make_val_tuple(
-            dicts["untar_cfg"].get_fname(), "regular", config_out="UNTAR_CFG_FILE"
-        ),
-        dicts["untar_cfg"].save_into_bytes(
-            set_readonly=files_set_readonly, reset_changed=files_reset_changed
-        ),
+        cWDictFile.FileDictFile.make_val_tuple(dicts["untar_cfg"].get_fname(), "regular", config_out="UNTAR_CFG_FILE"),
+        dicts["untar_cfg"].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
         allow_overwrite=True,
     )
     if is_main and "gridmap" in dicts:
         file_dict.add_from_bytes(
             cWConsts.GRIDMAP_FILE,
-            cWDictFile.FileDictFile.make_val_tuple(
-                dicts["gridmap"].get_fname(), "regular", config_out="GRIDMAP"
-            ),
-            dicts["gridmap"].save_into_bytes(
-                set_readonly=files_set_readonly, reset_changed=files_reset_changed
-            ),
+            cWDictFile.FileDictFile.make_val_tuple(dicts["gridmap"].get_fname(), "regular", config_out="GRIDMAP"),
+            dicts["gridmap"].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
             allow_overwrite=True,
         )
 
@@ -471,9 +420,7 @@ def refresh_signature(dicts):  # update in place
         if k in dicts:
             filedict = dicts[k]
             for fname in filedict.get_immutable_files():
-                signature_dict.add_from_file(
-                    os.path.join(filedict.dir, fname), allow_overwrite=True
-                )
+                signature_dict.add_from_file(os.path.join(filedict.dir, fname), allow_overwrite=True)
 
 
 ################################################
@@ -641,10 +588,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
 
         if os.path.isdir(self.dir):
             if fail_if_exists:
-                raise RuntimeError(
-                    "Cannot create %s dir %s, already exists."
-                    % (self.dir_name, self.dir)
-                )
+                raise RuntimeError(f"Cannot create {self.dir_name} dir {self.dir}, already exists.")
             else:
                 return False  # already exists, nothing to do
 
@@ -654,9 +598,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
             # with condor 7.9.4 a permissions change is required
             chmod(self.dir, 0o755)
         except glideinwms.lib.subprocessSupport.CalledProcessError as e:
-            raise RuntimeError(
-                f"Failed to create {self.dir_name} dir (user {self.user}): {e} "
-            )
+            raise RuntimeError(f"Failed to create {self.dir_name} dir (user {self.user}): {e} ")
         return True
 
     def delete_dir(self):
@@ -667,9 +609,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
         try:
             os.rmdir(self.dir)
         except glideinwms.lib.subprocessSupport.CalledProcessError as e:
-            raise RuntimeError(
-                f"Failed to remove {self.dir_name} dir (user {self.user}): {e} "
-            )
+            raise RuntimeError(f"Failed to remove {self.dir_name} dir (user {self.user}): {e} ")
 
 
 class chmodClientDirSupport(clientDirSupport):
@@ -684,10 +624,7 @@ class chmodClientDirSupport(clientDirSupport):
 
         if os.path.isdir(self.dir):
             if fail_if_exists:
-                raise RuntimeError(
-                    "Cannot create %s dir %s, already exists."
-                    % (self.dir_name, self.dir)
-                )
+                raise RuntimeError(f"Cannot create {self.dir_name} dir {self.dir}, already exists.")
             else:
                 return False  # already exists, nothing to do
 
@@ -696,9 +633,7 @@ class chmodClientDirSupport(clientDirSupport):
             # with condor 7.9.4 a permissions change is required
             chmod(self.dir, self.chmod)
         except glideinwms.lib.subprocessSupport.CalledProcessError as e:
-            raise RuntimeError(
-                f"Failed to create {self.dir_name} dir (user {self.user}): {e} "
-            )
+            raise RuntimeError(f"Failed to create {self.dir_name} dir (user {self.user}): {e} ")
         return True
 
 
@@ -716,9 +651,7 @@ class baseClientDirSupport(cWDictFile.multiSimpleDirSupport):
             # Parent does not exist
             # This is the user base directory
             # In order to make life easier for the factory admins, create it automatically when needed
-            self.add_dir_obj(
-                clientDirSupport(user, self.base_dir, "base %s" % dir_name)
-            )
+            self.add_dir_obj(clientDirSupport(user, self.base_dir, "base %s" % dir_name))
 
         self.add_dir_obj(clientDirSupport(user, dir, dir_name))
 
@@ -726,9 +659,7 @@ class baseClientDirSupport(cWDictFile.multiSimpleDirSupport):
 class clientSymlinksSupport(cWDictFile.multiSimpleDirSupport):
     def __init__(self, user_dirs, work_dir, symlink_base_subdir, dir_name):
         self.symlink_base_dir = os.path.join(work_dir, symlink_base_subdir)
-        cWDictFile.multiSimpleDirSupport.__init__(
-            self, (self.symlink_base_dir,), dir_name
-        )
+        cWDictFile.multiSimpleDirSupport.__init__(self, (self.symlink_base_dir,), dir_name)
         for user in list(user_dirs.keys()):
             self.add_dir_obj(
                 cWDictFile.symlinkSupport(
@@ -780,25 +711,15 @@ class glideinMainDicts(cWDictFile.fileMainDicts):
         )
         self.client_log_dirs = client_log_dirs
         for user in list(client_log_dirs.keys()):
-            self.add_dir_obj(
-                baseClientDirSupport(user, client_log_dirs[user], "clientlog")
-            )
+            self.add_dir_obj(baseClientDirSupport(user, client_log_dirs[user], "clientlog"))
 
         self.client_proxies_dirs = client_proxies_dirs
         for user in client_proxies_dirs:
-            self.add_dir_obj(
-                baseClientDirSupport(user, client_proxies_dirs[user], "clientproxies")
-            )
+            self.add_dir_obj(baseClientDirSupport(user, client_proxies_dirs[user], "clientproxies"))
 
         # make them easier to find; create symlinks in work/client_proxies
-        self.add_dir_obj(
-            clientSymlinksSupport(client_log_dirs, work_dir, "client_log", "clientlog")
-        )
-        self.add_dir_obj(
-            clientSymlinksSupport(
-                client_proxies_dirs, work_dir, "client_proxies", "clientproxies"
-            )
-        )
+        self.add_dir_obj(clientSymlinksSupport(client_log_dirs, work_dir, "client_log", "clientlog"))
+        self.add_dir_obj(clientSymlinksSupport(client_proxies_dirs, work_dir, "client_proxies", "clientproxies"))
 
     ######################################
     # Redefine methods needed by parent
@@ -873,9 +794,7 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
             self.add_dir_obj(
                 clientLogDirSupport(
                     user,
-                    cgWConsts.get_entry_userlog_dir(
-                        base_client_log_dirs[user], sub_name
-                    ),
+                    cgWConsts.get_entry_userlog_dir(base_client_log_dirs[user], sub_name),
                 )
             )
 
@@ -883,9 +802,7 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
             self.add_dir_obj(
                 clientProxiesDirSupport(
                     user,
-                    cgWConsts.get_entry_userproxies_dir(
-                        base_client_proxies_dirs[user], sub_name
-                    ),
+                    cgWConsts.get_entry_userproxies_dir(base_client_proxies_dirs[user], sub_name),
                 )
             )
 
@@ -895,9 +812,7 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
         load_entry_dicts(self.dicts, self.sub_name, self.summary_signature)
 
     def save(self, set_readonly=True):
-        save_entry_dicts(
-            self.dicts, self.sub_name, self.summary_signature, set_readonly=set_readonly
-        )
+        save_entry_dicts(self.dicts, self.sub_name, self.summary_signature, set_readonly=set_readonly)
 
     def save_final(self, set_readonly=True):
         pass  # nothing to do

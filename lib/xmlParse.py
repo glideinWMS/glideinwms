@@ -14,6 +14,7 @@
 #
 
 import xml.dom.minidom
+
 from collections import UserDict
 
 # from collections import UserDict, OrderedDict
@@ -228,9 +229,7 @@ def domel2dict(doc, use_ord_dict=False, always_singular_list=[]):
             if "name" in eldata:
                 data[eldata["name"]] = eldata
                 del eldata["name"]
-            elif (data == {}) or (  # first element, will define everything
-                isinstance(data, list)
-            ):  # already a list
+            elif (data == {}) or (isinstance(data, list)):  # first element, will define everything  # already a list
                 # most probably one wants a list in this case
                 if data == {}:
                     data = []

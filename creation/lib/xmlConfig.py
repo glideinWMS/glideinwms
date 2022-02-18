@@ -4,6 +4,7 @@
 import copy
 import os
 import xml.sax
+
 from collections.abc import MutableMapping
 
 INDENT_WIDTH = 3
@@ -271,11 +272,7 @@ class AttrElement(DictElement):
     def validate(self):
         self.check_missing("name")
         self.check_missing("value")
-        if (
-            self["type"] != "string"
-            and self["type"] != "int"
-            and self["type"] != "expr"
-        ):
+        if self["type"] != "string" and self["type"] != "int" and self["type"] != "expr":
             raise RuntimeError(self.err_str('type must be "int", "string", or "expr"'))
         self.check_boolean("glidein_publish")
         self.check_boolean("job_publish")
@@ -308,22 +305,12 @@ class FileElement(DictElement):
             raise RuntimeError(self.err_str("period must be an int"))
 
         if is_exec + is_wrapper + is_tar > 1:
-            raise RuntimeError(
-                self.err_str(
-                    'must be exactly one of type "executable", "wrapper", or "untar"'
-                )
-            )
+            raise RuntimeError(self.err_str('must be exactly one of type "executable", "wrapper", or "untar"'))
 
         if (is_exec or is_wrapper or is_tar) and not eval(self["const"]):
-            raise RuntimeError(
-                self.err_str(
-                    'type "executable", "wrapper", or "untar" requires const="True"'
-                )
-            )
+            raise RuntimeError(self.err_str('type "executable", "wrapper", or "untar" requires const="True"'))
         if not is_exec and period > 0:
-            raise RuntimeError(
-                self.err_str('cannot have execution period if type is not "executable"')
-            )
+            raise RuntimeError(self.err_str('cannot have execution period if type is not "executable"'))
 
 
 TAG_CLASS_MAPPING.update({"file": FileElement})

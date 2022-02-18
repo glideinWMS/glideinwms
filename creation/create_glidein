@@ -15,16 +15,11 @@ import sys
 import tarfile
 import traceback
 
+from glideinwms.creation.lib import cgWConsts, cgWCreate, cgWParamDict, cWConsts, factoryXmlConfig
+
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../.."))
 
-from glideinwms.creation.lib import (
-    cgWConsts,
-    cgWCreate,
-    cgWParamDict,
-    cWConsts,
-    factoryXmlConfig,
-)
 
 ################################################################################
 
@@ -61,33 +56,24 @@ def main(conf):
         # create tarball of files to be later sourced and shared between scripts
         tar_file_list = cgWConsts.STARTUP_FILE_PAYLOAD
         try:
-            with tarfile.open(
-                "tar_utils.tar.gz", "w:gz", dereference=True
-            ) as tar_utils:
+            with tarfile.open("tar_utils.tar.gz", "w:gz", dereference=True) as tar_utils:
                 for util_file in tar_file_list:
                     util_file_path = os.path.join(cgWConsts.WEB_BASE_DIR, util_file)
-                    tar_utils.add(
-                        util_file_path, arcname=os.path.basename(util_file_path)
-                    )
+                    tar_utils.add(util_file_path, arcname=os.path.basename(util_file_path))
         except tarfile.TarError as te:
             print("Unable to pack the startup file payload. TarError: %s" % str(te))
             sys.exit(1)
         # append the the tarball to glidein_startup.sh
         try:
             with open(
-                os.path.join(
-                    glidein_dicts_obj.main_dicts.work_dir, cgWConsts.STARTUP_FILE
-                ),
+                os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.STARTUP_FILE),
                 "a",
             ) as st_file:
                 st_file.write("exit 0\n#EOF\n")
                 with open("tar_utils.tar.gz", "rb") as tar_utils:
                     shutil.copyfileobj(tar_utils, st_file)
         except OSError as ioe:
-            print(
-                "Unable to append the payload to the startup file. IOError [%d]: %s"
-                % (ioe.errno, ioe.strerror)
-            )
+            print("Unable to append the payload to the startup file. IOError [%d]: %s" % (ioe.errno, ioe.strerror))
             sys.exit(1)
         os.remove("tar_utils.tar.gz")
 
@@ -108,9 +94,7 @@ def main(conf):
 
         # create the init.d startup file
         cgWCreate.create_initd_startup(
-            os.path.join(
-                glidein_dicts_obj.main_dicts.work_dir, cgWConsts.INITD_STARTUP_FILE
-            ),
+            os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.INITD_STARTUP_FILE),
             glidein_dicts_obj.main_dicts.work_dir,
             os.path.realpath(os.path.join(STARTUP_DIR, "..")),
             conf.file,
@@ -163,9 +147,7 @@ if __name__ == "__main__":
         main(conf)
     except RuntimeError as e:
         if debug:
-            tb = traceback.format_exception(
-                sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-            )
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             print("\n".join(tb))
         print(usage)
         print("")

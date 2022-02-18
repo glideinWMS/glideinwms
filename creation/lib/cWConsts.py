@@ -32,9 +32,7 @@ def get_timestr(when=time.time()):
     start_time_tuple = time.localtime(when)
     timestr = (
         string.printable[(start_time_tuple[0] - 2000) % 62]
-        + string.printable[  # year, looping to keep alphanumeric, will repeat after 2062
-            start_time_tuple[1]
-        ]
+        + string.printable[start_time_tuple[1]]  # year, looping to keep alphanumeric, will repeat after 2062
         + string.printable[start_time_tuple[2]]  # month
         + string.printable[start_time_tuple[3]]  # day
         + string.printable[start_time_tuple[4]]  # hours

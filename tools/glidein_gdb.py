@@ -15,9 +15,9 @@
 import os.path
 import sys
 
-sys.path.append(os.path.join(sys.path[0], "../.."))
-
 from glideinwms.tools.lib import glideinCmd
+
+sys.path.append(os.path.join(sys.path[0], "../.."))
 
 
 def argv_gdb(argv):
@@ -31,9 +31,7 @@ def argv_gdb(argv):
         if argv[1] == "where":
             gdb_cmd = "where"
         else:
-            raise RuntimeError(
-                "Unexpected command %s found!\nOnly where supported." % argv[1]
-            )
+            raise RuntimeError("Unexpected command %s found!\nOnly where supported." % argv[1])
 
     # select the lines
     gdbcommand = "gdb.command"

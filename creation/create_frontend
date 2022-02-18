@@ -12,15 +12,10 @@ import os
 import os.path
 import sys
 
+from glideinwms.creation.lib import cvWConsts, cvWCreate, cvWParamDict, cvWParams, cWConsts
+
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../.."))
-from glideinwms.creation.lib import (
-    cvWConsts,
-    cvWCreate,
-    cvWParamDict,
-    cvWParams,
-    cWConsts,
-)
 
 ################################################################################
 
@@ -37,9 +32,7 @@ def main(params):
         frontend_dicts_obj.set_readonly(True)
 
         # save config into file
-        cfgfile = os.path.join(
-            frontend_dicts_obj.main_dicts.work_dir, cvWConsts.XML_CONFIG_FILE
-        )
+        cfgfile = os.path.join(frontend_dicts_obj.main_dicts.work_dir, cvWConsts.XML_CONFIG_FILE)
         params.save_into_file(cfgfile, set_ro=True)
         # make two copies, the second one should have a unique name, so it does not get overwritten on reconfig
         cfgfile = cWConsts.insert_timestr(cfgfile)
@@ -47,9 +40,7 @@ def main(params):
 
         # create the init.d starup file
         cvWCreate.create_initd_startup(
-            os.path.join(
-                frontend_dicts_obj.main_dicts.work_dir, cvWConsts.INITD_STARTUP_FILE
-            ),
+            os.path.join(frontend_dicts_obj.main_dicts.work_dir, cvWConsts.INITD_STARTUP_FILE),
             frontend_dicts_obj.main_dicts.work_dir,
             os.path.realpath(os.path.join(STARTUP_DIR, "..")),
             params.cfg_name,
@@ -90,16 +81,12 @@ if __name__ == "__main__":
             break
 
     try:
-        params = cvWParams.VOFrontendParams(
-            usage, os.path.join(STARTUP_DIR, "web_base"), argv
-        )
+        params = cvWParams.VOFrontendParams(usage, os.path.join(STARTUP_DIR, "web_base"), argv)
     except RuntimeError as e:
         if debug:
             import traceback
 
-            tb = traceback.format_exception(
-                sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-            )
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             print("\n".join(tb))
         print(e)
         sys.exit(1)
@@ -116,9 +103,7 @@ if __name__ == "__main__":
         if debug:
             import traceback
 
-            tb = traceback.format_exception(
-                sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-            )
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             print("\n".join(tb))
         print(usage)
         print("")
@@ -132,9 +117,7 @@ if __name__ == "__main__":
         if debug:
             import traceback
 
-            tb = traceback.format_exception(
-                sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-            )
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             print("\n".join(tb))
         print("Writing back config file failed")
         sys.exit(1)

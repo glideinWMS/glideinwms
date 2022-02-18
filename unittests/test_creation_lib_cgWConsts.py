@@ -53,9 +53,7 @@ class TestGetEntrySubmitDir(unittest.TestCase):
 
 class TestGetEntryNameFromEntrySubmitDir(unittest.TestCase):
     def test_get_entry_name_from_entry_submit_dir(self):
-        self.assertEqual(
-            entry_name, get_entry_name_from_entry_submit_dir(entry_submit_dir)
-        )
+        self.assertEqual(entry_name, get_entry_name_from_entry_submit_dir(entry_submit_dir))
         try:
             get_entry_name_from_entry_submit_dir("/var/log/junk")
         except Exception as err:
@@ -74,9 +72,7 @@ class TestGetEntryUserlogDir(unittest.TestCase):
 
 class TestGetEntryUserproxiesDir(unittest.TestCase):
     def test_get_entry_userproxies_dir(self):
-        self.assertEqual(
-            entry_proxies_dir, get_entry_userproxies_dir(proxies_dir, entry_name)
-        )
+        self.assertEqual(entry_proxies_dir, get_entry_userproxies_dir(proxies_dir, entry_name))
 
 
 class TestGetEntryStageDir(unittest.TestCase):
@@ -86,9 +82,7 @@ class TestGetEntryStageDir(unittest.TestCase):
 
 class TestGetEntryNameFromEntryStageDir(unittest.TestCase):
     def test_get_entry_name_from_entry_stage_dir(self):
-        self.assertEqual(
-            entry_name, get_entry_name_from_entry_stage_dir(entry_stage_dir)
-        )
+        self.assertEqual(entry_name, get_entry_name_from_entry_stage_dir(entry_stage_dir))
         try:
             get_entry_name_from_entry_stage_dir("/var/log/junk")
         except Exception as err:
@@ -97,16 +91,12 @@ class TestGetEntryNameFromEntryStageDir(unittest.TestCase):
 
 class TestGetEntryMonitorDir(unittest.TestCase):
     def test_get_entry_monitor_dir(self):
-        self.assertEqual(
-            entry_monitor_dir, get_entry_monitor_dir(monitor_dir, entry_name)
-        )
+        self.assertEqual(entry_monitor_dir, get_entry_monitor_dir(monitor_dir, entry_name))
 
 
 class TestGetEntryNameFromEntryMonitorDir(unittest.TestCase):
     def test_get_entry_name_from_entry_monitor_dir(self):
-        self.assertEqual(
-            entry_name, get_entry_name_from_entry_monitor_dir(entry_monitor_dir)
-        )
+        self.assertEqual(entry_name, get_entry_name_from_entry_monitor_dir(entry_monitor_dir))
         try:
             get_entry_name_from_entry_monitor_dir("/var/log/junk")
         except Exception as err:

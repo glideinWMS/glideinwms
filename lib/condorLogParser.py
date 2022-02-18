@@ -47,9 +47,7 @@ class cachedLogClass:
         if cache_dir is None:
             self.cachename = logname + cache_ext
         else:
-            self.cachename = os.path.join(
-                cache_dir, os.path.basename(logname) + cache_ext
-            )
+            self.cachename = os.path.join(cache_dir, os.path.basename(logname) + cache_ext)
 
     def has_changed(self):
         """
@@ -592,9 +590,7 @@ class cacheDirClass:
         self.log_prefix = log_prefix
         self.log_suffix = log_suffix
         self.inactive_timeout = inactive_timeout
-        self.inactive_files_cache = os.path.join(
-            cache_dir, log_prefix + log_suffix + cache_ext
-        )
+        self.inactive_files_cache = os.path.join(cache_dir, log_prefix + log_suffix + cache_ext)
         if inactive_files is None:
             if os.path.isfile(self.inactive_files_cache):
                 self.inactive_files = loadCache(self.inactive_files_cache)
@@ -674,9 +670,7 @@ class cacheDirClass:
                 continue  # skip empty files
             last_mod = os.path.getmtime(absfname)
             if (self.wrapperClass is not None) and (self.username is not None):
-                obj = self.wrapperClass.getObj(
-                    logname=absfname, cache_dir=self.cache_dir, username=self.username
-                )
+                obj = self.wrapperClass.getObj(logname=absfname, cache_dir=self.cache_dir, username=self.username)
             else:
                 obj = self.logClass(absfname, self.cache_dir)
             obj.load()
@@ -705,13 +699,9 @@ class cacheDirClass:
         """
 
         if (self.wrapperClass is not None) and (self.username is not None):
-            dummyobj = self.wrapperClass.getObj(
-                os.path.join(self.dirname, "dummy.txt"), self.cache_dir, self.username
-            )
+            dummyobj = self.wrapperClass.getObj(os.path.join(self.dirname, "dummy.txt"), self.cache_dir, self.username)
         else:
-            dummyobj = self.logClass(
-                os.path.join(self.dirname, "dummy.txt"), self.cache_dir
-            )
+            dummyobj = self.logClass(os.path.join(self.dirname, "dummy.txt"), self.cache_dir)
 
         dummyobj.data = self.data  # a little rough but works
         return dummyobj.diff(other)

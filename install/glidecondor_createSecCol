@@ -22,15 +22,9 @@ def usage():
     print("Usage:")
     print(" glidecondor_createSecCol [-useportasname] [-commonlog] <portrange>")
     print("where:")
-    print(
-        "  -useportasname  - If specified, the collector logs use port numbers as names (default is starting with 0)"
-    )
-    print(
-        "  -commonlog      - If specified, all secondary collectors will share the log file"
-    )
-    print(
-        "  portrange       - Range of ports used by the secondary collectors to put in the config file (required)"
-    )
+    print("  -useportasname  - If specified, the collector logs use port numbers as names (default is starting with 0)")
+    print("  -commonlog      - If specified, all secondary collectors will share the log file")
+    print("  portrange       - Range of ports used by the secondary collectors to put in the config file (required)")
     print("Example:")
     print("  glidecondor_createSecCol 9620-9639")
     return
@@ -74,9 +68,7 @@ def add_collector(index, port, config_fd):
         + "%(col)s_ARGS = -f -p %(port)s\n"
         + "DAEMON_LIST=$(DAEMON_LIST), %(col)s\n\n"
     )
-    config_fd.write(
-        fstr % {"col": "COLLECTOR%i" % index, "logname": logname, "port": str(port)}
-    )
+    config_fd.write(fstr % {"col": "COLLECTOR%i" % index, "logname": logname, "port": str(port)})
 
 
 def create_config(fname):

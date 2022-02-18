@@ -11,6 +11,15 @@ import socket
 import sys
 
 from glideinwms.creation.lib.factoryXmlConfig import parse
+from glideinwms.factory import glideFactoryConfig as gfc
+from glideinwms.factory.glideFactoryCredentials import SubmitCredentials, validate_frontend
+from glideinwms.factory.glideFactoryLib import (
+    ClientWeb,
+    escapeParam,
+    FactoryConfig,
+    set_condor_integrity_checks,
+    submitGlideins,
+)
 
 try:
     import htcondor  # pylint: disable=import-error
@@ -18,27 +27,12 @@ except:
     print("Python bindings not available. Exiting.")
     sys.exit(1)
 
-from glideinwms.factory import glideFactoryConfig as gfc
-from glideinwms.factory.glideFactoryCredentials import (
-    SubmitCredentials,
-    validate_frontend,
-)
-from glideinwms.factory.glideFactoryLib import (
-    ClientWeb,
-    FactoryConfig,
-    escapeParam,
-    set_condor_integrity_checks,
-    submitGlideins,
-)
-
 
 def parse_opts():
     """Parse the command line options for this command"""
     description = "Submit a test pilot for a particular entry\n\n"
 
-    parser = argparse.ArgumentParser(
-        description=description, formatter_class=argparse.RawTextHelpFormatter
-    )
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument(
         "--wms-collector",
@@ -107,15 +101,15 @@ def log_debug(msg, header=""):
 
 def get_reqname(collector, fe_name, entry_name):
     constraint = (
-        'MyType=="glideclient" && regexp("^%s@.*$", AuthenticatedIdentity) && regexp("^%s@.*$", ReqName)'
-        % (fe_name, entry_name)
+        'MyType=="glideclient" && regexp("^{}@.*$", AuthenticatedIdentity) && regexp("^{}@.*$", ReqName)'.format(
+            fe_name,
+            entry_name,
+        )
     )
     res = collector.query(htcondor.AdTypes.Any, constraint, ["Name"])
 
     if len(res) == 0:
-        logging.error(
-            "Could not find any frontend request for the specified entry/frontend pair using:"
-        )
+        logging.error("Could not find any frontend request for the specified entry/frontend pair using:")
         logging.error("condor_status -any -const '%s' -af Name" % constraint)
         sys.exit(1)
 
@@ -160,9 +154,7 @@ def main():
 
     ads_gc = collector.query(htcondor.AdTypes.Any, constraint_gc)
     if not ads_gc:
-        logging.error(
-            "Cannot find glideclient classad using constraint %s", constraint_gc
-        )
+        logging.error("Cannot find glideclient classad using constraint %s", constraint_gc)
         return 1
     else:
         ad_gc = ads_gc[0]
@@ -170,17 +162,11 @@ def main():
 
         # Load factory config and get some info that will go in the pilot classad
         glidein_descript.load_pub_key()
-        sym_key_obj, frontend_sec_name = validate_frontend(
-            ad_gc, frontend_descript, glidein_descript.data["PubKeyObj"]
-        )
-        security_class = sym_key_obj.decrypt_hex(
-            ad_gc["GlideinEncParamSecurityClass"]
-        ).decode(
+        sym_key_obj, frontend_sec_name = validate_frontend(ad_gc, frontend_descript, glidein_descript.data["PubKeyObj"])
+        security_class = sym_key_obj.decrypt_hex(ad_gc["GlideinEncParamSecurityClass"]).decode(
             "utf8"
         )  # GlideinSecurityClass
-        proxyid = sym_key_obj.decrypt_hex(ad_gc["GlideinEncParamSubmitProxy"]).decode(
-            "utf8"
-        )
+        proxyid = sym_key_obj.decrypt_hex(ad_gc["GlideinEncParamSubmitProxy"]).decode("utf8")
         user_name = frontend_descript.get_username(frontend_sec_name, security_class)
 
         # Prepare some values that ends up in the Arguments classad

@@ -151,13 +151,9 @@ def getMonitorVM(pool_name, jobVM):
     if ("HAS_MONITOR_VM" not in job_data) or ("IS_MONITOR_VM" not in job_data):
         raise RuntimeError("Slot %s does not support monitoring!" % jobVM)
     if not (job_data["HAS_MONITOR_VM"] == True):
-        raise RuntimeError(
-            "Slot %s does not support monitoring! HAS_MONITOR_VM not True." % jobVM
-        )
+        raise RuntimeError("Slot %s does not support monitoring! HAS_MONITOR_VM not True." % jobVM)
     if not (job_data["IS_MONITOR_VM"] == False):
-        raise RuntimeError(
-            "Slot %s is a monitoring slot itself! Cannot monitor." % jobVM
-        )
+        raise RuntimeError("Slot %s is a monitoring slot itself! Cannot monitor." % jobVM)
     if "Monitoring_Name" not in job_data:
         raise RuntimeError("Slot %s does not publish the monitoring slot!" % jobVM)
 
@@ -185,9 +181,7 @@ def getMonitorVMStatus(pool_name, monitorVM):
 
 
 def validateMonitorVMStatus(condor_status, monitorVM):
-    if ("HAS_MONITOR_VM" not in condor_status) or (
-        condor_status["HAS_MONITOR_VM"] != True
-    ):
+    if ("HAS_MONITOR_VM" not in condor_status) or (condor_status["HAS_MONITOR_VM"] != True):
         raise RuntimeError("Monitor slot %s does not allow monitoring" % monitorVM)
     if not (condor_status["IS_MONITOR_VM"] == True):
         raise RuntimeError("Slot %s is not a monitoring slot!" % monitorVM)

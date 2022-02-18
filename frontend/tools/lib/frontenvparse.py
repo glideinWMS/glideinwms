@@ -65,32 +65,22 @@ class FEConfig:
 
         os.environ["CONDOR_CONFIG"] = self.elementDescript.frontend_data["CondorConfig"]
         if self.wpilots:
-            os.environ[
-                "_CONDOR_CERTIFICATE_MAPFILE"
-            ] = self.elementDescript.element_data["MapFileWPilots"]
+            os.environ["_CONDOR_CERTIFICATE_MAPFILE"] = self.elementDescript.element_data["MapFileWPilots"]
         else:
-            os.environ[
-                "_CONDOR_CERTIFICATE_MAPFILE"
-            ] = self.elementDescript.element_data["MapFile"]
-        os.environ["X509_USER_PROXY"] = self.elementDescript.frontend_data[
-            "ClassAdProxy"
-        ]
+            os.environ["_CONDOR_CERTIFICATE_MAPFILE"] = self.elementDescript.element_data["MapFile"]
+        os.environ["X509_USER_PROXY"] = self.elementDescript.frontend_data["ClassAdProxy"]
         os.environ["FE_WORK_DIR"] = self.options.work_dir
         os.environ["FE_GROUP_NAME"] = self.options.group_name
 
     # INTERNAL
     def validate_options(self):
         if self.options.work_dir is None:
-            raise ValueError(
-                "FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting"
-            )
+            raise ValueError("FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting")
         if not os.path.isfile(os.path.join(self.options.work_dir, "frontend.descript")):
             raise ValueError("%s is not a valid FE work dir" % self.options.work_dir)
 
         if self.options.group_name is None:
-            raise ValueError(
-                "FE group name not specified (neither -g nor FE_GROUP_NAME used), aborting"
-            )
+            raise ValueError("FE group name not specified (neither -g nor FE_GROUP_NAME used), aborting")
         if not os.path.isfile(
             os.path.join(
                 self.options.work_dir,

@@ -29,6 +29,7 @@ from glideinwms.frontend.glideinFrontendConfig import (
     ExtStageFiles,
     FrontendConfig,
     FrontendDescript,
+    get_group_dir,
     GroupConfigFile,
     GroupSignatureDescript,
     HistoryFile,
@@ -36,7 +37,6 @@ from glideinwms.frontend.glideinFrontendConfig import (
     ParamsDescript,
     SignatureDescript,
     StageFiles,
-    get_group_dir,
 )
 
 
@@ -49,13 +49,9 @@ class TestFrontendConfig(unittest.TestCase):
         self.params_descript = ParamsDescript("fixtures/frontend", "group1")
         self.attrs_descript = AttrsDescript("fixtures/frontend", "group1")
         self.signature_descript = SignatureDescript("fixtures/frontend")
-        self.group_signature_descript = GroupSignatureDescript(
-            "fixtures/frontend", "group1"
-        )
+        self.group_signature_descript = GroupSignatureDescript("fixtures/frontend", "group1")
         self.element_descript = ElementDescript("fixtures/frontend", "group1")
-        self.element_merged_descript = ElementMergedDescript(
-            "fixtures/frontend", "group1"
-        )
+        self.element_merged_descript = ElementMergedDescript("fixtures/frontend", "group1")
         self.debug_output = os.environ.get("DEBUG_OUTPUT")
         if self.debug_output:
             print("\nconfig = %s" % self.frontend_config)
@@ -66,21 +62,10 @@ class TestFrontendConfig(unittest.TestCase):
             print("\nsignature_descript = %s" % self.signature_descript)
             print("group_signature_descript = %s" % self.group_signature_descript)
             print("\nelement_descript = %s" % self.element_descript)
-            print(
-                "\nelement_merged_descript.merged_data = %s"
-                % self.element_merged_descript.merged_data
-            )
-            print(
-                "\nelement_merged_descript.element_data = %s"
-                % self.element_merged_descript.element_data
-            )
-            print(
-                "\nelement_merged_descript.frontend_data = %s"
-                % self.element_merged_descript.frontend_data
-            )
-            print(
-                "\ndir element_merged_descript = %s" % dir(self.element_merged_descript)
-            )
+            print("\nelement_merged_descript.merged_data = %s" % self.element_merged_descript.merged_data)
+            print("\nelement_merged_descript.element_data = %s" % self.element_merged_descript.element_data)
+            print("\nelement_merged_descript.frontend_data = %s" % self.element_merged_descript.frontend_data)
+            print("\ndir element_merged_descript = %s" % dir(self.element_merged_descript))
 
     def test__init__(self):
         self.assertTrue(isinstance(self.frontend_descript, ConfigFile))
@@ -105,9 +90,7 @@ class TestFrontendConfig(unittest.TestCase):
 class TestStageFiles(unittest.TestCase):
     def setUp(self):
         sum = "03265fccd0599cdcd41011ffb9db5c1688e5e241"
-        self.stage_files = StageFiles(
-            "fixtures/frontend/web-area/stage", "description.e98f4o.cfg", "sha1", sum
-        )
+        self.stage_files = StageFiles("fixtures/frontend/web-area/stage", "description.e98f4o.cfg", "sha1", sum)
 
     def test___init__(self):
         self.assertTrue(isinstance(self.stage_files, StageFiles))

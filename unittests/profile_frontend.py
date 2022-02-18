@@ -120,9 +120,7 @@ def main():
 
     print("Frontend dump loaded")
 
-    cProfile.run(
-        "countMatch(cexpr, condorq_dict, glidein_dict, attr_dict, condorq_match_list)"
-    )
+    cProfile.run("countMatch(cexpr, condorq_dict, glidein_dict, attr_dict, condorq_match_list)")
 
 
 if __name__ == "__main__":

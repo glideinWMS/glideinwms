@@ -118,9 +118,7 @@ class TestPlugins(unittest.TestCase):
             self.condorq_dict[key].stored_data[(jid, 0)]["JobStatus"] = 1
             self.condorstatus_dict[user_str] = {}
             self.condorstatus_dict[user_str]["MyType"] = "Submitter"
-        entry_str = (
-            "entry_name@instance@service@vofrontend_service-vofrontend_instance.main"
-        )
+        entry_str = "entry_name@instance@service@vofrontend_service-vofrontend_instance.main"
         self.condorstatus_dict[entry_str] = {}
         self.condorstatus_dict[entry_str]["MyType"] = "glideresource"
         self.condorstatus_dict[key] = {}
@@ -197,9 +195,7 @@ class TestPlugins(unittest.TestCase):
 
     def test_proxy_usermap(self):
         self.credlist = self.getCredlist()
-        p = glideinFrontendPlugins.ProxyUserMapWRecycling(
-            self.config_dir, self.credlist
-        )
+        p = glideinFrontendPlugins.ProxyUserMapWRecycling(self.config_dir, self.credlist)
         p.update_usermap(
             self.condorq_dict,
             self.condorq_dict,

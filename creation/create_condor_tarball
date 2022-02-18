@@ -16,9 +16,10 @@ import tarfile
 import tempfile
 import traceback
 
+from glideinwms.creation.lib import cgWCreate
+
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../.."))
-from glideinwms.creation.lib import cgWCreate
 
 
 def usage():
@@ -75,9 +76,7 @@ def main(argv):
                             os.path.join(tmpdir, f.linkname),
                             os.path.join(tmpdir, f.name),
                         )
-                in_dir = os.path.join(
-                    tmpdir, os.listdir(tmpdir)[0]
-                )  # there is a condor* subdir there
+                in_dir = os.path.join(tmpdir, os.listdir(tmpdir)[0])  # there is a condor* subdir there
             except:
                 shutil.rmtree(tmpdir)
                 raise
@@ -98,9 +97,7 @@ def main(argv):
             out_fd = open(out_fname, "w")
         except:
             usage()
-            tb = traceback.format_exception(
-                sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-            )
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             print("\n".join(tb))
             sys.exit(3)
 

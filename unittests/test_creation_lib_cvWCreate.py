@@ -19,6 +19,7 @@ import os
 import unittest
 
 from unittest import mock
+
 import xmlrunner
 
 from glideinwms.creation.lib.cvWCreate import (
@@ -32,7 +33,9 @@ from glideinwms.creation.lib.cvWCreate import (
 class Test_cvWCreate(unittest.TestCase):
     def test_create_client_mapfile(self):
         mapfile_fname = "condor_mapfile"
-        my_DN = "/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=fermicloud001.fnal.gov"
+        my_DN = (
+            "/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=fermicloud001.fnal.gov"
+        )
         factory_DNs = [
             "/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=fermicloud010.fnal.gov",
             "/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=fermicloud011.fnal.gov",
@@ -45,9 +48,7 @@ class Test_cvWCreate(unittest.TestCase):
             "/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fermilab/CN=fermicloud030.fnal.gov"
         ]
         pilot_DNs = []
-        create_client_mapfile(
-            mapfile_fname, my_DN, factory_DNs, schedd_DNs, collector_DNs, pilot_DNs
-        )
+        create_client_mapfile(mapfile_fname, my_DN, factory_DNs, schedd_DNs, collector_DNs, pilot_DNs)
 
         self.assertTrue(os.path.exists(mapfile_fname))
 
@@ -99,9 +100,7 @@ class Test_cvWCreate(unittest.TestCase):
         with mock.patch("glideinwms.lib.condorExe.exe_cmd") as m_exe_cmd:
             with open("fixtures/frontend/ccvd.fixture") as fil:
                 m_exe_cmd.return_value = fil.readlines()
-                create_client_condor_config(
-                    config_fname, mapfile_fname, collector_nodes, classad_proxy
-                )
+                create_client_condor_config(config_fname, mapfile_fname, collector_nodes, classad_proxy)
 
         self.assertTrue(os.path.exists(config_fname))
         os.remove(config_fname)

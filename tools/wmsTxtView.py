@@ -13,10 +13,11 @@
 import os.path
 import sys
 
-sys.path.append(os.path.join(sys.path[0], "../.."))
-
 # import glideFactoryInterface
 from glideinwms.frontend import glideinFrontendInterface
+
+sys.path.append(os.path.join(sys.path[0], "../.."))
+
 
 pool_name = None
 factory_name = None
@@ -39,9 +40,7 @@ while i < alen:
         txt_type = ael
     elif ael == "-help":
         print("Usage:")
-        print(
-            "wmsTxtView.py [-pool <node>[:<port>]] [-factory <factory>] [Entries|Sites|Gatekeepers] [-help]"
-        )
+        print("wmsTxtView.py [-pool <node>[:<port>]] [-factory <factory>] [Entries|Sites|Gatekeepers] [-help]")
         sys.exit(1)
     else:
         raise RuntimeError("Unknown option '%s', try -help" % ael)
@@ -60,16 +59,15 @@ if factory_name is not None:
             farr[0],
         )
     elif len(farr) == 3:
-        factory_constraints = (
-            '(FactoryName=?="%s")&&(GlideinName=?="%s")&&(EntryName=?="%s")'
-            % (farr[2], farr[1], farr[0])
+        factory_constraints = '(FactoryName=?="{}")&&(GlideinName=?="{}")&&(EntryName=?="{}")'.format(
+            farr[2],
+            farr[1],
+            farr[0],
         )
     else:
         raise RuntimeError("Invalid factory name; more than 2 @'s found")
 
-glideins_obj = glideinFrontendInterface.findGlideins(
-    pool_name, None, None, factory_constraints
-)
+glideins_obj = glideinFrontendInterface.findGlideins(pool_name, None, None, factory_constraints)
 
 # Get a dictionary of
 #  RequestedIdle
@@ -108,9 +106,7 @@ for glidein in glideins:
 txt_keys = sorted(txt_data.keys())
 
 print("%s ReqIdle  Idle   Running  MaxGlideins" % "Entry".ljust(48))
-print(
-    "================================================-=======-=======-=======-======="
-)
+print("================================================-=======-=======-=======-=======")
 for key in txt_keys:
     key_el = txt_data[key]
     print(

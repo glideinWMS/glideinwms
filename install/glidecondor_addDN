@@ -103,9 +103,7 @@ def parse_args(args):
             elif arg == "-import":
                 # list mode
                 if mode == 1:
-                    raise ArgError(
-                        "Cannot use -import option in single DN mode: %i" % i
-                    )
+                    raise ArgError("Cannot use -import option in single DN mode: %i" % i)
                 mode = 2
                 modargs.append(arg)
                 # at least one fname expected
@@ -188,9 +186,7 @@ def parse_one_args(args, QUIET_OPS):
             dn = args[0]
             user = args[1]
         else:
-            raise ArgError(
-                "Option -daemon expected with so many arguments, but none found"
-            )
+            raise ArgError("Option -daemon expected with so many arguments, but none found")
         if len(daemon_comment) < 10:
             raise ArgError("Daemon comment must be at least 10 characters long")
     else:
@@ -237,8 +233,7 @@ def parse_import_args(args, QUIET_OPS):
                 # Use IOError to simplify the exception handling
                 raise OSError(
                     errno.EPROTO,
-                    "Expected 3 tokens, got %i: %s:%i"
-                    % (len(larr), importfname, count),
+                    "Expected 3 tokens, got %i: %s:%i" % (len(larr), importfname, count),
                 )
             if not (larr[1] in ("daemon", "nodaemon", "client")):
                 raise OSError(
@@ -250,9 +245,7 @@ def parse_import_args(args, QUIET_OPS):
             try:
                 dn = expand_dn(larr[2], QUIET_OPS)
             except OSError as e:
-                raise OSError(
-                    e.errno, "While processing %s:%i %s" % (importfname, count, str(e))
-                )
+                raise OSError(e.errno, "While processing %s:%i %s" % (importfname, count, str(e)))
             is_daemon = larr[1] == "daemon"
             dnlist.append(
                 {
@@ -305,10 +298,7 @@ def update_mapfile(mapfile, dnlist, opts):
         sys.exit(3)
 
     if enable_checks and (lines[0][:4] != "GSI "):
-        print(
-            "File '%s' is not a condor mapfile; first line is not a valid GSI mapping!"
-            % mapfile
-        )
+        print("File '%s' is not a condor mapfile; first line is not a valid GSI mapping!" % mapfile)
         sys.exit(3)
 
     if enable_checks:
@@ -320,10 +310,7 @@ def update_mapfile(mapfile, dnlist, opts):
                 break
         if not found:
             # should have found GSI anon, but could not
-            print(
-                "File '%s' is not valid a condor mapfile; cound not find anonymous mapping!"
-                % mapfile
-            )
+            print("File '%s' is not valid a condor mapfile; cound not find anonymous mapping!" % mapfile)
             sys.exit(3)
 
     if recreate:
@@ -351,9 +338,7 @@ def update_mapfile(mapfile, dnlist, opts):
     if not found:
         # should have found GSI anon, but could not
         assert not enable_checks
-        print(
-            "Warning: the initial condor_mapfile did not look legitimate (but -disable-checks passed)"
-        )
+        print("Warning: the initial condor_mapfile did not look legitimate (but -disable-checks passed)")
 
     # will overwrite the mapfile
     # but create a tmpfile first, so it is semi-atomic
@@ -445,9 +430,7 @@ def main(args):
         if opts["mapfile"] is None:
             # make sure we can access the files to be changed
             try:
-                condor_mapfile = condorExe.iexe_cmd(
-                    "condor_config_val CERTIFICATE_MAPFILE"
-                )[0].rstrip("\n")
+                condor_mapfile = condorExe.iexe_cmd("condor_config_val CERTIFICATE_MAPFILE")[0].rstrip("\n")
             except condorExe.ExeError as e:
                 raise OSError(errno.ENOENT, "Path to CERTIFICATE_MAPFILE not found")
         else:
@@ -458,9 +441,7 @@ def main(args):
         if opts["dnsfile"] is None:
             has_dir = False
             try:
-                condor_config_dir = condorExe.iexe_cmd(
-                    "condor_config_val LOCAL_CONFIG_DIR"
-                )[0].rstrip("\n")
+                condor_config_dir = condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_DIR")[0].rstrip("\n")
                 has_dir = os.path.exists(condor_config_dir)
             except condorExe.ExeError as e:
                 has_dir = False
@@ -475,15 +456,11 @@ def main(args):
                     )
 
                 if opts["recreate"]:
-                    raise OSError(
-                        errno.ENOENT, "LOCAL_CONFIG_DIR not defined, but -recreate used"
-                    )
+                    raise OSError(errno.ENOENT, "LOCAL_CONFIG_DIR not defined, but -recreate used")
 
                 # dir not found, see if it uses a config dir
                 try:
-                    condor_config = condorExe.iexe_cmd(
-                        "condor_config_val LOCAL_CONFIG_FILE"
-                    )[0].rstrip("\n")
+                    condor_config = condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_FILE")[0].rstrip("\n")
                 except condorExe.ExeError as e:
                     # nope, go with the main config file
                     try:
