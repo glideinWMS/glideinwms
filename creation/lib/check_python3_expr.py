@@ -14,17 +14,18 @@
 #   Bruno Coimbra
 #
 
-import sys
-import ast
-import xml.etree.ElementTree as ET
-import difflib
 import argparse
+import ast
+import difflib
+import sys
+import xml.etree.ElementTree as ET
 
 from types import SimpleNamespace
 
 # Initialize a refactoring tool if 2to3 is available
 try:
     from lib2to3 import refactor
+
     fixer_pkg = "lib2to3.fixes"
     avail_fixes = set(refactor.get_fixers_from_package(fixer_pkg))
     rt = refactor.RefactoringTool(avail_fixes)
@@ -48,7 +49,7 @@ def check_syntax(code):
     try:
         ast.parse(code)
     except SyntaxError as e:
-        error = f"{e.msg} at \"{e.text.strip()}\" ({e.lineno},{e.offset})"
+        error = f'{e.msg} at "{e.text.strip()}" ({e.lineno},{e.offset})'
 
     return error
 
@@ -64,21 +65,11 @@ def check_types(expression, factory_attrs, job_attrs):
     """
 
     # Mock job and glidein["attrs"] dictionaries
-    default_value = {
-        "string": "",
-        "int": 0,
-        "real": 0.0,
-        "bool": False,
-        "Expr": ""
-    }
+    default_value = {"string": "", "int": 0, "real": 0.0, "bool": False, "Expr": ""}
 
     try:
         job = {attr: default_value[type] for (attr, type) in job_attrs}
-        glidein = {
-            "attrs":
-            {attr: default_value[type]
-             for (attr, type) in factory_attrs}
-        }
+        glidein = {"attrs": {attr: default_value[type] for (attr, type) in factory_attrs}}
     except KeyError as e:
         return f"Invalid match_attr type: {e.args[0]}"
 
@@ -107,12 +98,8 @@ def check_2to3(code, patch=False, refactoring_tool=rt):
     suggestion = None
     if refactoring_tool:
         try:
-            suggested_code = str(
-                refactoring_tool.refactor_string(f"{code}\n", None))[:-1]
-            diff = '\n'.join(
-                difflib.unified_diff(code.split("\n"),
-                                     suggested_code.split("\n"),
-                                     lineterm=''))
+            suggested_code = str(refactoring_tool.refactor_string(f"{code}\n", None))[:-1]
+            diff = "\n".join(difflib.unified_diff(code.split("\n"), suggested_code.split("\n"), lineterm=""))
             if len(diff) > 0:
                 if patch:
                     suggestion = diff
@@ -209,7 +196,8 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
 
     _log(
         "NOTE: Python 3 has stricter type restrictions which may cause match expressions to fail in execution time. "
-        "Please, make sure match_attr types are appropriately defined.\n")
+        "Please, make sure match_attr types are appropriately defined.\n"
+    )
 
     if enforce_2to3 and not refactoring_tool:
         _log("2to3 not found and will not be enforced")
@@ -219,7 +207,7 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
 
     try:
         tree = ET.parse(config_file)
-    except IOError:
+    except OSError:
         return "Config file not readable: %s" % config_file
     except:
         return "Error parsing config file: %s" % config_file
@@ -230,7 +218,7 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
         if "match_expr" in element.data.attrib:
             expr = element.data.attrib["match_expr"]
             location = f"{element.parent.data.tag} {element_name(element.parent.data)}"
-            _log(f"\n\nEvaluating expression \"{expr}\"\n", silent)
+            _log(f'\n\nEvaluating expression "{expr}"\n', silent)
             _log(f"at {location}\n", silent)
             result = {}
             result["type"] = "match_expr"
@@ -239,10 +227,8 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
             _log("\nSyntax check: ", silent)
             error = check_syntax(expr)
             if not error:
-                factory_attrs = match_attrs_to_tuples(
-                    element.data.find("./factory/match_attrs"))
-                job_attrs = match_attrs_to_tuples(
-                    element.data.find("./job/match_attrs"))
+                factory_attrs = match_attrs_to_tuples(element.data.find("./factory/match_attrs"))
+                job_attrs = match_attrs_to_tuples(element.data.find("./job/match_attrs"))
                 if factory_attrs or job_attrs:
                     error = check_types(expr, factory_attrs, job_attrs)
             if not error:
@@ -266,11 +252,11 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
                     _log(f" none\n", silent)
                     result["2to3"] = None
             report.append(result)
-        #validates policy files
+        # validates policy files
         if "policy_file" in element.data.attrib:
             path = element.data.attrib["policy_file"]
             location = f"{element.parent.data.tag} {element_name(element.parent.data)}"
-            _log(f"\n\nEvaluating policy file \"{path}\"\n", silent)
+            _log(f'\n\nEvaluating policy file "{path}"\n', silent)
             _log(f"at {location}\n", silent)
             try:
                 text = open(path).read()
@@ -313,23 +299,13 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
     return passed, report
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description=
-        'Validate expressions in frontend.xml for compatibility with Python 3.'
+        description="Validate expressions in frontend.xml for compatibility with Python 3."
     )
-    parser.add_argument("-f",
-                        "--file",
-                        metavar="PATH",
-                        type=str,
-                        help="path to the configuration file")
-    parser.add_argument("-s",
-                        "--silent",
-                        action="store_true",
-                        help="silent mode")
-    parser.add_argument("--enforce-2to3",
-                        action="store_true",
-                        help="treats 2to3 suggestions as errors")
+    parser.add_argument("-f", "--file", metavar="PATH", type=str, help="path to the configuration file")
+    parser.add_argument("-s", "--silent", action="store_true", help="silent mode")
+    parser.add_argument("--enforce-2to3", action="store_true", help="treats 2to3 suggestions as errors")
     args = parser.parse_args()
 
     if args.file:
@@ -339,8 +315,7 @@ if __name__ == '__main__':
 
     passed, _ = main(config_file, args.enforce_2to3, args.silent)
     if passed:
-        _log("\n\nPassed (configuration compatible with python3)\n",
-             args.silent)
+        _log("\n\nPassed (configuration compatible with python3)\n", args.silent)
         exit(0)
     else:
         _log("\n\nFailed (invalid python3 in configuration)\n", args.silent)

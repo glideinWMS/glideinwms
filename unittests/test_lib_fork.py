@@ -14,31 +14,35 @@ Project:
    Dennis Box dbox@fnal.gov
 """
 
-# import select
-import time
 import os
 import sys
-import xmlrunner
+
+# import select
+import time
 import unittest
 
-from glideinwms.unittests.unittest_utils import FakeLogger
-from glideinwms.unittests.unittest_utils import create_temp_file
+import xmlrunner
+
+import glideinwms.lib.logSupport
+
 # needed to manipulate the select seen by the functions in fork
 from glideinwms.lib import fork
-from glideinwms.lib.fork import ForkResultError
-from glideinwms.lib.fork import fork_in_bg
-from glideinwms.lib.fork import fetch_fork_result
-from glideinwms.lib.fork import fetch_fork_result_list
-from glideinwms.lib.fork import fetch_ready_fork_result_list
-from glideinwms.lib.fork import wait_for_pids
-from glideinwms.lib.fork import ForkManager
-import glideinwms.lib.logSupport
+from glideinwms.lib.fork import (
+    fetch_fork_result,
+    fetch_fork_result_list,
+    fetch_ready_fork_result_list,
+    fork_in_bg,
+    ForkManager,
+    ForkResultError,
+    wait_for_pids,
+)
+from glideinwms.unittests.unittest_utils import create_temp_file, FakeLogger
 
 LOG_FILE = create_temp_file()
 
 
 def global_log_setup():
-    fd = open(LOG_FILE, 'w')
+    fd = open(LOG_FILE, "w")
     glideinwms.lib.logSupport.log = FakeLogger(fd)
 
 
@@ -55,41 +59,36 @@ def sleep_fn(sleep_tm=None):
 
 
 class TestForkResultError(unittest.TestCase):
-
     def test___init__(self):
         try:
-            fork_result_error = ForkResultError(
-                nr_errors=1, good_results=None, failed=1)
+            fork_result_error = ForkResultError(nr_errors=1, good_results=None, failed=1)
         except ForkResultError as err:
-            self.assertEqual('', str(err))
-            self.assertEqual('', str(fork_result_error))
+            self.assertEqual("", str(err))
+            self.assertEqual("", str(fork_result_error))
 
         return
 
 
 class TestForkInBg(unittest.TestCase):
-
     def test_fork_in_bg(self):
         global_log_setup()
         results = fork_in_bg(sleep_fn, 1)
-        self.assertTrue('r' in results)
-        self.assertTrue('pid' in results)
+        self.assertTrue("r" in results)
+        self.assertTrue("pid" in results)
         global_log_cleanup()
 
 
 class TestFetchForkResult(unittest.TestCase):
-
     def test_fetch_fork_result(self):
         global_log_setup()
-        sleep_arg = '1'
+        sleep_arg = "1"
         results = fork_in_bg(sleep_fn, sleep_arg)
-        expected = fetch_fork_result(results['r'], results['pid'])
+        expected = fetch_fork_result(results["r"], results["pid"])
         self.assertEqual(expected, sleep_arg)
         global_log_cleanup()
 
 
 class TestFetchForkResultList(unittest.TestCase):
-
     def test_fetch_fork_result_list(self):
         global_log_setup()
         pipe_ids = {}
@@ -105,7 +104,6 @@ class TestFetchForkResultList(unittest.TestCase):
 
 
 class TestFetchReadyForkResultList(unittest.TestCase):
-
     def test_fetch_ready_fork_result_list(self):
         global_log_setup()
         pipe_ids = {}
@@ -121,7 +119,6 @@ class TestFetchReadyForkResultList(unittest.TestCase):
 
 
 class TestWaitForPids(unittest.TestCase):
-
     def test_wait_for_pids(self):
         global_log_setup()
         pid_list = []
@@ -133,7 +130,6 @@ class TestWaitForPids(unittest.TestCase):
 
 
 class TestForkManager(unittest.TestCase):
-
     def setUp(self):
         # import select
         global_log_setup()
@@ -184,10 +180,9 @@ class TestForkManager(unittest.TestCase):
         # if platform.system() != 'Linux':
         #    return
         expected = self.load_forks()
-        results = self.fork_manager.bounded_fork_and_collect(
-            max_forks=50, log_progress=True, sleep_time=0.1)
+        results = self.fork_manager.bounded_fork_and_collect(max_forks=50, log_progress=True, sleep_time=0.1)
         self.assertEqual(expected, results)
-        fd = open(LOG_FILE, 'r')
+        fd = open(LOG_FILE)
         log_contents = fd.read()
         self.assertTrue(log_contents)  # False if Fakelogger is not working correctly
         self.assertTrue("Active forks =" in log_contents)
@@ -195,61 +190,53 @@ class TestForkManager(unittest.TestCase):
         # The error messages changed in python 3:
         # Failed to load select.epoll(): module 'select' has no attribute 'epoll'
         # Failed to load select.poll(): module 'select' has no attribute 'poll'
-        self.assertFalse(
-            "module 'select' has no attribute 'epoll'" in log_contents)
-        self.assertFalse(
-            "module 'select' has no attribute 'poll'" in log_contents)
+        self.assertFalse("module 'select' has no attribute 'epoll'" in log_contents)
+        self.assertFalse("module 'select' has no attribute 'poll'" in log_contents)
 
     def test_bounded_fork_and_collect_use_poll(self):
         # force select.epoll to throw in import error so select.poll is used
-        if hasattr(fork.select, 'epoll'):
+        if hasattr(fork.select, "epoll"):
             del fork.select.epoll
         expected = self.load_forks()
-        results = self.fork_manager.bounded_fork_and_collect(
-            max_forks=50, log_progress=True, sleep_time=0.1)
+        results = self.fork_manager.bounded_fork_and_collect(max_forks=50, log_progress=True, sleep_time=0.1)
         # restore select (fork.select) after running the test
-        del sys.modules['select']
+        del sys.modules["select"]
         import select
+
         fork.select = select
         # check results
         self.assertEqual(expected, results)
-        fd = open(LOG_FILE, 'r')
+        fd = open(LOG_FILE)
         log_contents = fd.read()
         self.assertTrue(log_contents)  # False if Fakelogger is not working correctly
         self.assertTrue("Active forks = " in log_contents)
         self.assertTrue("Forks to finish =" in log_contents)
-        self.assertTrue(
-            "module 'select' has no attribute 'epoll'" in log_contents)
-        self.assertFalse(
-            "module 'select' has no attribute 'poll'" in log_contents)
+        self.assertTrue("module 'select' has no attribute 'epoll'" in log_contents)
+        self.assertFalse("module 'select' has no attribute 'poll'" in log_contents)
 
     def test_bounded_fork_and_collect_use_select(self):
         # force select.epoll and select.poll to throw an import error so select is used
-        if hasattr(fork.select, 'epoll'):
+        if hasattr(fork.select, "epoll"):
             del fork.select.epoll
-        if hasattr(fork.select, 'poll'):
+        if hasattr(fork.select, "poll"):
             del fork.select.poll
         expected = self.load_forks()
-        results = self.fork_manager.bounded_fork_and_collect(
-            max_forks=50, log_progress=True, sleep_time=0.1)
+        results = self.fork_manager.bounded_fork_and_collect(max_forks=50, log_progress=True, sleep_time=0.1)
         # restore select (fork.select) after running the test
-        del sys.modules['select']
+        del sys.modules["select"]
         import select
+
         fork.select = select
         # check results
         self.assertEqual(expected, results)
-        fd = open(LOG_FILE, 'r')
+        fd = open(LOG_FILE)
         log_contents = fd.read()
         self.assertTrue(log_contents)  # False if Fakelogger is not working correctly
         self.assertTrue("Active forks = " in log_contents)
         self.assertTrue("Forks to finish =" in log_contents)
-        self.assertTrue(
-            "module 'select' has no attribute 'epoll'" in log_contents)
-        self.assertTrue(
-            "module 'select' has no attribute 'poll'" in log_contents)
+        self.assertTrue("module 'select' has no attribute 'epoll'" in log_contents)
+        self.assertTrue("module 'select' has no attribute 'poll'" in log_contents)
 
 
-if __name__ == '__main__':
-    unittest.main(
-        testRunner=xmlrunner.XMLTestRunner(
-            output='unittests-reports'))
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))

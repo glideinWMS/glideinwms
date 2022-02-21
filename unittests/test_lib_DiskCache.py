@@ -15,17 +15,17 @@ Project:
 """
 
 import os
-import time
 import tempfile
+import time
 import unittest
+
 import xmlrunner
 
 from glideinwms.lib.disk_cache import DiskCache
 
 
 class TestDiskCache(unittest.TestCase):
-    """Test the DiskCache class
-    """
+    """Test the DiskCache class"""
 
     def setUp(self):
         self.obj = "I am the object to be saved"
@@ -37,8 +37,7 @@ class TestDiskCache(unittest.TestCase):
         os.remove(self.objid + ".lock")
 
     def test_normal(self):
-        """Test a few things
-        """
+        """Test a few things"""
         # No cache file exists
         self.assertFalse(os.path.isfile(self.objid))
 
@@ -83,7 +82,5 @@ class TestDiskCache(unittest.TestCase):
         self.assertEqual(self.obj, cached_obj)
 
 
-if __name__ == '__main__':
-    unittest.main(
-        testRunner=xmlrunner.XMLTestRunner(
-            output='unittests-reports'))
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))

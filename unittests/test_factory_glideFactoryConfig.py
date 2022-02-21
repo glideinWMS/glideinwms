@@ -13,38 +13,39 @@ Author:
 """
 
 
-import unittest
-import xmlrunner
 import os
+import unittest
 
+import xmlrunner
 
+from glideinwms.factory.glideFactoryConfig import (
+    ConfigFile,
+    EntryConfigFile,
+    FrontendDescript,
+    GlideinDescript,
+    GlideinKey,
+    JobAttributes,
+    JobDescript,
+    JobParams,
+    JoinConfigFile,
+    SignatureFile,
+)
 from glideinwms.unittests.unittest_utils import TestImportError
+
 try:
     from glideinwms.factory.glideFactoryConfig import FactoryConfig
 except ImportError as err:
     raise TestImportError(str(err))
 
-from glideinwms.factory.glideFactoryConfig import ConfigFile
-from glideinwms.factory.glideFactoryConfig import EntryConfigFile
-from glideinwms.factory.glideFactoryConfig import JoinConfigFile
-from glideinwms.factory.glideFactoryConfig import GlideinKey
-from glideinwms.factory.glideFactoryConfig import GlideinDescript
-from glideinwms.factory.glideFactoryConfig import JobDescript
-from glideinwms.factory.glideFactoryConfig import JobAttributes
-from glideinwms.factory.glideFactoryConfig import JobParams
-from glideinwms.factory.glideFactoryConfig import FrontendDescript
-from glideinwms.factory.glideFactoryConfig import SignatureFile
-
 
 class TestFactoryConfig(unittest.TestCase):
-
     def setUp(self):
         self.testdir = os.getcwd()
-        self.confdir = 'fixtures/factory/work-dir'
-        os.system('git checkout -q %s' % self.confdir)
+        self.confdir = "fixtures/factory/work-dir"
+        os.system("git checkout -q %s" % self.confdir)
         os.chdir(self.confdir)
         self.factory_config = FactoryConfig()
-        self.entry_config = EntryConfigFile('el8_osg34', 'attributes.cfg')
+        self.entry_config = EntryConfigFile("el8_osg34", "attributes.cfg")
         self.job_descript = JobDescript(self.entry_config.entry_name)
         self.job_attrs = JobAttributes(self.entry_config.entry_name)
         self.job_params = JobParams(self.entry_config.entry_name)
@@ -55,7 +56,7 @@ class TestFactoryConfig(unittest.TestCase):
 
     def tearDown(self):
         os.chdir(self.testdir)
-        rsafile = os.path.join(self.confdir, 'rsa.key')
+        rsafile = os.path.join(self.confdir, "rsa.key")
         if os.path.exists(rsafile):
             cmd = "git checkout -q %s " % rsafile
             os.system(cmd)
@@ -65,39 +66,36 @@ class TestFactoryConfig(unittest.TestCase):
 
     def test_get_all_usernames(self):
         all = self.frontend_descript.get_all_usernames()
-        self.assertEqual(['frontend'], all)
+        self.assertEqual(["frontend"], all)
 
     def test_get_identity(self):
-        id = self.frontend_descript.get_identity('vofrontend_service')
-        self.assertEqual('vofrontend_service@fermicloud322.fnal.gov', id)
+        id = self.frontend_descript.get_identity("vofrontend_service")
+        self.assertEqual("vofrontend_service@fermicloud322.fnal.gov", id)
 
     def test_get_username(self):
-        id = self.frontend_descript.get_username(
-            'vofrontend_service', 'frontend')
-        self.assertEqual('frontend', id)
+        id = self.frontend_descript.get_username("vofrontend_service", "frontend")
+        self.assertEqual("frontend", id)
 
     def test_get_all_frontend_sec_classes(self):
         id = self.frontend_descript.get_all_frontend_sec_classes()
-        self.assertEqual(['vofrontend_service:frontend'], id)
+        self.assertEqual(["vofrontend_service:frontend"], id)
 
     def test_get_frontend_name(self):
-        id = self.frontend_descript.get_frontend_name(
-            'vofrontend_service@fermicloud322.fnal.gov')
-        self.assertEqual('vofrontend_service', id)
+        id = self.frontend_descript.get_frontend_name("vofrontend_service@fermicloud322.fnal.gov")
+        self.assertEqual("vofrontend_service", id)
 
     def test__contains__(self):
-        self.assertFalse(self.frontend_descript.__contains__('bazzlesnort'))
-        self.assertTrue(
-            self.frontend_descript.__contains__('vofrontend_service'))
+        self.assertFalse(self.frontend_descript.__contains__("bazzlesnort"))
+        self.assertTrue(self.frontend_descript.__contains__("vofrontend_service"))
 
     def test_has_key(self):
-        self.assertFalse('bazzlesnort' in self.frontend_descript)
-        self.assertTrue('vofrontend_service' in self.frontend_descript)
+        self.assertFalse("bazzlesnort" in self.frontend_descript)
+        self.assertTrue("vofrontend_service" in self.frontend_descript)
 
     def test_str_(self):
         strdict = self.frontend_descript.__str__()
         self.assertTrue(isinstance(strdict, str))
-        self.assertNotEqual('', strdict)
+        self.assertNotEqual("", strdict)
 
     def test_backup_and_load_old_key(self):
         os.chdir(self.confdir)
@@ -125,7 +123,5 @@ class TestFactoryConfig(unittest.TestCase):
         os.chdir(self.testdir)
 
 
-if __name__ == '__main__':
-    unittest.main(
-        testRunner=xmlrunner.XMLTestRunner(
-            output='unittests-reports'))
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))

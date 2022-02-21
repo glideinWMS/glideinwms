@@ -20,8 +20,9 @@ NOTE get_hash() and extract_hash() both return Unicode utf-8 (defaults.BINARY_EN
 """
 # TODO: should this module be replaced (or reimplemented) by using Python's hashlib?
 
-import M2Crypto
 import binascii
+
+import M2Crypto
 
 from . import defaults
 
@@ -49,6 +50,7 @@ class Hash:
         'ripemd160'
         'md5'
     """
+
     def __init__(self, hash_algo):
         self.hash_algo = hash_algo
         return
@@ -99,10 +101,10 @@ class Hash:
             bytes: digest value as bytes string (OpenSSL final and digest together)
         """
         h = M2Crypto.EVP.MessageDigest(self.hash_algo)
-        with open(fname, 'rb') as fd:
+        with open(fname, "rb") as fd:
             while True:
                 data = fd.read(block_size)
-                if data == b'':
+                if data == b"":
                     break  # no more data, stop reading
                 # should check update return? -1 for Python error, 1 for success, 0 for OpenSSL failure
                 h.update(data)
@@ -118,6 +120,7 @@ class Hash:
 
 
 #########################################
+
 
 def get_hash(hash_algo, data):
     """Compute hash inline
@@ -154,40 +157,41 @@ def extract_hash(hash_algo, fname, block_size=1048576):
 ##########################################################################
 # Explicit hash algo section
 
+
 class HashMD5(Hash):
     def __init__(self):
-        Hash.__init__(self, 'md5')
+        Hash.__init__(self, "md5")
 
 
 def get_md5(data):
-    return get_hash('md5', data)
+    return get_hash("md5", data)
 
 
 def extract_md5(fname, block_size=1048576):
-    return extract_hash('md5', fname, block_size)
+    return extract_hash("md5", fname, block_size)
 
 
 class HashSHA1(Hash):
     def __init__(self):
-        Hash.__init__(self, 'sha1')
+        Hash.__init__(self, "sha1")
 
 
 def get_sha1(data):
-    return get_hash('sha1', data)
+    return get_hash("sha1", data)
 
 
 def extract_sha1(fname, block_size=1048576):
-    return extract_hash('sha1', fname, block_size)
+    return extract_hash("sha1", fname, block_size)
 
 
 class HashSHA256(Hash):
     def __init__(self):
-        Hash.__init__(self, 'sha256')
+        Hash.__init__(self, "sha256")
 
 
 def get_sha256(data):
-    return get_hash('sha256', data)
+    return get_hash("sha256", data)
 
 
 def extract_sha256(fname, block_size=1048576):
-    return extract_hash('sha256', fname, block_size)
+    return extract_hash("sha256", fname, block_size)

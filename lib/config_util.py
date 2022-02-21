@@ -6,12 +6,10 @@ configuration generation helper tools
 """
 
 
-
 import collections
-
 import os
-import yaml
 
+import yaml
 
 BEST_FIT_TAG = "BEST_FIT"
 
@@ -50,7 +48,7 @@ DEFAULT_ATTRS = {
     "job_publish": "False",
     "parameter": "True",
     "publish": "True",
-    "type": "string"
+    "type": "string",
 }
 
 GLIDEIN_SUPPORTED_VO_MAP = {
@@ -59,7 +57,7 @@ GLIDEIN_SUPPORTED_VO_MAP = {
     "cdf": "CDF",
     "cigi": "CIGI",
     "cms": "CMS",
-    "\"cms\"": "CMS",
+    '"cms"': "CMS",
     "CMS": "CMS",
     "engage": "EngageVO",
     "des": "DES",
@@ -90,47 +88,22 @@ GLIDEIN_SUPPORTED_VO_MAP = {
     "OSG": "OSGVO",
     "osgedu": "OSGEDU",
     "uc3": "UC3VO",
-    "virgo": "VIRGO"
+    "virgo": "VIRGO",
 }
 
 SUBMISSION_SPEED_MAP = {
-    "super slow": {
-        "cluster_size": 1,
-        "max_per_cycle": 1,
-        "sleep": 2,
-        "slots_layout": "fixed"
-    },
-    "slow": {
-        "cluster_size": 5,
-        "max_per_cycle": 5,
-        "sleep": 2,
-        "slots_layout": "fixed"
-    },
-    "normal": {
-        "cluster_size": 10,
-        "max_per_cycle": 10,
-        "sleep": 2,
-        "slots_layout": "fixed"
-    },
-    "fast": {
-        "cluster_size": 15,
-        "max_per_cycle": 15,
-        "sleep": 2,
-        "slots_layout": "fixed"
-    },
-    "super fast": {
-        "cluster_size": 20,
-        "max_per_cycle": 20,
-        "sleep": 2,
-        "slots_layout": "fixed"
-    }
+    "super slow": {"cluster_size": 1, "max_per_cycle": 1, "sleep": 2, "slots_layout": "fixed"},
+    "slow": {"cluster_size": 5, "max_per_cycle": 5, "sleep": 2, "slots_layout": "fixed"},
+    "normal": {"cluster_size": 10, "max_per_cycle": 10, "sleep": 2, "slots_layout": "fixed"},
+    "fast": {"cluster_size": 15, "max_per_cycle": 15, "sleep": 2, "slots_layout": "fixed"},
+    "super fast": {"cluster_size": 20, "max_per_cycle": 20, "sleep": 2, "slots_layout": "fixed"},
 }
 
 
 # Class to handle error in the merge script
 class ProgramError(Exception):
-    """Simple collection of program error codes and related short messages
-    """
+    """Simple collection of program error codes and related short messages"""
+
     codes_map = {
         1: "File not found",
         2: "Site not found",
@@ -138,7 +111,7 @@ class ProgramError(Exception):
     }
 
     def __init__(self, code):
-        super(ProgramError, self).__init__(self.codes_map[code])
+        super().__init__(self.codes_map[code])
         self.code = code
 
 
@@ -163,7 +136,7 @@ def get_yaml_file_info(file_name):
 
 
 def write_to_yaml_file(file_name, information):
-    """ Auxiliary function used to write a python dictionary into a yaml file
+    """Auxiliary function used to write a python dictionary into a yaml file
 
     Args:
         file_name (string): The yaml filename that will be written out
@@ -196,7 +169,10 @@ def get_attr_str(attrs):
             data["comment"] = ' comment="' + data["comment"] + '"'
         if "value" in data:
             # pylint: disable=line-too-long
-            out += '            <attr name="%(name)s"%(comment)s const="%(const)s" glidein_publish="%(glidein_publish)s" job_publish="%(job_publish)s" parameter="%(parameter)s" publish="%(publish)s" type="%(type)s" value="%(value)s"/>\n' % data
+            out += (
+                '            <attr name="%(name)s"%(comment)s const="%(const)s" glidein_publish="%(glidein_publish)s" job_publish="%(job_publish)s" parameter="%(parameter)s" publish="%(publish)s" type="%(type)s" value="%(value)s"/>\n'
+                % data
+            )
 
     return out[:-1]
 
@@ -215,7 +191,7 @@ def get_submit_attr_str(submit_attrs):
     if submit_attrs:
         for name, value in sorted(submit_attrs.items()):
             if value is not None:
-                out += '\n                  <submit_attr name="%s" value="%s"/>' % (name, value)
+                out += f'\n                  <submit_attr name="{name}" value="{value}"/>'
 
     return out
 
@@ -233,17 +209,23 @@ def get_limits_str(limits):
     out = ""
     if limits is not None:
         for name, value in reversed(sorted(limits.items())):
-            if (value is not None and
-                value.get('glideins') is not None and
-                value.get('held') is not None and
-                value.get('idle') is not None):
-                glideins = value['glideins']
-                held = min(max(int(glideins * value['held'] / 100), 5), glideins)
-                idle = min(max(int(glideins * value['idle'] / 100), 10), glideins)
-                if name == 'entry':
-                    out += '\n               <per_entry glideins="%s" held="%s" idle="%s"/>' % (glideins, held, idle)
-                elif name == 'frontend':
-                    out += '\n               <default_per_frontend glideins="%s" held="%s" idle="%s"/>' % (glideins, held, idle)
+            if (
+                value is not None
+                and value.get("glideins") is not None
+                and value.get("held") is not None
+                and value.get("idle") is not None
+            ):
+                glideins = value["glideins"]
+                held = min(max(int(glideins * value["held"] / 100), 5), glideins)
+                idle = min(max(int(glideins * value["idle"] / 100), 10), glideins)
+                if name == "entry":
+                    out += f'\n               <per_entry glideins="{glideins}" held="{held}" idle="{idle}"/>'
+                elif name == "frontend":
+                    out += '\n               <default_per_frontend glideins="{}" held="{}" idle="{}"/>'.format(
+                        glideins,
+                        held,
+                        idle,
+                    )
 
     return out
 
@@ -264,8 +246,15 @@ def get_submission_speed(submission_speed):
             submission_speed_dictionary = SUBMISSION_SPEED_MAP[submission_speed]
         else:
             submission_speed_dictionary = SUBMISSION_SPEED_MAP["normal"]
-            print("Submission speed with name " + submission_speed + " is not in SUBMISSION_SPEED_MAP, therefore submission speed is set to normal.")
-        out += '\n            <submit cluster_size="%(cluster_size)s" max_per_cycle="%(max_per_cycle)s" sleep="%(sleep)s" slots_layout="%(slots_layout)s">' % submission_speed_dictionary
+            print(
+                "Submission speed with name "
+                + submission_speed
+                + " is not in SUBMISSION_SPEED_MAP, therefore submission speed is set to normal."
+            )
+        out += (
+            '\n            <submit cluster_size="%(cluster_size)s" max_per_cycle="%(max_per_cycle)s" sleep="%(sleep)s" slots_layout="%(slots_layout)s">'
+            % submission_speed_dictionary
+        )
 
     return out
 

@@ -3,13 +3,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import sys
-import os
-import xml.parsers.expat
-import tempfile
 import getopt
+import os
 import stat
+import sys
+import tempfile
 import time
+import xml.parsers.expat
 
 
 # assumes the following globals are defined:
@@ -22,9 +22,10 @@ import time
 def start_element(name, attrs):
     # if name == 'job' and attrs['username'] == user:
     if eval(match_exp):
-        cluster, proc = attrs['id'].split(".")
-        logname = os.path.join(gfactory_dir, "client_log/user_%s/entry_%s/job.%i.%i.%s" %
-                               (user, entry, int(cluster), int(proc), suffix))
+        cluster, proc = attrs["id"].split(".")
+        logname = os.path.join(
+            gfactory_dir, "client_log/user_%s/entry_%s/job.%i.%i.%s" % (user, entry, int(cluster), int(proc), suffix)
+        )
         try:
             if long:
                 s = os.stat(logname)
@@ -36,7 +37,8 @@ def start_element(name, attrs):
 
 
 def print_help():
-    print("""\
+    print(
+        """\
 Usage: entry_ls [OPTIONS] ENTRY USER DATE
 where DATE is of the form YYYYMMDD
 
@@ -53,12 +55,13 @@ the following OPTIONS.
 
 Requires the env variable GLIDEIN_FACTORY_DIR to be set to the
 gwms factory instance location (or to be run in that directory)
-""")
+"""
+    )
 
 
 if __name__ == "__main__":
     try:
-        opts,args = getopt.getopt(sys.argv[1:], 'holtfe:E:d:D:')
+        opts, args = getopt.getopt(sys.argv[1:], "holtfe:E:d:D:")
     except:
         print_help()
         sys.exit(1)
@@ -66,81 +69,83 @@ if __name__ == "__main__":
     if len(args) != 3:
         print_help()
         sys.exit(1)
-    entry,user,date = args
+    entry, user, date = args
 
     suffix = "err"
     match_exp = "name == 'job' and attrs['username'] == user"
     start_exp = None
     end_exp = None
     dur_exp = None
-    long=False
+    long = False
 
     for opt in opts:
-        if opt[0] == '-h':
+        if opt[0] == "-h":
             print_help()
             sys.exit(0)
-        elif opt[0] == '-o':
+        elif opt[0] == "-o":
             suffix = "out"
-        elif opt[0] == '-l':
+        elif opt[0] == "-l":
             long = True
-        elif opt[0] == '-t':
+        elif opt[0] == "-t":
             start_exp = "attrs['condor_started'] == 'True'"
-        elif opt[0] == '-f':
+        elif opt[0] == "-f":
             start_exp = "attrs['condor_started'] == 'False'"
-        elif opt[0] == '-e':
+        elif opt[0] == "-e":
             end_exp = "int(attrs['terminated'].split('T')[1].split(':')[0]) < %i" % int(opt[1])
-        elif opt[0] == '-E':
+        elif opt[0] == "-E":
             end_exp = "int(attrs['terminated'].split('T')[1].split(':')[0]) >= %i" % int(opt[1])
-        elif opt[0] == '-d':
+        elif opt[0] == "-d":
             dur_exp = "int(attrs['duration']) <= %i" % int(opt[1])
-        elif opt[0] == '-D':
+        elif opt[0] == "-D":
             dur_exp = "int(attrs['duration']) >= %i" % int(opt[1])
 
     if start_exp is not None:
-        match_exp = "%s and %s" % (match_exp, start_exp)
+        match_exp = f"{match_exp} and {start_exp}"
     if end_exp is not None:
-        match_exp = "%s and %s" % (match_exp, end_exp)
+        match_exp = f"{match_exp} and {end_exp}"
     if dur_exp is not None:
-        match_exp = "%s and %s" % (match_exp, dur_exp)
+        match_exp = f"{match_exp} and {dur_exp}"
 
-    #print match_exp
-    match_exp = compile(match_exp, '<string>', 'eval')
+    # print match_exp
+    match_exp = compile(match_exp, "<string>", "eval")
 
     # Try GLIDEIN_FACTORY_DIR env var first
-    if 'GLIDEIN_FACTORY_DIR' in os.environ:
-        gfactory_dir = os.environ['GLIDEIN_FACTORY_DIR']
+    if "GLIDEIN_FACTORY_DIR" in os.environ:
+        gfactory_dir = os.environ["GLIDEIN_FACTORY_DIR"]
     else:
         if os.path.isdir("/var/lib/gwms-factory/work-dir"):
-            #Assume RPM is installed
-            gfactory_dir="/var/lib/gwms-factory/work-dir"
+            # Assume RPM is installed
+            gfactory_dir = "/var/lib/gwms-factory/work-dir"
         else:
             gfactory_dir = "."
 
-    gfactory_log_dir=os.path.join(gfactory_dir,"log")
+    gfactory_log_dir = os.path.join(gfactory_dir, "log")
     if not os.path.isdir(gfactory_log_dir):
         sys.stderr.write("The directory %s does not exist.\n" % gfactory_log_dir)
         sys.stderr.write("Please set GLIDEIN_FACTORY_DIR to the factory instance directory and re-try.\n")
         sys.exit(1)
 
-    #RPM has another layer of log directories
-    if os.path.realpath(gfactory_dir)==os.path.realpath("/var/lib/gwms-factory/work-dir"):
-        gfactory_log_dir=os.path.join(gfactory_log_dir,"server")
+    # RPM has another layer of log directories
+    if os.path.realpath(gfactory_dir) == os.path.realpath("/var/lib/gwms-factory/work-dir"):
+        gfactory_log_dir = os.path.join(gfactory_log_dir, "server")
 
-    if entry[:6]=="entry_":
-        sys.stderr.write("WARNING: entry should not start with \"entry_\"\n")
-        entry=entry[6:]
+    if entry[:6] == "entry_":
+        sys.stderr.write('WARNING: entry should not start with "entry_"\n')
+        entry = entry[6:]
 
-    gfactory_entry_dir=os.path.join(gfactory_log_dir,"entry_"+entry)
+    gfactory_entry_dir = os.path.join(gfactory_log_dir, "entry_" + entry)
     if not os.path.isdir(gfactory_entry_dir):
         sys.stderr.write("The directory %s does not exist.\n" % gfactory_entry_dir)
         sys.stderr.write("Please set GLIDEIN_FACTORY_DIR to the factory instance directory and re-try.\n")
         sys.exit(1)
 
-    completed_fname = os.path.join(gfactory_entry_dir,"completed_jobs_%s.log" % (date))
+    completed_fname = os.path.join(gfactory_entry_dir, "completed_jobs_%s.log" % (date))
     try:
         fin = open(completed_fname)
-    except IOError as e:
-        sys.stderr.write("WARNING: %s did not exist.  No jobs completed yet (or this is the wrong directory).\n" % completed_fname)
+    except OSError as e:
+        sys.stderr.write(
+            "WARNING: %s did not exist.  No jobs completed yet (or this is the wrong directory).\n" % completed_fname
+        )
         sys.exit(1)
 
     # write into a temporary xml file and add root tags to make expat happy

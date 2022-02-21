@@ -15,10 +15,12 @@
 #
 
 
-import xmlrunner
 import unittest
 
+import xmlrunner
+
 from glideinwms.lib.util import safe_boolcomp
+
 
 class TestUtils(unittest.TestCase):
     def test_safe_boolcomp(self):
@@ -33,7 +35,6 @@ class TestUtils(unittest.TestCase):
         self.assertFalse(safe_boolcomp("foo", True))
         self.assertFalse(safe_boolcomp("foo", False))
 
-if __name__ == '__main__':
-    unittest.main(
-        testRunner=xmlrunner.XMLTestRunner(
-            output='unittests-reports'))
+
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))

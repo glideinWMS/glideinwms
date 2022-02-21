@@ -18,16 +18,18 @@ NOTE For convenience and consistency w/ previous versions of this module, Encryp
 
 """
 
-import M2Crypto
-import os
 import binascii
+import os
+
+import M2Crypto
 
 from . import defaults
 
 
-def passphrase_callback(v:bool, prompt1: str = 'Enter passphrase:', prompt2: str = 'Verify passphrase:'):
-   str3 = prompt1+prompt2
-   pass
+def passphrase_callback(v: bool, prompt1: str = "Enter passphrase:", prompt2: str = "Verify passphrase:"):
+    str3 = prompt1 + prompt2
+    pass
+
 
 def _default_callback(*args):
     """Return a dummy passphrase
@@ -57,8 +59,10 @@ class PubCryptoError(Exception):
     """Exception masking M2Crypto exceptions,
     to ease error handling in modules importing pubCrypto
     """
+
     def __init__(self, msg):
         Exception.__init__(self, msg)
+
 
 ######################
 #
@@ -93,10 +97,10 @@ class PubCryptoError(Exception):
 # Public part of the RSA key
 class PubRSAKey:
     """Public part of the RSA key"""
-    def __init__(self,
-                 key_str=None, key_fname=None,
-                 encryption_padding=M2Crypto.RSA.pkcs1_oaep_padding,
-                 sign_algo='sha256'):
+
+    def __init__(
+        self, key_str=None, key_fname=None, encryption_padding=M2Crypto.RSA.pkcs1_oaep_padding, sign_algo="sha256"
+    ):
         """Constructor for RSA public key
 
         One and only one of the two key_str or key_fname must be defined (not None)
@@ -203,7 +207,7 @@ class PubRSAKey:
         Returns:
 
         """
-        bio = M2Crypto.BIO.openfile(key_fname, 'wb')
+        bio = M2Crypto.BIO.openfile(key_fname, "wb")
         try:
             return self._save_to_bio(bio)
         except Exception as e:
@@ -302,14 +306,17 @@ class PubRSAKey:
 ##########################################################################
 # Public and private part of the RSA key
 class RSAKey(PubRSAKey):
-    """Public and private part of the RSA key
-    """
-    def __init__(self,
-                 key_str=None, key_fname=None,
-                 private_cipher='aes_256_cbc',
-                 private_callback=_default_callback,
-                 encryption_padding=M2Crypto.RSA.pkcs1_oaep_padding,
-                 sign_algo='sha256'):
+    """Public and private part of the RSA key"""
+
+    def __init__(
+        self,
+        key_str=None,
+        key_fname=None,
+        private_cipher="aes_256_cbc",
+        private_callback=_default_callback,
+        encryption_padding=M2Crypto.RSA.pkcs1_oaep_padding,
+        sign_algo="sha256",
+    ):
         self.private_cipher = private_cipher
         self.private_callback = private_callback
         PubRSAKey.__init__(self, key_str, key_fname, encryption_padding, sign_algo)
@@ -431,6 +438,7 @@ class RSAKey(PubRSAKey):
     def sign_hex(self, data):
         """like sign, but hex encoded"""
         return binascii.b2a_hex(self.sign(data))
+
 
 # def generate():
 #    privkey_file = "priv.pem"

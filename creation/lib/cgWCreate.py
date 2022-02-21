@@ -14,16 +14,16 @@
 #
 ####################################
 
+import io
 import os
 import shutil
-import subprocess
 import stat
+import subprocess
 import tarfile
-import io
-from . import cgWDictFile
-from . import cWDictFile
+
 from glideinwms.lib.util import chmod
 
+from . import cgWDictFile, cWDictFile
 
 ##############################
 
@@ -42,35 +42,36 @@ def create_condor_tar_fd(condor_base_dir):
     """
     try:
         # List of required files
-        condor_bins = [
-            'sbin/condor_master', 'sbin/condor_startd', 'sbin/condor_starter'
-        ]
+        condor_bins = ["sbin/condor_master", "sbin/condor_startd", "sbin/condor_starter"]
 
         # List of optional files, included if found in condor distro
         condor_opt_bins = [
-            'sbin/condor_procd', 'sbin/condor_fetchlog', 'sbin/condor_advertise',
-            'bin/condor_nsenter', 'bin/condor_docker_enter'
+            "sbin/condor_procd",
+            "sbin/condor_fetchlog",
+            "sbin/condor_advertise",
+            "bin/condor_nsenter",
+            "bin/condor_docker_enter",
         ]
 
         condor_opt_libs = [
-            'lib/condor_ssh_to_job_sshd_config_template',
-            'lib/CondorJavaInfo.class',
-            'lib/CondorJavaWrapper.class',
-            'lib/scimark2lib.jar',
-            'lib/condor',
-            'lib/libgetpwnam.so',
+            "lib/condor_ssh_to_job_sshd_config_template",
+            "lib/CondorJavaInfo.class",
+            "lib/CondorJavaWrapper.class",
+            "lib/scimark2lib.jar",
+            "lib/condor",
+            "lib/libgetpwnam.so",
         ]
         condor_opt_libexecs = [
-            'libexec/condor_shared_port',
-            'libexec/condor_ssh_to_job_sshd_setup',
-            'libexec/condor_ssh_to_job_shell_setup',
-            'libexec/condor_kflops',
-            'libexec/condor_mips',
-            'libexec/curl_plugin',
-            'libexec/data_plugin',
-            'libexec/condor_chirp',
-            'libexec/condor_gpu_discovery',
-            'libexec/condor_gpu_utilization',
+            "libexec/condor_shared_port",
+            "libexec/condor_ssh_to_job_sshd_setup",
+            "libexec/condor_ssh_to_job_shell_setup",
+            "libexec/condor_kflops",
+            "libexec/condor_mips",
+            "libexec/curl_plugin",
+            "libexec/data_plugin",
+            "libexec/condor_chirp",
+            "libexec/condor_gpu_discovery",
+            "libexec/condor_gpu_utilization",
         ]
 
         # for RPM installations, add libexec/condor as libexec into the
@@ -79,7 +80,7 @@ def create_condor_tar_fd(condor_base_dir):
         condor_opt_libexecs_rpm = []
 
         for libexec in condor_opt_libexecs:
-            libexec_rpm = libexec.replace('libexec', 'libexec/condor')
+            libexec_rpm = libexec.replace("libexec", "libexec/condor")
             condor_opt_libexecs_rpm.append(libexec_rpm)
             condor_bins_map[libexec_rpm] = libexec
 
@@ -90,19 +91,13 @@ def create_condor_tar_fd(condor_base_dir):
             raise RuntimeError("%s is not a directory" % condor_base_dir)
         for f in condor_bins:
             if not os.path.isfile(os.path.join(condor_base_dir, f)):
-                raise RuntimeError(
-                    "Cannot find %s" %
-                    os.path.join(
-                        condor_base_dir, f))
+                raise RuntimeError("Cannot find %s" % os.path.join(condor_base_dir, f))
 
         # Get the list of dlls required
-        dlls = get_condor_dlls(
-            condor_base_dir,
-            condor_bins + condor_opt_bins + condor_opt_libexecs)
+        dlls = get_condor_dlls(condor_base_dir, condor_bins + condor_opt_bins + condor_opt_libexecs)
 
         # Get list of all the files & directories that exist
-        for f in (condor_opt_bins + condor_opt_libs +
-                  condor_opt_libexecs + dlls):
+        for f in condor_opt_bins + condor_opt_libs + condor_opt_libexecs + dlls:
             if os.path.exists(os.path.join(condor_base_dir, f)):
                 condor_bins.append(f)
 
@@ -111,7 +106,7 @@ def create_condor_tar_fd(condor_base_dir):
         # TODO #23166: Use context managers[with statement] when python 3
         # once we get rid of SL6 and tarballs
 
-        tf = tarfile.open("dummy.tgz", 'w:gz', fd)
+        tf = tarfile.open("dummy.tgz", "w:gz", fd)
         for f in condor_bins:
             tf.add(os.path.join(condor_base_dir, f), condor_bins_map.get(f, f))
         tf.close()
@@ -124,7 +119,7 @@ def create_condor_tar_fd(condor_base_dir):
 
 ##########################################
 def get_factory_log_recipients(entry):
-    """ Read the log recipients specified by the Factory in its configuration
+    """Read the log recipients specified by the Factory in its configuration
 
     Args:
         entry: dict-like object representing the entry configuration
@@ -132,10 +127,10 @@ def get_factory_log_recipients(entry):
     Returns:
         list: list contaning the URLs of the log servers, empty if none present
     """
-    entr_attrs = entry.get_child_list('attrs')
+    entr_attrs = entry.get_child_list("attrs")
     for attr in entr_attrs:
-        if attr['name'] == 'LOG_RECIPIENTS_FACTORY':
-            return attr['value'].split()
+        if attr["name"] == "LOG_RECIPIENTS_FACTORY":
+            return attr["value"].split()
     return []
 
 
@@ -156,40 +151,40 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         another parameter to the function.
         """
 
-        glidein_name = conf['glidein_name']
-        gridtype = entry['gridtype']
-        gatekeeper = entry['gatekeeper']
-        entry_enabled = entry['enabled']
-        if 'rsl' in entry:
-            rsl = entry['rsl']
+        glidein_name = conf["glidein_name"]
+        gridtype = entry["gridtype"]
+        gatekeeper = entry["gatekeeper"]
+        entry_enabled = entry["enabled"]
+        if "rsl" in entry:
+            rsl = entry["rsl"]
         else:
             rsl = None
-        auth_method = entry['auth_method']
-        if 'proxy_url' in entry:
-            proxy_url = entry['proxy_url']
+        auth_method = entry["auth_method"]
+        if "proxy_url" in entry:
+            proxy_url = entry["proxy_url"]
         else:
             proxy_url = None
-        client_log_base_dir = conf.get_child('submit')['base_client_log_dir']
-        submit_attrs = entry.get_child('config').get_child('submit').get_child_list('submit_attrs')
+        client_log_base_dir = conf.get_child("submit")["base_client_log_dir"]
+        submit_attrs = entry.get_child("config").get_child("submit").get_child_list("submit_attrs")
         enc_input_files = []
 
-        enc_input_files.append('$ENV(IDTOKENS_FILE)')
+        enc_input_files.append("$ENV(IDTOKENS_FILE)")
 
-        if gridtype not in ['ec2', 'gce']:
-            self.add('+SciTokensFile', '"$ENV(SCITOKENS_FILE)"')
+        if gridtype not in ["ec2", "gce"]:
+            self.add("+SciTokensFile", '"$ENV(SCITOKENS_FILE)"')
 
         # Folders and files of tokens for glidein logging authentication
         # leos token stuff, left it in for now
         token_list = []
-        token_basedir = os.path.realpath(os.path.join(os.getcwd(), '..', 'server-credentials'))
-        token_entrydir = os.path.join(token_basedir, 'entry_' + entry_name)
-        url_dirs_desc_file = os.path.join(token_entrydir, 'url_dirs.desc')
+        token_basedir = os.path.realpath(os.path.join(os.getcwd(), "..", "server-credentials"))
+        token_entrydir = os.path.join(token_basedir, "entry_" + entry_name)
+        url_dirs_desc_file = os.path.join(token_entrydir, "url_dirs.desc")
         if os.path.exists(url_dirs_desc_file):
             file_size = os.stat(url_dirs_desc_file)
             if file_size.st_size > 0:
                 enc_input_files.append(url_dirs_desc_file)
 
-        token_tgz_file = os.path.join(token_entrydir, 'tokens.tgz')
+        token_tgz_file = os.path.join(token_entrydir, "tokens.tgz")
         if os.path.exists(token_tgz_file):
             file_size = os.stat(token_tgz_file)
             if file_size.st_size > 0:
@@ -197,91 +192,70 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 token_list.append(token_tgz_file)
 
         if token_list:
-            self.add_environment("JOB_TOKENS='"+','.join(token_list)+"'")
-
+            self.add_environment("JOB_TOKENS='" + ",".join(token_list) + "'")
 
         # Get the list of log recipients specified from the Factory for this entry
         factory_recipients = get_factory_log_recipients(entry)
-        frontend_recipients = []    # TODO: change when adding support for LOG_RECIPIENTS_CLIENT
+        frontend_recipients = []  # TODO: change when adding support for LOG_RECIPIENTS_CLIENT
         log_recipients = list(set(factory_recipients + frontend_recipients))
         if len(log_recipients) > 0:
-            self.append(
-                'environment',
-                '"LOG_RECIPIENTS=' + "'" + ' '.join(log_recipients) + "'" + '"')
+            self.append("environment", '"LOG_RECIPIENTS=' + "'" + " ".join(log_recipients) + "'" + '"')
         # print("Token dir: " + token_basedir)  # DEBUG
 
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
-        if gridtype.startswith('batch '):
+        if gridtype.startswith("batch "):
             # For BOSCO ie gridtype 'batch *', allow means to pass VO specific
             # bosco/ssh keys
             # was: self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s" % (gridtype, gatekeeper))
             # gatekeeper is [name@]host[:port]. Keep only the host part and replace name with username from env
             # This returns always the host:port part: gatekeeper.split('@')[-1]
-            if 'bosco_dir' in entry:
-                bosco_dir = "--rgahp-glite ~/%s/glite" % entry['bosco_dir']
+            if "bosco_dir" in entry:
+                bosco_dir = "--rgahp-glite ~/%s/glite" % entry["bosco_dir"]
             else:
-                bosco_dir = ''
-            self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s $ENV(GLIDEIN_REMOTE_USERNAME)@%s" %
-                     (gridtype, bosco_dir, gatekeeper.split('@')[-1]))
+                bosco_dir = ""
+            self.add(
+                "Grid_Resource",
+                "%s $ENV(GRID_RESOURCE_OPTIONS) %s $ENV(GLIDEIN_REMOTE_USERNAME)@%s"
+                % (gridtype, bosco_dir, gatekeeper.split("@")[-1]),
+            )
             enc_input_files.append('$ENV(X509_USER_PROXY":/dev/null)')
             self.add_environment("X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME:)")
         elif gridtype == "gce":
-            self.add(
-                "Grid_Resource", "%s %s $ENV(GRID_RESOURCE_OPTIONS)" %
-                (gridtype, gatekeeper))
+            self.add("Grid_Resource", f"{gridtype} {gatekeeper} $ENV(GRID_RESOURCE_OPTIONS)")
         else:
-            self.add("Grid_Resource", "%s %s" % (gridtype, gatekeeper))
+            self.add("Grid_Resource", f"{gridtype} {gatekeeper}")
         self.add("Executable", exe_fname)
 
         # set up the grid specific attributes
-        if gridtype == 'ec2':
+        if gridtype == "ec2":
             self.populate_ec2_grid()
-            self.populate_standard_grid(
-                rsl,
-                auth_method,
-                gridtype,
-                entry_enabled,
-                entry_name,
-                enc_input_files=None)
-        elif gridtype == 'gce':
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files=None)
+        elif gridtype == "gce":
             self.populate_gce_grid()
-        elif gridtype == 'condor':
+        elif gridtype == "condor":
             # Condor-C is the same as normal grid with a few additions
             # so we first do the normal population
-            self.populate_standard_grid(
-                rsl,
-                auth_method,
-                gridtype,
-                entry_enabled,
-                entry_name,
-                enc_input_files)
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
             # self.populate_standard_grid(rsl, auth_method, gridtype, token_files)
             # next we add the Condor-C additions
             self.populate_condorc_grid()
         else:
-            self.populate_standard_grid(
-                rsl,
-                auth_method,
-                gridtype,
-                entry_enabled,
-                entry_name,
-                enc_input_files)
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
 
         self.populate_submit_attrs(submit_attrs, gridtype)
         self.populate_glidein_classad(proxy_url)
 
         # Leave jobs in the condor queue for 12 hours if they are completed.
-        if conf['advertise_pilot_accounting'] == 'True':
-            self.add(
-                "LeaveJobInQueue",
-                "((time() - EnteredCurrentStatus) < 12*60*60)")
+        if conf["advertise_pilot_accounting"] == "True":
+            self.add("LeaveJobInQueue", "((time() - EnteredCurrentStatus) < 12*60*60)")
 
         # GLIDEIN_IDLE_LIFETIME comes from idle_glideins_lifetime in the config section of the Frontend configuration (glidein limits)
         # GlideinSkipIdleRemoval is set instead in the submit_attr section of the Factory
         remove_expr = "(isUndefined(GlideinSkipIdleRemoval)==True || GlideinSkipIdleRemoval==False) && (JobStatus==1 && isInteger($ENV(GLIDEIN_IDLE_LIFETIME)) && $ENV(GLIDEIN_IDLE_LIFETIME)>0 && (time() - QDate)>$ENV(GLIDEIN_IDLE_LIFETIME))"
-        max_walltime = next(iter([x for x in entry.get_child_list(
-            'attrs') if x['name'] == 'GLIDEIN_Max_Walltime']), None)  # Get the GLIDEIN_Max_Walltime attribute
+        max_walltime = next(
+            iter([x for x in entry.get_child_list("attrs") if x["name"] == "GLIDEIN_Max_Walltime"]), None
+        )  # Get the GLIDEIN_Max_Walltime attribute
         if max_walltime:
             remove_expr += " || (JobStatus==2 && ((time() - EnteredCurrentStatus) > (GlideinMaxWalltime + 12*60*60)))"
         self.add("periodic_remove", remove_expr)
@@ -293,22 +267,19 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # The logging of the jobs will be the same across grid types
         self.add(
             "Log",
-            "%s/user_$ENV(GLIDEIN_USER)/glidein_%s/entry_%s/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log" %
-            (client_log_base_dir,
-             glidein_name,
-             entry_name))
+            "%s/user_$ENV(GLIDEIN_USER)/glidein_%s/entry_%s/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log"
+            % (client_log_base_dir, glidein_name, entry_name),
+        )
         self.add(
             "Output",
-            "%s/user_$ENV(GLIDEIN_USER)/glidein_%s/entry_%s/job.$(Cluster).$(Process).out" %
-            (client_log_base_dir,
-             glidein_name,
-             entry_name))
+            "%s/user_$ENV(GLIDEIN_USER)/glidein_%s/entry_%s/job.$(Cluster).$(Process).out"
+            % (client_log_base_dir, glidein_name, entry_name),
+        )
         self.add(
             "Error",
-            "%s/user_$ENV(GLIDEIN_USER)/glidein_%s/entry_%s/job.$(Cluster).$(Process).err" %
-            (client_log_base_dir,
-             glidein_name,
-             entry_name))
+            "%s/user_$ENV(GLIDEIN_USER)/glidein_%s/entry_%s/job.$(Cluster).$(Process).err"
+            % (client_log_base_dir, glidein_name, entry_name),
+        )
 
         self.jobs_in_cluster = "$ENV(GLIDEIN_COUNT)"
 
@@ -330,15 +301,16 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             RunTimeError when jdl file should not be created
         """
 
-        if (gridtype == 'gt2' or gridtype == 'gt5') and eval(entry_enabled):
+        if (gridtype == "gt2" or gridtype == "gt5") and eval(entry_enabled):
             raise RuntimeError(
-                " The grid type '%s' is no longer supported. Review the attributes of the entry %s " %
-                (gridtype, entry_name))
-        elif gridtype == 'cream' and ((rsl is not None) and rsl != ""):
+                " The grid type '%s' is no longer supported. Review the attributes of the entry %s "
+                % (gridtype, entry_name)
+            )
+        elif gridtype == "cream" and ((rsl is not None) and rsl != ""):
             self.add("cream_attributes", "$ENV(GLIDEIN_RSL)")
-        elif gridtype == 'nordugrid' and rsl:
+        elif gridtype == "nordugrid" and rsl:
             self.add("nordugrid_rsl", "$ENV(GLIDEIN_RSL)")
-        elif (gridtype == 'condor') and ('project_id' in auth_method):
+        elif (gridtype == "condor") and ("project_id" in auth_method):
             self.add("+ProjectName", '"$ENV(GLIDEIN_PROJECT_ID)"')
 
         # Force the copy to spool to prevent caching at the CE side
@@ -347,7 +319,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("Arguments", "$ENV(GLIDEIN_ARGUMENTS)")
 
         if enc_input_files:
-            indata = ','.join(enc_input_files)
+            indata = ",".join(enc_input_files)
             self.add("transfer_Input_files", indata)
             self.add("encrypt_Input_files", indata)
         # Logging is optional, no exception if empty
@@ -359,20 +331,18 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("stream_output", "False")
         self.add("stream_error ", "False")
 
-
-    def populate_submit_attrs(self, submit_attrs, gridtype, attr_prefix=''):
+    def populate_submit_attrs(self, submit_attrs, gridtype, attr_prefix=""):
         for submit_attr in submit_attrs:
-            if submit_attr.get('all_grid_types', 'False') == 'True' or gridtype.startswith(
-                    'batch ') or gridtype in ('condor', 'gce', 'ec2', 'arc'):
-                self.add(
-                    '%s%s' %
-                    (attr_prefix,
-                     submit_attr['name']),
-                    submit_attr['value'])
+            if (
+                submit_attr.get("all_grid_types", "False") == "True"
+                or gridtype.startswith("batch ")
+                or gridtype in ("condor", "gce", "ec2", "arc")
+            ):
+                self.add("{}{}".format(attr_prefix, submit_attr["name"]), submit_attr["value"])
 
     def populate_condorc_grid(self):
-        self.add('+TransferOutput', '""')
-        self.add('x509userproxy', '$ENV(X509_USER_PROXY:)')
+        self.add("+TransferOutput", '""')
+        self.add("x509userproxy", "$ENV(X509_USER_PROXY:)")
 
     def populate_gce_grid(self):
         self.add("gce_image", "$ENV(IMAGE_ID)")
@@ -381,8 +351,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # self.add("+gce_availability_zone", "$ENV(AVAILABILITY_ZONE)")
         self.add("gce_auth_file", "$ENV(GCE_AUTH_FILE)")
         self.add(
-            "gce_metadata",
-            "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
+            "gce_metadata", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####"
+        )
         self.add("gce_metadata_file", "$ENV(GLIDEIN_PROXY_FNAME)")
 
     def populate_ec2_grid(self):
@@ -390,43 +360,37 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("ec2_instance_type", "$ENV(INSTANCE_TYPE)")
         self.add("ec2_access_key_id", "$ENV(ACCESS_KEY_FILE)")
         self.add("ec2_secret_access_key", "$ENV(SECRET_KEY_FILE)")
-        self.add(
-            "ec2_keypair_file",
-            "$ENV(CREDENTIAL_DIR)/ssh_key_pair.$(Cluster).$(Process).pem")
+        self.add("ec2_keypair_file", "$ENV(CREDENTIAL_DIR)/ssh_key_pair.$(Cluster).$(Process).pem")
         # We do not add the entire argument list to the userdata directly
         # since we want to be able to change the argument list without
         # having to modify every piece of code under the sun
         # This way only the submit_glideins function has to change
         # (and of course glidein_startup.sh)
         self.add(
-            "ec2_user_data",
-            "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
+            "ec2_user_data", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####"
+        )
         self.add("ec2_user_data_file", "$ENV(GLIDEIN_PROXY_FNAME)")
 
     def populate_glidein_classad(self, proxy_url):
         # add in the classad attributes for the WMS collector
-        self.add('+GlideinFactory', '"$ENV(FACTORY_NAME)"')
-        self.add('+GlideinName', '"$ENV(GLIDEIN_NAME)"')
-        self.add('+GlideinEntryName', '"$ENV(GLIDEIN_ENTRY_NAME)"')
-        self.add(
-            '+GlideinEntrySubmitFile',
-            '"$ENV(GLIDEIN_ENTRY_SUBMIT_FILE)"')
-        self.add('+GlideinClient', '"$ENV(GLIDEIN_CLIENT)"')
-        self.add('+GlideinFrontendName', '"$ENV(GLIDEIN_FRONTEND_NAME)"')
-        self.add(
-            '+GlideinCredentialIdentifier',
-            '"$ENV(GLIDEIN_CREDENTIAL_ID)"')
-        self.add('+GlideinSecurityClass', '"$ENV(GLIDEIN_SEC_CLASS)"')
-        self.add('+GlideinWebBase', '"$ENV(GLIDEIN_WEB_URL)"')
-        self.add('+GlideinLogNr', '"$ENV(GLIDEIN_LOGNR)"')
-        self.add('+GlideinWorkDir', '"$ENV(GLIDEIN_STARTUP_DIR)"')
-        self.add('+GlideinSlotsLayout', '"$ENV(GLIDEIN_SLOTS_LAYOUT)"')
-        self.add('+GlideinMaxWalltime', '$ENV(GLIDEIN_MAX_WALLTIME)')
+        self.add("+GlideinFactory", '"$ENV(FACTORY_NAME)"')
+        self.add("+GlideinName", '"$ENV(GLIDEIN_NAME)"')
+        self.add("+GlideinEntryName", '"$ENV(GLIDEIN_ENTRY_NAME)"')
+        self.add("+GlideinEntrySubmitFile", '"$ENV(GLIDEIN_ENTRY_SUBMIT_FILE)"')
+        self.add("+GlideinClient", '"$ENV(GLIDEIN_CLIENT)"')
+        self.add("+GlideinFrontendName", '"$ENV(GLIDEIN_FRONTEND_NAME)"')
+        self.add("+GlideinCredentialIdentifier", '"$ENV(GLIDEIN_CREDENTIAL_ID)"')
+        self.add("+GlideinSecurityClass", '"$ENV(GLIDEIN_SEC_CLASS)"')
+        self.add("+GlideinWebBase", '"$ENV(GLIDEIN_WEB_URL)"')
+        self.add("+GlideinLogNr", '"$ENV(GLIDEIN_LOGNR)"')
+        self.add("+GlideinWorkDir", '"$ENV(GLIDEIN_STARTUP_DIR)"')
+        self.add("+GlideinSlotsLayout", '"$ENV(GLIDEIN_SLOTS_LAYOUT)"')
+        self.add("+GlideinMaxWalltime", "$ENV(GLIDEIN_MAX_WALLTIME)")
         # fename does not start with Glidein for convenience (it's short) and consistency with options of the factory tools
         # that already use the fename naming convention. Added after the condor_privsep deprecation.
         self.add("+fename", '"$ENV(GLIDEIN_USER)"')
         if proxy_url:
-            self.add('+GlideinProxyURL', '"%s"' % proxy_url)
+            self.add("+GlideinProxyURL", '"%s"' % proxy_url)
 
     def finalize(self, sign, entry_sign, descript, entry_descript):
         """
@@ -435,27 +399,29 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         """
         pass
 
+
 #########################################
 # Create init.d compatible startup file
 
 
-def create_initd_startup(startup_fname, factory_dir,
-                         glideinWMS_dir, cfg_name, rpm_install=''):
+def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name, rpm_install=""):
     """
     Creates the factory startup script from the template.
     """
     template = get_template("factory_initd_startup_template", glideinWMS_dir)
     with open(startup_fname, "w") as fd:
-        template = template % {"factory_dir": factory_dir,
-                               "glideinWMS_dir": glideinWMS_dir,
-                               "default_cfg_fpath": cfg_name,
-                               "rpm_install": rpm_install}
+        template = template % {
+            "factory_dir": factory_dir,
+            "glideinWMS_dir": glideinWMS_dir,
+            "default_cfg_fpath": cfg_name,
+            "rpm_install": rpm_install,
+        }
         fd.write(template)
 
-    chmod(startup_fname, stat.S_IRWXU | stat.S_IROTH |
-             stat.S_IRGRP | stat.S_IXOTH | stat.S_IXGRP)
+    chmod(startup_fname, stat.S_IRWXU | stat.S_IROTH | stat.S_IRGRP | stat.S_IXOTH | stat.S_IXGRP)
 
     return
+
 
 #####################
 # INTERNAL
@@ -479,8 +445,9 @@ def copy_file(infile, outfile):
     """
     try:
         shutil.copy2(infile, outfile)
-    except IOError as e:
-        raise RuntimeError("Error copying %s in %s: %s" % (infile, outfile, e))
+    except OSError as e:
+        raise RuntimeError(f"Error copying {infile} in {outfile}: {e}")
+
 
 #####################################
 # Copy an executable between two dirs
@@ -510,7 +477,7 @@ def copy_exe(filename, work_dir, org_dir, overwrite=False):
 
 
 def get_template(template_name, glideinWMS_dir):
-    with open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r") as template_fd:
+    with open(f"{glideinWMS_dir}/creation/templates/{template_name}") as template_fd:
         template_str = template_fd.read()
     return template_str
 
@@ -551,20 +518,18 @@ def ldd(file):
     """
 
     rlist = []
-    if os.path.exists(file) and shutil.which('ldd') is not None:
-        process = subprocess.Popen(['ldd', file], shell=False,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
+    if os.path.exists(file) and shutil.which("ldd") is not None:
+        process = subprocess.Popen(["ldd", file], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         for line in process.stdout.readlines():
-            tokens = line.split(b'=>')
+            tokens = line.split(b"=>")
             if len(tokens) == 2:
-                lib_loc = ((tokens[1].strip()).split(b' '))[0].strip()
+                lib_loc = ((tokens[1].strip()).split(b" "))[0].strip()
                 if os.path.exists(lib_loc):
                     rlist.append(os.path.abspath(lib_loc).decode("utf-8"))
     return rlist
 
 
-def get_condor_dlls(condor_dir, files=[], libdirs=['lib', 'lib/condor']):
+def get_condor_dlls(condor_dir, files=[], libdirs=["lib", "lib/condor"]):
     """
     Given list of condor files return all the libraries referenced by the files
 
@@ -621,7 +586,7 @@ def get_condor_dlls(condor_dir, files=[], libdirs=['lib', 'lib/condor']):
 
     # Return the list of files relative to condor_dir
     for lib in fileset:
-        tokens = lib.split('%s/' % os.path.normpath(condor_dir))
+        tokens = lib.split("%s/" % os.path.normpath(condor_dir))
         rlist.append(tokens[1])
 
     return rlist

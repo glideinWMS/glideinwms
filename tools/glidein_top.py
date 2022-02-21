@@ -9,14 +9,18 @@
 # Usage:
 #  glidein_top.py <cluster>.<process> [-name <schedd_name>] [-pool <pool_name> ] [-timeout <nr secs>]
 
-import sys, os.path
-sys.path.append(os.path.join(sys.path[0], "../.."))
+import os.path
+import sys
 
 from glideinwms.tools.lib import glideinCmd
 
+sys.path.append(os.path.join(sys.path[0], "../.."))
+
+
 def argv_top(argv):
-    if len(argv)!=0:
-        raise RuntimeError("Unexpected parameters starting with %s found!"%argv[0])
-    return ['top', '-b', '-n', '1']
+    if len(argv) != 0:
+        raise RuntimeError("Unexpected parameters starting with %s found!" % argv[0])
+    return ["top", "-b", "-n", "1"]
+
 
 glideinCmd.exe_cmd_simple(argv_top)

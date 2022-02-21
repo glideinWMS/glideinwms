@@ -16,18 +16,19 @@
 #
 
 
-import os
-import sys
-import glob
-import pickle
 import cProfile
+import glob
+import os
+import pickle
+import sys
 
 from glideinwms.lib import logSupport
+
 # from glideinwms.frontend.glideinFrontendLib import countMatch
 
 
 # Replicating the class since this should be executed standalone on a production frontend
-class FakeLogger(object):
+class FakeLogger:
     """
     Super simple logger for the unittests
     """
@@ -83,6 +84,7 @@ class FakeLogger(object):
 class mock_condorq_el:
     def __init__(self, obj):
         self.obj = obj
+
     def fetchStored(self):
         return self.obj
 
@@ -90,17 +92,17 @@ class mock_condorq_el:
 def main():
     # Need to be global for cProfile to work
     global cexpr, condorq_dict, glidein_dict, attr_dict, condorq_match_list
-    dumpdir = "/tmp/frontend_dump/main/" # This will profile the main group. Change it to profile another one
+    dumpdir = "/tmp/frontend_dump/main/"  # This will profile the main group. Change it to profile another one
     # The CMS matching expression as of April 17th 2019
     mexpr = """(((glidein["attrs"].get("GLIDEIN_MaxMemMBs", 0) == 0) or (job.get("RequestMemory", 0)<=glidein["attrs"]["GLIDEIN_MaxMemMBs"])) and ((job.get("REQUIRED_OS", "any")=="any") or (glidein["attrs"].get("GLIDEIN_REQUIRED_OS", "any")=="any") or (job.get("REQUIRED_OS")==glidein["attrs"]["GLIDEIN_REQUIRED_OS"])) and ((job.get("MaxWallTimeMins", 0)*60)>=glidein["attrs"].get("GLIDEIN_Job_Min_Time", 0)) and ((job.get("MaxWallTimeMins", 0)+10)<(glidein["attrs"]["GLIDEIN_Max_Walltime"]-glidein["attrs"]["GLIDEIN_Retire_Time_Spread"])/60))"""
     logSupport.log = FakeLogger()
 
     # Load the saved dictionaries
-    with open(os.path.join(dumpdir, 'glidein_dict.pickle'), 'rb') as fd:
+    with open(os.path.join(dumpdir, "glidein_dict.pickle"), "rb") as fd:
         glidein_dict = pickle.load(fd)
-    with open(os.path.join(dumpdir, 'attr_dict.pickle'), 'rb') as fd:
-        attr_dict= pickle.load(fd)
-    with open(os.path.join(dumpdir, 'condorq_match_list.pickle'), 'rb') as fd:
+    with open(os.path.join(dumpdir, "attr_dict.pickle"), "rb") as fd:
+        attr_dict = pickle.load(fd)
+    with open(os.path.join(dumpdir, "condorq_match_list.pickle"), "rb") as fd:
         condorq_match_list = pickle.load(fd)
 
     cexpr = compile(mexpr, "<string>", "eval")
@@ -113,12 +115,12 @@ def main():
 
     condorq_dict = {}
     for schedd_name in qdicts:
-        with open(os.path.join(dumpdir, schedd_name), 'rb') as fd:
+        with open(os.path.join(dumpdir, schedd_name), "rb") as fd:
             condorq_dict[schedd_name] = mock_condorq_el(pickle.load(fd))
 
     print("Frontend dump loaded")
 
-    cProfile.run('countMatch(cexpr, condorq_dict, glidein_dict, attr_dict, condorq_match_list)')
+    cProfile.run("countMatch(cexpr, condorq_dict, glidein_dict, attr_dict, condorq_match_list)")
 
 
 if __name__ == "__main__":

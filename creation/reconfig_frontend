@@ -7,35 +7,39 @@
 #  This program updates a frontend directory structure
 #  based on a configuration file
 
-from __future__ import print_function
+
 import os
+import os.path
+import signal
+
 # import copy
 # import subprocess
 import sys
 import tempfile
-import signal
-import os.path
+
+from glideinwms.creation.lib import (
+    check_config_frontend,
+    check_python3_expr,
+    cvWConsts,
+    cvWCreate,
+    cvWDictFile,
+    cvWParamDict,
+    cvWParams,
+    cWConsts,
+    xslt,
+)
+from glideinwms.frontend import glideinFrontendLib, glideinFrontendMonitorAggregator
+from glideinwms.lib.util import handle_hooks, HOOK_POST_RECONFIG_DIRNAME, HOOK_PRE_RECONFIG_DIRNAME
 
 STARTUP_DIR = sys.path[0]
 
 # Change this if you have changed the source for the
 # For instance, in the frontend RPM
-WEB_BASE_DIR = os.path.join(STARTUP_DIR,"web_base")
+WEB_BASE_DIR = os.path.join(STARTUP_DIR, "web_base")
 fix_rrd = False
 
 
-sys.path.append(os.path.join(STARTUP_DIR,"../.."))
-from glideinwms.creation.lib import cvWParams
-from glideinwms.creation.lib import cvWDictFile
-from glideinwms.creation.lib import cvWConsts,cWConsts
-from glideinwms.creation.lib import cvWCreate
-from glideinwms.creation.lib import cvWParamDict
-from glideinwms.creation.lib import xslt
-from glideinwms.creation.lib import check_config_frontend
-from glideinwms.creation.lib import check_python3_expr
-from glideinwms.frontend import glideinFrontendMonitorAggregator
-from glideinwms.frontend import glideinFrontendLib
-from glideinwms.lib.util import handle_hooks, HOOK_PRE_RECONFIG_DIRNAME, HOOK_POST_RECONFIG_DIRNAME
+sys.path.append(os.path.join(STARTUP_DIR, "../.."))
 FRONTEND_DIR = os.path.dirname(glideinFrontendLib.__file__)
 ################################################################################
 
@@ -49,6 +53,7 @@ try:
         journal.send(str(message))
 
 except ImportError:
+
     def print2(message):
         print(message)
 
@@ -56,14 +61,14 @@ except ImportError:
 def main(params, old_params, update_scripts, update_def_cfg):
     # load old files
     if old_params is not None:
-        old_frontend_dicts_obj=cvWParamDict.frontendDicts(old_params)
+        old_frontend_dicts_obj = cvWParamDict.frontendDicts(old_params)
         old_frontend_dicts_obj.load()
 
     # create dictionaries for new params
-    frontend_dicts_obj=cvWParamDict.frontendDicts(params)
+    frontend_dicts_obj = cvWParamDict.frontendDicts(params)
     frontend_dicts_obj.populate()
 
-    if update_scripts == 'yes':
+    if update_scripts == "yes":
         frontend_dicts_obj.create_dirs(fail_if_exists=False)
 
     # merge them together
@@ -74,7 +79,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
     frontend_dicts_obj.save()
     frontend_dicts_obj.set_readonly(True)
 
-    if update_def_cfg == 'yes' or update_scripts == 'yes':
+    if update_def_cfg == "yes" or update_scripts == "yes":
         # recreate the init.d startup file
         # This will never happen in RPM installations (because of the init.d file)
         frontend_dir = frontend_dicts_obj.main_dicts.work_dir
@@ -84,12 +89,11 @@ def main(params, old_params, update_scripts, update_def_cfg):
         if os.path.exists(os.path.join(frontend_dir, startup_fname)):
             os.remove(os.path.join(frontend_dir, startup_fname))
 
-        cvWCreate.create_initd_startup(startup_fname,
-                                       frontend_dir,
-                                       os.path.realpath(os.path.join(STARTUP_DIR, '..')),
-                                       params.cfg_name)
+        cvWCreate.create_initd_startup(
+            startup_fname, frontend_dir, os.path.realpath(os.path.join(STARTUP_DIR, "..")), params.cfg_name
+        )
         print2("...Updated the frontend_startup script")
-        if update_def_cfg == 'yes':
+        if update_def_cfg == "yes":
             print2("...Updated default config file location to: %s" % params.cfg_name)
 
     cfgfile = os.path.join(frontend_dicts_obj.main_dicts.work_dir, cvWConsts.XML_CONFIG_FILE)
@@ -108,7 +112,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
     print2("...Reconfigured frontend '%s'" % params.frontend_name)
     print2("...Active groups are:")
     for entry in frontend_dicts_obj.active_sub_list:
-        print2("     %s"%entry)
+        print2("     %s" % entry)
     print2("...Verifying rrd schema")
 
     if not glideinFrontendMonitorAggregator.verifyRRD(fix_rrd):
@@ -125,7 +129,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
 #
 ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     usage = "usage: reconfig_frontend { -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no [-xslt_plugin_dir xdir] | -help }"
     argv = sys.argv
 
@@ -134,53 +138,55 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if os.geteuid() == 0:
-        print2("NOTE: Executing reconfig_frontend as user 'root' is not allowed. Use the frontend user instead. For rpm based installations, use the 'service gwms-frontend <start|stop|reconfig|...>' command to perform gwms-frontend operations")
+        print2(
+            "NOTE: Executing reconfig_frontend as user 'root' is not allowed. Use the frontend user instead. For rpm based installations, use the 'service gwms-frontend <start|stop|reconfig|...>' command to perform gwms-frontend operations"
+        )
 
     force_name = None
-    writeback = 'no'
-    update_scripts = 'no'
-    update_def_cfg = 'no'
+    writeback = "no"
+    update_scripts = "no"
+    update_def_cfg = "no"
     sighupreload = False
-    xml = ''
+    xml = ""
 
-    xslt_plugin_dir = os.environ.get('GWMS_XSLT_PLUGIN_DIR', None)
+    xslt_plugin_dir = os.environ.get("GWMS_XSLT_PLUGIN_DIR", None)
 
     for i in range(len(argv)):
-        if argv[i] == '-fix_rrd':
+        if argv[i] == "-fix_rrd":
             fix_rrd = True
-        if argv[i] == '-sighupreload':
+        if argv[i] == "-sighupreload":
             sighupreload = True
-        if argv[i] == '-force_name':
-            force_name = argv[i+1]
-        if argv[i] == '-writeback':
-            writeback = argv[i+1]
-        if argv[i] == '-update_scripts':
-            update_scripts = argv[i+1]
-        if argv[i] == '-xml':
-            xml = argv[i+1]
-        if argv[i] == '-xslt_plugin_dir':
-            xslt_plugin_dir = argv[i+1]
-        if argv[i] == '-update_def_cfg':
+        if argv[i] == "-force_name":
+            force_name = argv[i + 1]
+        if argv[i] == "-writeback":
+            writeback = argv[i + 1]
+        if argv[i] == "-update_scripts":
+            update_scripts = argv[i + 1]
+        if argv[i] == "-xml":
+            xml = argv[i + 1]
+        if argv[i] == "-xslt_plugin_dir":
+            xslt_plugin_dir = argv[i + 1]
+        if argv[i] == "-update_def_cfg":
             update_def_cfg = argv[i + 1]
-        if argv[i] == '-help':
+        if argv[i] == "-help":
             print2(usage)
             sys.exit(1)
 
     handle_hooks(os.path.dirname(os.path.abspath(xml)), HOOK_PRE_RECONFIG_DIRNAME)
 
     if sighupreload:
-        signal.signal( signal.SIGHUP,  signal.SIG_IGN )
+        signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
-    if xml == '':
+    if xml == "":
         # to support upgrading from versions older than v2.5.3
         # the last arg is always the xml file
-        xml = argv[len(argv)-1]
+        xml = argv[len(argv) - 1]
 
     # First check that the XML file options are compatible w/ the connected Factories versions
     try:
         msg = check_config_frontend.main(xml)
     except RuntimeError as e:
-        for line in str(e).split('\n'):
+        for line in str(e).split("\n"):
             print2(line)
         sys.exit(1)
     if msg:
@@ -200,8 +206,7 @@ if __name__ == '__main__':
 
     try:
         transformed_xmlfile = tempfile.NamedTemporaryFile()
-        transformed_xmlfile.write(xslt.xslt_xml(old_xmlfile=xml,
-                                  xslt_plugin_dir=xslt_plugin_dir))
+        transformed_xmlfile.write(xslt.xslt_xml(old_xmlfile=xml, xslt_plugin_dir=xslt_plugin_dir))
         transformed_xmlfile.flush()
 
         args = [argv[0], transformed_xmlfile.name]
@@ -219,16 +224,16 @@ if __name__ == '__main__':
         if params.frontend_name != force_name:
             print2(usage)
             print("")
-            print2("This is not a '%s' config file ('%s' found)" % (force_name, params.frontend_name))
+            print2(f"This is not a '{force_name}' config file ('{params.frontend_name}' found)")
             sys.exit(1)
 
-    if not (writeback in ('yes', 'no')):
+    if not (writeback in ("yes", "no")):
         print2(usage)
         print("")
         print2("-writeback must be yes or no, found '%s'" % writeback)
         sys.exit(1)
 
-    if not (update_def_cfg in ('yes', 'no')):
+    if not (update_def_cfg in ("yes", "no")):
         print2(usage)
         print("")
         print2("-update_def_cfg must be yes or no, found '%s'" % update_def_cfg)
@@ -258,7 +263,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     try:
-        if writeback == 'yes':
+        if writeback == "yes":
             # Only writeback the config in the .cfg directly if explicitly asked to
             params.save_into_file_wbackup(params.cfg_name)
             print2("...Overriding the frontend config file in %s to the current configuration " % params.cfg_name)
@@ -270,4 +275,6 @@ if __name__ == '__main__':
 
     if sighupreload:
         print2("switching back to the main glideinFrontend process")
-        os.execv(os.path.join(FRONTEND_DIR, "glideinFrontend.py"), ['glideinFrontend', '/var/lib/gwms-frontend/vofrontend'])
+        os.execv(
+            os.path.join(FRONTEND_DIR, "glideinFrontend.py"), ["glideinFrontend", "/var/lib/gwms-frontend/vofrontend"]
+        )

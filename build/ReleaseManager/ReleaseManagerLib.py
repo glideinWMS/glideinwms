@@ -8,6 +8,7 @@ import sys
 import subprocess
 import shutil
 import platform
+
 try:
     import distro  # pylint: disable=import-error
 except:
@@ -15,18 +16,16 @@ except:
 
 
 class ExeError(RuntimeError):
-
     def __init__(self, str):
         RuntimeError.__init__(self, str)
 
 
 class Release:
-
     def __init__(self, ver, srcDir, relDir, rc, rpmRel):
         self.version = self.createTarballVersionString(ver, rc)
         self.sourceDir = srcDir
         self.releaseDir = os.path.join(relDir, self.version)
-        self.releaseWebDir = os.path.join(self.releaseDir, 'www')
+        self.releaseWebDir = os.path.join(self.releaseDir, "www")
         self.tasks = []
         self.rc = rc
         self.buildRPMs = False
@@ -34,64 +33,61 @@ class Release:
             # RPM related info
             self.rpmRelease = self.createRPMReleaseNVR(rpmRel, rc)
             self.rpmVersion = self.versionToRPMVersion(ver)
-            self.rpmbuildDir = os.path.join(self.releaseDir, 'rpmbuild')
+            self.rpmbuildDir = os.path.join(self.releaseDir, "rpmbuild")
             self.rpmOSVersion = self.getElVersion()
             self.srpmFile = os.path.join(
-                self.rpmbuildDir, 'SRPMS',
-                'glideinwms-%s-%s.%s%s.src.rpm' % (self.rpmVersion,
-                self.rpmRelease, self.rpmOSVersion[0], self.rpmOSVersion[1]))
-            self.buildRPMs = bool(which('rpmbuild'))
+                self.rpmbuildDir,
+                "SRPMS",
+                "glideinwms-%s-%s.%s%s.src.rpm"
+                % (self.rpmVersion, self.rpmRelease, self.rpmOSVersion[0], self.rpmOSVersion[1]),
+            )
+            self.buildRPMs = bool(which("rpmbuild"))
         except:
-            print('RPMs will not be build for this platform')
+            print("RPMs will not be build for this platform")
 
     def createTarballVersionString(self, ver, rc):
-        ver_str = '%s' % ver
+        ver_str = "%s" % ver
         if rc:
-            ver_str = '%s_rc%s' % (ver, rc)
+            ver_str = f"{ver}_rc{rc}"
         return ver_str
 
     def versionToRPMVersion(self, ver):
-        if ver.startswith('v'):
+        if ver.startswith("v"):
             ver = ver[1:]
-        ver = ver.replace('_', '.')
+        ver = ver.replace("_", ".")
         return ver
 
     def createRPMReleaseNVR(self, rpmRel, rc):
-        nvr = '%s' % rpmRel
+        nvr = "%s" % rpmRel
         if rc:
-            nvr = '0.%s.rc%s' % (rpmRel, rc)
+            nvr = f"0.{rpmRel}.rc{rc}"
         return nvr
 
     def getElVersion(self):
-        if platform.system() != 'Linux':
-            raise Exception('Unsupported OS: %s' % platform.system())
-        el_string = 'el'
+        if platform.system() != "Linux":
+            raise Exception("Unsupported OS: %s" % platform.system())
+        el_string = "el"
         if distro:
             distname, version, id = distro.linux_distribution()
         else:
             distname, version, id = platform.linux_distribution()
-        distmap = {
-            'Fedora': 'fc',
-            'Scientific Linux': 'el',
-            'Red Hat': 'el',
-            'CentOS Stream': 'el'
-        }
+        distmap = {"Fedora": "fc", "Scientific Linux": "el", "Red Hat": "el", "CentOS Stream": "el"}
         dist = None
         for d in distmap:
             if distname.startswith(d):
                 dist = distmap[d]
                 break
         if dist is None:
-            raise Exception('Unsupported distribution: %s' % distname)
+            raise Exception("Unsupported distribution: %s" % distname)
         else:
             el_string = dist
-        major_version = version.split('.')[0]
+        major_version = version.split(".")[0]
         return (el_string, major_version)
 
     def addTask(self, task):
         self.tasks.append(task)
 
-    #def printReport(self):
+    # def printReport(self):
     #   for task in self.releaseTasks.keys():
     #        print print "TASK: %-30s STATUS: %s" % (task, (tasklist[]).status)
 
@@ -100,61 +96,57 @@ class Release:
             task = self.tasks[i]
             print("************* Executing %s *************" % (self.tasks[i]).name)
             task.execute()
-            print("************* %s Status %s *************" % ((self.tasks[i]).name, (self.tasks[i]).status))
+            print(f"************* {(self.tasks[i]).name} Status {(self.tasks[i]).status} *************")
 
     def printReport(self):
-        print(35*"_")
-        print("TASK" + 20*" " + "STATUS")
-        print(35*"_")
+        print(35 * "_")
+        print("TASK" + 20 * " " + "STATUS")
+        print(35 * "_")
         for i in range(0, len(self.tasks)):
             print("%-23s %s" % ((self.tasks[i]).name, (self.tasks[i]).status))
-        print(35*"_")
+        print(35 * "_")
 
 
 class TaskRelease:
-
     def __init__(self, name, rel):
         self.name = name
         self.release = rel
-        self.status = 'INCOMPLETE'
+        self.status = "INCOMPLETE"
 
     def execute(self):
-        raise ExeError('Action execute not implemented for task %s' % self.name)
+        raise ExeError("Action execute not implemented for task %s" % self.name)
 
 
 class TaskClean(TaskRelease):
-
     def __init__(self, rel):
-        TaskRelease.__init__(self, 'Clean', rel)
+        TaskRelease.__init__(self, "Clean", rel)
 
     def execute(self):
-        cmd = 'rm -rf %s' % self.release.releaseDir
+        cmd = "rm -rf %s" % self.release.releaseDir
         execute_cmd(cmd)
-        self.status = 'COMPLETE'
+        self.status = "COMPLETE"
 
 
 class TaskSetupReleaseDir(TaskRelease):
-
     def __init__(self, rel):
-        TaskRelease.__init__(self, 'SetupReleaseDir', rel)
+        TaskRelease.__init__(self, "SetupReleaseDir", rel)
 
     def execute(self):
         create_dir(self.release.releaseDir)
         create_dir(self.release.releaseWebDir)
-        self.status = 'COMPLETE'
+        self.status = "COMPLETE"
 
 
 class TaskPylint(TaskRelease):
-
     def __init__(self, rel):
-        TaskRelease.__init__(self, 'Pylint', rel)
-        self.rcFile = os.path.join(sys.path[0], '../etc/pylint.rc')
+        TaskRelease.__init__(self, "Pylint", rel)
+        self.rcFile = os.path.join(sys.path[0], "../etc/pylint.rc")
         self.fileList = []
-        self.pylintArgs = ['-e', '--rcfile=%s'%self.rcFile]
+        self.pylintArgs = ["-e", "--rcfile=%s" % self.rcFile]
 
     def callback(self, dir, files):
         for file in files:
-            if file.endswith('.py'):
+            if file.endswith(".py"):
                 self.fileList.append(os.path.join(dir, file))
 
     def index(self):
@@ -163,22 +155,24 @@ class TaskPylint(TaskRelease):
             dir = stack.pop()
             for file in os.listdir(dir):
                 fullname = os.path.join(dir, file)
-                if (file.endswith('.py')):
+                if file.endswith(".py"):
                     self.fileList.append(os.path.join(dir, file))
                 if os.path.isdir(fullname) and not os.path.islink(fullname):
                     stack.append(fullname)
 
     def pylint(self):
-        #not currently called by packageManager, import was commented out above.
-        #As pylint didnt like that, move it here to make it easier to either
-        #delete whole thing or re-enable as desired
+        # not currently called by packageManager, import was commented out above.
+        # As pylint didnt like that, move it here to make it easier to either
+        # delete whole thing or re-enable as desired
         #
         from pylint import lint
+
         lint.Run(self.pylintArgs + self.fileList)
 
     def pylint1(self):
-        #print self.fileList
+        # print self.fileList
         from pylint import lint
+
         for file in self.fileList:
             print("Running pylint on %s" % file)
             print(self.pylintArgs + [file])
@@ -187,163 +181,176 @@ class TaskPylint(TaskRelease):
     def execute(self):
         self.index()
         self.pylint()
-        self.status = 'COMPLETE'
+        self.status = "COMPLETE"
 
 
 class TaskTar(TaskRelease):
-
     def __init__(self, rel):
-        TaskRelease.__init__(self, 'GlideinWMSTar', rel)
+        TaskRelease.__init__(self, "GlideinWMSTar", rel)
         self.excludes = PackageExcludes()
-        self.releaseFilename = 'glideinWMS_%s.tgz' % self.release.version
+        self.releaseFilename = "glideinWMS_%s.tgz" % self.release.version
         self.excludePattern = self.excludes.commonPattern
-        self.tarExe = which('tar')
+        self.tarExe = which("tar")
 
     def execute(self):
         exclude = ""
         if len(self.excludePattern) > 0:
-            exclude = "--exclude='" +  "' --exclude='".join(self.excludePattern) + "'"
-        #cmd = 'cd %s/..; /bin/tar %s -czf %s/%s glideinwms' % \
+            exclude = "--exclude='" + "' --exclude='".join(self.excludePattern) + "'"
+        # cmd = 'cd %s/..; /bin/tar %s -czf %s/%s glideinwms' % \
         #      (self.release.sourceDir, exclude, self.release.releaseDir, self.releaseFilename)
-        src_dir = '%s/../src/%s' % (self.release.releaseDir,
-                                    self.release.version)
-        cmd = 'rm -rf %s; mkdir -p %s; cp -r %s %s/glideinwms; cd %s; %s %s -czf %s/%s glideinwms' % \
-              (src_dir, src_dir, self.release.sourceDir, src_dir, src_dir, self.tarExe, exclude, self.release.releaseDir, self.releaseFilename)
+        src_dir = f"{self.release.releaseDir}/../src/{self.release.version}"
+        cmd = "rm -rf {}; mkdir -p {}; cp -r {} {}/glideinwms; cd {}; {} {} -czf {}/{} glideinwms".format(
+            src_dir,
+            src_dir,
+            self.release.sourceDir,
+            src_dir,
+            src_dir,
+            self.tarExe,
+            exclude,
+            self.release.releaseDir,
+            self.releaseFilename,
+        )
         print("%s" % cmd)
         execute_cmd(cmd)
-        self.status = 'COMPLETE'
+        self.status = "COMPLETE"
 
 
 class TaskVersionFile(TaskRelease):
-
     def __init__(self, rel):
-        TaskRelease.__init__(self, 'VersionFile', rel)
-        self.releaseChksumFile = os.path.normpath(
-                                     os.path.join(self.release.sourceDir,
-                                                  'etc/checksum'))
-        self.frontendChksumFile = os.path.normpath(
-                                     os.path.join(self.release.sourceDir,
-                                                  'etc/checksum.frontend'))
-        self.factoryChksumFile = os.path.normpath(
-                                     os.path.join(self.release.sourceDir,
-                                                  'etc/checksum.factory'))
-        self.excludes =  PackageExcludes()
-        self.checksumFilePattern = 'etc/checksum*'
-        self.chksumBin = os.path.normpath(os.path.join(sys.path[0],
-                                                       'chksum.sh'))
+        TaskRelease.__init__(self, "VersionFile", rel)
+        self.releaseChksumFile = os.path.normpath(os.path.join(self.release.sourceDir, "etc/checksum"))
+        self.frontendChksumFile = os.path.normpath(os.path.join(self.release.sourceDir, "etc/checksum.frontend"))
+        self.factoryChksumFile = os.path.normpath(os.path.join(self.release.sourceDir, "etc/checksum.factory"))
+        self.excludes = PackageExcludes()
+        self.checksumFilePattern = "etc/checksum*"
+        self.chksumBin = os.path.normpath(os.path.join(sys.path[0], "chksum.sh"))
 
     def execute(self):
-        self.checksumRelease(self.releaseChksumFile,
-                             self.excludes.commonPattern)
-        self.checksumRelease(self.frontendChksumFile,
-                             self.excludes.frontendPattern)
-        self.checksumRelease(self.factoryChksumFile,
-                             self.excludes.factoryPattern)
-        self.status = 'COMPLETE'
+        self.checksumRelease(self.releaseChksumFile, self.excludes.commonPattern)
+        self.checksumRelease(self.frontendChksumFile, self.excludes.frontendPattern)
+        self.checksumRelease(self.factoryChksumFile, self.excludes.factoryPattern)
+        self.status = "COMPLETE"
 
     def checksumRelease(self, chksumFile, exclude):
         excludePattern = self.checksumFilePattern + " install/templates CVS config_examples "
         if len(exclude) > 0:
-            excludePattern = "\"" + "%s "%excludePattern + " ".join(exclude) + "\""
-        cmd = "cd %s; %s %s %s %s" % (self.release.sourceDir, self.chksumBin,
-                                      self.release.version, chksumFile,
-                                      excludePattern)
-        #print "--- %s" % chksumFile
-        #print "--- %s" % cmd
+            excludePattern = '"' + "%s " % excludePattern + " ".join(exclude) + '"'
+        cmd = "cd {}; {} {} {} {}".format(
+            self.release.sourceDir,
+            self.chksumBin,
+            self.release.version,
+            chksumFile,
+            excludePattern,
+        )
+        # print "--- %s" % chksumFile
+        # print "--- %s" % cmd
         execute_cmd(cmd)
 
 
 class TaskRPM(TaskTar):
-
     def __init__(self, rel, use_mock=True):
         TaskTar.__init__(self, rel)
-        self.name = 'GlideinwmsRPM'
+        self.name = "GlideinwmsRPM"
         self.use_mock = use_mock
-        self.python_version = 'python36'
-        self.releaseFile = os.path.join(self.release.releaseDir,
-                                        self.releaseFilename)
-        self.rpmPkgDir = os.path.join(self.release.sourceDir,
-                                      'build/packaging/rpm')
-        self.specFileTemplate = os.path.join(self.rpmPkgDir, 'glideinwms.spec')
-        self.specFile = os.path.join(self.release.rpmbuildDir, 'SPECS',
-                                     'glideinwms.spec')
-        #self.rpmmacrosFile = os.path.join(os.path.expanduser('~'),
-        self.rpmmacrosFile = os.path.join(os.path.dirname(self.release.rpmbuildDir),
-                                          '.rpmmacros')
+        self.python_version = "python36"
+        self.releaseFile = os.path.join(self.release.releaseDir, self.releaseFilename)
+        self.rpmPkgDir = os.path.join(self.release.sourceDir, "build/packaging/rpm")
+        self.specFileTemplate = os.path.join(self.rpmPkgDir, "glideinwms.spec")
+        self.specFile = os.path.join(self.release.rpmbuildDir, "SPECS", "glideinwms.spec")
+        # self.rpmmacrosFile = os.path.join(os.path.expanduser('~'),
+        self.rpmmacrosFile = os.path.join(os.path.dirname(self.release.rpmbuildDir), ".rpmmacros")
         self.sourceFilenames = [
-            'chksum.sh', 'factory_startup', 'frontend_startup', 'factory_startup_sl7', 'frontend_startup_sl7',
-            'frontend.xml', 'glideinWMS.xml', 'gwms-factory.conf.httpd',
-            'gwms-factory.sysconfig', 'gwms-frontend.conf.httpd',
-            'gwms-frontend.sysconfig'
+            "chksum.sh",
+            "factory_startup",
+            "frontend_startup",
+            "factory_startup_sl7",
+            "frontend_startup_sl7",
+            "frontend.xml",
+            "glideinWMS.xml",
+            "gwms-factory.conf.httpd",
+            "gwms-factory.sysconfig",
+            "gwms-frontend.conf.httpd",
+            "gwms-frontend.sysconfig",
         ]
         self.rpmMacros = {
-            '_topdir': self.release.rpmbuildDir,
-            '_tmppath': '/tmp',
-            '_source_filedigest_algorithm': 'md5',
-            '_binary_filedigest_algorithm': 'md5',
+            "_topdir": self.release.rpmbuildDir,
+            "_tmppath": "/tmp",
+            "_source_filedigest_algorithm": "md5",
+            "_binary_filedigest_algorithm": "md5",
             #'global __python': '%%{__python2}',
             #'py_byte_compile': '',
             #%py_byte_compile %{__python2} %{buildroot}%{_datadir}/mypackage/foo
         }
+
     #   __init__
 
     def createRPMBuildDirs(self):
         # Create directories required by rpmbuild
-        rpm_dirs = ['BUILD', 'RPMS', 'SOURCES', 'SPECS', 'SRPMS']
+        rpm_dirs = ["BUILD", "RPMS", "SOURCES", "SPECS", "SRPMS"]
         for dirname in rpm_dirs:
             create_dir(os.path.join(self.release.rpmbuildDir, dirname))
 
     def createSpecFile(self):
         # No error checking because we want to fail in case of errors
 
-        #shutil.copyfile(self.specFileTemplate, self.specFile)
-        #fdin = open(self.specFileTemplate, 'r')
-        with open(self.specFileTemplate, 'r', encoding='utf-8') as fdin:
+        # shutil.copyfile(self.specFileTemplate, self.specFile)
+        # fdin = open(self.specFileTemplate, 'r')
+        with open(self.specFileTemplate, encoding="utf-8") as fdin:
             lines = fdin.readlines()
 
-        with open(self.specFile, 'w', encoding='utf-8') as fdout:
+        with open(self.specFile, "w", encoding="utf-8") as fdout:
             for line in lines:
-                line = line.replace('__GWMS_RPM_VERSION__', self.release.rpmVersion)
-                line = line.replace('__GWMS_RPM_RELEASE__', self.release.rpmRelease)
+                line = line.replace("__GWMS_RPM_VERSION__", self.release.rpmVersion)
+                line = line.replace("__GWMS_RPM_RELEASE__", self.release.rpmRelease)
                 fdout.write(line)
 
     def stageSources(self):
-        dest_dir = os.path.join(self.release.rpmbuildDir, 'SOURCES')
+        dest_dir = os.path.join(self.release.rpmbuildDir, "SOURCES")
         # Copy the source tarball in place
-        shutil.copy(os.path.join(self.release.releaseDir, self.releaseFilename),
-                    os.path.join(dest_dir, 'glideinwms.tar.gz'))
+        shutil.copy(
+            os.path.join(self.release.releaseDir, self.releaseFilename), os.path.join(dest_dir, "glideinwms.tar.gz")
+        )
         for f in self.sourceFilenames:
             shutil.copy(os.path.join(self.rpmPkgDir, f), dest_dir)
 
     def createRPMMacros(self):
-        with open(self.rpmmacrosFile, 'w') as fd:
+        with open(self.rpmmacrosFile, "w") as fd:
             for m in self.rpmMacros:
-                fd.write('%%%s %s\n' % (m,  self.rpmMacros[m]))
+                fd.write(f"%{m} {self.rpmMacros[m]}\n")
 
     def buildSRPM(self):
-        cmd = 'rpmbuild -bs %s' % self.specFile
+        cmd = "rpmbuild -bs %s" % self.specFile
         for m in self.rpmMacros:
-            cmd = '%s --define "%s %s"' % (cmd, m, self.rpmMacros[m])
+            cmd = f'{cmd} --define "{m} {self.rpmMacros[m]}"'
         execute_cmd(cmd)
 
     def buildRPM(self):
-        cmd = 'mock -r epel-%s-x86_64 --macro-file=%s -i %s' % (self.release.rpmOSVersion[1], self.rpmmacrosFile, self.python_version)
+        cmd = "mock -r epel-{}-x86_64 --macro-file={} -i {}".format(
+            self.release.rpmOSVersion[1],
+            self.rpmmacrosFile,
+            self.python_version,
+        )
         execute_cmd(cmd)
-        cmd = 'mock --no-clean -r epel-%s-x86_64 --macro-file=%s --resultdir=%s/RPMS rebuild %s' % (self.release.rpmOSVersion[1], self.rpmmacrosFile, self.release.rpmbuildDir, self.release.srpmFile)
+        cmd = "mock --no-clean -r epel-{}-x86_64 --macro-file={} --resultdir={}/RPMS rebuild {}".format(
+            self.release.rpmOSVersion[1],
+            self.rpmmacrosFile,
+            self.release.rpmbuildDir,
+            self.release.srpmFile,
+        )
         execute_cmd(cmd)
 
     def buildRPMWithRPMBuild(self):
-        cmd = 'rpmbuild -bb %s' % self.specFile
+        cmd = "rpmbuild -bb %s" % self.specFile
         for m in self.rpmMacros:
-            cmd = '%s --define "%s %s"' % (cmd, m, self.rpmMacros[m])
+            cmd = f'{cmd} --define "{m} {self.rpmMacros[m]}"'
         execute_cmd(cmd)
 
     def execute(self):
         if self.release.buildRPMs == False:
-            self.status = 'SKIPPED'
+            self.status = "SKIPPED"
         else:
             # First build the source tarball
-            #TaskTar.execute(self)
+            # TaskTar.execute(self)
 
             # Create rpmbuild dir structure
             self.createRPMBuildDirs()
@@ -360,74 +367,73 @@ class TaskRPM(TaskTar):
                 self.buildRPM()
             else:
                 self.buildRPMWithRPMBuild()
-            self.status = 'COMPLETE'
+            self.status = "COMPLETE"
 
 
 class PackageExcludes:
-
     def __init__(self):
 
         self.commonPattern = [
-            'CVS',
-            '.DS_Store',
-            '.editorconfig',
-            '.git',
-            '.gitattributes',
-            '.github',
-            '.gitignore',
-            '.gitmodules',
-            '.mailmap',
-            '.pep8speaks.yml',
-            '.travis.yml',
-            '.DS_Store',
-            'build',
-            'test',
-            'unittests',
-            'tox.ini',
+            "CVS",
+            ".DS_Store",
+            ".editorconfig",
+            ".git",
+            ".gitattributes",
+            ".github",
+            ".gitignore",
+            ".gitmodules",
+            ".mailmap",
+            ".pep8speaks.yml",
+            ".travis.yml",
+            ".DS_Store",
+            "build",
+            "test",
+            "unittests",
+            "tox.ini",
         ]
 
         # Patterns that need to be excluded from the factory tarball
         self.factoryPattern = self.commonPattern + [
-            'poolwatcher',
-            'frontend',
-            'creation/create_frontend',
-            'creation/reconfig_frontend',
-            'creation/lib/cvW*',
-            'creation/web_base/frontend*html',
-            'creation/web_base/frontend*html',
+            "poolwatcher",
+            "frontend",
+            "creation/create_frontend",
+            "creation/reconfig_frontend",
+            "creation/lib/cvW*",
+            "creation/web_base/frontend*html",
+            "creation/web_base/frontend*html",
         ]
         #    'glideinWMS/tools',
 
         # Patterns that need to be excluded from the frontend tarball
         # For frontend we still need 2 factory libs for frontend tools
         self.frontendPattern = self.commonPattern + [
-            'poolwatcher',
-            'factory/check*',
-            'factory/glideFactory*Lib*',
-            'factory/glideFactoryMon*',
-            'factory/glideFactory.py',
-            'factory/glideFactoryEntry.py',
-            'factory/glideFactoryEntryGroup.py',
-            'factory/glideFactoryLog*.py',
-            'factory/test*',
-            'factory/manage*',
-            'factory/stop*',
-            'factory/tools',
-            'creation/create_glidein',
-            'creation/reconfig_glidein',
-            'creation/info_glidein',
-            'creation/lib/cgW*',
-            'creation/web_base/factory*html',
-            'creation/web_base/collector_setup.sh',
-            'creation/web_base/condor_platform_select.sh',
-            'creation/web_base/condor_startup.sh',
-            'creation/web_base/create_mapfile.sh',
-            'creation/web_base/singularity_setup.sh',
-            'creation/web_base/glidein_startup.sh',
-            'creation/web_base/job_submit.sh',
-            'creation/web_base/local_start.sh',
-            'creation/web_base/setup_x509.sh',
-            'creation/web_base/validate_node.sh',
+            "poolwatcher",
+            "factory/check*",
+            "factory/glideFactory*Lib*",
+            "factory/glideFactoryMon*",
+            "factory/glideFactory.py",
+            "factory/glideFactoryEntry.py",
+            "factory/glideFactoryEntryGroup.py",
+            "factory/glideFactoryLog*.py",
+            "factory/test*",
+            "factory/manage*",
+            "factory/stop*",
+            "factory/tools",
+            "creation/create_glidein",
+            "creation/reconfig_glidein",
+            "creation/info_glidein",
+            "creation/lib/cgW*",
+            "creation/web_base/factory*html",
+            "creation/web_base/collector_setup.sh",
+            "creation/web_base/condor_platform_select.sh",
+            "creation/web_base/condor_startup.sh",
+            "creation/web_base/create_mapfile.sh",
+            "creation/web_base/singularity_setup.sh",
+            "creation/web_base/glidein_startup.sh",
+            "creation/web_base/job_submit.sh",
+            "creation/web_base/local_start.sh",
+            "creation/web_base/setup_x509.sh",
+            "creation/web_base/validate_node.sh",
         ]
 
 
@@ -437,29 +443,29 @@ class PackageExcludes:
 #
 ############################################################
 
+
 def create_dir(dirname, mode=0o755, error_if_exists=False):
     try:
         os.makedirs(dirname, mode=mode)
     except OSError as e:
         if (e.errno == 17) and (error_if_exists is False):
-            print('Dir already exists reusing %s' % dir)
+            print("Dir already exists reusing %s" % dir)
         else:
             raise
     except Exception:
-            raise
+        raise
 
 
 # can throw ExeError
 def execute_cmd(cmd, stdin_data=None):
-    child = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
-                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if stdin_data!=None:
+    child = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if stdin_data != None:
         child.stdin.write(stdin_data)
 
     tempOut = child.stdout.readlines()
     tempErr = child.stderr.readlines()
     child.communicate()
-    #child.childerr.close()
+    # child.childerr.close()
     try:
         errcode = child.wait()
     except OSError as e:
@@ -468,11 +474,11 @@ def execute_cmd(cmd, stdin_data=None):
             # have seen a lot of those when running very short processes
             errcode = 0
         else:
-            msg = "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"%(cmd, tempOut, tempErr, e)
+            msg = f"Error running '{cmd}'\nStdout:{tempOut}\nStderr:{tempErr}\nException OSError: {e}"
             print(msg)
             raise ExeError(msg)
-    if (errcode != 0):
-        msg = "Error running '%s'\nStdout:%s\nStderr:%s\nException Error: %s"%(cmd, tempOut, tempErr, errcode)
+    if errcode != 0:
+        msg = f"Error running '{cmd}'\nStdout:{tempOut}\nStderr:{tempErr}\nException Error: {errcode}"
         print(msg)
         raise ExeError(msg)
     return tempOut

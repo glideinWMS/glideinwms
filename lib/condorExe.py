@@ -16,12 +16,13 @@
 
 
 import os
-from . import logSupport
-from . import subprocessSupport
+
+from . import logSupport, subprocessSupport
 
 
 class CondorExeError(RuntimeError):
     """Base class for condorExe module errors"""
+
     def __init__(self, err_str):
         RuntimeError.__init__(self, err_str)
 
@@ -39,6 +40,7 @@ class ExeError(CondorExeError):
 #
 # Configuration
 #
+
 
 def set_path(new_condor_bin_path, new_condor_sbin_path=None):
     """Set path to condor binaries, if needed
@@ -79,7 +81,7 @@ def exe_cmd(condor_exe, args, stdin_data=None, env={}):
         raise UnconfigError("condor_bin_path is undefined!")
     condor_exe_path = os.path.join(condor_bin_path, condor_exe)
 
-    cmd = "%s %s" % (condor_exe_path, args)
+    cmd = f"{condor_exe_path} {args}"
 
     return iexe_cmd(cmd, stdin_data, env)
 
@@ -91,7 +93,7 @@ def exe_cmd_sbin(condor_exe, args, stdin_data=None, env={}):
         raise UnconfigError("condor_sbin_path is undefined!")
     condor_exe_path = os.path.join(condor_sbin_path, condor_exe)
 
-    cmd = "%s %s" % (condor_exe_path, args)
+    cmd = f"{condor_exe_path} {args}"
 
     return iexe_cmd(cmd, stdin_data, env)
 
@@ -112,27 +114,27 @@ def generate_bash_script(cmd, environment):
     Returns:
         str: multi-line string with environment, command and eventually the input file
     """
-    script = ['script to reproduce failure:', '-' * 20 + ' begin script ' + '-' * 20, '#!/bin/bash']
+    script = ["script to reproduce failure:", "-" * 20 + " begin script " + "-" * 20, "#!/bin/bash"]
     # FROM:migration_3_1, 3 lines
     # script = ['script to reproduce failure:']
     # script.append('-' * 20 + ' begin script ' + '-' * 20)
     # script.append('#!/bin/bash')
 
-    script += ['%s=%s' % (k, v) for k, v in environment.items()]
+    script += [f"{k}={v}" for k, v in environment.items()]
     script.append(cmd)
-    script.append('-'*20 + '  end script  ' + '-'*20)
+    script.append("-" * 20 + "  end script  " + "-" * 20)
     cmd_list = cmd.split()
     if len(cmd_list) > 1:
         last_par = cmd_list[-1]
         if last_par and os.path.isfile(last_par):
-            script.append('-'*20 + '  parameter file: %s  ' % last_par + '-'*20)
+            script.append("-" * 20 + "  parameter file: %s  " % last_par + "-" * 20)
             try:
                 with open(last_par) as f:
                     script += f.read().splitlines()
-            except IOError:
+            except OSError:
                 pass
-            script.append('-'*20 + '  end parameter file ' + '-'*20)
-    return '\n'.join(script)
+            script.append("-" * 20 + "  end parameter file " + "-" * 20)
+    return "\n".join(script)
 
 
 def iexe_cmd(cmd, stdin_data=None, child_env=None):
@@ -156,7 +158,7 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
         # invoking subprocessSupport.iexe_cmd w/ text=True (default), stdin_data and returned output are str
         stdout_data = subprocessSupport.iexe_cmd(cmd, stdin_data=stdin_data, child_env=child_env)
     except Exception as ex:
-        msg = "Unexpected Error running '%s'. Details: %s. Stdout: %s" % (cmd, ex, stdout_data)
+        msg = f"Unexpected Error running '{cmd}'. Details: {ex}. Stdout: {stdout_data}"
         try:
             logSupport.log.error(msg)
             logSupport.log.debug(generate_bash_script(cmd, os.environ))
@@ -170,6 +172,7 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
 #########################
 # Module initialization
 #
+
 
 def init1():
     """Set condor_bin_path"""
@@ -232,7 +235,7 @@ def init2():
 
                 try:
                     # BIN = <path>
-                    bin_def = iexe_cmd('grep "^ *SBIN" %s'%condor_config)
+                    bin_def = iexe_cmd('grep "^ *SBIN" %s' % condor_config)
                     condor_sbin_path = bin_def[0].strip().split()[2]
                 except ExeError as e:
                     try:
