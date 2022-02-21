@@ -13,23 +13,13 @@ Author:
 """
 
 
-import unittest
-import xmlrunner
 import os
-import mock
 import sys
+import unittest
 
+from unittest import mock
 
-from glideinwms.unittests.unittest_utils import FakeLogger
-from glideinwms.unittests.unittest_utils import TestImportError
-try:
-    import glideinwms.factory.glideFactoryEntry
-    import glideinwms.factory.glideFactoryLib
-    from glideinwms.factory.glideFactoryEntry import Entry
-    # TODO - to remove - code commented in glideFactoryEntry.py because unused
-    # from glideinwms.factory.glideFactoryEntry import dump_obj
-except ImportError as err:
-    raise TestImportError(str(err))
+import xmlrunner
 
 # from glideinwms.factory.glideFactoryEntry import X509Proxies
 # from glideinwms.factory.glideFactoryEntry import check_and_perform_work
@@ -37,24 +27,30 @@ except ImportError as err:
 # from glideinwms.factory.glideFactoryEntry import perform_work_v3
 # from glideinwms.factory.glideFactoryEntry import write_descript
 # from glideinwms.factory.glideFactoryEntry import termsignal
-from glideinwms.factory.glideFactoryConfig import GlideinDescript
-from glideinwms.factory.glideFactoryConfig import FrontendDescript
+from glideinwms.factory.glideFactoryConfig import FrontendDescript, GlideinDescript
+from glideinwms.unittests.unittest_utils import FakeLogger, TestImportError
 
+try:
+    import glideinwms.factory.glideFactoryEntry
+    import glideinwms.factory.glideFactoryLib
 
+    from glideinwms.factory.glideFactoryEntry import Entry
+
+    # TODO - to remove - code commented in glideFactoryEntry.py because unused
+    # from glideinwms.factory.glideFactoryEntry import dump_obj
+except ImportError as err:
+    raise TestImportError(str(err))
 
 
 class TestEntry(unittest.TestCase):
     def setUp(self):
         self.testdir = os.getcwd()
-        self.datadir = 'fixtures/factory/work-dir'
-        os.system('git checkout %s' % self.datadir)
+        self.datadir = "fixtures/factory/work-dir"
+        os.system("git checkout %s" % self.datadir)
         self.startup_dir = os.path.join(self.testdir, self.datadir)
-        self.entry_name = 'el8_osg34'
+        self.entry_name = "el8_osg34"
         os.chdir(self.datadir)
-        self.monitorDir = os.path.join(
-            self.startup_dir,
-            'monitor/entry_%s' %
-            self.entry_name)
+        self.monitorDir = os.path.join(self.startup_dir, "monitor/entry_%s" % self.entry_name)
         try:
             os.makedirs(self.monitorDir)
         except Exception:
@@ -63,8 +59,7 @@ class TestEntry(unittest.TestCase):
         self.frontend_descript = FrontendDescript()
         glideinwms.factory.glideFactoryEntry.logSupport.log = FakeLogger()
 
-        self.entry = Entry(self.entry_name, self.startup_dir,
-                           self.glidein_descript, self.frontend_descript)
+        self.entry = Entry(self.entry_name, self.startup_dir, self.glidein_descript, self.frontend_descript)
         os.chdir(self.testdir)
 
     def tearDown(self):
@@ -73,10 +68,10 @@ class TestEntry(unittest.TestCase):
     def test___init__(self):
         self.assertTrue(isinstance(self.entry, Entry))
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_advertise(self):
-        #entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
-        #self.assertEqual(expected, entry.advertise(downtime_flag))
+        # entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
+        # self.assertEqual(expected, entry.advertise(downtime_flag))
         assert False  # TODO: implement your test here
 
     # TODO - to remove - code commented in glideFactoryEntry.py because unused
@@ -87,15 +82,17 @@ class TestEntry(unittest.TestCase):
     #     assert False  # TODO: implement your test here
 
     def test_getGlideinConfiguredLimits(self):
-        expected = {'DefaultPerFrontendMaxGlideins': 5000,
-                    'DefaultPerFrontendMaxHeld': 50,
-                    'DefaultPerFrontendMaxIdle': 100,
-                    'PerEntryMaxGlideins': 10000,
-                    'PerEntryMaxHeld': 1000,
-                    'PerEntryMaxIdle': 2000,
-                    'PerFrontendMaxGlideins': '',
-                    'PerFrontendMaxHeld': '',
-                    'PerFrontendMaxIdle': ''}
+        expected = {
+            "DefaultPerFrontendMaxGlideins": 5000,
+            "DefaultPerFrontendMaxHeld": 50,
+            "DefaultPerFrontendMaxIdle": 100,
+            "PerEntryMaxGlideins": 10000,
+            "PerEntryMaxHeld": 1000,
+            "PerEntryMaxIdle": 2000,
+            "PerFrontendMaxGlideins": "",
+            "PerFrontendMaxHeld": "",
+            "PerFrontendMaxIdle": "",
+        }
 
         tested = self.entry.getGlideinConfiguredLimits()
 
@@ -122,15 +119,15 @@ class TestEntry(unittest.TestCase):
         self.entry.gflFactoryConfig.client_stats = mock.Mock()
         self.entry.gflFactoryConfig.qc_stats = mock.Mock()
         state = self.entry.getState()
-        self.assertTrue('client_internals' in state)
-        self.assertTrue('glidein_totals' in state)
-        self.assertTrue('limits_triggered' in state)
-        self.assertTrue('log_stats' in state)
-        self.assertTrue('qc_stats' in state)
-        self.assertTrue('rrd_stats' in state)
+        self.assertTrue("client_internals" in state)
+        self.assertTrue("glidein_totals" in state)
+        self.assertTrue("limits_triggered" in state)
+        self.assertTrue("log_stats" in state)
+        self.assertTrue("qc_stats" in state)
+        self.assertTrue("rrd_stats" in state)
         # assert False # TODO: implement your test here
 
-    @unittest.skip('4#@!&&*$%')
+    @unittest.skip("4#@!&&*$%")
     def test_glideinsWithinLimits(self):
         expected = {}
         condorQ = mock.Mock()
@@ -140,66 +137,66 @@ class TestEntry(unittest.TestCase):
         glideinTotals = mock.Mock()
         glideinTotals.entry_idle = 1
         glideinTotals.entry_max_idle = 1
-        #glideinwms.factory.glideFactoryLib.GlideinTotals = glideinTotals
-        condorQ.data = {'foo': 'bar', 'baz': 'boing'}
+        # glideinwms.factory.glideFactoryLib.GlideinTotals = glideinTotals
+        condorQ.data = {"foo": "bar", "baz": "boing"}
 
         self.assertEqual(expected, self.entry.glideinsWithinLimits(condorQ))
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_initIteration(self):
-        #entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
-        #self.assertEqual(expected, entry.initIteration(factory_in_downtime))
+        # entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
+        # self.assertEqual(expected, entry.initIteration(factory_in_downtime))
         assert False
 
     def test_isClientBlacklisted(self):
-        self.assertEqual(False, self.entry.isClientBlacklisted('All'))
+        self.assertEqual(False, self.entry.isClientBlacklisted("All"))
 
     def test_isClientInWhitelist(self):
-        self.assertEqual(False, self.entry.isClientInWhitelist('All'))
+        self.assertEqual(False, self.entry.isClientInWhitelist("All"))
 
     def test_isClientWhitelisted(self):
-        self.assertEqual(False, self.entry.isClientWhitelisted('All'))
+        self.assertEqual(False, self.entry.isClientWhitelisted("All"))
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_isInDowntime(self):
-        #entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
-        #self.assertEqual(expected, entry.isInDowntime())
+        # entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
+        # self.assertEqual(expected, entry.isInDowntime())
         assert False  # TODO: implement your test here
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_isSecurityClassAllowed(self):
-        #entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
-        #self.assertEqual(expected, entry.isSecurityClassAllowed(client_sec_name, proxy_sec_class))
+        # entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
+        # self.assertEqual(expected, entry.isSecurityClassAllowed(client_sec_name, proxy_sec_class))
         assert False  # TODO: implement your test here
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_isSecurityClassInDowntime(self):
-        #entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
-        #self.assertEqual(expected, entry.isSecurityClassInDowntime(client_security_name, security_class))
+        # entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
+        # self.assertEqual(expected, entry.isSecurityClassInDowntime(client_security_name, security_class))
         assert False  # TODO: implement your test here
 
     def test_loadContext(self):
         self.entry.loadContext()
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_loadDowntimes(self):
-        #entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
-        #self.assertEqual(expected, entry.loadDowntimes())
+        # entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
+        # self.assertEqual(expected, entry.loadDowntimes())
         assert False  # TODO: implement your test here
 
     def test_loadWhitelist(self):
         self.entry.loadWhitelist()
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_logLogStats(self):
-        #entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
-        #self.assertEqual(expected, entry.logLogStats(marker))
+        # entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
+        # self.assertEqual(expected, entry.logLogStats(marker))
         assert False  # TODO: implement your test here
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_queryQueuedGlideins(self):
-        #entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
-        #self.assertEqual(expected, entry.queryQueuedGlideins())
+        # entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
+        # self.assertEqual(expected, entry.queryQueuedGlideins())
         assert False  # TODO: implement your test here
 
     def test_setDowntime(self):
@@ -207,22 +204,22 @@ class TestEntry(unittest.TestCase):
         self.entry.setDowntime(False)
         self.assertFalse(self.entry.isInDowntime())
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_setLogStatsCurrentStatsData(self):
-        #entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
-        #self.assertEqual(expected, entry.setLogStatsCurrentStatsData(new_data))
+        # entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
+        # self.assertEqual(expected, entry.setLogStatsCurrentStatsData(new_data))
         assert False  # TODO: implement your test here
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_setLogStatsData(self):
-        #entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
-        #self.assertEqual(expected, entry.setLogStatsData(stats_data, new_data))
+        # entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
+        # self.assertEqual(expected, entry.setLogStatsData(stats_data, new_data))
         assert False  # TODO: implement your test here
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_setLogStatsOldStatsData(self):
-        #entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
-        #self.assertEqual(expected, entry.setLogStatsOldStatsData(new_data))
+        # entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
+        # self.assertEqual(expected, entry.setLogStatsOldStatsData(new_data))
         assert False  # TODO: implement your test here
 
     def test_setState(self):
@@ -231,10 +228,10 @@ class TestEntry(unittest.TestCase):
         state = self.entry.getState()
         self.entry.setState(state)
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_setState_old(self):
-        #entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
-        #self.assertEqual(expected, entry.setState_old(state))
+        # entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
+        # self.assertEqual(expected, entry.setState_old(state))
         assert False  # TODO: implement your test here
 
     def test_unsetInDowntime(self):
@@ -242,7 +239,7 @@ class TestEntry(unittest.TestCase):
         self.entry.unsetInDowntime()
         self.assertFalse(self.entry.isInDowntime())
 
-    @unittest.skip('doeesnt work')
+    @unittest.skip("doeesnt work")
     def test_writeClassadsToFile(self):
         client_stats = mock.Mock()
         client_stats.current_qc_total = {}
@@ -250,13 +247,12 @@ class TestEntry(unittest.TestCase):
         self.entry.gflFactoryConfig.client_stats = client_stats
         downtime_flag = False
         append = False
-        gf_filename = os.path.join(self.startup_dir, 'gf_filename')
-        gfc_filename = os.path.join(self.startup_dir, 'gfc_filename')
+        gf_filename = os.path.join(self.startup_dir, "gf_filename")
+        gfc_filename = os.path.join(self.startup_dir, "gfc_filename")
         limits = self.entry.getGlideinConfiguredLimits()
         self.assertEqual({}, limits)
-        limits['PubKeyObj'] = mock.Mock()
-        self.entry.writeClassadsToFile(
-            downtime_flag, gf_filename, gfc_filename, append)
+        limits["PubKeyObj"] = mock.Mock()
+        self.entry.writeClassadsToFile(downtime_flag, gf_filename, gfc_filename, append)
         self.assertTrue(os.path.exists(gf_filename))
 
         self.assertTrue(os.path.exists(gfc_filename))
@@ -296,41 +292,39 @@ class TestEntry(unittest.TestCase):
 
 
 class TestCheckAndPerformWork(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_check_and_perform_work(self):
         # self.assertEqual(expected, check_and_perform_work(factory_in_downtime, entry, work))
         assert False  # TODO: implement your test here
 
 
 class TestUnitWorkV3(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_unit_work_v3(self):
-        #self.assertEqual(expected, unit_work_v3(entry, work, client_name, client_int_name, client_int_req, client_expected_identity, decrypted_params, params, in_downtime, condorQ))
+        # self.assertEqual(expected, unit_work_v3(entry, work, client_name, client_int_name, client_int_req, client_expected_identity, decrypted_params, params, in_downtime, condorQ))
         assert False  # TODO: implement your test here
 
 
 class TestPerformWorkV3(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_perform_work_v3(self):
-        #self.assertEqual(expected, perform_work_v3(entry, condorQ, client_name, client_int_name, client_security_name, submit_credentials, remove_excess, idle_glideins, max_glideins, idle_lifetime, credential_username, glidein_totals, frontend_name, client_web, params))
+        # self.assertEqual(expected, perform_work_v3(entry, condorQ, client_name, client_int_name, client_security_name, submit_credentials, remove_excess, idle_glideins, max_glideins, idle_lifetime, credential_username, glidein_totals, frontend_name, client_web, params))
         assert False  # TODO: implement your test here
 
 
 class TestWriteDescript(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_write_descript(self):
-        #self.assertEqual(expected, write_descript(entry_name, entryDescript, entryAttributes, entryParams, monitor_dir))
+        # self.assertEqual(expected, write_descript(entry_name, entryDescript, entryAttributes, entryParams, monitor_dir))
         assert False  # TODO: implement your test here
 
 
 class TestTermsignal(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_termsignal(self):
-        #self.assertEqual(expected, termsignal(signr, frame))
+        # self.assertEqual(expected, termsignal(signr, frame))
         assert False  # TODO: implement your test here
 
 
-if __name__ == '__main__':
-    unittest.main(
-        testRunner=xmlrunner.XMLTestRunner(
-            output='unittests-reports'))
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))

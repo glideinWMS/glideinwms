@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import io
 import os
 import tarfile
-import io
 
 
 class FileDoesNotExist(Exception):
@@ -123,6 +123,7 @@ class GlideinTar:
             invalid compression type has been passed in
         """
         from io import BytesIO
+
         tar_mode = "w:%s" % compression
         file_out = BytesIO()
         # TODO #23166: Use context managers[with statement] when python 3

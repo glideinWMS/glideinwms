@@ -12,22 +12,24 @@
 #   And other support functions
 #
 
-import os, os.path  # string
+import copy
+import io
+import os  # string
+import os.path
 import re
 import shutil
-import copy
 import socket
-import io
-from glideinwms.lib import hashCrypto
-from glideinwms.lib.util import chmod
-from glideinwms.lib.defaults import BINARY_ENCODING
 
+from glideinwms.lib import hashCrypto
+from glideinwms.lib.defaults import BINARY_ENCODING
+from glideinwms.lib.util import chmod
 
 ########################################
 #
 # File dictionary classes
 #
 ########################################
+
 
 class DictFileError(RuntimeError):
     def __init__(self, msg):
@@ -42,6 +44,7 @@ class DictFileError(RuntimeError):
 #  DictBytesFile and DictTextFiles, saving respectively binary and text files, to optimize and reduce some back
 #  and forth encoding
 
+
 class DictFile:
     """Dictionaries serialized in files, one line per item
 
@@ -52,8 +55,8 @@ class DictFile:
     In this Python 3 version: using binary files and 'latin-1' encoding to preserve
     bytes (0x80...0xff) through round-tripping from byte streams to Unicode and back
     """
-    def __init__(self, dir, fname, sort_keys=False, order_matters=False,
-                 fname_idx=None):
+
+    def __init__(self, dir, fname, sort_keys=False, order_matters=False, fname_idx=None):
         """DictFile Constructor
 
         Args:
@@ -135,13 +138,13 @@ class DictFile:
                 return  # already exists, nothing to do
 
         if self.is_readonly:
-            raise DictFileError("Trying to modify a readonly object (%s, %s)!" % (key, val))
+            raise DictFileError(f"Trying to modify a readonly object ({key}, {val})!")
 
         if key in self.keys:
             if not allow_overwrite:
                 raise DictFileError("Key '%s' already exists" % key)
             elif not self.is_compatible(self.vals[key], val):
-                raise DictFileError("Key '%s': Value %s not compatible with old value %s" % (key, val, self.vals[key]))
+                raise DictFileError(f"Key '{key}': Value {val} not compatible with old value {self.vals[key]}")
             # Already exists, covered above
             # if self.vals[key]==val:
             #     return # nothing to do
@@ -161,10 +164,16 @@ class DictFile:
         del self.vals[key]
         self.changed = True
 
-    def save(self, dir=None, fname=None,
-             sort_keys=None, set_readonly=True, reset_changed=True,
-             save_only_if_changed=True,
-             want_comments=True):
+    def save(
+        self,
+        dir=None,
+        fname=None,
+        sort_keys=None,
+        set_readonly=True,
+        reset_changed=True,
+        save_only_if_changed=True,
+        want_comments=True,
+    ):
         """Save the dictionary into a binary file encoded w/ BINARY_ENCODING (dump function)
 
         save_into_fd() is the actual function writing to file
@@ -199,8 +208,8 @@ class DictFile:
         try:
             with open(filepath, "wb") as fd:
                 self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
-        except IOError as e:
-            raise DictFileError("Error creating or writing to %s: %s"%(filepath, e))
+        except OSError as e:
+            raise DictFileError(f"Error creating or writing to {filepath}: {e}")
 
         # ensure that the file permissions are 644
         # This is to minimize a security risk where we load python code from
@@ -212,9 +221,7 @@ class DictFile:
 
         return
 
-    def save_into_fd(self, fd,
-                     sort_keys=None, set_readonly=True, reset_changed=True,
-                     want_comments=True):
+    def save_into_fd(self, fd, sort_keys=None, set_readonly=True, reset_changed=True, want_comments=True):
         """Save into a BINARY_ENCODING (latin-1) encoded binary file
 
         Args:
@@ -250,7 +257,7 @@ class DictFile:
                 fd.write(b"%s\n" % footer.encode(BINARY_ENCODING))
         except AttributeError as e:
             # .encode() attribute may be missing because bytes are passed
-            raise DictFileError("str received while writing %s (%s): %s" % (self.fname, type(self).__name__, e))
+            raise DictFileError(f"str received while writing {self.fname} ({type(self).__name__}): {e}")
 
         if set_readonly:
             self.set_readonly(True)
@@ -259,9 +266,7 @@ class DictFile:
             self.changed = False
         return
 
-    def save_into_bytes(self,
-                        sort_keys=None, set_readonly=True, reset_changed=True,
-                        want_comments=True):
+    def save_into_bytes(self, sort_keys=None, set_readonly=True, reset_changed=True, want_comments=True):
         """Save the dictionary into a bytes array
 
         Args:
@@ -281,9 +286,7 @@ class DictFile:
         fd.close()
         return data
 
-    def save_into_str(self,
-                      sort_keys=None, set_readonly=True, reset_changed=True,
-                      want_comments=True):
+    def save_into_str(self, sort_keys=None, set_readonly=True, reset_changed=True, want_comments=True):
         """Save the dictionary into a string
 
         Same as save_into_bytes, but returns a string
@@ -301,10 +304,7 @@ class DictFile:
         data = self.save_into_bytes(sort_keys, set_readonly, reset_changed, want_comments).decode(BINARY_ENCODING)
         return data
 
-    def load(self, dir=None, fname=None,
-             change_self=True,
-             erase_first=True,
-             set_not_changed=True):
+    def load(self, dir=None, fname=None, change_self=True, erase_first=True, set_not_changed=True):
         """
 
         if dir and/or fname are not specified, use the defaults specified in __init__,
@@ -328,15 +328,15 @@ class DictFile:
         filepath = os.path.join(dir, fname)
         try:
             fd = open(filepath, "rb")
-        except IOError as e:
-            print("Error opening %s: %s" % (filepath, e))
+        except OSError as e:
+            print(f"Error opening {filepath}: {e}")
             print("Assuming blank, and re-creating...")
             return
         try:
             with fd:
                 self.load_from_fd(fd, erase_first, set_not_changed)
         except RuntimeError as e:
-            raise DictFileError("File %s: %s" % (filepath, str(e)))
+            raise DictFileError(f"File {filepath}: {str(e)}")
 
         if change_self:
             self.dir = dir
@@ -344,9 +344,7 @@ class DictFile:
 
         return
 
-    def load_from_fd(self, fd,
-                     erase_first=True,
-                     set_not_changed=True):
+    def load_from_fd(self, fd, erase_first=True, set_not_changed=True):
         """Load a dictionary in memory from a binary file encoded w/ BINARY_ENCODING
 
         Values (on lines) are loaded into the dictionary using parse_val, which expects str
@@ -368,7 +366,7 @@ class DictFile:
         idx = 0
         for line in lines:
             idx += 1
-            if line[-1:] == b'\n':
+            if line[-1:] == b"\n":
                 # strip newline, colon is needed, otherwise the number 10 is returned for \n
                 line = line[:-1]
             try:
@@ -380,9 +378,7 @@ class DictFile:
             self.changed = False  # the memory copy is now same as the one on disk
         return
 
-    def load_from_str(self, data,
-                      erase_first=True,
-                      set_not_changed=True):
+    def load_from_str(self, data, erase_first=True, set_not_changed=True):
         """Load data from a string into the object (self)
 
         Args:
@@ -401,9 +397,7 @@ class DictFile:
                 raise DictFileError("Memory buffer: %s" % (str(e)))
         return
 
-    def is_equal(self, other,
-                 compare_dir=False, compare_fname=False,
-                 compare_keys=None):
+    def is_equal(self, other, compare_dir=False, compare_fname=False, compare_keys=None):
         """Parametrised comparison of DictFile objects
 
         Args:
@@ -424,8 +418,9 @@ class DictFile:
             compare_keys = self.order_matters
         if compare_keys and (self.keys != other.keys):
             return False
-        res = (self.save_into_str(sort_keys=None, set_readonly=False, reset_changed=False, want_comments=False) ==
-               other.save_into_str(sort_keys=None, set_readonly=False, reset_changed=False, want_comments=False))
+        res = self.save_into_str(
+            sort_keys=None, set_readonly=False, reset_changed=False, want_comments=False
+        ) == other.save_into_str(sort_keys=None, set_readonly=False, reset_changed=False, want_comments=False)
         return res
 
     # PRIVATE
@@ -468,7 +463,7 @@ class DictFile:
             str: formatted key, value
 
         """
-        return "%s \t%s" % (key, self.vals[key])
+        return f"{key} \t{self.vals[key]}"
 
     def parse_val(self, line):
         """Parse a line and add it to the dictionary
@@ -481,7 +476,7 @@ class DictFile:
         Raises:
             DictFileError, from self.add()
         """
-        if not line or line[0] == '#':
+        if not line or line[0] == "#":
             return  # ignore comments
         arr = line.split(None, 1)
         if len(arr[0]) == 0:
@@ -489,18 +484,16 @@ class DictFile:
 
         key = arr[0]
         if len(arr) == 1:
-            val = ''
+            val = ""
         else:
             val = arr[1]
         return self.add(key, val)
 
 
 class DictFileTwoKeys(DictFile):
-    """DictFile double keyed: both key and val are keys
-    """
+    """DictFile double keyed: both key and val are keys"""
 
-    def __init__(self, dir, fname, sort_keys=False, order_matters=False,
-                 fname_idx=None):
+    def __init__(self, dir, fname, sort_keys=False, order_matters=False, fname_idx=None):
         """constructor
 
         :param dir: directory
@@ -552,14 +545,14 @@ class DictFileTwoKeys(DictFile):
                 return  # already exists, nothing to do
 
         if self.is_readonly:
-            raise DictFileError("Trying to modify a readonly object (%s, %s)!" % (key, val))
+            raise DictFileError(f"Trying to modify a readonly object ({key}, {val})!")
 
         if key in self.keys:
             old_val = self.vals[key]
             if not allow_overwrite:
                 raise DictFileError("Key '%s' already exists" % key)
             elif not self.is_compatible(old_val, val):
-                raise DictFileError("Key '%s': Value %s not compatible with old value %s" % (key, val, old_val))
+                raise DictFileError(f"Key '{key}': Value {val} not compatible with old value {old_val}")
             # if old_val == val:   # no need to check again, would have hit the check above
             #    return  # nothing to be changed
             # the second key (value) changed, need to delete the old one
@@ -574,7 +567,7 @@ class DictFileTwoKeys(DictFile):
             if not allow_overwrite:
                 raise DictFileError("Value '%s' already exists" % val)
             elif not self.is_compatible2(old_key, key):
-                raise DictFileError("Value '%s': Key %s not compatible with old key %s" % (val, key, old_key))
+                raise DictFileError(f"Value '{val}': Key {key} not compatible with old key {old_key}")
             # if old_key==key: # no need to check again, would have hit the check above
             #    return # nothing to be changed
             # the first key changed, need to delete the old one
@@ -610,9 +603,7 @@ class DictFileTwoKeys(DictFile):
         del self.vals2[val]
         self.changed = True
 
-    def is_equal(self, other,
-                 compare_dir=False, compare_fname=False,
-                 compare_keys=None):
+    def is_equal(self, other, compare_dir=False, compare_fname=False, compare_keys=None):
         """Compare two DictFileDoubleKey objects (and optionally their file)
 
         :param other: other dictionary, object of the same class
@@ -629,8 +620,9 @@ class DictFileTwoKeys(DictFile):
             compare_keys = self.order_matters
         if compare_keys and ((self.keys != other.keys) or (self.keys2 != other.keys2)):
             return False
-        res = (self.save_into_str(sort_keys=None, set_readonly=False, reset_changed=False, want_comments=False) ==
-               other.save_into_str(sort_keys=None, set_readonly=False, reset_changed=False, want_comments=False))
+        res = self.save_into_str(
+            sort_keys=None, set_readonly=False, reset_changed=False, want_comments=False
+        ) == other.save_into_str(sort_keys=None, set_readonly=False, reset_changed=False, want_comments=False)
         return res
 
     # PRIVATE
@@ -641,10 +633,10 @@ class DictFileTwoKeys(DictFile):
 # descriptions
 class DescriptionDictFile(DictFileTwoKeys):
     def format_val(self, key, want_comments):
-        return "%s \t%s" % (self.vals[key], key)
+        return f"{self.vals[key]} \t{key}"
 
     def parse_val(self, line):
-        if not line or line[0] == '#':
+        if not line or line[0] == "#":
             return  # ignore comments
         arr = line.split(None, 1)
         if len(arr) == 0:
@@ -661,10 +653,10 @@ class GridMapDict(DictFileTwoKeys):
         return None
 
     def format_val(self, key, want_comments):
-        return '"%s" %s' % (key, self.vals[key])
+        return f'"{key}" {self.vals[key]}'
 
     def parse_val(self, line):
-        if not line or line[0] == '#':
+        if not line or line[0] == "#":
             return  # ignore comments
         arr = line.split()
         if len(arr) == 0:
@@ -677,10 +669,10 @@ class GridMapDict(DictFileTwoKeys):
 
         user = arr[-1]
 
-        if line[-len(user) - 2:-len(user) - 1] != '"':
+        if line[-len(user) - 2 : -len(user) - 1] != '"':
             raise DictFileError('Not a valid gridmap line; DN not ending with ": %s' % line)
 
-        dn = line[1:-len(user) - 2]
+        dn = line[1 : -len(user) - 2]
         return self.add(dn, user)
 
 
@@ -690,6 +682,7 @@ class SHA1DictFile(DictFile):
     """Dictionary of SHA1 signatures
     Saved as "SHA1   FNAME" lines
     """
+
     def add_from_file(self, filepath, allow_overwrite=False, key=None):
         """Add the SHA1 digest of the file to the dictionary (keyed by the file name)
 
@@ -717,7 +710,7 @@ class SHA1DictFile(DictFile):
             str: line for the file
 
         """
-        return "%s  %s" % (self.vals[key], key)
+        return f"{self.vals[key]}  {key}"
 
     def parse_val(self, line):
         """Parse a line into values for the dictionary
@@ -730,7 +723,7 @@ class SHA1DictFile(DictFile):
         Returns:
 
         """
-        if not line or line[0] == '#':
+        if not line or line[0] == "#":
             return  # ignore comments
         arr = line.split(None, 1)
         if len(arr) != 2:
@@ -744,7 +737,8 @@ class SummarySHA1DictFile(DictFile):
     """Summary dictionary w/ SHA1 signatures, values are (sha1, fname2)
     Saved as "SHA1   FNAME2   FNAME" lines
     """
-    def add(self,key,val,allow_overwrite=False):
+
+    def add(self, key, val, allow_overwrite=False):
         """Add a SHA1 signature to the dictionary
 
         Args:
@@ -761,10 +755,7 @@ class SummarySHA1DictFile(DictFile):
             raise DictFileError("Values '%s' not (sha1, fname)" % val)
         return DictFile.add(self, key, val, allow_overwrite)
 
-    def add_from_file(self, filepath,
-                      fname2=None,
-                      allow_overwrite=False,
-                      key=None):
+    def add_from_file(self, filepath, fname2=None, allow_overwrite=False, key=None):
         """Add a file and its SHA1 signature to a summary dictionary
 
         Args:
@@ -793,7 +784,7 @@ class SummarySHA1DictFile(DictFile):
         Returns:
 
         """
-        return "%s  %s  %s" % (self.vals[key][0], self.vals[key][1], key)
+        return f"{self.vals[key][0]}  {self.vals[key][1]}  {key}"
 
     def parse_val(self, line):
         """Parse a line and add the values to the dictionary
@@ -804,12 +795,13 @@ class SummarySHA1DictFile(DictFile):
         Returns:
 
         """
-        if not line or line[0] == '#':
+        if not line or line[0] == "#":
             return  # ignore comments
         arr = line.split(None, 2)
         if len(arr) != 3:
-            raise DictFileError("Not a valid summary signature line (expected 4, found %i elements): '%s'" %
-                                (len(arr), line))
+            raise DictFileError(
+                "Not a valid summary signature line (expected 4, found %i elements): '%s'" % (len(arr), line)
+            )
         key = arr[2]
         return self.add(key, (arr[0], arr[1]))
 
@@ -860,7 +852,7 @@ class SimpleFileDictFile(DictFile):
         # make it generic for use by children
         # TODO: make sure that DictFile.add() is compatible w/ binary data
         if not isinstance(data, (bytes, bytearray)):
-            raise DictFileError("Using add_from_bytes to add a string to DictFile (%s, %s)" % (key, data))
+            raise DictFileError(f"Using add_from_bytes to add a string to DictFile ({key}, {data})")
         if not (type(val) in (type(()), type([]))):
             DictFile.add(self, key, (val, data), allow_overwrite)
         else:
@@ -911,7 +903,7 @@ class SimpleFileDictFile(DictFile):
         try:
             with open(filepath, "rb") as fd:
                 self.add_from_fd(key, val, fd, allow_overwrite)
-        except IOError as e:
+        except OSError as e:
             raise DictFileError("Could not open file or read from it: %s" % filepath)
 
     def format_val(self, key, want_comments):
@@ -927,7 +919,7 @@ class SimpleFileDictFile(DictFile):
 
         """
         if self.vals[key][0] is not None:
-            return "%s \t%s" % (key, self.vals[key][0])
+            return f"{key} \t{self.vals[key][0]}"
         else:
             return key
 
@@ -942,7 +934,7 @@ class SimpleFileDictFile(DictFile):
             line (str): line to be parsed
 
         """
-        if not line or line[0] == '#':
+        if not line or line[0] == "#":
             return  # ignore comments
         arr = line.split(None, 1)
         if len(arr[0]) == 0:
@@ -978,7 +970,7 @@ class SimpleFileDictFile(DictFile):
             # The file content should be already a binary blob (bytes); if it is a string,
             # then raise an error or convert it
             if isinstance(fdata, str):
-                raise DictFileError("File content received as str instead of bytes: %s (in %s)" % (key, filepath))
+                raise DictFileError(f"File content received as str instead of bytes: {key} (in {filepath})")
                 # Use this instead of 'raise' to silently change the data and be more tolerant
                 # fdata = bytes(fdata, encoding=BINARY_ENCODING)
             filepath = os.path.join(self.dir, fname)
@@ -986,12 +978,12 @@ class SimpleFileDictFile(DictFile):
                 raise DictFileError("File %s already exists" % filepath)
             try:
                 fd = open(filepath, "wb")
-            except IOError as e:
+            except OSError as e:
                 raise DictFileError("Could not create file %s" % filepath)
             try:
                 with fd:
                     fd.write(fdata)
-            except IOError as e:
+            except OSError as e:
                 raise DictFileError("Error writing into file %s" % filepath)
 
 
@@ -1014,6 +1006,7 @@ class FileDictFile(SimpleFileDictFile):
     For placeholders, the real_name is empty (and the tuple starts w/ an empty string). Placeholders cannot be
     serialized (saved into file). Empty strings would cause error when parsed back.
     """
+
     DATA_LENGTH = 7  # Length of value (attributes + data)
     PLACEHOLDER_VALUE = ("", "", 0, "", "", "", "")  # The tuple should be DATA_LENGTH long and have the correct values
 
@@ -1025,7 +1018,7 @@ class FileDictFile(SimpleFileDictFile):
         return self[key][0] == ""  # empty real_fname can only be a placeholder
 
     @staticmethod
-    def make_val_tuple(file_name, file_type, period=0, prefix='GLIDEIN_PS_', cond_download='TRUE', config_out='FALSE'):
+    def make_val_tuple(file_name, file_type, period=0, prefix="GLIDEIN_PS_", cond_download="TRUE", config_out="FALSE"):
         """Make a tuple with the DATA_LENGTH-1 attributes in the correct order using the defaults
 
         :param file_name: name of the file (aka real_fname)
@@ -1047,10 +1040,7 @@ class FileDictFile(SimpleFileDictFile):
     def get_file_fname(self, key):
         return self.val_to_file_name(self.vals[key])
 
-    def add_from_bytes(self, key, val,
-                       data,
-                       allow_overwrite=False,
-                       allow_overwrite_placeholder=True):
+    def add_from_bytes(self, key, val, data, allow_overwrite=False, allow_overwrite_placeholder=True):
         """Add a file to the list, the content is provided separately (not in the val tuple)
 
         Args:
@@ -1071,10 +1061,7 @@ class FileDictFile(SimpleFileDictFile):
                 allow_overwrite = True
         return SimpleFileDictFile.add_from_bytes(self, key, val, data, allow_overwrite)
 
-    def add_from_str(self, key, val,
-                     data,
-                     allow_overwrite=False,
-                     allow_overwrite_placeholder=True):
+    def add_from_str(self, key, val, data, allow_overwrite=False, allow_overwrite_placeholder=True):
         """Add a file to the list, the content is provided separately (not in the val tuple)
 
         Args:
@@ -1095,10 +1082,13 @@ class FileDictFile(SimpleFileDictFile):
                 allow_overwrite = True
         return SimpleFileDictFile.add_from_str(self, key, val, data, allow_overwrite)
 
-    def add(self, key,
-            val,  # will if len(val)==5, use the last one as data (for placeholders), else load from val[0]
-            allow_overwrite=False,
-            allow_overwrite_placeholder=True):
+    def add(
+        self,
+        key,
+        val,  # will if len(val)==5, use the last one as data (for placeholders), else load from val[0]
+        allow_overwrite=False,
+        allow_overwrite_placeholder=True,
+    ):
         """Add a file to the list
 
         Invoke add_from_str if the content is provided (6th component of val), add_from_file otherwise
@@ -1135,23 +1125,36 @@ class FileDictFile(SimpleFileDictFile):
         elif len(val) == self.DATA_LENGTH - 1:
             # Added a safety check that the last element is an attribute and not the value
             # Maybe check also string length or possible values?
-            if '\n' in val[-1]:
-                raise DictFileError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" %
-                                    val)
+            if "\n" in val[-1]:
+                raise DictFileError(
+                    "Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val
+                )
             return self.add_from_file(key, val, os.path.join(self.dir, self.val_to_file_name(val)), allow_overwrite)
         else:
             raise DictFileError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
 
     def format_val(self, key, want_comments):
-        return "%s \t%s \t%s \t%s \t%s \t%s \t%s" % (key, self.vals[key][0], self.vals[key][1], self.vals[key][2],
-                                                     self.vals[key][3], self.vals[key][4], self.vals[key][5])
+        return "{} \t{} \t{} \t{} \t{} \t{} \t{}".format(
+            key,
+            self.vals[key][0],
+            self.vals[key][1],
+            self.vals[key][2],
+            self.vals[key][3],
+            self.vals[key][4],
+            self.vals[key][5],
+        )
 
     def file_header(self, want_comments):
         if want_comments:
-            return (DictFile.file_header(self, want_comments) + "\n" +
-                    ("# %s \t%s \t%s \t%s \t%s \t%s \t%s\n" %
-                     ('Outfile', 'InFile        ', 'Cache/exec', 'Period', 'Prefix', 'Condition', 'ConfigOut')) +
-                    ("#" * 89))
+            return (
+                DictFile.file_header(self, want_comments)
+                + "\n"
+                + (
+                    "# %s \t%s \t%s \t%s \t%s \t%s \t%s\n"
+                    % ("Outfile", "InFile        ", "Cache/exec", "Period", "Prefix", "Condition", "ConfigOut")
+                )
+                + ("#" * 89)
+            )
         else:
             return None
 
@@ -1162,7 +1165,7 @@ class FileDictFile(SimpleFileDictFile):
         :param line: string with the line content
         :return: tuple with DATA_LENGTH-1 values
         """
-        if not line or line[0] == '#':
+        if not line or line[0] == "#":
             return  # ignore empty lines and comments
         arr = line.split(None, self.DATA_LENGTH - 1)  # split already eliminates multiple spaces (no need for strip)
         if len(arr) == 0:
@@ -1181,8 +1184,9 @@ class FileDictFile(SimpleFileDictFile):
             elif len(arr) == self.DATA_LENGTH - 2:
                 # For upgrade from 3.2.10 or earlier
                 return self.add(arr[0], [arr[1], arr[2], 0, "GLIDEIN_PS_", arr[3], arr[4]])
-            raise RuntimeError("Not a valid file line (expected %i, found %i elements): '%s'" %
-                               (self.DATA_LENGTH, len(arr), line))
+            raise RuntimeError(
+                "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
+            )
 
         return self.add(arr[0], arr[1:])
 
@@ -1195,9 +1199,7 @@ class FileDictFile(SimpleFileDictFile):
 
         return mkeys
 
-    def reuse(self, other,
-              compare_dir=False, compare_fname=False,
-              compare_files_fname=False):
+    def reuse(self, other, compare_dir=False, compare_fname=False, compare_files_fname=False):
         """Reuse the entry value (and file) if an item in the "other" dictionary shares the same attributes and content
 
         :param other: other dictionary
@@ -1218,9 +1220,9 @@ class FileDictFile(SimpleFileDictFile):
                     # The value is already the same, why deepcopy?
                     # The item are the same but not the nested ones?
                     # could return - no need for deepcopy
-                    is_equal = (self.vals[k] == other.vals[k])
+                    is_equal = self.vals[k] == other.vals[k]
                 else:  # ignore file name (first element)
-                    is_equal = (self.vals[k][1:] == other.vals[k][1:])
+                    is_equal = self.vals[k][1:] == other.vals[k][1:]
 
                 if is_equal:
                     self.vals[k] = copy.deepcopy(other.vals[k])
@@ -1233,10 +1235,10 @@ class FileDictFile(SimpleFileDictFile):
 #   given that it does not call any parent methods, implement an interface first
 class ReprDictFileInterface:
     def format_val(self, key, want_comments):
-        return "%s \t%s" % (key, repr(self.vals[key]))
+        return f"{key} \t{repr(self.vals[key])}"
 
     def parse_val(self, line):
-        if not line or line[0] == '#':
+        if not line or line[0] == "#":
             return  # ignore comments
         arr = line.split(None, 1)
         if len(arr[0]) == 0:
@@ -1244,7 +1246,7 @@ class ReprDictFileInterface:
 
         key = arr[0]
         if len(arr) == 1:
-            val = ''
+            val = ""
         else:
             val = arr[1]
         return self.add(key, eval(val))
@@ -1276,8 +1278,7 @@ class StrWWorkTypeDictFile(StrDictFile):
     not guaranteed to have typed values on (re-)load
     """
 
-    def __init__(self, dir, fname, sort_keys=False, order_matters=False,
-                 fname_idx=None):  # if none, use fname
+    def __init__(self, dir, fname, sort_keys=False, order_matters=False, fname_idx=None):  # if none, use fname
         StrDictFile.__init__(self, dir, fname, sort_keys, order_matters, fname_idx)
         self.typed_vals = {}
 
@@ -1299,21 +1300,24 @@ class StrWWorkTypeDictFile(StrDictFile):
 
 
 class VarsDictFile(DictFile):
-    """DictFile class, values are (Type,Default,CondorName,Required,Export,UserName)
-    """
+    """DictFile class, values are (Type,Default,CondorName,Required,Export,UserName)"""
 
     def is_compatible(self, old_val, new_val):
-        return ((old_val[0] == new_val[0]) and (
-            old_val[4] == new_val[4]))  # at least the type and the export must be preserved
+        return (old_val[0] == new_val[0]) and (
+            old_val[4] == new_val[4]
+        )  # at least the type and the export must be preserved
 
     def file_header(self, want_comments):
         if want_comments:
-            return (DictFile.file_header(self, want_comments) + "\n" +
-                    "# VarName               Type    Default         CondorName                     Req.     Export  UserName           \n" +
-                    "#                       S=Quote - = No Default  + = VarName                             Condor   - = Do not export \n" +
-                    "#                                                                                                + = Use VarName   \n" +
-                    "#                                                                                                @ = Use CondorName\n"
-                    "###################################################################################################################")
+            return (
+                DictFile.file_header(self, want_comments)
+                + "\n"
+                + "# VarName               Type    Default         CondorName                     Req.     Export  UserName           \n"
+                + "#                       S=Quote - = No Default  + = VarName                             Condor   - = Do not export \n"
+                + "#                                                                                                + = Use VarName   \n"
+                + "#                                                                                                @ = Use CondorName\n"
+                "###################################################################################################################"
+            )
         else:
             return None
 
@@ -1322,60 +1326,70 @@ class VarsDictFile(DictFile):
             raise RuntimeError("Values '%s' not a list or tuple" % val)
         if len(val) != 6:
             raise RuntimeError("Values '%s' not (Type,Default,CondorName,Required,Export,UserName)" % str(val))
-        if not (val[0] in ('C', 'S', 'I')):
-            raise RuntimeError("Invalid var type '%s', should be either C, S or I in val: %s" % (val[1], str(val)))
+        if not (val[0] in ("C", "S", "I")):
+            raise RuntimeError(f"Invalid var type '{val[1]}', should be either C, S or I in val: {str(val)}")
         for i, t in ((3, "Required"), (4, "Export")):
-            if not (val[i] in ('Y', 'N')):
-                raise RuntimeError("Invalid var %s '%s', should be either Y or N in val: %s" % (t, val[i], str(val)))
+            if not (val[i] in ("Y", "N")):
+                raise RuntimeError(f"Invalid var {t} '{val[i]}', should be either Y or N in val: {str(val)}")
 
         return DictFile.add(self, key, val, allow_overwrite)
 
     # valid types are "string", "expr" and "integer" (anything different from the first 2 strings is considered integer)
-    def add_extended(self, key,
-                     type,
-                     val_default,  # None or False==No default (i.e. -)
-                     condor_name,  # if None or false, Varname (i.e. +)
-                     required,
-                     export_condor,
-                     user_name,  # If None or false, do not export (i.e. -)
-                     # if True, set to VarName (i.e. +)
-                     allow_overwrite=0):
+    def add_extended(
+        self,
+        key,
+        type,
+        val_default,  # None or False==No default (i.e. -)
+        condor_name,  # if None or false, Varname (i.e. +)
+        required,
+        export_condor,
+        user_name,  # If None or false, do not export (i.e. -)
+        # if True, set to VarName (i.e. +)
+        allow_overwrite=0,
+    ):
         if type == "string":
-            type_str = 'S'
+            type_str = "S"
         elif type == "expr":
-            type_str = 'C'
+            type_str = "C"
         else:
-            type_str = 'I'
+            type_str = "I"
 
         if (val_default is None) or (val_default == False):
-            val_default = '-'
+            val_default = "-"
 
         if (condor_name is None) or (condor_name == False):
             condor_name = "+"
 
         if required:
-            req_str = 'Y'
+            req_str = "Y"
         else:
-            req_str = 'N'
+            req_str = "N"
 
         if export_condor:
-            export_condor_str = 'Y'
+            export_condor_str = "Y"
         else:
-            export_condor_str = 'N'
+            export_condor_str = "N"
 
         if (user_name is None) or (user_name == False):
-            user_name = '-'
+            user_name = "-"
         elif user_name == True:
-            user_name = '+'
+            user_name = "+"
 
         self.add(key, (type_str, val_default, condor_name, req_str, export_condor_str, user_name), allow_overwrite)
 
     def format_val(self, key, want_comments):
-        return "%s \t%s \t%s \t\t%s \t%s \t%s \t%s" % (key, self.vals[key][0], self.vals[key][1], self.vals[key][2],
-                                                       self.vals[key][3], self.vals[key][4], self.vals[key][5])
+        return "{} \t{} \t{} \t\t{} \t{} \t{} \t{}".format(
+            key,
+            self.vals[key][0],
+            self.vals[key][1],
+            self.vals[key][2],
+            self.vals[key][3],
+            self.vals[key][4],
+            self.vals[key][5],
+        )
 
     def parse_val(self, line):
-        if not line or line[0] == '#':
+        if not line or line[0] == "#":
             return  # ignore comments
         arr = line.split(None, 6)
         if len(arr) == 0:
@@ -1395,7 +1409,7 @@ class SimpleFile(DictFile):
     """
 
     def add(self, key, val, allow_overwrite=False):
-        if key != 'content':
+        if key != "content":
             raise RuntimeError("Invalid key '%s'!='content'" % key)
         return DictFile.add(self, key, val, allow_overwrite)
 
@@ -1416,15 +1430,13 @@ class SimpleFile(DictFile):
             RuntimeError: if the key is not 'content'
 
         """
-        if key == 'content':
+        if key == "content":
             data = self.vals[key]
             return data.decode(BINARY_ENCODING)
         else:
             raise RuntimeError("Invalid key '%s'!='content'" % key)
 
-    def load_from_fd(self, fd,
-                     erase_first=True,
-                     set_not_changed=True):
+    def load_from_fd(self, fd, erase_first=True, set_not_changed=True):
         """Load the content from a binary file (binary mode used also for text files)
 
         Args:
@@ -1441,11 +1453,11 @@ class SimpleFile(DictFile):
         data = fd.read()
 
         # remove final newline, since it will be added at save time
-        if data[-1:] == b'\n':
+        if data[-1:] == b"\n":
             # strip newline, colon is needed, otherwise the number 10 is returned for \n
             data = data[:-1]
 
-        self.add('content', data)
+        self.add("content", data)
 
         if set_not_changed:
             self.changed = False  # the memory copy is now same as the one on disk
@@ -1463,11 +1475,17 @@ class ExeFile(SimpleFile):
     When saving the content to the file, it will set the permissions to make it executable
     """
 
-    def save(self, dir=None, fname=None,
-             # if dir and/or fname are not specified, use the defaults specified in __init__
-             sort_keys=None, set_readonly=True, reset_changed=True,
-             save_only_if_changed=True,
-             want_comments=True):
+    def save(
+        self,
+        dir=None,
+        fname=None,
+        # if dir and/or fname are not specified, use the defaults specified in __init__
+        sort_keys=None,
+        set_readonly=True,
+        reset_changed=True,
+        save_only_if_changed=True,
+        want_comments=True,
+    ):
         """
 
         Args:
@@ -1496,8 +1514,8 @@ class ExeFile(SimpleFile):
         try:
             with open(filepath, "wb") as fd:
                 self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
-        except IOError as e:
-            raise RuntimeError("Error creating or writing to %s: %s" % (filepath, e))
+        except OSError as e:
+            raise RuntimeError(f"Error creating or writing to {filepath}: {e}")
         chmod(filepath, 0o755)
 
         return
@@ -1509,9 +1527,9 @@ class ExeFile(SimpleFile):
 #
 ###########################################################
 
+
 class dirSupport:
-    """abstract class for a directory creation
-    """
+    """abstract class for a directory creation"""
 
     def create_dir(self, fail_if_exists=True):
         """Create the directory
@@ -1546,14 +1564,14 @@ class simpleDirSupport(dirSupport):
     def create_dir(self, fail_if_exists=True):
         if os.path.isdir(self.dir):
             if fail_if_exists:
-                raise RuntimeError("Cannot create %s dir %s, already exists." % (self.dir_name, self.dir))
+                raise RuntimeError(f"Cannot create {self.dir_name} dir {self.dir}, already exists.")
             else:
                 return False  # already exists, nothing to do
 
         try:
             os.mkdir(self.dir)
         except OSError as e:
-            raise RuntimeError("Failed to create %s dir: %s" % (self.dir_name, e))
+            raise RuntimeError(f"Failed to create {self.dir_name} dir: {e}")
         return True
 
     def delete_dir(self):
@@ -1568,14 +1586,14 @@ class chmodDirSupport(simpleDirSupport):
     def create_dir(self, fail_if_exists=True):
         if os.path.isdir(self.dir):
             if fail_if_exists:
-                raise RuntimeError("Cannot create %s dir %s, already exists." % (self.dir_name, self.dir))
+                raise RuntimeError(f"Cannot create {self.dir_name} dir {self.dir}, already exists.")
             else:
                 return False  # already exists, nothing to do
 
         try:
             os.mkdir(self.dir, self.chmod)
         except OSError as e:
-            raise RuntimeError("Failed to create %s dir: %s" % (self.dir_name, e))
+            raise RuntimeError(f"Failed to create {self.dir_name} dir: {e}")
         return True
 
 
@@ -1590,14 +1608,14 @@ class symlinkSupport(dirSupport):
     def create_dir(self, fail_if_exists=True):
         if os.path.islink(self.symlink):
             if fail_if_exists:
-                raise RuntimeError("Cannot create %s symlink %s, already exists." % (self.dir_name, self.symlink))
+                raise RuntimeError(f"Cannot create {self.dir_name} symlink {self.symlink}, already exists.")
             else:
                 return False  # already exists, nothing to do
 
         try:
             os.symlink(self.target_dir, self.symlink)
         except OSError as e:
-            raise RuntimeError("Failed to create %s symlink: %s" % (self.dir_name, e))
+            raise RuntimeError(f"Failed to create {self.dir_name} symlink: {e}")
         return True
 
     def delete_dir(self):
@@ -1656,11 +1674,10 @@ class multiSimpleDirSupport(dirSupport, dirsSupport):
 
 ###########################################
 
+
 class workDirSupport(multiSimpleDirSupport):
     def __init__(self, work_dir, workdir_name):
-        multiSimpleDirSupport.__init__(self,
-                                       (work_dir, os.path.join(work_dir, 'lock')),
-                                       workdir_name)
+        multiSimpleDirSupport.__init__(self, (work_dir, os.path.join(work_dir, "lock")), workdir_name)
 
 
 # similar to workDirSupport but without lock subdir
@@ -1669,17 +1686,17 @@ class simpleWorkDirSupport(simpleDirSupport):
 
 
 class logDirSupport(simpleDirSupport):
-    def __init__(self, log_dir, dir_name='log'):
+    def __init__(self, log_dir, dir_name="log"):
         simpleDirSupport.__init__(self, log_dir, dir_name)
 
 
 class logSymlinkSupport(symlinkSupport):
-    def __init__(self, log_dir, work_dir, symlink_subdir='log', dir_name='log'):
+    def __init__(self, log_dir, work_dir, symlink_subdir="log", dir_name="log"):
         symlinkSupport.__init__(self, log_dir, os.path.join(work_dir, symlink_subdir), dir_name)
 
 
 class stageDirSupport(simpleDirSupport):
-    def __init__(self, stage_dir, dir_name='stage'):
+    def __init__(self, stage_dir, dir_name="stage"):
         simpleDirSupport.__init__(self, stage_dir, dir_name)
 
 
@@ -1690,7 +1707,7 @@ class monitorDirSupport(dirSupport, dirsSupport):
         self.dir_name = dir_name
         self.monitor_dir = monitor_dir
         self.add_dir_obj(simpleDirSupport(self.monitor_dir, self.dir_name))
-        self.add_dir_obj(simpleDirSupport(os.path.join(self.monitor_dir, 'lock'), self.dir_name))
+        self.add_dir_obj(simpleDirSupport(os.path.join(self.monitor_dir, "lock"), self.dir_name))
 
     def create_dir(self, fail_if_exists=True):
         return self.create_dirs(fail_if_exists)
@@ -1749,14 +1766,11 @@ class fileCommonDicts:
 #
 ################################################
 
+
 class fileMainDicts(fileCommonDicts, dirsSupport):
-    """This Class contains the main dicts (dicts is a dict of DictFiles)
-    """
-    def __init__(self,
-                 work_dir, stage_dir,
-                 workdir_name,
-                 simple_work_dir=False,
-                 log_dir=None):
+    """This Class contains the main dicts (dicts is a dict of DictFiles)"""
+
+    def __init__(self, work_dir, stage_dir, workdir_name, simple_work_dir=False, log_dir=None):
         """Constructor
 
         Args:
@@ -1769,7 +1783,7 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
         """
         self.active_sub_list = []
         self.disabled_sub_list = []
-        self.monitor_dir = ''
+        self.monitor_dir = ""
 
         fileCommonDicts.__init__(self)
         dirsSupport.__init__(self)
@@ -1797,7 +1811,7 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
         self.erase()
 
     def get_summary_signature(self):  # you can discover most of the other things from this
-        return self.dicts['summary_signature']
+        return self.dicts["summary_signature"]
 
     def erase(self):
         self.dicts = self.get_main_dicts()
@@ -1813,9 +1827,13 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
     def save(self, set_readonly=True):
         raise RuntimeError("Undefined")
 
-    def is_equal(self, other,  # other must be of the same class
-                 compare_work_dir=False, compare_stage_dir=False,
-                 compare_fnames=False):
+    def is_equal(
+        self,
+        other,  # other must be of the same class
+        compare_work_dir=False,
+        compare_stage_dir=False,
+        compare_fnames=False,
+    ):
         if compare_work_dir and (self.work_dir != other.work_dir):
             return False
         if compare_stage_dir and (self.stage_dir != other.stage_dir):
@@ -1829,9 +1847,10 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
     def reuse(self, other):  # other must be of the same class
         if self.work_dir != other.work_dir:
             raise RuntimeError(
-                "Cannot change main %s base_dir! '%s'!='%s'" % (self.workdir_name, self.work_dir, other.work_dir))
+                f"Cannot change main {self.workdir_name} base_dir! '{self.work_dir}'!='{other.work_dir}'"
+            )
         if self.stage_dir != other.stage_dir:
-            raise RuntimeError("Cannot change main stage base_dir! '%s'!='%s'" % (self.stage_dir, other.stage_dir))
+            raise RuntimeError(f"Cannot change main stage base_dir! '{self.stage_dir}'!='{other.stage_dir}'")
         return  # nothing else to be done in this
 
     ####################
@@ -1859,13 +1878,20 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
 #
 ################################################
 
+
 class fileSubDicts(fileCommonDicts, dirsSupport):
-    """This Class contains the sub dicts
-    """
-    def __init__(self, base_work_dir, base_stage_dir, sub_name,
-                 summary_signature, workdir_name,
-                 simple_work_dir=False,
-                 base_log_dir=None):
+    """This Class contains the sub dicts"""
+
+    def __init__(
+        self,
+        base_work_dir,
+        base_stage_dir,
+        sub_name,
+        summary_signature,
+        workdir_name,
+        simple_work_dir=False,
+        base_log_dir=None,
+    ):
         """Constructor
 
         Args:
@@ -1918,9 +1944,7 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
     def save_final(self, set_readonly=True):
         pass  # not always needed, use default of empty
 
-    def is_equal(self, other,  # other must be of the same class
-                 compare_sub_name=False,
-                 compare_fnames=False):
+    def is_equal(self, other, compare_sub_name=False, compare_fnames=False):  # other must be of the same class
         """
 
         Args:
@@ -1941,10 +1965,9 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
     # reuse as much of the other as possible
     def reuse(self, other):  # other must be of the same class
         if self.work_dir != other.work_dir:
-            raise RuntimeError(
-                "Cannot change sub %s base_dir! '%s'!='%s'" % (self.workdir_name, self.work_dir, other.work_dir))
+            raise RuntimeError(f"Cannot change sub {self.workdir_name} base_dir! '{self.work_dir}'!='{other.work_dir}'")
         if self.stage_dir != other.stage_dir:
-            raise RuntimeError("Cannot change sub stage base_dir! '%s'!='%s'" % (self.stage_dir, other.stage_dir))
+            raise RuntimeError(f"Cannot change sub stage base_dir! '{self.stage_dir}'!='{other.stage_dir}'")
 
         return  # nothing more to be done here
 
@@ -1980,12 +2003,11 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
 #
 ################################################
 
+
 class fileDicts:
-    """This Class contains both the main and the sub dicts
-    """
-    def __init__(self, work_dir, stage_dir, sub_list=[], workdir_name="work",
-                 simple_work_dir=False,
-                 log_dir=None):
+    """This Class contains both the main and the sub dicts"""
+
+    def __init__(self, work_dir, stage_dir, sub_list=[], workdir_name="work", simple_work_dir=False, log_dir=None):
         """
 
         Args:
@@ -2033,7 +2055,7 @@ class fileDicts:
         # else just leave as it is, will rewrite just the loaded ones
 
         for sign_key in self.main_dicts.get_summary_signature().keys:
-            if sign_key != 'main':  # main is special, not an sub
+            if sign_key != "main":  # main is special, not an sub
                 sub_name = self.get_sub_name_from_sub_stage_dir(sign_key)
                 if not (sub_name in self.sub_list):
                     self.sub_list.append(sub_name)
@@ -2059,15 +2081,20 @@ class fileDicts:
     def delete_dirs(self):
         self.main_dicts.delete_dirs()  # this will clean up also all subs
 
-    def is_equal(self, other,  # other must be of the same class
-                 compare_work_dir=False, compare_stage_dir=False,
-                 compare_fnames=False):
+    def is_equal(
+        self,
+        other,  # other must be of the same class
+        compare_work_dir=False,
+        compare_stage_dir=False,
+        compare_fnames=False,
+    ):
         if compare_work_dir and (self.work_dir != other.work_dir):
             return False
         if compare_stage_dir and (self.stage_dir != other.stage_dir):
             return False
-        if not self.main_dicts.is_equal(other.main_dicts, compare_work_dir=False, compare_stage_dir=False,
-                                        compare_fnames=compare_fnames):
+        if not self.main_dicts.is_equal(
+            other.main_dicts, compare_work_dir=False, compare_stage_dir=False, compare_fnames=compare_fnames
+        ):
             return False
         my_subs = self.sub_list[:]
         other_subs = other.sub_list[:]
@@ -2080,18 +2107,16 @@ class fileDicts:
             return False
 
         for k in my_subs:
-            if not self.sub_dicts[k].is_equal(other.sub_dicts[k], compare_sub_name=False,
-                                              compare_fname=compare_fnames):
+            if not self.sub_dicts[k].is_equal(other.sub_dicts[k], compare_sub_name=False, compare_fname=compare_fnames):
                 return False
         return True
 
     # reuse as much of the other as possible
     def reuse(self, other):  # other must be of the same class
         if self.work_dir != other.work_dir:
-            raise RuntimeError(
-                "Cannot change %s base_dir! '%s'!='%s'" % (self.workdir_name, self.work_dir, other.work_dir))
+            raise RuntimeError(f"Cannot change {self.workdir_name} base_dir! '{self.work_dir}'!='{other.work_dir}'")
         if self.stage_dir != other.stage_dir:
-            raise RuntimeError("Cannot change stage base_dir! '%s'!='%s'" % (self.stage_dir, other.stage_dir))
+            raise RuntimeError(f"Cannot change stage base_dir! '{self.stage_dir}'!='{other.stage_dir}'")
 
         # compare main dictionaires
         self.main_dicts.create_dirs(fail_if_exists=False)
@@ -2118,8 +2143,15 @@ class fileDicts:
     # this should be redefined by the child
     # and return a child of fileSubDicts
     def new_SubDicts(self, sub_name):
-        return fileSubDicts(self.work_dir, self.stage_dir, sub_name, self.main_dicts.get_summary_signature(),
-                            self.workdir_name, self.simple_work_dir, self.log_dir)
+        return fileSubDicts(
+            self.work_dir,
+            self.stage_dir,
+            sub_name,
+            self.main_dicts.get_summary_signature(),
+            self.workdir_name,
+            self.simple_work_dir,
+            self.log_dir,
+        )
 
     # this should be redefined by the child
     def get_sub_name_from_sub_stage_dir(self, sign_key):
@@ -2127,8 +2159,9 @@ class fileDicts:
 
 
 class MonitorFileDicts:
-    def __init__(self, work_dir, stage_dir, sub_list=[], workdir_name="work",
-                 simple_work_dir=False):  # if True, do not create the lib and lock work_dir subdirs
+    def __init__(
+        self, work_dir, stage_dir, sub_list=[], workdir_name="work", simple_work_dir=False
+    ):  # if True, do not create the lib and lock work_dir subdirs
         self.work_dir = work_dir
         self.workdir_name = workdir_name
         self.stage_dir = stage_dir
@@ -2174,7 +2207,7 @@ class MonitorFileDicts:
         # else just leave as it is, will rewrite just the loaded ones
 
         for sign_key in self.main_dicts.get_summary_signature().keys:
-            if sign_key != 'main':  # main is special, not an sub
+            if sign_key != "main":  # main is special, not an sub
                 sub_name = self.get_sub_name_from_sub_stage_dir(sign_key)
                 if not (sub_name in self.sub_list):
                     self.sub_list.append(sub_name)
@@ -2204,6 +2237,7 @@ class MonitorFileDicts:
 # 'name@fermicloudui.fnal.gov:9618?sock=schedd', 'fermicloudui.fnal.gov:9618?sock=my5alpha0num',
 # 'fermicloudui.fnal.gov:9618?key1=val1&sock=collector&key2=val2']
 
+
 def validate_node(nodestr, allow_range=False):
     """Validate HTCondor endpoint (node) string
     this can be a node, node:port, node:port-range
@@ -2217,22 +2251,22 @@ def validate_node(nodestr, allow_range=False):
     @return: raise RuntimeError if the validation fails
     """
     # check that ; and , are not in the node string
-    if ',' in nodestr or ';' in nodestr:
+    if "," in nodestr or ";" in nodestr:
         raise RuntimeError("End-point name can not contain list separators (,;): '%s'" % nodestr)
-    eparr = nodestr.split('?')
+    eparr = nodestr.split("?")
     if len(eparr) > 2:
         raise RuntimeError("Too many ? in the end-point name: '%s'" % nodestr)
     found_range = False
     if len(eparr) == 2:
         # Validate sinful string
-        ss_arr = eparr[1].split('&')
+        ss_arr = eparr[1].split("&")
         sock_found = False
         for i in ss_arr:
-            if i.startswith('sock='):
+            if i.startswith("sock="):
                 if sock_found:
                     raise RuntimeError("Only one 'sock' element allowed in end-point's sinful string: '%s'" % nodestr)
                 sock_found = True
-                match = re.match(r'(^\w*[a-zA-Z_]+)(\d+)?(?:-(\d+))?$', i[5:])
+                match = re.match(r"(^\w*[a-zA-Z_]+)(\d+)?(?:-(\d+))?$", i[5:])
                 if match is None:
                     raise RuntimeError("Invalid 'sock=' value in in the end-point's sinful string: '%s'" % nodestr)
                 if match.groups()[2] is not None:
@@ -2243,17 +2277,19 @@ def validate_node(nodestr, allow_range=False):
                     try:
                         if int(match.groups()[1]) >= int(match.groups()[2]):
                             raise RuntimeError(
-                                "In the end-point, left value in the sock range must be lower than the right one: '%s'" % nodestr)
+                                "In the end-point, left value in the sock range must be lower than the right one: '%s'"
+                                % nodestr
+                            )
                     except (TypeError, ValueError):
                         # match.group can be None (or not an integer?)
                         raise RuntimeError("Invalid 'sock' value in in the end-point's sinful string: '%s'" % nodestr)
-    narr = eparr[0].split(':')
+    narr = eparr[0].split(":")
     if len(narr) > 2:
         raise RuntimeError("Too many : in the end-point name: '%s'" % nodestr)
     if len(narr) > 1:
         # have ports, validate them
         ports = narr[1]
-        parr = ports.split('-')
+        parr = ports.split("-")
         if len(parr) > 2:
             raise RuntimeError("Too many - in the end-point ports: '%s'" % nodestr)
         try:
@@ -2266,8 +2302,9 @@ def validate_node(nodestr, allow_range=False):
                     raise RuntimeError("Cannot have both port range and 'sock' range in end-point: '%s'" % nodestr)
                 pright = int(parr[1])
                 if pleft >= pright:
-                    raise RuntimeError("Left port must be lower than right port in end-point port range: '%s'" %
-                                       nodestr)
+                    raise RuntimeError(
+                        "Left port must be lower than right port in end-point port range: '%s'" % nodestr
+                    )
             else:
                 pright = pleft
         except ValueError:

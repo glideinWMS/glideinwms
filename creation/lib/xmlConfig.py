@@ -3,15 +3,13 @@
 
 import copy
 import os
-from collections.abc import MutableMapping
 import xml.sax
+
+from collections.abc import MutableMapping
 
 INDENT_WIDTH = 3
 
-LIST_TAGS = {
-    'attrs': lambda d: d['name'],
-    'files': lambda d: d['absfname']
-}
+LIST_TAGS = {"attrs": lambda d: d["name"], "files": lambda d: d["absfname"]}
 
 TAG_CLASS_MAPPING = {}
 DOCUMENT_ROOT = None
@@ -87,13 +85,13 @@ class Element:
         pass
 
     def get_config_node(self):
-        """ Get the node containing the whole configuration
-        """
+        """Get the node containing the whole configuration"""
         # Need to import it here to avoid import loops
         from .factoryXmlConfig import Config
+
         config_node = None
         current = self
-        while (current is not None and hasattr(current, 'parent')):
+        while current is not None and hasattr(current, "parent"):
             if isinstance(current, Config):
                 config_node = current
                 break
@@ -103,7 +101,7 @@ class Element:
 
 class DictElement(Element, MutableMapping):
     def __init__(self, tag, *args, **kwargs):
-        super(DictElement, self).__init__(tag, *args, **kwargs)
+        super().__init__(tag, *args, **kwargs)
         self.attrs = {}
         self.children = {}
 
@@ -114,7 +112,7 @@ class DictElement(Element, MutableMapping):
         self.attrs[key] = value
 
     def __delitem__(self, key):
-        del (self.attrs[key])
+        del self.attrs[key]
 
     # def __contains__(self, key):
     #    return key in self.attrs
@@ -178,10 +176,10 @@ class DictElement(Element, MutableMapping):
                 self.children[tag].merge(other.children[tag])
 
     def err_str(self, str):
-        return '%s:%s: %s: %s' % (self.file, self.line_no, self.tag, str)
+        return f"{self.file}:{self.line_no}: {self.tag}: {str}"
 
     def check_boolean(self, flag):
-        if self[flag] != 'True' and self[flag] != 'False':
+        if self[flag] != "True" and self[flag] != "False":
             raise RuntimeError(self.err_str('%s must be "True" or "False"' % flag))
 
     def check_missing(self, attr):
@@ -192,7 +190,7 @@ class DictElement(Element, MutableMapping):
 # TODO: Should this inherit from MutableSequence?
 class ListElement(Element):
     def __init__(self, tag, *args, **kwargs):
-        super(ListElement, self).__init__(tag, *args, **kwargs)
+        super().__init__(tag, *args, **kwargs)
         self.children = []
 
     def get_children(self):
@@ -251,56 +249,56 @@ class ListElement(Element):
 
 class AttrElement(DictElement):
     def get_val(self):
-        if self['type'] in ("string", "expr"):
-            return str(self['value'])
+        if self["type"] in ("string", "expr"):
+            return str(self["value"])
         else:
-            return int(self['value'])
+            return int(self["value"])
 
     def validate(self):
-        self.check_missing('name')
-        self.check_missing('value')
-        if self['type'] != 'string' and self['type'] != 'int' and self['type'] != 'expr':
+        self.check_missing("name")
+        self.check_missing("value")
+        if self["type"] != "string" and self["type"] != "int" and self["type"] != "expr":
             raise RuntimeError(self.err_str('type must be "int", "string", or "expr"'))
-        self.check_boolean('glidein_publish')
-        self.check_boolean('job_publish')
-        self.check_boolean('parameter')
+        self.check_boolean("glidein_publish")
+        self.check_boolean("job_publish")
+        self.check_boolean("parameter")
 
 
-TAG_CLASS_MAPPING.update({'attr': AttrElement})
+TAG_CLASS_MAPPING.update({"attr": AttrElement})
 
 
 class FileElement(DictElement):
     def validate(self):
-        self.check_missing('absfname')
-        if len(os.path.basename(self['absfname'])) < 1:
-            raise RuntimeError(self.err_str('absfname is an invalid file path'))
-        if 'relfname' in self and len(self['relfname']) < 1:
-            raise RuntimeError(self.err_str('relfname cannot be empty'))
+        self.check_missing("absfname")
+        if len(os.path.basename(self["absfname"])) < 1:
+            raise RuntimeError(self.err_str("absfname is an invalid file path"))
+        if "relfname" in self and len(self["relfname"]) < 1:
+            raise RuntimeError(self.err_str("relfname cannot be empty"))
 
-        self.check_boolean('const')
-        self.check_boolean('executable')
-        self.check_boolean('wrapper')
-        self.check_boolean('untar')
+        self.check_boolean("const")
+        self.check_boolean("executable")
+        self.check_boolean("wrapper")
+        self.check_boolean("untar")
 
-        is_exec = eval(self['executable'])
-        is_wrapper = eval(self['wrapper'])
-        is_tar = eval(self['untar'])
+        is_exec = eval(self["executable"])
+        is_wrapper = eval(self["wrapper"])
+        is_tar = eval(self["untar"])
 
         try:
-            period = int(self['period'])
+            period = int(self["period"])
         except ValueError:
-            raise RuntimeError(self.err_str('period must be an int'))
+            raise RuntimeError(self.err_str("period must be an int"))
 
         if is_exec + is_wrapper + is_tar > 1:
             raise RuntimeError(self.err_str('must be exactly one of type "executable", "wrapper", or "untar"'))
 
-        if (is_exec or is_wrapper or is_tar) and not eval(self['const']):
+        if (is_exec or is_wrapper or is_tar) and not eval(self["const"]):
             raise RuntimeError(self.err_str('type "executable", "wrapper", or "untar" requires const="True"'))
         if not is_exec and period > 0:
             raise RuntimeError(self.err_str('cannot have execution period if type is not "executable"'))
 
 
-TAG_CLASS_MAPPING.update({'file': FileElement})
+TAG_CLASS_MAPPING.update({"file": FileElement})
 
 
 #######################

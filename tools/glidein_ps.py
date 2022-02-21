@@ -9,9 +9,12 @@
 # Usage:
 #  glidein_ps.py <cluster>.<process> [-name <schedd_name>] [-pool <pool_name> ] [-timeout <nr secs>]  [<options>]
 
-import sys, os.path
-sys.path.append(os.path.join(sys.path[0], "../.."))
+import os.path
+import sys
 
 from glideinwms.tools.lib import glideinCmd
 
-glideinCmd.exe_cmd_simple(lambda argv:(['ps', '-u', '`id', '-n', '-u`']+argv))
+sys.path.append(os.path.join(sys.path[0], "../.."))
+
+
+glideinCmd.exe_cmd_simple(lambda argv: (["ps", "-u", "`id", "-n", "-u`"] + argv))

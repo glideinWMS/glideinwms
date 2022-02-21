@@ -9,94 +9,100 @@
 #
 # Usage: entry_q entry|-l [-dir <dir>] [-printschedd] [condor_q options]
 
-from __future__ import print_function
+
 import os
 import sys
-STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
 
 from glideinwms.factory import glideFactoryConfig
+
+STARTUP_DIR = sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
+
 
 USAGE = "Usage: entry_q entry|-l [-dir <dir>] [-printschedd] [condor_q options]"
 
 
 def print_entries(entries, want_schedd):
     print("Available entries:")
-    for entry in entries.split(','):
+    for entry in entries.split(","):
         if not want_schedd:
             print("  %s" % entry)
         else:
-            jobDescript=glideFactoryConfig.JobDescript(entry)
-            schedd_name=jobDescript.data['Schedd']
-            print("  %-40s %-30s" % (entry,schedd_name))
+            jobDescript = glideFactoryConfig.JobDescript(entry)
+            schedd_name = jobDescript.data["Schedd"]
+            print("  %-40s %-30s" % (entry, schedd_name))
 
 
 def main(argv):
-    if len(argv)<2:
-      print(USAGE)
-      sys.exit(1)
+    if len(argv) < 2:
+        print(USAGE)
+        sys.exit(1)
 
-    entry=argv[1]
+    entry = argv[1]
 
     # Try GLIDEIN_FACTORY_DIR env var first
-    if 'GLIDEIN_FACTORY_DIR' in os.environ:
-        gfactory_dir = os.environ['GLIDEIN_FACTORY_DIR']
+    if "GLIDEIN_FACTORY_DIR" in os.environ:
+        gfactory_dir = os.environ["GLIDEIN_FACTORY_DIR"]
     # is it an rpm install?
     elif os.path.isdir("/var/lib/gwms-factory/work-dir"):
         gfactory_dir = "/var/lib/gwms-factory/work-dir"
     else:
         gfactory_dir = "."
 
-    want_schedd=False
+    want_schedd = False
 
     # parse arguments
-    alen=len(argv)
-    i=2
-    while (i<alen):
-        ael=argv[i]
-        if ael=='-dir':
-            i=i+1
-            gfactory_dir=argv[i]
-            i=i+1
-        elif ael=='-printschedd':
-            i=i+1
-            want_schedd=True
+    alen = len(argv)
+    i = 2
+    while i < alen:
+        ael = argv[i]
+        if ael == "-dir":
+            i = i + 1
+            gfactory_dir = argv[i]
+            i = i + 1
+        elif ael == "-printschedd":
+            i = i + 1
+            want_schedd = True
         else:
-            break # got everything
+            break  # got everything
 
-    curdir=os.getcwd()
+    curdir = os.getcwd()
     try:
-        os.chdir(gfactory_dir) # factoryConfig assumes the right dir
+        os.chdir(gfactory_dir)  # factoryConfig assumes the right dir
     except OSError as e:
-        print("Dir '%s' not a valid factory dir: %s"%(gfactory_dir, e))
+        print(f"Dir '{gfactory_dir}' not a valid factory dir: {e}")
         sys.exit(1)
 
     try:
-        glideinDescript=glideFactoryConfig.GlideinDescript()
-    except IOError as e:
-        print("Dir '%s' not a valid factory dir: %s"%(gfactory_dir, e))
+        glideinDescript = glideFactoryConfig.GlideinDescript()
+    except OSError as e:
+        print(f"Dir '{gfactory_dir}' not a valid factory dir: {e}")
         sys.exit(1)
 
-    if entry=="-l":
-        print_entries(glideinDescript.data['Entries'],want_schedd)
+    if entry == "-l":
+        print_entries(glideinDescript.data["Entries"], want_schedd)
         sys.exit(0)
 
-    jobDescript=glideFactoryConfig.JobDescript(entry)
+    jobDescript = glideFactoryConfig.JobDescript(entry)
     os.chdir(curdir)
 
-    factory_name = glideinDescript.data['FactoryName']
-    glidein_name = glideinDescript.data['GlideinName']
-    schedd_name = jobDescript.data['Schedd']
-    const_str = '(GlideinFactory=?="%s")&&(GlideinName=?="%s")&&(GlideinEntryName=?="%s")' % (factory_name, glidein_name, entry)
+    factory_name = glideinDescript.data["FactoryName"]
+    glidein_name = glideinDescript.data["GlideinName"]
+    schedd_name = jobDescript.data["Schedd"]
+    const_str = '(GlideinFactory=?="{}")&&(GlideinName=?="{}")&&(GlideinEntryName=?="{}")'.format(
+        factory_name,
+        glidein_name,
+        entry,
+    )
 
-    cq_argv=argv[i:]
+    cq_argv = argv[i:]
     # print cq_argv
 
     i = 0
-    while (i < len(cq_argv)):
+    while i < len(cq_argv):
         qel = cq_argv[i]
-        if qel[:3] == '-co':
-            const_str = '(%s)&&(%s)'%(const_str,cq_argv[i+1])
+        if qel[:3] == "-co":
+            const_str = f"({const_str})&&({cq_argv[i + 1]})"
             del cq_argv[i]
             del cq_argv[i]
         else:
@@ -109,8 +115,8 @@ def main(argv):
     # must flush out before forking, or any buffered content wil be lost
     sys.__stdout__.flush()
     sys.__stderr__.flush()
-    os.execvp('condor_q', ['condor_q', '-name', schedd_name, '-const', const_str]+cq_argv)
+    os.execvp("condor_q", ["condor_q", "-name", schedd_name, "-const", const_str] + cq_argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(sys.argv)

@@ -10,34 +10,48 @@
 #  -d DIR, --work-dir=DIR         Frontend work dir (default: $FE_WORK_DIR)
 #  -t TYPE, --removal-type=TYPE   Type of removal request (defalt: IDLE)
 
-import os
-import sys
 import fcntl
-import signal
 import optparse
+import os
+import signal
 import subprocess
+import sys
 import time
+
+from glideinwms.frontend import glideinFrontend, glideinFrontendPidLib
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
-from glideinwms.frontend import glideinFrontendPidLib
 
-from glideinwms.frontend import glideinFrontend
 FRONTEND_DIR = os.path.dirname(glideinFrontend.__file__)
 
 
 def parse_args(argv):
     argparser = optparse.OptionParser()
-    argparser.add_option("-d", "--work-dir", dest="work_dir",
-                         help="Frontend work dir (default: $FE_WORK_DIR)", metavar="DIR",
-                         default=os.environ.get("FE_WORK_DIR"))
-    argparser.add_option("-t", "--removal-type", dest="removal_type",
-                         help="Removal type: idle, wait or all (default: idle)",
-                         metavar="TYPE", default="idle")
-    argparser.add_option("-c", "--exess-only", dest="excess_only", action="store_true",
-                         help="Remove only excess glideins (default: remove all of them)")
-    argparser.add_option("-q", "--quiet", dest="quiet", action="store_true",
-                         help="Quiet mode")
+    argparser.add_option(
+        "-d",
+        "--work-dir",
+        dest="work_dir",
+        help="Frontend work dir (default: $FE_WORK_DIR)",
+        metavar="DIR",
+        default=os.environ.get("FE_WORK_DIR"),
+    )
+    argparser.add_option(
+        "-t",
+        "--removal-type",
+        dest="removal_type",
+        help="Removal type: idle, wait or all (default: idle)",
+        metavar="TYPE",
+        default="idle",
+    )
+    argparser.add_option(
+        "-c",
+        "--exess-only",
+        dest="excess_only",
+        action="store_true",
+        help="Remove only excess glideins (default: remove all of them)",
+    )
+    argparser.add_option("-q", "--quiet", dest="quiet", action="store_true", help="Quiet mode")
     (options, other_args) = argparser.parse_args(argv[1:])
 
     if options.work_dir is None:
@@ -46,7 +60,7 @@ def parse_args(argv):
     if not os.path.isfile(os.path.join(options.work_dir, "frontend.descript")):
         raise ValueError("%s is not a valid FE work dir" % options.work_dir)
 
-    if options.removal_type not in ('idle', 'wait', 'all'):
+    if options.removal_type not in ("idle", "wait", "all"):
         raise ValueError("Unexpected removal type %s (valid ones are idle, wait or all)" % options.removal_type)
 
     if len(other_args) != 0:
@@ -75,21 +89,15 @@ def main(argv):
 
     os.chdir(options.work_dir)
 
-    action = "remove%s%s" % (options.removal_type[:1].upper(), options.removal_type[1:])
+    action = f"remove{options.removal_type[:1].upper()}{options.removal_type[1:]}"
     if options.excess_only:
         action += "Excess"
-    command_list = [sys.executable,
-                    os.path.join(FRONTEND_DIR, "glideinFrontend.py"),
-                    options.work_dir,
-                    action]
+    command_list = [sys.executable, os.path.join(FRONTEND_DIR, "glideinFrontend.py"), options.work_dir, action]
 
-    child = subprocess.Popen(command_list, shell=False,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
+    child = subprocess.Popen(command_list, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # set it in non blocking mode to be on the safe side
-    for fd in (child.stdout.fileno(),
-               child.stderr.fileno()):
+    for fd in (child.stdout.fileno(), child.stderr.fileno()):
         fl = fcntl.fcntl(fd, fcntl.F_GETFL)
         fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
@@ -103,7 +111,7 @@ def main(argv):
                 if not options.quiet:
                     sys.stderr.write(".")
                     sys.stderr.flush()
-            cnt = (cnt+1) % 25
+            cnt = (cnt + 1) % 25
             time.sleep(0.2)
         if not options.quiet:
             sys.stderr.write("\nDone\n")
@@ -113,13 +121,13 @@ def main(argv):
             if len(tempOut) != 0:
                 if not options.quiet:
                     sys.stdout.write(tempOut)
-        except IOError:
+        except OSError:
             pass  # ignore
         try:
             tempErr = child.stderr.read()
             if len(tempErr) != 0:
                 sys.stderr.write(tempErr)
-        except IOError:
+        except OSError:
             pass  # ignore
 
     except:
@@ -141,7 +149,7 @@ def termsignal(signr, frame):
 #
 ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         sys.exit(main(sys.argv))
     except Exception as e:

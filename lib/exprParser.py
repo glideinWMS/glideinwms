@@ -16,6 +16,9 @@
 
 import ast
 import itertools
+
+# These are used in modules importing exprParser, like frontend_match_ana
+from ast import And, Not, Or
 from io import StringIO
 
 from .unparser import Unparser
@@ -23,9 +26,6 @@ from .unparser import Unparser
 # Keeping this line from the Python 2 version to have a list of the objects supported
 # NOTE: compiler.ast is slightly different from the concrete tree in ast
 # from compiler.ast import Name, Const, Keyword, List, Tuple, And, Or, Not, UnaryAdd, UnarySub, Compare, Add, Sub, Mul, FloorDiv, Div, Mod, Power, LeftShift, RightShift, Bitand, Bitor, Bitxor, CallFunc, Getattr, Subscript, Slice, Lambda
-
-# These are used in modules importing exprParser, like frontend_match_ana
-from ast import And, Or, Not
 
 
 def exp_parse(expression):
@@ -41,7 +41,7 @@ def exp_parse(expression):
     # mode='exec' (default) for sequence of statements
     # eval - single expression
     # single - single interactive statement
-    return ast.parse(expression, '<string>', mode='eval')
+    return ast.parse(expression, "<string>", mode="eval")
 
 
 def exp_compile(obj):
@@ -54,7 +54,7 @@ def exp_compile(obj):
         code object
 
     """
-    return compile(obj, '<string>', mode='eval')
+    return compile(obj, "<string>", mode="eval")
 
 
 def exp_unparse(obj, raise_on_unknown=False):
@@ -89,7 +89,7 @@ def exp_compare(node1, node2):
         return False
     if isinstance(node1, ast.AST):
         for k, v in vars(node1).items():
-            if k in ('lineno', 'col_offset', 'ctx', 'end_lineno', 'end_col_offset'):
+            if k in ("lineno", "col_offset", "ctx", "end_lineno", "end_col_offset"):
                 continue
             if not exp_compare(v, getattr(node2, k)):
                 return False

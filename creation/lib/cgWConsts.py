@@ -14,8 +14,8 @@
 #
 
 import os.path
-from . import cWConsts
 
+from . import cWConsts
 
 # these are in the stage dir, so they need to be renamed if changed
 AFTER_FILE_LISTFILE = "after_%s" % cWConsts.FILE_LISTFILE
@@ -25,7 +25,7 @@ CONDOR_FILE = "condor_bin_%s.tgz"
 CONDOR_DIR = "condor"
 CONDOR_ATTR = "CONDOR_DIR"
 
-CONDOR_STARTUP_FILE="condor_startup.sh"
+CONDOR_STARTUP_FILE = "condor_startup.sh"
 
 
 # these are in the submit dir, so they can be changed
@@ -51,12 +51,13 @@ INITD_STARTUP_FILE = "factory_startup"
 
 WEB_BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "web_base")
 
-STARTUP_FILE_PAYLOAD = ("add_config_line.source",
-                        "get_id_selectors.source",
-                        "logging_utils.source",
-                        "b64uuencode.source",
-                        "glidein_paths.source"
-                        )
+STARTUP_FILE_PAYLOAD = (
+    "add_config_line.source",
+    "get_id_selectors.source",
+    "logging_utils.source",
+    "b64uuencode.source",
+    "glidein_paths.source",
+)
 
 
 ###################################################
@@ -65,52 +66,53 @@ STARTUP_FILE_PAYLOAD = ("add_config_line.source",
 #
 ###################################################
 
+
 def get_entry_submit_dir(submit_dir, entry_name):
-    entry_submit_dir = os.path.join(submit_dir, "entry_"+entry_name)
+    entry_submit_dir = os.path.join(submit_dir, "entry_" + entry_name)
     return entry_submit_dir
 
 
 def get_entry_name_from_entry_submit_dir(entry_submit_dir):
-    entry_name_arr = os.path.basename(entry_submit_dir).split('_', 1)
-    if entry_name_arr[0] != 'entry':
-        raise ValueError('%s not a entry_submit_dir' % entry_submit_dir)
+    entry_name_arr = os.path.basename(entry_submit_dir).split("_", 1)
+    if entry_name_arr[0] != "entry":
+        raise ValueError("%s not a entry_submit_dir" % entry_submit_dir)
     return entry_name_arr[1]
 
 
 def get_entry_log_dir(log_dir, entry_name):
-    entry_log_dir = os.path.join(log_dir, "entry_"+entry_name)
+    entry_log_dir = os.path.join(log_dir, "entry_" + entry_name)
     return entry_log_dir
 
 
 def get_entry_userlog_dir(log_dir, entry_name):
-    entry_log_dir = os.path.join(log_dir, "entry_"+entry_name)
+    entry_log_dir = os.path.join(log_dir, "entry_" + entry_name)
     return entry_log_dir
 
 
 def get_entry_userproxies_dir(proxies_dir, entry_name):
-    proxies_log_dir = os.path.join(proxies_dir, "entry_"+entry_name)
+    proxies_log_dir = os.path.join(proxies_dir, "entry_" + entry_name)
     return proxies_log_dir
 
 
 def get_entry_stage_dir(stage_dir, entry_name):
-    entry_stage_dir = os.path.join(stage_dir, "entry_"+entry_name)
+    entry_stage_dir = os.path.join(stage_dir, "entry_" + entry_name)
     return entry_stage_dir
 
 
 def get_entry_name_from_entry_stage_dir(entry_stage_dir):
-    entry_name_arr = os.path.basename(entry_stage_dir).split('_', 1)
-    if entry_name_arr[0] != 'entry':
-        raise ValueError('%s not a entry_stage_dir' % entry_stage_dir)
+    entry_name_arr = os.path.basename(entry_stage_dir).split("_", 1)
+    if entry_name_arr[0] != "entry":
+        raise ValueError("%s not a entry_stage_dir" % entry_stage_dir)
     return entry_name_arr[1]
 
 
 def get_entry_monitor_dir(monitor_dir, entry_name):
-    entry_monitor_dir = os.path.join(monitor_dir, "entry_"+entry_name)
+    entry_monitor_dir = os.path.join(monitor_dir, "entry_" + entry_name)
     return entry_monitor_dir
 
 
 def get_entry_name_from_entry_monitor_dir(entry_monitor_dir):
-    entry_name_arr = os.path.basename(entry_monitor_dir).split('_', 1)
-    if entry_name_arr[0] != 'entry':
-        raise ValueError('%s not a entry_monitor_dir' % entry_monitor_dir)
+    entry_name_arr = os.path.basename(entry_monitor_dir).split("_", 1)
+    if entry_name_arr[0] != "entry":
+        raise ValueError("%s not a entry_monitor_dir" % entry_monitor_dir)
     return entry_name_arr[1]

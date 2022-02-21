@@ -18,6 +18,7 @@
 
 import time
 
+
 class PerfMetric:
     """
     Class to store performance metrics for different events in a service
@@ -29,7 +30,6 @@ class PerfMetric:
         # {event_name: {'start_time': time(), 'end_time': time()}}
         self.metric = {}
 
-
     def register_event_time(self, event_name, t_tag, t=None):
         if not t:
             t = time.time()
@@ -37,38 +37,30 @@ class PerfMetric:
             self.metric[event_name] = {}
         self.metric[event_name][t_tag] = t
 
-
     def deregister_event(self, event_name):
         self.metric.pop(event_name, None)
 
-
     def event_start(self, event_name, t=None):
-        self.register_event_time(event_name, 'start_time', t=t)
-
+        self.register_event_time(event_name, "start_time", t=t)
 
     def event_end(self, event_name, t=None):
-        self.register_event_time(event_name, 'end_time', t=t)
-
+        self.register_event_time(event_name, "end_time", t=t)
 
     def event_lifetime(self, event_name, check_active_event=True):
         lifetime = -1
         if event_name in self.metric:
-            if (('start_time' in self.metric[event_name]) and
-                ('end_time' in self.metric[event_name])):
-                lifetime = self.metric[event_name]['end_time'] - self.metric[event_name]['start_time']
+            if ("start_time" in self.metric[event_name]) and ("end_time" in self.metric[event_name]):
+                lifetime = self.metric[event_name]["end_time"] - self.metric[event_name]["start_time"]
                 # Event still alive, consider current time instead of end time
                 if (lifetime < 0) and (check_active_event):
-                    lifetime = time.time() - self.metric[event_name]['start_time']
-        return float('{0:.3f}'.format(lifetime))
-
+                    lifetime = time.time() - self.metric[event_name]["start_time"]
+        return float(f"{lifetime:.3f}")
 
     def __str__(self):
         return self.__repr__()
 
-
     def __repr__(self):
-        return "{'%s': %s}" % (self.name, self.metric)
-
+        return f"{{'{self.name}': {self.metric}}}"
 
 
 # Internal global dict of performance metric objects

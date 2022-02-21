@@ -20,20 +20,19 @@
 #
 
 
+import os
 import signal
 import sys
-import os
 import time
 
-from glideinwms.frontend import glideinFrontendPidLib
-from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend import glideinFrontendConfig, glideinFrontendPidLib
 
 
 # this one should  never throw an exeption
 def get_element_pids(work_dir, frontend_pid):
     # get element pids
     frontendDescript = glideinFrontendConfig.FrontendDescript(work_dir)
-    groups = sorted(frontendDescript.data['Groups'].split(','))
+    groups = sorted(frontendDescript.data["Groups"].split(","))
 
     element_pids = {}
     for group in groups:
@@ -41,13 +40,14 @@ def get_element_pids(work_dir, frontend_pid):
             element_pid, element_ppid = glideinFrontendPidLib.get_element_pid(work_dir, group)
         except RuntimeError as e:
             print(e)
-            continue # report error and go to next group
+            continue  # report error and go to next group
         if element_ppid != frontend_pid:
-            print("Group '%s' has an unexpected Parent PID: %s!=%s" % (group, element_ppid, frontend_pid))
-            continue # report error and go to next group
+            print(f"Group '{group}' has an unexpected Parent PID: {element_ppid}!={frontend_pid}")
+            continue  # report error and go to next group
         element_pids[group] = element_pid
 
     return element_pids
+
 
 def main(work_dir, force=False):
     retries_count = 50
@@ -62,7 +62,7 @@ def main(work_dir, force=False):
             # string must be the same as in glideinFrontendPidLib
             return 2
         return 1
-    #print frontend_pid
+    # print frontend_pid
 
     if not glideinFrontendPidLib.pidSupport.check_pid(frontend_pid):
         # Frontend already dead
@@ -73,13 +73,13 @@ def main(work_dir, force=False):
     try:
         os.kill(frontend_pid, signal.SIGTERM)
     except OSError:
-        pass # frontend likely already dead
+        pass  # frontend likely already dead
 
     for retries in range(retries_count):
         if glideinFrontendPidLib.pidSupport.check_pid(frontend_pid):
             time.sleep(sleep_in_retries)
         else:
-            return 0 # frontend dead
+            return 0  # frontend dead
 
     if not force:
         print("Frontend did not die after the timeout of %s sec" % (retries_count * sleep_in_retries))
@@ -90,18 +90,18 @@ def main(work_dir, force=False):
     try:
         os.kill(frontend_pid, signal.SIGTERM)
     except OSError:
-        pass # frontend likely already dead
+        pass  # frontend likely already dead
 
     for retries in range(retries_count):
         if glideinFrontendPidLib.pidSupport.check_pid(frontend_pid):
             time.sleep(sleep_in_retries)
         else:
-            return 0 # frontend dead
+            return 0  # frontend dead
 
     print("Frontend still alive ... sending hard kill")
 
     element_pids = get_element_pids(work_dir, frontend_pid)
-    #print element_pids
+    # print element_pids
 
     element_keys = sorted(element_pids.keys())
 
@@ -111,33 +111,34 @@ def main(work_dir, force=False):
             try:
                 os.kill(element_pids[element], signal.SIGKILL)
             except OSError:
-                pass # ignore already dead processes
+                pass  # ignore already dead processes
 
     if not glideinFrontendPidLib.pidSupport.check_pid(frontend_pid):
-        return 0 # Frontend died
+        return 0  # Frontend died
 
     try:
         os.kill(frontend_pid, signal.SIGKILL)
     except OSError:
-        pass # ignore problems
+        pass  # ignore problems
     return 0
+
 
 USAGE_STRING = """Usage: stopFrontend [-f|force] work_dir
      return values: 0 Frontend stopped,
          1 unable to stop Frontend or wrong invocation, 2 Frontend was not running
 """
-if __name__ == '__main__':
+if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(USAGE_STRING)
         sys.exit(1)
 
-    if len(sys.argv)>2:
-        if sys.argv[1]=='-force' or sys.argv[1]=='-f':
+    if len(sys.argv) > 2:
+        if sys.argv[1] == "-force" or sys.argv[1] == "-f":
             sys.exit(main(sys.argv[2], force=True))
         else:
             print(USAGE_STRING)
             sys.exit(1)
     else:
-        #sys.exit(main(sys.argv[1]))
+        # sys.exit(main(sys.argv[1]))
         # force should be false but keeping old behavior, always forced stop
         sys.exit(main(sys.argv[1], force=True))

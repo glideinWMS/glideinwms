@@ -14,8 +14,8 @@
 #   Igor Sfiligoi (Mar 15th 2007)
 #
 
-import time
 import calendar
+import time
 
 
 def getSeconds(now=None):
@@ -52,7 +52,9 @@ def getISO8601_Local(now=None):
     if now is None:
         now = time.time()
     tzval = getTZval(now)
-    return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(now)) + ("%+03i:%02i" % ((-tzval // 3600), (-tzval % 3600 // 60)))
+    return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(now)) + (
+        "%+03i:%02i" % ((-tzval // 3600), (-tzval % 3600 // 60))
+    )
 
 
 def extractISO8601_Local(time_str):
@@ -76,7 +78,9 @@ def getRFC2822_Local(now=None):
     if now is None:
         now = time.time()
     tzval = getTZval(now)
-    return time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime(now)) + ("%+03i%02i" % ((-tzval // 3600), (-tzval % 3600 // 60)))
+    return time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime(now)) + (
+        "%+03i%02i" % ((-tzval // 3600), (-tzval % 3600 // 60))
+    )
 
 
 def extractRFC2822_Local(time_str):

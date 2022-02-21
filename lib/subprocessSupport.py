@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
-import subprocess
 import shlex
+import subprocess
 
 from subprocess import CalledProcessError
+
 # CalledProcessError(self, returncode, cmd, output=None, stderr=None)
 # Provides: cmd, returncode, stdout, stderr, output (same as stdout)
 # __str__ of this class is not printing the stdout in the error message
@@ -27,7 +28,7 @@ class CalledProcessError2(Exception):
         self.output = output
 
     def __str__(self):
-        return "Command '%s' returned non-zero exit status %s: %s" % (self.cmd, self.returncode, self.output)
+        return f"Command '{self.cmd}' returned non-zero exit status {self.returncode}: {self.output}"
 
 
 def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True):
@@ -76,16 +77,21 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True):
 
         # Tokenize the commandline that should be executed.
         if useShell:
-            command_list = ['%s' % cmd, ]
+            command_list = [
+                "%s" % cmd,
+            ]
         else:
             command_list = shlex.split(cmd)
         # launch process - Converted to using the subprocess module
-        process = subprocess.Popen(command_list, shell=useShell,
-                                   stdin=subprocess.PIPE,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   env=child_env,
-                                   universal_newlines=text)
+        process = subprocess.Popen(
+            command_list,
+            shell=useShell,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=child_env,
+            universal_newlines=text,
+        )
 
         # GOTCHAS:
         # 1) stdin should be buffered in memory.

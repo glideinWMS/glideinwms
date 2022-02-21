@@ -14,8 +14,10 @@
 #
 
 import xml.dom.minidom
+
 from collections import UserDict
-#from collections import UserDict, OrderedDict
+
+# from collections import UserDict, OrderedDict
 
 
 class CorruptXML(Exception):
@@ -68,14 +70,14 @@ class OrderedDict2(UserDict):
         try:
             key = self._keys[-1]
         except IndexError:
-            raise KeyError('dictionary is empty')
+            raise KeyError("dictionary is empty")
 
         val = self[key]
         del self[key]
 
         return (key, val)
 
-    def setdefault(self, key, failobj = None):
+    def setdefault(self, key, failobj=None):
         UserDict.setdefault(self, key, failobj)
         if key not in self._keys:
             self._keys.append(key)
@@ -92,18 +94,19 @@ class OrderedDict2(UserDict):
 
 # convert a XML file into a dictionary
 # ignore text sections
-def xmlfile2dict(fname,
-                 use_ord_dict=False,        # if true, return OrderedDict instead of a regular dictionary
-                 always_singular_list=[]):  # anything id listed here will be considered as a list
+def xmlfile2dict(
+    fname, use_ord_dict=False, always_singular_list=[]  # if true, return OrderedDict instead of a regular dictionary
+):  # anything id listed here will be considered as a list
 
     try:
-        doc=xml.dom.minidom.parse(fname)
+        doc = xml.dom.minidom.parse(fname)
     except xml.parsers.expat.ExpatError as e:
-        raise CorruptXML("XML corrupt in file %s: %s" % (fname, e))
+        raise CorruptXML(f"XML corrupt in file {fname}: {e}")
 
     data = domel2dict(doc.documentElement, use_ord_dict, always_singular_list)
 
     return data
+
 
 # convert a XML string into a dictionary
 # ignore text sections
@@ -131,14 +134,15 @@ def xmlfile2dict(fname,
 #                    u'F': u'100'}
 #  }
 #
-def xmlstring2dict(instr,
-                   use_ord_dict=False,        # if true, return OrderedDict instead of a regular dictionary
-                   always_singular_list=[]):  # anything id listed here will be considered as a list
+def xmlstring2dict(
+    instr, use_ord_dict=False, always_singular_list=[]  # if true, return OrderedDict instead of a regular dictionary
+):  # anything id listed here will be considered as a list
     doc = xml.dom.minidom.parseString(instr)
 
     data = domel2dict(doc.documentElement, use_ord_dict, always_singular_list)
 
     return data
+
 
 ########################################################
 #
@@ -147,6 +151,7 @@ def xmlstring2dict(instr,
 # Do not use directly
 #
 ########################################################
+
 
 def getXMLElements(element):
     basic_els = element.childNodes
@@ -158,6 +163,7 @@ def getXMLElements(element):
             els.append(el)
 
     return els
+
 
 def getXMLAttributes(element, use_ord_dict):
     ael = element.attributes
@@ -173,23 +179,25 @@ def getXMLAttributes(element, use_ord_dict):
 
     return attrs
 
+
 def is_singular_of(mysin, myplu, always_singular_list=[]):
     if mysin in always_singular_list:
         return True
-    if myplu[-1] != 's':
+    if myplu[-1] != "s":
         # if myplu does not end in s, it is not plural
         return False
     if (mysin + "s") == myplu:
         # regular, like attr/attrs
         return True
-    if (mysin[-1] == 's') and ((mysin + "es") == myplu):
+    if (mysin[-1] == "s") and ((mysin + "es") == myplu):
         # if ending with an s, like miss/misses
         return True
-    if (mysin[-1] == 'y') and ((mysin[:-1] + "ies") == myplu):
+    if (mysin[-1] == "y") and ((mysin[:-1] + "ies") == myplu):
         # if ending with an y, like entry/entries
         return True
     # else, no luck
     return False
+
 
 def domel2dict(doc, use_ord_dict=False, always_singular_list=[]):
     """Recursive function transforming XML elements in a dictionary or list.
@@ -204,21 +212,20 @@ def domel2dict(doc, use_ord_dict=False, always_singular_list=[]):
     :return: dictionary or list with the content
     """
     myname = doc.nodeName
-    data = getXMLAttributes(doc, use_ord_dict) # first insert attributes
+    data = getXMLAttributes(doc, use_ord_dict)  # first insert attributes
 
     # insert all the subelements
     els = getXMLElements(doc)
     for el in els:
         tag = el.tagName
-        #print tag
+        # print tag
         eldata = domel2dict(el, use_ord_dict, always_singular_list)
         if is_singular_of(tag, myname, always_singular_list):
             # subelements, like "param" - "params"
             if "name" in eldata:
-                data[eldata['name']] = eldata
-                del eldata['name']
-            elif ((data == {}) or              # first element, will define everything
-                  (isinstance(data, list))):   # already a list
+                data[eldata["name"]] = eldata
+                del eldata["name"]
+            elif (data == {}) or (isinstance(data, list)):  # first element, will define everything  # already a list
                 # most probably one wants a list in this case
                 if data == {}:
                     data = []
@@ -227,6 +234,6 @@ def domel2dict(doc, use_ord_dict=False, always_singular_list=[]):
                 # cannot use it as a list
                 data[tag] = eldata
         else:
-            #just a regular subtree
+            # just a regular subtree
             data[tag] = eldata
     return data

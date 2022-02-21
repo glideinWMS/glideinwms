@@ -7,24 +7,22 @@
 #  This program creates a glidein factory directory structure
 #  based on a configuration file
 
-from __future__ import print_function
+
 import os
-import sys
 import shutil
 import string
+import sys
 import tarfile
 import traceback
 
-STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+from glideinwms.creation.lib import cgWConsts, cgWCreate, cgWParamDict, cWConsts, factoryXmlConfig
 
-from glideinwms.creation.lib import cgWConsts, cWConsts
-from glideinwms.creation.lib import cgWCreate
-from glideinwms.creation.lib import cgWParamDict
-from glideinwms.creation.lib import factoryXmlConfig
+STARTUP_DIR = sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR, "../.."))
 
 
 ################################################################################
+
 
 def main(conf):
     # print params.__dict__
@@ -63,30 +61,31 @@ def main(conf):
                 st_file.write("exit 0\n#EOF\n")
                 with open("tar_utils.tar.gz", "rb") as tar_utils:
                     shutil.copyfileobj(tar_utils, st_file)
-        except IOError as ioe:
+        except OSError as ioe:
             print("Unable to append the payload to the startup file. IOError [%d]: %s" % (ioe.errno, ioe.strerror))
             sys.exit(1)
         os.remove("tar_utils.tar.gz")
 
         # copy glidein_startup.sh from work dir (the version w/ the utility files) to the stage area for cloud entries
-        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE,
-                           glidein_dicts_obj.main_dicts.stage_dir,
-                           glidein_dicts_obj.main_dicts.work_dir,
-                           True)
+        cgWCreate.copy_exe(
+            cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, glidein_dicts_obj.main_dicts.work_dir, True
+        )
 
         # copy helper executables
         cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR)
 
         # create the init.d startup file
-        cgWCreate.create_initd_startup(os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.INITD_STARTUP_FILE),
-                                       glidein_dicts_obj.main_dicts.work_dir,
-                                       os.path.realpath(os.path.join(STARTUP_DIR, '..')),
-                                       conf.file)
+        cgWCreate.create_initd_startup(
+            os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.INITD_STARTUP_FILE),
+            glidein_dicts_obj.main_dicts.work_dir,
+            os.path.realpath(os.path.join(STARTUP_DIR, "..")),
+            conf.file,
+        )
     except:
         glidein_dicts_obj.delete_dirs()
         raise
 
-    print("Created glidein '%s'" % conf[u'glidein_name'])
+    print("Created glidein '%s'" % conf["glidein_name"])
     print("Active entries are:")
     for entry in glidein_dicts_obj.active_sub_list:
         print("  %s" % entry)
@@ -102,16 +101,16 @@ def main(conf):
 #
 ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     usage = "create_glidein [-writeback yes|no] [-debug] cfg_fname | -help"
     argv = sys.argv
-    writeback = 'yes'
+    writeback = "yes"
     debug = False
     while len(argv) > 2:
-        if argv[1] == '-writeback':
+        if argv[1] == "-writeback":
             writeback = argv[2]
             argv = argv[0:1] + argv[3:]
-        elif argv[1] == '-debug':
+        elif argv[1] == "-debug":
             debug = True
             argv = argv[0:1] + argv[2:]
         else:
@@ -120,7 +119,7 @@ if __name__ == '__main__':
     xml = argv[1]
     conf = factoryXmlConfig.parse(xml)
 
-    if not (writeback in ('yes', 'no')):
+    if not (writeback in ("yes", "no")):
         print(usage)
         print("")
         print("-writeback must be yes or no, found '%s'" % writeback)
@@ -131,7 +130,7 @@ if __name__ == '__main__':
     except RuntimeError as e:
         if debug:
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-            print('\n'.join(tb))
+            print("\n".join(tb))
         print(usage)
         print("")
         print(e)

@@ -9,14 +9,18 @@
 # Usage:
 #  glidein_interactive.py <cluster>.<process> [-name <schedd_name>] [-pool <pool_name> ] [-timeout <nr secs>] command
 
-import sys, os.path
-sys.path.append(os.path.join(sys.path[0], "../.."))
+import os.path
+import sys
 
 from glideinwms.tools.lib import glideinCmd
 
+sys.path.append(os.path.join(sys.path[0], "../.."))
+
+
 def argv_interactive(argv):
-    if len(argv)<1:
+    if len(argv) < 1:
         raise RuntimeError("Please specify the command to run")
     return argv
+
 
 glideinCmd.exe_cmd(argv_interactive)
