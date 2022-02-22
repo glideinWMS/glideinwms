@@ -508,11 +508,9 @@ class FETestCaseCondorQ(FETestCaseBase):
         self.assertTrue(
             compareLambdas(
                 m_SubQuery.call_args[0][1],
-                lambda el: (
-                    "ServerTime" in el
-                    and "EnteredCurrentStatus" in el
-                    and ((el["ServerTime"] - el["EnteredCurrentStatus"]) >= min_age)
-                ),
+                # fmt: off
+                lambda el: ("ServerTime" in el and "EnteredCurrentStatus" in el and ((el["ServerTime"] - el["EnteredCurrentStatus"]) >= min_age)),
+                # fmt: on
             )
         )
 

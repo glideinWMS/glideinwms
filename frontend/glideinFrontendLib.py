@@ -170,11 +170,9 @@ def getOldCondorQ(condorq_dict, min_age):
     for schedd_name in list(condorq_dict.keys()):
         sq = condorMonitor.SubQuery(
             condorq_dict[schedd_name],
-            lambda el: (
-                "ServerTime" in el
-                and "EnteredCurrentStatus" in el
-                and ((el["ServerTime"] - el["EnteredCurrentStatus"]) >= min_age)
-            ),
+            # fmt: off
+            lambda el: ("ServerTime" in el and "EnteredCurrentStatus" in el and ((el["ServerTime"] - el["EnteredCurrentStatus"]) >= min_age)),
+            # fmt: on
         )
         sq.load()
         out[schedd_name] = sq
