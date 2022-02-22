@@ -1206,9 +1206,9 @@ class condorLogSummary:
                     sdiff = self.stats_diff[client_name][username]
                     if (sdiff is not None) and (k in list(sdiff.keys())):
                         for e in list(tdata.keys()):
-                            tdata[e] = (
-                                tdata[e] + sdiff[k][e]
-                            )  # pylint: disable=unsupported-assignment-operation,unsupported-assignment-operation,unsubscriptable-object
+                            tdata[e] = (  # pylint: disable=unsupported-assignment-operation
+                                tdata[e] + sdiff[k][e]  # pylint: disable=unsubscriptable-object
+                            )
         return total
 
     def get_total_summary(self):
@@ -1223,8 +1223,8 @@ class condorLogSummary:
                 out_total["Exited"][k] = len(diff_total[k]["Exited"])  # pylint: disable=unsubscriptable-object
             elif k == "Completed":
                 completed_stats = self.get_completed_stats(
-                    diff_total[k]["Entered"]
-                )  # pylint: disable=unsubscriptable-object
+                    diff_total[k]["Entered"]  # pylint: disable=unsubscriptable-object
+                )
                 completed_counts = self.summarize_completed_stats(completed_stats)
                 out_total["CompletedCounts"] = completed_counts
 
