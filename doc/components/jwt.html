@@ -3,221 +3,344 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
-<head>
-  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>GlideinWMS</title>
-  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
-</head>
+  <head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8" />
+    <title>GlideinWMS</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="../common/glideinWMS.css"
+      media="screen, projection"
+    />
+  </head>
 
-<body lang="en-US" dir="ltr">
+  <body lang="en-US" dir="ltr">
     <h1>
-        <a href="index.html">GlideinWMS</a>
-	<span>The Glidein-based Workflow Management System</span>
+      <a href="index.html">GlideinWMS</a>
+      <span>The Glidein-based Workflow Management System</span>
     </h1>
     <ul class="breadcrumbs">
-        <li><a href="../index.html">Home</a></li>
-        <li><a href="./index.html">Components</a></li>
-        <li>JWT</li>
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="./index.html">Components</a></li>
+      <li>JWT</li>
     </ul>
     <div class="clear" />
     <div class="leftmenu">
-        <ul class="components">
-	        <li> <a href="../index.html">Home</a></li>
-	        <li> <a href="../download.html">Download</a></li>
-	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-	        <li> <a href="../factory/index.html">WMS Factory</a></li>
-	        <li> <a href="../components/index.html" >Components</a></li>
-	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
-        </ul>
-        <div class="search">
-            <script>
-            (function() {
-                var cx = '013439253731257915088:h-xvmglqvrq';
-                var gcse = document.createElement('script');
-                gcse.type = 'text/javascript';
-                gcse.async = true;
-                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
-                var s = document.getElementsByTagName('script')[0];
-                s.parentNode.insertBefore(gcse, s);
-            })();
-            </script>
-            <gcse:search enableAutoComplete=true></gcse:search>
-        </div>
+      <ul class="components">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../download.html">Download</a></li>
+        <li><a href="../frontend/index.html">Glidein Frontend</a></li>
+        <li><a href="../factory/index.html">WMS Factory</a></li>
+        <li><a href="../components/index.html">Components</a></li>
+        <li><a href="../components/faq.html" class="last">FAQ</a></li>
+      </ul>
+      <div class="search">
+        <script>
+          (function () {
+            var cx = "013439253731257915088:h-xvmglqvrq";
+            var gcse = document.createElement("script");
+            gcse.type = "text/javascript";
+            gcse.async = true;
+            gcse.src = "https://cse.google.com/cse.js?cx=" + cx;
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(gcse, s);
+          })();
+        </script>
+        <gcse:search enableAutoComplete="true"></gcse:search>
+      </div>
     </div>
-<div class="content">
-    <div class="heading">
-    <h2>Components</h2>
-	<ul class="subcomponents">
-	     <li> <a href="./index.html">Overview</a></li>
-	     <li> <a href="./user_pool.html">User Pool</a></li>
-	     <li> <a href="./user_schedd.html">User Schedd</a></li>
-       <li><a href="./gsi.html">GSI</a></li>
-       <li>JWT</li>
-	     <li class="last"> <a href="./condor.html">HTCondor</a></li>
-	</ul>
+    <div class="content">
+      <div class="heading">
+        <h2>Components</h2>
+        <ul class="subcomponents">
+          <li><a href="./index.html">Overview</a></li>
+          <li><a href="./user_pool.html">User Pool</a></li>
+          <li><a href="./user_schedd.html">User Schedd</a></li>
+          <li><a href="./gsi.html">GSI</a></li>
+          <li>JWT</li>
+          <li class="last"><a href="./condor.html">HTCondor</a></li>
+        </ul>
         <h3>JWT Authentication</h3>
-	</div>
-<div class="jump">
-<u>Jump to:</u>
-<ol>
-    <li> <a href="#reference">Quick Reference</a></li>
-    <li><a href="#software">Required Software Packages</a></li>
-    <li><a href="#install">Installation</a></li>
-    <li><a href="#configure">Configuration</a></li>
+      </div>
+      <div class="jump">
+        <u>Jump to:</u>
+        <ol>
+          <li><a href="#reference">Quick Reference</a></li>
+          <li><a href="#software">Required Software Packages</a></li>
+          <li><a href="#install">Installation</a></li>
+          <li><a href="#configure">Configuration</a></li>
+        </ol>
+      </div>
+      <div class="related">
+        <ul>
+          <li>
+            <a href="../factory/troubleshooting.html#colorcoded"
+              >JWT Quick Color-coded Guide</a
+            >
+          </li>
+        </ul>
+      </div>
+      <div class="section" id="reference">
+        <h2>1. Quick Reference Guide to JWT Authentication Setup</h2>
 
-</ol>
-</div>
-<div class="related">
-<ul>
-<li><a href="../factory/troubleshooting.html#colorcoded">JWT Quick Color-coded Guide</a></li>
-</div>
-<div class="section">
-<a name="reference" />
-<h2>1. Quick Reference Guide to JWT Authentication Setup</h2>
+        <p>
+          <br />
+          JWT configuration is conceptually similar to GSI configuration.
+          <br />
+          <br />With GSI configuration:
+        </p>
 
-<p>
+        <ul>
+          <li>the auth files are either cert/host pairs or proxies</li>
+          <li>HTCondor identities are mapped via condor_mapfiles.</li>
+          <li>
+            the locations are either specified in
+            <font color="green">XML configurations</font> or live in a
+            <font color="orange">well known default</font>
+          </li>
+        </ul>
 
-<br> JWT configuration is conceptually similar to GSI configuration.
-<br>
-  <br>With GSI configuration:
-    <ul>
-      <li> the auth files are either cert/host pairs or proxies
-      <li> HTCondor identities are mapped via condor_mapfiles.
-        <li> the locations are either specified in <font color="green">XML configurations</font> or live in a <font color="orange">well known default</font>
-    </ul>
-    <br>With JWT configuration:
-      <ul>
-        <li> the auth files are either
-          <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/security.html?highlight=IDTOKEN#introducing-idtokens">IDTOKENS</a>
-          or <a href="https://scitokens.org/technical_docs/Claims"> SCITOKENS</a>
-        <li> HTCondor identities are mapped via condor_mapfile for SCITOKENS.
-          <ul><li> This is usually only done on an HTCondor CE in GWMS </ul>
-        <li> HTCondor identities are taken from the subject: claim for IDTOKENS
-          <ul><li>IDTOKENS can have identities mapped with a condor_mapfile but this is typically not done in GWMS</ul>
-          <li> the locations are either either specified in <font color="green">XML configurations</font> or live in a <font color="orange">well known default</font>
-       </ul>
-<table class="requirements">
-  <tbody><tr class="head">
-    <td>Service</td>
-    <td>Comments</td>
+        <br />With JWT configuration:
+        <ul>
+          <li>
+            the auth files are either
+            <a
+              href="https://htcondor.readthedocs.io/en/latest/admin-manual/security.html?highlight=IDTOKEN#introducing-idtokens"
+              >IDTOKENS</a
+            >
+            or
+            <a href="https://scitokens.org/technical_docs/Claims"> SCITOKENS</a>
+          </li>
 
-  </tr>
-     <tr>
-       <td>User Pool (Collector)</td>
+          <li>
+            HTCondor identities are mapped via condor_mapfile for SCITOKENS.
+            <ul>
+              <li>This is usually only done on an HTCondor CE in GWMS</li>
+            </ul>
+          </li>
 
-       <td>
-         <ul>
-           <li>The user pool needs to have IDTOKENS authenticating it from  all of the seperate HTCondor machines it authenticates with.
-           </li>
-           <li>This means that if the  User Collector, Glidein Pool Collector, User Schedd Nodes, and Glidein Frontend are all on seperate nodes, they must
-             each  provide IDTOKENS to each other. Admins for the various nodes must coordinate condor_token_request and condor_token_request_approve operations to
-             distribute  IDTOKENS as needed.
-           </li>
-           <li> The recieved tokens are placed in <font color="orange">/etc/condor/tokens.d</font> with root ownership
-           <li> IDTOKENS can be mapped to users via condor_mapfiles but are usually not in a GWMS installation
-         </ul>
-       </td>
+          <li>
+            HTCondor identities are taken from the subject: claim for IDTOKENS
+            <ul>
+              <li>
+                IDTOKENS can have identities mapped with a condor_mapfile but
+                this is typically not done in GWMS
+              </li>
+            </ul>
+          </li>
 
-     </tr>
-  <tr>
-    <td>WMS Pool (Collector)</td>
-       <td>
-         <ul>
-           <li>Same IDTOKENS requirements as User Pool Collector for HTCondor Daemons on distinct machines.
-           <li>Be aware that if there are multiple collecters for load balancing or HA, such as mycollector.fnal.gov and mycollector.cern.ch, the processes should be supplied with two IDTOKENS issued from both mycollector.fnal.gov and mycollector.cern.ch
-         </ul>
-       </td>
-     </tr>
-     <tr>
-       <td>Glidein (Through Glidein Factory)</td>
-       <td>
-         <ul>
-           <li>An IDTOKEN is generated by the frontend and passed on to the glidein via the factory.
-             <li>The factory creates a glidein with this IDTOKEN as
-             a payload, which it uses to authenticate back to the frontend collector.
-             <li>Operators do not typically need to
-             involve themselves in this process unless an IDTOKEN is suspected of being compromised and needs to be revoked.
-           </li>
-         </ul>
-       </td>
-     </tr>
-     <tr>
-       <td>Glidein Frontend</td>
-       <td>
-         <ul>
-           <li> If the frontend is running HTCondor daemons, they have the same IDTOKEN requirements as Collectors above
-           <li> The frontend admin needs IDTOKENS for the frontend uid in <font color="orange"> ~frontend/.condor/tokens.d</font> and they
-             must be owned by the frontend user.
-             <ul><li>See the <a href="../factory/troubleshooting.html#colorcoded">JWT Quick Color-coded Guide</a> for a description of the subject these tokens need.</ul>
-             <li>A SCITOKEN must be generated and placed in the &lt;credentials&gt; section of <font color="green">/etc/gwms-frontend/frontend.xml</font>
-               to authorize submission to CEs
-           <li> The CE admin must edit /etc/condor-ce/mapfiles.d/10-scitokens.conf to map the SCITOKEN to a uid.
-           <li> The Factory admin needs to ensure that an  &lt;entry&gt; with auth_method="scitoken" exists in <font color="green">/etc/gwms-factory/glideinWMS.xml</font>
-         </ul>
-       </td>
+          <li>
+            the locations are either either specified in
+            <font color="green">XML configurations</font> or live in a
+            <font color="orange">well known default</font>
+          </li>
+        </ul>
 
-     </tr>
-     <tr>
-       <td>Glidein Factory</td>
-       <td>
-         <ul>
-           <li>Same IDTOKENS requirements as User Pool Collector for HTCondor Daemons on distinct machines.
-           <li>As CE's switch from GSI to JWT authentication they need corresponding  &lt;entry&gt; lines with auth_method="scitoken" in <font color="green">/etc/gwms-factory/glideinWMS.xml</font>
-         </ul>
-       </td>
-     </tr>
-     <tr>
-       <td>User Schedd</td>
-       <td>
-         <ul>
-           <li>Same IDTOKENS requirements as User Pool Collector for HTCondor Daemons on distinct machines.
-           </li>
-         </ul>
-       </td>
-     </tr>
-</tbody></table>
-</div>
-<div class="section">
-<h2><a name="software">2. Required Software Packages</a></h2>
-    <ul>
+        <table class="requirements">
+          <tbody>
+            <tr class="head">
+              <td>Service</td>
+              <td>Comments</td>
+            </tr>
+            <tr>
+              <td>User Pool (Collector)</td>
 
-    <li>
-    The <a href="https://opensciencegrid.org/docs/common/yum/">Open Science Grid Yum Repositories"</a>
-    </li>
-    <li>
-    The <a href="https://docs.fedoraproject.org/en-US/epel/#_quickstart">Epel Yum Repositories</a>
-    </li>
-    <li>
-    Machines Capable of installing and running Epel and OSG RPMS.  Currently Red Hat 7 and variants.
-    </li>
-     </ul>
-</div>
+              <td>
+                <ul>
+                  <li>
+                    The user pool needs to have IDTOKENS authenticating it from
+                    all of the seperate HTCondor machines it authenticates with.
+                  </li>
+                  <li>
+                    This means that if the User Collector, Glidein Pool
+                    Collector, User Schedd Nodes, and Glidein Frontend are all
+                    on seperate nodes, they must each provide IDTOKENS to each
+                    other. Admins for the various nodes must coordinate
+                    condor_token_request and condor_token_request_approve
+                    operations to distribute IDTOKENS as needed.
+                  </li>
+                  <li>
+                    The recieved tokens are placed in
+                    <font color="orange">/etc/condor/tokens.d</font> with root
+                    ownership
+                  </li>
+                  <li>
+                    IDTOKENS can be mapped to users via condor_mapfiles but are
+                    usually not in a GWMS installation
+                  </li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td>WMS Pool (Collector)</td>
+              <td>
+                <ul>
+                  <li>
+                    Same IDTOKENS requirements as User Pool Collector for
+                    HTCondor Daemons on distinct machines.
+                  </li>
+                  <li>
+                    Be aware that if there are multiple collecters for load
+                    balancing or HA, such as mycollector.fnal.gov and
+                    mycollector.cern.ch, the processes should be supplied with
+                    two IDTOKENS issued from both mycollector.fnal.gov and
+                    mycollector.cern.ch
+                  </li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td>Glidein (Through Glidein Factory)</td>
+              <td>
+                <ul>
+                  <li>
+                    An IDTOKEN is generated by the frontend and passed on to the
+                    glidein via the factory.
+                  </li>
+                  <li>
+                    The factory creates a glidein with this IDTOKEN as a
+                    payload, which it uses to authenticate back to the frontend
+                    collector.
+                  </li>
 
+                  <li>
+                    Operators do not typically need to involve themselves in
+                    this process unless an IDTOKEN is suspected of being
+                    compromised and needs to be revoked.
+                  </li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td>Glidein Frontend</td>
+              <td>
+                <ul>
+                  <li>
+                    If the frontend is running HTCondor daemons, they have the
+                    same IDTOKEN requirements as Collectors above
+                  </li>
+                  <li>
+                    The frontend admin needs IDTOKENS for the frontend uid in
+                    <font color="orange"> ~frontend/.condor/tokens.d</font> and
+                    they must be owned by the frontend user.
+                    <ul>
+                      <li>
+                        See the
+                        <a href="../factory/troubleshooting.html#colorcoded"
+                          >JWT Quick Color-coded Guide</a
+                        >
+                        for a description of the subject these tokens need.
+                      </li>
+                    </ul>
+                  </li>
 
-<div class="section">
-<h2><a name="install">3. Installation </a></h2>
+                  <li>
+                    A SCITOKEN must be generated and placed in the
+                    &lt;credentials&gt; section of
+                    <font color="green">/etc/gwms-frontend/frontend.xml</font>
+                    to authorize submission to CEs
+                  </li>
 
-    <br> Installation of GlideinWMS Factory or Frontend v 3.7.4 or greater will be JWT authentication compatible.
-    <ul>
+                  <li>
+                    The CE admin must edit
+                    /etc/condor-ce/mapfiles.d/10-scitokens.conf to map the
+                    SCITOKEN to a uid.
+                  </li>
+                  <li>
+                    The Factory admin needs to ensure that an &lt;entry&gt; with
+                    auth_method="scitoken" exists in
+                    <font color="green">/etc/gwms-factory/glideinWMS.xml</font>
+                  </li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td>Glidein Factory</td>
+              <td>
+                <ul>
+                  <li>
+                    Same IDTOKENS requirements as User Pool Collector for
+                    HTCondor Daemons on distinct machines.
+                  </li>
+                  <li>
+                    As CE's switch from GSI to JWT authentication they need
+                    corresponding &lt;entry&gt; lines with
+                    auth_method="scitoken" in
+                    <font color="green">/etc/gwms-factory/glideinWMS.xml</font>
+                  </li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td>User Schedd</td>
+              <td>
+                <ul>
+                  <li>
+                    Same IDTOKENS requirements as User Pool Collector for
+                    HTCondor Daemons on distinct machines.
+                  </li>
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="section">
+        <h2><a name="software">2. Required Software Packages</a></h2>
+        <ul>
+          <li>
+            The
+            <a href="https://opensciencegrid.org/docs/common/yum/"
+              >Open Science Grid Yum Repositories"</a
+            >
+          </li>
+          <li>
+            The
+            <a href="https://docs.fedoraproject.org/en-US/epel/#_quickstart"
+              >Epel Yum Repositories</a
+            >
+          </li>
+          <li>
+            Machines Capable of installing and running Epel and OSG RPMS.
+            Currently Red Hat 7 and variants.
+          </li>
+        </ul>
+      </div>
 
-    <li>
-      <a href="https://opensciencegrid.org/docs/other/install-gwms-frontend">Frontend Installation Guide</a>
-    </li>
-    <li>
-      <a href="https://opensciencegrid.org/operations/services/install-gwms-factory">Factory Installation Guide</a>
-     </ul>
-</div>
-<div class="section">
-<h2><a name="configure">4. Configuration </a></h2>
-</div>
-<div class="footer">
-Banner image by
-<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
-used under Creative Commons license.<br>
-Original Home URL: <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
-GlideinWMS email support: glideinwms-support at fnal.gov
-</div>
-</body>
+      <div class="section">
+        <h2><a name="install">3. Installation </a></h2>
+
+        <br />
+        Installation of GlideinWMS Factory or Frontend v 3.7.4 or greater will
+        be JWT authentication compatible.
+        <ul>
+          <li>
+            <a
+              href="https://opensciencegrid.org/docs/other/install-gwms-frontend"
+              >Frontend Installation Guide</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://opensciencegrid.org/operations/services/install-gwms-factory"
+              >Factory Installation Guide</a
+            >
+          </li>
+        </ul>
+      </div>
+      <div class="section">
+        <h2><a name="configure">4. Configuration </a></h2>
+      </div>
+    </div>
+    <div class="footer">
+      Banner image by
+      <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+      used under Creative Commons license.<br />
+      Original Home URL:
+      <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
+      GlideinWMS email support: glideinwms-support at fnal.gov
+    </div>
+  </body>
 </html>

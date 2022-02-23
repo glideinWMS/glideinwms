@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 
 <!--
 Project:
@@ -20,97 +20,117 @@ Description:
 -->
 
 <html>
-    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script type="text/javascript" src="jslibs/javascriptrrd.wlibs.js"></script>
+  <script
+    type="text/javascript"
+    src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"
+  ></script>
+  <script type="text/javascript" src="jslibs/javascriptrrd.wlibs.js"></script>
 
-    <script type="text/javascript" src="jslibs/frontend_support.js"></script>
+  <script type="text/javascript" src="jslibs/frontend_support.js"></script>
   <head>
     <title id="brtitle">Browse VO Frontend RRDs</title>
     <script type="text/javascript">
-	  var browser_title = "Browse VO Frontend RRDs";
-	  var page_title = "Browse VO Frontend RRDs";
-	  set_title_and_footer(browser_title, page_title);
-	</script>
+      var browser_title = "Browse VO Frontend RRDs";
+      var page_title = "Browse VO Frontend RRDs";
+      set_title_and_footer(browser_title, page_title);
+    </script>
   </head>
 
   <body>
     <table width="100%">
-    <tr>
-     <td><h1 id="pgtitle">Browse VO Frontend RRDs</h1></td>
-     <td align="right">[
-	    <a href="frontendStatus.html">Status</a> |
-	    <a href="frontendRRDGroupMatrix.html">Group Matrix</a> |
-        <a href="frontendGroupGraphStatusNow.html">Group Graphs</a>
-	    ]</td>
-    </tr>
+      <tr>
+        <td><h1 id="pgtitle">Browse VO Frontend RRDs</h1></td>
+        <td align="right">
+          [ <a href="frontendStatus.html">Status</a> |
+          <a href="frontendRRDGroupMatrix.html">Group Matrix</a> |
+          <a href="frontendGroupGraphStatusNow.html">Group Graphs</a>
+          ]
+        </td>
+      </tr>
     </table>
 
-    <table border=0>
-     <tr>
-       <th>Group</th>
-       <td><form id="groups">
-	     <input type="radio" name="group" value="total" checked>total<br>
-       </form></td>
-     </tr>
-     <tr>
-       <th>RRD</th>
-       <td><form id="rrds">
-	      <input type="radio" name="rrd" value="Status_Attributes" checked>Status_Attributes
-       </form></td>
-     </tr>
-     <tr>
-      <td colspan=2><button onclick="fname_update()">Update</button></td>
-     </tr>
+    <table border="0">
+      <tr>
+        <th>Group</th>
+        <td>
+          <form id="groups">
+            <input type="radio" name="group" value="total" checked />total<br />
+          </form>
+        </td>
+      </tr>
+      <tr>
+        <th>RRD</th>
+        <td>
+          <form id="rrds">
+            <input
+              type="radio"
+              name="rrd"
+              value="Status_Attributes"
+              checked
+            />Status_Attributes
+          </form>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2"><button onclick="fname_update()">Update</button></td>
+      </tr>
     </table>
 
-    <hr>
+    <hr />
 
-    <table id="infotable" border=1>
-        <tr><td colspan="21"><b>Javascript needed for this page to work</b></td></tr>
-	    <tr><td><b>RRD file</b></td><td id="fname" colspan="5">None</td></tr>
+    <table id="infotable" border="1">
+      <tr>
+        <td colspan="21"><b>Javascript needed for this page to work</b></td>
+      </tr>
+      <tr>
+        <td><b>RRD file</b></td>
+        <td id="fname" colspan="5">None</td>
+      </tr>
     </table>
 
     <div id="mygraph"></div>
 
-   <hr>
-    <p>Powered by
-        <a href="//oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
-        <a href="//sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and
-        <a href="//www.flotcharts.org/" target="_blank">Flot</a>.
+    <hr />
+    <p>
+      Powered by
+      <a href="//oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
+      <a href="//sourceforge.net/projects/javascriptrrd/" target="_blank"
+        >JavascriptRRD</a
+      >
+      and <a href="//www.flotcharts.org/" target="_blank">Flot</a>.
     </p>
-	<div id="monitor_footer"></div>
+    <div id="monitor_footer"></div>
 
     <script type="text/javascript">
-
       // Remove the Javascript warning
       document.getElementById("infotable").deleteRow(0);
 
       // Load the status of the frontend
-      var frontendStats=loadFrontendStats();
-      var groups=getFrontendGroups(frontendStats);
+      var frontendStats = loadFrontendStats();
+      var groups = getFrontendGroups(frontendStats);
       for (var group in groups) {
-        var elRadio=document.createElement("input");
+        var elRadio = document.createElement("input");
         elRadio.type = "radio";
         elRadio.name = "group";
         elRadio.value = groups[group];
 
-        var html_el=document.getElementById("groups");
+        var html_el = document.getElementById("groups");
         html_el.appendChild(elRadio);
         html_el.appendChild(document.createTextNode(groups[group]));
       }
 
-     // fname and rrd_data are the global variable used by all the functions below
-      fname="";
-      rrd_data=undefined;
+      // fname and rrd_data are the global variable used by all the functions below
+      fname = "";
+      rrd_data = undefined;
 
       // This function updates the Web Page with the data from the RRD archive header
       // when a new file is selected
       function update_fname() {
         // Finally, update the file name and enable the update button
-        document.getElementById("fname").firstChild.data=fname;
+        document.getElementById("fname").firstChild.data = fname;
 
         // the rrdFlot object creates and handles the graph
-        var f=new rrdFlot("mygraph",rrd_data,null);
+        var f = new rrdFlot("mygraph", rrd_data, null);
       }
 
       // This is the callback function that,
@@ -118,57 +138,57 @@ Description:
       // verifies that it is a valid RRD archive
       // and performs the update of the Web page
       function update_fname_handler(bf) {
-          var i_rrd_data=undefined;
-          try {
-            var i_rrd_data=new RRDFile(bf);
-          } catch(err) {
-            alert("File "+fname+" is not a valid RRD archive!");
-          }
-          if (i_rrd_data!=undefined) {
-            rrd_data=i_rrd_data;
-            update_fname()
-          }
+        var i_rrd_data = undefined;
+        try {
+          var i_rrd_data = new RRDFile(bf);
+        } catch (err) {
+          alert("File " + fname + " is not a valid RRD archive!");
+        }
+        if (i_rrd_data != undefined) {
+          rrd_data = i_rrd_data;
+          update_fname();
+        }
       }
 
       // this function is invoked when the RRD file name changes
       function fname_update() {
-        var group_name="";
-        var rrd_name="";
+        var group_name = "";
+        var rrd_name = "";
 
-        var groups_obj=document.getElementById("groups")
+        var groups_obj = document.getElementById("groups");
         for (var i in groups_obj.group) {
-         var group=groups_obj.group[i];
-         if (group.checked==true) {
-  	   group_name=group.value;
-         }
-        }
-
-        var rrds_obj=document.getElementById("rrds")
-	if ( rrds_obj.rrd.length>0) {
-          for (var i in rrds_obj.rrd) {
-           var rrd=rrds_obj.rrd[i];
-           if (rrd.checked==true) {
-  	     rrd_name=rrd.value;
-           }
+          var group = groups_obj.group[i];
+          if (group.checked == true) {
+            group_name = group.value;
           }
-        } else { //if single element, not an array
-	  rrd_name=rrds_obj.rrd.value;
         }
 
-        if (group_name=="total") {
-          fname="total/"+rrd_name+".rrd";
+        var rrds_obj = document.getElementById("rrds");
+        if (rrds_obj.rrd.length > 0) {
+          for (var i in rrds_obj.rrd) {
+            var rrd = rrds_obj.rrd[i];
+            if (rrd.checked == true) {
+              rrd_name = rrd.value;
+            }
+          }
         } else {
-          fname="group_"+group_name+"/total/"+rrd_name+".rrd";
+          //if single element, not an array
+          rrd_name = rrds_obj.rrd.value;
         }
 
-        document.getElementById("fname").firstChild.data="Loading "+fname;
+        if (group_name == "total") {
+          fname = "total/" + rrd_name + ".rrd";
+        } else {
+          fname = "group_" + group_name + "/total/" + rrd_name + ".rrd";
+        }
+
+        document.getElementById("fname").firstChild.data = "Loading " + fname;
         try {
-          FetchBinaryURLAsync(fname,update_fname_handler);
+          FetchBinaryURLAsync(fname, update_fname_handler);
         } catch (err) {
-           alert("Failed loading "+fname+"\n"+err);
+          alert("Failed loading " + fname + "\n" + err);
         }
       }
     </script>
-
   </body>
 </html>

@@ -2,64 +2,59 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ---
-  - name: gwms vofrontend migration playbook
-    hosts: all
-    remote_user: root
-    vars:
-        repo: osg
-        dir: upgrade
+- name: gwms vofrontend migration playbook
+  hosts: all
+  remote_user: root
+  vars:
+    repo: osg
+    dir: upgrade
 
-    tasks:
-
+  tasks:
     - name: stop condor
       service:
-          name:  condor
-          enabled: yes
-          state: stopped
+        name: condor
+        enabled: yes
+        state: stopped
 
     - name: stop frontend
       service:
-          name:  gwms-frontend
-          enabled: yes
-          state: stopped
-
+        name: gwms-frontend
+        enabled: yes
+        state: stopped
 
     - name: archive condor logs
       shell: |
-          cp -r /var/log/condor /var/log/condor_attic.$(date +%s) &&  rm -rf /var/log/condor/*
+        cp -r /var/log/condor /var/log/condor_attic.$(date +%s) &&  rm -rf /var/log/condor/*
 
     - name: archive frontend logs
       shell: |
-          cp -r /var/log/gwms-frontend /var/log/gwms-frontend_attic.$(date +%s) &&  find /var/log/gwms-frontend -type f -exec rm {} \;
+        cp -r /var/log/gwms-frontend /var/log/gwms-frontend_attic.$(date +%s) &&  find /var/log/gwms-frontend -type f -exec rm {} \;
     - name: yum {{ dir }} glideinwms-vofrontend
       shell: |
-          yum -y --enablerepo {{ repo }}  {{ dir }}  blahp condor-classads condor-procd libcondor_utils python3-condor python2-condor condor glideinwms-vofrontend-standalone glideinwms-usercollector glideinwms-userschedd glideinwms-condor-common-config glideinwms-minimal-condor glideinwms-libs glideinwms-glidecondor-tools glideinwms-common-tools glideinwms-vofrontend
+        yum -y --enablerepo {{ repo }}  {{ dir }}  blahp condor-classads condor-procd libcondor_utils python3-condor python2-condor condor glideinwms-vofrontend-standalone glideinwms-usercollector glideinwms-userschedd glideinwms-condor-common-config glideinwms-minimal-condor glideinwms-libs glideinwms-glidecondor-tools glideinwms-common-tools glideinwms-vofrontend
       args:
-          warn: no
+        warn: no
 
     - name: start condor
       service:
-          name:  condor
-          enabled: yes
-          state: started
+        name: condor
+        enabled: yes
+        state: started
 
     - name: gwms-frontend upgrade
       shell: |
-          gwms-frontend upgrade
-
+        gwms-frontend upgrade
 
     - name: start gwms-frontend
       service:
-          name: gwms-frontend
-          enabled: yes
-          state: started
+        name: gwms-frontend
+        enabled: yes
+        state: started
 
     - name: bounce condor
       shell: |
-          /usr/bin/systemctl restart condor && /usr/bin/sleep 20
+        /usr/bin/systemctl restart condor && /usr/bin/sleep 20
 
     - name: bounce gwms-frontend
       shell: |
-          /usr/bin/systemctl restart gwms-frontend && /usr/bin/sleep 10
-
-...
+        /usr/bin/systemctl restart gwms-frontend && /usr/bin/sleep 10

@@ -69,5 +69,5 @@ v3_4_6:
     - Fixing chkconfig lines on proxy renewal (SOFTWARE-3758)
 
 ...
-  # End of document without starting a new one
+# End of document without starting a new one
 # Not formatted yet

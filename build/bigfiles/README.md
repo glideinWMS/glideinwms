@@ -3,8 +3,7 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-Big files utilities
-===================
+# Big files utilities
 
 `bigfiles.sh` helps managing big files hosted on an external web server.
 Files are handled as symbolic links for the Git repository.

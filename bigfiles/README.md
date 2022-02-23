@@ -1,5 +1,4 @@
-Big Files in GlideinWMS
-=======================
+# Big Files in GlideinWMS
 
 This folder and `../build/bigfiles/bigfiles.sh` are a rudimentary system for handling of big files
 for the GlideinWMS project. git-LFS and git-annex offer more features but would not be as widely
@@ -20,6 +19,7 @@ Whenever releasing the software or doing other operations involving one or more 
 you will have to download the big files archive.
 
 Use `../build/bigfiles/bigfiles.sh -pv` or perform it manually:
+
 ```bash
 wget https://glideinwms.fnal.gov/downloads/glideinwms-bigfiles-latest.tgz
 tar xvzf glideinwms-bigfiles-latest.tgz
@@ -27,6 +27,7 @@ tar xvzf glideinwms-bigfiles-latest.tgz
 
 bigfiles.sh can help with may bigfiles operations, including updates and packaging,
 `./build/bigfiles/bigfiles.sh -h` for a full description of the command:
+
 ```
 bigfiles.sh [options]
   Runs the test form COMMAND on the current glideinwms subdirectory, as is or checking out a branch from the repository.

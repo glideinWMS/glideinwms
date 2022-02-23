@@ -34,15 +34,15 @@ repos:
     rev: 22.1.0
     hooks:
       - id: black
-#  - repo: "https://github.com/pre-commit/mirrors-prettier"
-#    rev: v2.5.1
-#    hooks:
-#      - id: prettier
-#        exclude_types:
-#          - "python"
-#        additional_dependencies:
-#          - "prettier"
-#          - "prettier-plugin-toml@0.3.1"
+  - repo: "https://github.com/pre-commit/mirrors-prettier"
+    rev: v2.5.1
+    hooks:
+      - id: prettier
+        exclude_types:
+          - "python"
+        additional_dependencies:
+          - "prettier"
+          - "prettier-plugin-toml@0.3.1"
   - repo: "https://github.com/asottile/pyupgrade"
     rev: v2.31.0
     hooks:

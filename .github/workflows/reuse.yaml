@@ -9,7 +9,6 @@ on:
       - master
       - branch_v3_9
 
-
 jobs:
   bats_job:
     runs-on: ubuntu-latest
@@ -37,7 +36,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          path: 'glideinwms'
+          path: "glideinwms"
       - name: reuse lint action step
         id: reuse
         uses: fsfe/reuse-action@v1
