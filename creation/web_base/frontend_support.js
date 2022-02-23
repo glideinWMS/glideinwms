@@ -105,7 +105,7 @@ function sanitize(name) {
  var out="";
  for (var i=0; i<name.length; i++) {
   var c=name.charAt(i);
-  if (c.search('[A-z0-9\-.]')==-1) {
+  if (c.search('[A-z0-9.-]')==-1) {
     out=out.concat('_');
   } else {
     out=out.concat(c);
