@@ -3,134 +3,153 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
-<head>
-  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>GlideinWMS</title>
-  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
-</head>
+  <head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8" />
+    <title>GlideinWMS</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="../common/glideinWMS.css"
+      media="screen, projection"
+    />
+  </head>
 
-<body lang="en-US" dir="ltr">
+  <body lang="en-US" dir="ltr">
     <h1>
-        <a href="index.html">GlideinWMS</a>
-	<span>The Glidein-based Workflow Management System</span>
+      <a href="index.html">GlideinWMS</a>
+      <span>The Glidein-based Workflow Management System</span>
     </h1>
     <ul class="breadcrumbs">
-        <li><a href="../index.html">Home</a></li>
-        <li><a href="./index.html">Components</a></li>
-        <li>User Collector</li>
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="./index.html">Components</a></li>
+      <li>User Collector</li>
     </ul>
     <div class="clear" />
     <div class="leftmenu">
-        <ul class="components">
-	        <li> <a href="../index.html">Home</a></li>
-	        <li> <a href="../download.html">Download</a></li>
-	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-	        <li> <a href="../factory/index.html">WMS Factory</a></li>
-	        <li> <a href="../components/index.html" >Components</a></li>
-	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+      <ul class="components">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../download.html">Download</a></li>
+        <li><a href="../frontend/index.html">Glidein Frontend</a></li>
+        <li><a href="../factory/index.html">WMS Factory</a></li>
+        <li><a href="../components/index.html">Components</a></li>
+        <li><a href="../components/faq.html" class="last">FAQ</a></li>
+      </ul>
+      <div class="search">
+        <script>
+          (function () {
+            var cx = "013439253731257915088:h-xvmglqvrq";
+            var gcse = document.createElement("script");
+            gcse.type = "text/javascript";
+            gcse.async = true;
+            gcse.src = "https://cse.google.com/cse.js?cx=" + cx;
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(gcse, s);
+          })();
+        </script>
+        <gcse:search enableAutoComplete="true"></gcse:search>
+      </div>
+    </div>
+    <div class="content">
+      <div class="heading">
+        <h2>User Pool</h2>
+        <ul class="subcomponents">
+          <li><a href="./index.html">Overview</a></li>
+          <li>User Pool</li>
+          <li><a href="./user_schedd.html">User Schedd</a></li>
+          <li><a href="./gsi.html">GSI</a></li>
+          <li><a href="./jwt.html">JWT</a></li>
+          <li class="last"><a href="./condor.html">HTCondor</a></li>
         </ul>
-        <div class="search">
-            <script>
-            (function() {
-                var cx = '013439253731257915088:h-xvmglqvrq';
-                var gcse = document.createElement('script');
-                gcse.type = 'text/javascript';
-                gcse.async = true;
-                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
-                var s = document.getElementsByTagName('script')[0];
-                s.parentNode.insertBefore(gcse, s);
-            })();
-            </script>
-            <gcse:search enableAutoComplete=true></gcse:search>
-        </div>
-    </div>
-<div class="content">
-    <div class="heading">
-    <h2>User Pool</h2>
-	<ul class="subcomponents">
-	     <li> <a href="./index.html">Overview</a></li>
-	     <li> User Pool</li>
-	     <li> <a href="./user_schedd.html">User Schedd</a></li>
-         <li> <a href="./gsi.html">GSI</a></li>
-         <li> <a href="./jwt.html">JWT</a></li>
-	     <li class="last"> <a href="./condor.html">HTCondor</a></li>
-	</ul>
         <h3>User Pool</h3>
-	</div>
-<div class="jump">
-<u>Jump to:</u>
-<ol>
-    <li><a href="#description">Description</a></li>
-    <li><a href="#hardware">Hardware requirements</a></li>
-</ol>
-</div>
+      </div>
+      <div class="jump">
+        <u>Jump to:</u>
+        <ol>
+          <li><a href="#description">Description</a></li>
+          <li><a href="#hardware">Hardware requirements</a></li>
+        </ol>
+      </div>
 
-<div class="section">
+      <div class="section">
+        <h2><a name="description">1. Description</a></h2>
+        <p>
+          <img
+            src="../images/overview_collector.png"
+            name="Collector Overview"
+            align="right"
+            border="0"
+          />
+        </p>
+        <p>
+          The User Pool will be the
+          <a
+            target="_blank"
+            href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#the-different-roles-a-machine-can-play"
+            >HTCondor Central Manager</a
+          >
+          for the glidein pool, i.e. it will run the HTCondor Collector and
+          Negotiator daemons. All glideins submitted by the Factories connected
+          to this User Pool will report to it and be available to match with the
+          jobs submitted to the Schedds (User submit nodes) connected to it.
+          These daemons define the glidein pool; if this node dies, the pool
+          dies with it.
+        </p>
+      </div>
 
-<h2><a name="description">1. Description</a></h2>
-            <p><img src="../images/overview_collector.png" name="Collector Overview" align="right" border="0"></p>
-            <p>
-                The User Pool will be the
-                <a target="_blank" href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#the-different-roles-a-machine-can-play">HTCondor Central Manager</a>
-                for the glidein pool, i.e. it will run the HTCondor Collector and Negotiator daemons.
-                All glideins submitted by the Factories connected to this User Pool will report to it and be available to match with
-                the jobs submitted to the Schedds (User submit nodes) connected to it.
-                These daemons define the glidein pool; if this node
-                dies, the pool dies with it.
-            </p>
+      <div class="section">
+        <h2><a name="hardware">2. Hardware requirements</a></h2>
+        <table class="requirements" style="width: 500px">
+          <tbody>
+            <tr class="head">
+              <td>CPUs</td>
+              <td>Memory</td>
 
-    </div>
-
-
-    <div class="section">
-            <h2><a name="hardware">2. Hardware requirements</a></h2>
-            <table class="requirements" style="width: 500px;">
-            <tbody><tr class="head">
-                <td>CPUs</td>
-                <td>Memory</td>
-
-                <td>Disk</td>
+              <td>Disk</td>
             </tr>
             <tr>
-                <td>1 - 2</td>
-                <td>1+GB</td>
-                <td>5+GB</td>
+              <td>1 - 2</td>
+              <td>1+GB</td>
+              <td>5+GB</td>
             </tr>
+          </tbody>
+        </table>
 
-            </tbody></table>
+        <p>
+          This machine needs <b>one or two fast CPUs</b> and a moderate amount
+          of <b>memory</b> (<b>1GB</b> should be enough for most tasks; really
+          big pools may need more).
+        </p>
 
-            <p>
-                This machine needs <b>one or two fast CPUs</b> and a moderate amount of
-                <b>memory</b> (<b>1GB</b> should be enough for most tasks; really big pools may need more).
-            </p>
+        <p>
+          It must have <b>reliable network</b> connectivity and must be
+          <b>on the public internet</b>, with <b>no firewalls</b>; all worker
+          nodes will be continuously sending UDP packets to the Collector.
+        </p>
+        <p>
+          The machine must be <b>very stable</b>; if the Collector dies, the
+          glidein pool dies with it (There are HTCondor techniques to minimize
+          this damage, but you should still try to choose the stablest machine
+          you can afford.)
+        </p>
 
-            <p>
-                It must have <b>reliable network</b> connectivity and must be <b>on the public internet</b>, with <b>no firewalls</b>;
-                all worker nodes will be continuously sending UDP packets to the Collector.
-            </p>
-            <p>
-                The machine must be <b>very stable</b>; if the Collector dies, the glidein pool dies with it (There are HTCondor techniques to
-                minimize this damage, but you should still try to choose the stablest machine you can afford.)
-            </p>
+        <p>
+          The <b>disk</b> needed is just for HTCondor binaries and log files (<b
+            >5GB</b
+          >
+          should be enough)
+        </p>
+      </div>
 
-            <p>
-                The <b>disk</b> needed is just for HTCondor binaries and log files (<b>5GB</b> should be enough)
-            </p>
-
-
+      <div class="footer">
+        Banner image by
+        <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+        used under Creative Commons license.<br />
+        Original Home URL:
+        <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
+        GlideinWMS email support: glideinwms-support at fnal.gov
+      </div>
     </div>
-
-<div class="footer">
-Banner image by
-<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
-used under Creative Commons license.<br>
-Original Home URL: <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
-GlideinWMS email support: glideinwms-support at fnal.gov
-</div>
-</div>
-
-
-</body>
+  </body>
 </html>

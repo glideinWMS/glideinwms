@@ -30,7 +30,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          path: 'glideinwms'
+          path: "glideinwms"
       - name: bats test action step
         id: bats
         uses: ./.github/actions/bats-in-sl7-docker

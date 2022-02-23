@@ -10,7 +10,6 @@ lines_per_diff: 300
 # The recipient for the commit:
 mailinglist: glideinwms-commit@listserv.fnal.gov
 
-
 # The from address. If not defined it will use
 # the address that is configured in git
 #from: sender@example.com
@@ -71,7 +70,7 @@ message_map:
 
 # Uncomment if you want to create links in your commit text
 message_integration:
-#  mediawiki: http://example.com/wiki # will rework [[text]] to MediaWiki pages
+  #  mediawiki: http://example.com/wiki # will rework [[text]] to MediaWiki pages
   redmine: https://cdcvs.fnal.gov/redmine # will rework refs #123 to Redmine issues
 #  bugzilla: http://bz.example.com # will rework BUG 123 to Bugzilla bugs
 #  fogbugz: http://yourondemand.fogbugz.com/? # will rework BugzId: 123 to FogBugz cases

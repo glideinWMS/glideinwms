@@ -33,7 +33,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          path: 'glideinwms'
+          path: "glideinwms"
       - name: RPM build action step
         id: build_rpm
         uses: ./.github/actions/build-in-sl7-docker

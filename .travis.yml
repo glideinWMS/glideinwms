@@ -14,7 +14,7 @@ before_install:
 
   # setup the 'simple major ver' link, missing for some versions on travis-ci....
   - if [[ ! -e /opt/python/${TRAVIS_PYTHON_VERSION} ]]; then
-        sudo ln -s /opt/python/$(python -c 'import sys;print("%d.%d.%d" % sys.version_info[:3])') /opt/python/${TRAVIS_PYTHON_VERSION};
+    sudo ln -s /opt/python/$(python -c 'import sys;print("%d.%d.%d" % sys.version_info[:3])') /opt/python/${TRAVIS_PYTHON_VERSION};
     fi
 
 # command to install dependencies
@@ -28,9 +28,9 @@ install:
 # Environment variables
 env:
   - global:
-    - GLIDEINWMS_SRC="${TRAVIS_BUILD_DIR}"
-    - SOURCES="${GLIDEINWMS_SRC},${GLIDEINWMS_SRC}/factory/,${GLIDEINWMS_SRC}/factory/tools,${GLIDEINWMS_SRC}/frontend,${GLIDEINWMS_SRC}/frontend/tools,${GLIDEINWMS_SRC}/install,${GLIDEINWMS_SRC}/lib,${GLIDEINWMS_SRC}/tools,${GLIDEINWMS_SRC}/tools/lib"
-    - PYTHONPATH="${GLIDEINWMS_SRC}/doc/api:${GLIDEINWMS_SRC}"
+      - GLIDEINWMS_SRC="${TRAVIS_BUILD_DIR}"
+      - SOURCES="${GLIDEINWMS_SRC},${GLIDEINWMS_SRC}/factory/,${GLIDEINWMS_SRC}/factory/tools,${GLIDEINWMS_SRC}/frontend,${GLIDEINWMS_SRC}/frontend/tools,${GLIDEINWMS_SRC}/install,${GLIDEINWMS_SRC}/lib,${GLIDEINWMS_SRC}/tools,${GLIDEINWMS_SRC}/tools/lib"
+      - PYTHONPATH="${GLIDEINWMS_SRC}/doc/api:${GLIDEINWMS_SRC}"
 
 # command to run tests
 script:
@@ -40,13 +40,12 @@ script:
   - echo "Folders in ${GLIDEINWMS_SRC}/doc/api/glideinwms are $(ls -l ${GLIDEINWMS_SRC}/doc/api/glideinwms)"
   - coverage erase
   - for TST in $(ls test*.py); do
-      echo '========>' "$TST";
-      coverage run  --source="${SOURCES}" --omit="test_*.py"  -a "$TST";
+    echo '========>' "$TST";
+    coverage run  --source="${SOURCES}" --omit="test_*.py"  -a "$TST";
     done
   - coverage report
   # - cd `dirname ${TRAVIS_BUILD_DIR}`
   # - coverage run -m pytest -v -l --tb=native glideinwms
-
 # hook into coveralls
 #after_success:
 #  - coveralls

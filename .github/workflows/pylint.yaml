@@ -30,7 +30,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          path: 'glideinwms'
+          path: "glideinwms"
         id: checkout
       - name: pylint action step
         uses: ./.github/actions/pylint-in-sl7-docker
