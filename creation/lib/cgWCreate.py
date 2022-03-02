@@ -219,8 +219,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 "%s $ENV(GRID_RESOURCE_OPTIONS) %s $ENV(GLIDEIN_REMOTE_USERNAME)@%s"
                 % (gridtype, bosco_dir, gatekeeper.split("@")[-1]),
             )
-            enc_input_files.append('$ENV(X509_USER_PROXY":/dev/null)')
-            self.add_environment("X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME:)")
+            enc_input_files.append('$ENV(X509_USER_PROXY:/dev/null)')
+            self.add_environment("X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME)")
         elif gridtype == "gce":
             self.add("Grid_Resource", f"{gridtype} {gatekeeper} $ENV(GRID_RESOURCE_OPTIONS)")
         else:
