@@ -1,30 +1,51 @@
 <glidein>
     <entries>
-      <entry name="TEST_SITE_3" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud046.fnal.gov fermicloud046.fnal.gov:9619" gridtype="condor" trust_domain="grid" verbosity="fast" work_dir="OSG">
+      <entry name="FNAL_HEPCLOUD_AWS_us-west-2a_m3.xlarge" auth_method="key_pair+vm_id" enabled="False" gatekeeper="https://ec2.us-west-2.amazonaws.com" gridtype="ec2" rsl=""  trust_domain="HEPCloud_AWS_us-west-2" verbosity="std" vm_type="m3.xlarge" work_dir="AUTO">
          <config>
             <max_jobs>
-               <default_per_frontend glideins="5000" held="50" idle="100"/>
-               <per_entry glideins="10000" held="1000" idle="2000"/>
+               <default_per_frontend glideins="1" held="1" idle="1"/>
+               <per_entry glideins="1" held="1" idle="1"/>
                <per_frontends>
                </per_frontends>
             </max_jobs>
-            <release max_per_cycle="20" sleep="0.2"/>
+            <release max_per_cycle="0" sleep="0.2"/>
             <remove max_per_cycle="5" sleep="0.2"/>
-            <restrictions require_voms_proxy="False"/>
-            <submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="fixed">
+            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/>
+            <submit cluster_size="1" max_per_cycle="10" sleep="10" slots_layout="partitionable">
                <submit_attrs>
+                  <submit_attr name="ec2_availability_zone" value="us-west-2a"/>
+                  <submit_attr name="ec2_iam_profile_name" value="AllowS3_UploadDownload"/>
+                  <submit_attr name="ec2_keypair" value="hepcloud"/>
+                  <submit_attr name="ec2_spot_price" value="0.133"/>
+                  <submit_attr name="ec2_tag_vo" value="$ENV(GLIDEIN_PARAM_GLIDEIN_VO_NAME)"/>
+                  <submit_attr name="ec2_tag_factory" value="$ENV(FACTORY_NAME)"/>
+                  <submit_attr name="ec2_tag_detype" value="$ENV(GLIDEIN_FRONTEND_NAME)"/>
                </submit_attrs>
             </submit>
          </config>
          <allow_frontends>
          </allow_frontends>
          <attrs>
-            <attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="x86_64"/>
-            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="rhel8"/>
-            <attr name="CONDOR_VERSION" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="8.6.5"/>
-            <attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="Test_Site_1"/>
-            <attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="OSG"/>
-            <attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
+            <attr name="GLIDEIN_REQUIRED_OS" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="rhel7"/>
+            <attr name="AVAILABILITY_ZONE" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="us-west-2a"/>
+            <attr name="GLIDEIN_CMSSite" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="T3_US_HEPCloud"/>
+            <attr name="GLIDEIN_CPUS" const="True" glidein_publish="False" job_publish="True" parameter="True" publish="True" type="string" value="4"/>
+            <attr name="GLIDEIN_MaxMemMBs" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="int" value="15000"/>
+            <attr name="GLIDEIN_HAS_CVMFS" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="expr" value="True"/>
+            <attr name="GLIDEIN_MaxInputRate" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="int" value="50"/>
+            <attr name="GLIDEIN_MaxOutputRate" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="int" value="50"/>
+            <attr name="GLIDEIN_MaxInputDataSize" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="int" value="1000"/>
+            <attr name="GLIDEIN_MaxOutputDataSize" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="int" value="1000"/>
+            <attr name="GLIDEIN_Retire_Time_Spread" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="300"/>
+            <attr name="GLIDEIN_Max_Walltime" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="86400"/>
+            <attr name="GLIDEIN_Retire_Time" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="86400"/>
+            <attr name="GLIDEIN_ResourceName" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="T3_US_HEPCloud_AWS"/>
+            <attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="T3_US_HEPCloud"/>
+            <attr name="GLIDEIN_StoragePerCpuGBs" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="2"/>
+            <attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="CMS,Fermilab"/>
+            <attr name="INSTANCE_TYPE" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="m3.xlarge"/>
+            <attr name="SELECTION_GROUPS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="CMS,Fermilab"/>
+             
          </attrs>
          <files>
          </files>
@@ -33,32 +54,48 @@
          <monitorgroups>
          </monitorgroups>
       </entry>
-      <entry name="TEST_SITE_4" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud105.fnal.gov fermicloud105.fnal.gov:9619" gridtype="condor" trust_domain="grid" verbosity="fast" work_dir="OSG">
+      <entry name="FNAL_HEPCLOUD_GOOGLE_us-central1-a_n1-standard-1" auth_method="auth_file+vm_id" enabled="True" gatekeeper="https://www.googleapis.com/compute/v1"  vm_type="projects/hepcloud-fnal/zones/us-central1-a/machineTypes/n1-standard-1" gridtype="gce" rsl="" trust_domain="GCE" verbosity="std" work_dir="AUTO">
          <config>
             <max_jobs>
-               <default_per_frontend glideins="5000" held="50" idle="100"/>
-               <per_entry glideins="10000" held="1000" idle="2000"/>
+               <default_per_frontend glideins="10" held="10" idle="10"/>
+               <per_entry glideins="10" held="10" idle="10"/>
                <per_frontends>
                </per_frontends>
             </max_jobs>
-            <release max_per_cycle="20" sleep="0.2"/>
-            <remove max_per_cycle="5" sleep="0.2"/>
-            <restrictions require_voms_proxy="False"/>
-            <submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable">
+            <release max_per_cycle="10" sleep="0.2"/>
+            <remove max_per_cycle="1" sleep="0.2"/>
+            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/>
+            <submit cluster_size="5" max_per_cycle="5" sleep="0.2" slots_layout="partionable">
                <submit_attrs>
+                  <submit_attr name="gce_project_name" value="hepcloud-fnal" />
+                  <submit_attr name="gce_availability_zone" value="us-central1-a" />
+                  <submit_attr name="gce_preemptible" value="true" />
+                  <submit_attr name="gce_json_file" value="/etc/gwms-factory/google_json/$ENV(GLIDEIN_FRONTEND_NAME)_$ENV(GLIDEIN_PARAM_GLIDEIN_VO_NAME)_networkdisk-us-central1-a-1.json"/>
                </submit_attrs>
             </submit>
          </config>
          <allow_frontends>
          </allow_frontends>
          <attrs>
-            <attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="x86_64"/>
-            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="rhel8"/>
-            <attr name="CONDOR_VERSION" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="8.6.5"/>
-            <attr name="GLIDEIN_CPUS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="2"/>
-            <attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="Test_Site_2"/>
-            <attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="OSG"/>
-            <attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
+            <attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="default"/>
+            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="default"/>
+            <attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="NONE"/>
+            <attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="T3_US_HEPCloud"/>
+            <attr name="GLIDEIN_CMSSite" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="T3_US_HEPCloud"/>
+            <attr name="USE_CCB" const="False" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
+            <attr name="VM_DISABLE_SHUTDOWN" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="False"/>
+            <attr name="GLIDEIN_CPUS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="1"/>
+            <attr name="GLIDEIN_MaxMemMBs" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="int" value="3750"/>
+            <attr name="GLIDEIN_HAS_CVMFS" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="expr" value="True"/>
+            <attr name="GLIDEIN_MaxInputRate" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="int" value="50"/>
+            <attr name="GLIDEIN_MaxOutputRate" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="int" value="50"/>
+            <attr name="GLIDEIN_MaxInputDataSize" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="int" value="1000"/>
+            <attr name="GLIDEIN_MaxOutputDataSize" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="int" value="1000"/>
+            <attr name="GLIDEIN_Retire_Time_Spread" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="300"/>
+            <attr name="GLIDEIN_Max_Walltime" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="57600"/>
+            <attr name="GLIDEIN_Retire_Time" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="57600"/>
+            <attr name="GLIDEIN_ResourceName" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="T3_US_HEPCloud_Google"/>
+            <attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="CMS,Fermilab"/>
          </attrs>
          <files>
          </files>
@@ -67,39 +104,5 @@
          <monitorgroups>
          </monitorgroups>
       </entry>
-      <entry name="TEST_SITE_HTCCE_5" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov fermicloud121.fnal.gov:9619" gridtype="condor" schedd_name="fermicloud173.fnal.gov" trust_domain="OSG" verbosity="fast" work_dir="OSG">
-         <config>
-            <max_jobs>
-               <default_per_frontend glideins="5000" held="50" idle="100"/>
-               <per_entry glideins="10000" held="1000" idle="2000"/>
-               <per_frontends>
-               </per_frontends>
-            </max_jobs>
-            <release max_per_cycle="20" sleep="0.2"/>
-            <remove max_per_cycle="5" sleep="0.2"/>
-            <restrictions require_voms_proxy="False"/>
-            <submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable">
-               <submit_attrs>
-               </submit_attrs>
-            </submit>
-         </config>
-         <allow_frontends>
-         </allow_frontends>
-         <attrs>
-            <attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="x86_64"/>
-            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="rhel8"/>
-            <attr name="CONDOR_VERSION" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="8.6.5"/>
-            <attr name="GLIDEIN_CPUS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="2"/>
-            <attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="Test_Site_HTCCE_2"/>
-            <attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="OSG"/>
-            <attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
-         </attrs>
-         <files>
-         </files>
-         <infosys_refs>
-         </infosys_refs>
-         <monitorgroups>
-         </monitorgroups>
-      </entry>
-   </entries>
+    </entries>
 </glidein>
