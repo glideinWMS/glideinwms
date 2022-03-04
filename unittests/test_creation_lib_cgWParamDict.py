@@ -39,7 +39,7 @@ from glideinwms.creation.lib.cgWParamDict import (
     validate_condor_tarball_attrs,
 )
 from glideinwms.creation.lib.cWParamDict import has_file_wrapper, has_file_wrapper_params
-from glideinwms.unittests.unittest_utils import TestImportError, balanced_text
+from glideinwms.unittests.unittest_utils import balanced_text, TestImportError
 
 try:
     from glideinwms.creation.lib import cgWParamDict
@@ -63,15 +63,12 @@ class TestGlideinDicts(unittest.TestCase):
         for item in self.cgpd.sub_list:
             entry = "entry_%s" % item
             condir = os.path.join(work_dir, entry)
-            confile = os.path.join(condir, 'job.condor')
-            self.assertTrue(os.path.exists(confile), 
-                            "%s not found! " % confile)
+            confile = os.path.join(condir, "job.condor")
+            self.assertTrue(os.path.exists(confile), "%s not found! " % confile)
             with open(confile) as cf:
                 data = cf.readlines()
-                rslt = balanced_text(data) 
-                self.assertEqual("Balanced", rslt,
-                                 "%s %s" % (rslt, confile)) 
-
+                rslt = balanced_text(data)
+                self.assertEqual("Balanced", rslt, f"{rslt} {confile}")
 
     def test_new_MainDicts(self):
         nmd = self.cgpd.new_MainDicts()
