@@ -172,11 +172,16 @@ def create_random_string(length=8):
     char_set = string.ascii_uppercase + string.digits
     return "".join(random.choice(char_set) for x in range(length))
 
-#checks line by line that parens and quotations are balanced
+
+# checks line by line that parens and quotations are balanced
 def balanced_text(myText):
-    open_list = ["[","{","("]
-    close_list = ["]","}",")"]
-    quote_list = ["'",'"',"`",]  
+    open_list = ["[", "{", "("]
+    close_list = ["]", "}", ")"]
+    quote_list = [
+        "'",
+        '"',
+        "`",
+    ]
     lnum = 1
     for line in myText:
         stack = []
@@ -186,10 +191,10 @@ def balanced_text(myText):
             elif i in close_list:
                 pos = close_list.index(i)
                 rm = open_list[pos]
-                if ((len(stack) > 0) and rm in stack):
+                if (len(stack) > 0) and rm in stack:
                     stack.remove(rm)
             if i in quote_list:
-                if ((len(stack) > 0) and i in stack):
+                if (len(stack) > 0) and i in stack:
                     stack.remove(i)
                 else:
                     stack.append(i)

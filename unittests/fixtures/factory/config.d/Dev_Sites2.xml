@@ -45,7 +45,7 @@
             <attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="CMS,Fermilab"/>
             <attr name="INSTANCE_TYPE" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="m3.xlarge"/>
             <attr name="SELECTION_GROUPS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="CMS,Fermilab"/>
-             
+
          </attrs>
          <files>
          </files>
