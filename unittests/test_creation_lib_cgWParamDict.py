@@ -6,7 +6,6 @@
 """
 Project:
     glideinWMS
-deinwms.creation.lib
 Description:
     unit test for glideinwms/creation/lib/cgWParamDict.py
 
