@@ -173,8 +173,12 @@ def create_random_string(length=8):
     return "".join(random.choice(char_set) for x in range(length))
 
 
-# checks line by line that parens and quotations are balanced
 def balanced_text(myText):
+    """
+    checks line by line that parens and quotations are balanced
+        @type myText: string
+        @param myText: input to be checked for balanced quotations and parens
+    """
     open_list = ["[", "{", "("]
     close_list = ["]", "}", ")"]
     quote_list = [
