@@ -33,7 +33,7 @@
          <monitorgroups>
          </monitorgroups>
       </entry>
-      <entry name="TEST_SITE_2" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud127.fnal.gov fermicloud127.fnal.gov:9619" gridtype="condor" trust_domain="grid" verbosity="fast" work_dir="OSG">
+      <entry name="TEST_SITE_2" auth_method="scitoken" enabled="True" gatekeeper="fermicloud127.fnal.gov fermicloud127.fnal.gov:9619" gridtype="condor" trust_domain="grid" verbosity="fast" work_dir="OSG">
          <config>
             <max_jobs>
                <default_per_frontend glideins="5000" held="50" idle="100"/>
@@ -67,7 +67,7 @@
          <monitorgroups>
          </monitorgroups>
       </entry>
-      <entry name="TEST_SITE_HTCCE_2" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov fermicloud121.fnal.gov:9619" gridtype="condor" schedd_name="fermicloud173.fnal.gov" trust_domain="OSG" verbosity="fast" work_dir="OSG">
+      <entry name="TEST_SITE_BOSCO"  auth_method="key_pair" enabled="True" gatekeeper="uscms@cori.nersc.gov" gridtype="batch slurm" rsl="" proxy_url="http://frontiercache.nersc.gov:3128" trust_domain="bosco" verbosity="std" work_dir="/tmp" bosco_dir="bosco_cori_haswell_fullnode">
          <config>
             <max_jobs>
                <default_per_frontend glideins="5000" held="50" idle="100"/>
