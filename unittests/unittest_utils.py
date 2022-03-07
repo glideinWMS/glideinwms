@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+
 import os
-import sys
-import tempfile
+import platform
 import random
 import string
-import platform
+import sys
+import tempfile
+
 import unittest2 as unittest
 
 # We assume that this module is in the unittest directory
@@ -25,24 +26,12 @@ will be defined instead.
 if "GLIDEINWMS_LOCATION" in os.environ:
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "lib"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "factory"))
-    sys.path.append(
-        os.path.join(
-            os.environ["GLIDEINWMS_LOCATION"],
-            "frontend"))
-    sys.path.append(
-        os.path.join(
-            os.environ["GLIDEINWMS_LOCATION"],
-            "factory/tools"))
+    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "frontend"))
+    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "factory/tools"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "install"))
-    sys.path.append(
-        os.path.join(
-            os.environ["GLIDEINWMS_LOCATION"],
-            "poolwatcher"))
+    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "poolwatcher"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "tools"))
-    sys.path.append(
-        os.path.join(
-            os.environ["GLIDEINWMS_LOCATION"],
-            "tools/lib"))
+    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "tools/lib"))
 else:
     sys.path.append(os.path.join(unittest_dir, "../lib"))
     sys.path.append(os.path.join(unittest_dir, "../factory"))
@@ -78,9 +67,13 @@ def runAllTests():
 
     What kinds of safety checks do we need here?
     """
+
     def is_test(filename):
-        if os.path.isfile(os.path.join(unittest_dir, filename)) and \
-                filename.startswith("test_") and filename.endswith(".py"):
+        if (
+            os.path.isfile(os.path.join(unittest_dir, filename))
+            and filename.startswith("test_")
+            and filename.endswith(".py")
+        ):
             return True
         return False
 
@@ -90,7 +83,7 @@ def runAllTests():
         test.main()
 
 
-class FakeLogger(object):
+class FakeLogger:
     """
     Super simple logger for the unittests
     """
@@ -149,27 +142,41 @@ class TestImportError(Exception):
     If import of package listed in handled_import_errors fails, print
     out hopefully informative message and exit 0
     """
+
     def __init__(self, err_msg="Error"):
         handled_import_errors = ["M2Crypto"]
         sys_ = platform.system()
-        if sys_ != 'Linux':
+        if sys_ != "Linux":
             err_msg += """.  Platform %s is not well tested/supported """ % sys_
         for imp_lib in handled_import_errors:
             if imp_lib in err_msg:
-                if sys_ == 'Darwin':
-                    err_msg += """.  Hint: try brew install or conda install %s first.""" % imp_lib
-                elif sys_ == 'Linux':
-                    err_msg += """.  Hint: try yum install or apt-get install %s first.""" % imp_lib
+                if sys_ == "Darwin":
+                    err_msg += (
+                        """.  Hint: try brew install or conda install %s first."""
+                        % imp_lib
+                    )
+                elif sys_ == "Linux":
+                    err_msg += (
+                        """.  Hint: try yum install or apt-get install %s first."""
+                        % imp_lib
+                    )
                 else:
                     err_msg += """.  %s python package must be present.""" % imp_lib
-                print ("%s" % err_msg)
+                print("%s" % err_msg)
                 sys.exit(0)
         raise Exception(err_msg)
 
-def create_temp_file(file_suffix='', file_prefix='tmp', file_dir='/tmp',
-                     text_access=True, write_path_to_file=True):
-    fd, path = tempfile.mkstemp(suffix=file_suffix, prefix=file_prefix,
-                                dir=file_dir, text=text_access)
+
+def create_temp_file(
+    file_suffix="",
+    file_prefix="tmp",
+    file_dir="/tmp",
+    text_access=True,
+    write_path_to_file=True,
+):
+    fd, path = tempfile.mkstemp(
+        suffix=file_suffix, prefix=file_prefix, dir=file_dir, text=text_access
+    )
     if write_path_to_file:
         os.write(fd, path)
     os.close(fd)
@@ -178,7 +185,42 @@ def create_temp_file(file_suffix='', file_prefix='tmp', file_dir='/tmp',
 
 def create_random_string(length=8):
     char_set = string.ascii_uppercase + string.digits
-    return ''.join(random.choice(char_set) for x in range(length))
+    return "".join(random.choice(char_set) for x in range(length))
+
+
+def balanced_text(myText):
+    """
+    checks line by line that parens and quotations are balanced
+        @type myText: string
+        @param myText: input to be checked for balanced quotations and parens
+    """
+    open_list = ["[", "{", "("]
+    close_list = ["]", "}", ")"]
+    quote_list = [
+        "'",
+        '"',
+        "`",
+    ]
+    lnum = 1
+    for line in myText:
+        stack = []
+        for i in line:
+            if i in open_list:
+                stack.append(i)
+            elif i in close_list:
+                pos = close_list.index(i)
+                rm = open_list[pos]
+                if (len(stack) > 0) and rm in stack:
+                    stack.remove(rm)
+            if i in quote_list:
+                if (len(stack) > 0) and i in stack:
+                    stack.remove(i)
+                else:
+                    stack.append(i)
+        if len(stack) != 0:
+            return "Unbalanced line %s" % lnum
+        lnum += 1
+    return "Balanced"
 
 
 if __name__ == "__main__":
