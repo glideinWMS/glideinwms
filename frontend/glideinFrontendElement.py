@@ -889,7 +889,7 @@ class glideinFrontendElement:
 
                 if os.path.exists(scitoken_fullpath):
                     try:
-                        logSupport.log.info("found scitoken %s" % scitoken_fullpath)
+                        logSupport.log.debug("found scitoken %s" % scitoken_fullpath)
                         with open(scitoken_fullpath) as fbuf:
                             for line in fbuf:
                                 stkn += line
@@ -904,7 +904,7 @@ class glideinFrontendElement:
                         logSupport.log.exception("failed to read scitoken: %s" % err)
 
                 # now advertise
-                logSupport.log.info("advertising tokens %s" % gp_encrypt.keys())
+                logSupport.log.debug("advertising tokens %s" % gp_encrypt.keys())
                 advertizer.add(
                     factory_pool_node,
                     request_name,
@@ -1051,7 +1051,7 @@ class glideinFrontendElement:
                     os.close(fd)
                     shutil.move(tmpnm, tkn_file)
                     chmod(tkn_file, 0o600)
-                    logSupport.log.info("created token %s" % tkn_file)
+                    logSupport.log.debug("created token %s" % tkn_file)
                 elif os.path.exists(tkn_file):
                     with open(tkn_file) as fbuf:
                         for line in fbuf:
