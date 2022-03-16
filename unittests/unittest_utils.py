@@ -176,8 +176,12 @@ def create_random_string(length=8):
 def balanced_text(myText):
     """
     checks line by line that parens and quotations are balanced
-        @type myText: string
-        @param myText: input to be checked for balanced quotations and parens
+    Args:
+         myText: contents of a text file, multi-line string
+    Returns:
+         string, "Balanced" if no problems found
+                 "Unbalanced, line x" if  a problem was found
+                                      on line x of text
     """
     open_list = ["[", "{", "("]
     close_list = ["]", "}", ")"]
