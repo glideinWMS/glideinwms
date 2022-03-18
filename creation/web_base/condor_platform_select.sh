@@ -39,6 +39,7 @@ findversion_redhat() {
   #
   # should I check that it is SL/RHEL/CentOS ?
   # no
+  grep -q 'CentOS Stream release 8' /etc/redhat-release && condor_os='linux-rhel8,rhel8' && return
   grep -q 'release 8.' /etc/redhat-release && condor_os='linux-rhel8,rhel8' && return
   grep -q 'release 7.' /etc/redhat-release && condor_os='linux-rhel7,rhel7' && return
   grep -q 'release 6.' /etc/redhat-release && condor_os='linux-rhel6,rhel6' && return
@@ -117,6 +118,35 @@ if [[ "$condor_os" == "auto" ]]; then
         "$error_gen" -error "condor_platform_select.sh" "Config" "$STR" "SupportAutodetect" "False" "OSType" "Unknown"
         exit 1
     fi
+
+    # Dry run for the generic solution that uses /etc/os-release . Source is
+    # https://github.com/htcondor/htcondor/blob/7ecce4e5c16072162903844eef817b11c6e9b960/src/condor_scripts/condor_remote_cluster#L284-L310
+    # Ticket: https://github.com/glideinWMS/glideinwms/issues/97
+    echo "###OS RELEASE INFORMATION###"
+    if [ -f "/etc/os-release" ]; then
+      os_release=`cat /etc/os-release`
+      dist_id=`echo "$os_release" | awk -F '=' '/^ID=/ {print $2}'`
+      dist_id_like=`echo "$os_release" | awk -F '=' '/^ID_LIKE=/ {print $2}'`
+      ver=`echo "$os_release" | awk -F '=' '/^VERSION_ID=/ {print $2}' | tr -d '"'`
+      major_ver="${ver%%.*}"
+
+      if [[ $dist_id_like =~ (rhel|centos|fedora) ]]; then
+        echo "linux-rhel${major_ver},rhel${major_ver}"
+      else
+        case "$dist_id" in
+            debian)
+                echo "linux-debian${major_ver}" ;;
+            ubuntu)
+                echo "linux-ubuntu${major_ver}" ;;
+            *)
+                echo "Unknown dist id"
+        esac
+      fi
+    else
+      echo "/etc/os-release does not exists."
+    fi
+    echo "$condor_os"
+    echo "###END RELEASE INFORMATION###"
 fi
 
 condor_arch="`grep '^CONDOR_ARCH ' "$glidein_config" | cut -d ' ' -f 2-`"
