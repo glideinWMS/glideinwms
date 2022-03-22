@@ -1,4 +1,4 @@
-#!/bin/bash
+#/bin/bash
 
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
@@ -37,7 +37,6 @@ add_config_line_source=$(grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '
 use_cvmfsexec=$(grep '^GLIDEIN_USE_CVMFSEXEC ' $glidein_config | awk '{print $2}')
 # TODO: int or string? if string, make the attribute value case insensitive
 #use_cvmfsexec=${use_cvmfsexec,,}
-echo "GLIDEIN_USE_CVMFSEXEC attribute set to $use_cvmfsexec"
 
 if [[ $use_cvmfsexec -ne 1 ]]; then
     "$error_gen" -ok "$(basename $0)" "umnt_msg1" "Not using cvmfsexec; skipping cleanup."
@@ -46,11 +45,15 @@ fi
 
 # get the glidein work directory location from glidein_config file
 work_dir=$(grep '^GLIDEIN_WORK_DIR ' $glidein_config | awk '{print $2}')
-cvmfs_utils_dir="$work_dir"/cvmfs_utils
+#cvmfs_utils_dir="$work_dir"/cvmfs_utils
 # $PWD=/tmp/glide_xxx and every path is referenced with respect to $PWD
 # source the helper script
 # TODO: Is this file somewhere in the source tree? use: # shellcheck source=./cvmfs_helper_funcs.sh
-. "$cvmfs_utils_dir"/utils/cvmfs_helper_funcs.sh
+#. "$cvmfs_utils_dir"/utils/cvmfs_helper_funcs.sh
+. $work_dir/cvmfs_helper_funcs.sh
+
+# get the cvmfsexec directory location
+glidein_cvmfsexec_dir=$(grep '^CVMFSEXEC_DIR ' $glidein_config | awk '{print $2}')
 
 ########################################################################################################
 # Start: main program
@@ -69,8 +72,8 @@ if [[ $GWMS_IS_CVMFS_MNT -eq 0 ]]; then
     exit 0
 fi
 
-loginfo "Unmounting CVMFS (that mounted by the glidein)..."
-"$cvmfs_utils_dir"/distros/.cvmfsexec/umountrepo -a
+loginfo "Unmounting CVMFS mounted by the glidein..."
+$glidein_cvmfsexec_dir/.cvmfsexec/umountrepo -a
 
 if [[ -n "$CVMFS_MOUNT_DIR" ]]; then
     CVMFS_MOUNT_DIR=
