@@ -311,6 +311,18 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults["creation_script"] = (None, "command", "Script to re-create credential", None)
         proxy_defaults["update_frequency"] = (None, "int", "Update proxy when there is this much time left", None)
         proxy_defaults["remote_username"] = (None, "username", "User name at the remote resource", None)
+        proxy_defaults["name"] = (
+            None,
+            "identifier",
+            "Unique ID for the credential (defaults to absfname or generator)",
+            None,
+        )
+        proxy_defaults["generator"] = (
+            None,
+            "module",
+            "Python plug-in module containing the get_credential generator",
+            None,
+        )
         proxy_defaults["vm_id"] = (None, "vm_id", "VM Id", None)
         proxy_defaults["vm_type"] = (None, "vm_type", "VM Type", None)
         proxy_defaults["pool_idx_len"] = (
