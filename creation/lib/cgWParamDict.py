@@ -320,28 +320,32 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         distros_loc = os.path.join(self.work_dir, "cvmfsexec/tarballs")
         # os.scandir() is more efficient with python 3.x
         distros = os.listdir(distros_loc)
-        for cvmfsexec_idx in range(len(distros)):  # TODO: os.scandir() is more efficient with python 3.x
-            distro_info = distros[cvmfsexec_idx].split("_")
-            distro_arch = (distro_info[3] + "_" + distro_info[4]).split(".")[0]
-            # register the tarball, but make download conditional to cond_name
-            cvmfsexec_fname = cWConsts.insert_timestr(cgWConsts.CVMFSEXEC_DISTRO_FILE % cvmfsexec_idx)
+        if len(distros) == 0:
+            print("distributions for cvmfsexec not found... Skipping tarball creation.")
+        else:
+            for cvmfsexec_idx in range(len(distros)):
+                distro_info = distros[cvmfsexec_idx].split("_")
+                print(distro_info)
+                distro_arch = (distro_info[3] + "_" + distro_info[4]).split(".")[0]
+                # register the tarball, but make download conditional to cond_name
+                cvmfsexec_fname = cWConsts.insert_timestr(cgWConsts.CVMFSEXEC_DISTRO_FILE % cvmfsexec_idx)
 
-            platform = f"{distro_info[1]}-{distro_info[2]}-{distro_arch}"
-            cvmfsexec_cond_name = "CVMFSEXEC_PLATFORM_%s" % platform
-            cvmfsexec_platform_fname = cgWConsts.CVMFSEXEC_DISTRO_FILE % platform
+                platform = f"{distro_info[1]}-{distro_info[2]}-{distro_arch}"
+                cvmfsexec_cond_name = "CVMFSEXEC_PLATFORM_%s" % platform
+                cvmfsexec_platform_fname = cgWConsts.CVMFSEXEC_DISTRO_FILE % platform
 
-            self.dicts["file_list"].add_from_file(
-                cvmfsexec_platform_fname,
-                cWDictFile.FileDictFile.make_val_tuple(
-                    cvmfsexec_fname, "untar", cond_download=cvmfsexec_cond_name, config_out=cgWConsts.CVMFSEXEC_ATTR
-                ),
-                os.path.join(distros_loc, distros[cvmfsexec_idx]),
-            )
+                self.dicts["file_list"].add_from_file(
+                    cvmfsexec_platform_fname,
+                    cWDictFile.FileDictFile.make_val_tuple(
+                        cvmfsexec_fname, "untar", cond_download=cvmfsexec_cond_name, config_out=cgWConsts.CVMFSEXEC_ATTR
+                    ),
+                    os.path.join(distros_loc, distros[cvmfsexec_idx]),
+                )
 
-            self.dicts["untar_cfg"].add(cvmfsexec_platform_fname, cgWConsts.CVMFSEXEC_DIR)
-            # Add cond_name in the config, so that it is known
-            # But leave it disabled by default
-            self.dicts["consts"].add(cvmfsexec_cond_name, "0", allow_overwrite=False)
+                self.dicts["untar_cfg"].add(cvmfsexec_platform_fname, cgWConsts.CVMFSEXEC_DIR)
+                # Add cond_name in the config, so that it is known
+                # But leave it disabled by default
+                self.dicts["consts"].add(cvmfsexec_cond_name, "0", allow_overwrite=False)
         # end of "Add cvmfsexec" block
 
         # make sure condor_startup does not get executed ahead of time under normal circumstances
