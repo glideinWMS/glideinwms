@@ -850,6 +850,7 @@ def populate_frontend_descript(work_dir, frontend_dict, active_sub_list, params)
     else:
         frontend_dict.add("MonitoringWebURL", params.web_url.replace("stage", "monitor"))
 
+    # TODO: refcred (refactoring of credentials) remove proxy requirement, replace w/ any credential, maybe ID
     if params.security.classad_proxy is None:
         raise RuntimeError("Missing security.classad_proxy")
     params.subparams.data["security"]["classad_proxy"] = os.path.abspath(params.security.classad_proxy)
@@ -1110,10 +1111,16 @@ def populate_common_descript(descript_dict, params):
 
     if len(params.security.credentials) > 0:
         proxies = []
+        # TODO: absfname - Moving from absfname to name to identify the credential - fix the duplications
+        #       absfname should go in the proxy_attr_names, name should be removed because used as key
         proxy_attr_names = {
             "security_class": "ProxySecurityClasses",
             "trust_domain": "ProxyTrustDomains",
             "type": "ProxyTypes",
+            # credential files probably should be handles as a list, each w/ name and path
+            # or the attributes ending in _file are files
+            # "file": "CredentialFiles",  # placeholder for when name will not be absfname
+            "generator": "CredentialGenerators",
             "keyabsfname": "ProxyKeyFiles",
             "pilotabsfname": "ProxyPilotFiles",
             "remote_username": "ProxyRemoteUsernames",
@@ -1131,7 +1138,7 @@ def populate_common_descript(descript_dict, params):
             "project_id": "project_id",
         }
 
-        # TODO: this list is used in for loops, replace with "for i in proxy_attr_names"
+        # TODO: this list is used for loops, replace with "for i in proxy_attr_names"
         proxy_attrs = list(proxy_attr_names.keys())
         proxy_descript_values = {}
         for attr in proxy_attrs:
@@ -1141,7 +1148,11 @@ def populate_common_descript(descript_dict, params):
         for pel in params.security.credentials:
             validate_credential_type(pel["type"])
             if pel["absfname"] is None:
-                raise RuntimeError("All credentials need a absfname!")
+                if pel["generator"] is None:
+                    raise RuntimeError("All credentials without generator need a absfname!")
+                else:
+                    # TODO: absfname - use name instead
+                    pel["absfname"] = pel["generator"]
             for i in pel["type"].split("+"):
                 attr = proxy_attr_type_list.get(i)
                 if attr and pel[attr] is None:
@@ -1155,6 +1166,7 @@ def populate_common_descript(descript_dict, params):
                     if pel[attr] is not None:
                         proxy_descript_values[attr][pel["absfname"]] = pel[attr]
             else:  # pool
+                # TODO: absfname - use name instead
                 pool_idx_list_expanded_strings = get_pool_list(pel)
                 for idx in pool_idx_list_expanded_strings:
                     absfname = "{}{}".format(pel["absfname"], idx)
