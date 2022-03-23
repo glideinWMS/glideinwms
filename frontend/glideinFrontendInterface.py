@@ -303,8 +303,11 @@ class Credential:
         self.req_max_run = 0
         self.advertize = False
 
+        # TODO: refcredential - all these attributes names should not start w/ proxy and the dict names should
+        #       be CredentialSomething, not ProxySomething
         proxy_security_classes = elementDescript.merged_data["ProxySecurityClasses"]
         proxy_trust_domains = elementDescript.merged_data["ProxyTrustDomains"]
+        credential_generators = elementDescript.merged_data["CredentialGenerators"]
         proxy_types = elementDescript.merged_data["ProxyTypes"]
         proxy_keyfiles = elementDescript.merged_data["ProxyKeyFiles"]
         proxy_pilotfiles = elementDescript.merged_data["ProxyPilotFiles"]
@@ -330,6 +333,7 @@ class Credential:
         self.update_frequency = int(proxy_update_frequency.get(proxy_fname, -1))
 
         # Following items can be None
+        self.generator = credential_generators.get(proxy_fname)
         self.vm_id_fname = proxy_vmid_fname.get(proxy_fname)
         self.vm_type_fname = proxy_vmtype_fname.get(proxy_fname)
         self.vm_id = proxy_vm_ids.get(proxy_fname)
