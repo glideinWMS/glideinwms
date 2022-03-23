@@ -1,6 +1,12 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+"""
+XML configuration handler
+Currently used only in the Factory configuration, factoryXmlConfig,
+parsing glideinXML.xml and imported elements
+"""
+
 import copy
 import os
 import xml.sax
