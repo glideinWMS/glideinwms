@@ -498,6 +498,8 @@ install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory/hooks.reconfig.pre
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory/hooks.reconfig.post
 install -m 0644 %{SOURCE4} $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory/glideinWMS.xml
 install -m 0644 %{SOURCE9} $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/gwms-factory
+install -m 0644 creation/web-base/generate_cvmfsexec_distros.sh $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory/hooks.reconfig.pre/generate_cvmfsexec_distros.sh
+rm -f creation/web-base/generate_cvmfsexec_distros.sh
 
 # Install the web base
 cp -r creation/web_base/* $RPM_BUILD_ROOT%{web_base}/
@@ -873,6 +875,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory/hooks.reconfig.pre
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory/hooks.reconfig.post
 %attr(-, gfactory, gfactory) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gwms-factory/glideinWMS.xml
+%attr(-, gfactory, gfactory) %{_sysconfdir}/gwms-factory/hooks.reconfig.pre/generate_cvmfsexec_distros.sh
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-factory
 
 %files vofrontend-core
