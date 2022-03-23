@@ -2533,6 +2533,84 @@ MAX_STARTD_LOG          I       10000000        +                               
           </tr>
         </table>
       </div>
+      
+      <div class="section">
+        <h3><a name="cvmfs_vars"></a>CVMFS Variables</h3>
+        <p>
+          This section describes the variables that can be configured for 
+          use with the glidein to allow CVMFS to be provisioned on-demand. 
+          These variables are configured at the glidein level so that it 
+          applies to all the entries that are configured in the factory's 
+          configuration file.
+        </p>
+        <table class="attributes">
+          <tr class="head">
+            <td>
+              <p><b>Name</b></p>
+            </td>
+            <td>
+              <p><b>Type</b></p>
+            </td>
+            <td>
+              <p><b>Default Value</b></p>
+            </td>
+            <td>
+              <p><b>Where</b></p>
+            </td>
+            <td>
+              <p><b>Description</b></p>
+            </td>
+          </tr>
+          <tr>
+            <td><b>GLIDEIN_USE_CVMFSEXEC</b></td>
+            <td>Int</td>
+            <td></td>
+            <td>Factory</td>
+            <td>
+              <p>Not set by default. This variable controls whether 
+                <i>cvmfsexec</i> utility is used to mount CVMFS. Possible 
+                values are 0 or 1. A value of 0 indicates that 
+                glidein will not use <i>cvmfsexec</i> to mount CVMFS on the 
+                worker noden. A value of 1 indicates <i>cvmfsexec</i> will 
+                be used to mount CVMFS on the worker node by the glidein.</p>
+            </td>
+          </tr>
+          <tr>
+            <td><b>CVMFS_SRC</b></td>
+            <td>String</td>
+            <td></td>
+            <td>Factory</td>
+            <td>
+              <p>Not set by default. This variable controls the origin (source)
+                from which to download the CVMFS configuration repository 
+                from. Possible values are: <br/>
+                osg - configuration for cvmfs-config-osg; <br/>
+                egi - configuration for cvmfs-config-egi; <br/>
+                default - configuration for cvmfs-config-default<br/>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td><b>GLIDEIN_CVMFS</b></td>
+            <td>String</td>
+            <td></td>
+            <td>Factory</td>
+            <td>
+              <p>Not set by default. This variable controls the 
+                error handling behavior of the glidein in case of failures 
+                during the mounting of CVMFS. Possible values are:<br/>
+                REQUIRED - if unable to mount, report an error and abort 
+                mounting);<br/>
+                PREFERRED - if unable to mount, notify and continue 
+                normally;<br/>
+                OPTIONAL - continue if unable to mount (similar to 
+                PREFERRED);<br/>
+                NEVER - only exit if mounting fails<br/>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </div>
 
       <div class="section">
         <h3><a name="glidein_vars"></a>Glidein Script Variables (dynamic)</h3>
