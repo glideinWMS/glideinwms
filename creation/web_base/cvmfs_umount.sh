@@ -45,11 +45,10 @@ fi
 
 # get the glidein work directory location from glidein_config file
 work_dir=$(grep '^GLIDEIN_WORK_DIR ' $glidein_config | awk '{print $2}')
-#cvmfs_utils_dir="$work_dir"/cvmfs_utils
 # $PWD=/tmp/glide_xxx and every path is referenced with respect to $PWD
+
 # source the helper script
 # TODO: Is this file somewhere in the source tree? use: # shellcheck source=./cvmfs_helper_funcs.sh
-#. "$cvmfs_utils_dir"/utils/cvmfs_helper_funcs.sh
 . $work_dir/cvmfs_helper_funcs.sh
 
 # get the cvmfsexec directory location
