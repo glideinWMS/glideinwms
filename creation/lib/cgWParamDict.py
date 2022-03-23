@@ -317,7 +317,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         )
 
         # get the location of the tarballs created during reconfig/upgrade
-        distros_loc = os.path.abspath("/tmp/cvmfsexec_pkg/tarballs")
+        distros_loc = os.path.join(self.work_dir, "cvmfsexec/tarballs")
+        # os.scandir() is more efficient with python 3.x
         distros = os.listdir(distros_loc)
         for cvmfsexec_idx in range(len(distros)):  # TODO: os.scandir() is more efficient with python 3.x
             distro_info = distros[cvmfsexec_idx].split("_")
