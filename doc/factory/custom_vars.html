@@ -2610,6 +2610,51 @@ MAX_STARTD_LOG          I       10000000        +                               
             </td>
           </tr>
         </table>
+        <br/>
+        <h4>Dynamic creation and selection of cvmfsexec 
+          platform-specific distribution</h4>
+        <p>
+          GlideinWMS factory includes the capability to mount and unmount 
+          CVMFS on demand, i.e. for sites that do not have a local 
+          installation of CVMFS available. This is achieved via the scripts 
+          <b>cvmfs_setup.sh</b> and <b>cvmfs_umount.sh</b>. Two additional 
+          shell scripts <i>cvmfs_helper_funcs.sh</i> and <i>cvmfs_mount
+          .sh</i> are used as helper scripts during the mounting process. On 
+          demand mounting and unmounting is achieved via the <b><i>cvmfsexec
+          </i></b> utility. The helper scripts are enabled for conditional 
+          download based on the GLIDEIN_USE_CVMFSEXEC variable. When the 
+          GLIDEIN_USE_CVMFSEXEC variable is set (value of 1), the helper 
+          scripts are downloaded for facilitating the mounting of CVMFS. 
+        </p>
+        <p>
+          cvmfsexec can be packaged as self-contained distribution specific 
+          to an operating system and platform with required configuration and 
+          executables necessary to enable CVMFS in unprivileged mode. Doing 
+          so allows easy distribution to multiple machines. Worker 
+          node specifications vary from each other and can change over 
+          time so, shipping all possible variations of cvmfsexec 
+          distributions with the glidein helps address the challenge when it
+          comes to using the correct distribution for use by the worker 
+          node. However, rather than having a tarball containing multiple 
+          cvmfsexec distribution files corresponding to a (CVMFS source, 
+          system platform, architecture) combination, GlideinWMS dynamically 
+          creates and selects the appropriate cvmfsexec distribution from 
+          the list of distributions.
+        </p>
+        <p>
+          Specific to a CVMFS source, system platform and architecture, 
+          cvmfsexec distribution files are created automatically by the script 
+          named <b>create_cvmfsexec_distros.sh</b>. The script is placed in 
+          <i>hooks.reconfig.pre</i> directory for dynamic execution. Each of
+          these distributions are packaged as individual tarballs and are 
+          added to the default list of uploads at the time of factory 
+          reconfiguration and/or upgrade. Another script, <i>
+          cvmfsexec_platform_select.sh</i>, automatically selects the 
+          appropriate distribution tarball based on the specifics of the 
+          worker node and ships the distribution with the glidein. This script
+          is invoked during the customization of the worker node as part of 
+          the glidein setup.
+        </p>
       </div>
 
       <div class="section">
