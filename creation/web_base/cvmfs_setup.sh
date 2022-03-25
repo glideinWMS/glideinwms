@@ -65,7 +65,6 @@ arch=$GWMS_OS_KRNL_ARCH
 dist_file=cvmfsexec-${cvmfs_source}-${os_like}${os_ver}-${arch}
 # the appropriate distribution file does not have to manually untarred as the glidein setup takes care of this automatically
 
-# TODO: Is this file somewhere in the source tree? use: # shellcheck source=./cvmfs_mount.sh
 perform_cvmfs_mount
 
 if [[ $GWMS_IS_CVMFS -ne 0 ]]; then
