@@ -230,14 +230,6 @@ mount_cvmfs_repos () {
         # repositories (colon-delimited string)
         # RETURN(S): Mounts the defined repositories on the worker node filesystem
 
-	# QUESTION FOR MARCO
-	# see if the utilities are available (in the hidden directory) from the previous mount activity on the worker node
-	# this is not possible since this script is run once at the time of glidein creation on the worker node - is that right???
-	#if [[ ! -d $cvmfs_utils_dir/.cvmfsexec ]]; then
-	#	$cvmfs_utils_dir/mycvmfsexec -- echo "CVMFS utilities available" &> /dev/null
-	#	echo "executing inside"
-	#fi
-
 	$glidein_cvmfsexec_dir/$dist_file $1 -- echo "setting up mount utilities..." &> /dev/null
 	if [[ $(df -h|grep /cvmfs|wc -l) -eq 1 ]]; then
 		loginfo "CVMFS config repo already mounted!"
@@ -335,10 +327,6 @@ has_fuse() {
 	# make sure that perform_system_check has run
 	[[ -n "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
 
-	#GWMS_IS_FUSERMOUNT=0
-	#res_is_fusermount=$(check_exit_status $GWMS_IS_FUSERMOUNT)
-	#loginfo "fusermount available: $res_is_fusermount"
-
 	# check what specific configuration of unprivileged user namespaces exists in the system (worker node)
 	unpriv_userns_config=$(has_unpriv_userns)
 
@@ -433,8 +421,6 @@ perform_cvmfs_mount () {
 
         # perform checks on the worker node that will be used to assess whether CVMFS can be mounted or not
         perform_system_check
-
-        #loginfo "Start log for mounting CVMFS"
 
         # print/display all information pertaining to system checks performed previously (facilitates easy troubleshooting)
         log_all_system_info
