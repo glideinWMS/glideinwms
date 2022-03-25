@@ -101,4 +101,4 @@ done
 end=`date +%s`
 
 runtime=$((end-start))
-echo "Took $runtime seconds (the two for-loops)"
+echo "Took $runtime seconds to create the cvmfsexec distributions"
