@@ -102,10 +102,10 @@ def find_multilines(config_text):
                     dict_key = parts[idx - 1].strip()
                     multi[dict_key] = "".join(parts[idx:]) + "\n"
         else:
-            if '#' not in line:
+            if "#" not in line:
                 multi[dict_key] += line
             for idx in range(len(parts)):
-                if tag in parts[idx]: 
+                if tag in parts[idx]:
                     tag = None
     return multi
 
@@ -130,14 +130,14 @@ def parse_configs_for_multis(conf_list):
             filename = "ce_atlas.idtoken"
             owner = "atlas"
         @end
-        
+
         would generate a multi entry like this:
 
         multi["JOB_ROUTER_CREATE_IDTOKEN_atlas"] =
             '@=end\n    sub = "Atlas"\n    lifetime = 900\n  .....   @end\n'
 
-       these entries will be rendered into the frontend.condor_config with proper spacing and line returns 
-       unlike how they would be  rendered by  condor_config_val --dump 
+       these entries will be rendered into the frontend.condor_config with proper spacing and line returns
+       unlike how they would be  rendered by  condor_config_val --dump
 
     """
     multi = {}
@@ -156,7 +156,7 @@ def parse_configs_for_multis(conf_list):
 def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, classad_proxy):
     config_files = condorExe.exe_cmd("condor_config_val", "-config")
     multi_line_conf_dict = parse_configs_for_multis(config_files)
-    attrs = condorExe.exe_cmd('condor_config_val', '-dump ')
+    attrs = condorExe.exe_cmd("condor_config_val", "-dump ")
     def_attrs = filter_unwanted_config_attrs(attrs, multi_line_conf_dict)
     for tag in multi_line_conf_dict:
         line = f"{tag}  {multi_line_conf_dict[tag]}"
@@ -270,11 +270,11 @@ def filter_unwanted_config_attrs(attrs, mlcd):
              COPY SingularityImage orig_SingularityImage
              EVALSET SingularityImage replace("^docker://(.+)", SingularityImage, "docker://docker.io/library/\\1")
 
-             an mlcd entry will be 
+             an mlcd entry will be
 
              mlcd['CONDOR_SETTING_1'] = "@=xx\n   REQUIREMENTS regexp("^docker://[^/]+$", SingularityImage).......  @xx"
 
-             the (incorrect) settings from above going through condor_config_val -dump will be filtered out of 
+             the (incorrect) settings from above going through condor_config_val -dump will be filtered out of
              attrs, and replaced with correct formatting from contents of mlcd
 
      Returns:
@@ -321,38 +321,38 @@ def filter_unwanted_config_attrs(attrs, mlcd):
                 attr = ((attrs[i].split("="))[0]).strip()
             if attr == uattr:
                 attrs[i] = "#%s" % attrs[i]
-    
+
     # comment out  multi-line unwanted_attrs from attrs
     # mlcd key is beginning of multiline macro
     # add them to unwanted_attrs
     begin_mlcd = len(unwanted_attrs)
     for key in mlcd:
         unwanted_attrs.append(key)
-    
+
     # mlcd[key] = (all the lines of the multi line macro with spacing and punctuation)
-    # attrs currently has these lines output in a way that condor cannot ingest as 
-    # a configuration file, so comment them out 
+    # attrs currently has these lines output in a way that condor cannot ingest as
+    # a configuration file, so comment them out
 
     for mlcd_key in unwanted_attrs[begin_mlcd:]:
         for i in range(0, len(attrs)):
-            attr = ''
-            if len(attrs[i].split('=')) > 0:
-                attr = ((attrs[i].split('='))[0]).strip()
+            attr = ""
+            if len(attrs[i].split("=")) > 0:
+                attr = ((attrs[i].split("="))[0]).strip()
             if attr == mlcd_key:
                 if attr in mlcd:
-                    # comment out key of mlcd in attrs 
-                    attrs[i] = '#mlcd  %s' % attrs[i]
+                    # comment out key of mlcd in attrs
+                    attrs[i] = "#mlcd  %s" % attrs[i]
                     # now have to comment contents of mlcd[key] out of attrs
-                    mlcd_values = mlcd[attr].split('\n')
+                    mlcd_values = mlcd[attr].split("\n")
                     for ctr in range(len(mlcd_values)):
                         for ctr2 in range(len(mlcd_values)):
-                            if attrs[i+ctr+1].strip() == mlcd_values[ctr2].strip():
+                            if attrs[i + ctr + 1].strip() == mlcd_values[ctr2].strip():
                                 # found it, comment it
-                                attrs[i+ctr+1] = '#mlcd  %s' % attrs[i+ctr+1]
+                                attrs[i + ctr + 1] = "#mlcd  %s" % attrs[i + ctr + 1]
                                 break
-    
+
     # we commented mlcd attrs in a way that they are easy to identify
-    # not strictly necessarry to do this step but 
+    # not strictly necessarry to do this step but
     # frontend.condor_config looks ugly if this  is not done
     for attr in reversed(attrs):
         if "#mlcd" in attr:
