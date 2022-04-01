@@ -159,7 +159,7 @@ def parse_configs_for_multis(conf_list):
 # Create frontend-specific condor_config
 def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, classad_proxy):
     config_files = condorExe.exe_cmd("condor_config_val", "-config")
-    # TODO: change once condor_config_val -dump is fixed. 
+    # TODO: change once condor_config_val -dump is fixed.
     # feeding [] into parse_configs_for_multis() or
     # setting multi_line_config_dict to {} in filter_unwanted_cofig_attrs()
     # would give desired behavior
