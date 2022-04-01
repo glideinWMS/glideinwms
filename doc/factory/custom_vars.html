@@ -2127,6 +2127,11 @@ MAX_STARTD_LOG          I       10000000        +                               
           coming from SINGULARITY_IMAGES_DICT or specified in the job. The debug
           options are used if GLIDEIN_DEBUG_OUTPUT is set.
         </p>
+        <p>
+          GlideinWMS is compatible also with Apptainer. Internal variables still
+          use the "singularity" name but will set the proper environment
+          variables for both programs and look for both executables.
+        </p>
         <pre>
  singularity [-d -vvv] exec --home "$PWD":/srv --pwd /srv --ipc --pid --contain \
     $GLIDEIN_SINGULARITY_OPTS --bind "$singularity_binds"} \
@@ -2521,13 +2526,19 @@ MAX_STARTD_LOG          I       10000000        +                               
                 clearall - clear all from the environment unless other sets are
                 listed (clearing evrything may cause problems also w/ some
                 Glidein functionalities);<br />
+                condorset - preserves HTCondor variables (env variables starting
+                with _CONDOR_ and variables defined in the job ClassAd
+                (Environment)<br />
                 osgset - preserve the set of OSG variables (originally from OSG
                 wrapper);<br />
                 gwmsset - preserve the set of GWMS utilities variables;<br />
-                clear - same as: clearall,gwmsset,osgset;<br />
+                clear - same as: clearall,gwmsset,osgset,condorset;<br />
                 clearpaths - clear only PATH,LD_LIBRARY_PATH,PYTHONPATH
                 (default);<br />
-                keepall - clear no variable, incompatible w/ any clear... option
+                keepall - clear no variable, incompatible w/ any clear...
+                option<br />
+                condorset and osgset both imply also gwmsset. osgset implies
+                also condorset.
               </p>
             </td>
           </tr>
