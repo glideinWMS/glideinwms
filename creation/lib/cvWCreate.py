@@ -139,6 +139,10 @@ def parse_configs_for_multis(conf_list):
        these entries will be rendered into the frontend.condor_config with proper spacing and line returns
        unlike how they would be  rendered by  condor_config_val --dump
 
+       KNOWN PROBLEM: if condor config has two multi-line configs with same name and different
+       lines generated config file may be incorrect.  The condor config is probably incorrect
+       as well :)
+
     """
     multi = {}
     for conf in conf_list:
@@ -155,6 +159,10 @@ def parse_configs_for_multis(conf_list):
 # Create frontend-specific condor_config
 def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, classad_proxy):
     config_files = condorExe.exe_cmd("condor_config_val", "-config")
+    # TODO: change once condor_config_val -dump is fixed. 
+    # feeding [] into parse_configs_for_multis() or
+    # setting multi_line_config_dict to {} in filter_unwanted_cofig_attrs()
+    # would give desired behavior
     multi_line_conf_dict = parse_configs_for_multis(config_files)
     attrs = condorExe.exe_cmd("condor_config_val", "-dump ")
     def_attrs = filter_unwanted_config_attrs(attrs, multi_line_conf_dict)
