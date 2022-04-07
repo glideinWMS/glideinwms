@@ -109,11 +109,14 @@ Requires: glideinwms-glidecondor-tools = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
 Requires: glideinwms-vofrontend-libs
 Requires: glideinwms-vofrontend-glidein
-%if 0%{?rhel} >= 8
+# Added rrdtool to make sure that at least the client tools are there
+Requires: rrdtool
+# Recommends: python3-rrdtool - this would be ideal but is supported only in Fedora>=24 and not RHEL
+# Remove the line below for the OSG 3.5 build (no python3-rrdtool there)
 Requires: python3-rrdtool
+%if 0%{?rhel} >= 8
 Requires: python3-m2crypto
 %else
-Requires: python-rrdtool
 Requires: python36-m2crypto
 %endif
 Requires(post): /sbin/service
