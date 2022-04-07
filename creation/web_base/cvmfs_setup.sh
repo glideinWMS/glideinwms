@@ -77,7 +77,7 @@ fi
 # TODO: Verify the findmnt ... will always find the correct CVMFS mount
 mount_point=$(findmnt -t fuse -S /dev/fuse | tail -n 1 | cut -d ' ' -f 1 )
 if [[ -n "$mount_point" && "$mount_point" != TARGET* ]]; then
-    mount_point=$(basename "$mount_point")
+    mount_point=$(dirname "$mount_point")
     if [[ -n "$mount_point" && "$mount_point" != /cvmfs ]]; then
         CVMFS_MOUNT_DIR="$mount_point"
         export CVMFS_MOUNT_DIR
