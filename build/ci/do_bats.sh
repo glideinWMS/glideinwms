@@ -128,8 +128,9 @@ do_count_failures() {
             # TAP format
             fail="$(echo "$tmp_out" | grep -c "^not ok")"
         else
-            lline="$(echo "$tmp_out" | tail -n1)"
-            if [[ "$lline" = *failures* ]]; then
+            # Summary line like: 24 tests, 1 failure, 1 skipped (failure or failures depending on number)
+            lline="$(echo "$tmp_out" | tail -n2 | grep failure)"
+            if [[ -n "$lline" ]]; then
                 fail=$(echo "$lline" | cut -f3 -d' ')
             fi
         fi
