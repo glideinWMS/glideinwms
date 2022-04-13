@@ -1386,7 +1386,7 @@ singularity_locate_bin() {
     # 2. Look for 'singularity' and then 'apptainer' in the path suggested via $1 (SINGULARITY_BIN)
     #      (keywords: PATH -> go to step 3 - ie start w/ $PATH;
     #           OSG -> OSG location, and continue from step 3 if failed, this is the default)
-    # 3. Look in $PATH for 'singularity' and then 'apptainer'
+    # 3. Look in $PATH for 'apptainer' and then 'singularity'
     # 4. Invoke module singularitypro
     # 5. Invoke module singularity
     # 6. Look in the default OSG location
@@ -1462,13 +1462,13 @@ singularity_locate_bin() {
         fi
     fi
     if [[ "$HAS_SINGULARITY" != True ]]; then
-        # 3. Look in $PATH for singularity
-        # 4. Look in $PATH for apptainer
+        # 3. Look in $PATH for apptainer
+        # 4. Look in $PATH for singularity
         # 5. Invoke module singularitypro
         # 6. Invoke module singularity
         #    some sites requires us to do a module load first - not sure if we always want to do that
         # 7. Look in the default OSG location
-        for attempt in "PATH,singularity" "PATH,apptainer" "module,singularitypro" "module,singularity" "OSG,${osg_singularity_binary}"; do
+        for attempt in "PATH,apptainer" "PATH,singularity" "module,singularitypro" "module,singularity" "OSG,${osg_singularity_binary}"; do
             if test_out=$(singularity_test_bin "$attempt" "$s_image"); then
                 HAS_SINGULARITY=True
                 break
