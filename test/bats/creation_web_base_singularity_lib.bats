@@ -510,7 +510,7 @@ mock_singularity_test_bin() {
     run  singularity_locate_bin_wrapped "ppp" "/path/to/image"
     echo "part 3: $output" >&3
     #[ "$output" = "SLB: 0, True, mock_OSG, $OSG_SINGULARITY_BINARY_DEFAULT, 1" ]
-    [ "$output" = "SLB: 0, True, mock_PATH, singularity, 1" ]
+    [ "$output" = "SLB: 0, True, mock_PATH, apptainer, 1" ]
     OSG_SINGULARITY_BINARY=$tmp_singularity_bin
     # default
     run  singularity_locate_bin_wrapped "" "/path/to/image"
@@ -519,7 +519,7 @@ mock_singularity_test_bin() {
     # keyword PATH
     run  singularity_locate_bin_wrapped "PATH" "/path/to/image"
     echo "part 5: $output" >&3
-    [ "$output" = "SLB: 0, True, mock_PATH, singularity, 1" ]
+    [ "$output" = "SLB: 0, True, mock_PATH, apptainer, 1" ]
     # keyword OSG
     run  singularity_locate_bin_wrapped "OSG" "/path/to/image"
     echo "part 6: $output" >&3
@@ -532,7 +532,7 @@ mock_singularity_test_bin() {
     if [ -e "$OSG_SINGULARITY_BINARY_DEFAULT" ]; then
         [ "$output" = "SLB: 0, True, mock_s_bin_OSG, $OSG_SINGULARITY_BINARY_DEFAULT, 1" ]
     else
-        [ "$output" = "SLB: 0, True, mock_PATH, singularity, 1" ]
+        [ "$output" = "SLB: 0, True, mock_PATH, apptainer, 1" ]
     fi
     mock_singularity_test_bin_control=false  # all fail
     run  singularity_locate_bin_wrapped "" "/path/to/image"
@@ -546,7 +546,7 @@ mock_singularity_test_bin() {
     mock_singularity_test_bin_control=PATH  # only PATH successful
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 9: $output" >&3
-    [ "$output" = "SLB: 0, True, mock_PATH, singularity, 2" ]
+    [ "$output" = "SLB: 0, True, mock_PATH, apptainer, 2" ]
     mock_singularity_test_bin_control=module  # only module successful
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 10: $output" >&3
