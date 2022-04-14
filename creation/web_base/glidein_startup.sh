@@ -1026,7 +1026,8 @@ set_proxy_fullpath() {
 
 [ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
 
-for tk in $(pwd)/*idtoken; do
+for tk in $(pwd)/credential_*.idtoken; do
+  echo "Setting GLIDEIN_CONDOR_TOKEN to ${tk} " 1>&2
   export GLIDEIN_CONDOR_TOKEN="${tk}"
   if fullpath="$(readlink -f $tk)"; then
      echo "Setting GLIDEIN_CONDOR_TOKEN $tk to canonical path ${fullpath}" 1>&2
@@ -1035,7 +1036,7 @@ for tk in $(pwd)/*idtoken; do
      echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN $tk" 1>&2
   fi
 done
-
+[ ! -f "${GLIDEIN_CONDOR_TOKEN}" ] && echo "problem setting GLIDEIN_CONDOR_TOKEN" 1>&2
 
 
 ########################################
@@ -1165,6 +1166,13 @@ fi
 # Move the token files from condor to glidein workspace
 mv "${start_dir}/tokens.tgz" .
 mv "${start_dir}/url_dirs.desc" .
+for idtk in ${start_dir}/*.idtoken; do
+   if cp "${idtk}" . ; then
+       echo "copied idtoken ${idtk} to $(pwd)"
+   else
+       echo "failed to copy idtoken  ${idtk} to $(pwd)" 1>&2
+   fi
+done
 #if [ -e "${GLIDEIN_CONDOR_TOKEN}" ]; then
 #    mkdir -p ticket
 #    tname="$(basename ${GLIDEIN_CONDOR_TOKEN})"
