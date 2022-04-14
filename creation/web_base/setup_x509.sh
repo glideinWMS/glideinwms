@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # (shebang added only for shellcheck purposes)
 # Project:
 #   glideinWMS
@@ -196,24 +200,30 @@ copy_x509_proxy() {
     return 0
 }
 
+
 config_idtoken() {
     #
-    if [ -e "$GLIDEIN_CONDOR_TOKEN" ]; then
-        export GLIDEIN_CONDOR_TOKEN_ORIG="$GLIDEIN_CONDOR_TOKEN"
-        idtoken=$(basename $GLIDEIN_CONDOR_TOKEN)
-        local_proxy_dir=$(pwd)/ticket
-        mkdir -p $local_proxy_dir
-        cp $GLIDEIN_CONDOR_TOKEN_ORIG $local_proxy_dir/$idtoken
-        export GLIDEIN_CONDOR_TOKEN=$local_proxy_dir/$idtoken
-        echo "glidein IDTOKEN set to $GLIDEIN_CONDOR_TOKEN"
-        if [ ! -e "$GLIDEIN_CONDOR_TOKEN" ]; then
-            "$error_gen" -error "setup_x509.sh" "Corruption" "IDTOKEN" "$GLIDEIN_CONDOR_TOKEN" "not_copied"
+    if [ -e "${GLIDEIN_CONDOR_TOKEN}" ]; then
+        export GLIDEIN_CONDOR_TOKEN_ORIG="${GLIDEIN_CONDOR_TOKEN}"
+        idtoken="$(basename "${GLIDEIN_CONDOR_TOKEN}")"
+        cred_base="$(dirname "${GLIDEIN_CONDOR_TOKEN}")"
+        local_proxy_dir="$(pwd)/ticket"
+        mkdir -p "${local_proxy_dir}"
+        for TOK in ${cred_base}/*.idtoken; do
+           cp "${TOK}"  "${local_proxy_dir}"
+           echo "copied ${TOK} to ${local_proxy_dir}"
+        done
+        cp "${GLIDEIN_CONDOR_TOKEN_ORIG}" "${local_proxy_dir}/${idtoken}"
+        export GLIDEIN_CONDOR_TOKEN="${local_proxy_dir}/${idtoken}"
+        echo "glidein IDTOKEN set to ${GLIDEIN_CONDOR_TOKEN}"
+        if [ ! -e "${GLIDEIN_CONDOR_TOKEN}" ]; then
+            "$error_gen" -error "setup_x509.sh" "Corruption" "IDTOKEN" "${GLIDEIN_CONDOR_TOKEN}" "not_copied"
         fi
-        head_node="$(grep '^GLIDEIN_Collector ' "$glidein_config" | cut -d ' ' -f 2- )"
-        if [ -z "$head_node" ]; then
-            head_node="$(grep '^CCB_ADDRESS ' "$glidein_config" | cut -d ' ' -f 2- )"
+        head_node="$(grep '^GLIDEIN_Collector ' "${glidein_config}" | cut -d ' ' -f 2- )"
+        if [ -z "${head_node}" ]; then
+            head_node="$(grep '^CCB_ADDRESS ' "${glidein_config}" | cut -d ' ' -f 2- )"
         fi
-        TRUST_DOMAIN="$(echo "$head_node" | sed -e 's/?.*//' -e 's/-.*//' )"
+        TRUST_DOMAIN="$(echo "${head_node}" | sed -e 's/?.*//' -e 's/-.*//' )"
         export TRUST_DOMAIN
     fi
     return 0
@@ -225,7 +235,7 @@ openssl_get_x509_timeleft() {
         return 1
     fi
     cert_pathname=$1
-    output=$(openssl x509 -noout -subject -dates -in $cert_pathname 2>/dev/null)
+    output=$(openssl x509 -noout -dates -in $cert_pathname 2>/dev/null)
     [ $? -eq 0 ] || return 1
 
     start_date=$(echo $output | sed 's/.*notBefore=\(.*\).*not.*/\1/g')
