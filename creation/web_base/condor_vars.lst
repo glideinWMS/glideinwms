@@ -19,6 +19,9 @@ SINGULARITY_IMAGE_RESTRICTIONS          S   cvmfs   +   N   Y   -
 GLIDEIN_SINGULARITY_OPTS                S   -   +   N   Y   -
 SINGULARITY_MODE                        S   -   +   N   Y   -
 SINGULARITY_VERSION                     S   -   +   N   Y   -
+CONTAINERSW_MODE                        S   -   +   N   Y   -
+CONTAINERSW_VERSION                     S   -   +   N   Y   -
+CONTAINERSW_FULL_VERSION                S   -   +   N   Y   -
 GLIDEIN_REQUIRED_OS         S   any             +   N   Y   -
 REQUIRED_OS                 S   any             +   N   Y   -
 GLIDEIN_DEBUG_OUTPUT        S   -               +   N   Y   -

@@ -1504,6 +1504,10 @@ singularity_locate_bin() {
     export GWMS_SINGULARITY_PATH=""
     export GWMS_SINGULARITY_VERSION=""
     export GWMS_SINGULARITY_MODE=""
+    export GWMS_CONTAINERSW_PATH=""
+    export GWMS_CONTAINERSW_VERSION=""
+    export GWMS_CONTAINERSW_FULL_VERSION=""
+    export GWMS_CONTAINERSW_MODE=""
     warn "Singularity not found$s_location_msg in OSG_SINGULARITY_BINARY[_DEFAULT], PATH and module"
     info_dbg "PATH(${PATH}), attempt results(${bread_crumbs})"
     false
@@ -2006,12 +2010,12 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
 
 
 setup_from_environment() {
-    # Retrieve variables from Machine and Job ClassAds
-    # Retrieve variables from Machine and Job ClassAds
+    # Retrieve variables from the environment and glidein_config file
     # Set up environment to know if Singularity is enabled and so we can execute Singularity
     # Out:
     #  export all of HAS_SINGULARITY, GWMS_SINGULARITY_STATUS, GWMS_SINGULARITY_PATH, GWMS_SINGULARITY_VERSION, GWMS_SINGULARITY_IMAGES_DICT,
     #    GLIDEIN_REQUIRED_OS, GLIDEIN_DEBUG_OUTPUT, REQUIRED_OS, GWMS_SINGULARITY_IMAGE, CVMFS_REPOS_LIST,
+    #    GWMS_CONTAINERSW_PATH, GWMS_CONTAINERSW_VERSION, GWMS_CONTAINERSW_FULL_VERSION,
     #    GLIDEIN_DEBUG_OUTPUT (if not already set)
 
     # For OSG - from Job ClassAd
@@ -2023,6 +2027,9 @@ setup_from_environment() {
     export GWMS_SINGULARITY_STATUS=${GWMS_SINGULARITY_STATUS:-$(gwms_from_config GWMS_SINGULARITY_STATUS "" get_prop_str)}
     export GWMS_SINGULARITY_PATH=${GWMS_SINGULARITY_PATH:-$(gwms_from_config SINGULARITY_PATH)}
     export GWMS_SINGULARITY_VERSION=${GWMS_SINGULARITY_VERSION:-$(gwms_from_config SINGULARITY_VERSION)}
+    export GWMS_CONTAINERSW_PATH=${GWMS_CONTAINERSW_PATH:-$(gwms_from_config CONTAINERSW_PATH)}
+    export GWMS_CONTAINERSW_VERSION=${GWMS_CONTAINERSW_VERSION:-$(gwms_from_config CONTAINERSW_VERSION)}
+    export GWMS_CONTAINERSW_FULL_VERSION=${GWMS_CONTAINERSW_FULL_VERSION:-$(gwms_from_config CONTAINERSW_FULL_VERSION)}
     # Removed old GWMS_SINGULARITY_IMAGE_DEFAULT6 GWMS_SINGULARITY_IMAGE_DEFAULT7, now in _DICT
     # TODO: send also the image used during test in setup? in case the VO does not care
     # export GWMS_SINGULARITY_IMAGE_DEFAULT=$(get_prop_str $_CONDOR_MACHINE_AD SINGULARITY_IMAGE_DEFAULT)
@@ -2106,6 +2113,9 @@ setup_classad_variables() {
     export GWMS_SINGULARITY_STATUS=$(get_prop_str ${_CONDOR_MACHINE_AD} GWMS_SINGULARITY_STATUS)
     export GWMS_SINGULARITY_PATH=$(get_prop_str ${_CONDOR_MACHINE_AD} SINGULARITY_PATH)
     export GWMS_SINGULARITY_VERSION=$(get_prop_str ${_CONDOR_MACHINE_AD} SINGULARITY_VERSION)
+    export GWMS_CONTAINERSW_PATH=$(get_prop_str ${_CONDOR_MACHINE_AD} CONTAINERSW_PATH)
+    export GWMS_CONTAINERSW_VERSION=$(get_prop_str ${_CONDOR_MACHINE_AD} CONTAINERSW_VERSION)
+    export GWMS_CONTAINERSW_FULL_VERSION=$(get_prop_str ${_CONDOR_MACHINE_AD} CONTAINERSW_FULL_VERSION)
     # Removed old GWMS_SINGULARITY_IMAGE_DEFAULT6 GWMS_SINGULARITY_IMAGE_DEFAULT7, now in _DICT
     # TODO: send also the image used during test in setup? in case the VO does not care
     # export GWMS_SINGULARITY_IMAGE_DEFAULT=$(get_prop_str $_CONDOR_MACHINE_AD SINGULARITY_IMAGE_DEFAULT)

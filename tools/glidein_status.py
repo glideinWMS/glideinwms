@@ -32,6 +32,7 @@ def help():
     print(" -gatekeeper   : Print out the glidein gatekeeper")
     print(" -glidecluster : Print out the glidein cluster nr")
     print(" -singularity  : Print out if singularity is used and its mode (if available)")
+    print(" -container    : Print out if a container sw is used and its mode (if available). Implies -singularity")
     print(" -withmonitor  : Print out the monitoring VMs, too")
     print(" -bench        : Print out the benchmarking numbers, too")
     print(" -total        : Print out only the totals (skip details)")
@@ -125,6 +126,14 @@ def get_opts():
         default=False,
     )
     parser.add_argument(
+        "-container",
+        "--container",
+        dest="want_container",
+        help="Print out if a container software is used",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
         "-withmonitor",
         "--with-monitor",
         dest="want_monitor",
@@ -175,6 +184,7 @@ def main():
     want_monitor = opts.want_monitor
     want_bench = opts.want_bench
     want_singularity = opts.want_singularity
+    want_container = opts.want_container
     total_only = opts.total_only
     summarize = "entry"
     if opts.summarize_site:
@@ -185,6 +195,8 @@ def main():
             constraint = "IS_MONITOR_VM =!= TRUE"
         else:
             constraint = "(%s) && (IS_MONITOR_VM =!= TRUE)" % constraint
+    if want_container:
+        want_singularity = want_container
 
     format_list = [
         ("Machine", "s"),
@@ -225,6 +237,10 @@ def main():
         format_list.append(("GWMS_SINGULARITY_STATUS", "s"))
         attrs.append("HAS_SINGULARITY")
         attrs.append("GWMS_SINGULARITY_STATUS")
+
+    if want_container:
+        format_list.append(("GWMS_CONTAINERSW_FULL_VERSION", "s"))
+        attrs.append("GWMS_CONTAINERSW_FULL_VERSION")
 
     if want_bench:
         format_list.append(("KFlops", "i"))

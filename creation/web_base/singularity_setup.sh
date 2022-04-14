@@ -296,8 +296,18 @@ advertise SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
 advertise GWMS_SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
 advertise SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
 advertise GWMS_SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
+advertise SINGULARITY_FULL_VERSION "$GWMS_CONTAINERSW_FULL_VERSION" "S"
+#advertise GWMS_SINGULARITY_FULL_VERSION "$GWMS_CONTAINERSW_FULL_VERSION" "S"
 advertise SINGULARITY_MODE "$GWMS_SINGULARITY_MODE" "S"
 advertise GWMS_SINGULARITY_MODE "$GWMS_SINGULARITY_MODE" "S"
+advertise CONTAINERSW_PATH "$GWMS_CONTAINERSW_PATH" "S"
+advertise GWMS_CONTAINERSW_PATH "$GWMS_CONTAINERSW_PATH" "S"
+advertise CONTAINERSW_VERSION "$GWMS_CONTAINERSW_VERSION" "S"
+advertise GWMS_CONTAINERSW_VERSION "$GWMS_CONTAINERSW_VERSION" "S"
+advertise CONTAINERSW_FULL_VERSION "$GWMS_CONTAINERSW_FULL_VERSION" "S"
+advertise GWMS_CONTAINERSW_FULL_VERSION "$GWMS_CONTAINERSW_FULL_VERSION" "S"
+advertise CONTAINERSW_MODE "$GWMS_CONTAINERSW_MODE" "S"
+advertise GWMS_CONTAINERSW_MODE "$GWMS_CONTAINERSW_MODE" "S"
 # The dict has changed after singularity_get_image to include values from legacy variables
 advertise SINGULARITY_IMAGES_DICT "$SINGULARITY_IMAGES_DICT" "S"
 # TODO: advertise also GWMS_SINGULARITY_IMAGE ?
@@ -307,6 +317,8 @@ if [[ -n "$GLIDEIN_DEBUG_OUTPUT" ]]; then
     advertise GLIDEIN_DEBUG_OUTPUT "$GLIDEIN_DEBUG_OUTPUT" "S"
 fi
 glidein_provides="$(grep '^GLIDEIN_PROVIDES ' "$glidein_config" | cut -d ' ' -f 2-)"
+# TODO: Add CONTAINERSW, GWMS_CONTAINERSW_MODE once discovery, negotiation and use are defined
+#       maybe "containersw/NAME/MODE" define use of GLIDEIN_PROVIDES. should move to dictionaries?
 advertise GLIDEIN_PROVIDES "${glidein_provides:+"$glidein_provides,"}singularity/$GWMS_SINGULARITY_MODE" "S"
 info_stdout "`date` Decided to use Singularity ($gwms_singularity_status)"
 
