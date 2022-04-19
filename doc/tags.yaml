@@ -4,8 +4,10 @@
 ---
 # GlideinWMS release notes ordered by release version
 # YAML format used to generate tags.txt and history.html, starting w/ GlideinWMS v3.6
-# Each release is a list with features (strings), Bug fixes (Bug fix: dictionary containing ine string) and NOTES
-# (NOTE: dictionaries containing one string)
+# Each release is a dictionary following the template here below (defaults can be omitted).
+# There are some attributes, list with features (Feature: list of strings), Bug fixes (Bug fix: list of string)
+# and NOTES (NOTE, NOTE-FACTORY, NOTE-FRONTEND: all lists of string)
+# New releases are appended at the bottom (anyway the order is not important)
 
 # Special version names:
 # default
