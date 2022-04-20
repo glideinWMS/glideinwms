@@ -19,11 +19,6 @@ CVMFS_SOURCES=osg:egi:default
 SUPPORTED_TYPES=rhel7-x86_64:rhel8-x86_64:suse15-x86_64
 factory_config_file="/etc/gwms-factory/glideinWMS.xml"
 
-sys_tmp=$(echo $TMPDIR)
-if [[ -z "$sys_tmp" ]]; then
-    sys_tmp=/tmp
-fi
-
 # first, checking in the work-dir location for the current version of cvmfsexec
 work_dir=$(grep -m 1 "submit" "$factory_config_file" | sed 's/.*base_dir="\([^"]*\)".*/\1/')
 # protect aginst non-existence of cvmfsexec directory; fresh install of GWMS with first run of factory upgrade
@@ -35,9 +30,9 @@ if [[ -d "$work_dir/cvmfsexec" && -d "$work_dir/cvmfsexec/tarballs" ]]; then
     fi
 else
     # if the cvmfsexec directory does not exist
-    mkdir -p $work_dir/cvmfsexec
+    mkdir -p "$work_dir/cvmfsexec"
     # create a directory named tarballs under cvmfsexec directory
-    cvmfsexec_tarballs=$(mkdir -p $work_dir/cvmfsexec/tarballs -v | awk -F" " '{print $4}' | sed 's/^.//; s/.$//' )
+    cvmfsexec_tarballs=$(mkdir -p "$work_dir/cvmfsexec/tarballs" -v | awk -F" " '{print $4}' | sed 's/^.//; s/.$//' )
     chmod 755 $cvmfsexec_tarballs
 fi
 
