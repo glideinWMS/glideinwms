@@ -292,9 +292,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             distros = [
                 d for d in os.listdir(distros_loc) if d.startswith("cvmfsexec")
             ]  # added protection with try-except here
-        except FileNotFoundError:
+        except IOError as fe:
             print("%s does not exist." % distros_loc)
-        except NotADirectoryError:
+        except IOError as de:
             print("%s is not a directory." % distros_loc)
         if len(distros) == 0:
             print("Distributions for cvmfsexec not found... Skipping tarball creation.")
@@ -312,7 +312,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 # register the tarball, but make download conditional to cond_name
                 cvmfsexec_fname = cWConsts.insert_timestr(cgWConsts.CVMFSEXEC_DISTRO_FILE % cvmfsexec_idx)
 
-                platform = f"{distro_info[1]}-{distro_info[2]}-{distro_arch}"
+                platform = "%s-%s-%s" % (distro_info[1], distro_info[2], distro_arch)
                 cvmfsexec_cond_name = "CVMFSEXEC_PLATFORM_%s" % platform
                 cvmfsexec_platform_fname = cgWConsts.CVMFSEXEC_DISTRO_FILE % platform
 
