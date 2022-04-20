@@ -29,29 +29,6 @@
 #LOGFILE="cvmfs_all.log"
 #exec &> $LOGFILE
 
-# fetch the error reporting helper script
-#error_gen=$(grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}')
-#echo "ERROR_GEN = $error_gen"
-
-# get the directory where cvmfsexec is unpacked
-#glidein_cvmfsexec_dir=$(grep '^CVMFSEXEC_DIR ' $glidein_config | awk '{print $2}')
-#echo "GLIDEIN_CVMFSEXEC_DIR = $glidein_cvmfsexec_dir"
-
-# get the CVMFS requirement setting passed as one of the factory attributes
-#glidein_cvmfs=$(grep '^GLIDEIN_CVMFS ' $glidein_config | awk '{print $2}')
-# make the attribute value case insensitive
-#glidein_cvmfs=${glidein_cvmfs,,}
-# Alt this will work on older bash (like on Mac:
-# glidein_cvmfs=$(echo ${glidein_cvmfs} | tr [A-Z] [a-z])
-#echo "GLIDEIN_CVMFS = $glidein_cvmfs"
-
-# get the CVMFS source information from the factory attributes
-#cvmfs_source=$(grep '^CVMFS_SRC ' $glidein_config | awk '{print $2}')
-# make the attribute value case insensitive
-#cvmfs_source=${cvmfs_source,,}
-#echo "CVMFS_SOURCE = $cvmfs_source"
-
-
 variables_reset() {
 	# DESCRIPTION: This function lists and initializes the common variables
 	# to empty strings. These variables also become available to scripts
@@ -261,8 +238,6 @@ mount_cvmfs_repos () {
 	#	echo "executing inside"
 	#fi
 
-	#$cvmfs_utils_dir/mycvmfsexec $1 -- echo "setting up mount utilities..." &> /dev/null
-	#echo "glidein_cvmfsexec_dir set to $glidein_cvmfsexec_dir"
 	$glidein_cvmfsexec_dir/$dist_file $1 -- echo "setting up mount utilities..." &> /dev/null
 	if [[ $(df -h|grep /cvmfs|wc -l) -eq 1 ]]; then
 		loginfo "CVMFS config repo already mounted!"
@@ -271,7 +246,6 @@ mount_cvmfs_repos () {
 		# mounting the configuration repo (pre-requisite)
 		loginfo "Mounting CVMFS config repo now..."
 		$glidein_cvmfsexec_dir/.cvmfsexec/mountrepo $1
-		#.cvmfsexec/mountrepo $1
 	fi
 
 	# using an array to unpack the names of additional CVMFS repositories
@@ -285,14 +259,12 @@ mount_cvmfs_repos () {
 	for repo in "${repos[@]}"
 	do
 		$glidein_cvmfsexec_dir/.cvmfsexec/mountrepo $repo
-	#	.cvmfsexec/mountrepo $repo
 	done
 
 	# see if all the repositories got mounted
 	num_repos_mntd=`df -h | grep /cvmfs | wc -l`
 	total_num_repos=$(( ${#repos[@]} + 1 ))
 	if [ "$num_repos_mntd" -eq "$total_num_repos" ]; then
-	#if [ "$num_repos_mntd" -eq 2 ]; then
 		loginfo "All CVMFS repositories mounted successfully on the worker node"
 		true
 	else
@@ -467,7 +439,6 @@ perform_cvmfs_mount () {
         # print/display all information pertaining to system checks performed previously (facilitates easy troubleshooting)
         log_all_system_info
 
-        #cvmfs_source=osg
         loginfo "CVMFS Source = $cvmfs_source"
         # initializing CVMFS repositories to a variable for easy modification in the future
         case $cvmfs_source in
