@@ -32,17 +32,18 @@ if [[ -d $cvmfsexec_temp ]]; then
         latest_ver=`$cvmfsexec_latest/cvmfsexec -v`
         if [[ $curr_ver != $latest_ver ]]; then
             # if current version and latest version are different, use the latest
+            echo "Current version of cvmfsexec: $curr_ver"
             echo "Found newer version of cvmfsexec..."
             rm -rf $cvmfsexec_base
             mv $cvmfsexec_latest $cvmfsexec_base
-            echo "Current version of cvmfsexec: $curr_ver"
             echo "Latest version of cvmfsexec: `$cvmfsexec_base/cvmfsexec -v`"
             echo "Using cvmfsexec version: `$cvmfsexec_base/cvmfsexec -v`"
         else
             # if current version and latest version are the same
-            echo "Current version and latest version are identical!"
+            echo "Current version and latest version of cvmfsexec are identical!"
             echo "cvmfsexec version: `$cvmfsexec_base/cvmfsexec -v`"
             rm -rf $cvmfsexec_latest
+            exit 0
         fi
     else
         # $cvmfsexec_base does not exist
@@ -82,7 +83,6 @@ do
            $cvmfsexec_base/makedist -o $cvmfsexec_distros/cvmfsexec-${cvmfs_src}-${os}-${arch} &> /dev/null
            if [[ -e $cvmfsexec_distros/cvmfsexec-${cvmfs_src}-${os}-${arch} ]]; then
                echo " Success"
-               #echo ""
                tar -cvzf $cvmfsexec_tarballs/cvmfsexec_${cvmfs_src}_${os}_${arch}.tar.gz -C $cvmfsexec_distros cvmfsexec-${cvmfs_src}-${os}-${arch} &> /dev/null
            fi
         else
@@ -92,9 +92,6 @@ do
         # delete the dist directory within cvmfsexec to download the cvmfs configuration
         # and repositories for another machine type
         rm -rf $cvmfsexec_base/dist
-        #echo ""
-        #echo ""
-        #echo ""
     done
 done
 
