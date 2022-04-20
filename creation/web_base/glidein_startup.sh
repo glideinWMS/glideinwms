@@ -1043,15 +1043,15 @@ done
 if [ ! -f "${GLIDEIN_CONDOR_TOKEN}" ] ; then
     token_err_msg="problem setting GLIDEIN_CONDOR_TOKEN"
     token_err_msg="${token_err_msg} will attempt to recover, but condor IDTOKEN auth may fail"
-    echo "${token_err_msg}" 
+    echo "${token_err_msg}"
     echo "${token_err_msg}" 1>&2
 fi
 if [ ! "${num_gct}" -eq  1 ] ; then
     token_err_msg="WARNING  GLIDEIN_CONDOR_TOKEN set ${num_gct} times, should be 1 !"
     token_err_msg="${token_err_msg} condor IDTOKEN auth may fail"
-    echo "${token_err_msg}" 
+    echo "${token_err_msg}"
     echo "${token_err_msg}" 1>&2
-fi 
+fi
 
 ########################################
 # prepare and move to the work directory

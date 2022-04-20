@@ -212,7 +212,7 @@ config_idtoken() {
     mkdir -p "${local_proxy_dir}"
     cred_base="$(dirname "${GLIDEIN_CONDOR_TOKEN}")"
 
-    for search_dir  in "${cred_base}" "${GLIDEIN_START_DIR_ORIG}" "${GLIDEIN_WORKSPACE_ORIG}"; do 
+    for search_dir  in "${cred_base}" "${GLIDEIN_START_DIR_ORIG}" "${GLIDEIN_WORKSPACE_ORIG}"; do
         for tok in "${search_dir}"/*.idtoken; do
            cp "${tok}"  "${local_proxy_dir}"
            num_tokens=$(( num_tokens + 1 ))
@@ -229,7 +229,7 @@ config_idtoken() {
         fi
     done
 
-    
+
     if [ "${num_tokens}" -lt 1 ]; then
         "$error_gen" -error "setup_x509.sh" "Corruption" "IDTOKEN" "no idtokens found or copied"
     fi
@@ -351,18 +351,18 @@ refresh_proxy() {
 
     #TODO all the token updating stuff
     # assuming condor will eventually copy in updated tokens like it does proxies now
-    
+
     if [ -n "${GLIDEIN_CONDOR_TOKEN_ORIG}" ]; then
        GLIDEIN_CONDOR_TOKEN="$(grep '^GLIDEIN_CONDOR_TOKEN ' "$glidein_config" | cut -d ' ' -f 2-)"
        local orig cred_dir
        orig="$(dirname "${GLIDEIN_CONDOR_TOKEN_ORIG}")"
        cred_dir="$(dirname "${GLIDEIN_CONDOR_TOKEN}")"
        for tok in "${orig}"/*idtoken; do
-            cp "${tok}" "${cred_dir}" 
+            cp "${tok}" "${cred_dir}"
             REFRESHED="True"
        done
     fi
-    
+
     if [ -z "$REFRESHED" ]; then
        return 1
     fi
