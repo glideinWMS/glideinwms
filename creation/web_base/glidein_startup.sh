@@ -1026,18 +1026,33 @@ set_proxy_fullpath() {
 
 [ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
 
-for tk in $(pwd)/credential_*.idtoken; do
+local num_gct token_err_msg
+num_gct=0
+
+for tk in "$(pwd)/credential_"*".idtoken"; do
   echo "Setting GLIDEIN_CONDOR_TOKEN to ${tk} " 1>&2
+  num_gct=$(( num_gct + 1 ))
   export GLIDEIN_CONDOR_TOKEN="${tk}"
-  if fullpath="$(readlink -f $tk)"; then
-     echo "Setting GLIDEIN_CONDOR_TOKEN $tk to canonical path ${fullpath}" 1>&2
+  fullpath="$(readlink -f "${tk}" )"
+  if [ $? -eq 0 ]; then
+     echo "Setting GLIDEIN_CONDOR_TOKEN ${tk} to canonical path ${fullpath}" 1>&2
      export GLIDEIN_CONDOR_TOKEN="${fullpath}"
   else
-     echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN $tk" 1>&2
+     echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN ${tk}" 1>&2
   fi
 done
-[ ! -f "${GLIDEIN_CONDOR_TOKEN}" ] && echo "problem setting GLIDEIN_CONDOR_TOKEN" 1>&2
-
+if [ ! -f "${GLIDEIN_CONDOR_TOKEN}" ] ; then
+    token_err_msg="problem setting GLIDEIN_CONDOR_TOKEN"
+    token_err_msg="${token_err_msg} will attempt to recover, but condor IDTOKEN auth may fail"
+    echo "{token_err_msg}" 
+    echo "{token_err_msg}" 1>&2
+fi
+if [ ! "${num_gct}" -eq  1 ] ; then
+    token_err_msg="WARNING  GLIDEIN_CONDOR_TOKEN set ${num_gct} times, should be 1 !"
+    token_err_msg="${token_err_msg} condor IDTOKEN auth may fail"
+    echo "{token_err_msg}" 
+    echo "{token_err_msg}" 1>&2
+fi 
 
 ########################################
 # prepare and move to the work directory
@@ -1212,6 +1227,8 @@ if ! {
     echo "CONDORG_SCHEDD ${condorg_schedd}"
     echo "DEBUG_MODE ${set_debug}"
     echo "GLIDEIN_STARTUP_PID $$"
+    echo "GLIDEIN_START_DIR_ORIG  ${start_dir}"
+    echo "GLIDEIN_WORKSPACE_ORIG  $(pwd)"
     echo "GLIDEIN_WORK_DIR ${main_dir}"
     echo "GLIDEIN_ENTRY_WORK_DIR ${entry_dir}"
     echo "TMP_DIR ${glide_tmp_dir}"
@@ -1460,10 +1477,10 @@ fetch_file_try() {
         # TODO: what if fft_get_ss is not 1? nothing, still skip the file?
     fi
 
-    local fft_base_name=$(basename "${fft_real_fname}")
+    local fft_base_name fft_condition_attr fft_condition_attr_val
+    fft_base_name=$(basename "${fft_real_fname}")
     if [[ "${fft_base_name}" = gconditional_* ]]; then
-        local fft_condition_attr_val
-        local fft_condition_attr="${fft_base_name#gconditional_}"
+        fft_condition_attr="${fft_base_name#gconditional_}"
         fft_condition_attr="GLIDEIN_USE_${fft_condition_attr%%_*}"
         fft_condition_attr_val=$(grep -i "^${fft_condition_attr} " glidein_config | cut -d ' ' -f 2-)
         # if the variable fft_condition_attr is not defined or empty, do not download
