@@ -266,18 +266,17 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['untar_cfg'].add(pychirp_tarball, "lib/python/htchirp")
 
         # Add cvmfsexec
-        cvmfsexec_utils = "cvmfs_utils.tar.gz"
+        # Add cvmfsexec helper script enabled by conditional download
+        cvmfs_helper = "cvmfs_helper_funcs.sh"
         self.dicts["file_list"].add_from_file(
-            cvmfsexec_utils,
+            cvmfs_helper,
             cWDictFile.FileDictFile.make_val_tuple(
-                cWConsts.insert_timestr(cvmfsexec_utils), "untar", cond_download="GLIDEIN_USE_CVMFSEXEC"
+                cWConsts.insert_timestr(cvmfs_helper), "exec", cond_download="GLIDEIN_USE_CVMFSEXEC"
             ),
-            os.path.join(cgWConsts.WEB_BASE_DIR, cvmfsexec_utils),
+            os.path.join(cgWConsts.WEB_BASE_DIR, cvmfs_helper),
         )
-        self.dicts["untar_cfg"].add(cvmfsexec_utils, "cvmfs_utils")
 
-        # adding cvmfsexec distribution tarballs to the default list of uploads
-        # NOTE: the distribution tarballs are created during factory reconfig or upgrade
+        ### for dynamic selection of cvmfsexec distribution -- block start
         dist_select_script = "cvmfsexec_platform_select.sh"
         self.dicts["file_list"].add_from_file(
             dist_select_script,
@@ -285,16 +284,17 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             os.path.join(cgWConsts.WEB_BASE_DIR, dist_select_script),
         )
 
+        # TODO: update the following line to use the temporary location of the tarballs
+        # TODO: currently uses the 'cvmfsexec' dir inside creation/web-base
+        # TODO: the 'cvmfsexec' dir has all the tarballs created as a result of running 'generate_cvmfsexec_distros.sh'
         # get the location of the tarballs created during reconfig/upgrade
         distros_loc = os.path.join(self.work_dir, "cvmfsexec/tarballs")
-        # os.scandir() is more efficient with python 3.x
         distros = os.listdir(distros_loc)
         if len(distros) == 0:
-            print("distributions for cvmfsexec not found... Skipping tarball creation.")
+            print("Distributions for cvmfsexec not found... Skipping tarball creation.")
         else:
-            for cvmfsexec_idx in range(len(distros)):
+            for cvmfsexec_idx in range(len(distros)):  # TODO: os.scandir() is more efficient with python 3.x
                 distro_info = distros[cvmfsexec_idx].split("_")
-                print(distro_info)
                 distro_arch = (distro_info[3] + "_" + distro_info[4]).split(".")[0]
                 # register the tarball, but make download conditional to cond_name
                 cvmfsexec_fname = cWConsts.insert_timestr(cgWConsts.CVMFSEXEC_DISTRO_FILE % cvmfsexec_idx)
@@ -315,7 +315,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 # Add cond_name in the config, so that it is known
                 # But leave it disabled by default
                 self.dicts["consts"].add(cvmfsexec_cond_name, "0", allow_overwrite=False)
-        # end of "Add cvmfsexec" block
+        ### for dynamic selection of cvmfsexec distribution -- block end
 
         # make sure condor_startup does not get executed ahead of time under normal circumstances
         # but must be loaded early, as it also works as a reporting script in case of error
