@@ -286,18 +286,29 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             os.path.join(cgWConsts.WEB_BASE_DIR, dist_select_script),
         )
 
-        # TODO: update the following line to use the temporary location of the tarballs
-        # TODO: currently uses the 'cvmfsexec' dir inside creation/web-base
-        # TODO: the 'cvmfsexec' dir has all the tarballs created as a result of running 'generate_cvmfsexec_distros.sh'
         # get the location of the tarballs created during reconfig/upgrade
         distros_loc = os.path.join(self.work_dir, "cvmfsexec/tarballs")
-        distros = os.listdir(distros_loc)
+        try:
+            distros = [
+                d for d in os.listdir(distros_loc) if d.startswith("cvmfsexec")
+            ]  # added protection with try-except here
+        except FileNotFoundError:
+            print(f"{distros_loc} does not exist.")
+        except NotADirectoryError:
+            print(f"{distros_loc} is not a directory.")
         if len(distros) == 0:
             print("Distributions for cvmfsexec not found... Skipping tarball creation.")
         else:
             for cvmfsexec_idx in range(len(distros)):  # TODO: os.scandir() is more efficient with python 3.x
                 distro_info = distros[cvmfsexec_idx].split("_")
-                distro_arch = (distro_info[3] + "_" + distro_info[4]).split(".")[0]
+                try:
+                    distro_arch_temp = (
+                        distro_info[3] + "_" + distro_info[4]
+                    )  # added protection with try-except and continue if fail
+                except:
+                    print(f"Wrong subdirectory cvmfsexec/tarballs/{distro_info}")
+                    continue
+                distro_arch = distro_arch_temp.split(".")[0]
                 # register the tarball, but make download conditional to cond_name
                 cvmfsexec_fname = cWConsts.insert_timestr(cgWConsts.CVMFSEXEC_DISTRO_FILE % cvmfsexec_idx)
 
