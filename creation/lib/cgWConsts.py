@@ -25,6 +25,11 @@ CONDOR_ATTR = "CONDOR_DIR"
 
 CONDOR_STARTUP_FILE="condor_startup.sh"
 
+# constants for cvmfsexec
+CVMFSEXEC_DISTRO_FILE = "cvmfsexec_dist_%s.tgz"
+CVMFSEXEC_DIR = "cvmfsexec"
+CVMFSEXEC_ATTR = "CVMFSEXEC_DIR"
+
 
 # these are in the submit dir, so they can be changed
 PARAMS_FILE = "params.cfg"
