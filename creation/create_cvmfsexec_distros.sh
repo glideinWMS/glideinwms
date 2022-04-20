@@ -17,6 +17,7 @@ CVMFS_SOURCES=osg:egi:default
 # egi for rhel8-x86_64 results in an error - egi does not yet have a centos8 build (as confirmed with Dave)
 # TODO: verify the logic when egi provides a centos8 build
 SUPPORTED_TYPES=rhel7-x86_64:rhel8-x86_64:suse15-x86_64
+factory_config_file="/etc/gwms-factory/glideinWMS.xml"
 
 sys_tmp=$(echo $TMPDIR)
 if [[ -z "$sys_tmp" ]]; then
@@ -24,38 +25,45 @@ if [[ -z "$sys_tmp" ]]; then
 fi
 
 # first, checking in the work-dir location for the current version of cvmfsexec
-work_dir=$(grep -m 1 "submit" /etc/gwms-factory/glideinWMS.xml | awk -F"\"" '{print $6}')
-cvmfsexec_tarballs=$work_dir/cvmfsexec/tarballs
-if [[ -d $cvmfsexec_tarballs && -f "$cvmfsexec_tarballs/.cvmfsexec_version" ]]; then
-    curr_ver=$(cat $cvmfsexec_tarballs/.cvmfsexec_version)
-    echo "Current version found: $curr_ver"
+work_dir=$(grep -m 1 "submit" "$factory_config_file" | sed 's/.*base_dir="\([^"]*\)".*/\1/')
+# protect aginst non-existence of cvmfsexec directory; fresh install of GWMS with first run of factory upgrade
+if [[ -d "$work_dir/cvmfsexec" && -d "$work_dir/cvmfsexec/tarballs" ]]; then
+    cvmfsexec_tarballs=$work_dir/cvmfsexec/tarballs
+    if [[ -f "$cvmfsexec_tarballs/.cvmfsexec_version" ]]; then
+        curr_ver=$(cat "$cvmfsexec_tarballs"/.cvmfsexec_version)
+        echo "Current version found: $curr_ver"
+    fi
+else
+    # if the cvmfsexec directory does not exist
+    mkdir -p $work_dir/cvmfsexec
+    # create a directory named tarballs under cvmfsexec directory
+    cvmfsexec_tarballs=$(mkdir -p $work_dir/cvmfsexec/tarballs -v | awk -F" " '{print $4}' | sed 's/^.//; s/.$//' )
+    chmod 755 $cvmfsexec_tarballs
 fi
 
 # otherwise, .cvmfsexec_version file does not exist from a previous upgrade or it's a first-time factory upgrade
 # check if the temp directory for cvmfsexec from previous run exists
-ls -d $sys_tmp/cvmfsexec.*/ > /dev/null 2>&1
-if [[ $? -eq 0 ]]; then
-    # cvmfsexec.XXX (temp) directory exists; reuse this
-    cvmfsexec_temp=$(ls -d $sys_tmp/cvmfsexec.*/)
-    cvmfsexec_temp=${cvmfsexec_temp%?}   # removes the trailing '/' to avoid incorrect paths later
+if ls -d $work_dir/cvmfsexec/cvmfsexec.tmp > /dev/null 2>&1 ; then
+    # cvmfsexec temp directory exists; reuse this
+    cvmfsexec_temp=$(ls -d $work_dir/cvmfsexec/cvmfsexec.tmp)
 else
-    # cvmfsexec.XXX (temp) directory does not exist; so create one
-    cvmfsexec_temp=$(mktemp -d -t cvmfsexec.XXX)
-    chmod 755 $cvmfsexec_temp
+    # cvmfsexec temp directory does not exist; so create one
+    cvmfsexec_temp=$(mkdir -p $work_dir/cvmfsexec/cvmfsexec.tmp -v | awk -F" " '{print $4}' | sed 's/^.//; s/.$//' )  # remove the single quotes at the start and end of the string
+    chmod 755 "$cvmfsexec_temp"
 fi
 
-cvmfsexec_latest=$cvmfsexec_temp/latest
+cvmfsexec_latest="$cvmfsexec_temp"/latest
 CVMFSEXEC_REPO="https://www.github.com/cvmfs/cvmfsexec.git"
-git clone $CVMFSEXEC_REPO $cvmfsexec_latest &> /dev/null
-latest_ver=$($cvmfsexec_latest/cvmfsexec -v)
+git clone $CVMFSEXEC_REPO "$cvmfsexec_latest" &> /dev/null
+latest_ver=$("$cvmfsexec_latest"/cvmfsexec -v)
 if [[ "$curr_ver" == "$latest_ver" ]]; then
     # if current version and latest version are the same
     echo "Current version and latest version of cvmfsexec are identical!"
     if [[ -f "$cvmfsexec_tarballs/.cvmfsexec_version" ]]; then
-        echo "Using (existing) cvmfsexec version `cat $cvmfsexec_tarballs/.cvmfsexec_version`"
+        echo "Using (existing) cvmfsexec version `cat "$cvmfsexec_tarballs"/.cvmfsexec_version`"
     fi
     echo "Skipping the building of cvmfsexec distribution tarballs..."
-    rm -rf $cvmfsexec_latest
+    rm -rf "$cvmfsexec_latest"
     exit 0
 else
     # if current version and latest version are different
@@ -70,13 +78,13 @@ else
     fi
 
     # build the distributions for cvmfsexec based on the source, os and platform combination
-    cvmfsexec_distros=$cvmfsexec_temp/distros
-    if [[ ! -d $cvmfsexec_distros ]]; then
-        mkdir -p $cvmfsexec_distros
+    cvmfsexec_distros="$cvmfsexec_temp"/distros
+    if [[ ! -d "$cvmfsexec_distros" ]]; then
+        mkdir -p "$cvmfsexec_distros"
     fi
 
-    if [[ ! -d $cvmfsexec_tarballs ]]; then
-        mkdir -p $cvmfsexec_tarballs
+    if [[ ! -d "$cvmfsexec_tarballs" ]]; then
+        mkdir -p "$cvmfsexec_tarballs"
     fi
 
     declare -a cvmfs_sources
@@ -92,12 +100,11 @@ else
             echo -n "Making $cvmfs_src distribution for $mach_type machine..."
             os=`echo $mach_type | awk -F'-' '{print $1}'`
             arch=`echo $mach_type | awk -F'-' '{print $2}'`
-            $cvmfsexec_latest/makedist -m $mach_type $cvmfs_src &> /dev/null
-            if [[ $? -eq 0 ]]; then
-                $cvmfsexec_latest/makedist -o $cvmfsexec_distros/cvmfsexec-${cvmfs_src}-${os}-${arch} &> /dev/null
-                if [[ -e $cvmfsexec_distros/cvmfsexec-${cvmfs_src}-${os}-${arch} ]]; then
+            if "$cvmfsexec_latest"/makedist -m $mach_type $cvmfs_src &> /dev/null ; then
+                "$cvmfsexec_latest"/makedist -o "$cvmfsexec_distros"/cvmfsexec-${cvmfs_src}-${os}-${arch} &> /dev/null
+                if [[ -e "$cvmfsexec_distros"/cvmfsexec-${cvmfs_src}-${os}-${arch} ]]; then
                     echo " Success"
-                    tar -cvzf $cvmfsexec_tarballs/cvmfsexec_${cvmfs_src}_${os}_${arch}.tar.gz -C $cvmfsexec_distros cvmfsexec-${cvmfs_src}-${os}-${arch} &> /dev/null
+                    tar -cvzf "$cvmfsexec_tarballs"/cvmfsexec_${cvmfs_src}_${os}_${arch}.tar.gz -C "$cvmfsexec_distros" cvmfsexec-${cvmfs_src}-${os}-${arch} &> /dev/null
                 fi
             else
                 echo " Failed! REASON: $cvmfs_src may not yet have a $mach_type build."
@@ -105,15 +112,18 @@ else
 
             # delete the dist directory within cvmfsexec to download the cvmfs configuration
             # and repositories for another machine type
-            rm -rf $cvmfsexec_latest/dist
+            rm -rf "$cvmfsexec_latest"/dist
         done
     done
 
+    # remove the distros and latest folder under cvmfsexec.tmp
+    rm -rf "$cvmfsexec_distros"
+    rm -rf "$cvmfsexec_latest"
 fi
 
 
 # TODO: store/update version information in the $cvmfsexec_tarballs location for future reconfig/upgrade
-echo "$latest_ver" > $cvmfsexec_tarballs/.cvmfsexec_version
+echo "$latest_ver" > "$cvmfsexec_tarballs"/.cvmfsexec_version
 
 end=`date +%s`
 
