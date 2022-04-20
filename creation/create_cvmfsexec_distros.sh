@@ -29,21 +29,24 @@ if [[ -d "$work_dir/cvmfsexec" && -d "$work_dir/cvmfsexec/tarballs" ]]; then
         echo "Current version found: $curr_ver"
     fi
 else
-    # if the cvmfsexec directory does not exist
-    mkdir -p "$work_dir/cvmfsexec"
-    # create a directory named tarballs under cvmfsexec directory
-    cvmfsexec_tarballs=$(mkdir -p "$work_dir/cvmfsexec/tarballs" -v | awk -F" " '{print $4}' | sed 's/^.//; s/.$//' )
-    chmod 755 $cvmfsexec_tarballs
+    # if the cvmfsexec directory does not exist, create one
+    # also, create a directory named tarballs under cvmfsexec directory
+    cvmfsexec_tarballs="$work_dir/cvmfsexec/tarballs"
+    # check if tarballs directory exists; if not, create one; else proceed as usual
+    if mkdir -p "$cvmfsexec_tarballs"; then
+        chmod 755 "$cvmfsexec_tarballs"
+    else
+        # if the directory creation fails, print a message and exit from the script
+        echo "Unable to create directory $cvmfsexec_tarballs"
+        exit 1
+    fi
 fi
 
 # otherwise, .cvmfsexec_version file does not exist from a previous upgrade or it's a first-time factory upgrade
-# check if the temp directory for cvmfsexec from previous run exists
-if ls -d $work_dir/cvmfsexec/cvmfsexec.tmp > /dev/null 2>&1 ; then
-    # cvmfsexec temp directory exists; reuse this
-    cvmfsexec_temp=$(ls -d $work_dir/cvmfsexec/cvmfsexec.tmp)
-else
-    # cvmfsexec temp directory does not exist; so create one
-    cvmfsexec_temp=$(mkdir -p $work_dir/cvmfsexec/cvmfsexec.tmp -v | awk -F" " '{print $4}' | sed 's/^.//; s/.$//' )  # remove the single quotes at the start and end of the string
+cvmfsexec_temp="$work_dir/cvmfsexec/cvmfsexec.tmp"
+# check if the temp directory for cvmfsexec exists
+if mkdir -p "$cvmfsexec_temp"; then
+    # cvmfsexec temp directory does not exist (create one) or exists (proceed to reuse)
     chmod 755 "$cvmfsexec_temp"
 fi
 
@@ -76,10 +79,6 @@ else
     cvmfsexec_distros="$cvmfsexec_temp"/distros
     if [[ ! -d "$cvmfsexec_distros" ]]; then
         mkdir -p "$cvmfsexec_distros"
-    fi
-
-    if [[ ! -d "$cvmfsexec_tarballs" ]]; then
-        mkdir -p "$cvmfsexec_tarballs"
     fi
 
     declare -a cvmfs_sources
