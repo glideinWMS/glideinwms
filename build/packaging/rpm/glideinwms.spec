@@ -11,7 +11,7 @@
 # Release Candidates NVR format
 #%define release 0.1.rc1
 # Official Release NVR format
-#%define release 1
+#%define release 2
 
 # ------------------------------------------------------------------------------
 # For Release Candidate builds, check with Software team on release string
@@ -182,17 +182,16 @@ Requires: python3-condor
 # was condor-python for python2
 %if 0%{?rhel} >= 8
 Requires: python3-pyyaml
-Requires: python3-rrdtool
 Requires: python3-jwt
 Requires: python3-cryptography
 Requires: python3-m2crypto
 %else
 Requires: PyYAML
-Requires: python-rrdtool
 Requires: python36-jwt
 Requires: python36-cryptography
 Requires: python36-m2crypto
 %endif
+Requires: python3-rrdtool
 %description libs
 This package provides common libraries used by glideinwms.
 
@@ -253,16 +252,15 @@ Requires: python3 >= 3.6
 # Is this the same? Requires: python36-configargparse
 Requires: javascriptrrd >= 1.1.0
 %if 0%{?rhel} >= 8
-Requires: python3-rrdtool
 Requires: python3-m2crypto
 Requires: python3-requests
 Requires: python3-jwt
 %else
-Requires: python-rrdtool
 Requires: python36-m2crypto
 Requires: python36-requests
 Requires: python36-jwt
 %endif
+Requires: python3-rrdtool
 Requires(post): /sbin/service
 Requires(post): /usr/sbin/useradd
 Requires(post): /sbin/chkconfig
@@ -1036,6 +1034,9 @@ rm -rf $RPM_BUILD_ROOT
 #%config(noreplace) %{_sysconfdir}/condor/scripts/frontend_condortoken
 
 %changelog
+* Wed Apr 20 2022 Carl Edquist <edquist@cs.wisc.edu> - 3.9.4-2
+- Fix python3-rrdtool dependencies (SOFTWARE-5134)
+
 * Tue Jan 25 2022 Bruno Coimbra <coimbra@fnal.gov> - 3.9.4
 - Glideinwms v3.9.4
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_9_4/history.html
