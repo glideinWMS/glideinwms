@@ -17,11 +17,11 @@ CVMFS_SOURCES=osg:egi:default
 # egi for rhel8-x86_64 results in an error - egi does not yet have a centos8 build (as confirmed with Dave)
 # TODO: verify the logic when egi provides a centos8 build
 SUPPORTED_TYPES=rhel7-x86_64:rhel8-x86_64:suse15-x86_64
-cvmfsexec_temp=/tmp/cvmfsexec_pkg
+cvmfsexec_temp=$(mktemp -d -t cvmfsexec.XXX)
 cvmfsexec_base=$cvmfsexec_temp/cvmfsexec
 cvmfsexec_latest=$cvmfsexec_temp/latest
 cvmfsexec_distros=$cvmfsexec_temp/distros
-work_dir=/var/lib/gwms-factory/work-dir
+work_dir=$(grep -m 1 "submit" /etc/gwms-factory/glideinWMS.xml | awk -F"\"" '{print $6}')
 cvmfsexec_tarballs=$work_dir/cvmfsexec/tarballs
 
 if [[ -d $cvmfsexec_temp ]]; then
