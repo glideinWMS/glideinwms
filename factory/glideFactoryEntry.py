@@ -1278,7 +1278,6 @@ def unit_work_v3(
     scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
     scitoken_data = decrypted_params.get("frontend_scitoken")
     if scitoken_data:
-        scitoken_data = scitoken_data.rstrip("\n ")
         if token_util.token_str_expired(scitoken_data):
             entry.log.warning(
                 "frontend_scitoken supplied by frontend, but expired. Renaming to %s.expired" % scitoken_file
@@ -1288,12 +1287,12 @@ def unit_work_v3(
             if "frontend_scitoken" in submit_credentials.identity_credentials:
                 del submit_credentials.identity_credentials["frontend_scitoken"]
         else:
-            (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
             try:
                 entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
+                (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
+                with os.fdopen(fd, "w", encoding="utf-8") as f:
+                    f.write(f"{scitoken_data.strip()}\n")
                 chmod(tmpnm, 0o600)
-                os.write(fd, scitoken_data.encode("utf-8"))
-                os.close(fd)
                 util.file_tmp2final(scitoken_file, tmpnm)
             except Exception as err:
                 entry.log.exception("failed to create scitoken: %s" % err)
