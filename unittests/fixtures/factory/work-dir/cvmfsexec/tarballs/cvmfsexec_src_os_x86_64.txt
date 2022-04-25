@@ -1,0 +1,1 @@
+this is a mock placeholder for the cvmfsexec distribution that gets created during reconfig/upgrade

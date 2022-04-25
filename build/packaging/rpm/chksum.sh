@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 if [ "x$1" = "x" ]; then
     echo "ERROR: Missing version as command line arg"
     exit 1
@@ -40,4 +43,3 @@ do
     fi
 done
 echo "ALL DONE ... EXITING" >> $log_file
-

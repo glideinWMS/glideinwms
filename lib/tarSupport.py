@@ -1,7 +1,10 @@
-from __future__ import absolute_import
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+import io
 import os
-from . import glideinwms_tarfile
-import cStringIO
+import tarfile
+
 
 class FileDoesNotExist(Exception):
     """File does not exist exception
@@ -9,16 +12,19 @@ class FileDoesNotExist(Exception):
     @note: Include the file name in the full_path
     @ivar full_path: The full path to the missing file.  Includes the file name
     """
+
     def __init__(self, full_path):
         message = "The file, %s, does not exist." % full_path
         # Call the base class constructor with the parameters it needs
         Exception.__init__(self, message)
+
 
 class GlideinTar:
     """This class provides a container for creating tarballs.  The class provides
     methods to add files and string data (ends up as a file in the tarball).
     The tarball can be written to a file on disk or written to memory.
     """
+
     def __init__(self):
         """Set up the strings dict and the files list
 
@@ -33,12 +39,12 @@ class GlideinTar:
     def add_file(self, filename, arc_dirname):
         """
         Add a filepath to the files list
-        
+
         @type filename: string
-        @param filename: The file path to the file that will eventually be 
+        @param filename: The file path to the file that will eventually be
         written to the tarball.
         @type arc_dirname: string
-        @param arc_dirname: This is the directory that the file will show up 
+        @param arc_dirname: This is the directory that the file will show up
         under in the tarball
         """
         if os.path.exists(filename):
@@ -49,9 +55,9 @@ class GlideinTar:
     def add_string(self, name, string_data):
         """
         Add a string to the string dictionary.
-        
+
         @type name: string
-        @param name: A string specifying the "filename" within the tarball that 
+        @param name: A string specifying the "filename" within the tarball that
         the string_data will be written to.
         @type string_data: string
         @param string_data: The contents that will be written to a "file" within
@@ -63,7 +69,7 @@ class GlideinTar:
         """Takes the provided tar file object and adds all the specified data
         to it.  The strings dictionary is parsed such that the key name is the
         file name and the value is the file data in the tar file.
-        
+
         @type tf: Tar File
         @param tf: The Tar File Object that will be written to
         """
@@ -74,15 +80,16 @@ class GlideinTar:
             else:
                 tf.add(file)
 
-        for filename, string in self.strings.items():
-            fd_str = cStringIO.StringIO(string)
+        for filename, string in list(self.strings.items()):
+            string_encoding = string.encode("utf-8")
+            fd_str = io.BytesIO(string_encoding)
             fd_str.seek(0)
-            ti = glideinwms_tarfile.TarInfo()
-            ti.size = len(string)
+            ti = tarfile.TarInfo()
+            ti.size = len(string_encoding)
             ti.name = filename
-            ti.type = glideinwms_tarfile.REGTYPE
+            ti.type = tarfile.REGTYPE
             ti.mode = 0o400
-            tf.addfile(ti, fd_str)
+            tf.addfile(tarinfo=ti, fileobj=fd_str)
 
     def create_tar_file(self, archive_full_path, compression="gz"):
         """Creates a tarball and writes it out to the file specified in fd
@@ -99,7 +106,7 @@ class GlideinTar:
         tar_mode = "w:%s" % compression
         # TODO #23166: Use context managers[with statement] when python 3
         # once we get rid of SL6 and tarballs
-        tf = glideinwms_tarfile.open(archive_full_path, mode=tar_mode)
+        tf = tarfile.open(archive_full_path, mode=tar_mode)
         self.create_tar(tf)
         tf.close()
 
@@ -115,12 +122,13 @@ class GlideinTar:
         @raise glideinwms_tarfile.CompressionError: This exception can be raised is an
             invalid compression type has been passed in
         """
-        from cStringIO import StringIO
+        from io import BytesIO
+
         tar_mode = "w:%s" % compression
-        file_out = StringIO()
+        file_out = BytesIO()
         # TODO #23166: Use context managers[with statement] when python 3
         # once we get rid of SL6 and tarballs
-        tf = glideinwms_tarfile.open(fileobj=file_out, mode=tar_mode)
+        tf = tarfile.open(fileobj=file_out, mode=tar_mode)
         self.create_tar(tf)
         tf.close()
         return file_out.getvalue()
@@ -134,4 +142,4 @@ class GlideinTar:
 
         @return: True/False
         """
-        return glideinwms_tarfile.is_tarfile(full_path)
+        return tarfile.is_tarfile(full_path)

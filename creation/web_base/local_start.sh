@@ -1,9 +1,13 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 
 export GLIDEIN_USER=`id -u -n`
@@ -55,6 +59,3 @@ if [ -z "$SIGNENTRY" ]; then
 fi
 
 ./glidein_startup.sh -v $GLIDEIN_VERBOSITY -cluster 0 -name $GLIDEIN_NAME -entry $GLIDEIN_ENTRY_NAME -subcluster 0 -schedd local -factory $GLIDEIN_FACTORY -web $WEB_BASE -sign $SIGN -signentry $SIGNENTRY -signtype sha1 -descript $DESCRIPT -descriptentry $DESCRIPTENTRY -dir . -param_GLIDEIN_Client local $GLIDEIN_PARAMS
-
-
-

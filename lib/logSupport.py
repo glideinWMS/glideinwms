@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Project:
 #   glideinWMS
@@ -8,26 +11,29 @@
 #
 
 import codecs
-import sys  # for alternate_log
+import logging
 import os
 import re
 import stat
+import sys  # for alternate_log
 import time
-import logging
+
 from logging.handlers import BaseRotatingHandler
 
 # Compressions depend on the available module
 COMPRESSION_SUPPORTED = {}
 try:
-   import gzip
-   COMPRESSION_SUPPORTED['gz'] = gzip
+    import gzip
+
+    COMPRESSION_SUPPORTED["gz"] = gzip
 except ImportError:
-   pass
+    pass
 try:
-   import zipfile
-   COMPRESSION_SUPPORTED['zip'] = zipfile
+    import zipfile
+
+    COMPRESSION_SUPPORTED["zip"] = zipfile
 except ImportError:
-   pass
+    pass
 
 
 # create a place holder for a global logger (logging.Logger),
@@ -38,20 +44,21 @@ log_dir = None
 disable_rotate = False
 handlers = []
 
-DEFAULT_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
-DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(module)s:%(lineno)d: %(message)s')
+DEFAULT_FORMATTER = logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s")
+DEBUG_FORMATTER = logging.Formatter("[%(asctime)s] %(levelname)s: %(module)s:%(lineno)d: %(message)s")
 
 # Adding in the capability to use the built in Python logging Module
 # This will allow us to log anything, anywhere
 #
 
+
 def alternate_log(msg):
     """
-    When an exceptions happen within the logging system (e.g. when the disk is full while rotating a 
+    When an exceptions happen within the logging system (e.g. when the disk is full while rotating a
     log file) an alternate logging is necessary, e.g. writing to stderr
     """
     sys.stderr.write("%s\n" % msg)
-    
+
 
 class GlideinHandler(BaseRotatingHandler):
     """
@@ -73,6 +80,7 @@ class GlideinHandler(BaseRotatingHandler):
     @type backupCount: int
     @ivar backupCount: How many backups to keep
     """
+
     def __init__(self, filename, maxDays=1, minDays=0, maxMBytes=10, backupCount=5, compression=None):
         """
         Initialize the Handler.  We assume the following:
@@ -96,19 +104,19 @@ class GlideinHandler(BaseRotatingHandler):
         if not os.path.exists(os.path.dirname(filename)):
             os.makedirs(os.path.dirname(filename))
 
-        self.compression = ''
+        self.compression = ""
         try:
             if compression.lower() in COMPRESSION_SUPPORTED:
                 self.compression = compression.lower()
         except AttributeError:
             pass
         # bz2 compression can be implementes with encoding='bz2-codec' in BaseRotatingHandler
-        mode = 'a'
+        mode = "a"
         BaseRotatingHandler.__init__(self, filename, mode, encoding=None)
         self.backupCount = backupCount
-        self.maxBytes = maxMBytes * 1024.0 * 1024.0 # Convert the MB to bytes as needed by the base class
-        self.min_lifetime = minDays * 24 * 60 * 60 # Convert min days to seconds
-        self.interval = maxDays * 24 * 60 * 60 # Convert max days (interval) to seconds
+        self.maxBytes = maxMBytes * 1024.0 * 1024.0  # Convert the MB to bytes as needed by the base class
+        self.min_lifetime = minDays * 24 * 60 * 60  # Convert min days to seconds
+        self.interval = maxDays * 24 * 60 * 60  # Convert max days (interval) to seconds
 
         # We are enforcing a date/time format for rotated log files to include
         # year, month, day, hours, and minutes.  The hours and minutes are to
@@ -142,7 +150,8 @@ class GlideinHandler(BaseRotatingHandler):
         that will be forked) we set the flag to True.  Then in the parent, we
         initiate a log function that will log and rotate if necessary.
         """
-        if disable_rotate: return 0
+        if disable_rotate:
+            return 0
 
         do_timed_rollover = 0
         t = int(time.time())
@@ -150,13 +159,13 @@ class GlideinHandler(BaseRotatingHandler):
             do_timed_rollover = 1
 
         do_size_rollover = 0
-        if self.maxBytes > 0:                   # are we rolling over?
+        if self.maxBytes > 0:  # are we rolling over?
             if empty_record:
                 msg = ""
             else:
                 msg = "%s\n" % self.format(record)
-            self.stream.seek(0, 2)  #due to non-posix-compliant Windows feature
-            if (self.stream.tell() + len(msg) >= self.maxBytes):
+            self.stream.seek(0, 2)  # due to non-posix-compliant Windows feature
+            if self.stream.tell() + len(msg) >= self.maxBytes:
                 do_size_rollover = 1
 
         return do_timed_rollover or do_size_rollover
@@ -181,7 +190,7 @@ class GlideinHandler(BaseRotatingHandler):
         if len(result) < self.backupCount:
             result = []
         else:
-            result = result[:len(result) - self.backupCount]
+            result = result[: len(result) - self.backupCount]
         return result
 
     def doRollover(self):
@@ -214,7 +223,7 @@ class GlideinHandler(BaseRotatingHandler):
                 os.remove(s)
 
         # Open a new log file
-        self.mode = 'w'
+        self.mode = "w"
         self.stream = self._open_new_log()
 
         # determine the next rollover time for the timed rollover check
@@ -234,7 +243,7 @@ class GlideinHandler(BaseRotatingHandler):
                 f_out.write(dfn, os.path.basename(dfn), zipfile.ZIP_DEFLATED)
                 f_out.close()
                 os.remove(dfn)
-            except IOError as e:
+            except OSError as e:
                 alternate_log("Log file zip compression failed: %s" % e)
         elif self.compression == "gz":
             if os.path.exists(dfn + ".gz"):
@@ -247,7 +256,7 @@ class GlideinHandler(BaseRotatingHandler):
                     f_out.writelines(f_in)
                 f_out.close()
                 os.remove(dfn)
-            except IOError as e:
+            except OSError as e:
                 alternate_log("Log file gzip compression failed: %s" % e)
 
     def _open_new_log(self):
@@ -271,16 +280,20 @@ class GlideinHandler(BaseRotatingHandler):
         if self.shouldRollover(None, empty_record=True):
             self.doRollover()
 
+
 def roll_all_logs():
     for handler in handlers:
         handler.check_and_perform_rollover()
 
-def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes, backupCount=5, compression=None):
+
+def add_processlog_handler(
+    logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes, backupCount=5, compression=None
+):
     """
     Adds a handler to the GlideinLogger logger referenced by logger_name.
     """
 
-    logfile = os.path.expandvars("%s/%s.%s.log" % (log_dir, logger_name, extension.lower()))
+    logfile = os.path.expandvars(f"{log_dir}/{logger_name}.{extension.lower()}.log")
 
     mylog = logging.getLogger(logger_name)
     mylog.setLevel(logging.DEBUG)
@@ -315,10 +328,12 @@ def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, 
     mylog.addHandler(handler)
     handlers.append(handler)
 
+
 class MsgFilter(logging.Filter):
     """
     Filter used in handling records for the info logs.
     """
+
     msg_type_list = [logging.INFO]
 
     def __init__(self, msg_type_list):

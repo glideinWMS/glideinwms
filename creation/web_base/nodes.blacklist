@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
 #
 # This file contains a list of bad nodes
 # Each node to be blacklisted must be put in a separate line
@@ -6,5 +8,3 @@
 #  like 'cms-xen6.fnal.gov' or '131.225.209.25'
 # No spaces allowed before the name
 #
-
-

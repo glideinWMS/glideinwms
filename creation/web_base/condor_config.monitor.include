@@ -1,8 +1,11 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 ######################################################################
 ##
 ##  condor_config.monitor.include
 ##
-##  Condor include file for monitor starter 
+##  Condor include file for monitor starter
 ##
 ######################################################################
 
@@ -32,5 +35,3 @@ IsOwner = (START =?= False)
 # This is a monitoring job, so low limits
 MaxJobRetirementTime=120
 SHUTDOWN_GRACEFUL_TIMEOUT=10
-
-

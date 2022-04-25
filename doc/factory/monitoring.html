@@ -1,231 +1,336 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<html>
-<head>
-  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>GlideinWMS - Factory</title>
-  <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
-  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
-</head>
+<!--
+SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+SPDX-License-Identifier: Apache-2.0
+-->
 
-<body lang="en-US" dir="ltr">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+  <head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8" />
+    <title>GlideinWMS - Factory</title>
+    <meta name="CREATED" content="0;0" />
+    <meta name="CHANGED" content="20100521;20081031;14115200" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="../common/glideinWMS.css"
+      media="screen, projection"
+    />
+  </head>
+
+  <body lang="en-US" dir="ltr">
     <h1>
-        <a href="index.html">GlideinWMS</a>
-	<span>The Glidein-based Workflow Management System</span>
+      <a href="index.html">GlideinWMS</a>
+      <span>The Glidein-based Workflow Management System</span>
     </h1>
     <ul class="breadcrumbs">
-	    <li> <a href="../index.html">Home</a></li>
-	    <li> <a href="./index.html">WMS Factory</a></li>
-        <li>Monitoring</li>
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="./index.html">WMS Factory</a></li>
+      <li>Monitoring</li>
     </ul>
     <div class="clear" />
     <div class="leftmenu">
-        <ul class="components">
-	        <li> <a href="../index.html">Home</a></li>
-	        <li> <a href="../download.html">Download</a></li>
-	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-	        <li> <a href="../factory/index.html">WMS Factory</a></li>
-	        <li> <a href="../components/index.html" >Components</a></li>
-                <li> <a href="../recipes/index.html">Recipes</a></li>
-	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
-        </ul>
-        <div class="search">
-            <script>
-            (function() {
-                var cx = '013439253731257915088:h-xvmglqvrq';
-                var gcse = document.createElement('script');
-                gcse.type = 'text/javascript';
-                gcse.async = true;
-                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
-                var s = document.getElementsByTagName('script')[0];
-                s.parentNode.insertBefore(gcse, s);
-            })();
-            </script>
-            <gcse:search enableAutoComplete=true></gcse:search>
-        </div>
+      <ul class="components">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../download.html">Download</a></li>
+        <li><a href="../frontend/index.html">Glidein Frontend</a></li>
+        <li><a href="../factory/index.html">WMS Factory</a></li>
+        <li><a href="../components/index.html">Components</a></li>
+        <li><a href="../recipes/index.html">Recipes</a></li>
+        <li><a href="../components/faq.html" class="last">FAQ</a></li>
+      </ul>
+      <div class="search">
+        <script>
+          (function () {
+            var cx = "013439253731257915088:h-xvmglqvrq";
+            var gcse = document.createElement("script");
+            gcse.type = "text/javascript";
+            gcse.async = true;
+            gcse.src = "https://cse.google.com/cse.js?cx=" + cx;
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(gcse, s);
+          })();
+        </script>
+        <gcse:search enableAutoComplete="true"></gcse:search>
+      </div>
     </div>
-<div class="content">
-    <div class="heading">
-    <img align="right" width="280px" border="0px"
-        src="../images/simple_diagram.png" usemap="#rightimage">
-    <map name="rightimage">
-        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
-        <area shape="rect" coords="5,88,118,146" href="../components/user_pool.html" />
-        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-    </map>
+    <div class="content">
+      <div class="heading">
+        <img
+          align="right"
+          width="280px"
+          border="0px"
+          src="../images/simple_diagram.png"
+          usemap="#rightimage"
+        />
+        <map name="rightimage">
+          <area
+            shape="rect"
+            coords="90,3,177,60"
+            href="../frontend/index.html"
+          />
+          <area
+            shape="rect"
+            coords="5,88,118,146"
+            href="../components/user_pool.html"
+          />
+          <area
+            shape="rect"
+            coords="134,88,275,146"
+            href="../factory/index.html"
+          />
+        </map>
 
-    <h2>WMS Factory</h2>
-	<ul class="subcomponents">
-         <li> <a href="./index.html">Overview</a></li>
-         <li> <a href="./details.html">Details</a></li>
-	     <li> <a href="./configuration.html">Configuration</a></li>
-	     <li> <a href="./design.html">Design</a></li>
-	     <li> Monitoring</li>
-	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
-	</ul>
+        <h2>WMS Factory</h2>
+        <ul class="subcomponents">
+          <li><a href="./index.html">Overview</a></li>
+          <li><a href="./details.html">Details</a></li>
+          <li><a href="./configuration.html">Configuration</a></li>
+          <li><a href="./design.html">Design</a></li>
+          <li>Monitoring</li>
+          <li class="last">
+            <a href="./troubleshooting.html">Troubleshooting</a>
+          </li>
+        </ul>
         <h3>Monitoring</h3>
-	</div>
-<div class="jump">
-<u>Jump to:</u>
-<ol>
-        <li><a href="#monitoring_logs">Log files</a></li>
-        <li><a href="#monitoring_web">Using the Web monitoring</a></li>
-        <li><a href="#monitoring_tools">Using the WMS tools</a></li>
-        <li><a href="#monitoring_logs">Looking at the glidein Factory log files</a></li>
-        <li><a href="#monitoring_glideins">Looking at the glidein outputs</a></li>
-        <li><a href="#monitoring_condor">Checking the WMS collector ads</a></li>
-        <li><a href="#analyze_entries">analyze_entries</a> </li>
-        <li><a href="#analyze_queues">analyze_queues</a> </li>
-        <li><a href="#analyze_frontends">analyze_frontends</a> </li>
-</ol>
-</div>
-<div class="related">
-Related Links: <br/>
-<ul>
-<li><a href="../frontend/monitoring.html">Frontend Monitoring</a></li>
-</ul>
-</div>
-<div class="section">
+      </div>
+      <div class="jump">
+        <u>Jump to:</u>
+        <ol>
+          <li><a href="#monitoring_logs">Log files</a></li>
+          <li><a href="#monitoring_web">Using the Web monitoring</a></li>
+          <li><a href="#monitoring_tools">Using the WMS tools</a></li>
+          <li>
+            <a href="#monitoring_logs"
+              >Looking at the glidein Factory log files</a
+            >
+          </li>
+          <li>
+            <a href="#monitoring_glideins">Looking at the glidein outputs</a>
+          </li>
+          <li>
+            <a href="#monitoring_condor">Checking the WMS collector ads</a>
+          </li>
+          <li><a href="#analyze_entries">analyze_entries</a></li>
+          <li><a href="#analyze_queues">analyze_queues</a></li>
+          <li><a href="#analyze_frontends">analyze_frontends</a></li>
+        </ol>
+      </div>
+      <div class="related">
+        Related Links: <br />
+        <ul>
+          <li><a href="../frontend/monitoring.html">Frontend Monitoring</a></li>
+        </ul>
+      </div>
+      <div class="section" id="monitoring">
+        <h2>Glidein Factory monitoring</h2>
 
-    <h2><a name="monitoring">Glidein Factory monitoring</a></h2>
+        <p>
+          Monitoring is an essential part of any service. One has to monitor to
+          both: maintain the health of the system and to tune the system for
+          anticipated growth. The various ways you can monitor a Glidein Factory
+          are described below.
+        </p>
 
-    <p>
-Monitoring is an essential part of any service. One has to monitor to both: maintain the health of the system and to tune the system for anticipated growth. The various ways you can monitor a Glidein Factory are described below. </p>
+        <h3><a name="monitoring_logs"></a>Log files</h3>
+        <p>
+          Both the Factory Daemon, the Entry Daemons, HTCondor-G and the
+          Glideins write extensive log files. The logs are kept for a week and
+          then deleted.
+        </p>
 
-<h3><a name="monitoring_logs"></a>Log files</h3>
-<p>Both the Factory Daemon, the Entry Daemons, HTCondor-G and the Glideins write
-extensive log files. The logs are kept for a week and then deleted.</p>
+        <h3>
+          <a name="monitoring_web">Glidein Factory entry Web monitoring</a>
+        </h3>
 
-</p>
+        <p>
+          You can either monitor the Factory as a whole, or just a single entry
+          point.<br />
+          <br />
+          The Factory monitoring is located at a URL like the one below
+          (starting with the hostname and ending with the instance name):
+        </p>
 
-    <h3><a name="monitoring_web">Glidein Factory entry Web monitoring</a></h3>
+        <blockquote>
+          http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/
+        </blockquote>
 
-    <p>
-        You can either monitor the Factory as a whole, or just a single entry point.<br>
-        <br>
-        The Factory monitoring is located at a URL like the one below (starting with the hostname and ending with the instance name):
-    </p>
+        <p>
+          Moreover, each entry point, has its own history on the Web.<br />
+          <br />
+          Assuming you have a SanDiego entry, it can be monitored at
+        </p>
 
-    <blockquote>http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/</blockquote>
+        <blockquote>
+          http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/entry_SanDiego/
+        </blockquote>
 
-    <p>
+        <h3><a name="monitoring_history"></a>Historical Web monitoring</h3>
+        <p>
+          The Entry Point Daemons will also create
+          <a href="http://oss.oetiker.ch/rrdtool/">RRD databases</a> and
+          associated graphs for a period of up to one year. This way, one can
+          easily monitor the evolution of the system.
+        </p>
 
-        Moreover, each entry point, has its own history on the Web.<br>
-        <br>
-        Assuming you have a SanDiego entry, it can be monitored at
-    </p>
+        <h3>
+          <a name="monitoring_tools"
+            >Glidein Factory monitoring via WMS tools</a
+          >
+        </h3>
 
-    <blockquote>http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/entry_SanDiego/</blockquote>
+        <p>You can get the equivalent of the Web page snaphot by using</p>
 
-<h3><a name="monitoring_history"></a>Historical Web monitoring</h3>
-<p>The Entry Point Daemons will also create <a href="http://oss.oetiker.ch/rrdtool/">RRD
-databases</a> and associated graphs for a period of up to one year.
-This way, one can easily monitor the evolution of the system. 
-</p>
+        <blockquote>cd glideinWMS/tools/<br />python wmsXMLView.py</blockquote>
 
+        <h3><a name="monitoring_logs">Glidein Factory entry log files</a></h3>
 
-    <h3><a name="monitoring_tools">Glidein Factory monitoring via WMS tools</a></h3>
+        <p>
+          By default the glidein Factory writes two log files per entry point
+          <b>factory_info.YYYYMMDD.log</b> and
+          <b>factory_err.YYYYMMDD.log</b>.<br />
 
-    <p>You can get the equivalent of the Web page snaphot by using</p>
+          <br />
+          Assuming you have a SanDiego entry, the log files are in the directory
+        </p>
 
-    <blockquote>cd glideinWMS/tools/<br>python wmsXMLView.py</blockquote>
+        <blockquote>
+          /home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log
+        </blockquote>
 
-    <h3><a name="monitoring_logs">Glidein Factory entry log files</a></h3>
+        <p>
+          All errors are reported in the <b>factory_err.YYYYMMDD.log</b>. file,
+          while <b>factory_info.YYYYMMDD.log</b>
 
-    <p>
-        By default the glidein Factory writes two log files per entry point <b>factory_info.YYYYMMDD.log</b> 
-        and <b>factory_err.YYYYMMDD.log</b>.<br>
+          contains entries about what the Factory is doing.
+        </p>
 
-        <br>
-        Assuming you have a SanDiego entry, the log files are in the directory
-    </p>
+        <h3><a name="monitoring_glideins">Glidein output</a></h3>
 
-    <blockquote>/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</blockquote>
+        <p>
+          Each glidein creates 2 files on exit; job.<b>ID</b>.out and
+          job.<b>ID</b>.err.<br />
 
-    <p>
-        All errors are reported in the <b>factory_err.YYYYMMDD.log</b>. file, while <b>factory_info.YYYYMMDD.log</b>
+          <br />
+          Assuming you have a SanDiego entries, the log files are in
+        </p>
 
-        contains entries about what the Factory is doing.
-    </p>
+        <blockquote>
+          /home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log
+        </blockquote>
 
-    <h3><a name="monitoring_glideins">Glidein output</a></h3>
+        <p>Problems are usually reasonably easy to spot.</p>
 
-    <p>
-        Each glidein creates 2 files on exit; job.<b>ID</b>.out and job.<b>ID</b>.err.<br>
+        <h3>
+          <a name="monitoring_condor"
+            >Glidein Factory ClassAds in the WMS Pool</a
+          >
+        </h3>
 
-        <br>
-        Assuming you have a SanDiego entries, the log files are in
-    </p>
+        <p>
+          The glidein Factory also advertises summary information in the WMS
+          Pool collector.<br />
+          <br />
+          Use <b>condor_status</b>:
+        </p>
 
-    <blockquote>/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</blockquote>
+        <blockquote>condor_status -any</blockquote>
 
-    <p>Problems are usually reasonably easy to spot.</p>
+        <p>
+          and look for <b>glidefactory</b> and <b>glidefactoryclient</b> ads.
+        </p>
+      </div>
 
-    <h3><a name="monitoring_condor">Glidein Factory ClassAds in the WMS Pool</a></h3>
+      <div class="section" id="monitoring_classads">
+        <h3>Looking at ClassAds</h3>
+        <p>
+          As explained in the
+          <a href="../index.html#classads">Data exchange overview</a>, the Entry
+          Point Daemons expose a lot of monitoring information in the ClassAds
+          sent to the WMS collector. While this may not be the most user
+          friendly interface, most of the monitoring information you'll ever
+          need is present there.
+        </p>
 
-    <p>
-        The glidein Factory also advertises summary information in the WMS Pool collector.<br>
-        <br>
-        Use <b>condor_status</b>:
-    </p>
+        <p>
+          On top of the
+          <a
+            href="https://htcondor.readthedocs.io/en/latest/man-pages/condor_status.html?highlight=condor_status#condor-status"
+            >HTCondor provided tools</a
+          >
+          (e.g. condor_status), the Factory provides two tools to look at the
+          ClassAds; the first one returns a human readable, but limited text,
+          while the other provides a complete XML-formated output
+        </p>
+        <blockquote>
+          glideinWMS/tools/wmsTxtView.py [Entries|Sites|Gatekeepers]<br />
 
-    <blockquote>condor_status -any</blockquote>
+          glideinWMS/tools/wmsXMLView.py
+        </blockquote>
+      </div>
 
-    <p>and look for <b>glidefactory</b> and <b>glidefactoryclient</b> ads.</p>
+      <div class="section" id="analyze_entries">
+        <h4><b>analyze_entries</b></h4>
+        <p>
+          This tool, found in <tt>factory/tools/analyze_entries</tt> can list
+          many statistics useful for Factory administrators. It can list the
+          total time used by glideins, the number of glideins submitted, the
+          number of jobs run, as well as the efficiency of glideins.
+        </p>
+        <p>
+          This utility can sort by Frontend, entry or by attributes such as the
+          most time used.
+        </p>
+        <p>The command line arguments are shown below:</p>
 
-</div>
-
-<div class="section">
-<h3><a name="monitoring_classads"></a>Looking at ClassAds</h3>
-<p>As explained in the <a href="../index.html#classads">Data exchange
-overview</a>, the Entry Point Daemons expose a lot of monitoring
-information in the ClassAds sent to the WMS collector. While this may
-not be the most user friendly interface, most of the monitoring
-information you'll ever need is present there.</p>
-
-<p>On top of the <a href="https://htcondor.readthedocs.io/en/latest/man-pages/condor_status.html?highlight=condor_status#condor-status">HTCondor provided tools</a> (e.g. condor_status),
-the Factory provides two tools to look at the ClassAds; the first one returns a human readable, but limited text, 
-while the other provides a complete XML-formated output</p>
-<blockquote>
-
-      glideinWMS/tools/wmsTxtView.py [Entries|Sites|Gatekeepers]<br>
-
-      glideinWMS/tools/wmsXMLView.py
-</blockquote>
-
-</p></div>
-
-<div class="section">
-<a name="analyze_entries" />
-<h4><b>analyze_entries</b></h4>
-<p>
-This tool, found in <tt>factory/tools/analyze_entries</tt> can list
-many statistics useful for Factory administrators.  It can list
-the total time used by glideins, the number of glideins submitted,
-the number of jobs run, as well as the efficiency of glideins.</p>
-<p>
-This utility can sort by Frontend, entry or by attributes such as the
-most time used.
-</p>
-<p>
-The command line arguments are shown below:
-
-<table class="attributes">
-<tr><td>--source ABSPATH</td><td><b>Required.</b> Unless you are running this in the
-factory directory, you must specify the absolute path to the Factory
-directory </td> </tr>
-<tr><td>-x</td><td>Interval to look at (in hours).  Valid options are 2, 24, or 168.</td></tr>
-<tr><td>-p</td><td>Look at all the above intervals.</td></tr>
-<tr><td>-f FRONTEND</td><td>Filter by Frontend. You can omit "frontend_" at the beginning of the name.</td></tr>
-<tr><td>-m</td><td>Emphasize Frontend data, no entries shown.  By default, slots are shown.  You can use <tt>-ms</tt> to show seconds or <tt>-mh</tt> to show hours.</td></tr>
-<tr><td>-msort ATTRIBUTE</td><td>Frontend mode, sort by attribute (strt, fval,
-0job, val, idle, wst, badp, waste, time, total)</td></tr>
-<tr><td>-h</td><td>Show usage message</td></tr>
-</table>
-<p>
-Below is an example of usage:
-</p>
-<pre>
+        <table class="attributes">
+          <tr>
+            <td>--source ABSPATH</td>
+            <td>
+              <b>Required.</b> Unless you are running this in the factory
+              directory, you must specify the absolute path to the Factory
+              directory
+            </td>
+          </tr>
+          <tr>
+            <td>-x</td>
+            <td>
+              Interval to look at (in hours). Valid options are 2, 24, or 168.
+            </td>
+          </tr>
+          <tr>
+            <td>-p</td>
+            <td>Look at all the above intervals.</td>
+          </tr>
+          <tr>
+            <td>-f FRONTEND</td>
+            <td>
+              Filter by Frontend. You can omit "frontend_" at the beginning of
+              the name.
+            </td>
+          </tr>
+          <tr>
+            <td>-m</td>
+            <td>
+              Emphasize Frontend data, no entries shown. By default, slots are
+              shown. You can use <tt>-ms</tt> to show seconds or <tt>-mh</tt> to
+              show hours.
+            </td>
+          </tr>
+          <tr>
+            <td>-msort ATTRIBUTE</td>
+            <td>
+              Frontend mode, sort by attribute (strt, fval, 0job, val, idle,
+              wst, badp, waste, time, total)
+            </td>
+          </tr>
+          <tr>
+            <td>-h</td>
+            <td>Show usage message</td>
+          </tr>
+        </table>
+        <p>Below is an example of usage:</p>
+        <pre>
 ./analyze_entries --source /opt/wmsfactory/glidein_w
 msfactory_instance -x 168
 
@@ -297,32 +402,72 @@ waste - wallclock time wasted (hours) (Lasted - JobsLasted)
 time - total wallclock time (hours) (Lasted)
 total - total number of glideins
 -------------------------------------
-</pre>
-</p>
-</div>
-<div class="section">
-<a name="analyze_queues" />
-<h4><b>analyze_queues</b></h4>
-<p>
-This tool, found in <tt>factory/tools/analyze_queues</tt> can list
-many statistics useful for Factory administrators.
-It will show the number of slots in running, held, and idle status.
-It can display this information per entry or per Frontend.</p>
-<table class="attributes">
-<tr><td>--source ABSPATH</td><td><b>Required.</b> Unless you are running this in the
-Factory directory, you must specify the absolute path to the Factory
-directory</td> </tr>
-<tr><td>-x</td><td>Interval to look at (in hours).  Valid options are 2, 24, or 168.</td></tr>
-<tr><td>-p</td><td>Look at all the above intervals.</td></tr>
-<tr><td>-f FRONTEND</td><td>Filter by Frontend. You can omit "frontend_" at the beginning of the name.</td></tr>
-<tr><td>-z</td><td>Zero suppression (don't show entries with 0s across all attributes)</td></tr>
-<tr><td>-m</td><td>Emphasize frontend data, no entries shown.  By default, slots are shown.  You can use <tt>-ms</tt> to show seconds or <tt>-mh</tt> to show hours.</td></tr>
-<tr><td>-msort ATTRIBUTE</td><td>Frontend mode, sort by attribute (strt, fval,
-0job, val, idle, wst, badp, waste, time, total)</td></tr>
-<tr><td>-h</td><td>Show usage message</td></tr>
-</table>
-<p>Example usage:</p>
-<pre>
+</pre
+        >
+      </div>
+      <div class="section" id="analyze_queues">
+        <h4><b>analyze_queues</b></h4>
+        <p>
+          This tool, found in <tt>factory/tools/analyze_queues</tt> can list
+          many statistics useful for Factory administrators. It will show the
+          number of slots in running, held, and idle status. It can display this
+          information per entry or per Frontend.
+        </p>
+        <table class="attributes">
+          <tr>
+            <td>--source ABSPATH</td>
+            <td>
+              <b>Required.</b> Unless you are running this in the Factory
+              directory, you must specify the absolute path to the Factory
+              directory
+            </td>
+          </tr>
+          <tr>
+            <td>-x</td>
+            <td>
+              Interval to look at (in hours). Valid options are 2, 24, or 168.
+            </td>
+          </tr>
+          <tr>
+            <td>-p</td>
+            <td>Look at all the above intervals.</td>
+          </tr>
+          <tr>
+            <td>-f FRONTEND</td>
+            <td>
+              Filter by Frontend. You can omit "frontend_" at the beginning of
+              the name.
+            </td>
+          </tr>
+          <tr>
+            <td>-z</td>
+            <td>
+              Zero suppression (don't show entries with 0s across all
+              attributes)
+            </td>
+          </tr>
+          <tr>
+            <td>-m</td>
+            <td>
+              Emphasize frontend data, no entries shown. By default, slots are
+              shown. You can use <tt>-ms</tt> to show seconds or <tt>-mh</tt> to
+              show hours.
+            </td>
+          </tr>
+          <tr>
+            <td>-msort ATTRIBUTE</td>
+            <td>
+              Frontend mode, sort by attribute (strt, fval, 0job, val, idle,
+              wst, badp, waste, time, total)
+            </td>
+          </tr>
+          <tr>
+            <td>-h</td>
+            <td>Show usage message</td>
+          </tr>
+        </table>
+        <p>Example usage:</p>
+        <pre>
 ./analyze_queues --source /opt/wmsfactory/glidein_wmsfactory_instance -x 168
 
 Status Attributes analysis for All Entries - 01-11-2011_15:10:22
@@ -380,33 +525,73 @@ IdleDiff : StatusIdle - ReqIdle (Requested Idle)
 %RD - Percent RunDiff over Running (RunDiff/StatusRunning)
 -------------------------------------
 
-</pre>
-</div>
-<div class="section">
-<a name="analyze_frontends" />
-<h4><b>analyze_frontends</b></h4>
-<p>
-This tool, found in <tt>factory/tools/analyze_frontends</tt> can list
-many statistics useful for Factory administrators.
-This tool will show thee number of registered, claimed, and unmatched
-slots.  It can list these per frontend or per entry.
-
-</p>
-The command-line arguments are listed below:
-<table class="attributes">
-<tr><td>--source ABSPATH</td><td><b>Required.</b> Unless you are running this in the Factory 
-directory, you must specify the absolute path to the Factory directory </td> </tr>
-<tr><td>-x</td><td>Interval to look at (in hours).  Valid options are 2, 24, or 168.</td></tr>
-<tr><td>-p</td><td>Look at all the above intervals.</td></tr>
-<tr><td>-f FRONTEND</td><td>Filter by Frontend. You can omit "frontend_" at the beginning of the name.</td></tr>
-<tr><td>-z</td><td>Zero suppression (don't show entries with 0s across all attributes)</td></tr>
-<tr><td>-m</td><td>Emphasize frontend data, no entries shown.  By default, slots are shown.  You can use <tt>-ms</tt> to show seconds or <tt>-mh</tt> to show hours.</td></tr>
-<tr><td>-msort ATTRIBUTE</td><td>Frontend mode, sort by attribute (strt, fval,
-0job, val, idle, wst, badp, waste, time, total)</td></tr>
-<tr><td>-h</td><td>Show usage message</td></tr>
-</table>
-<p>Example usage:</p>
-<pre>
+</pre
+        >
+      </div>
+      <div class="section" id="analyze_frontends">
+        <h4><b>analyze_frontends</b></h4>
+        <p>
+          This tool, found in <tt>factory/tools/analyze_frontends</tt> can list
+          many statistics useful for Factory administrators. This tool will show
+          thee number of registered, claimed, and unmatched slots. It can list
+          these per frontend or per entry.
+        </p>
+        The command-line arguments are listed below:
+        <table class="attributes">
+          <tr>
+            <td>--source ABSPATH</td>
+            <td>
+              <b>Required.</b> Unless you are running this in the Factory
+              directory, you must specify the absolute path to the Factory
+              directory
+            </td>
+          </tr>
+          <tr>
+            <td>-x</td>
+            <td>
+              Interval to look at (in hours). Valid options are 2, 24, or 168.
+            </td>
+          </tr>
+          <tr>
+            <td>-p</td>
+            <td>Look at all the above intervals.</td>
+          </tr>
+          <tr>
+            <td>-f FRONTEND</td>
+            <td>
+              Filter by Frontend. You can omit "frontend_" at the beginning of
+              the name.
+            </td>
+          </tr>
+          <tr>
+            <td>-z</td>
+            <td>
+              Zero suppression (don't show entries with 0s across all
+              attributes)
+            </td>
+          </tr>
+          <tr>
+            <td>-m</td>
+            <td>
+              Emphasize frontend data, no entries shown. By default, slots are
+              shown. You can use <tt>-ms</tt> to show seconds or <tt>-mh</tt> to
+              show hours.
+            </td>
+          </tr>
+          <tr>
+            <td>-msort ATTRIBUTE</td>
+            <td>
+              Frontend mode, sort by attribute (strt, fval, 0job, val, idle,
+              wst, badp, waste, time, total)
+            </td>
+          </tr>
+          <tr>
+            <td>-h</td>
+            <td>Show usage message</td>
+          </tr>
+        </table>
+        <p>Example usage:</p>
+        <pre>
 ./analyze_frontends --source /opt/wmsfactory/glidein_wmsfactory_instance -x 168
 
 Status Attributes (Clients) analysis for All Entries - 01-11-2011_15:28:06
@@ -461,20 +646,18 @@ RunDiff - StatusRunning - ClientRegistered (ClientGlideTotal)
 %UM - Percent Unmatched (Unmatched/Registered)
 %RD - Percent RunDiff over Running (RunDiff/StatusRunning)
 -------------------------------------
-</pre>
-</div>
+</pre
+        >
+      </div>
 
-
-
-
-<div class="footer">
-Banner image by
-<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
-used under Creative Commons license.<br/>
-Original Home URL: <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
-GlideinWMS email support: glideinwms-support at fnal.gov
-</div>
-
-
-</body>
+      <div class="footer">
+        Banner image by
+        <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+        used under Creative Commons license.<br />
+        Original Home URL:
+        <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
+        GlideinWMS email support: glideinwms-support at fnal.gov
+      </div>
+    </div>
+  </body>
 </html>

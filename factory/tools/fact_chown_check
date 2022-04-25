@@ -1,12 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
 
 """
 The script check if the factory setup is 3.5 ready. This means the client and proxies
 directories are owned user running this process, and jobs owner is this user as well.
 It further checks that there are no GT2 entries enabled in the configuration.
 """
-
-from __future__ import print_function
 
 import os
 import sys
@@ -58,7 +59,7 @@ def main():
     i = 0
     for query in htcondor.poll(queries):
         try:
-            users.add(query.next()["Owner"])
+            users.add(query.__next__()["Owner"])
             i += 1
         except StopIteration:
             pass

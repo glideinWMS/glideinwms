@@ -1,11 +1,14 @@
-from __future__ import absolute_import
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import os
+import re
 import stat
 import time
-import re
-import pwd
+
 from . import logSupport
 from .pidSupport import register_sighandler, unregister_sighandler
+
 
 class Cleanup:
     def __init__(self):
@@ -17,12 +20,11 @@ class Cleanup:
 
     def start_background_cleanup(self):
         if self.cleanup_pids:
-            logSupport.log.warning("Earlier cleanup PIDs %s still exist; skipping this cycle" %
-                                   self.cleanup_pids)
+            logSupport.log.warning("Earlier cleanup PIDs %s still exist; skipping this cycle" % self.cleanup_pids)
         else:
-            num_forks = 4 # arbitrary - could be configurable
-            cleanup_lists = [self.cleanup_objects[x::num_forks] for x in xrange(num_forks)]
-            for i in xrange(num_forks):
+            num_forks = 4  # arbitrary - could be configurable
+            cleanup_lists = [self.cleanup_objects[x::num_forks] for x in range(num_forks)]
+            for i in range(num_forks):
                 unregister_sighandler()
                 cl_pid = os.fork()
                 if cl_pid != 0:
@@ -44,31 +46,40 @@ class Cleanup:
                     self.cleanup_pids.remove(pid)
             except OSError as e:
                 self.cleanup_pids.remove(pid)
-                logSupport.log.warning("Received error %s while waiting for PID %s" %
-                                       (e.strerror, pid))
+                logSupport.log.warning(f"Received error {e.strerror} while waiting for PID {pid}")
 
     def cleanup(self):
         # foreground cleanup
         for cleaner in self.cleanup_objects:
             cleaner.cleanup()
 
+
 cleaners = Cleanup()
+
 
 class CredCleanup(Cleanup):
     """
     Cleans up old credential files.
     """
-            
+
     def cleanup(self, in_use_proxies):
         for cleaner in self.cleanup_objects:
             cleaner.cleanup(in_use_proxies)
-            
+
+
 cred_cleaners = CredCleanup()
+
 
 # this class is used for cleanup
 class DirCleanup:
-    def __init__(self, dirname, fname_expression, # regular expression, used with re.match
-                 maxlife, should_log=True, should_log_warnings=True):
+    def __init__(
+        self,
+        dirname,
+        fname_expression,  # regular expression, used with re.match
+        maxlife,
+        should_log=True,
+        should_log_warnings=True,
+    ):
         self.dirname = dirname
         self.fname_expression = fname_expression
         self.fname_expression_obj = re.compile(fname_expression)
@@ -82,7 +93,7 @@ class DirCleanup:
         treshold_time = time.time() - self.maxlife
         files_wstats = self.get_files_wstats()
 
-        for fpath in files_wstats.keys():
+        for fpath in list(files_wstats.keys()):
             fstat = files_wstats[fpath]
 
             update_time = fstat[stat.ST_MTIME]
@@ -106,14 +117,14 @@ class DirCleanup:
         fnames = os.listdir(self.dirname)
         for fname in fnames:
             if self.fname_expression_obj.match(fname) is None:
-                continue # ignore files that do not match
+                continue  # ignore files that do not match
 
             fpath = os.path.join(self.dirname, fname)
             fstat = os.lstat(fpath)
             fmode = fstat[stat.ST_MODE]
             isdir = stat.S_ISDIR(fmode)
             if isdir:
-                continue #ignore directories
+                continue  # ignore directories
             out_data[fpath] = fstat
 
         return out_data
@@ -122,12 +133,19 @@ class DirCleanup:
     def delete_file(self, fpath):
         os.unlink(fpath)
 
+
 # this class is used for cleanup
 class DirCleanupWSpace(DirCleanup):
-    def __init__(self, dirname, fname_expression, # regular expression, used with re.match
-                 maxlife, # max lifetime after which it is deleted
-                 minlife, maxspace, # max space allowed for the sum of files, unless they are too young
-                 should_log=True, should_log_warnings=True):
+    def __init__(
+        self,
+        dirname,
+        fname_expression,  # regular expression, used with re.match
+        maxlife,  # max lifetime after which it is deleted
+        minlife,
+        maxspace,  # max space allowed for the sum of files, unless they are too young
+        should_log=True,
+        should_log_warnings=True,
+    ):
         DirCleanup.__init__(self, dirname, fname_expression, maxlife, should_log, should_log_warnings)
         self.minlife = minlife
         self.maxspace = maxspace
@@ -140,9 +158,9 @@ class DirCleanupWSpace(DirCleanup):
         treshold_time = time.time() - self.maxlife
 
         files_wstats = self.get_files_wstats()
-        fpaths = files_wstats.keys()
+        fpaths = list(files_wstats.keys())
         # order based on time (older first)
-        fpaths.sort(lambda i, j:cmp(files_wstats[i][stat.ST_MTIME], files_wstats[j][stat.ST_MTIME]))
+        fpaths.sort(key=lambda x: files_wstats[x][stat.ST_MTIME])
 
         # first calc the amount of space currently used
         used_space = 0
@@ -157,8 +175,7 @@ class DirCleanupWSpace(DirCleanup):
             update_time = fstat[stat.ST_MTIME]
             fsize = fstat[stat.ST_SIZE]
 
-            if ((update_time < treshold_time) or
-                ((update_time < min_treshold_time) and (used_space > self.maxspace))):
+            if (update_time < treshold_time) or ((update_time < min_treshold_time) and (used_space > self.maxspace)):
                 try:
                     os.unlink(fpath)
                     count_removes += 1
@@ -170,20 +187,21 @@ class DirCleanupWSpace(DirCleanup):
 
         if count_removes > 0:
             if self.should_log:
-                logSupport.log.info("Removed %i files for %.2fMB." % (count_removes, count_removes_bytes / (1024.0 * 1024.0)))
-
+                logSupport.log.info(
+                    "Removed %i files for %.2fMB." % (count_removes, count_removes_bytes / (1024.0 * 1024.0))
+                )
 
 
 class DirCleanupCredentials(DirCleanup):
     """
     Used to cleanup old credential files saved to disk by the factory for glidein submission (based on ctime).
     """
-    def __init__(self,
-                 dirname,
-                 fname_expression, # regular expression, used with re.match
-                 maxlife): # max lifetime after which it is deleted
+
+    def __init__(
+        self, dirname, fname_expression, maxlife  # regular expression, used with re.match
+    ):  # max lifetime after which it is deleted
         DirCleanup.__init__(self, dirname, fname_expression, maxlife, should_log=True, should_log_warnings=True)
-        
+
     def cleanup(self, in_use_creds):
         count_removes = 0
         curr_time = time.time()
@@ -191,9 +209,9 @@ class DirCleanupCredentials(DirCleanup):
         threshold_time = curr_time - self.maxlife
 
         files_wstats = self.get_files_wstats()
-        fpaths = files_wstats.keys()
+        fpaths = list(files_wstats.keys())
 
-        for fpath in fpaths:            
+        for fpath in fpaths:
             fstat = files_wstats[fpath]
             last_access_time = fstat[stat.ST_MTIME]
 
@@ -206,5 +224,5 @@ class DirCleanupCredentials(DirCleanup):
 
         if count_removes > 0:
             logSupport.log.info("Removed %i credential files." % count_removes)
-        else:            
+        else:
             logSupport.log.info("No old credential files were removed.")

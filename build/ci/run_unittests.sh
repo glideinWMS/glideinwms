@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 help_msg() {
   #filename="$(basename $0)"
   cat << EOF
@@ -73,7 +76,7 @@ fi
 
 
 if [ "x$VIRTUAL_ENV" = "x" ]; then
-    setup_python2_venv "$WORKSPACE"
+    setup_python3_venv "$WORKSPACE"
 fi
 
 if ! cd "$GLIDEINWMS_SRC"/unittests ; then
@@ -84,7 +87,7 @@ fi
 SOURCES="${GLIDEINWMS_SRC},${GLIDEINWMS_SRC}/factory/"
 SOURCES="${SOURCES},${GLIDEINWMS_SRC}/factory/tools,${GLIDEINWMS_SRC}/frontend"
 SOURCES="${SOURCES},${GLIDEINWMS_SRC}/frontend/tools,${GLIDEINWMS_SRC}/install"
-SOURCES="${SOURCES},${GLIDEINWMS_SRC}/install/services,${GLIDEINWMS_SRC}/lib"
+SOURCES="${SOURCES},${GLIDEINWMS_SRC}/lib"
 SOURCES="${SOURCES},${GLIDEINWMS_SRC}/tools,${GLIDEINWMS_SRC}/tools/lib"
 
 
@@ -103,18 +106,10 @@ fi
 
 for file in $files_list ; do
     [ -n "$VERBOSE" ] && echo "TESTING ==========> $file"
-    if [ -n "$VERBOSE" ]; then
-        if [ "$RUN_COVERAGE" = "yes" ]; then
-            coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file" || log_nonzero_rc "$file" $?
-        else
-            ./"$file" || log_nonzero_rc "$file" $?
-        fi
+    if [ "$RUN_COVERAGE" = "yes" ]; then
+        coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file" || log_verbose_nonzero_rc "$file" $?
     else
-        if [ "$RUN_COVERAGE" = "yes" ]; then
-            coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file"
-        else
-            ./"$file"
-        fi
+        ./"$file" || log_verbose_nonzero_rc "$file" $?
     fi
 done
 
@@ -134,4 +129,3 @@ if [ "$RUN_COVERAGE" = "yes" ]; then
         coverage --version || echo "coverage not installed"
     fi
 fi
-

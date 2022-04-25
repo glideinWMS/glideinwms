@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Project:
    glideinWMS
@@ -11,22 +15,18 @@ Project:
 """
 
 
-from __future__ import absolute_import
-from __future__ import print_function
+import copy
 import os
 import sys
-import copy
 import tempfile
-import unittest2 as unittest
+import unittest
+
+from unittest import mock
+
 import xmlrunner
-import mock
 
-
-from glideinwms.creation.lib.cvWParams import VOFrontendSubParams
-from glideinwms.creation.lib.cvWParams import VOFrontendParams
-from glideinwms.creation.lib.cvWParams import extract_attr_val
-from glideinwms.creation.lib.cWParams import Params
-from glideinwms.creation.lib.cWParams import SubParams
+from glideinwms.creation.lib.cvWParams import extract_attr_val, VOFrontendParams, VOFrontendSubParams
+from glideinwms.creation.lib.cWParams import Params, SubParams
 
 ARGV = ["fixtures/frontend.xml", "fixtures/frontend.xml"]
 SRC_DIR = "fixtures/frontend"
@@ -34,7 +34,6 @@ USAGE_PREFIX = "create_frontend"
 
 
 class TestVOFrontendSubParams(unittest.TestCase):
-
     def setUp(self):
         v_o_frontend_params = VOFrontendParams(USAGE_PREFIX, SRC_DIR, ARGV)
         self.sub_params = VOFrontendSubParams(v_o_frontend_params.data)
@@ -50,15 +49,15 @@ class TestVOFrontendSubParams(unittest.TestCase):
 
     def test_extract_attr_val(self):
         monkey = mock.Mock()
-        monkey.type = 'string'
-        monkey.value = 'monkey'
+        monkey.type = "string"
+        monkey.value = "monkey"
         self.assertEqual("monkey", self.sub_params.extract_attr_val(monkey))
 
     def test_looks_like_dict(self):
         self.assertTrue(len(list(self.sub_params.keys())) > 0)
         # for k in self.sub_params: FAILS in the __getitem__ step
         # for k in self.sub_params.keys(): PASSES __getitem__
-        for k in self.sub_params.keys():
+        for k in list(self.sub_params.keys()):
             self.assertTrue(k in self.sub_params)
             val1 = self.sub_params.__getitem__(k)
             val2 = self.sub_params[k]
@@ -66,20 +65,14 @@ class TestVOFrontendSubParams(unittest.TestCase):
 
 
 class TestVOFrontendParams(unittest.TestCase):
-
     def setUp(self):
-        self.v_o_frontend_params = VOFrontendParams(
-            USAGE_PREFIX, SRC_DIR, ARGV)
+        self.v_o_frontend_params = VOFrontendParams(USAGE_PREFIX, SRC_DIR, ARGV)
 
     def test_init(self):
         self.assertTrue(isinstance(self.v_o_frontend_params, Params))
 
     def test_buildDir(self):
-        self.assertEqual(
-            SRC_DIR,
-            self.v_o_frontend_params.buildDir(
-                "",
-                SRC_DIR))
+        self.assertEqual(SRC_DIR, self.v_o_frontend_params.buildDir("", SRC_DIR))
 
     def test_derive(self):
         try:
@@ -89,28 +82,25 @@ class TestVOFrontendParams(unittest.TestCase):
 
     def test_extract_attr_val(self):
         p = self.v_o_frontend_params
-        self.assertEqual("1", p.extract_attr_val(p.attrs['GLIDECLIENT_Rank']))
+        self.assertEqual("1", p.extract_attr_val(p.attrs["GLIDECLIENT_Rank"]))
 
     def test_get_subparams_class(self):
         sc = self.v_o_frontend_params.get_subparams_class()
         self.assertNotEqual(None, sc)
 
     def test_get_top_element(self):
-        self.assertEqual(
-            'frontend',
-            self.v_o_frontend_params.get_top_element())
+        self.assertEqual("frontend", self.v_o_frontend_params.get_top_element())
 
     def test_get_xml_format(self):
         fmt_dict = self.v_o_frontend_params.get_xml_format()
-        self.assertTrue('dicts_params' in fmt_dict)
-        self.assertTrue('lists_params' in fmt_dict)
+        self.assertTrue("dicts_params" in fmt_dict)
+        self.assertTrue("lists_params" in fmt_dict)
 
     def test_get_xml(self):
         self.assertTrue(len(self.v_o_frontend_params.get_xml().__repr__()) > 0)
 
     def test_get_description(self):
-        self.assertTrue(
-            len(self.v_o_frontend_params.get_description().__repr__()) > 0)
+        self.assertTrue(len(self.v_o_frontend_params.get_description().__repr__()) > 0)
 
     def test_init_defaults(self):
         try:
@@ -125,7 +115,7 @@ class TestVOFrontendParams(unittest.TestCase):
             self.fail(err)
 
     def test_file_read_and_write(self):
-        fn = tempfile.NamedTemporaryFile(prefix='/tmp/', delete=False)
+        fn = tempfile.NamedTemporaryFile(prefix="/tmp/", delete=False)
         fn.close()
         self.v_o_frontend_params.save_into_file(fn.name)
         new_param_obj = VOFrontendParams("", "", [fn.name, fn.name])
@@ -139,12 +129,10 @@ class TestVOFrontendParams(unittest.TestCase):
 class TestExtractAttrVal(unittest.TestCase):
     def test_extract_attr_val(self):
         monkey = mock.Mock()
-        monkey.type = 'string'
-        monkey.value = 'monkey'
+        monkey.type = "string"
+        monkey.value = "monkey"
         self.assertEqual(monkey.value, extract_attr_val(monkey))
 
 
-if __name__ == '__main__':
-    unittest.main(
-        testRunner=xmlrunner.XMLTestRunner(
-            output='unittests-reports'))
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))

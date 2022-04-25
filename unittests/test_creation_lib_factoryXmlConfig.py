@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Project:
    glideinWMS
@@ -11,31 +15,30 @@ Project:
 """
 
 
-from __future__ import absolute_import
-from __future__ import print_function
-import unittest2 as unittest
+import unittest
+
 import xmlrunner
 
+from glideinwms.creation.lib.factoryXmlConfig import (
+    CondTarElement,
+    Config,
+    EntryElement,
+    EntrySetElement,
+    FactAttrElement,
+    FactFileElement,
+    FrontendElement,
+    parse,
+)
 
-from glideinwms.creation.lib.factoryXmlConfig import FactAttrElement
-from glideinwms.creation.lib.factoryXmlConfig import FactFileElement
-from glideinwms.creation.lib.factoryXmlConfig import CondTarElement
-from glideinwms.creation.lib.factoryXmlConfig import FrontendElement
-from glideinwms.creation.lib.factoryXmlConfig import EntryElement
-from glideinwms.creation.lib.factoryXmlConfig import EntrySetElement
-from glideinwms.creation.lib.factoryXmlConfig import Config
-from glideinwms.creation.lib.factoryXmlConfig import parse
-
-XML = 'fixtures/factory/glideinWMS.xml'
-XML_ENTRY = 'fixtures/factory/config.d/Dev_Sites.xml'
-XML_ENTRY2 = 'fixtures/factory/config.d/Dev_Sites2.xml'
+XML = "fixtures/factory/glideinWMS.xml"
+XML_ENTRY = "fixtures/factory/config.d/Dev_Sites.xml"
+XML_ENTRY2 = "fixtures/factory/config.d/Dev_Sites2.xml"
 
 
 class TestFactAttrElement(unittest.TestCase):
-
     def setUp(self):
         self.conf = parse(XML)
-        self.attr_el_list = self.conf.get_child_list(u'attrs')
+        self.attr_el_list = self.conf.get_child_list("attrs")
 
     def test_validate(self):
         for fact_attr_element in self.attr_el_list:
@@ -44,10 +47,9 @@ class TestFactAttrElement(unittest.TestCase):
 
 
 class TestFactFileElement(unittest.TestCase):
-
     def setUp(self):
         self.conf = parse(XML)
-        self.files = self.conf.get_child_list(u'files')
+        self.files = self.conf.get_child_list("files")
 
     def test_validate(self):
         for fact_file_element in self.files:
@@ -56,20 +58,19 @@ class TestFactFileElement(unittest.TestCase):
 
 
 class TestCondTarElement(unittest.TestCase):
-
     def setUp(self):
         self.conf = parse(XML)
-        self.ctl = self.conf.get_child_list(u'condor_tarballs')
+        self.ctl = self.conf.get_child_list("condor_tarballs")
 
     def test_validate(self):
         for cte in self.ctl:
             cte.validate()
-            self.assertTrue(u'arch' in cte)
-            self.assertTrue(u'version' in cte)
-            self.assertTrue(u'os' in cte)
-            self.assertTrue(u'base_dir' in cte or u'tar_file' in cte)
+            self.assertTrue("arch" in cte)
+            self.assertTrue("version" in cte)
+            self.assertTrue("os" in cte)
+            self.assertTrue("base_dir" in cte or "tar_file" in cte)
             self.assertTrue(isinstance(cte, CondTarElement))
-            del cte[u'base_dir']
+            del cte["base_dir"]
             try:
                 cte.validate()
             except RuntimeError as err:
@@ -77,38 +78,36 @@ class TestCondTarElement(unittest.TestCase):
 
 
 class TestFrontendElement(unittest.TestCase):
-
     def setUp(self):
         self.conf = parse(XML)
-        self.sec = self.conf.get_child(u'security')
-        self.frontends = self.sec.get_child_list(u'frontends')
+        self.sec = self.conf.get_child("security")
+        self.frontends = self.sec.get_child_list("frontends")
 
     def test_validate(self):
         for frontend_element in self.frontends:
             frontend_element.validate()
-            self.assertTrue(u'name' in frontend_element)
-            self.assertTrue(u'identity' in frontend_element)
+            self.assertTrue("name" in frontend_element)
+            self.assertTrue("identity" in frontend_element)
             self.assertTrue(isinstance(frontend_element, FrontendElement))
 
 
 class TestEntryElement(unittest.TestCase):
-
     def setUp(self):
         self.conf = parse(XML)
-        self.eel = self.conf.get_child_list('entries')
+        self.eel = self.conf.get_child_list("entries")
 
     def test_getName(self):
         for entry_element in self.eel:
-            self.assertNotEqual('', entry_element.getName())
+            self.assertNotEqual("", entry_element.getName())
             self.assertNotEqual(None, entry_element.getName())
 
     def test_validate(self):
         for entry_element in self.eel:
             entry_element.validate()
-            self.assertTrue(u'gridtype' in entry_element)
-            self.assertTrue(u'gatekeeper' in entry_element)
-            self.assertTrue(u'auth_method' in entry_element)
-            self.assertTrue(u'enabled' in entry_element)
+            self.assertTrue("gridtype" in entry_element)
+            self.assertTrue("gatekeeper" in entry_element)
+            self.assertTrue("auth_method" in entry_element)
+            self.assertTrue("enabled" in entry_element)
             self.assertTrue(isinstance(entry_element, EntryElement))
 
     def test_validate_sub_elements(self):
@@ -117,28 +116,27 @@ class TestEntryElement(unittest.TestCase):
 
 
 class TestEntrySetElement(unittest.TestCase):
-
     def setUp(self):
         self.conf = parse(XML)
-        self.esl = self.conf.get_child_list('entry_sets')
-        self.el = self.conf.get_child_list('entries')
+        self.esl = self.conf.get_child_list("entry_sets")
+        self.el = self.conf.get_child_list("entries")
         self.assertTrue(len(self.esl) > 0)
 
     def test_validate_entry_sets(self):
         for entry_set_element in self.esl:
             entry_set_element.validate()
-            #self.assertTrue(isinstance(entry_set_element, EntrySetElement))
+            # self.assertTrue(isinstance(entry_set_element, EntrySetElement))
 
     def test_validate_entries(self):
         for entry_set_element in self.el:
             entry_set_element.validate()
-            #self.assertTrue(isinstance(entry_set_element, EntrySetElement))
+            # self.assertTrue(isinstance(entry_set_element, EntrySetElement))
+
 
 # pylint: disable=maybe-no-member
 
 
 class TestConfig(unittest.TestCase):
-
     def setUp(self):
         self.config = parse(XML)
 
@@ -159,23 +157,23 @@ class TestConfig(unittest.TestCase):
 
     def test_get_log_dir(self):
         log_dir = self.config.get_log_dir()
-        self.assertEqual(u'fixtures/factory/log/server', log_dir)
+        self.assertEqual("fixtures/factory/log/server", log_dir)
 
     def test_get_monitor_dir(self):
         monitor_dir = self.config.get_monitor_dir()
-        self.assertEqual(u'fixtures/factory/web-area/monitor', monitor_dir)
+        self.assertEqual("fixtures/factory/web-area/monitor", monitor_dir)
 
     def test_get_stage_dir(self):
         stage_dir = self.config.get_stage_dir()
-        self.assertEqual(u'fixtures/factory/web-area/stage', stage_dir)
+        self.assertEqual("fixtures/factory/web-area/stage", stage_dir)
 
     def test_get_submit_dir(self):
         submit_dir = self.config.get_submit_dir()
-        self.assertEqual(u'fixtures/factory/work-dir', submit_dir)
+        self.assertEqual("fixtures/factory/work-dir", submit_dir)
 
     def test_get_web_url(self):
         url = self.config.get_web_url()
-        self.assertEqual(u'http://fermicloud380.fnal.gov/factory/stage', url)
+        self.assertEqual("http://fermicloud380.fnal.gov/factory/stage", url)
 
     def test_set_client_log_dirs(self):
         self.config.set_client_log_dirs()
@@ -201,11 +199,11 @@ class TestConfig(unittest.TestCase):
     def test_validate(self):
         self.config.validate()
 
+
 # pylint: enable=maybe-no-member
 
 
 class TestParse(unittest.TestCase):
-
     def test_parse(self):
         parse(XML)
         try:
@@ -214,7 +212,5 @@ class TestParse(unittest.TestCase):
             pass
 
 
-if __name__ == '__main__':
-    unittest.main(
-        testRunner=xmlrunner.XMLTestRunner(
-            output='unittests-reports'))
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))

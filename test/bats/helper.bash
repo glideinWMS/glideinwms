@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
 
 [ -z "$GWMS_SOURCEDIR" ] && GWMS_SOURCEDIR=../..
 
@@ -17,5 +19,3 @@ teardownNotesEnv() {
     echo "** Did not delete $TEMP_DIRECTORY, as test failed **"
   fi
 }
-
-

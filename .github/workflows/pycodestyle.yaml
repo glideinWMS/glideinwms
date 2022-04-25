@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 name: PyCodeStyle
 on:
   pull_request:
@@ -13,7 +16,7 @@ on:
 # jobs can be services, e.g. DB, needed by other jobs
 jobs:
   pycodestyle_job:
-    runs-on: ubuntu-latest  # ubuntu-latest or ubuntu-18.04
+    runs-on: ubuntu-latest # ubuntu-latest or ubuntu-18.04
     name: A job to run the pycodestyle checks
     env:
       RESULTS_FILE: pycodestyle-results.txt
@@ -27,7 +30,7 @@ jobs:
         uses: actions/download-artifact@v2
         id: download
         with:
-          name: pycodestyle  # includes a file pycodestyle-warnings.txt
+          name: pycodestyle # includes a file pycodestyle-warnings.txt
         continue-on-error: true
       - name: Sparse checkout
         shell: bash
@@ -52,13 +55,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          path: 'glideinwms'
+          path: "glideinwms"
         id: checkout
-#      - name: Setup python  # Not really needed because the test run in a container
-#        uses: actions/setup-python@v2
-#        with:
-#          python-version: '3.6' # was 3.x, Version range or exact version of a Python version to use, using SemVer's version range syntax
-#          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
+      #      - name: Setup python  # Not really needed because the test run in a container
+      #        uses: actions/setup-python@v2
+      #        with:
+      #          python-version: '3.6' # was 3.x, Version range or exact version of a Python version to use, using SemVer's version range syntax
+      #          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
       - name: pycodestyle action step
         uses: ./.github/actions/pycodestyle-in-sl7-docker
         id: pycodestyle

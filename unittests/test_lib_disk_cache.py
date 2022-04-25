@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Project:
    glideinWMS
@@ -10,26 +14,19 @@ Project:
    Dennis Box dbox@fnal.gov
 """
 
-
-from __future__ import absolute_import
-from __future__ import print_function
-
 import os
-import time
 import tempfile
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import time
+import unittest
 
 import xmlrunner
 
-from disk_cache import DiskCache
+from glideinwms.lib.disk_cache import DiskCache
 
 
 class TestDiskCache(unittest.TestCase):
-    """Test the DiskCache class
-    """
+    """Test the DiskCache class"""
+
     def setUp(self):
         self.obj = "I am the object to be saved"
         self.objid = "objid"
@@ -40,8 +37,7 @@ class TestDiskCache(unittest.TestCase):
         os.remove(self.objid + ".lock")
 
     def test_normal(self):
-        """Test a few things
-        """
+        """Test a few things"""
         # No cache file exists
         self.assertFalse(os.path.isfile(self.objid))
 
@@ -70,7 +66,7 @@ class TestDiskCache(unittest.TestCase):
         os.rmdir(new_location)
 
         # And now what happens if we let the cache expire? We do not get the object!
-        self.cache.cache_duration = 2 #2 seconds
+        self.cache.cache_duration = 2  # 2 seconds
         time.sleep(2)
         cached_obj = self.cache.get(self.objid)
         self.assertIsNone(cached_obj)
@@ -86,7 +82,5 @@ class TestDiskCache(unittest.TestCase):
         self.assertEqual(self.obj, cached_obj)
 
 
-if __name__ == '__main__':
-    unittest.main(
-        testRunner=xmlrunner.XMLTestRunner(
-            output='unittests-reports'))
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))

@@ -1,5 +1,8 @@
-name: 'Unit Tests'
-description: 'Run unit tests in preconfigured SL7 docker image'
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+name: "Unit Tests"
+description: "Run unit tests in preconfigured SL7 docker image"
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  using: "docker"
+  image: "Dockerfile"

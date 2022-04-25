@@ -1,7 +1,11 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 mydir="$(dirname $0)"
 
-pushd "${mydir}/../.." > /dev/null || { echo "Unable to cd to the repository root directory. Aborting"; exit 1; }  
+pushd "${mydir}/../.." > /dev/null || { echo "Unable to cd to the repository root directory. Aborting"; exit 1; }
 echo "Checking files starting from: $(pwd)"
 echo "List of non ASCII files - some known directories are skipped:"
 find . -type f -not -path "*/.git/*" -not -path "*.tar.gz" -not -path "*/.tox/*" -not -path "*/test/bats/lib/*" -not -path "*/doc/api/html/*" -not -path "*/images/*" -not -path "*/doc/papers/*" -not -path "*/unittests/fixtures/factory/work-dir/*" -exec file {} \; | grep -v "ASCII text" | grep -v ": empty"
@@ -11,7 +15,7 @@ find . -type f -not -path "*/.git/*" -not -path "*.tar.gz" -not -path "*/.tox/*"
 
 # Looking for leftover git conflicts strings
 echo "List of merge conflicts leftover:"
-egrep -R "(^=======$|^>>>>>>>|^<<<<<<<)" * 
+egrep -R "(^=======$|^>>>>>>>|^<<<<<<<)" *
 
 # count todos in files
 echo "Number of TODOs: $(grep -R "TODO:" * | wc -l )"

@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Project:
 #   glideinWMS
@@ -132,7 +136,7 @@ validate() {
 	    return 1
 	fi
     fi
-   
+
     return 0
 }
 
@@ -148,7 +152,7 @@ process_file() {
     if [ $rc -ne 0 ]; then
 	    create_empty "$@"
     else
-	    process_valid_file "$@" 
+	    process_valid_file "$@"
     fi
 }
 
@@ -202,7 +206,7 @@ locked_concat_file() {
     local lock_ctr=0 lock="${fpath}.lock"
     # removed SIGKILL from the list since it cannot be trapped
     trap "[ -f \"$lock\" ] && rm \"$lock\"; exit 1" SIGINT SIGQUIT
-    
+
     until ln "${fpath}" "${lock}" 2>/dev/null
     do sleep 1
         [ -s "${file}" ] || return $?
@@ -220,7 +224,7 @@ locked_concat_file() {
     cat otrx_output.xml |awk 'BEGIN{fr=0;}/<OSGTestResult/{fr=1;}{if (fr==1) print $0}/<[/]OSGTestResult>/{fr=0;}' >> "$fpath"
     # make sure it is not modified by mistake by any test script
     chmod a-w "$fpath"
- 
+
     # Remove lock
     rm -f "${lock}"
 }
@@ -255,5 +259,3 @@ case "$mycmd" in
     -locked-concat) locked_concat_file ;;
     *)  (warn "Unknown option $mycmd"; usage) 1>&2; exit 1
 esac
-
-

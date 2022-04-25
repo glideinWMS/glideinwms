@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 glidein_config="$1"
 
@@ -36,7 +40,7 @@ fi
 # And also remember that for now, GWMS supports Singularity images under /cvmfs/, preferably under
 # /cvmfs/singularity.opensciencegrid.org/ or at least on a path which existence can be verified (-e test)
 # CVMFS path as /cvmfs, the eventual translation to $CVMFS_MOUNT_DIR will happen later since the value may change
-  
+
 # Note that you can add SINGULARITY_IMAGES_DICT also as attribute in the Factory or Frontend configuration
 
 # Note the legacy variables/attributes  SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6 and SINGULARITY_IMAGE_DEFAULT7 will override the

@@ -1,23 +1,37 @@
-import os
-import subprocess
-import shlex
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
 
+import os
+import shlex
+import subprocess
+
+from subprocess import CalledProcessError
+
+# CalledProcessError(self, returncode, cmd, output=None, stderr=None)
+# Provides: cmd, returncode, stdout, stderr, output (same as stdout)
+# __str__ of this class is not printing the stdout in the error message
+
+
+# TODO: remove once the import from subprocess is proven to work
+#    Helper functions below have been remoced as well since they are the same as in subprocess and seem not used
 # Exception classes used by this module.
-class CalledProcessError(Exception):
+class CalledProcessError2(Exception):
     """This exception is raised when a process run by check_call() or
     check_output() returns a non-zero exit status.
     The exit status will be stored in the returncode attribute;
     check_output() will also store the output in the output attribute.
     """
+
     def __init__(self, returncode, cmd, output=None):
         self.returncode = returncode
         self.cmd = cmd
         self.output = output
+
     def __str__(self):
-        return "Command '%s' returned non-zero exit status %s: %s" % (self.cmd, self.returncode, self.output)
+        return f"Command '{self.cmd}' returned non-zero exit status {self.returncode}: {self.output}"
 
 
-def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None):
+def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True):
     """
     Fork a process and execute cmd - rewritten to use select to avoid filling
     up stderr and stdout queues.
@@ -30,18 +44,29 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None):
     One possible improvement would be to add a function to accept
     an array instead of a command string.
 
-    @type cmd: string
-    @param cmd: String containing the entire command including all arguments
-    @type stdin_data: string
-    @param stdin_data: Data that will be fed to the command via stdin
-    @type env: dict
-    @param env: Environment to be set before execution
+    Args:
+        cmd (str): String containing the entire command including all arguments
+        useShell (bool): if True run the command in a shell (passed to Popen as shell)
+        stdin_data (str/bytes): Data that will be fed to the command via stdin. It will be bytes if text is False,
+            str otherwise
+        child_env (dict): Environment to be set before execution
+        text (bool): if False, then stdin_data and the return value are bytes instead of str (default: True)
+
+    Returns:
+        str/bytes: output of the command. It will be bytes if text is False,
+            str otherwise
+
     """
+    # TODO: use subprocess.run instead of Pipe
+    #   could this be replaced directly by subprocess run throughout the program?
+
     stdoutdata = stderrdata = ""
+    if not text:
+        stdoutdata = stderrdata = b""
     exitStatus = 0
 
     try:
-        # Add in parent process environment, make sure that env ovrrides parent 
+        # Add in parent process environment, make sure that env ovrrides parent
         if child_env:
             for k in os.environ:
                 if not k in child_env:
@@ -52,19 +77,25 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None):
 
         # Tokenize the commandline that should be executed.
         if useShell:
-          command_list = ['%s' % cmd,]
+            command_list = [
+                "%s" % cmd,
+            ]
         else:
-          command_list = shlex.split(cmd.encode('utf8'))
+            command_list = shlex.split(cmd)
         # launch process - Converted to using the subprocess module
-        process = subprocess.Popen(command_list, shell=useShell,
-                                   stdin=subprocess.PIPE,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   env=child_env)
+        process = subprocess.Popen(
+            command_list,
+            shell=useShell,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=child_env,
+            universal_newlines=text,
+        )
 
         # GOTCHAS:
         # 1) stdin should be buffered in memory.
-        # 2) Python docs suggest not to use communicate if the data size is 
+        # 2) Python docs suggest not to use communicate if the data size is
         #    large or unlimited. With large or unlimited stdout and stderr
         #    communicate at best starts trashing. So far testing for 1000000
         #    stdout/stderr lines are ok
@@ -80,65 +111,3 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None):
     if exitStatus:
         raise CalledProcessError(exitStatus, cmd, output="".join(stderrdata))
     return stdoutdata
-
-def call(*popenargs, **kwargs):
-    """Run command with arguments.  Wait for command to complete, then
-    return the returncode attribute.
-
-    The arguments are the same as for the Popen constructor.  Example:
-
-    retcode = call(["ls", "-l"])
-    """
-    return subprocess.Popen(*popenargs, **kwargs).wait()
-
-
-def check_call(*popenargs, **kwargs):
-    """Run command with arguments.  Wait for command to complete.  If
-    the exit code was zero then return, otherwise raise
-    CalledProcessError.  The CalledProcessError object will have the
-    return code in the returncode attribute.
-
-    The arguments are the same as for the Popen constructor.  Example:
-
-    check_call(["ls", "-l"])
-    """
-    retcode = call(*popenargs, **kwargs)
-    if retcode:
-        cmd = kwargs.get("args")
-        if cmd is None:
-            cmd = popenargs[0]
-        raise CalledProcessError(retcode, cmd)
-    return 0
-
-
-def check_output(*popenargs, **kwargs):
-    """Run command with arguments and return its output as a byte string.
-
-    If the exit code was non-zero it raises a CalledProcessError.  The
-    CalledProcessError object will have the return code in the returncode
-    attribute and output in the output attribute.
-
-    The arguments are the same as for the Popen constructor.  Example:
-
-    >>> check_output(["ls", "-l", "/dev/null"])
-    'crw-rw-rw- 1 root root 1, 3 Oct 18  2007 /dev/null\n'
-
-    The stdout argument is not allowed as it is used internally.
-    To capture standard error in the result, use stderr=STDOUT.
-
-    >>> check_output(["/bin/sh", "-c",
-    ...               "ls -l non_existent_file ; exit 0"],
-    ...              stderr=STDOUT)
-    'ls: non_existent_file: No such file or directory\n'
-    """
-    if 'stdout' in kwargs:
-        raise ValueError('stdout argument not allowed, it will be overridden.')
-    process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
-    output, _ = process.communicate()
-    retcode = process.poll()
-    if retcode:
-        cmd = kwargs.get("args")
-        if cmd is None:
-            cmd = popenargs[0]
-        raise CalledProcessError(retcode, cmd, output=output)
-    return output

@@ -1,4 +1,8 @@
 #!/usr/bin/env bats
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 load 'lib/bats-support/load'
 load 'lib/bats-assert/load'
 
@@ -69,7 +73,7 @@ setup_nameprint() {
     [ "$(replace_range "$coll_addr")" = "host.domain:9618?sockvar1=val1-5&sock=my5collect\$RANDOM_INTEGER(30,50)" ]
     coll_addr="host.domain:9618?varsock=val1-5&sock=my5collect30-50"
     [ "$(replace_range "$coll_addr")" = "host.domain:9618?varsock=val1-5&sock=my5collect\$RANDOM_INTEGER(30,50)" ]
-    # TODO: verify if dash is allowed or not. Uncomment below and change replace_range if it is 
+    # TODO: verify if dash is allowed or not. Uncomment below and change replace_range if it is
     coll_addr="host.domain:9618?var1=val1&sock=my-5collect30-50"
     echo $(replace_range "$coll_addr") >&3
     # THIS will fail

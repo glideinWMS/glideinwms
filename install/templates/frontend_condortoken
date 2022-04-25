@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # file: frontend_condortoken
 
 REQ_DIR=~frontend/passwords.d/requests
@@ -13,4 +17,3 @@ for REQ in $(ls "$REQ_DIR") ; do
         chown frontend ~frontend/passwords.d/$KEY
     fi
 done
-

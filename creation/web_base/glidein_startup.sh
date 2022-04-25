@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Project:
 #   glideinWMS
@@ -13,7 +17,7 @@ global_args="$*"
 # GWMS_STARTUP_SCRIPT=$0
 GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 GWMS_PATH=""
-# Relative to the work directory (GWMS_DIR will be the absolute path)
+# Relative to the work directory (GWMS_DIR, gwms_lib_dir, gwms_bin_dir and gwms_exec_dir will be the absolute paths)
 # bin (utilities), lib (libraries), exec (aux scripts to be executed/sourced, e.g. pre-job)
 GWMS_SUBDIR=".gwms.d"
 
@@ -101,6 +105,10 @@ ignore_signal() {
 
 warn() {
     echo "WARN $(date)" "$@" 1>&2
+}
+
+logdebug() {
+    echo "DEBUG $(date)" "$@" 1>&2
 }
 
 # Functions to start multiple glideins
@@ -397,7 +405,7 @@ glide_local_tmp_dir_created=0
 glidien_cleanup() {
     # Remove Glidein directories (work_dir, glide_local_tmp_dir)
     # 1 - exit code
-    # Using GLIDEIN_DEBUG_OPTIONS, start_dir, work_dir_created, work_dir, 
+    # Using GLIDEIN_DEBUG_OPTIONS, start_dir, work_dir_created, work_dir,
     #   glide_local_tmp_dir_created, glide_local_tmp_dir
     if ! cd "${start_dir}"; then
         warn "Cannot find ${start_dir} anymore, exiting but without cleanup"
@@ -600,7 +608,7 @@ automatic_work_dir() {
                         )
     unset TMPDIR
 
-    # kb
+    # 1 kB
     disk_required=1000000
 
     for d in "${targets[@]}"; do
@@ -1018,17 +1026,32 @@ set_proxy_fullpath() {
 
 [ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
 
-for tk in $(pwd)/*idtoken; do
+num_gct=0
+
+for tk in "$(pwd)/credential_"*".idtoken"; do
+  echo "Setting GLIDEIN_CONDOR_TOKEN to ${tk} " 1>&2
+  num_gct=$(( num_gct + 1 ))
   export GLIDEIN_CONDOR_TOKEN="${tk}"
-  if fullpath="$(readlink -f $tk)"; then
-     echo "Setting GLIDEIN_CONDOR_TOKEN $tk to canonical path ${fullpath}" 1>&2
+  fullpath="$(readlink -f "${tk}" )"
+  if [ $? -eq 0 ]; then
+     echo "Setting GLIDEIN_CONDOR_TOKEN ${tk} to canonical path ${fullpath}" 1>&2
      export GLIDEIN_CONDOR_TOKEN="${fullpath}"
   else
-     echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN $tk" 1>&2
+     echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN ${tk}" 1>&2
   fi
 done
-
-
+if [ ! -f "${GLIDEIN_CONDOR_TOKEN}" ] ; then
+    token_err_msg="problem setting GLIDEIN_CONDOR_TOKEN"
+    token_err_msg="${token_err_msg} will attempt to recover, but condor IDTOKEN auth may fail"
+    echo "${token_err_msg}"
+    echo "${token_err_msg}" 1>&2
+fi
+if [ ! "${num_gct}" -eq  1 ] ; then
+    token_err_msg="WARNING  GLIDEIN_CONDOR_TOKEN set ${num_gct} times, should be 1 !"
+    token_err_msg="${token_err_msg} condor IDTOKEN auth may fail"
+    echo "${token_err_msg}"
+    echo "${token_err_msg}" 1>&2
+fi
 
 ########################################
 # prepare and move to the work directory
@@ -1052,9 +1075,7 @@ if [ -z "${work_dir}" ]; then
     early_glidein_failure "Unable to identify Startup dir for the glidein."
 fi
 
-if [ -e "${work_dir}" ]; then
-    echo >/dev/null
-else
+if [ ! -e "${work_dir}" ]; then
     early_glidein_failure "Startup dir ${work_dir} does not exist."
 fi
 
@@ -1159,6 +1180,13 @@ fi
 # Move the token files from condor to glidein workspace
 mv "${start_dir}/tokens.tgz" .
 mv "${start_dir}/url_dirs.desc" .
+for idtk in ${start_dir}/*.idtoken; do
+   if cp "${idtk}" . ; then
+       echo "copied idtoken ${idtk} to $(pwd)"
+   else
+       echo "failed to copy idtoken  ${idtk} to $(pwd)" 1>&2
+   fi
+done
 #if [ -e "${GLIDEIN_CONDOR_TOKEN}" ]; then
 #    mkdir -p ticket
 #    tname="$(basename ${GLIDEIN_CONDOR_TOKEN})"
@@ -1198,6 +1226,8 @@ if ! {
     echo "CONDORG_SCHEDD ${condorg_schedd}"
     echo "DEBUG_MODE ${set_debug}"
     echo "GLIDEIN_STARTUP_PID $$"
+    echo "GLIDEIN_START_DIR_ORIG  ${start_dir}"
+    echo "GLIDEIN_WORKSPACE_ORIG  $(pwd)"
     echo "GLIDEIN_WORK_DIR ${main_dir}"
     echo "GLIDEIN_ENTRY_WORK_DIR ${entry_dir}"
     echo "TMP_DIR ${glide_tmp_dir}"
@@ -1384,7 +1414,7 @@ fetch_file() {
     # 6. periodic scripts prefix
     # 7. config check TRUE,FALSE
     # 8. config out TRUE,FALSE
-    # The above is the most recent list, below some adaptations for different versions 
+    # The above is the most recent list, below some adaptations for different versions
     if [ $# -gt 8 ]; then
         # For compatibility w/ future versions (add new parameters at the end)
         echo "More then 8 arguments, considering the first 8 ($#/${ifs_str}): $*" 1>&2
@@ -1443,13 +1473,13 @@ fetch_file_try() {
         fft_get_ss=$(grep -i "^${fft_config_check} " glidein_config | cut -d ' ' -f 2-)
         # Stop download and processing if the cond_attr variable is not defined or has a value different from 1
         [[ "${fft_get_ss}" != "1" ]] && return 0
-        # TODO: what if fft_get_ss is not 1? nothing, still skip the file? 
+        # TODO: what if fft_get_ss is not 1? nothing, still skip the file?
     fi
 
-    local fft_base_name=$(basename "${fft_real_fname}")
+    local fft_base_name fft_condition_attr fft_condition_attr_val
+    fft_base_name=$(basename "${fft_real_fname}")
     if [[ "${fft_base_name}" = gconditional_* ]]; then
-        local fft_condition_attr_val
-        local fft_condition_attr="${fft_base_name#gconditional_}"
+        fft_condition_attr="${fft_base_name#gconditional_}"
         fft_condition_attr="GLIDEIN_USE_${fft_condition_attr%%_*}"
         fft_condition_attr_val=$(grep -i "^${fft_condition_attr} " glidein_config | cut -d ' ' -f 2-)
         # if the variable fft_condition_attr is not defined or empty, do not download
@@ -1813,6 +1843,7 @@ fetch_file_base() {
 
 # Adds $1 to GWMS_PATH and update PATH
 add_to_path() {
+    logdebug "Adding to GWMS_PATH: $1"
     local old_path=":${PATH%:}:"
     old_path="${old_path//:$GWMS_PATH:/}"
     local old_gwms_path=":${GWMS_PATH%:}:"
@@ -1934,10 +1965,10 @@ do
     fi
 
     gs_file_list_id="$(echo "${gs_file_id}" |awk '{print $2}')"
-    
+
     gs_id_work_dir="$(get_work_dir "${gs_id}")"
     gs_id_descript_file="$(get_descript_file "${gs_id}")"
-    
+
     # extract list file name
     if ! gs_file_list_line="$(grep "^${gs_file_list_id} " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
         if [ -z "${client_repository_group_url}" ]; then
@@ -1951,10 +1982,10 @@ do
     fi
     # space+tab separated file with multiple elements (was: awk '{print $2}', not safe for spaces in file name)
     gs_file_list="$(echo "${gs_file_list_line}" | cut -s -f 2 | sed -e 's/[[:space:]]*$//')"
-    
+
     # fetch list file
     fetch_file_regular "${gs_id}" "${gs_file_list}"
-    
+
     # Fetch files contained in list
     # TODO: $file is actually a list, so it cannot be doublequoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
     # shellcheck disable=2086
@@ -1968,7 +1999,7 @@ do
     # Files to go into the GWMS_PATH
     if [ "$gs_file_id" = "main at_file_list" ]; then
         # setup here to make them available for other setup scripts
-        add_to_path "$PWD/$gwms_bin_dir"
+        add_to_path "$gwms_bin_dir"
         # all available now: gwms-python was in main,file_list; condor_chirp is in main,at_file_list
         for file in "gwms-python" "condor_chirp"
         do
@@ -1981,7 +2012,7 @@ do
         # new knowns binaries? add a loop like above: for file in ...
     elif [[ "$gs_file_id" = client* ]]; then
         # TODO: gwms25073 this is a workaround until there is an official designation for setup script fragments
-        [[ -e "${gs_id_work_dir}/setup_prejob.sh" ]] && { cp "${gs_id_work_dir}/setup_prejob.sh" "$gwms_exec_dir"/prejob/ ; chmod a-x "$gwms_exec_dir"/prejob/setup_prejob.sh ; } 
+        [[ -e "${gs_id_work_dir}/setup_prejob.sh" ]] && { cp "${gs_id_work_dir}/setup_prejob.sh" "$gwms_exec_dir"/prejob/ ; chmod a-x "$gwms_exec_dir"/prejob/setup_prejob.sh ; }
     fi
 done
 
@@ -2033,4 +2064,3 @@ echo 1>&2
 #########################
 # clean up after I finish
 glidein_exit ${ret}
-

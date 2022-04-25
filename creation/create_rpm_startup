@@ -1,31 +1,41 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-from __future__ import print_function
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+
 import os
-import sys
 import stat
+import sys
+
 # STARTUP_DIR=sys.path[0]
 # import os.path
 # sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
 
 # Create init.d compatible startup file
-def create_initd_startup(glideinWMS_dir_template, template_fname, startup_fname, work_dir, glideinWMS_dir, cfg_name, rpm_install=''):
+def create_initd_startup(
+    glideinWMS_dir_template, template_fname, startup_fname, work_dir, glideinWMS_dir, cfg_name, rpm_install=""
+):
     """
     Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
-    """            
+    """
     template = get_template(template_fname, glideinWMS_dir_template)
     with open(startup_fname, "w") as fd:
-        if template_fname.startswith('frontend'):
-            template = template % {"frontend_dir": work_dir, 
-                                   "glideinWMS_dir": glideinWMS_dir, 
-                                   "default_cfg_fpath": cfg_name,
-                                   "rpm_install": rpm_install}
+        if template_fname.startswith("frontend"):
+            template = template % {
+                "frontend_dir": work_dir,
+                "glideinWMS_dir": glideinWMS_dir,
+                "default_cfg_fpath": cfg_name,
+                "rpm_install": rpm_install,
+            }
         else:
-            template = template % {"factory_dir": work_dir, 
-                                   "glideinWMS_dir": glideinWMS_dir, 
-                                   "default_cfg_fpath": cfg_name,
-                                   "rpm_install": rpm_install}
+            template = template % {
+                "factory_dir": work_dir,
+                "glideinWMS_dir": glideinWMS_dir,
+                "default_cfg_fpath": cfg_name,
+                "rpm_install": rpm_install,
+            }
         fd.write(template)
 
     os.chmod(startup_fname, stat.S_IRWXU | stat.S_IROTH | stat.S_IRGRP | stat.S_IXOTH | stat.S_IXGRP)
@@ -35,7 +45,7 @@ def create_initd_startup(glideinWMS_dir_template, template_fname, startup_fname,
 
 # Read startup file template
 def get_template(template_name, glideinWMS_dir):
-    with open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r") as template_fd:
+    with open(f"{glideinWMS_dir}/creation/templates/{template_name}") as template_fd:
         template_str = template_fd.read()
     return template_str
 
@@ -45,38 +55,44 @@ def main(gwms_src_root_dir, template_frontend, template_factory, sfile_frontend,
 
     # Commenting this out
     # This is removing the files from          gwms_src_root_dir + file_name
-    # The function create_initd_startup is creating the file as    file_name 
+    # The function create_initd_startup is creating the file as    file_name
     # and the open in write mode will delete an old file anyway
     ## Remove startup file if already exists
-    #for startup_fname in [sfile_frontend, sfile_factory]:
+    # for startup_fname in [sfile_frontend, sfile_factory]:
     #    if os.path.exists(os.path.join(gwms_src_root_dir, startup_fname)):
     #        os.remove(os.path.join(gwms_src_root_dir, startup_fname))
 
     # Frontend
-    create_initd_startup(gwms_src_root_dir, template_frontend,
-                         sfile_frontend,
-                         '/var/lib/gwms-frontend/vofrontend',
-                         '/var/lib/gwms-frontend/vofrontend',
-                         '/etc/gwms-frontend/frontend.xml',
-                         'True')
+    create_initd_startup(
+        gwms_src_root_dir,
+        template_frontend,
+        sfile_frontend,
+        "/var/lib/gwms-frontend/vofrontend",
+        "/var/lib/gwms-frontend/vofrontend",
+        "/etc/gwms-frontend/frontend.xml",
+        "True",
+    )
     print("...Updated the frontend startup script")
 
     # Factory
-    create_initd_startup(gwms_src_root_dir, template_factory,
-                         sfile_factory,
-                         '/var/lib/gwms-factory/work-dir',
-                         '/var/lib/gwms-factory/work-dir',
-                         '/etc/gwms-factory/glideinWMS.xml',
-                         'True')
+    create_initd_startup(
+        gwms_src_root_dir,
+        template_factory,
+        sfile_factory,
+        "/var/lib/gwms-factory/work-dir",
+        "/var/lib/gwms-factory/work-dir",
+        "/etc/gwms-factory/glideinWMS.xml",
+        "True",
+    )
     print("...Updated the factory startup script")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     usage = """create_rpm_startup GWMS_DIR FRONTEND_STARTUP_TEMPLATE FACTORY_STARTUP_TEMPLATE FRONTEND_STARTUP FACTORY_STARTUP
     Create or replace the FRONTEND_STARTUP FACTORY_STARTUP files in GWMS_DIR using the templates.
     Both startup and template file names are relative to GWMS_DIR"""
     argv = sys.argv[1:]
-    if len(argv) == 5 and not argv[0] in ['-h', '--help', '-help']:
+    if len(argv) == 5 and not argv[0] in ["-h", "--help", "-help"]:
         if os.path.isdir(argv[0]):
             main(argv[0], argv[1], argv[2], argv[3], argv[4])
             sys.exit(0)

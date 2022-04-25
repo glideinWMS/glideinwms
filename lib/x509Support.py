@@ -1,6 +1,12 @@
-from __future__ import print_function
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import sys
+
 import M2Crypto
+
+from . import defaults
+
 
 def extract_DN(fname):
     """
@@ -10,12 +16,12 @@ def extract_DN(fname):
     @param fname: Filename containing the X.509 proxy
     """
 
-    with open(fname, "r") as fd:
+    with open(fname) as fd:
         data = fd.read()
 
     while True:
         try:
-            data_idx = data.rindex('-----BEGIN CERTIFICATE-----')
+            data_idx = data.rindex("-----BEGIN CERTIFICATE-----")
             old_data = data[:data_idx]
             data = data[data_idx:]
         except ValueError:
@@ -28,6 +34,10 @@ def extract_DN(fname):
             # get the previous in the chain
             data = old_data
         else:
-            break # ok, found it, end the loop
+            break  # ok, found it, end the loop
 
+    # M2Crypto.X509.x509.get_subject() returns M2Crypto.X509.x509_Name, .__str__() returns bytes
+    # return str(m.get_subject()).decode(defaults.BINARY_ENCODING_CRYPTO)
+    # return m.get_subject().__str__().decode(defaults.BINARY_ENCODING_CRYPTO)
+    # leaving it as it was even if the str() method is returning bytes according to the documentation
     return str(m.get_subject())

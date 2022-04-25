@@ -1,8 +1,11 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -12,15 +15,12 @@
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
-import os
-import time
-import string
 import fcntl
-from glideinwms.lib import condorExe
-from glideinwms.lib import condorMonitor
-from glideinwms.lib import condorManager
-from glideinwms.lib import logSupport
-from glideinwms.lib import classadSupport
+import os
+import string
+import time
+
+from glideinwms.lib import classadSupport, condorExe, condorManager, condorMonitor, logSupport
 
 ############################################################
 #
@@ -44,9 +44,10 @@ advertizeGlobalCounter = 0
 #
 ############################################################
 
-#class FakeLog:
+# class FakeLog:
 #    def write(self,str):
 #        pass
+
 
 class FactoryConfig:
     def __init__(self):
@@ -57,9 +58,9 @@ class FactoryConfig:
         self.factory_id = "glidefactory"
         self.client_id = "glideclient"
         self.factoryclient_id = "glidefactoryclient"
-        self.factory_global = 'glidefactoryglobal'
+        self.factory_global = "glidefactoryglobal"
 
-        #Default the glideinWMS version string
+        # Default the glideinWMS version string
         self.glideinwms_version = "glideinWMS UNKNOWN"
 
         # String to prefix for the attributes
@@ -91,10 +92,9 @@ class FactoryConfig:
         # Should we use the new -multiple for condor_advertise?
         self.advertise_use_multi = False
 
-
         # warning log files
         # default is FakeLog, any other value must implement the write(str) method
-        #self.warning_log = FakeLog()
+        # self.warning_log = FakeLog()
 
         # Location of lock directory
         self.lock_dir = "."
@@ -103,7 +103,7 @@ class FactoryConfig:
         # Please notice that None means "use the system collector"
         # while any string value will force the use of that specific collector
         # i.e. the -pool argument coption to HTCondor cmdline tools
-        self.factory_collector=None
+        self.factory_collector = None
 
 
 # global configuration of the module
@@ -127,6 +127,7 @@ DEFAULT_VAL = "default"
 # Exception thrown when multiple executions are used
 # Helps handle partial failures
 
+
 class MultiExeError(condorExe.ExeError):
     def __init__(self, arr):
         """
@@ -137,11 +138,12 @@ class MultiExeError(condorExe.ExeError):
         # First approximation of implementation, can be improved
         str_arr = []
         for e in arr:
-            str_arr.append('%s' % e)
+            str_arr.append("%s" % e)
 
-        error_str = '\\n'.join(str_arr)
+        error_str = "\\n".join(str_arr)
 
         condorExe.ExeError.__init__(self, error_str)
+
 
 ############################################################
 #
@@ -149,9 +151,16 @@ class MultiExeError(condorExe.ExeError):
 #
 ############################################################
 
-def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
-                  pub_key_obj=None, additional_constraints=None,
-                  factory_collector=DEFAULT_VAL):
+
+def findGroupWork(
+    factory_name,
+    glidein_name,
+    entry_names,
+    supported_signtypes,
+    pub_key_obj=None,
+    additional_constraints=None,
+    factory_collector=DEFAULT_VAL,
+):
     """
     Find request classAds that have my (factory, glidein name, entries) and
     create the dictionary of dictionary of work request information.
@@ -184,32 +193,37 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
 
     global factoryConfig
 
-    if factory_collector==DEFAULT_VAL:
-        factory_collector=factoryConfig.factory_collector
+    if factory_collector == DEFAULT_VAL:
+        factory_collector = factoryConfig.factory_collector
 
-    req_glideins = ''
+    req_glideins = ""
     for entry in entry_names:
-        req_glideins = '%s@%s@%s,%s' % (entry, glidein_name,
-                                        factory_name, req_glideins)
+        req_glideins = f"{entry}@{glidein_name}@{factory_name},{req_glideins}"
     # Strip off leading & trailing comma
-    req_glideins = req_glideins.strip(',')
+    req_glideins = req_glideins.strip(",")
 
-    status_constraint='(GlideinMyType=?="%s") && (stringListMember(ReqGlidein,"%s")=?=True)' % (factoryConfig.client_id, req_glideins)
+    status_constraint = '(GlideinMyType=?="{}") && (stringListMember(ReqGlidein,"{}")=?=True)'.format(
+        factoryConfig.client_id,
+        req_glideins,
+    )
 
-    if (supported_signtypes is not None):
-        status_constraint += ' && stringListMember(%s%s,"%s")' % \
-            (factoryConfig.client_web_prefix,
-             factoryConfig.client_web_signtype_suffix,
-             string.join(supported_signtypes, ","))
+    if supported_signtypes is not None:
+        status_constraint += ' && stringListMember({}{},"{}")'.format(
+            factoryConfig.client_web_prefix,
+            factoryConfig.client_web_signtype_suffix,
+            ",".join(supported_signtypes),
+        )
 
-    if (pub_key_obj is not None):
+    if pub_key_obj is not None:
         # Get only classads that have my key or no key at all
         # Any other key will not work
-        status_constraint += ' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined)) || (ReqPubKeyID=?=Undefined))' % pub_key_obj.get_pub_key_id()
+        status_constraint += (
+            ' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined)) || (ReqPubKeyID=?=Undefined))'
+            % pub_key_obj.get_pub_key_id()
+        )
 
-    if (additional_constraints is not None):
-        status_constraint = "(%s)&&(%s)" % (status_constraint,
-                                            additional_constraints)
+    if additional_constraints is not None:
+        status_constraint = f"({status_constraint})&&({additional_constraints})"
 
     status = condorMonitor.CondorStatus(subsystem_name="any", pool_name=factory_collector)
     # Important, this dictates what gets submitted
@@ -237,9 +251,17 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
 
     data = status.fetchStored()
 
-    reserved_names = ("ReqName", "ReqGlidein", "ClientName", "FrontendName",
-                      "GroupName", "ReqPubKeyID", "ReqEncKeyCode",
-                      "ReqEncIdentity", "AuthenticatedIdentity")
+    reserved_names = (
+        "ReqName",
+        "ReqGlidein",
+        "ClientName",
+        "FrontendName",
+        "GroupName",
+        "ReqPubKeyID",
+        "ReqEncKeyCode",
+        "ReqEncIdentity",
+        "AuthenticatedIdentity",
+    )
 
     # Output is now in the format of
     # out[entry_name][frontend]
@@ -249,13 +271,14 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
 
     for k in data:
         kel = data[k]
-        el = {"requests":{}, "web":{}, "params":{},
-              "params_decrypted":{}, "monitor":{}, "internals":{}}
+        el = {"requests": {}, "web": {}, "params": {}, "params_decrypted": {}, "monitor": {}, "internals": {}}
 
-        for (key, prefix) in (("requests", factoryConfig.client_req_prefix),
-                             ("web", factoryConfig.client_web_prefix),
-                             ("params", factoryConfig.glidein_param_prefix),
-                             ("monitor", factoryConfig.glidein_monitor_prefix)):
+        for (key, prefix) in (
+            ("requests", factoryConfig.client_req_prefix),
+            ("web", factoryConfig.client_web_prefix),
+            ("params", factoryConfig.glidein_param_prefix),
+            ("monitor", factoryConfig.glidein_monitor_prefix),
+        ):
             plen = len(prefix)
             for attr in kel:
                 if attr in reserved_names:
@@ -269,23 +292,27 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
         # 2) kel does not contain 'ReqPubKeyID'
         # 3) pub_key_obj is None and there is no key to decrypt
         sym_key_obj = None
-        if (pub_key_obj is not None) and ('ReqPubKeyID' in kel):
+        if (pub_key_obj is not None) and ("ReqPubKeyID" in kel):
             try:
-                sym_key_obj = pub_key_obj.extract_sym_key(kel['ReqEncKeyCode'])
+                sym_key_obj = pub_key_obj.extract_sym_key(kel["ReqEncKeyCode"])
             except:
                 continue
 
-        if (sym_key_obj is not None):
+        if sym_key_obj is not None:
             # Verify that the identity the client claims to be is the
             # identity that Condor thinks it is
             try:
-                enc_identity = sym_key_obj.decrypt_hex(kel['ReqEncIdentity'])
+                enc_identity = sym_key_obj.decrypt_hex(kel["ReqEncIdentity"]).decode("utf-8")
             except:
-                logSupport.log.warning("Client %s provided invalid ReqEncIdentity, could not decode. Skipping for security reasons." % k)
-                continue # Corrupted classad
-            if enc_identity != kel['AuthenticatedIdentity']:
-                logSupport.log.warning("Client %s provided invalid ReqEncIdentity(%s!=%s). Skipping for security reasons." % (k, enc_identity,
-                                            kel['AuthenticatedIdentity']))
+                logSupport.log.warning(
+                    "Client %s provided invalid ReqEncIdentity, could not decode. Skipping for security reasons." % k
+                )
+                continue  # Corrupted classad
+            if enc_identity != kel["AuthenticatedIdentity"]:
+                logSupport.log.warning(
+                    "Client %s provided invalid ReqEncIdentity(%s!=%s). Skipping for security reasons."
+                    % (k, enc_identity, kel["AuthenticatedIdentity"])
+                )
                 # Either the client is misconfigured or someone is cheating
                 continue
 
@@ -301,7 +328,7 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
                 if attr[:plen] == prefix:
                     # Define it even if I don't understand the content
                     el[key][attr[plen:]] = None
-                    if sym_key_obj is not None :
+                    if sym_key_obj is not None:
                         try:
                             el[key][attr[plen:]] = sym_key_obj.decrypt_hex(kel[attr])
                         except:
@@ -311,12 +338,22 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
 
         # Continue if I have problems in an inner loop
         if invalid_classad:
-            logSupport.log.warning("At least one of the encrypted parameters for client %s cannot be decoded. Skipping for security reasons."%k)
+            logSupport.log.warning(
+                "At least one of the encrypted parameters for client %s cannot be decoded. Skipping for security reasons."
+                % k
+            )
             continue
 
         for attr in kel:
-            if attr in ("ClientName", "FrontendName", "GroupName", "ReqName",
-                        "LastHeardFrom", "ReqPubKeyID", "AuthenticatedIdentity"):
+            if attr in (
+                "ClientName",
+                "FrontendName",
+                "GroupName",
+                "ReqName",
+                "LastHeardFrom",
+                "ReqPubKeyID",
+                "AuthenticatedIdentity",
+            ):
                 el["internals"][attr] = kel[attr]
 
         out[k] = el
@@ -333,14 +370,17 @@ def workGroupByEntries(work):
     grouped_work = {}
 
     for w in work:
-        req_name = work[w]['internals']['ReqName']
+        req_name = work[w]["internals"]["ReqName"]
         try:
-            entry = (req_name.split('@'))[0]
+            entry = (req_name.split("@"))[0]
             if not (entry in grouped_work):
                 grouped_work[entry] = {}
             grouped_work[entry][w] = work[w]
         except:
-            logSupport.log.warning("Unable to group work for '%s' based on ReqName '%s'. This work item will not be processed." % (w, req_name))
+            logSupport.log.warning(
+                "Unable to group work for '%s' based on ReqName '%s'. This work item will not be processed."
+                % (w, req_name)
+            )
 
     return grouped_work
 
@@ -348,9 +388,16 @@ def workGroupByEntries(work):
 # TODO: PM: findWork is still needed by tools/wmsXMLView. Modify wmsXMLView
 # its still being used before removing the function below
 
-def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
-             pub_key_obj=None, additional_constraints=None,
-             factory_collector=DEFAULT_VAL):
+
+def findWork(
+    factory_name,
+    glidein_name,
+    entry_name,
+    supported_signtypes,
+    pub_key_obj=None,
+    additional_constraints=None,
+    factory_collector=DEFAULT_VAL,
+):
     """
     Find request classAds that have my (factory, glidein name, entry name) and create the dictionary of work request information.
 
@@ -366,7 +413,7 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
     @param pub_key_obj: only support 'RSA'
     @type additional_constraints: string
     @param additional_constraints: any additional constraints to include for querying the WMS collector, default is None
-    
+
     @type factory_collector: string or None
     @param factory_collector: the collector to query, special value 'default' will get it from the global config
 
@@ -376,28 +423,37 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
     global factoryConfig
     logSupport.log.debug("Querying collector for requests")
 
-    if factory_collector==DEFAULT_VAL:
-        factory_collector=factoryConfig.factory_collector
+    if factory_collector == DEFAULT_VAL:
+        factory_collector = factoryConfig.factory_collector
 
-    status_constraint = '(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s")' % (factoryConfig.client_id, entry_name, glidein_name, factory_name)
+    status_constraint = '(GlideinMyType=?="{}") && (ReqGlidein=?="{}@{}@{}")'.format(
+        factoryConfig.client_id,
+        entry_name,
+        glidein_name,
+        factory_name,
+    )
 
     if supported_signtypes is not None:
-        status_constraint += ' && stringListMember(%s%s,"%s")' % (factoryConfig.client_web_prefix, factoryConfig.client_web_signtype_suffix, string.join(supported_signtypes, ","))
+        status_constraint += ' && stringListMember({}{},"{}")'.format(
+            factoryConfig.client_web_prefix,
+            factoryConfig.client_web_signtype_suffix,
+            ",".join(supported_signtypes),
+        )
 
     if additional_constraints is not None:
-        status_constraint = "((%s)&&(%s))" % (status_constraint, additional_constraints)
+        status_constraint = f"(({status_constraint})&&({additional_constraints}))"
 
     status = condorMonitor.CondorStatus(subsystem_name="any", pool_name=factory_collector)
-    status.require_integrity(True) #important, this dictates what gets submitted
+    status.require_integrity(True)  # important, this dictates what gets submitted
     status.glidein_name = glidein_name
     status.entry_name = entry_name
 
     # serialize access to the Collector accross all the processes
     # these is a single Collector anyhow
-    lock_fname=os.path.join(factoryConfig.lock_dir, "gfi_status.lock")
-    if not os.path.exists(lock_fname): #create a lock file if needed
+    lock_fname = os.path.join(factoryConfig.lock_dir, "gfi_status.lock")
+    if not os.path.exists(lock_fname):  # create a lock file if needed
         try:
-            fd=open(lock_fname, "w")
+            fd = open(lock_fname, "w")
             fd.close()
         except:
             # could be a race condition
@@ -412,55 +468,71 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
 
     data = status.fetchStored()
 
-    reserved_names = ("ReqName", "ReqGlidein", "ClientName", "FrontendName", "GroupName", "ReqPubKeyID", "ReqEncKeyCode", "ReqEncIdentity", "AuthenticatedIdentity")
+    reserved_names = (
+        "ReqName",
+        "ReqGlidein",
+        "ClientName",
+        "FrontendName",
+        "GroupName",
+        "ReqPubKeyID",
+        "ReqEncKeyCode",
+        "ReqEncIdentity",
+        "AuthenticatedIdentity",
+    )
 
     out = {}
 
     # copy over requests and parameters
-    for k in data.keys():
+    for k in list(data.keys()):
         kel = data[k]
-        el = {"requests":{}, "web":{}, "params":{}, "params_decrypted":{}, "monitor":{}, "internals":{}}
-        for (key, prefix) in (("requests", factoryConfig.client_req_prefix),
-                             ("web", factoryConfig.client_web_prefix),
-                             ("params", factoryConfig.glidein_param_prefix),
-                             ("monitor", factoryConfig.glidein_monitor_prefix)):
+        el = {"requests": {}, "web": {}, "params": {}, "params_decrypted": {}, "monitor": {}, "internals": {}}
+        for (key, prefix) in (
+            ("requests", factoryConfig.client_req_prefix),
+            ("web", factoryConfig.client_web_prefix),
+            ("params", factoryConfig.glidein_param_prefix),
+            ("monitor", factoryConfig.glidein_monitor_prefix),
+        ):
             plen = len(prefix)
-            for attr in kel.keys():
+            for attr in list(kel.keys()):
                 if attr in reserved_names:
-                    continue # skip reserved names
+                    continue  # skip reserved names
                 if attr[:plen] == prefix:
                     el[key][attr[plen:]] = kel[attr]
         if pub_key_obj is not None:
-            if 'ReqPubKeyID' in kel:
+            if "ReqPubKeyID" in kel:
                 try:
-                    sym_key_obj = pub_key_obj.extract_sym_key(kel['ReqEncKeyCode'])
+                    sym_key_obj = pub_key_obj.extract_sym_key(kel["ReqEncKeyCode"])
                 except:
-                    continue # bad key, ignore entry
+                    continue  # bad key, ignore entry
             else:
-                sym_key_obj = None # no key used, will not decrypt
+                sym_key_obj = None  # no key used, will not decrypt
         else:
-            sym_key_obj = None # have no key, will not decrypt
+            sym_key_obj = None  # have no key, will not decrypt
 
         if sym_key_obj is not None:
             # this is verifying that the identity that the client claims to be is the identity that Condor thinks it is
             try:
-                enc_identity = sym_key_obj.decrypt_hex(kel['ReqEncIdentity'])
+                enc_identity = sym_key_obj.decrypt_hex(kel["ReqEncIdentity"])
             except:
-                logSupport.log.warning("Client %s provided invalid ReqEncIdentity, could not decode. Skipping for security reasons." % k)
-                continue # corrupted classad
-            if enc_identity != kel['AuthenticatedIdentity']:
-                logSupport.log.warning("Client %s provided invalid ReqEncIdentity(%s!=%s). Skipping for security reasons." % (k, enc_identity, kel['AuthenticatedIdentity']))
-                continue # uh oh... either the client is misconfigured, or someone is trying to cheat
-
+                logSupport.log.warning(
+                    "Client %s provided invalid ReqEncIdentity, could not decode. Skipping for security reasons." % k
+                )
+                continue  # corrupted classad
+            if enc_identity != kel["AuthenticatedIdentity"]:
+                logSupport.log.warning(
+                    "Client %s provided invalid ReqEncIdentity(%s!=%s). Skipping for security reasons."
+                    % (k, enc_identity, kel["AuthenticatedIdentity"])
+                )
+                continue  # uh oh... either the client is misconfigured, or someone is trying to cheat
 
         invalid_classad = False
         for (key, prefix) in (("params_decrypted", factoryConfig.encrypted_param_prefix),):
             plen = len(prefix)
-            for attr in kel.keys():
+            for attr in list(kel.keys()):
                 if attr in reserved_names:
-                    continue # skip reserved names
+                    continue  # skip reserved names
                 if attr[:plen] == prefix:
-                    el[key][attr[plen:]] = None # define it even if I don't understand the content
+                    el[key][attr[plen:]] = None  # define it even if I don't understand the content
                     if sym_key_obj is not None:
                         try:
                             el[key][attr[plen:]] = sym_key_obj.decrypt_hex(kel[attr])
@@ -468,11 +540,22 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
                             invalid_classad = True
                             break  # I don't understand it -> invalid
         if invalid_classad:
-            logSupport.log.warning("At least one of the encrypted parameters for client %s cannot be decoded. Skipping for security reasons." % k)
+            logSupport.log.warning(
+                "At least one of the encrypted parameters for client %s cannot be decoded. Skipping for security reasons."
+                % k
+            )
             continue  # need to go this way as I may have problems in an inner loop
 
-        for attr in kel.keys():
-            if attr in ("ClientName", "FrontendName", "GroupName", "ReqName", "LastHeardFrom", "ReqPubKeyID", "AuthenticatedIdentity"):
+        for attr in list(kel.keys()):
+            if attr in (
+                "ClientName",
+                "FrontendName",
+                "GroupName",
+                "ReqName",
+                "LastHeardFrom",
+                "ReqPubKeyID",
+                "AuthenticatedIdentity",
+            ):
                 el["internals"][attr] = kel[attr]
 
         out[k] = el
@@ -484,17 +567,29 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
 # Code to advertise glidefactory classads to the WMS Pool
 ###############################################################################
 
+
 class EntryClassad(classadSupport.Classad):
     """
     This class describes the glidefactory classad. Factory advertises the
     glidefactory classad to the user pool as an UPDATE_AD_GENERIC type classad
     """
 
-    def __init__(self, factory_name, glidein_name, entry_name,
-                 trust_domain, auth_method, supported_signtypes,
-                 pub_key_obj=None, glidein_attrs={}, glidein_params={},
-                 glidein_monitors={}, glidein_stats={}, glidein_web_attrs={},
-                 glidein_config_limits={}):
+    def __init__(
+        self,
+        factory_name,
+        glidein_name,
+        entry_name,
+        trust_domain,
+        auth_method,
+        supported_signtypes,
+        pub_key_obj=None,
+        glidein_attrs={},
+        glidein_params={},
+        glidein_monitors={},
+        glidein_stats={},
+        glidein_web_attrs={},
+        glidein_config_limits={},
+    ):
         """Class Constructor
 
         :param factory_name: Name of the factory
@@ -519,62 +614,63 @@ class EntryClassad(classadSupport.Classad):
 
         global factoryConfig, advertizeGFCounter
 
-        classadSupport.Classad.__init__(self, factoryConfig.factory_id,
-                                        'UPDATE_AD_GENERIC',
-                                        'INVALIDATE_ADS_GENERIC')
+        classadSupport.Classad.__init__(self, factoryConfig.factory_id, "UPDATE_AD_GENERIC", "INVALIDATE_ADS_GENERIC")
 
         # Short hand for easy access
-        classad_name = "%s@%s@%s" % (entry_name, glidein_name, factory_name)
-        self.adParams['Name'] = classad_name
-        self.adParams['FactoryName'] = "%s" % factory_name
-        self.adParams['GlideinName'] = "%s" % glidein_name
-        self.adParams['EntryName'] = "%s" % entry_name
-        self.adParams[factoryConfig.factory_signtype_id] = "%s" % string.join(supported_signtypes, ',')
-        self.adParams['DaemonStartTime'] = int(start_time)
+        classad_name = f"{entry_name}@{glidein_name}@{factory_name}"
+        self.adParams["Name"] = classad_name
+        self.adParams["FactoryName"] = "%s" % factory_name
+        self.adParams["GlideinName"] = "%s" % glidein_name
+        self.adParams["EntryName"] = "%s" % entry_name
+        self.adParams[factoryConfig.factory_signtype_id] = "%s" % ",".join(supported_signtypes)
+        self.adParams["DaemonStartTime"] = int(start_time)
         advertizeGFCounter[classad_name] = advertizeGFCounter.get(classad_name, -1) + 1
-        self.adParams['UpdateSequenceNumber'] = advertizeGFCounter[classad_name]
-        self.adParams['GlideinWMSVersion'] = factoryConfig.glideinwms_version
+        self.adParams["UpdateSequenceNumber"] = advertizeGFCounter[classad_name]
+        self.adParams["GlideinWMSVersion"] = factoryConfig.glideinwms_version
 
         if pub_key_obj is not None:
-            self.adParams['PubKeyID'] = "%s" % pub_key_obj.get_pub_key_id()
-            self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
-            self.adParams['PubKeyValue'] = "%s" % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n')
-        if 'grid_proxy' in auth_method:
-            self.adParams['GlideinAllowx509_Proxy'] = '%s' % True
-            self.adParams['GlideinRequirex509_Proxy'] = '%s' % True
-            self.adParams['GlideinRequireGlideinProxy'] = '%s' % False
+            self.adParams["PubKeyID"] = "%s" % pub_key_obj.get_pub_key_id()
+            self.adParams["PubKeyType"] = "%s" % pub_key_obj.get_pub_key_type()
+            self.adParams["PubKeyValue"] = "%s" % pub_key_obj.get_pub_key_value().decode("ascii").replace("\n", "\\n")
+        if "grid_proxy" in auth_method:
+            self.adParams["GlideinAllowx509_Proxy"] = "%s" % True
+            self.adParams["GlideinRequirex509_Proxy"] = "%s" % True
+            self.adParams["GlideinRequireGlideinProxy"] = "%s" % False
         else:
-            self.adParams['GlideinAllowx509_Proxy'] = '%s' % False
-            self.adParams['GlideinRequirex509_Proxy'] = '%s' % False
-            self.adParams['GlideinRequireGlideinProxy'] = '%s' % True
+            self.adParams["GlideinAllowx509_Proxy"] = "%s" % False
+            self.adParams["GlideinRequirex509_Proxy"] = "%s" % False
+            self.adParams["GlideinRequireGlideinProxy"] = "%s" % True
 
         # write out both the attributes, params and monitors
-        for (prefix, data) in ((factoryConfig.glidein_attr_prefix, glidein_attrs),
-                               (factoryConfig.glidein_param_prefix, glidein_params),
-                               (factoryConfig.glidein_monitor_prefix, glidein_monitors),
-                               (factoryConfig.glidein_web_prefix, glidein_web_attrs),
-                               (factoryConfig.glidein_config_prefix, glidein_config_limits)):
-            for attr in data.keys():
+        for (prefix, data) in (
+            (factoryConfig.glidein_attr_prefix, glidein_attrs),
+            (factoryConfig.glidein_param_prefix, glidein_params),
+            (factoryConfig.glidein_monitor_prefix, glidein_monitors),
+            (factoryConfig.glidein_web_prefix, glidein_web_attrs),
+            (factoryConfig.glidein_config_prefix, glidein_config_limits),
+        ):
+            for attr in list(data.keys()):
                 el = data[attr]
                 if isinstance(el, int):
                     # don't quote ints
-                    self.adParams['%s%s' % (prefix, attr)] = el
+                    self.adParams[f"{prefix}{attr}"] = el
                 else:
-                    escaped_el = string.replace(str(el), '\n', '\\n')
-                    self.adParams['%s%s' % (prefix, attr)] = "%s" % escaped_el
+                    escaped_el = str(el).replace("\n", "\\n")
+                    self.adParams[f"{prefix}{attr}"] = "%s" % escaped_el
 
         # write job completion statistics
         if glidein_stats:
             prefix = factoryConfig.glidein_monitor_prefix
-            for k, v in glidein_stats['entry'].items():
-                self.adParams['%s%s' % (prefix, k)] = v
-            for k, v in glidein_stats['total'].items():
-                self.adParams['%s%s' % (prefix, k)] = v
+            for k, v in list(glidein_stats["entry"].items()):
+                self.adParams[f"{prefix}{k}"] = v
+            for k, v in list(glidein_stats["total"].items()):
+                self.adParams[f"{prefix}{k}"] = v
 
 
 ###############################################################################
 # Code to advertise glidefactoryglobal classads to the WMS Pool
 ###############################################################################
+
 
 class FactoryGlobalClassad(classadSupport.Classad):
     """
@@ -585,8 +681,7 @@ class FactoryGlobalClassad(classadSupport.Classad):
     invalidated together (with a single command)
     """
 
-    def __init__(self, factory_name, glidein_name, supported_signtypes,
-                 pub_key_obj):
+    def __init__(self, factory_name, glidein_name, supported_signtypes, pub_key_obj):
         """Class Constructor
 
         :param factory_name: Name of the factory
@@ -598,27 +693,28 @@ class FactoryGlobalClassad(classadSupport.Classad):
 
         global factoryConfig, advertizeGlobalCounter
 
-        classadSupport.Classad.__init__(self, factoryConfig.factory_global,
-                                        'UPDATE_AD_GENERIC',
-                                        'INVALIDATE_ADS_GENERIC')
+        classadSupport.Classad.__init__(
+            self, factoryConfig.factory_global, "UPDATE_AD_GENERIC", "INVALIDATE_ADS_GENERIC"
+        )
 
         # Short hand for easy access
-        classad_name = "%s@%s" % (glidein_name, factory_name)
-        self.adParams['Name'] = classad_name
-        self.adParams['FactoryName'] = "%s" % factory_name
-        self.adParams['GlideinName'] = "%s" % glidein_name
-        self.adParams[factoryConfig.factory_signtype_id] = "%s" % string.join(supported_signtypes, ',')
-        self.adParams['DaemonStartTime'] = int(start_time)
-        self.adParams['UpdateSequenceNumber'] = advertizeGlobalCounter
+        classad_name = f"{glidein_name}@{factory_name}"
+        self.adParams["Name"] = classad_name
+        self.adParams["FactoryName"] = "%s" % factory_name
+        self.adParams["GlideinName"] = "%s" % glidein_name
+        self.adParams[factoryConfig.factory_signtype_id] = "%s" % ",".join(supported_signtypes)
+        self.adParams["DaemonStartTime"] = int(start_time)
+        self.adParams["UpdateSequenceNumber"] = advertizeGlobalCounter
         advertizeGlobalCounter += 1
-        self.adParams['GlideinWMSVersion'] = factoryConfig.glideinwms_version
-        self.adParams['PubKeyID'] = "%s" % pub_key_obj.get_pub_key_id()
-        self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
-        self.adParams['PubKeyValue'] = "%s" % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n')
+        self.adParams["GlideinWMSVersion"] = factoryConfig.glideinwms_version
+        self.adParams["PubKeyID"] = "%s" % pub_key_obj.get_pub_key_id()
+        self.adParams["PubKeyType"] = "%s" % pub_key_obj.get_pub_key_type()
+        self.adParams["PubKeyValue"] = "%s" % pub_key_obj.get_pub_key_value().decode("ascii").replace("\n", "\\n")
 
 
-def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
-                    pub_key_obj, stats_dict={}, factory_collector=DEFAULT_VAL):
+def advertizeGlobal(
+    factory_name, glidein_name, supported_signtypes, pub_key_obj, stats_dict={}, factory_collector=DEFAULT_VAL
+):
 
     """
     Creates the glidefactoryglobal classad and advertises.
@@ -639,15 +735,13 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
     @todo add factory downtime?
     """
 
-    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_ad_gfg')
+    tmpnam = classadSupport.generate_classad_filename(prefix="gfi_ad_gfg")
 
-    gfg_classad = FactoryGlobalClassad(factory_name, glidein_name,
-                                       supported_signtypes, pub_key_obj)
+    gfg_classad = FactoryGlobalClassad(factory_name, glidein_name, supported_signtypes, pub_key_obj)
 
     try:
         gfg_classad.writeToFile(tmpnam, append=False)
-        exe_condor_advertise(tmpnam, gfg_classad.adAdvertiseCmd,
-                             factory_collector=factory_collector)
+        exe_condor_advertise(tmpnam, gfg_classad.adAdvertiseCmd, factory_collector=factory_collector)
     finally:
         # Unable to write classad
         _remove_if_there(tmpnam)
@@ -657,13 +751,16 @@ def deadvertizeGlidein(factory_name, glidein_name, entry_name, factory_collector
     """
     Removes the glidefactory classad advertising the entry from the WMS Collector.
     """
-    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gf')
+    tmpnam = classadSupport.generate_classad_filename(prefix="gfi_de_gf")
     # TODO: use tempfile
     try:
         with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factory_id)
-            fd.write('Requirements = (Name == "%s@%s@%s")&&(GlideinMyType == "%s")\n' % (entry_name, glidein_name, factory_name, factoryConfig.factory_id))
+            fd.write(
+                'Requirements = (Name == "%s@%s@%s")&&(GlideinMyType == "%s")\n'
+                % (entry_name, glidein_name, factory_name, factoryConfig.factory_id)
+            )
         exe_condor_advertise(tmpnam, "INVALIDATE_ADS_GENERIC", factory_collector=factory_collector)
     finally:
         _remove_if_there(tmpnam)
@@ -673,13 +770,16 @@ def deadvertizeGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL)
     """
     Removes the glidefactoryglobal classad advertising the factory globals from the WMS Collector.
     """
-    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gfg')
+    tmpnam = classadSupport.generate_classad_filename(prefix="gfi_de_gfg")
     # TODO: use tempfile
     try:
         with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factory_global)
-            fd.write('Requirements = (Name == "%s@%s")&&(GlideinMyType == "%s")\n' % (glidein_name, factory_name, factoryConfig.factory_id))
+            fd.write(
+                'Requirements = (Name == "%s@%s")&&(GlideinMyType == "%s")\n'
+                % (glidein_name, factory_name, factoryConfig.factory_id)
+            )
         exe_condor_advertise(tmpnam, "INVALIDATE_ADS_GENERIC", factory_collector=factory_collector)
     finally:
         _remove_if_there(tmpnam)
@@ -689,13 +789,13 @@ def deadvertizeFactory(factory_name, glidein_name, factory_collector=DEFAULT_VAL
     """
     Deadvertize all entry and global classads for this factory.
     """
-    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_fact')
+    tmpnam = classadSupport.generate_classad_filename(prefix="gfi_de_fact")
     # TODO: use tempfile
     try:
         with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factory_id)
-            fd.write('Requirements = (FactoryName =?= "%s")&&(GlideinName =?= "%s")\n' % (factory_name, glidein_name))
+            fd.write(f'Requirements = (FactoryName =?= "{factory_name}")&&(GlideinName =?= "{glidein_name}")\n')
         exe_condor_advertise(tmpnam, "INVALIDATE_ADS_GENERIC", factory_collector=factory_collector)
     finally:
         _remove_if_there(tmpnam)
@@ -706,16 +806,34 @@ def deadvertizeFactory(factory_name, glidein_name, factory_collector=DEFAULT_VAL
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
-def advertizeGlideinClientMonitoring(factory_name, glidein_name, entry_name,
-                                     client_name, client_int_name, client_int_req,
-                                     glidein_attrs={}, client_params={}, client_monitors={},
-                                     factory_collector=DEFAULT_VAL):
-    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
+def advertizeGlideinClientMonitoring(
+    factory_name,
+    glidein_name,
+    entry_name,
+    client_name,
+    client_int_name,
+    client_int_req,
+    glidein_attrs={},
+    client_params={},
+    client_monitors={},
+    factory_collector=DEFAULT_VAL,
+):
+    tmpnam = classadSupport.generate_classad_filename(prefix="gfi_adm_gfc")
 
-    createGlideinClientMonitoringFile(tmpnam, factory_name, glidein_name, entry_name,
-                                      client_name, client_int_name, client_int_req,
-                                      glidein_attrs, client_params, client_monitors)
+    createGlideinClientMonitoringFile(
+        tmpnam,
+        factory_name,
+        glidein_name,
+        entry_name,
+        client_name,
+        client_int_name,
+        client_int_req,
+        glidein_attrs,
+        client_params,
+        client_monitors,
+    )
     advertizeGlideinClientMonitoringFromFile(tmpnam, remove_file=True, factory_collector=factory_collector)
+
 
 class MultiAdvertizeGlideinClientMonitoring:
     # glidein_attrs is a dictionary of values to publish
@@ -728,14 +846,17 @@ class MultiAdvertizeGlideinClientMonitoring:
         self.client_data = []
         self.factory_collector = factory_collector
 
-    def add(self, client_name, client_int_name, client_int_req,
-            client_params={}, client_monitors={}, limits_triggered={}):
-        el = {'client_name':client_name,
-            'client_int_name':client_int_name,
-            'client_int_req':client_int_req,
-            'client_params':client_params,
-            'client_monitors':client_monitors,
-            'limits_triggered':limits_triggered}
+    def add(
+        self, client_name, client_int_name, client_int_req, client_params={}, client_monitors={}, limits_triggered={}
+    ):
+        el = {
+            "client_name": client_name,
+            "client_int_name": client_int_name,
+            "client_int_req": client_int_req,
+            "client_params": client_params,
+            "client_monitors": client_monitors,
+            "limits_triggered": limits_triggered,
+        }
         self.client_data.append(el)
 
     # do the actual advertizing
@@ -751,17 +872,25 @@ class MultiAdvertizeGlideinClientMonitoring:
     def do_advertize_iterate(self):
         error_arr = []
 
-        tmpnam = classadSupport.generate_classad_filename(prefix='gfi_ad_gfc')
+        tmpnam = classadSupport.generate_classad_filename(prefix="gfi_ad_gfc")
 
         for el in self.client_data:
             createGlideinClientMonitoringFile(
-                tmpnam, self.factory_name, self.glidein_name, self.entry_name,
-                el['client_name'], el['client_int_name'], el['client_int_req'],
-                self.glidein_attrs, el['client_params'], el['client_monitors'])
+                tmpnam,
+                self.factory_name,
+                self.glidein_name,
+                self.entry_name,
+                el["client_name"],
+                el["client_int_name"],
+                el["client_int_req"],
+                self.glidein_attrs,
+                el["client_params"],
+                el["client_monitors"],
+            )
             try:
-                advertizeGlideinClientMonitoringFromFile(tmpnam,
-                                                         remove_file=True,
-                                                         factory_collector=self.factory_collector)
+                advertizeGlideinClientMonitoringFromFile(
+                    tmpnam, remove_file=True, factory_collector=self.factory_collector
+                )
             except condorExe.ExeError as e:
                 error_arr.append(e)
 
@@ -769,24 +898,31 @@ class MultiAdvertizeGlideinClientMonitoring:
             raise MultiExeError(error_arr)
 
     def do_advertize_multi(self):
-        tmpnam = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
+        tmpnam = classadSupport.generate_classad_filename(prefix="gfi_adm_gfc")
 
         ap = False
         for el in self.client_data:
             createGlideinClientMonitoringFile(
-                tmpnam, self.factory_name, self.glidein_name, self.entry_name,
-                el['client_name'], el['client_int_name'], el['client_int_req'],
-                self.glidein_attrs, el['client_params'], el['client_monitors'],
-                do_append=ap)
+                tmpnam,
+                self.factory_name,
+                self.glidein_name,
+                self.entry_name,
+                el["client_name"],
+                el["client_int_name"],
+                el["client_int_req"],
+                self.glidein_attrs,
+                el["client_params"],
+                el["client_monitors"],
+                do_append=ap,
+            )
             ap = True  # Append from here on
 
         if ap:
             error_arr = []
             try:
-                advertizeGlideinClientMonitoringFromFile(tmpnam,
-                                                         remove_file=True,
-                                                         is_multi=True,
-                                                         factory_collector=self.factory_collector)
+                advertizeGlideinClientMonitoringFromFile(
+                    tmpnam, remove_file=True, is_multi=True, factory_collector=self.factory_collector
+                )
             except condorExe.ExeError as e:
                 error_arr.append(e)
 
@@ -799,15 +935,24 @@ class MultiAdvertizeGlideinClientMonitoring:
         #         If we create file append is in a way ignored
 
         if filename is None:
-            filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
+            filename = classadSupport.generate_classad_filename(prefix="gfi_adm_gfc")
             append = False
 
         for el in self.client_data:
             createGlideinClientMonitoringFile(
-                filename, self.factory_name, self.glidein_name, self.entry_name,
-                el['client_name'], el['client_int_name'], el['client_int_req'],
-                self.glidein_attrs, el['client_params'], el['client_monitors'],
-                el['limits_triggered'], do_append=append)
+                filename,
+                self.factory_name,
+                self.glidein_name,
+                self.entry_name,
+                el["client_name"],
+                el["client_int_name"],
+                el["client_int_req"],
+                self.glidein_attrs,
+                el["client_params"],
+                el["client_monitors"],
+                el["limits_triggered"],
+                do_append=append,
+            )
             # Append from here on anyways
             append = True
 
@@ -820,11 +965,20 @@ class MultiAdvertizeGlideinClientMonitoring:
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
-def createGlideinClientMonitoringFile(fname,
-                                      factory_name, glidein_name, entry_name,
-                                      client_name, client_int_name, client_int_req,
-                                      glidein_attrs={}, client_params={}, client_monitors={}, limits_triggered={},
-                                      do_append=False):
+def createGlideinClientMonitoringFile(
+    fname,
+    factory_name,
+    glidein_name,
+    entry_name,
+    client_name,
+    client_int_name,
+    client_int_req,
+    glidein_attrs={},
+    client_params={},
+    client_monitors={},
+    limits_triggered={},
+    do_append=False,
+):
     global factoryConfig
     global advertizeGFCCounter
 
@@ -835,22 +989,28 @@ def createGlideinClientMonitoringFile(fname,
 
     try:
         with open(fname, open_type) as fd:
-            limits = ('IdleGlideinsPerEntry', 'HeldGlideinsPerEntry', 'TotalGlideinsPerEntry')
+            limits = ("IdleGlideinsPerEntry", "HeldGlideinsPerEntry", "TotalGlideinsPerEntry")
             for limit in limits:
                 if limit in limits_triggered:
-                    fd.write('%sStatus_GlideFactoryLimit%s = "%s"\n' % (factoryConfig.glidein_monitor_prefix, limit, limits_triggered[limit]))
+                    fd.write(
+                        '%sStatus_GlideFactoryLimit%s = "%s"\n'
+                        % (factoryConfig.glidein_monitor_prefix, limit, limits_triggered[limit])
+                    )
 
-            all_frontends = limits_triggered.get('all_frontends')
+            all_frontends = limits_triggered.get("all_frontends")
             for fe_sec_class in all_frontends:
-                sec_class_limits = ('IdlePerClass_%s'%fe_sec_class, 'TotalPerClass_%s'%fe_sec_class)
+                sec_class_limits = ("IdlePerClass_%s" % fe_sec_class, "TotalPerClass_%s" % fe_sec_class)
                 for limit in sec_class_limits:
                     if limit in limits_triggered:
-                        fd.write('%sStatus_GlideFactoryLimit%s = "%s"\n' % (factoryConfig.glidein_monitor_prefix, limit, limits_triggered[limit]))
+                        fd.write(
+                            '%sStatus_GlideFactoryLimit%s = "%s"\n'
+                            % (factoryConfig.glidein_monitor_prefix, limit, limits_triggered[limit])
+                        )
             fd.write('MyType = "%s"\n' % factoryConfig.factoryclient_id)
             fd.write('GlideinMyType = "%s"\n' % factoryConfig.factoryclient_id)
             fd.write('GlideinWMSVersion = "%s"\n' % factoryConfig.glideinwms_version)
             fd.write('Name = "%s"\n' % client_name)
-            fd.write('ReqGlidein = "%s@%s@%s"\n' % (entry_name, glidein_name, factory_name))
+            fd.write(f'ReqGlidein = "{entry_name}@{glidein_name}@{factory_name}"\n')
             fd.write('ReqFactoryName = "%s"\n' % factory_name)
             fd.write('ReqGlideinName = "%s"\n' % glidein_name)
             fd.write('ReqEntryName = "%s"\n' % entry_name)
@@ -858,22 +1018,24 @@ def createGlideinClientMonitoringFile(fname,
             fd.write('ReqClientReqName = "%s"\n' % client_int_req)
             # fd.write('DaemonStartTime = %li\n'%start_time)
             advertizeGFCCounter[client_name] = advertizeGFCCounter.get(client_name, -1) + 1
-            fd.write('UpdateSequenceNumber = %i\n'%advertizeGFCCounter[client_name])
+            fd.write("UpdateSequenceNumber = %i\n" % advertizeGFCCounter[client_name])
 
             # write out both the attributes, params and monitors
-            for (prefix, data) in ((factoryConfig.glidein_attr_prefix, glidein_attrs),
-                                   (factoryConfig.glidein_param_prefix, client_params),
-                                   (factoryConfig.glidein_monitor_prefix, client_monitors)):
-                for attr in data.keys():
+            for (prefix, data) in (
+                (factoryConfig.glidein_attr_prefix, glidein_attrs),
+                (factoryConfig.glidein_param_prefix, client_params),
+                (factoryConfig.glidein_monitor_prefix, client_monitors),
+            ):
+                for attr in list(data.keys()):
                     el = data[attr]
                     if isinstance(el, int):
                         # don't quote ints
-                        fd.write('%s%s = %s\n' % (prefix, attr, el))
+                        fd.write(f"{prefix}{attr} = {el}\n")
                     else:
-                        escaped_el = string.replace(str(el), '"', '\\"')
-                        fd.write('%s%s = "%s"\n' % (prefix, attr, escaped_el))
+                        escaped_el = str(el).replace('"', '\\"')
+                        fd.write(f'{prefix}{attr} = "{escaped_el}"\n')
             # add a final empty line... useful when appending
-            fd.write('\n')
+            fd.write("\n")
     except:
         # remove file in case of problems
         if os.path.exists(fname):
@@ -883,8 +1045,7 @@ def createGlideinClientMonitoringFile(fname,
 
 # Given a file, advertize
 # Can throw a CondorExe/ExeError exception
-def advertizeGlideinClientMonitoringFromFile(fname, remove_file=True,
-                                             is_multi=False, factory_collector=DEFAULT_VAL):
+def advertizeGlideinClientMonitoringFromFile(fname, remove_file=True, is_multi=False, factory_collector=DEFAULT_VAL):
     if os.path.exists(fname):
         try:
             logSupport.log.info("Advertising glidefactoryclient classads")
@@ -895,7 +1056,10 @@ def advertizeGlideinClientMonitoringFromFile(fname, remove_file=True,
         if remove_file:
             os.remove(fname)
     else:
-        logSupport.log.warning("glidefactoryclient classad file %s does not exist. Check if frontends are allowed to submit to entry" % fname)
+        logSupport.log.warning(
+            "glidefactoryclient classad file %s does not exist. Check if frontends are allowed to submit to entry"
+            % fname
+        )
 
 
 def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False, factory_collector=DEFAULT_VAL):
@@ -909,7 +1073,10 @@ def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False, factory_co
         if remove_file:
             os.remove(fname)
     else:
-        logSupport.log.warning("glidefactory classad file %s does not exist. Check if you have atleast one entry enabled" % fname)
+        logSupport.log.warning(
+            "glidefactory classad file %s does not exist. Check if you have atleast one entry enabled" % fname
+        )
+
 
 # End INTERNAL
 ###########################################
@@ -920,14 +1087,16 @@ def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name
     """
     Deadvertize  monitoring classads for the given entry.
     """
-    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gfc')
+    tmpnam = classadSupport.generate_classad_filename(prefix="gfi_de_gfc")
     # TODO: use tempfile
     try:
         with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factoryclient_id)
-            fd.write('Requirements = (ReqGlidein == "%s@%s@%s")&&(GlideinMyType == "%s")\n' %
-                     (entry_name, glidein_name, factory_name, factoryConfig.factoryclient_id))
+            fd.write(
+                'Requirements = (ReqGlidein == "%s@%s@%s")&&(GlideinMyType == "%s")\n'
+                % (entry_name, glidein_name, factory_name, factoryConfig.factoryclient_id)
+            )
 
         exe_condor_advertise(tmpnam, "INVALIDATE_LICENSE_ADS", factory_collector=factory_collector)
     finally:
@@ -938,14 +1107,16 @@ def deadvertizeFactoryClientMonitoring(factory_name, glidein_name, factory_colle
     """
     Deadvertize all monitoring classads for this factory.
     """
-    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gfc')
+    tmpnam = classadSupport.generate_classad_filename(prefix="gfi_de_gfc")
     # TODO: use tempfile
     try:
         with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factoryclient_id)
-            fd.write('Requirements = (ReqFactoryName=?="%s")&&(ReqGlideinName=?="%s")&&(GlideinMyType == "%s")' %
-                     (factory_name, glidein_name, factoryConfig.factoryclient_id))
+            fd.write(
+                'Requirements = (ReqFactoryName=?="%s")&&(ReqGlideinName=?="%s")&&(GlideinMyType == "%s")'
+                % (factory_name, glidein_name, factoryConfig.factoryclient_id)
+            )
 
         exe_condor_advertise(tmpnam, "INVALIDATE_LICENSE_ADS", factory_collector=factory_collector)
     finally:
@@ -958,6 +1129,7 @@ def deadvertizeFactoryClientMonitoring(factory_name, glidein_name, factory_colle
 #
 ############################################################
 
+
 def _remove_if_there(fname):
     """Remove the file and ignore errors (e.g. file not there)"""
     try:
@@ -969,8 +1141,7 @@ def _remove_if_there(fname):
 
 # serialize access to the Collector accross all the processes
 # these is a single Collector anyhow
-def exe_condor_advertise(fname, command,
-                         is_multi=False, factory_collector=None):
+def exe_condor_advertise(fname, command, is_multi=False, factory_collector=None):
     global factoryConfig
 
     if factory_collector == DEFAULT_VAL:
@@ -988,8 +1159,9 @@ def exe_condor_advertise(fname, command,
     with open(lock_fname, "r+") as fd:
         fcntl.flock(fd, fcntl.LOCK_EX)
         try:
-            ret = condorManager.condorAdvertise(fname, command, factoryConfig.advertise_use_tcp,
-                                                is_multi, factory_collector)
+            ret = condorManager.condorAdvertise(
+                fname, command, factoryConfig.advertise_use_tcp, is_multi, factory_collector
+            )
         finally:
             fcntl.flock(fd, fcntl.LOCK_UN)
 

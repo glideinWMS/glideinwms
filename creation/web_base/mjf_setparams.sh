@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # https://github.com/HEP-SF/documents/blob/master/HSF-TN/2016-02/HSF-TN-2016-02.pdf
 
 LIBLOCATION=$(dirname $0)
@@ -38,5 +42,3 @@ echo "JOB_CPU_LIMIT_SECS = $CPU_LIMIT_SECS"
 echo "JOB_MAX_RSS_BYTES = $MAX_RSS_BYTES"
 echo "JOB_MAX_SWAP_BYTES = $MAX_SWAP_BYTES"
 echo "JOB_SCRATCH_LIMIT_BYTES = $SCRATCH_LIMIT_BYTES"
-
-

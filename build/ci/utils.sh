@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Utility functions for the GlideinWMS CI tests
 
 
@@ -132,8 +136,8 @@ setup_python3_venv() {
     [[ "${py_detected}" == 3* ]] || logexit "Python 3 required, detected ${py_detected}. Aborting"
     [[ "${py_detected}" == "${PY_VER}"* ]] || logwarn "Reference version is Python 3.6. Detected ${py_detected}."
     VIRTUALENV_VER=virtualenv
-    PYLINT='pylint'
-    ASTROID='astroid'
+    PYLINT='pylint==2.7.1' # TODO: Remove this lock when https://github.com/PyCQA/pylint/issues/3624 is solved
+    ASTROID='astroid==2.5.0' # Required by pylint 2.7.1 TODO: Remove this lock along with the above lock
     HYPOTHESIS="hypothesis"
     AUTOPEP8="autopep8"
     TESTFIXTURES="testfixtures"
@@ -146,7 +150,7 @@ setup_python3_venv() {
     M2CRYPTO="m2crypto" # M2CRYPTO="M2Crypto==0.20.2"
 
     # pip install of M2Crypto is failing, use RPM: python36-m2crypto.x86_64 : Support for using OpenSSL in Python 3 scripts
-    
+
 #    PYLINT='pylint==2.5.3'
 #    ASTROID='astroid==2.4.2'
 #    HYPOTHESIS="hypothesis"
@@ -221,7 +225,7 @@ setup_python3_venv() {
         for package in ${pip_packages}; do
             loginfo "Installing $package ..."
             status="DONE"
-            if ! python3 -m pip install -I --use-feature=2020-resolver --quiet "$package" ; then
+            if ! python3 -m pip install -I --quiet "$package" ; then
                 status="FAILED"
                 failed_packages="$failed_packages $package"
             fi
@@ -234,7 +238,7 @@ setup_python3_venv() {
         installed_packages="$(python3 -m pip list --format freeze)"  # includes the ones inherited from system
         for package in $failed_packages; do
             loginfo "REINSTALLING $package"
-            if ! python3 -m pip install -I --use-feature=2020-resolver "$package" ; then
+            if ! python3 -m pip install -I "$package" ; then
                 if echo "$installed_packages" | grep -i "^${package}=" > /dev/null ; then
                     logwarn "$package could not be installed, but is available form the system.  Continuing."
                 else
@@ -290,7 +294,7 @@ setup_python2_venv() {
     if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
         is_python26=true
     fi
-    
+
     if $is_python26; then
         # Get latest packages that work with python 2.6
         PY_VER="2.6"
@@ -323,6 +327,7 @@ setup_python2_venv() {
         PYCODESTYLE="pycodestyle"
         MOCK="mock==3.0.3"
         M2CRYPTO="M2Crypto"
+        PYUDEV="pyudev>=0.16.1"
     fi
 
     # pip install of M2Crypto is failing, use RPM:
@@ -374,12 +379,12 @@ setup_python2_venv() {
         # Install dependencies first so we don't get incompatible ones
         # Following RPMs need to be installed on the machine:
         # pep8 has been replaced by pycodestyle
-        pip_packages="${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
+        pip_packages="${PYCODESTYLE} ${COVERAGE} ${PYLINT} ${ASTROID}"
         pip_packages="${pip_packages} pyyaml ${MOCK}  xmlrunner PyJWT requests future importlib argparse"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
-        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
+        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO} ${PYUDEV}"
 
-	    # Uncomment to troubleshoot setup: loginfo "$(log_python)"	
+	    # Uncomment to troubleshoot setup: loginfo "$(log_python)"
 
         failed_packages=""
         local installed_packages="$(python -m pip list --format freeze)"  # includes the ones inherited from system
@@ -387,7 +392,7 @@ setup_python2_venv() {
             loginfo "Installing $package ..."
             status="DONE"
             if $is_python26; then
-                # py26 seems to error out w/ python -m pip: 
+                # py26 seems to error out w/ python -m pip:
                 # 4119: /scratch/workspace/glideinwms_ci/label_exp/RHEL6/label_exp2/swarm/venv-2.6/bin/python: pip is a package and cannot be directly executed
                 pip install --quiet "$package"
             else
@@ -404,7 +409,7 @@ setup_python2_venv() {
         for package in $failed_packages; do
             loginfo "REINSTALLING $package"
             if $is_python26; then
-                # py26 seems to error out w/ python -m pip: 
+                # py26 seems to error out w/ python -m pip:
                 # 4119: /scratch/workspace/glideinwms_ci/label_exp/RHEL6/label_exp2/swarm/venv-2.6/bin/python: pip is a package and cannot be directly executed
                 pip install "$package"
             else
@@ -454,7 +459,7 @@ get_source_directories() {
     sources="${src_dir},${src_dir}/factory/"
     sources="${sources},${src_dir}/factory/tools,${src_dir}/frontend"
     sources="${sources},${src_dir}/frontend/tools,${src_dir}/install"
-    sources="${sources},${src_dir}/install/services,${src_dir}/lib"
+    sources="${sources},${src_dir}/lib"
     sources="${sources},${src_dir}/tools,${src_dir}/tools/lib"
     echo "$sources"
 }
@@ -512,8 +517,8 @@ get_annotated_value(){
     # Return an annotated value (the value followed by a known semantic annotation that will be recognized for formatting)
     # "na" values are returned as is
     # 1. annotation to add: success/warning/error/check0
-    # 2. variable to print and to check (if 1 is check0) 
-    # 3. (optional if 1 is check0) failure status, default is error 
+    # 2. variable to print and to check (if 1 is check0)
+    # 3. (optional if 1 is check0) failure status, default is error
     local status=$1
     local value=$2
     [[ "$value" = "na" ]] && { echo "$value"; return; }
@@ -576,14 +581,14 @@ filter_annotated_values() {
     local line="$1"
     local line_values
     line_values="$(echo "$line" | sed -e 's;=success=;;g;s;=error=;;g;s;=warning=;;g' )"
-    if [[ -z "$2" || "$2" = text ]]; then 
+    if [[ -z "$2" || "$2" = text ]]; then
         echo "$line_values"
         return
-    elif [[ "$2" = htmlplain ]]; then        
+    elif [[ "$2" = htmlplain ]]; then
         echo "<td>${line_values//,/</td><td>}</td>"
     else
-        line_values= 
-        IFS=, read -ra values <<< "$line"    
+        line_values=
+        IFS=, read -ra values <<< "$line"
         for i in "${values[@]}"; do
             # TODO: 25222 - pass to annotated_to_td line_start and values from line0 and line1
             #       create 2 arrays (maybe env var in table_to_html) and iterate or pass index
@@ -591,7 +596,7 @@ filter_annotated_values() {
             line_values="${line_values}$(annotated_to_td "$i" $2)"
         done
         echo "$line_values"
-    fi    
+    fi
 }
 
 table_to_html() {
@@ -621,7 +626,7 @@ table_to_html() {
         # TODO: 25222 - pass to filter_annotated_values line_start and line0 and line1 (values or env variables)
         echo "<tr><th>${line_start//,/</th><th>}</th>$(filter_annotated_values "${line_end}" ${format})</tr>"
     done < "$1" ;
-    echo -e "    </tbody>\n</table>"    
+    echo -e "    </tbody>\n</table>"
 }
 
 
@@ -673,4 +678,3 @@ MIME-VERSION: 1.0;
 $(cat "${EMAIL_FILE}")
 " | sendmail -t
 }
-

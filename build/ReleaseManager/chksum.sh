@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 ###############################################################################
 # Functions
 ###############################################################################
@@ -18,7 +21,7 @@ checksum() {
             hash="`md5 $file | awk -F'=' '{print $NF}' | tr -d ' '`"
             echo "$hash  $file" >> $chksum_file
             ;;
-        *) 
+        *)
             echo "Build on $platform not supported"
             exit 1
             ;;

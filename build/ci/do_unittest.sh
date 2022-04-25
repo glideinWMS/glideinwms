@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Shell source file to be sourced to run Python unit tests and coverage (shebang added for linting purposes)
 # To be used only inside runtest.sh (runtest.sh and util.sh functions defined, VARIABLES available)
 # All function names start with do_...
@@ -40,7 +44,7 @@ do_parse_options () {
     shift $((OPTIND-1))
 
     CMD_OPTIONS="$@"
-    
+
     if [[ -n "${SHOW_FLAGS}" ]]; then
         do_show_flags
         TEST_COMPLETE=branch
@@ -203,7 +207,7 @@ do_process_branch() {
 
 do_table_headers() {
     # Tab separated list of fields
-    # example of table header 2 fields available start with ',' to keep first field from previous item 
+    # example of table header 2 fields available start with ',' to keep first field from previous item
     echo -e "UnitTest,Files\t,ErrFiles\t,ErrNum"
 }
 
@@ -212,7 +216,7 @@ do_table_values() {
     # 2. output format: if not empty triggers annotation
     # Return a tab separated list of the values
     # $VAR1 $VAR2 $VAR3 expected in $1
-    # If the summary file is missing return tab separated "na" strings 
+    # If the summary file is missing return tab separated "na" strings
     [[ -n "$1" ]] && . "$1" || { echo -e "na\tna\tna"; return; }
     if [[ "$2" = NOTAG ]]; then
         echo -e "${PYUNITTEST_FILES_CHECKED_COUNT}\t${PYUNITTEST_ERROR_FILES_COUNT}\t${PYUNITTEST_ERROR_COUNT}"

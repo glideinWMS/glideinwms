@@ -1,23 +1,34 @@
-Useful ansible playbooks and other scripts go here.
+<!--
+SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+SPDX-License-Identifier: Apache-2.0
+-->
 
-migrate_factory.yml - upgrades or downgrades a gwms-factory
+This folder includes useful ansible playbooks and related scripts.
+
+**migrate_factory.yml** - upgrades or downgrades a gwms-factory
 usage:
 
+```
 ansible-playbook migrate_factory.yml -l factory_hostname [-e dir=upgrade|downgrade] [-e repo=osgrepo]
-default for dir is upgrade
-default for repo is osg
+```
 
+-   default for dir is upgrade
+-   default for repo is osg
 
-migrate_frontend.yml - upgrades or downgrades a gwms-frontend
+**migrate_frontend.yml** - upgrades or downgrades a gwms-frontend
 usage:
+
+```
 ansible-playbook migrate_frontend.yml -l frontend_hostname [-e dir=upgrade|downgrade] [-e repo=osgrepo]
-default for dir is upgrade
-default for repo is osg
+```
 
-factory_hostname and frontend_hostname must be listed in an 'inventory' file
+-   default for dir is upgrade
+-   default for repo is osg
+-   factory_hostname and frontend_hostname must be listed in an 'inventory' file
 
-example usage:
+Example usage:
 
+```shell
 [dbox@fermicloud073 ansible]$ cat inventory
 fermicloud349.fnal.gov
 fermicloud063.fnal.gov
@@ -77,6 +88,4 @@ Loaded plugins: langpacks, priorities
 Installed Packages
 glideinwms-vofrontend.noarch  3.7.1-0.9.rc9.osgup.el7  @osg-upcoming-development
 [dbox@fermicloud073 ansible]$
-
-
-
+```

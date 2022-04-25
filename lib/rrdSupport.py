@@ -1,10 +1,11 @@
-from __future__ import absolute_import
-from __future__ import print_function
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module implements the basic functions needed
@@ -14,15 +15,18 @@ from __future__ import print_function
 #   Igor Sfiligoi
 #
 
+import shlex
 import string
+import subprocess
 import time
+
+from . import subprocessSupport
+
 try:
-    import rrdtool # pylint: disable=import-error
+    import rrdtool  # pylint: disable=import-error
 except:
     pass
-import subprocess
-import shlex
-from . import subprocessSupport
+
 
 class BaseRRDSupport:
     #############################################################
@@ -30,7 +34,7 @@ class BaseRRDSupport:
         self.rrd_obj = rrd_obj
 
     def isDummy(self):
-        return (self.rrd_obj is None)
+        return self.rrd_obj is None
 
     #############################################################
     # The default will do nothing
@@ -45,10 +49,7 @@ class BaseRRDSupport:
         return dummy_disk_lock()
 
     #############################################################
-    def create_rrd(self,
-                   rrdfname,
-                   rrd_step, rrd_archives,
-                   rrd_ds):
+    def create_rrd(self, rrdfname, rrd_step, rrd_archives, rrd_ds):
         """
         Create a new RRD archive
 
@@ -66,20 +67,15 @@ class BaseRRDSupport:
             heartbeat - the maximum number of seconds that may pass between two updates before it becomes unknown
             min       - min value
             max       - max value
-          
+
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
-        self.create_rrd_multi(rrdfname,
-                              rrd_step, rrd_archives,
-                              (rrd_ds,))
+        self.create_rrd_multi(rrdfname, rrd_step, rrd_archives, (rrd_ds,))
         return
 
     #############################################################
-    def create_rrd_multi(self,
-                         rrdfname,
-                         rrd_step, rrd_archives,
-                         rrd_ds_arr):
+    def create_rrd_multi(self, rrdfname, rrd_step, rrd_archives, rrd_ds_arr):
         """
         Create a new RRD archive
 
@@ -97,20 +93,20 @@ class BaseRRDSupport:
             heartbeat - the maximum number of seconds that may pass between two updates before it becomes unknown
             min       - min value
             max       - max value
-          
+
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
         if None == self.rrd_obj:
-            return # nothing to do in this case
+            return  # nothing to do in this case
 
         # make the start time to be aligned on the rrd_step boundary
-        # This is needed for optimal resoultion selection 
-        start_time = (long(time.time() - 1)/rrd_step) * rrd_step 
-        #print (rrdfname,start_time,rrd_step)+rrd_ds
-        args = [str(rrdfname), '-b', '%li' % start_time, '-s', '%i' % rrd_step]
+        # This is needed for optimal resoultion selection
+        start_time = (int(time.time() - 1) / rrd_step) * rrd_step
+        # print (rrdfname,start_time,rrd_step)+rrd_ds
+        args = [str(rrdfname), "-b", "%li" % start_time, "-s", "%i" % rrd_step]
         for rrd_ds in rrd_ds_arr:
-            args.append('DS:%s:%s:%i:%s:%s' % rrd_ds)
+            args.append("DS:%s:%s:%i:%s:%s" % rrd_ds)
         for archive in rrd_archives:
             args.append("RRA:%s:%g:%i:%i" % archive)
 
@@ -122,9 +118,7 @@ class BaseRRDSupport:
         return
 
     #############################################################
-    def update_rrd(self,
-                   rrdfname,
-                   time, val):
+    def update_rrd(self, rrdfname, time, val):
         """
         Create an RRD archive with a new value
 
@@ -139,16 +133,14 @@ class BaseRRDSupport:
 
         lck = self.get_disk_lock(rrdfname)
         try:
-            self.rrd_obj.update(str(rrdfname), '%li:%s'%(time, val))
+            self.rrd_obj.update(str(rrdfname), "%li:%s" % (time, val))
         finally:
             lck.close()
 
         return
 
     #############################################################
-    def update_rrd_multi(self,
-                         rrdfname,
-                         time, val_dict):
+    def update_rrd_multi(self, rrdfname, time, val_dict):
         """
         Create an RRD archive with a set of values (possibly all of the supported)
 
@@ -158,7 +150,7 @@ class BaseRRDSupport:
           val_dict - What was the value
         """
         if self.rrd_obj is None:
-            return # nothing to do in this case
+            return  # nothing to do in this case
 
         args = [str(rrdfname)]
         ds_names = sorted(val_dict.keys())
@@ -167,32 +159,42 @@ class BaseRRDSupport:
         ds_vals = []
         for ds_name in ds_names:
             if val_dict[ds_name] is not None:
-                ds_vals.append("%s"%val_dict[ds_name])
+                ds_vals.append("%s" % val_dict[ds_name])
                 ds_names_real.append(ds_name)
 
         if len(ds_names_real) == 0:
             return
 
-        args.append('-t')
-        args.append(string.join(ds_names_real, ':'))
-        args.append(('%li:' % time) + string.join(ds_vals, ':'))
-    
+        args.append("-t")
+        args.append(":".join(ds_names_real))
+        args.append(("%li:" % time) + ":".join(ds_vals))
+
         lck = self.get_disk_lock(rrdfname)
         try:
-            #print args
+            # print args
             self.rrd_obj.update(*args)
         finally:
             lck.close()
-            
+
         return
 
     #############################################################
-    def rrd2graph(self, fname,
-                  rrd_step, ds_name, ds_type,
-                  start, end,
-                  width, height,
-                  title, rrd_files, cdef_arr=None, trend=None,
-                  img_format='PNG'):
+    def rrd2graph(
+        self,
+        fname,
+        rrd_step,
+        ds_name,
+        ds_type,
+        start,
+        end,
+        width,
+        height,
+        title,
+        rrd_files,
+        cdef_arr=None,
+        trend=None,
+        img_format="PNG",
+    ):
         """
         Create a graph file out of a set of RRD files
 
@@ -217,24 +219,36 @@ class BaseRRDSupport:
                 graph_type    - Graph type (LINE, STACK, AREA)
                 grpah_color   - Graph color in rrdtool format
           trend         - Trend value in seconds (if desired, None else)
-          
+
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
         if None == self.rrd_obj:
-            return # nothing to do in this case
+            return  # nothing to do in this case
 
         multi_rrd_files = []
         for rrd_file in rrd_files:
             multi_rrd_files.append((rrd_file[0], rrd_file[1], ds_name, ds_type, rrd_file[2], rrd_file[3]))
-        return self.rrd2graph_multi(fname, rrd_step, start, end, width, height, title, multi_rrd_files, cdef_arr, trend, img_format)
+        return self.rrd2graph_multi(
+            fname, rrd_step, start, end, width, height, title, multi_rrd_files, cdef_arr, trend, img_format
+        )
 
     #############################################################
-    def rrd2graph_now(self, fname,
-                      rrd_step, ds_name, ds_type,
-                      period, width, height,
-                      title, rrd_files, cdef_arr=None, trend=None,
-                      img_format='PNG'):
+    def rrd2graph_now(
+        self,
+        fname,
+        rrd_step,
+        ds_name,
+        ds_type,
+        period,
+        width,
+        height,
+        title,
+        rrd_files,
+        cdef_arr=None,
+        trend=None,
+        img_format="PNG",
+    ):
         """
         Create a graph file out of a set of RRD files
 
@@ -259,22 +273,21 @@ class BaseRRDSupport:
                 graph_type    - Graph type (LINE, STACK, AREA)
                 grpah_color   - Graph color in rrdtool format
           trend         - Trend value in seconds (if desired, None else)
-          
+
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
-        now = long(time.time())
-        start = ((now-period)/rrd_step)*rrd_step
-        end = ((now-1)/rrd_step)*rrd_step
-        return self.rrd2graph(fname, rrd_step, ds_name, ds_type, start, end, width, height, title, rrd_files, cdef_arr, trend, img_format)
+        now = int(time.time())
+        start = ((now - period) / rrd_step) * rrd_step
+        end = ((now - 1) / rrd_step) * rrd_step
+        return self.rrd2graph(
+            fname, rrd_step, ds_name, ds_type, start, end, width, height, title, rrd_files, cdef_arr, trend, img_format
+        )
 
     #############################################################
-    def rrd2graph_multi(self, fname,
-                        rrd_step,
-                        start, end,
-                        width, height,
-                        title, rrd_files, cdef_arr=None, trend=None,
-                        img_format='PNG'):
+    def rrd2graph_multi(
+        self, fname, rrd_step, start, end, width, height, title, rrd_files, cdef_arr=None, trend=None, img_format="PNG"
+    ):
         """
         Create a graph file out of a set of RRD files
 
@@ -300,23 +313,41 @@ class BaseRRDSupport:
                 grpah_color   - Graph color in rrdtool format
           trend         - Trend value in seconds (if desired, None else)
           img_format    - format of the graph file (default PNG)
-          
+
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
         if None == self.rrd_obj:
-            return # nothing to do in this case
+            return  # nothing to do in this case
 
-        args = [str(fname), '-s', '%li' % start, '-e', '%li' % end, '--step', '%i' % rrd_step, '-l', '0', '-w', '%i' % width, '-h', '%i' % height, '--imgformat', str(img_format), '--title', str(title)]
+        args = [
+            str(fname),
+            "-s",
+            "%li" % start,
+            "-e",
+            "%li" % end,
+            "--step",
+            "%i" % rrd_step,
+            "-l",
+            "0",
+            "-w",
+            "%i" % width,
+            "-h",
+            "%i" % height,
+            "--imgformat",
+            str(img_format),
+            "--title",
+            str(title),
+        ]
         for rrd_file in rrd_files:
             ds_id = rrd_file[0]
             ds_fname = rrd_file[1]
             ds_name = rrd_file[2]
             ds_type = rrd_file[3]
             if trend is None:
-                args.append(str("DEF:%s=%s:%s:%s" % (ds_id, ds_fname, ds_name, ds_type)))
+                args.append(str(f"DEF:{ds_id}={ds_fname}:{ds_name}:{ds_type}"))
             else:
-                args.append(str("DEF:%s_inst=%s:%s:%s" % (ds_id, ds_fname, ds_name, ds_type)))
+                args.append(str(f"DEF:{ds_id}_inst={ds_fname}:{ds_name}:{ds_type}"))
                 args.append(str("CDEF:%s=%s_inst,%i,TREND" % (ds_id, ds_id, trend)))
 
         plot_arr = rrd_files
@@ -329,12 +360,11 @@ class BaseRRDSupport:
                 cdef_formula = cdef_el[1]
                 ds_graph_type = rrd_file[2]
                 ds_color = rrd_file[3]
-                args.append(str("CDEF:%s=%s" % (ds_id, cdef_formula)))
+                args.append(str(f"CDEF:{ds_id}={cdef_formula}"))
         else:
             plot_arr = []
             for rrd_file in rrd_files:
                 plot_arr.append((rrd_file[0], None, rrd_file[4], rrd_file[5]))
-
 
         if plot_arr[0][2] == "STACK":
             # add an invisible baseline to stack upon
@@ -344,12 +374,10 @@ class BaseRRDSupport:
             ds_id = plot_el[0]
             ds_graph_type = plot_el[2]
             ds_color = plot_el[3]
-            args.append("%s:%s#%s:%s" % (ds_graph_type, ds_id, ds_color, ds_id))
-            
+            args.append(f"{ds_graph_type}:{ds_id}#{ds_color}:{ds_id}")
 
-        args.append("COMMENT:Created on %s" % time.strftime("%b %d %H\:%M\:%S %Z %Y"))
+        args.append("COMMENT:Created on %s" % time.strftime(r"%b %d %H\:%M\:%S %Z %Y"))
 
-    
         try:
             lck = self.get_graph_lock(fname)
             try:
@@ -362,11 +390,9 @@ class BaseRRDSupport:
         return args
 
     #############################################################
-    def rrd2graph_multi_now(self, fname,
-                            rrd_step,
-                            period, width, height,
-                            title, rrd_files, cdef_arr=None, trend=None,
-                            img_format='PNG'):
+    def rrd2graph_multi_now(
+        self, fname, rrd_step, period, width, height, title, rrd_files, cdef_arr=None, trend=None, img_format="PNG"
+    ):
         """
         Create a graph file out of a set of RRD files
 
@@ -392,18 +418,19 @@ class BaseRRDSupport:
                 grpah_color   - Graph color in rrdtool format
           trend         - Trend value in seconds (if desired, None else)
           img_format    - format of the graph file (default PNG)
-          
+
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
-        now = long(time.time())
-        start = ((now-period)/rrd_step)*rrd_step
-        end = ((now-1)/rrd_step)*rrd_step
-        return self.rrd2graph_multi(fname, rrd_step, start, end, width, height, title, rrd_files, cdef_arr, trend, img_format)
+        now = int(time.time())
+        start = ((now - period) / rrd_step) * rrd_step
+        end = ((now - 1) / rrd_step) * rrd_step
+        return self.rrd2graph_multi(
+            fname, rrd_step, start, end, width, height, title, rrd_files, cdef_arr, trend, img_format
+        )
 
     ###################################################
-    def fetch_rrd(self, filename, CF, resolution = None, start = None,
-                  end = None, daemon = None):
+    def fetch_rrd(self, filename, CF, resolution=None, start=None, end=None, daemon=None):
         """
         Fetch will analyze the RRD and try to retrieve the data in the
         resolution requested.
@@ -426,67 +453,70 @@ class BaseRRDSupport:
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
         if None == self.rrd_obj:
-            return # nothing to do in this case
+            return  # nothing to do in this case
 
-        if CF in ('AVERAGE', 'MIN', 'MAX', 'LAST'):
+        if CF in ("AVERAGE", "MIN", "MAX", "LAST"):
             consolFunc = str(CF)
         else:
-            raise RuntimeError("Invalid consolidation function %s"%CF)
+            raise RuntimeError("Invalid consolidation function %s" % CF)
         args = [str(filename), consolFunc]
         if resolution is not None:
-            args.append('-r')
+            args.append("-r")
             args.append(str(resolution))
         if end is not None:
-            args.append('-e')
+            args.append("-e")
             args.append(str(end))
         if start is not None:
-            args.append('-s')
+            args.append("-s")
             args.append(str(start))
         if daemon is not None:
-            args.append('--daemon')
+            args.append("--daemon")
             args.append(str(daemon))
 
         return self.rrd_obj.fetch(*args)
-        
+
     def verify_rrd(self, filename, expected_dict):
         """
         Verifies that an rrd matches a dictionary of datastores.
         This will return a tuple of arrays ([missing],[extra]) attributes
-    
+
         @param filename: filename of the rrd to verify
         @param expected_dict: dictionary of expected values
         @return: A two-tuple of arrays ([missing attrs],[extra attrs])
-    
+
         """
-        rrd_info=self.rrd_obj.info(filename)
-        rrd_dict={}
-        for key in rrd_info.keys():
-            #rrdtool 1.3
-            if key[:3]=="ds[":
-                rrd_dict[key[3:].split("]")[0]]=None
-            #rrdtool 1.2
-            if key=="ds":
-                for dskey in rrd_info[key].keys():
-                    rrd_dict[dskey]=None
-        missing=[]
-        extra=[]
-        for t in expected_dict.keys():
-            if t not in rrd_dict.keys():
+        rrd_info = self.rrd_obj.info(filename)
+        rrd_dict = {}
+        for key in list(rrd_info.keys()):
+            # rrdtool 1.3
+            if key[:3] == "ds[":
+                rrd_dict[key[3:].split("]")[0]] = None
+            # rrdtool 1.2
+            if key == "ds":
+                for dskey in list(rrd_info[key].keys()):
+                    rrd_dict[dskey] = None
+        missing = []
+        extra = []
+        for t in list(expected_dict.keys()):
+            if t not in list(rrd_dict.keys()):
                 missing.append(t)
-        for t in rrd_dict.keys():
-            if t not in expected_dict.keys():
+        for t in list(rrd_dict.keys()):
+            if t not in list(expected_dict.keys()):
                 extra.append(t)
         return (missing, extra)
+
 
 # This class uses the rrdtool module for rrd_obj
 class ModuleRRDSupport(BaseRRDSupport):
     def __init__(self):
         BaseRRDSupport.__init__(self, rrdtool)
 
+
 # This class uses rrdtool cmdline for rrd_obj
 class ExeRRDSupport(BaseRRDSupport):
     def __init__(self):
         BaseRRDSupport.__init__(self, rrdtool_exe())
+
 
 # This class tries to use the rrdtool module for rrd_obj
 # then tries the rrdtool cmdline
@@ -515,81 +545,108 @@ class DummyDiskLock:
     def close(self):
         return
 
+
 def dummy_disk_lock():
     return DummyDiskLock()
+
 
 #################################
 def string_quote_join(arglist):
     l2 = []
     for e in arglist:
         l2.append('"%s"' % e)
-    return string.join(l2)
+    return " ".join(l2)
 
-#################################
-# this class is used in place of the rrdtool
-# python module, if that one is not available
+
 class rrdtool_exe:
+    """This class is a wrapper around the rrdtool client (binary) and
+    is used in place of the rrdtool python module, if that one is not available
+    """
+
     def __init__(self):
-        self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool").split('\n')[0]).strip()
+        self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool").split("\n")[0]).strip()
 
-    def create(self,*args):
-        cmdline = '%s create %s'%(self.rrd_bin, string_quote_join(args))
+    def create(self, *args):
+        cmdline = f"{self.rrd_bin} create {string_quote_join(args)}"
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
 
-    def update(self,*args):
-        cmdline = '%s update %s'%(self.rrd_bin, string_quote_join(args))
+    def update(self, *args):
+        cmdline = f"{self.rrd_bin} update {string_quote_join(args)}"
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
-    
-    def info(self,*args):
-        cmdline = '%s info %s'%(self.rrd_bin, string_quote_join(args))
-        outstr = subprocessSupport.iexe_cmd(cmdline).split('\n')
+
+    def info(self, *args):
+        cmdline = f"{self.rrd_bin} info {string_quote_join(args)}"
+        outstr = subprocessSupport.iexe_cmd(cmdline).split("\n")
         outarr = {}
         for line in outstr:
-            linearr = line.split('=')
-            outarr[linearr[0]] = linearr[1]
+            if "=" in line:
+                linearr = line.split("=")
+                outarr[linearr[0].strip()] = linearr[1].strip()
         return outarr
-    
-    def dump(self,*args):
-        """
-        Run rrd_tool dump
+
+    def dump(self, *args):
+        """Run rrd_tool dump
 
         Input is usually just the file name.
         Output is a list of lines, as returned from rrdtool.
+
+        Args:
+            *args: rrdtool dump arguments, joined in single string for the command line
+
+        Returns:
+            str: multi-line string, output of rrd dump
+
         """
-        cmdline = '%s dump %s' % (self.rrd_bin, string_quote_join(args))
-        outstr = subprocessSupport.iexe_cmd(cmdline).split('\n')
+        cmdline = f"{self.rrd_bin} dump {string_quote_join(args)}"
+        outstr = subprocessSupport.iexe_cmd(cmdline).decode("utf-8").split("\n")
         return outstr
-    
-    def restore(self,*args):
-        cmdline = '%s restore %s'%(self.rrd_bin, string_quote_join(args))
+
+    def restore(self, *args):
+        cmdline = f"{self.rrd_bin} restore {string_quote_join(args)}"
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
 
-    def graph(self,*args):
-        cmdline = '%s graph %s'%(self.rrd_bin, string_quote_join(args))
+    def graph(self, *args):
+        cmdline = f"{self.rrd_bin} graph {string_quote_join(args)}"
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
+
+    def fetch(self, *args):
+        cmdline = f"{self.rrd_bin} fetch {string_quote_join(args)}"
+        outstr = subprocessSupport.iexe_cmd(cmdline).split("\n")
+        headers = tuple(outstr.pop(0).split())
+        lines = []
+        for line in outstr:
+            if len(line) == 0:
+                continue
+            lines.append(tuple(float(i) if i != "-nan" else None for i in line.split()[1:]))
+        tstep = int(outstr[2].split(":")[0]) - int(outstr[1].split(":")[0])
+        ftime = int(outstr[1].split(":")[0]) - tstep
+        ltime = int(outstr[-2].split(":")[0])
+        times = (ftime, ltime, tstep)
+        outtup = (times, headers, lines)
+        return outtup
+
 
 def addDataStore(filenamein, filenameout, attrlist):
-    """
-    Add a list of data stores to a rrd export file
+    """Add a list of data stores to a rrd export file
     This will essentially add attributes to the end of a rrd row
 
     @param filenamein: filename path of a rrd exported with rrdtool dump
     @param filenameout: filename path of output xml with datastores added
     @param attrlist: array of datastores to add
     """
-    f=open(filenamein, "r")
-    out=open(filenameout, "w")
-    parse=False
-    writenDS=False
+    f = open(filenamein)
+    out = open(filenameout, "w")
+    parse = False
+    writenDS = False
     for line in f:
         if ("<rra>" in line) and (not writenDS):
             for a in attrlist:
                 out.write("<ds>\n")
-                out.write("<name> %s </name>\n"%a)
+                out.write("<name> %s </name>\n" % a)
                 out.write("<type> GAUGE </type>\n")
                 out.write("<minimal_heartbeat> 1800 </minimal_heartbeat>\n")
                 out.write("<min> NaN </min>\n")
@@ -599,13 +656,13 @@ def addDataStore(filenamein, filenameout, attrlist):
                 out.write("<value> 0 </value>\n")
                 out.write("<unknown_sec> 0 </unknown_sec>\n")
                 out.write("</ds>\n")
-            writenDS=True
+            writenDS = True
         if "</cdp_prep>" in line:
             for a in attrlist:
                 out.write("<ds><value> NaN </value>\n")
                 out.write("<unknown_datapoints> 0 </unknown_datapoints></ds>\n")
         if "</database>" in line:
-            parse=False
+            parse = False
         if parse:
             out.write(line[:-7])
             for a in attrlist:
@@ -614,5 +671,4 @@ def addDataStore(filenamein, filenameout, attrlist):
         else:
             out.write(line)
         if "<database>" in line:
-            parse=True
-
+            parse = True

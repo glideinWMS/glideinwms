@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+SPDX-License-Identifier: Apache-2.0
+-->
+
 <frontend advertise_delay="5" frontend_name="FRONTEND_NAME_CHANGEME" loop_delay="60" advertise_with_multiple="True" advertise_with_tcp="True" frontend_monitor_index_page="False" frontend_versioning="False" enable_attribute_expansion="False">
    <log_retention>
       <process_logs>

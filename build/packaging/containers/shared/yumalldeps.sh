@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 help_msg() {
   cat << EOF
 ${filename} [options] package1 [ package2 [...]]
@@ -9,7 +12,7 @@ get all the yum dependencies that are not in GlideinWMS packages (or in the FAMI
   -v          verbose
   -y OPTS     yum options (remember to quote)
   -i          do also yum install
-  -f FAMILY   Package family, i.e. packages searched for deps and excluded from results (default: $PKG_FAMILY) 
+  -f FAMILY   Package family, i.e. packages searched for deps and excluded from results (default: $PKG_FAMILY)
 EOF
 }
 
@@ -21,7 +24,7 @@ parse_options() {
     VERBOSE=
     PKG_FAMILY=glideinwms
     YUM_OPTIONS=
-    YUM_INSTALL=    
+    YUM_INSTALL=
     while getopts ":hvy:if:" option
     do
         case "${option}"
@@ -36,7 +39,7 @@ parse_options() {
         \?) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
         esac
     done
-    
+
 }
 
 mylog() {
@@ -53,8 +56,8 @@ getdep() {
         mylog "- end"
         retv=""
     fi
-    echo "$retv" 
-    echo "$tmp_all" | grep -v $PKG_FAMILY 
+    echo "$retv"
+    echo "$tmp_all" | grep -v $PKG_FAMILY
 }
 
 _main() {

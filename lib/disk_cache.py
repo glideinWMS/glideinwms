@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 """This module helps managing objects that needs to be cached. Objects are cached both in memory
 and on disk so that the cache can be leveraged by multiple processes.
 
@@ -5,10 +8,11 @@ Each object you want to save needs to have a string id that identifies it. The i
 locate the object in the memory (a key in a dictionary), and on the disk (the filename).
 """
 
-import os
-import fcntl
-import pickle
 import contextlib
+import fcntl
+import os
+import pickle
+
 from time import time
 
 
@@ -23,16 +27,17 @@ def get_lock(name):
     Params:
         name (str): the name of the file you want to lock. A lockfile name.lock will be created
     """
-    with open(name + '.lock', 'a+') as fdesc:
+    with open(name + ".lock", "a+") as fdesc:
         fcntl.flock(fdesc, fcntl.LOCK_EX)
         yield fdesc
 
 
-class DiskCache(object):
+class DiskCache:
     """The class that manages the cache. Objects expires after a cache_duration time (defaults
     to one hour). Objects are pickled into a file. The directory to save those files has to
     be specified. Methods to save and load an object by its id are provided.
     """
+
     def __init__(self, cache_dir, cache_duration=3600):
         """Build the DiskCache object
 
@@ -46,8 +51,7 @@ class DiskCache(object):
         self.cache_duration = cache_duration
 
     def get_fname(self, objid):
-        """Simple auxiliary function that returns the cache filename given a cache object id
-        """
+        """Simple auxiliary function that returns the cache filename given a cache object id"""
         return os.path.join(self.cache_dir, objid)
 
     def get(self, objid):
@@ -70,7 +74,7 @@ class DiskCache(object):
             saved_time, obj = self.mem_cache[objid]
         elif os.path.isfile(fname):
             with get_lock(fname):
-                with open(fname) as fdesc:
+                with open(fname, "rb") as fdesc:
                     saved_time, obj = pickle.load(fdesc)
             self.mem_cache[objid] = (saved_time, obj)
         if time() - saved_time < self.cache_duration:
@@ -92,7 +96,7 @@ class DiskCache(object):
         """
         fname = self.get_fname(objid)
         with get_lock(fname):
-            with open(fname, 'w') as fdesc:
+            with open(fname, "wb") as fdesc:
                 save_time = time()
                 pickle.dump((save_time, obj), fdesc)
                 self.mem_cache[objid] = (save_time, obj)

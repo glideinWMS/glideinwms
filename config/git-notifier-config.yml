@@ -1,7 +1,7 @@
 # set to true if you want to ignore empty merge messages
-ignore_merge: false 
+ignore_merge: false
 
-# Optional parameter for the subject-line of the mail 
+# Optional parameter for the subject-line of the mail
 #emailprefix: GIT
 
 # Limit lines per diff (default = no limit)
@@ -10,15 +10,14 @@ lines_per_diff: 300
 # The recipient for the commit:
 mailinglist: glideinwms-commit@listserv.fnal.gov
 
-
-# The from address. If not defined it will use 
+# The from address. If not defined it will use
 # the address that is configured in git
 #from: sender@example.com
 
 # stylesheet file (embedded template/styles.css by default)
 # stylesheet: /absolute/path/to/readable/stylesheet.css
 
-# select the delivery method: smtp or sendmail 
+# select the delivery method: smtp or sendmail
 delivery_method: smtp
 
 # Optionally group email by push: don't send an email for each commit when true.
@@ -29,8 +28,8 @@ smtp_server:
   address: smtp
   port: 25
   domain: fnal.gov
-  user_name: 
-  password: 
+  user_name:
+  password:
   authentication: plain
   enable_tls: false
 
@@ -40,7 +39,7 @@ sendmail_options:
   arguments: -i -t
 
 # Decorate files and commit ids with link to a webview. Possible values: none, gitweb, gitorious, cgit or trac
-link_files: none 
+link_files: none
 
 # If link_files is set to "gitweb", you need to configure the path to your gitweb
 # instance and the project name.
@@ -71,7 +70,7 @@ message_map:
 
 # Uncomment if you want to create links in your commit text
 message_integration:
-#  mediawiki: http://example.com/wiki # will rework [[text]] to MediaWiki pages
+  #  mediawiki: http://example.com/wiki # will rework [[text]] to MediaWiki pages
   redmine: https://cdcvs.fnal.gov/redmine # will rework refs #123 to Redmine issues
 #  bugzilla: http://bz.example.com # will rework BUG 123 to Bugzilla bugs
 #  fogbugz: http://yourondemand.fogbugz.com/? # will rework BugzId: 123 to FogBugz cases

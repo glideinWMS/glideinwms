@@ -1,174 +1,234 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<html>
-<head>
-  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>GlideinWMS - Glidein Frontend</title>
-  <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
-  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
-</head>
+<!--
+SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+SPDX-License-Identifier: Apache-2.0
+-->
 
-<body lang="en-US" dir="ltr">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+  <head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8" />
+    <title>GlideinWMS - Glidein Frontend</title>
+    <meta name="CREATED" content="0;0" />
+    <meta name="CHANGED" content="20100521;20081031;14115200" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="../common/glideinWMS.css"
+      media="screen, projection"
+    />
+  </head>
+
+  <body lang="en-US" dir="ltr">
     <h1>
-        <a href="index.html">GlideinWMS</a>
-	<span>The Glidein-based Workflow Management System</span>
+      <a href="index.html">GlideinWMS</a>
+      <span>The Glidein-based Workflow Management System</span>
     </h1>
     <ul class="breadcrumbs">
-        <li><a href="../index.html">Home</a></li>
-        <li><a href="./index.html">Glidein Frontend</a></li>
-        <li>Details</li>
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="./index.html">Glidein Frontend</a></li>
+      <li>Details</li>
     </ul>
     <div class="clear" />
     <div class="leftmenu">
-        <ul class="components">
-	<li> <a href="../index.html">Home</a></li>
-	<li> <a href="../download.html">Download</a></li>
-	<li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-	<li> <a href="../factory/index.html">WMS Factory</a></li>
-	<li> <a href="../components/index.html" >Components</a></li>
-        <li> <a href="../recipes/index.html">Recipes</a></li>
-	<li> <a href="../components/faq.html" class="last">FAQ</a></li>
+      <ul class="components">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../download.html">Download</a></li>
+        <li><a href="../frontend/index.html">Glidein Frontend</a></li>
+        <li><a href="../factory/index.html">WMS Factory</a></li>
+        <li><a href="../components/index.html">Components</a></li>
+        <li><a href="../recipes/index.html">Recipes</a></li>
+        <li><a href="../components/faq.html" class="last">FAQ</a></li>
+      </ul>
+      <div class="search">
+        <script>
+          (function () {
+            var cx = "013439253731257915088:h-xvmglqvrq";
+            var gcse = document.createElement("script");
+            gcse.type = "text/javascript";
+            gcse.async = true;
+            gcse.src = "https://cse.google.com/cse.js?cx=" + cx;
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(gcse, s);
+          })();
+        </script>
+        <gcse:search enableAutoComplete="true"></gcse:search>
+      </div>
+    </div>
+    <div class="content">
+      <div class="heading">
+        <img
+          align="right"
+          width="280px"
+          border="0px"
+          src="../images/simple_diagram.png"
+          usemap="#rightimage"
+        />
+        <map name="rightimage">
+          <area
+            shape="rect"
+            coords="90,3,177,60"
+            href="../frontend/index.html"
+          />
+          <area
+            shape="rect"
+            coords="5,88,118,146"
+            href="../components/user_pool.html"
+          />
+          <area
+            shape="rect"
+            coords="134,88,275,146"
+            href="../factory/index.html"
+          />
+        </map>
+
+        <h2>Glidein Frontend</h2>
+        <ul class="subcomponents">
+          <li><a href="./index.html">Overview</a></li>
+          <li>Details</li>
+          <li><a href="./configuration.html">Configuration</a></li>
+          <li><a href="./design.html">Design</a></li>
+          <li><a href="./monitoring.html">Monitoring</a></li>
+          <li class="last">
+            <a href="./troubleshooting.html">Troubleshooting</a>
+          </li>
         </ul>
-        <div class="search">
-            <script>
-            (function() {
-                var cx = '013439253731257915088:h-xvmglqvrq';
-                var gcse = document.createElement('script');
-                gcse.type = 'text/javascript';
-                gcse.async = true;
-                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
-                var s = document.getElementsByTagName('script')[0];
-                s.parentNode.insertBefore(gcse, s);
-            })();
-            </script>
-            <gcse:search enableAutoComplete=true></gcse:search>
-        </div>
-    </div>
-<div class="content">
-    <div class="heading">
-    <img align="right" width="280px" border="0px"
-        src="../images/simple_diagram.png" usemap="#rightimage">
-    <map name="rightimage">
-        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
-        <area shape="rect" coords="5,88,118,146" href="../components/user_pool.html" />
-        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-    </map>
-
-    <h2>Glidein Frontend</h2>
-	<ul class="subcomponents">
-	     <li> <a href="./index.html">Overview</a></li>
-	     <li> Details</li>
-	     <li> <a href="./configuration.html">Configuration</a></li>
-	     <li> <a href="./design.html">Design</a></li>
-         <li> <a href="./monitoring.html">Monitoring</a></li>
-	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
-	</ul>
         <h3>Details</h3>
-	</div>
-<div class="jump">
-<u>Jump to:</u>
-<ol>
-    <li><a href="#description">Description</a></li>
-    <li><a href="#hardware">Hardware requirements</a></li>
-    <li><a href="#software">Needed software</a></li>
+      </div>
+      <div class="jump">
+        <u>Jump to:</u>
+        <ol>
+          <li><a href="#description">Description</a></li>
+          <li><a href="#hardware">Hardware requirements</a></li>
+          <li><a href="#frontend">Downtime handling</a></li>
+        </ol>
+      </div>
 
-    <li><a href="#before_install">Before you begin...</a></li>
-    <li><a href="#system">HTCondor installation</a></li>
-    <li><a href="#frontend">Frontend installation</a></li>
-</ol>
-</div>
+      <div class="section">
+        <h2><a name="description">1. Description</a></h2>
+        <p>
+          <img
+            src="../images/overview_frontend.png"
+            name="graphics1"
+            align="right"
+            border="0"
+          />
+        </p>
+        <p>
+          The Glidein Frontend (or VO frontend) will match user jobs with
+          Glidein Factory ads. It is responsible for the submission of new
+          glideins.
+        </p>
 
-<div class="section">
+        <p>
+          The VO frontend also keeps part of the configuration of a glidein, and
+          can also provide the
+          <a href="../factory/install.html">glidein Factory</a> with the pilot
+          proxies.
+        </p>
 
-            <h2><a name="description">1. Description</a></h2>
-        <p><img src="../images/overview_frontend.png" name="graphics1" align="right" border="0"></p>
-            <p>The Glidein Frontend (or VO frontend) will match user jobs with Glidein Factory ads. It is responsible for the submission of new glideins.</p>
+        <p>
+          Note: if you are installing only the frontend and planning to connect
+          to the OSG Factory, please refer to this section:
+          <a href="../install.html#osg">Connecting to OSG Factory</a>
+        </p>
+      </div>
 
-            <p>
-                The VO frontend also keeps part of the configuration of a glidein, and can also provide the 
-                <a href="../factory/install.html">glidein Factory</a> with the pilot proxies.
-            </p>
+      <div class="section">
+        <h2><a name="hardware">2. Hardware requirements</a></h2>
+        <table class="requirements" style="width: 500px">
+          <tr class="head">
+            <td>CPUs</td>
 
-    <p> Note: if you are installing only the frontend
-    and planning to connect to the OSG Factory, please refer to this section:
-    <a href="../install.html#osg">Connecting to OSG Factory</a></p>
-</div>
+            <td>Memory</td>
+            <td>Disk</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>3GB</td>
+            <td>~30GB</td>
+          </tr>
+        </table>
 
-    <div class="section">
-            <h2><a name="hardware">2. Hardware requirements</a></h2>
-            <table class="requirements" style="width: 500px;">
-            <tr class="head">
-                <td>CPUs</td>
+        <p>
+          This machine needs <b>4 cores</b>, preferable no more than 2 years old
+          and a moderate amount of <b>memory</b> (<b>3GB </b> plus 2MB per
+          running job should be enough).<br />
+          The <b>disk</b> needed is just for binaries, config files and log
+          files (<b>30GB</b> should be enough)<br />
+          Hardware requirements depend on the expected load. With small loads or
+          for test purposes one core and 1GB will suffice.
+        </p>
+      </div>
 
-                <td>Memory</td>
-                <td>Disk</td>
-            </tr>
-            <tr>
-                <td>4</td>
-                <td>3GB</td>
-                <td>~30GB</td>
-            </tr>
-            </table>
-            
-            <p>
-                This machine needs <b>4 cores</b>, preferable no more than 2 years old  and a moderate amount of <b>memory</b> (<b>3GB </b> plus 2MB per running job should be enough).<br>
-                The <b>disk</b> needed is just for binaries, config files and log files (<b>30GB</b> should be enough)<br/>
-                Hardware requirements depend on the expected load. With small loads or for test purposes one core and 1GB will suffice.
-            </p>
+      <div class="section">
+        <h2><a name="frontend">3. Downtime handling</a></h2>
+
+        <p>The glidein Frontend supports the dynamic handling of downtimes.</p>
+        <p>
+          You (Frontend admins) should add the following attribute for the
+          Frontend tag in frontend.xml manually:
+        </p>
+        <blockquote>
+          &lt;Frontend downtimes_file="frontenddowntime"&gt;
+        </blockquote>
+        <p>Downtimes are handled with</p>
+        <blockquote>
+          gwms-frontend up|down|statusdown [-delay &lt;delay&gt;]
+        </blockquote>
+
+        <p>
+          More advanced configuration can be done with the following script:
+        </p>
+        <blockquote>
+          /usr/sbin/manageFrontendDowntimes.py
+          <b>-dir /var/lib/gwms-frontend/vofrontend</b>
+          <b>-cmd</b> [command] [options]
+        </blockquote>
+
+        <p>You must specify the command to run. The valid commands are:</p>
+        <ul>
+          <li>add - Add a scheduled downtime period</li>
+          <li>down - Put the Frontend down now(+delay)</li>
+          <li>up - Get the Frontend back up now(+delay)</li>
+          <li>check - Report if the Frontend is in downtime now(+delay)</li>
+        </ul>
+
+        <p>
+          Additional options that can be given based on the command above are:
+        </p>
+        <ul>
+          <li>
+            -start [[[YYYY-]MM-]DD-]HH:MM[:SS] (start time for adding a
+            downtime)
+          </li>
+          <li>
+            -end [[[YYYY-]MM-]DD-]HH:MM[:SS] (end time for adding a downtime)
+          </li>
+          <li>
+            -delay [HHh][MMm][SS[s]] (delay a downtime for down, up, and check
+            cmds)
+          </li>
+        </ul>
+
+        <p>
+          This script can allow you to have more control over managing
+          downtimes.
+        </p>
+        <p>
+          Please note that the date format is currently very specific. You need
+          to specify dates in the format "YYYY-MM-DD-HH:MM:SS", such as
+          "2011-11-28:23:01:00."
+        </p>
+      </div>
+
+      <div class="footer">
+        Banner image by
+        <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+        used under Creative Commons license.<br />
+        Original Home URL:
+        <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
+        GlideinWMS email support: glideinwms-support at fnal.gov
+      </div>
     </div>
-
-
-<div class="section">
-
-    <h2><a name="frontend">3. Downtime handling</a></h2>
-    
-    <p>The glidein Frontend supports the dynamic handling of downtimes.</p>
-    <p>You (Frontend admins) should add the following attribute for the Frontend tag in frontend.xml manually:
-    <blockquote>
-        &lt;Frontend downtimes_file="frontenddowntime"&gt;
-    </blockquote>
-    </p>
-    <p>Downtimes are handled with </p>
-    <blockquote>
-    gwms-frontend up|down|statusdown [-delay &lt;delay&gt;]
-    </blockquote>
-
-    <p>More advanced configuration can be done with the following script:</p>
-    <blockquote>
-      /usr/sbin/manageFrontendDowntimes.py
-        <b>-dir /var/lib/gwms-frontend/vofrontend</b> 
-        <b>-cmd</b> [command] [options]
-    </blockquote>
-
-    <p>You must specify the command to run. The valid commands are:</p>
-    <ul>
-        <li> add           - Add a scheduled downtime period
-        <li> down          - Put the Frontend down now(+delay)
-        <li> up            - Get the Frontend back up now(+delay)
-        <li> check         - Report if the Frontend is in downtime now(+delay)
-    </ul>
-    <p>Additional options that can be given based on the command above are:</p>
-    <ul>
-        <li> -start [[[YYYY-]MM-]DD-]HH:MM[:SS] (start time for adding a downtime)
-        <li> -end [[[YYYY-]MM-]DD-]HH:MM[:SS]   (end time for adding a downtime)
-        <li> -delay [HHh][MMm][SS[s]]            (delay a downtime for down, up, and check cmds)
-    </ul>
-    <p> This script can allow you to have more control over managing downtimes. </p>
-    <p>
-        Please note that the date format is currently very specific.
-        You need to specify dates in the format "YYYY-MM-DD-HH:MM:SS",
-        such as "2011-11-28:23:01:00."
-    </p>
-
-</div>
-
-<div class="footer">
-Banner image by
-<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
-used under Creative Commons license.<br>
-Original Home URL: <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
-GlideinWMS email support: glideinwms-support at fnal.gov
-</div>
-</div>
-</body>
+  </body>
 </html>

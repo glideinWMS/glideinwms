@@ -1,9 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Print out the StartdHistoryLog for a glidein output file
@@ -11,26 +15,28 @@
 # Usage: cat_StartdHistoryLog.py logname
 #
 
-from __future__ import print_function
+
 import os.path
 import sys
-STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
+
 from glideinwms.factory.tools.lib import gWftLogParser
 
-USAGE="Usage: cat_StartdHistoryLog.py <logname>"
+STARTUP_DIR = sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
+
+USAGE = "Usage: cat_StartdHistoryLog.py <logname>"
+
 
 def main():
-    fname=sys.argv[1]
-    condor_log_id="StartdHistoryLog"
-        
+    fname = sys.argv[1]
+    condor_log_id = "StartdHistoryLog"
+
     try:
         print(gWftLogParser.get_CondorLog(fname, condor_log_id))
     except:
-        sys.stderr.write("%s\n"%USAGE)
+        sys.stderr.write("%s\n" % USAGE)
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
- 

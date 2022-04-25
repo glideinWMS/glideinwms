@@ -1,288 +1,377 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<html>
-<head>
-  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>GlideinWMS - Factory</title>
-  <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
-  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
-</head>
+<!--
+SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+SPDX-License-Identifier: Apache-2.0
+-->
 
-<body lang="en-US" dir="ltr">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+  <head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8" />
+    <title>GlideinWMS - Factory</title>
+    <meta name="CREATED" content="0;0" />
+    <meta name="CHANGED" content="20100521;20081031;14115200" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="../common/glideinWMS.css"
+      media="screen, projection"
+    />
+  </head>
+
+  <body lang="en-US" dir="ltr">
     <h1>
-        <a href="index.html">GlideinWMS</a>
-	<span>The Glidein-based Workflow Management System</span>
+      <a href="index.html">GlideinWMS</a>
+      <span>The Glidein-based Workflow Management System</span>
     </h1>
     <ul class="breadcrumbs">
-	    <li> <a href="../index.html">Home</a></li>
-	    <li> <a href="./index.html">WMS Factory</a></li>
-        <li>Installation</li>
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="./index.html">WMS Factory</a></li>
+      <li>Installation</li>
     </ul>
     <div class="clear" />
     <div class="leftmenu">
-        <ul class="components">
-	        <li> <a href="../index.html">Home</a></li>
-	        <li> <a href="../download.html">Download</a></li>
-	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-	        <li> <a href="../factory/index.html">WMS Factory</a></li>
-	        <li> <a href="../components/index.html" >Components</a></li>
-                <li> <a href="../recipes/index.html">Recipes</a></li>
-	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+      <ul class="components">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../download.html">Download</a></li>
+        <li><a href="../frontend/index.html">Glidein Frontend</a></li>
+        <li><a href="../factory/index.html">WMS Factory</a></li>
+        <li><a href="../components/index.html">Components</a></li>
+        <li><a href="../recipes/index.html">Recipes</a></li>
+        <li><a href="../components/faq.html" class="last">FAQ</a></li>
+      </ul>
+      <div class="search">
+        <script>
+          (function () {
+            var cx = "013439253731257915088:h-xvmglqvrq";
+            var gcse = document.createElement("script");
+            gcse.type = "text/javascript";
+            gcse.async = true;
+            gcse.src = "https://cse.google.com/cse.js?cx=" + cx;
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(gcse, s);
+          })();
+        </script>
+        <gcse:search enableAutoComplete="true"></gcse:search>
+      </div>
+    </div>
+    <div class="content">
+      <div class="heading">
+        <img
+          align="right"
+          width="280px"
+          border="0px"
+          src="../images/simple_diagram.png"
+          usemap="#rightimage"
+        />
+        <map name="rightimage">
+          <area
+            shape="rect"
+            coords="90,3,177,60"
+            href="../frontend/index.html"
+          />
+          <area
+            shape="rect"
+            coords="5,88,118,146"
+            href="../components/user_pool.html"
+          />
+          <area
+            shape="rect"
+            coords="134,88,275,146"
+            href="../factory/index.html"
+          />
+        </map>
+
+        <h2>WMS Factory</h2>
+        <ul class="subcomponents">
+          <li><a href="./index.html">Overview</a></li>
+          <li>Details</li>
+          <li><a href="./configuration.html">Configuration</a></li>
+          <li><a href="./design.html">Design</a></li>
+          <li><a href="./monitoring.html">Monitoring</a></li>
+          <li class="last">
+            <a href="./troubleshooting.html">Troubleshooting</a>
+          </li>
         </ul>
-        <div class="search">
-            <script>
-            (function() {
-                var cx = '013439253731257915088:h-xvmglqvrq';
-                var gcse = document.createElement('script');
-                gcse.type = 'text/javascript';
-                gcse.async = true;
-                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
-                var s = document.getElementsByTagName('script')[0];
-                s.parentNode.insertBefore(gcse, s);
-            })();
-            </script>
-            <gcse:search enableAutoComplete=true></gcse:search>
-        </div>
-    </div>
-<div class="content">
-    <div class="heading">
-    <img align="right" width="280px" border="0px"
-        src="../images/simple_diagram.png" usemap="#rightimage">
-    <map name="rightimage">
-        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
-        <area shape="rect" coords="5,88,118,146" href="../components/user_pool.html" />
-        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-    </map>
-
-    <h2>WMS Factory</h2>
-	<ul class="subcomponents">
-	     <li> <a href="./index.html">Overview</a></li>
-         <li> Details</li>
-	     <li> <a href="./configuration.html">Configuration</a></li>
-	     <li> <a href="./design.html">Design</a></li>
-	     <li> <a href="./monitoring.html">Monitoring</a></li>
-	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
-	</ul>
         <h3>WMS Pool and Factory Installation</h3>
-	</div>
-<div class="jump">
-<u>Jump to:</u>
-<ol>
-    <li><a href="#description">Description</a></li>
-    <li><a href="#hardware">Hardware requirements</a></li>
-    <li><a href="#downtimes">Downtime handling</a></li>
-    <li><a href="#localtest">Testing with a local glidein</a></li>
-    <li><a href="#verification">Verification</a></li>
-</ol>
-</div>
+      </div>
+      <div class="jump">
+        <u>Jump to:</u>
+        <ol>
+          <li><a href="#description">Description</a></li>
+          <li><a href="#hardware">Hardware requirements</a></li>
+          <li><a href="#downtimes">Downtime handling</a></li>
+          <li><a href="#localtest">Testing with a local glidein</a></li>
+          <li><a href="#verification">Verification</a></li>
+        </ol>
+      </div>
 
-<div class="section">
-                <h2><a name="description">1. Description</a></h2>
-                <p>
-        <img src="../images/overview_WMS_factory.png" name="graphics1" align="right" border="0">
+      <div class="section">
+        <h2><a name="description">1. Description</a></h2>
+        <p>
+          <img
+            src="../images/overview_WMS_factory.png"
+            name="graphics1"
+            align="right"
+            border="0"
+          />
 
-                    The glidein Factory node will be the 
-                    <a target="_blank" href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#the-different-roles-a-machine-can-play">HTCondor Central Manager</a> 
-                    for the WMS, i.e. it will run the HTCondor Collector and Negotiator daemons, but it will also act as a 
-                    <a target="_blank" href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#the-different-roles-a-machine-can-play">HTCondor Submit node</a>
-                    for the glidein Factory, running HTCondor schedds used for Grid submission.
-                </p>
-                <p>
-                    On top of that, this node also hosts the Glidein Factory daemons. The Glidein Factory is also responsible for the base 
-                    configuration of the glideins (although part of the configuration comes from the <a href="../frontend/install.html">Glidein Frontend</a>).
-                </p>
+          The glidein Factory node will be the
+          <a
+            target="_blank"
+            href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#the-different-roles-a-machine-can-play"
+            >HTCondor Central Manager</a
+          >
+          for the WMS, i.e. it will run the HTCondor Collector and Negotiator
+          daemons, but it will also act as a
+          <a
+            target="_blank"
+            href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#the-different-roles-a-machine-can-play"
+            >HTCondor Submit node</a
+          >
+          for the glidein Factory, running HTCondor schedds used for Grid
+          submission.
+        </p>
+        <p>
+          On top of that, this node also hosts the Glidein Factory daemons. The
+          Glidein Factory is also responsible for the base configuration of the
+          glideins (although part of the configuration comes from the
+          <a href="../frontend/install.html">Glidein Frontend</a>).
+        </p>
 
-                <p><b>Note:</b> The WMS Pool collector and Factory must be 
-                installed on the same node.</p>
-</div>
+        <p>
+          <b>Note:</b> The WMS Pool collector and Factory must be installed on
+          the same node.
+        </p>
+      </div>
 
-<div class="section">
-                <h2><a name="hardware">2. Hardware requirements</a></h2>
+      <div class="section">
+        <h2><a name="hardware">2. Hardware requirements</a></h2>
 
-                <table class="requirements" style="width: 500px;">
-                <tr class="head">
-                    <td>Installation Size</td>
+        <table class="requirements" style="width: 500px">
+          <tr class="head">
+            <td>Installation Size</td>
 
-                    <td>CPUs</td>
-                    <td>Memory</td>
-                    <td>Disk</td>
-                </tr>
-                <tr>
-                    <td>Small</td>
-                    <td>1</td>
+            <td>CPUs</td>
+            <td>Memory</td>
+            <td>Disk</td>
+          </tr>
+          <tr>
+            <td>Small</td>
+            <td>1</td>
 
-                    <td>1GB</td>
-                    <td>~10GB</td>
-                </tr>
-                <tr>
-                    <td>Large</td>
-                    <td>4 - 8</td>
-                    <td>2GB - 4GB</td>
+            <td>1GB</td>
+            <td>~10GB</td>
+          </tr>
+          <tr>
+            <td>Large</td>
+            <td>4 - 8</td>
+            <td>2GB - 4GB</td>
 
-                    <td>100+GB</td>
-                </tr>
-                </table>
+            <td>100+GB</td>
+          </tr>
+        </table>
 
-                <p>
-                <img src="../images/overview_glidein.png" name="graphics1b" align="right" border="0">
-                    A major installation, serving tens of sites and several thousand glideins will require 
-                    <b>several CPUs</b> (recommended <b>4-8</b>: 1 for the HTCondor damons, 1-2 for the glidein
-                    Factory daemons and 2 or more for HTCondor-G schedds) and a reasonable amount of 
-                    <b>memory</b> (at least <b>2GB</b>, <b>4GB</b> for a large installation to provide some 
-                    disk caching).
-                </p>
+        <p>
+          <img
+            src="../images/overview_glidein.png"
+            name="graphics1b"
+            align="right"
+            border="0"
+          />
+          A major installation, serving tens of sites and several thousand
+          glideins will require
+          <b>several CPUs</b> (recommended <b>4-8</b>: 1 for the HTCondor
+          damons, 1-2 for the glidein Factory daemons and 2 or more for
+          HTCondor-G schedds) and a reasonable amount of <b>memory</b> (at least
+          <b>2GB</b>, <b>4GB</b> for a large installation to provide some disk
+          caching).
+        </p>
 
-                <p>
-                    The <b>disk</b> needed is for binaries, config files, log files and Web monitoring data 
-                    (For just a few sites, <b>10GB</b> could be enough, larger installations will need 
-                    <b>100+GB</b> to maintain a reasonable history).  Monitoring can be pretty I/O intensive 
-                    when serving many sites, so get the fastest disk you can afford, or consider setting up a 
-                    RAMDISK.
-                </p>
+        <p>
+          The <b>disk</b> needed is for binaries, config files, log files and
+          Web monitoring data (For just a few sites, <b>10GB</b> could be
+          enough, larger installations will need <b>100+GB</b> to maintain a
+          reasonable history). Monitoring can be pretty I/O intensive when
+          serving many sites, so get the fastest disk you can afford, or
+          consider setting up a RAMDISK.
+        </p>
 
-                <p>
+        <p>
+          It must must be on the <b>public internet</b>, with
+          <b>at least one port open to the world</b>; all worker nodes will load
+          data from this node trough HTTP. Note that <b>worker nodes</b> will
+          also need outbound access in order to access this HTTP port.
+        </p>
+      </div>
 
-                    It must must be on the <b>public internet</b>, with <b>at least one port open to the world</b>;
-                    all worker nodes will load data from this node trough HTTP. Note that <b>worker nodes</b> will
-                    also need outbound access in order to access this HTTP port.
-                </p>
+      <div class="section">
+        <a name="downtimes"></a>
+        <h2><a name="downtimes"></a>3. Downtime handling</h2>
+        <p>
+          The glidein Factory supports the dynamic handling of downtimes at the
+          Factory, entry, and security class level.
+        </p>
 
-</div>
+        <p>
+          Downtimes are useful when one or more Grid sites are known to have
+          issues (can be anything from scheduled maintenance to a storage
+          element corrupting user files).<br />In this case the Factory
+          administrator can temporarily stop submitting glideins to the affected
+          sites, without stopping the Factory as a whole. The list of current
+          downtimes are listed in the Factory file in
+          <tt>glideinWMS.downtimes</tt>
+        </p>
+        <p>Downtimes are handled with</p>
+        <blockquote>
+          gwms-factory up|down -entry 'factory'|&lt;entry name&gt; [-delay
+          &lt;delay&gt;]
+        </blockquote>
 
+        <p>
+          <b>Caution</b>: An admin can handle downtimes from Factory, entry, and
+          security class levels. <br />
+          Please be aware that both will be used.
+        </p>
 
-<div class="section">
-    <a name="downtimes"></a>
-	<h2><a name="downtimes"></a>3. Downtime handling</h2>
-	<p>The glidein Factory supports the dynamic
-	handling of downtimes at the Factory, entry, and security class level.</p>
+        <p>
+          More advanced configuration can be done with the following script:
+        </p>
+        <blockquote>
+          manageFactoryDowntimes.py
+          <b>-dir</b> factory_dir
+          <b>-entry</b> ['all'|'factory'|'entries'|entry_name]
+          <b>-cmd</b> [command] [options]
+        </blockquote>
+        <p>
+          You must specify the above options for the Factory directory, the
+          entry you wish to disable/enable, and the command to run. The valid
+          commands are:
+        </p>
+        <ul>
+          <li>add - Add a scheduled downtime period</li>
+          <li>down - Put the Factory down now(+delay)</li>
+          <li>up - Get the Factory back up now(+delay)</li>
+          <li>check - Report if the Factory is in downtime now(+delay)</li>
+          <li>vacuum - Remove all expired downtime info</li>
+        </ul>
 
-	<p>Downtimes are useful when one or more Grid sites are known to have
-	issues (can be anything from scheduled maintenance to a storage
-	element corrupting user files).<br>In this case the Factory
-	administrator can temporarily stop submitting glideins to the
-	affected sites, without stopping the Factory as a whole.
-	The list of current downtimes are listed in the Factory 
-	file in <tt>glideinWMS.downtimes</tt>
-	</p>
-	<p>Downtimes are handled with </p>
-    <blockquote>
-    gwms-factory
-    up|down -entry 'factory'|&lt;entry name&gt; [-delay &lt;delay&gt;]
-    </blockquote>
+        <p>
+          Additional options that can be given based on the command above are:
+        </p>
+        <ul>
+          <li>
+            -start [[[YYYY-]MM-]DD-]HH:MM[:SS] (start time for adding a
+            downtime)
+          </li>
 
-	<p>
-	<b>Caution</b>: An admin can handle downtimes from Factory, entry, and security class levels. <br>
-	Please be aware that both will be used.
-	</p>
+          <li>
+            -end [[[YYYY-]MM-]DD-]HH:MM[:SS] (end time for adding a downtime)
+          </li>
+          <li>
+            -delay [HHh][MMm][SS[s]] (delay a downtime for down, up, and check
+            cmds)
+          </li>
 
-	<p>More advanced configuration can be done with the following script:</p>
-    <blockquote>
-      manageFactoryDowntimes.py
-        <b>-dir</b> factory_dir 
-        <b>-entry</b> ['all'|'factory'|'entries'|entry_name] 
-        <b>-cmd</b> [command]
-        [options]
-    </blockquote>
-    <p>You must specify the above options for the Factory directory, the entry
-    you wish to disable/enable, and the command to run.  The valid commands
-    are:</p>
-    <ul>
-        <li> add           - Add a scheduled downtime period
-        <li> down          - Put the Factory down now(+delay)
-        <li> up            - Get the Factory back up now(+delay)
-        <li> check         - Report if the Factory is in downtime now(+delay)
-        <li> vacuum        - Remove all expired downtime info
-    </ul>
-    <p>Additional options that can be given based on the command above are:</p>
-    <ul>
-        <li> -start [[[YYYY-]MM-]DD-]HH:MM[:SS] 
-                (start time for adding a downtime)
-        <li> -end [[[YYYY-]MM-]DD-]HH:MM[:SS]   (end time for adding a downtime)
-        <li> -delay [HHh][MMm][SS[s]]           
-            (delay a downtime for down, up, and check cmds)
-        <li> -security SECURITY_CLASS  
-            (restricts a downtime to users of that security class)<br/>
+          <li>
+            -security SECURITY_CLASS (restricts a downtime to users of that
+            security class)<br />
             (If not specified, the downtime is for all users.)
-        <li> -comment "Comment here"   
-            (user comment for the downtime. Not used by WMS.)
-    </ul>
-	<p>
-    This script can allow you to have more control over managing downtimes,
-    by allowing you to make downtimes specific to security classes, 
-    and adding comments to the downtimes file.  
-    </p>
-    <p>
-	Please note that the date format is currently very specific.
-	You need to specify dates in the format "YYYY-MM-DD-HH:MM:SS",
-	such as "2011-11-28:23:01:00."
-    </p>
-    
-	<h2><a name="localtest"></a>4. Testing with a local glidein</h2>
-		
-		<p>In case of problems, you may want to test a glidein by hand.</p>
-		<p>Move to the glidein directory and run</p>
-		<blockquote>
-		    ./local_start.sh <i>entry_name</i> fast -- GLIDEIN_Collector 
-		    <i>yourhost</i>.dot,<i>your</i>.dot,<i>domain</i>
-		</blockquote>
-		<p>This will start a glidein on the local machine and pointing to the
-		<i>yourhost.your.domain</i> collector.</p>
-		<p>Please make sure you have a valid Grid environment set up,
-		including a valid proxy, as the glidein needs it in order to work.</p>
-    </div>
-    
-    <div class="section">
-        <h2> <a name="verification">5. Verification</a></h2>
+          </li>
+
+          <li>
+            -comment "Comment here" (user comment for the downtime. Not used by
+            WMS.)
+          </li>
+        </ul>
+
+        <p>
+          This script can allow you to have more control over managing
+          downtimes, by allowing you to make downtimes specific to security
+          classes, and adding comments to the downtimes file.
+        </p>
+        <p>
+          Please note that the date format is currently very specific. You need
+          to specify dates in the format "YYYY-MM-DD-HH:MM:SS", such as
+          "2011-11-28:23:01:00."
+        </p>
+
+        <h2><a name="localtest"></a>4. Testing with a local glidein</h2>
+
+        <p>In case of problems, you may want to test a glidein by hand.</p>
+        <p>Move to the glidein directory and run</p>
+        <blockquote>
+          ./local_start.sh <i>entry_name</i> fast -- GLIDEIN_Collector
+          <i>yourhost</i>.dot,<i>your</i>.dot,<i>domain</i>
+        </blockquote>
+        <p>
+          This will start a glidein on the local machine and pointing to the
+          <i>yourhost.your.domain</i> collector.
+        </p>
+        <p>
+          Please make sure you have a valid Grid environment set up, including a
+          valid proxy, as the glidein needs it in order to work.
+        </p>
+      </div>
+
+      <div class="section">
+        <h2><a name="verification">5. Verification</a></h2>
 
         <p>Verify that HTCondor processes are running by:</p>
-            <blockquote>
-                ps -ef | grep condor
-            </blockquote>
-        <p>You should see several condor_master and condor_procd processes.  You should also be able to see one 
-        schedd process for each secondary schedd you specified in the install.</p>
+        <blockquote>ps -ef | grep condor</blockquote>
+        <p>
+          You should see several condor_master and condor_procd processes. You
+          should also be able to see one schedd process for each secondary
+          schedd you specified in the install.
+        </p>
         <p>Verify GlideinWMS processes are running by:</p>
-            <blockquote>
-                ps -ef | grep <i>factory_username</i>
-            </blockquote>
-        <p>You should see also a main Factory process as well as a process for each entry.</p>
+        <blockquote>ps -ef | grep <i>factory_username</i></blockquote>
+        <p>
+          You should see also a main Factory process as well as a process for
+          each entry.
+        </p>
         <p>You can query the WMS collector by (use .csh if using c shell):</p>
-            <blockquote>
-                $ source /path/to/condor/location/condor.sh<br/>
-                $ condor_q<br/>
-                $ condor_q -global<br/>
-                $ condor_status -any<br/>
-            </blockquote>
-            
-        <p>The condor_q command queries any jobs by schedd in the WMS pool (-global is needed to show grid jobs).<br/><br/>
-            The condor_status will show all daemons and glidein classads in the condor pool.  Eventually, there will be 
-            glidefactory classads for each entry, glideclient classads for each client and credential, and glidefactoryclient classads 
-            for each entry-client relationship.  The glideclient and glidefactoryclient classads will not show up unless a Frontend is
-            able to communicate with the WMS Collector.</p>
-            <pre>
-MyType               TargetType           Name                          
+        <blockquote>
+          $ source /path/to/condor/location/condor.sh<br />
+          $ condor_q<br />
+          $ condor_q -global<br />
+          $ condor_status -any<br />
+        </blockquote>
+
+        <p>
+          The condor_q command queries any jobs by schedd in the WMS pool
+          (-global is needed to show grid jobs).<br /><br />
+          The condor_status will show all daemons and glidein classads in the
+          condor pool. Eventually, there will be glidefactory classads for each
+          entry, glideclient classads for each client and credential, and
+          glidefactoryclient classads for each entry-client relationship. The
+          glideclient and glidefactoryclient classads will not show up unless a
+          Frontend is able to communicate with the WMS Collector.
+        </p>
+        <pre>
+MyType               TargetType           Name
 
 glidefactory         None                 FNAL_FERMIGRID_ITB@v1_0@mySite
 glidefactoryclient   None                 FNAL_FERMIGRID_ITB@v1_0@mySite
 glideclient          None                 FNAL_FERMIGRID_ITB@v1_0@mySite
-Scheduler            None                 xxxx.fnal.gov            
-DaemonMaster         None                 xxxx.fnal.gov            
-Negotiator           None                 xxxx.fnal.gov            
+Scheduler            None                 xxxx.fnal.gov
+DaemonMaster         None                 xxxx.fnal.gov
+Negotiator           None                 xxxx.fnal.gov
 Scheduler            None                 schedd_glideins1@xxxx.fna
 DaemonMaster         None                 schedd_glideins1@xxxx.fna
 Scheduler            None                 schedd_glideins2@xxxx.fna
 DaemonMaster         None                 schedd_glideins2@xxxx.fna
-            </pre>
+            </pre
+        >
+      </div>
+
+      <div class="footer">
+        Banner image by
+        <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+        used under Creative Commons license.<br />
+        Original Home URL:
+        <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
+        GlideinWMS email support: glideinwms-support at fnal.gov
+      </div>
     </div>
-
-<div class="footer">
-Banner image by
-<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
-used under Creative Commons license.<br/>
-Original Home URL: <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
-GlideinWMS email support: glideinwms-support at fnal.gov
-</div>
-
-
-</div>
-</body>
+  </body>
 </html>

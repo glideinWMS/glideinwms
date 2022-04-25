@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Project:
 #   glideinWMS
@@ -70,14 +73,14 @@ if [[ "X$slots_layout" = "Xpartitionable" ]]; then
       "$error_gen" -ok "smart_partitionable.sh" "Action" "ResourceSlotKeptPartitionable"
     else
       add_config_line SLOTS_LAYOUT fixed
-      "$error_gen" -ok "smart_partitionable.sh" "Action" "SwitchSingleToFixed" 
+      "$error_gen" -ok "smart_partitionable.sh" "Action" "SwitchSingleToFixed"
     fi
   else
     # GLIDEIN_CPUS>1 or 0 (auto-node) or -1 (auto-slot)
     "$error_gen" -ok "smart_partitionable.sh" "Action" "None"
   fi
 else
-    # shellcheck disable=SC2071   # mean to compare first non numeric values of num_cpus, numeric comparison follows 
+    # shellcheck disable=SC2071   # mean to compare first non numeric values of num_cpus, numeric comparison follows
     if [[ "X$RES_SLOT" = "Xmainextra" ]]; then
       # do not want fixed with mainextra resource slots (sure problem)
       add_config_line SLOTS_LAYOUT partitionable
@@ -85,7 +88,7 @@ else
     elif [[ "X$RES_SLOT" = "Xmain" ]] && [[ "$num_cpus" > "1" ||  "$num_cpus" -gt "1" ]]; then
       # do not want fixed with main resource slots and more than one CPU (possible problem)
       # if the number of resources is insufficient for the available slots
-      # NOTE: $num_cpus can be a string AUTO, SLOT, NODE or a number. 
+      # NOTE: $num_cpus can be a string AUTO, SLOT, NODE or a number.
       # - "$num_cpus" > "1" catches strings and numbers w/o prefixes
       # -  "$num_cpus" -gt "1" catches numbers with prefixed 0s, e.g. 03 -gt 1
       # conditions are separated to be safer and more clear:
@@ -98,4 +101,3 @@ else
 fi
 
 exit 0
-

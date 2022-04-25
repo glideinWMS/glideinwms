@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Project:
    glideinWMS
@@ -11,33 +15,33 @@ Project:
 """
 
 
-from __future__ import absolute_import
-from __future__ import print_function
-import unittest2 as unittest
 import string
-import xmlrunner
+import unittest
+
 import hypothesis
 import hypothesis.strategies as st
+import xmlrunner
 
-
+from glideinwms.lib import defaults
+from glideinwms.lib.symCrypto import (
+    AutoSymKey,
+    MutableSymKey,
+    ParametrizedSymKey,
+    Sym3DESKey,
+    SymAES128Key,
+    SymAES256Key,
+    SymBlowfishKey,
+    SymDESKey,
+)
 from glideinwms.unittests.unittest_utils import TestImportError
+
 try:
     from glideinwms.lib.symCrypto import SymKey
 except ImportError as err:
     raise TestImportError(str(err))
 
-from glideinwms.lib.symCrypto import MutableSymKey
-from glideinwms.lib.symCrypto import ParametryzedSymKey
-from glideinwms.lib.symCrypto import AutoSymKey
-from glideinwms.lib.symCrypto import SymAES128Key
-from glideinwms.lib.symCrypto import SymAES256Key
-from glideinwms.lib.symCrypto import SymBlowfishKey
-from glideinwms.lib.symCrypto import Sym3DESKey
-from glideinwms.lib.symCrypto import SymDESKey
-
 
 class TestMutableSymKey(unittest.TestCase):
-
     def setUp(self):
         self.key = MutableSymKey()
 
@@ -54,24 +58,22 @@ class TestMutableSymKey(unittest.TestCase):
         self.assertFalse(self.key.is_valid())
 
     def test_redefine(self):
-        self.key.redefine(cypher_name='aes_128_cbc', key_len=16, iv_len=16,
-                          key_str=None, iv_str=None, key_iv_code=None)
+        self.key.redefine(cypher_name="aes_128_cbc", key_len=16, iv_len=16, key_str=None, iv_str=None, key_iv_code=None)
 
 
-class TestParametryzedSymKey(unittest.TestCase):
+class TestParametrizedSymKey(unittest.TestCase):
     def test___init__(self):
-        psk = ParametryzedSymKey('aes_128_cbc')
-        self.assertTrue(isinstance(psk, ParametryzedSymKey))
+        psk = ParametrizedSymKey("aes_128_cbc")
+        self.assertTrue(isinstance(psk, ParametrizedSymKey))
         self.assertTrue(isinstance(psk, SymKey))
         try:
-            psk2 = ParametryzedSymKey('bad_parameter')
+            psk2 = ParametrizedSymKey("bad_parameter")
             assert False
         except KeyError:
             pass
 
 
 class TestAutoSymKey(unittest.TestCase):
-
     def setUp(self):
         self.key = AutoSymKey()
 
@@ -80,14 +82,13 @@ class TestAutoSymKey(unittest.TestCase):
         self.assertTrue(self.key.cypher_name is None)
         self.assertTrue(self.key.key_str is None)
         try:
-            key2 = AutoSymKey('bogus,bogus,bogus')
+            key2 = AutoSymKey("bogus,bogus,bogus")
             assert False
         except ValueError:
             pass
 
 
 class TestSymAES128Key(unittest.TestCase):
-
     def setUp(self):
         self.key = SymAES128Key()
         self.key.new()
@@ -98,24 +99,22 @@ class TestSymAES128Key(unittest.TestCase):
         self.assertTrue(isinstance(self.key, SymKey))
         self.assertTrue(self.key.is_valid())
         (knm, ivn) = self.key.get()
-        self.assertTrue(isinstance(knm, str))
-        self.assertTrue(isinstance(ivn, str))
+        self.assertTrue(isinstance(knm, bytes))
+        self.assertTrue(isinstance(ivn, bytes))
         nmm = self.key.get_code()
         self.assertTrue(len(nmm) > 12)
-        self.assertEqual('aes_128_cbc', self.key.cypher_name)
+        self.assertEqual("aes_128_cbc", self.key.cypher_name)
 
     @hypothesis.given(st.text(alphabet=string.printable, min_size=1))
     def test_symmetric(self, data):
-        data = str(data)
+        data = defaults.force_bytes(data)
         sk2 = AutoSymKey(key_iv_code=self.key_iv_code)
         self.assertEqual(data, sk2.decrypt(self.key.encrypt(data)))
         self.assertEqual(data, sk2.decrypt_hex(self.key.encrypt_hex(data)))
-        self.assertEqual(data,
-                         sk2.decrypt_base64(self.key.encrypt_base64(data)))
+        self.assertEqual(data, sk2.decrypt_base64(self.key.encrypt_base64(data)))
 
 
 class TestSymAES256Key(unittest.TestCase):
-
     def setUp(self):
         self.key = SymAES256Key()
         self.key.new()
@@ -126,24 +125,22 @@ class TestSymAES256Key(unittest.TestCase):
         self.assertTrue(isinstance(self.key, SymKey))
         self.assertTrue(self.key.is_valid())
         (knm, ivn) = self.key.get()
-        self.assertTrue(isinstance(knm, str))
-        self.assertTrue(isinstance(ivn, str))
+        self.assertTrue(isinstance(knm, bytes))
+        self.assertTrue(isinstance(ivn, bytes))
         nmm = self.key.get_code()
         self.assertTrue(len(nmm) > 12)
-        self.assertEqual('aes_256_cbc', self.key.cypher_name)
+        self.assertEqual("aes_256_cbc", self.key.cypher_name)
 
     @hypothesis.given(st.text(alphabet=string.printable, min_size=1))
     def test_symmetric(self, data):
-        data = str(data)
+        data = defaults.force_bytes(data)
         sk2 = AutoSymKey(key_iv_code=self.key_iv_code)
         self.assertEqual(data, sk2.decrypt(self.key.encrypt(data)))
         self.assertEqual(data, sk2.decrypt_hex(self.key.encrypt_hex(data)))
-        self.assertEqual(data,
-                         sk2.decrypt_base64(self.key.encrypt_base64(data)))
+        self.assertEqual(data, sk2.decrypt_base64(self.key.encrypt_base64(data)))
 
 
 class TestSymBlowfishKey(unittest.TestCase):
-
     def setUp(self):
         self.key = SymBlowfishKey()
         self.key.new()
@@ -154,24 +151,22 @@ class TestSymBlowfishKey(unittest.TestCase):
         self.assertTrue(isinstance(self.key, SymKey))
         self.assertTrue(self.key.is_valid())
         (knm, ivn) = self.key.get()
-        self.assertTrue(isinstance(knm, str))
-        self.assertTrue(isinstance(ivn, str))
+        self.assertTrue(isinstance(knm, bytes))
+        self.assertTrue(isinstance(ivn, bytes))
         nmm = self.key.get_code()
         self.assertTrue(len(nmm) > 12)
-        self.assertEqual('bf_cbc', self.key.cypher_name)
+        self.assertEqual("bf_cbc", self.key.cypher_name)
 
     @hypothesis.given(st.text(alphabet=string.printable, min_size=1))
     def test_symmetric(self, data):
-        data = str(data)
+        data = defaults.force_bytes(data)
         sk2 = AutoSymKey(key_iv_code=self.key_iv_code)
         self.assertEqual(data, sk2.decrypt(self.key.encrypt(data)))
         self.assertEqual(data, sk2.decrypt_hex(self.key.encrypt_hex(data)))
-        self.assertEqual(data,
-                         sk2.decrypt_base64(self.key.encrypt_base64(data)))
+        self.assertEqual(data, sk2.decrypt_base64(self.key.encrypt_base64(data)))
 
 
 class TestSym3DESKey(unittest.TestCase):
-
     def setUp(self):
         self.key = Sym3DESKey()
         self.key.new()
@@ -182,25 +177,23 @@ class TestSym3DESKey(unittest.TestCase):
         self.assertTrue(isinstance(self.key, SymKey))
         self.assertTrue(self.key.is_valid())
         (knm, ivn) = self.key.get()
-        self.assertTrue(isinstance(knm, str))
-        self.assertTrue(isinstance(ivn, str))
+        self.assertTrue(isinstance(knm, bytes))
+        self.assertTrue(isinstance(ivn, bytes))
         nmm = self.key.get_code()
         self.assertTrue(len(nmm) > 12)
-        self.assertEqual('des3', self.key.cypher_name)
+        self.assertEqual("des3", self.key.cypher_name)
 
-    @unittest.skip('des3 decrypt throws exception, come back to this later')
+    @unittest.skip("des3 decrypt throws exception, come back to this later")
     @hypothesis.given(st.text(alphabet=string.printable, min_size=1))
     def test_symmetric(self, data):
-        data = str(data)
+        data = defaults.force_bytes(data)
         sk2 = AutoSymKey(key_iv_code=self.key_iv_code)
         self.assertEqual(data, sk2.decrypt(self.key.encrypt(data)))
         self.assertEqual(data, sk2.decrypt_hex(self.key.encrypt_hex(data)))
-        self.assertEqual(data,
-                         sk2.decrypt_base64(self.key.encrypt_base64(data)))
+        self.assertEqual(data, sk2.decrypt_base64(self.key.encrypt_base64(data)))
 
 
 class TestSymDESKey(unittest.TestCase):
-
     def setUp(self):
         self.key = SymDESKey()
         self.key.new()
@@ -211,22 +204,21 @@ class TestSymDESKey(unittest.TestCase):
         self.assertTrue(isinstance(self.key, SymKey))
         self.assertTrue(self.key.is_valid())
         (knm, ivn) = self.key.get()
-        self.assertTrue(isinstance(knm, str))
-        self.assertTrue(isinstance(ivn, str))
+        self.assertTrue(isinstance(knm, bytes))
+        self.assertTrue(isinstance(ivn, bytes))
         nmm = self.key.get_code()
         self.assertTrue(len(nmm) > 12)
-        self.assertEqual('des_cbc', self.key.cypher_name)
+        self.assertEqual("des_cbc", self.key.cypher_name)
 
     @hypothesis.given(st.text(alphabet=string.printable, min_size=1))
     def test_symmetric(self, data):
-        data = str(data)
+        data = defaults.force_bytes(data)
         sk2 = AutoSymKey(key_iv_code=self.key_iv_code)
         self.assertEqual(data, sk2.decrypt(self.key.encrypt(data)))
         self.assertEqual(data, sk2.decrypt_hex(self.key.encrypt_hex(data)))
-        self.assertEqual(data,
-                         sk2.decrypt_base64(self.key.encrypt_base64(data)))
+        self.assertEqual(data, sk2.decrypt_base64(self.key.encrypt_base64(data)))
 
 
-if __name__ == '__main__':
-    OFL = 'unittests-reports'
+if __name__ == "__main__":
+    OFL = "unittests-reports"
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output=OFL))

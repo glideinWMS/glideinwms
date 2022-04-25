@@ -1,4 +1,7 @@
-# inter host SSL can be enabled  here 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+# inter host SSL can be enabled  here
 # for example to enable condor_token_request and condor_token_request_approve between thishost.example.com and remotehost.example.com
 # SSL ( .*thishost.example.com.*) condor@family
 # SSL ( .*remotehost.example.com.*) condor@family

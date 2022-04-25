@@ -1,10 +1,13 @@
-name: 'Run pycodestyle'
-description: 'Run pycodestyle in preconfigured SL7 docker image'
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+name: "Run pycodestyle"
+description: "Run pycodestyle in preconfigured SL7 docker image"
 # See https://docs.github.com/en/free-pro-team@latest/actions/creating-actions/creating-a-docker-container-action
 # for an example to add inputs, outputs, README and a way to release it
 outputs:
   warnings: # set using ::set-output in entrypoint.sh
-    description: 'Number of warning messages in pycodestyle'
+    description: "Number of warning messages in pycodestyle"
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  using: "docker"
+  image: "Dockerfile"

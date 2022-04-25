@@ -10,6 +10,7 @@ __pycache__/
 doc/api/code
 doc/api/html
 .tox
+unittests/unittests-reports/
 
 # Big files workaround
 bigfiles/*

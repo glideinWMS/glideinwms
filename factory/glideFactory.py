@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Project:
 #   glideinWMS
@@ -15,46 +19,45 @@
 #   Igor Sfiligoi (Apr 9th 2007 - moved old glideFactory to glideFactoryEntry)
 #
 
-import os
-import sys
-import json
-import fcntl
-import resource
-import subprocess
-# import traceback
-import signal
-import time
-import string
 import copy
+import fcntl
+import glob
+import json
 import logging
 import math
-# from datetime import datetime
-import glob
-import jwt
-import urllib
+import os
+import resource
+import signal
+import subprocess
+import sys
 import tarfile
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+
+import jwt
 
 from M2Crypto.RSA import RSAError
 
-from glideinwms.lib import logSupport
-from glideinwms.lib import cleanupSupport
-from glideinwms.lib import glideinWMSVersion
-from glideinwms.lib import util
-from glideinwms.lib.pubCrypto import RSAKey
+from glideinwms.factory import (
+    glideFactoryConfig,
+    glideFactoryCredentials,
+    glideFactoryDowntimeLib,
+    glideFactoryEntryGroup,
+    glideFactoryInterface,
+    glideFactoryLib,
+    glideFactoryMonitorAggregator,
+    glideFactoryMonitoring,
+    glideFactoryPidLib,
+)
+from glideinwms.lib import cleanupSupport, condorMonitor, glideinWMSVersion, logSupport, util
 from glideinwms.lib.condorMonitor import CondorQEdit, QueryError
-from glideinwms.factory import glideFactoryPidLib
-from glideinwms.factory import glideFactoryConfig
-from glideinwms.factory import glideFactoryLib
-from glideinwms.factory import glideFactoryInterface
-from glideinwms.factory import glideFactoryMonitorAggregator
-from glideinwms.factory import glideFactoryMonitoring
-from glideinwms.factory import glideFactoryDowntimeLib
-from glideinwms.factory import glideFactoryCredentials
-from glideinwms.factory import glideFactoryEntryGroup
-from glideinwms.lib import condorMonitor
-# from sets import Set
+from glideinwms.lib.pubCrypto import RSAKey
 
 FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
+
+
 ############################################################
 def aggregate_stats(in_downtime):
     """
@@ -71,7 +74,7 @@ def aggregate_stats(in_downtime):
         # protect and report
         logSupport.log.exception("aggregateStatus failed: ")
     try:
-        stats['LogSummary'] = glideFactoryMonitorAggregator.aggregateLogSummary()
+        stats["LogSummary"] = glideFactoryMonitorAggregator.aggregateLogSummary()
     except:
         # protect and report
         logSupport.log.exception("aggregateLogStatus failed: ")
@@ -84,26 +87,28 @@ def aggregate_stats(in_downtime):
 
 
 def update_classads():
-    """ Loads the aggregate job summary pickle files, and then
+    """Loads the aggregate job summary pickle files, and then
     quedit the finished jobs adding a new classad called MONITOR_INFO with the monitor information.
 
     :return:
     """
     jobinfo = glideFactoryMonitorAggregator.aggregateJobsSummary()
-    for cnames, joblist in jobinfo.iteritems():
+    for cnames, joblist in jobinfo.items():
         schedd_name = cnames[0]
         pool_name = cnames[1]
         try:
             qe = CondorQEdit(pool_name=pool_name, schedd_name=schedd_name)
-            qe.executeAll(joblist=joblist.keys(),
-                          attributes=['MONITOR_INFO']*len(joblist),
-                          values=map(json.dumps, joblist.values()))
+            qe.executeAll(
+                joblist=list(joblist.keys()),
+                attributes=["MONITOR_INFO"] * len(joblist),
+                values=list(map(json.dumps, list(joblist.values()))),
+            )
         except QueryError as qerr:
             logSupport.log.error("Failed to add monitoring info to the glidein job classads: %s" % qerr)
 
 
 def save_stats(stats, fname):
-    """ Serialize and save aggregated statistics so that each component (Factory and Entries)
+    """Serialize and save aggregated statistics so that each component (Factory and Entries)
     can retrieve and use it to log and advertise
 
     stats is a dictionary pickled in binary format
@@ -113,8 +118,9 @@ def save_stats(stats, fname):
     :param fname: name of the file with the serialized data
     :return:
     """
-    util.file_pickle_dump(fname, stats,
-                          mask_exceptions=(logSupport.log.exception, "Saving of aggregated statistics failed: "))
+    util.file_pickle_dump(
+        fname, stats, mask_exceptions=(logSupport.log.exception, "Saving of aggregated statistics failed: ")
+    )
 
 
 # Added by C.W. Murphy to make descript.xml
@@ -133,29 +139,33 @@ def write_descript(glideinDescript, frontendDescript, monitor_dir):
     glidein_data = copy.deepcopy(glideinDescript.data)
     frontend_data = copy.deepcopy(frontendDescript.data)
     entry_data = {}
-    for entry in glidein_data['Entries'].split(","):
+    for entry in glidein_data["Entries"].split(","):
         entry_data[entry] = {}
 
         entryDescript = glideFactoryConfig.JobDescript(entry)
-        entry_data[entry]['descript'] = entryDescript.data
+        entry_data[entry]["descript"] = entryDescript.data
 
         entryAttributes = glideFactoryConfig.JobAttributes(entry)
-        entry_data[entry]['attributes'] = entryAttributes.data
+        entry_data[entry]["attributes"] = entryAttributes.data
 
         entryParams = glideFactoryConfig.JobParams(entry)
-        entry_data[entry]['params'] = entryParams.data
+        entry_data[entry]["params"] = entryParams.data
 
     descript2XML = glideFactoryMonitoring.Descript2XML()
-    xml_str = (descript2XML.glideinDescript(glidein_data) +
-               descript2XML.frontendDescript(frontend_data) +
-               descript2XML.entryDescript(entry_data))
+    xml_str = (
+        descript2XML.glideinDescript(glidein_data)
+        + descript2XML.frontendDescript(frontend_data)
+        + descript2XML.entryDescript(entry_data)
+    )
 
     try:
         descript2XML.writeFile(monitor_dir, xml_str)
-    except IOError:
+    except OSError:
         logSupport.log.exception("Unable to write the descript.xml file: ")
 
+
 ############################################################
+
 
 def generate_log_tokens(startup_dir, glideinDescript):
     """
@@ -177,42 +187,43 @@ def generate_log_tokens(startup_dir, glideinDescript):
 
     # Get a list of all entries, enabled and disabled
     # TODO: there are more reliable ways to do so, i.e. reading the xml config
-    entries = [ed[len('entry_'):] for ed in glob.glob('entry_*') if os.path.isdir(ed)]
+    entries = [ed[len("entry_") :] for ed in glob.glob("entry_*") if os.path.isdir(ed)]
 
     # Retrieve the factory secret key (manually delivered) for token generation
-    credentials_dir = os.path.realpath(os.path.join(startup_dir, '..', 'server-credentials'))
-    jwt_key = os.path.join(credentials_dir, 'jwt_secret.key')
+    credentials_dir = os.path.realpath(os.path.join(startup_dir, "..", "server-credentials"))
+    jwt_key = os.path.join(credentials_dir, "jwt_secret.key")
     if not os.path.exists(jwt_key):
         # create one and log if it doesnt exist, otherwise needs a
         # manual undocumented step to start factory
-        logSupport.log.info("creating %s -manually install  this key for "
-                             % (jwt_key) + "authenticating to external web sites")
+        logSupport.log.info(
+            "creating %s -manually install  this key for " % (jwt_key) + "authenticating to external web sites"
+        )
         rsa = RSAKey()
         rsa.new(2048)
         rsa.save(jwt_key)
 
     try:
-        with open(os.path.join(credentials_dir, 'jwt_secret.key'), "r") as keyfile:
+        with open(os.path.join(credentials_dir, "jwt_secret.key")) as keyfile:
             secret = keyfile.readline().strip()
-    except IOError:
+    except OSError:
         logSupport.log.exception("Cannot find the key for JWT generation (must be manually deposited).")
         raise
 
-    factory_name = glideinDescript.data['FactoryName']
+    factory_name = glideinDescript.data["FactoryName"]
 
     # Issue a token for each entry-recipient pair
     for entry in entries:
 
         # Get the list of recipients
-        if 'LOG_RECIPIENTS_FACTORY' in glideFactoryConfig.JobParams(entry).data:
-            log_recipients = glideFactoryConfig.JobParams(entry).data['LOG_RECIPIENTS_FACTORY'].split()
+        if "LOG_RECIPIENTS_FACTORY" in glideFactoryConfig.JobParams(entry).data:
+            log_recipients = glideFactoryConfig.JobParams(entry).data["LOG_RECIPIENTS_FACTORY"].split()
         else:
             log_recipients = []
 
         curtime = int(time.time())
 
         # Directory where to put tokens.tgz and url_dirs.desc
-        entry_dir = os.path.join(credentials_dir, 'entry_' + entry)
+        entry_dir = os.path.join(credentials_dir, "entry_" + entry)
         # Directory where tokens are initially generated, before flushing them to tokens.tgz
         tokens_dir = os.path.join(entry_dir, "tokens")
 
@@ -221,15 +232,17 @@ def generate_log_tokens(startup_dir, glideinDescript):
             try:
                 os.makedirs(tokens_dir)
             except OSError as oe:
-                logSupport.log.exception("Unable to create JWT entry dir (%s): %s" % (os.path.join(tokens_dir, entry), oe.strerror))
+                logSupport.log.exception(
+                    f"Unable to create JWT entry dir ({os.path.join(tokens_dir, entry)}): {oe.strerror}"
+                )
                 raise
 
         # Create the url_dirs.desc file
-        open(os.path.join(entry_dir, "url_dirs.desc"), 'w').close()
+        open(os.path.join(entry_dir, "url_dirs.desc"), "w").close()
 
         for recipient_url in log_recipients:
             # Obtain a legal filename from the url, escaping "/" and other tricky symbols
-            recipient_safe_url = urllib.quote(recipient_url, '')
+            recipient_safe_url = urllib.parse.quote(recipient_url, "")
 
             # Generate the token
             # TODO: in the future must include Frontend tokens as well
@@ -239,28 +252,32 @@ def generate_log_tokens(startup_dir, glideinDescript):
                 try:
                     os.makedirs(os.path.join(tokens_dir, recipient_safe_url))
                 except OSError as oe:
-                    logSupport.log.exception("Unable to create JWT recipient dir (%s): %s" % (os.path.join(tokens_dir, recipient_safe_url), oe.strerror))
+                    logSupport.log.exception(
+                        "Unable to create JWT recipient dir (%s): %s"
+                        % (os.path.join(tokens_dir, recipient_safe_url), oe.strerror)
+                    )
                     raise
             token_filepath = os.path.join(tokens_dir, recipient_safe_url, token_name)
             # Payload fields:
             # iss->issuer,      sub->subject,       aud->audience
             # iat->issued_at,   exp->expiration,    nbf->not_before
-            token_payload = {'iss': factory_name,
-                             'sub': entry,
-                             'aud': recipient_safe_url,
-                             'iat': curtime,
-                             'exp': curtime + 604800,
-                             'nbf': curtime - 300
-                            }
-            token = jwt.encode(token_payload, secret, algorithm='HS256')
+            token_payload = {
+                "iss": factory_name,
+                "sub": entry,
+                "aud": recipient_safe_url,
+                "iat": curtime,
+                "exp": curtime + 604800,
+                "nbf": curtime - 300,
+            }
+            token = jwt.encode(token_payload, secret, algorithm="HS256")
             try:
                 # Write the factory token
                 with open(token_filepath, "w") as tkfile:
                     tkfile.write(token)
                 # Write to url_dirs.desc
                 with open(os.path.join(entry_dir, "url_dirs.desc"), "a") as url_dirs_desc:
-                    url_dirs_desc.write("%s %s\n" % (recipient_url, recipient_safe_url))
-            except IOError:
+                    url_dirs_desc.write(f"{recipient_url} {recipient_safe_url}\n")
+            except OSError:
                 logSupport.log.exception("Unable to create JWT file: ")
                 raise
 
@@ -273,7 +290,9 @@ def generate_log_tokens(startup_dir, glideinDescript):
             raise
         tokens_tgz.close()
 
+
 ###########################################################
+
 
 def entry_grouper(size, entries):
     """
@@ -298,11 +317,11 @@ def entry_grouper(size, entries):
     if len(entries) <= size:
         list.insert(0, entries)
     else:
-        for group in range(len(entries)/size):
-            list.insert(group, entries[group*size:(group+1)*size])
+        for group in range(len(entries) // size):
+            list.insert(group, entries[group * size : (group + 1) * size])
 
-        if (size*len(list) < len(entries)):
-            list.insert(group+1, entries[(group+1)*size:])
+        if size * len(list) < len(entries):
+            list.insert(group + 1, entries[(group + 1) * size :])
 
     return list
 
@@ -325,7 +344,7 @@ def is_crashing_often(startup_time, restart_interval, restart_attempts):
 
     crashing_often = True
 
-    if (len(startup_time) < restart_attempts):
+    if len(startup_time) < restart_attempts:
         # We haven't exhausted restart attempts
         crashing_often = False
     else:
@@ -352,29 +371,29 @@ def is_file_old(filename, allowed_time):
     @rtype: bool
     @return: True if file is older than the given time, else False
     """
-    if (time.time() > (os.path.getmtime(filename) + allowed_time)):
+    if time.time() > (os.path.getmtime(filename) + allowed_time):
         return True
     return False
 
 
 ############################################################
 def clean_exit(childs):
-    count = 100000000 # set it high, so it is triggered at the first iteration
-    sleep_time = 0.1 # start with very little sleep
-    while len(childs.keys()) > 0:
+    count = 100000000  # set it high, so it is triggered at the first iteration
+    sleep_time = 0.1  # start with very little sleep
+    while len(list(childs.keys())) > 0:
         count += 1
         if count > 4:
             # Send a term signal to the childs
             # May need to do it several times, in case there are in the
             # middle of something
             count = 0
-            logSupport.log.info("Killing EntryGroups %s" % childs.keys())
+            logSupport.log.info("Killing EntryGroups %s" % list(childs.keys()))
             for group in childs:
                 try:
                     os.kill(childs[group].pid, signal.SIGTERM)
                 except OSError:
                     logSupport.log.warning("EntryGroup %s already dead" % group)
-                    del childs[group] # already dead
+                    del childs[group]  # already dead
 
         logSupport.log.info("Sleep")
         time.sleep(sleep_time)
@@ -383,7 +402,7 @@ def clean_exit(childs):
         if sleep_time > 5:
             sleep_time = 5
 
-        logSupport.log.info("Checking dying EntryGroups %s" % childs.keys())
+        logSupport.log.info("Checking dying EntryGroups %s" % list(childs.keys()))
         dead_entries = []
         for group in childs:
             child = childs[group]
@@ -392,15 +411,15 @@ def clean_exit(childs):
             try:
                 tempOut = child.stdout.read()
                 if len(tempOut) != 0:
-                    logSupport.log.warning("EntryGroup %s STDOUT: %s" % (group, tempOut))
-            except IOError:
-                pass # ignore
+                    logSupport.log.warning(f"EntryGroup {group} STDOUT: {tempOut}")
+            except OSError:
+                pass  # ignore
             try:
                 tempErr = child.stderr.read()
                 if len(tempErr) != 0:
-                    logSupport.log.warning("EntryGroup %s STDERR: %s" % (group, tempErr))
-            except IOError:
-                pass # ignore
+                    logSupport.log.warning(f"EntryGroup {group} STDERR: {tempErr}")
+            except OSError:
+                pass  # ignore
 
             # look for exited child
             if child.poll():
@@ -416,8 +435,16 @@ def clean_exit(childs):
 
 
 ############################################################
-def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
-          frontendDescript, entries, restart_attempts, restart_interval):
+def spawn(
+    sleep_time,
+    advertize_rate,
+    startup_dir,
+    glideinDescript,
+    frontendDescript,
+    entries,
+    restart_attempts,
+    restart_interval,
+):
     """
     Spawn and keep track of the entry processes. Restart them if required.
     Advertise glidefactoryglobal classad every iteration
@@ -455,64 +482,65 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
     #   - Last chunk may get fewer entries
     entry_process_count = 1
 
-
     starttime = time.time()
-    oldkey_gracetime = int(glideinDescript.data['OldPubKeyGraceTime'])
+    oldkey_gracetime = int(glideinDescript.data["OldPubKeyGraceTime"])
     oldkey_eoltime = starttime + oldkey_gracetime
 
-    childs_uptime={}
+    childs_uptime = {}
 
-    factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
+    factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data["DowntimesFile"])
 
     logSupport.log.info("Available Entries: %s" % entries)
 
-    group_size = long(math.ceil(float(len(entries))/entry_process_count))
+    group_size = int(math.ceil(float(len(entries)) / entry_process_count))
     entry_groups = entry_grouper(group_size, entries)
 
     def _set_rlimit(soft_l=None, hard_l=None):
-        #set new hard and soft open file limits
-        #if setting limits fails or no input parameters use inherited limits
-        #from parent process
-        #nb 1.  it is possible to raise limits
-        #up to [hard_l,hard_l] but once lowered they cannot be raised
-        #nb 2. it may be better just to omit calling this function at
-        #all from subprocess - in which case it inherits limits from
-        #parent process
+        # set new hard and soft open file limits
+        # if setting limits fails or no input parameters use inherited limits
+        # from parent process
+        # nb 1.  it is possible to raise limits
+        # up to [hard_l,hard_l] but once lowered they cannot be raised
+        # nb 2. it may be better just to omit calling this function at
+        # all from subprocess - in which case it inherits limits from
+        # parent process
 
-        lim =  resource.getrlimit(resource.RLIMIT_NOFILE)
+        lim = resource.getrlimit(resource.RLIMIT_NOFILE)
         if soft_l is not None or hard_l is not None:
             if not hard_l:
                 hard_l = soft_l
             if not soft_l:
-                soft_l=hard_l
+                soft_l = hard_l
             try:
                 new_lim = [soft_l, hard_l]
                 resource.setrlimit(resource.RLIMIT_NOFILE, new_lim)
             except:
                 resource.setrlimit(resource.RLIMIT_NOFILE, lim)
 
-
-
     try:
         for group in range(len(entry_groups)):
-            entry_names = string.join(entry_groups[group], ':')
-            logSupport.log.info("Starting EntryGroup %s: %s" % \
-                (group, entry_groups[group]))
+            entry_names = ":".join(entry_groups[group])
+            logSupport.log.info(f"Starting EntryGroup {group}: {entry_groups[group]}")
 
             # Converted to using the subprocess module
-            command_list = [sys.executable,
-                            glideFactoryEntryGroup.__file__,
-                            str(os.getpid()),
-                            str(sleep_time),
-                            str(advertize_rate),
-                            startup_dir,
-                            entry_names,
-                            str(group)]
-            childs[group] = subprocess.Popen(command_list, shell=False,
-                                             stdout=subprocess.PIPE,
-                                             stderr=subprocess.PIPE,
-                                             close_fds=True,
-                                             preexec_fn=_set_rlimit)
+            command_list = [
+                sys.executable,
+                glideFactoryEntryGroup.__file__,
+                str(os.getpid()),
+                str(sleep_time),
+                str(advertize_rate),
+                startup_dir,
+                entry_names,
+                str(group),
+            ]
+            childs[group] = subprocess.Popen(
+                command_list,
+                shell=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                close_fds=True,
+                preexec_fn=_set_rlimit,
+            )
 
             # Get the startup time. Used to check if the entry is crashing
             # periodically and needs to be restarted.
@@ -526,31 +554,32 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
         for group in childs:
             # set it in non blocking mode
             # since we will run for a long time, we do not want to block
-            for fd in (childs[group].stdout.fileno(),
-                       childs[group].stderr.fileno()):
+            for fd in (childs[group].stdout.fileno(), childs[group].stderr.fileno()):
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
         # If RemoveOldCredFreq < 0, do not do credential cleanup.
         curr_time = 0  # To ensure curr_time is always initialized
-        if int(glideinDescript.data['RemoveOldCredFreq']) > 0:
+        if int(glideinDescript.data["RemoveOldCredFreq"]) > 0:
             # Convert credential removal frequency from hours to seconds
-            remove_old_cred_freq = int(glideinDescript.data['RemoveOldCredFreq']) * 60 * 60
+            remove_old_cred_freq = int(glideinDescript.data["RemoveOldCredFreq"]) * 60 * 60
             curr_time = time.time()
             update_time = curr_time + remove_old_cred_freq
 
             # Convert credential removal age from days to seconds
-            remove_old_cred_age = int(glideinDescript.data['RemoveOldCredAge']) * 60 * 60 * 24
+            remove_old_cred_age = int(glideinDescript.data["RemoveOldCredAge"]) * 60 * 60 * 24
 
             # Create cleaners for old credential files
             logSupport.log.info("Adding cleaners for old credentials")
-            cred_base_dir = glideinDescript.data['ClientProxiesBaseDir']
+            cred_base_dir = glideinDescript.data["ClientProxiesBaseDir"]
             for username in frontendDescript.get_all_usernames():
                 cred_base_user = os.path.join(cred_base_dir, "user_%s" % username)
-                cred_user_instance_dirname = os.path.join(cred_base_user, "glidein_%s" % glideinDescript.data['GlideinName'])
+                cred_user_instance_dirname = os.path.join(
+                    cred_base_user, "glidein_%s" % glideinDescript.data["GlideinName"]
+                )
                 cred_cleaner = cleanupSupport.DirCleanupCredentials(
-                    cred_user_instance_dirname,
-                    "(credential_*)", remove_old_cred_age)
+                    cred_user_instance_dirname, "(credential_*)", remove_old_cred_age
+                )
                 cleanupSupport.cred_cleaners.add_cleaner(cred_cleaner)
 
         iteration_basetime = time.time()
@@ -563,22 +592,22 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 iteration_basetime = time.time()  # reset the start time
                 fronmonpath = os.path.join(startup_dir, "monitor", "frontendmonitorlink.txt")
                 fronmonconstraint = '(MyType=="glideclient")'
-                fronmonformat_list = [('WebMonitoringURL', 's'), ('FrontendName', 's')]
+                fronmonformat_list = [("WebMonitoringURL", "s"), ("FrontendName", "s")]
                 fronmonstatus = condorMonitor.CondorStatus(subsystem_name="any")
                 fronmondata = fronmonstatus.fetch(constraint=fronmonconstraint, format_list=fronmonformat_list)
-                fronmon_list_names = fronmondata.keys()
+                fronmon_list_names = list(fronmondata.keys())
                 if fronmon_list_names is not None:
                     urlset = set()
                     if os.path.exists(fronmonpath):
                         os.remove(fronmonpath)
                     for frontend_entry in fronmon_list_names:
                         fronmonelement = fronmondata[frontend_entry]
-                        fronmonurl = fronmonelement['WebMonitoringURL'].encode('utf-8')
-                        fronmonfrt = fronmonelement['FrontendName'].encode('utf-8')
+                        fronmonurl = fronmonelement["WebMonitoringURL"].encode("utf-8")
+                        fronmonfrt = fronmonelement["FrontendName"].encode("utf-8")
                         if (fronmonfrt, fronmonurl) not in urlset:
                             urlset.add((fronmonfrt, fronmonurl))
-                            with open(fronmonpath, 'w') as fronmonf:
-                                fronmonf.write("%s, %s" % (fronmonfrt, fronmonurl))
+                            with open(fronmonpath, "w") as fronmonf:
+                                fronmonf.write(f"{fronmonfrt}, {fronmonurl}")
 
             # Record the iteration start time
             iteration_stime = time.time()
@@ -588,12 +617,14 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             # If a compromised key is left around and if attacker can somehow
             # trigger FactoryEntry process crash, we do not want the entry
             # to pick up the old key again when factory auto restarts it.
-            if time.time() > oldkey_eoltime and glideinDescript.data['OldPubKeyObj'] is not None:
-                glideinDescript.data['OldPubKeyObj'] = None
-                glideinDescript.data['OldPubKeyType'] = None
+            if time.time() > oldkey_eoltime and glideinDescript.data["OldPubKeyObj"] is not None:
+                glideinDescript.data["OldPubKeyObj"] = None
+                glideinDescript.data["OldPubKeyType"] = None
                 try:
                     glideinDescript.remove_old_key()
-                    logSupport.log.info("Removed the old public key after its grace time of %s seconds" % oldkey_gracetime)
+                    logSupport.log.info(
+                        "Removed the old public key after its grace time of %s seconds" % oldkey_gracetime
+                    )
                 except:
                     # Do not crash if delete fails. Just log it.
                     logSupport.log.warning("Failed to remove the old public key after its grace time")
@@ -601,7 +632,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             # Only removing credentials in the v3+ protocol
             # Affects Corral Frontend which only supports the v3+ protocol.
             # IF freq < zero, do not do cleanup.
-            if int(glideinDescript.data['RemoveOldCredFreq']) > 0 and curr_time >= update_time:
+            if int(glideinDescript.data["RemoveOldCredFreq"]) > 0 and curr_time >= update_time:
                 logSupport.log.info("Checking credentials for cleanup")
 
                 # Query queue for glideins. Don't remove proxies in use.
@@ -629,30 +660,27 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             for classad_key in classads:
                 classad = classads[classad_key]
                 try:
-                    glideFactoryCredentials.process_global(classad,
-                                                           glideinDescript,
-                                                           frontendDescript)
+                    glideFactoryCredentials.process_global(classad, glideinDescript, frontendDescript)
                 except:
                     logSupport.log.exception("Error occurred processing the globals classads: ")
 
-
-            logSupport.log.info("Checking EntryGroups %s" % childs.keys())
+            logSupport.log.info("Checking EntryGroups %s" % list(childs.keys()))
             for group in childs:
-                entry_names = string.join(entry_groups[group], ':')
+                entry_names = ":".join(entry_groups[group])
                 child = childs[group]
 
                 # empty stdout and stderr
                 try:
                     tempOut = child.stdout.read()
-                    if len(tempOut) != 0:
-                        logSupport.log.warning("EntryGroup %s STDOUT: %s" % (group, tempOut))
-                except IOError:
-                    pass # ignore
+                    if tempOut and len(tempOut) != 0:
+                        logSupport.log.warning(f"EntryGroup {group} STDOUT: {tempOut}")
+                except OSError:
+                    pass  # ignore
                 try:
                     tempErr = child.stderr.read()
-                    if len(tempErr) != 0:
-                        logSupport.log.warning("EntryGroup %s STDERR: %s" % (group, tempErr))
-                except IOError:
+                    if tempErr and len(tempErr) != 0:
+                        logSupport.log.warning(f"EntryGroup {group} STDERR: {tempErr}")
+                except OSError:
                     pass  # ignore
 
                 # look for exited child
@@ -662,38 +690,43 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     tempOut = child.stdout.readlines()
                     tempErr = child.stderr.readlines()
 
-                    if is_crashing_often(childs_uptime[group],
-                                         restart_interval, restart_attempts):
+                    if is_crashing_often(childs_uptime[group], restart_interval, restart_attempts):
                         del childs[group]
-                        raise RuntimeError("EntryGroup '%s' has been crashing too often, quit the whole factory:\n%s\n%s" % (group, tempOut, tempErr))
+                        raise RuntimeError(
+                            "EntryGroup '%s' has been crashing too often, quit the whole factory:\n%s\n%s"
+                            % (group, tempOut, tempErr)
+                        )
                     else:
                         # Restart the entry setting its restart time
                         logSupport.log.warning("Restarting EntryGroup %s." % (group))
                         del childs[group]
 
-                        command_list = [sys.executable,
-                                        glideFactoryEntryGroup.__file__,
-                                        str(os.getpid()),
-                                        str(sleep_time),
-                                        str(advertize_rate),
-                                        startup_dir,
-                                        entry_names,
-                                        str(group)]
-                        childs[group] = subprocess.Popen(command_list,
-                                                         shell=False,
-                                                         stdout=subprocess.PIPE,
-                                                         stderr=subprocess.PIPE,
-                                                         close_fds=True,
-                                                         preexec_fn=_set_rlimit)
+                        command_list = [
+                            sys.executable,
+                            glideFactoryEntryGroup.__file__,
+                            str(os.getpid()),
+                            str(sleep_time),
+                            str(advertize_rate),
+                            startup_dir,
+                            entry_names,
+                            str(group),
+                        ]
+                        childs[group] = subprocess.Popen(
+                            command_list,
+                            shell=False,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            close_fds=True,
+                            preexec_fn=_set_rlimit,
+                        )
 
                         if len(childs_uptime[group]) == restart_attempts:
                             childs_uptime[group].pop(0)
                         childs_uptime[group].append(time.time())
-                        for fd in (childs[group].stdout.fileno(),
-                                   childs[group].stderr.fileno()):
+                        for fd in (childs[group].stdout.fileno(), childs[group].stderr.fileno()):
                             fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                             fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-                        logSupport.log.warning("EntryGroup startup/restart times: %s" % (childs_uptime,))
+                        logSupport.log.warning(f"EntryGroup startup/restart times: {childs_uptime}")
 
             # Aggregate Monitoring data periodically
             logSupport.log.info("Aggregate monitoring data")
@@ -701,7 +734,10 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             save_stats(stats, os.path.join(startup_dir, glideFactoryConfig.factoryConfig.aggregated_stats_file))
 
             # Aggregate job data periodically
-            if glideinDescript.data.get('AdvertisePilotAccounting', False) in ['True', '1']:   # data attributes are strings
+            if glideinDescript.data.get("AdvertisePilotAccounting", False) in [
+                "True",
+                "1",
+            ]:  # data attributes are strings
                 logSupport.log.info("Starting updating job classads")
                 update_classads()
                 logSupport.log.info("Finishing updating job classads")
@@ -710,11 +746,11 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             try:
                 # KEL TODO need to add factory downtime?
                 glideFactoryInterface.advertizeGlobal(
-                    glideinDescript.data['FactoryName'],
-                    glideinDescript.data['GlideinName'],
+                    glideinDescript.data["FactoryName"],
+                    glideinDescript.data["GlideinName"],
                     glideFactoryLib.factoryConfig.supported_signtypes,
-                    glideinDescript.data['PubKeyObj']
-                    )
+                    glideinDescript.data["PubKeyObj"],
+                )
             except Exception as e:
                 logSupport.log.exception("Error advertising global classads: %s" % e)
 
@@ -742,38 +778,37 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     try:
                         os.kill(childs[group].pid, signal.SIGKILL)
                     except OSError:
-                        pass # ignore dead clients
+                        pass  # ignore dead clients
         finally:
             logSupport.log.info("Deadvertize myself")
             try:
                 glideFactoryInterface.deadvertizeFactory(
-                    glideinDescript.data['FactoryName'],
-                    glideinDescript.data['GlideinName'])
+                    glideinDescript.data["FactoryName"], glideinDescript.data["GlideinName"]
+                )
             except:
                 logSupport.log.exception("Factory deadvertize failed!")
             try:
                 glideFactoryInterface.deadvertizeFactoryClientMonitoring(
-                    glideinDescript.data['FactoryName'],
-                    glideinDescript.data['GlideinName'])
+                    glideinDescript.data["FactoryName"], glideinDescript.data["GlideinName"]
+                )
             except:
                 logSupport.log.exception("Factory Monitoring deadvertize failed!")
         logSupport.log.info("All EntryGroups should be terminated")
 
-def increase_process_limit(new_limit = 10000):
-    """ Raise RLIMIT_NPROC to new_limit """
+
+def increase_process_limit(new_limit=10000):
+    """Raise RLIMIT_NPROC to new_limit"""
     (soft, hard) = resource.getrlimit(resource.RLIMIT_NPROC)
     if soft < new_limit:
         try:
             resource.setrlimit(resource.RLIMIT_NPROC, (new_limit, hard))
-            logSupport.log.info("Raised RLIMIT_NPROC from %d to %d" %
-                                (soft, new_limit))
+            logSupport.log.info("Raised RLIMIT_NPROC from %d to %d" % (soft, new_limit))
         except ValueError:
-            logSupport.log.info("Warning: could not raise RLIMIT_NPROC "
-                                "from %d to %d" % (soft, new_limit))
+            logSupport.log.info("Warning: could not raise RLIMIT_NPROC " "from %d to %d" % (soft, new_limit))
 
     else:
-        logSupport.log.info("RLIMIT_NPROC already %d, not changing to %d" %
-                            (soft, new_limit))
+        logSupport.log.info("RLIMIT_NPROC already %d, not changing to %d" % (soft, new_limit))
+
 
 ############################################################
 def main(startup_dir):
@@ -786,64 +821,69 @@ def main(startup_dir):
     # Force integrity checks on all condor operations
     glideFactoryLib.set_condor_integrity_checks()
 
-    glideFactoryInterface.factoryConfig.lock_dir = os.path.join(startup_dir,
-                                                                "lock")
-    glideFactoryConfig.factoryConfig.glidein_descript_file = \
-        os.path.join(startup_dir,
-                     glideFactoryConfig.factoryConfig.glidein_descript_file)
+    glideFactoryInterface.factoryConfig.lock_dir = os.path.join(startup_dir, "lock")
+    glideFactoryConfig.factoryConfig.glidein_descript_file = os.path.join(
+        startup_dir, glideFactoryConfig.factoryConfig.glidein_descript_file
+    )
     glideinDescript = glideFactoryConfig.GlideinDescript()
     frontendDescript = glideFactoryConfig.FrontendDescript()
 
     # set factory_collector at a global level, since we do not expect it to change
-    glideFactoryInterface.factoryConfig.factory_collector = glideinDescript.data['FactoryCollector']
+    glideFactoryInterface.factoryConfig.factory_collector = glideinDescript.data["FactoryCollector"]
 
     # Setup the glideFactoryLib.factoryConfig so that we can process the
     # globals classads
     glideFactoryLib.factoryConfig.config_whoamI(
-        glideinDescript.data['FactoryName'],
-        glideinDescript.data['GlideinName'])
+        glideinDescript.data["FactoryName"], glideinDescript.data["GlideinName"]
+    )
     glideFactoryLib.factoryConfig.config_dirs(
-        startup_dir, glideinDescript.data['LogDir'],
-        glideinDescript.data['ClientLogBaseDir'],
-        glideinDescript.data['ClientProxiesBaseDir'])
+        startup_dir,
+        glideinDescript.data["LogDir"],
+        glideinDescript.data["ClientLogBaseDir"],
+        glideinDescript.data["ClientProxiesBaseDir"],
+    )
 
     # Set the Log directory
-    logSupport.log_dir = os.path.join(glideinDescript.data['LogDir'], "factory")
+    logSupport.log_dir = os.path.join(glideinDescript.data["LogDir"], "factory")
 
     # Configure factory process logging
-    process_logs = eval(glideinDescript.data['ProcessLogs'])
+    process_logs = eval(glideinDescript.data["ProcessLogs"])
     for plog in process_logs:
-        if 'ADMIN' in plog['msg_types'].upper():
-            logSupport.add_processlog_handler("factoryadmin",
-                                              logSupport.log_dir,
-                                              "DEBUG,INFO,WARN,ERR",
-                                              plog['extension'],
-                                              int(float(plog['max_days'])),
-                                              int(float(plog['min_days'])),
-                                              int(float(plog['max_mbytes'])),
-                                              int(float(plog['backup_count'])),
-                                              plog['compression'])
+        if "ADMIN" in plog["msg_types"].upper():
+            logSupport.add_processlog_handler(
+                "factoryadmin",
+                logSupport.log_dir,
+                "DEBUG,INFO,WARN,ERR",
+                plog["extension"],
+                int(float(plog["max_days"])),
+                int(float(plog["min_days"])),
+                int(float(plog["max_mbytes"])),
+                int(float(plog["backup_count"])),
+                plog["compression"],
+            )
         else:
-            logSupport.add_processlog_handler("factory",
-                                              logSupport.log_dir,
-                                              plog['msg_types'],
-                                              plog['extension'],
-                                              int(float(plog['max_days'])),
-                                              int(float(plog['min_days'])),
-                                              int(float(plog['max_mbytes'])),
-                                              int(float(plog['backup_count'])),
-                                              plog['compression'])
+            logSupport.add_processlog_handler(
+                "factory",
+                logSupport.log_dir,
+                plog["msg_types"],
+                plog["extension"],
+                int(float(plog["max_days"])),
+                int(float(plog["min_days"])),
+                int(float(plog["max_mbytes"])),
+                int(float(plog["backup_count"])),
+                plog["compression"],
+            )
     logSupport.log = logging.getLogger("factory")
     logSupport.log.info("Logging initialized")
 
-    if (glideinDescript.data['Entries'].strip() in ('', ',')):
+    if glideinDescript.data["Entries"].strip() in ("", ","):
         # No entries are enabled. There is nothing to do. Just exit here.
         log_msg = "No Entries are enabled. Exiting."
 
         logSupport.log.error(log_msg)
         sys.exit(1)
 
-    write_descript(glideinDescript, frontendDescript, os.path.join(startup_dir, 'monitor/'))
+    write_descript(glideinDescript, frontendDescript, os.path.join(startup_dir, "monitor/"))
 
     try:
         os.chdir(startup_dir)
@@ -852,8 +892,7 @@ def main(startup_dir):
         raise
 
     try:
-        if (is_file_old(glideinDescript.default_rsakey_fname,
-                        int(glideinDescript.data['OldPubKeyGraceTime']))):
+        if is_file_old(glideinDescript.default_rsakey_fname, int(glideinDescript.data["OldPubKeyGraceTime"])):
             # First backup and load any existing key
             logSupport.log.info("Backing up and loading old key")
             glideinDescript.backup_and_load_old_key()
@@ -868,41 +907,51 @@ def main(startup_dir):
             glideinDescript.load_old_rsa_key()
     except RSAError as e:
         logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
-        key_fname = getattr(e, 'key_fname', None)
-        cwd = getattr(e, 'cwd', None)
+        key_fname = getattr(e, "key_fname", None)
+        cwd = getattr(e, "cwd", None)
         if key_fname and cwd:
             logSupport.log.error("Failed to load RSA key %s with current working direcotry %s", key_fname, cwd)
-            logSupport.log.error("If you think the rsa key might be corrupted, try to remove it, and then reconfigure the factory to recreate it")
+            logSupport.log.error(
+                "If you think the rsa key might be corrupted, try to remove it, and then reconfigure the factory to recreate it"
+            )
         raise
-    except IOError as ioe:
+    except OSError as ioe:
         logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
-        if ioe.filename == 'rsa.key' and ioe.errno == 2:
-             logSupport.log.error("Missing rsa.key file. Please, reconfigure the factory to recreate it")
+        if ioe.filename == "rsa.key" and ioe.errno == 2:
+            logSupport.log.error("Missing rsa.key file. Please, reconfigure the factory to recreate it")
         raise
     except:
         logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
         raise
 
-    glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name = "%s@%s" % (glideinDescript.data['GlideinName'],
-               glideinDescript.data['FactoryName'])
+    glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name = "{}@{}".format(
+        glideinDescript.data["GlideinName"],
+        glideinDescript.data["FactoryName"],
+    )
 
-    glideFactoryInterface.factoryConfig.advertise_use_tcp = (glideinDescript.data['AdvertiseWithTCP'] in ('True', '1'))
-    glideFactoryInterface.factoryConfig.advertise_use_multi = (glideinDescript.data['AdvertiseWithMultiple'] in ('True', '1'))
-    sleep_time = int(glideinDescript.data['LoopDelay'])
-    advertize_rate = int(glideinDescript.data['AdvertiseDelay'])
-    restart_attempts = int(glideinDescript.data['RestartAttempts'])
-    restart_interval = int(glideinDescript.data['RestartInterval'])
+    glideFactoryInterface.factoryConfig.advertise_use_tcp = glideinDescript.data["AdvertiseWithTCP"] in ("True", "1")
+    glideFactoryInterface.factoryConfig.advertise_use_multi = glideinDescript.data["AdvertiseWithMultiple"] in (
+        "True",
+        "1",
+    )
+    sleep_time = int(glideinDescript.data["LoopDelay"])
+    advertize_rate = int(glideinDescript.data["AdvertiseDelay"])
+    restart_attempts = int(glideinDescript.data["RestartAttempts"])
+    restart_interval = int(glideinDescript.data["RestartInterval"])
 
     try:
-        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro('checksum.factory').version()
+        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(
+            "checksum.factory"
+        ).version()
     except:
-        logSupport.log.exception("Non critical Factory error. Exception occurred while trying to retrieve the glideinwms version: ")
+        logSupport.log.exception(
+            "Non critical Factory error. Exception occurred while trying to retrieve the glideinwms version: "
+        )
 
-    entries = sorted(glideinDescript.data['Entries'].split(','))
+    entries = sorted(glideinDescript.data["Entries"].split(","))
 
     glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(
-        os.path.join(startup_dir, "monitor"), entries,
-        log=logSupport.log
+        os.path.join(startup_dir, "monitor"), entries, log=logSupport.log
     )
 
     # create lock file
@@ -915,13 +964,23 @@ def main(startup_dir):
         pid_obj.register()
     except glideFactoryPidLib.pidSupport.AlreadyRunning as err:
         pid_obj.load_registered()
-        logSupport.log.exception("Failed starting Factory. Instance with pid %s is aready running. Exception during pid registration: %s" %
-                                 (pid_obj.mypid, err))
+        logSupport.log.exception(
+            "Failed starting Factory. Instance with pid %s is aready running. Exception during pid registration: %s"
+            % (pid_obj.mypid, err)
+        )
         raise
     try:
         try:
-            spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
-                  frontendDescript, entries, restart_attempts, restart_interval)
+            spawn(
+                sleep_time,
+                advertize_rate,
+                startup_dir,
+                glideinDescript,
+                frontendDescript,
+                entries,
+                restart_attempts,
+                restart_interval,
+            )
         except KeyboardInterrupt as e:
             raise e
         except HUPException as e:
@@ -934,8 +993,17 @@ def main(startup_dir):
             # begins from the beginning, it will not error out which will happen
             # if the lock file is not empty
             pid_obj.relinquish()
-            os.execv(os.path.join(FACTORY_DIR, "../creation/reconfig_glidein"),
-                     ['reconfig_glidein', '-update_scripts', 'no', '-sighupreload', '-xml', '/etc/gwms-factory/glideinWMS.xml'])
+            os.execv(
+                os.path.join(FACTORY_DIR, "../creation/reconfig_glidein"),
+                [
+                    "reconfig_glidein",
+                    "-update_scripts",
+                    "no",
+                    "-sighupreload",
+                    "-xml",
+                    "/etc/gwms-factory/glideinWMS.xml",
+                ],
+            )
         except:
             logSupport.log.exception("Exception occurred spawning the factory: ")
     finally:
@@ -960,12 +1028,12 @@ def hupsignal(signr, frame):
     raise HUPException("Received signal %s" % signr)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if os.getsid(os.getpid()) != os.getpgrp():
         os.setpgid(0, 0)
     signal.signal(signal.SIGTERM, termsignal)
     signal.signal(signal.SIGQUIT, termsignal)
-    signal.signal(signal.SIGHUP,  hupsignal)
+    signal.signal(signal.SIGHUP, hupsignal)
 
     try:
         main(sys.argv[1])

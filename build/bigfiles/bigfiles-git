@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 robust_realpath() {
     if ! realpath "$1" 2>/dev/null; then
         echo "$(cd "$(dirname "$1")"; pwd -P)/$(basename "$1")"
@@ -75,7 +78,7 @@ fi
 # pushd/popd are not in sh, only bash
 old_dir="$PWD"
 if $INGIT; then
-    if [ -f "$gitdir"/bigfiles/bigfiles_list.txt ]; then    
+    if [ -f "$gitdir"/bigfiles/bigfiles_list.txt ]; then
         #pushd "$gitdir" > /dev/null
         cd "$gitdir"
         "$mydir"/bigfiles.sh -R

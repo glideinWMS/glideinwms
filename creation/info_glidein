@@ -1,32 +1,30 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version: 
-#
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
 #  This program describes a glidein factory
 #  based on a configuration file
-#
 
-from __future__ import print_function
+
 import os
-import sys
 import os.path
+import sys
+
+from glideinwms.creation.lib import cgWParamDict, cgWParams
+
 # import string
 # import traceback
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../.."))
-from glideinwms.creation.lib import cgWParams
-from glideinwms.creation.lib import cgWParamDict
 
 
 ################################################################################
 
+
 def main(params, flags):
-    print("Factory name: '%s'"%params.glidein_name)
+    print("Factory name: '%s'" % params.glidein_name)
     if "dirs" in flags:
         glidein_dicts_obj = cgWParamDict.glideinDicts(params)
         print("Submit dir    : %s" % glidein_dicts_obj.main_dicts.work_dir)
@@ -36,7 +34,7 @@ def main(params, flags):
         print("Entries:")
         for entry_name in params.entries.data.keys():
             entry_el = params.entries.data[entry_name]
-            if entry_el.data['enabled'] != "True":
+            if entry_el.data["enabled"] != "True":
                 enable_str = "disabled"
             else:
                 enable_str = "enabled"
@@ -45,41 +43,44 @@ def main(params, flags):
                     continue
             outstr = "%8s" % enable_str
             if "schedd" in flags:
-                outstr += " schedd: '%s'" % entry_el.data['schedd_name']
+                outstr += " schedd: '%s'" % entry_el.data["schedd_name"]
             if "CE" in flags:
-                outstr += " gridtype: '%s' gatekeeper: '%s'" % (entry_el.data['gridtype'], entry_el.data['gatekeeper'])
-                if entry_el.data['rsl'] is not None:
-                    outstr += " rsl: '%s'" % entry_el.data['gridtype']
-                
-            print("\tEntry '%s'\t%s" % (entry_name, outstr))
+                outstr += " gridtype: '{}' gatekeeper: '{}'".format(
+                    entry_el.data["gridtype"], entry_el.data["gatekeeper"]
+                )
+                if entry_el.data["rsl"] is not None:
+                    outstr += " rsl: '%s'" % entry_el.data["gridtype"]
+
+            print(f"\tEntry '{entry_name}'\t{outstr}")
 
 
 ############################################################
 #
 # S T A R T U P
-# 
+#
 ############################################################
+
 
 def parse_args(argv):
     usage = "info_glidein [-dirs] [-entries [-all|*-enabled*] [-schedd] [-CE]]  cfg_fname | -help"
-    single_flags = ('dirs', 'entries', 'all', 'enabled', 'up', 'CE', 'schedd')
+    single_flags = ("dirs", "entries", "all", "enabled", "up", "CE", "schedd")
     flags = []
     while len(argv) > 1:
-        if (argv[1][0] == '-') and (argv[1][1:] in single_flags):
+        if (argv[1][0] == "-") and (argv[1][1:] in single_flags):
             flags.append(argv[1][1:])
-            argv = argv[0:1]+argv[2:]
+            argv = argv[0:1] + argv[2:]
         else:
             break
-            
+
     try:
-        params = cgWParams.GlideinParams(usage,os.path.join(STARTUP_DIR, "web_base"), argv)
+        params = cgWParams.GlideinParams(usage, os.path.join(STARTUP_DIR, "web_base"), argv)
     except RuntimeError as e:
         print(e)
         sys.exit(1)
-    return (params,flags)
+    return (params, flags)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     params, flags = parse_args(sys.argv)
 
     try:

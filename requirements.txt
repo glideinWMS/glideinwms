@@ -1,12 +1,10 @@
 # for runtime
 htcondor
+classad
 m2crypto
 requests
 pyyaml
 pyjwt
-
-# commented out until we drop python2 support
-## classad ##
 
 #for verifications
 pylint
@@ -17,14 +15,16 @@ autopep8
 testfixtures
 coverage
 future
-importlib
-argparse
+# std in p3 importlib
+# std in p3 argparse
+pyyaml
+PyJWT
 
 # for tests
 jsonpickle
+# std in p3 as unittest.mock, leaving it for now
 mock
 pytest
 tabulate
-unittest2
+# std in p3 unittest
 xmlrunner
-

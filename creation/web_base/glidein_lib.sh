@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 function sanitizedCat {
     # This function prints the saniteized content of the file passed as argument.
     # If the content is a number it just prints it, if it is an alphanumeric string it adds quotes

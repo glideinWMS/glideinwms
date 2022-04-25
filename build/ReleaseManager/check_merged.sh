@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Script to check the Git branches vs the redmine tickets before a release
 # See help_msh for more information
 
@@ -22,12 +26,17 @@ In verbose mode adds more details about the issues and the branches above and al
 - List all the issues in the release
 - List all the issues whose branches have not been merged directly to the release branch (they may have been merged indirectly)
 Options
--h      Print this help
--v      Verbose mode
+-h           Print this help
+-v           Verbose mode
+-a AUTHFILE  Add a configuration file to use for authentication. Make a private file.
+             Write in it a line like "--user REDMINE_USER:REDMINE_PASSWORD"
+-u USER      RedMine user. The script will ask for your RedMine (services) password twice.
+             You cannot use -a and -u at the same time.
 RELEASE Is the Version name in Redmine
 RBRANCH Is the release branch name in Git, used to check if all issue branches have been merged
         It can be normally derived by the RELEASE value
 This command must be run inside the Git repository. Future versions will query Github.
+Remember to be in the VPN and use -a OR -u to authenticate to RedMine.
 EOF
 }
 
@@ -36,18 +45,31 @@ loginfo() {
 }
 
 VERBOSE=
-while getopts ":hv" option
+AUTHFILE=
+CURLUSER=
+CURLOPTIONS=
+while getopts ":a:u:hv" option
 do
   case "${option}"
   in
   h) help_msg; exit 0;;
   v) VERBOSE=yes;;
+  a) AUTHFILE=$OPTARG;;
+  u) CURLUSER=$OPTARG;;
   : ) echo "$filename: illegal option: -$OPTARG requires an argument" 1>&2; help_msg 1>&2; exit 1;;
   *) echo "$filename: illegal option: -$OPTARG" 1>&2; help_msg 1>&2; exit 1;;
   \?) echo "$filename: illegal option: -$OPTARG" 1>&2; help_msg 1>&2; exit 1;;
   esac
 done
 shift $((OPTIND-1))
+
+if [[ -n "$AUTHFILE" && -n "$CURLUSER" ]]; then
+    echo "ERROR: You cannot use -a and -u at the same time. The user is already specified in the AUTHFILE."
+    help_msg
+    exit 1
+fi
+[[ -n "$AUTHFILE" ]] && CURLOPTIONS="-K $AUTHFILE" || true
+[[ -n "$CURLUSER" ]] && CURLOPTIONS="--user $CURLUSER" || true
 
 RELEASE=$1
 if [[ -z "$RELEASE" ]]; then
@@ -65,7 +87,8 @@ if [[ -z "$RELEASE_BRANCH" ]]; then
     elif [[ $RELEASE = v3_6* ]]; then
         RELEASE_BRANCH=master
     elif [[ $RELEASE = v3_7* ]]; then
-        RELEASE_BRANCH=branch_v3_7
+        # RELEASE_BRANCH=branch_v3_7
+        RELEASE_BRANCH=master
     elif [[ $RELEASE = v3_8* ]]; then
         RELEASE_BRANCH=branch_v3_8
     elif [[ $RELEASE = v3_9* ]]; then
@@ -86,16 +109,17 @@ fi
 loginfo "Querying Redmine about the version ID and the issues..."
 
 #VER_ID=$(curl -s -H "Content-Type: application/json" -X GET $REDMINE/projects/glideinwms/versions.json | jq ' .versions[] | {name: .name, id: .id } | select(.name == "'$RELEASE'") | .id')
-VER_ID=$(curl -s -H "Content-Type: application/json" -X GET $REDMINE/projects/glideinwms/versions.json | jq ' .versions[] | select(.name == "'$RELEASE'") | .id')
+VER_ID=$(curl $CURLOPTIONS -s -H "Content-Type: application/json" -X GET $REDMINE/projects/glideinwms/versions.json | jq ' .versions[] | select(.name == "'$RELEASE'") | .id')
 if [[ -z "$VER_ID" ]]; then
-    echo "ERROR: Unable to find the ID for version ${RELEASE}. Please check the name and try again."
+    echo "ERROR: Unable to find the ID for version ${RELEASE}."
+    echo "Please check the version name and that you can access Redmine (VPN and authentication)."
     exit 1
 fi
 
 # Issues are one per line, so grep does an OR in the matching. To flatten, use unquoted
 # status_id=* is required, otherwise Redmine will ignore closed issues
 # limit=200 is required, otherwise only 25 entries are returned (assuming no more than 200 issues per release)
-VER_ISSUES_EXT=$(curl -s -H "Content-Type: application/json" -X GET $REDMINE/issues.json?limit=200\&project_id=$GWMS_PROJECT_ID\&fixed_version_id=$VER_ID\&status_id=\*  | jq '.issues[] | { id: .id, subject: .subject } ' )
+VER_ISSUES_EXT=$(curl $CURLOPTIONS -s -H "Content-Type: application/json" -X GET $REDMINE/issues.json?limit=200\&project_id=$GWMS_PROJECT_ID\&fixed_version_id=$VER_ID\&status_id=\*  | jq '.issues[] | { id: .id, subject: .subject } ' )
 VER_ISSUES=$(echo "$VER_ISSUES_EXT" | jq '.id' | sort)
 
 if [[ -z "$VER_ISSUES" ]]; then
@@ -147,7 +171,7 @@ loginfo "Issues without a branch merged directly in $RELEASE_BRANCH ($(echo $VER
 loginfo "$VER_NOMERGED"
 # issues with branches, but not contained (not merged) in the release
 VER_NOCONTAIN=
-# list of the branches corresponding to the issues in VER_NOCONTAIN 
+# list of the branches corresponding to the issues in VER_NOCONTAIN
 VER_NOCONTAIN_BRANCH=
 if [[ -n "$VER_ONLYBRANCH" ]]; then
     loginfo "These issues have branches but have not been merged directly in $RELEASE_BRANCH:"
@@ -190,5 +214,3 @@ fi
 # echo "$VER_BRANCHES"
 # echo "Version merged branches: "
 # echo "$MERGED_BRANCHES"
-
-

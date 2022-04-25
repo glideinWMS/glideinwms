@@ -1,17 +1,20 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # This is the httpd conf file
 # GlideinWMS VOFrontend web configuration
 
 Alias /vofrontend /var/lib/gwms-frontend/web-area
 <Directory /var/lib/gwms-frontend/web-area>
     <IfModule mod_authz_core.c>
-        # Apache 2.4 
+        # Apache 2.4
         Require all granted
-    </IfModule> 
-    <IfModule !mod_authz_core.c> 
+    </IfModule>
+    <IfModule !mod_authz_core.c>
         # Apache 2.2
         Order allow,deny
         Allow from all
-    </IfModule> 
+    </IfModule>
     Options -Indexes
 </Directory>
 
@@ -21,7 +24,7 @@ RewriteEngine On
 # Is it an http request?
 RewriteCond %{HTTPS} off
 #=========================
-# Is mod_ssl available? 
+# Is mod_ssl available?
 # <ifModule mod_ssl.c> unreliable as it depends on loading order of files in /etc/httpd/conf.d
 # https://stackoverflow.com/questions/46819390/
 # apache-loads-mod-ssl-but-ifmodule-mod-ssl-c-ignored-in-my-vhosts

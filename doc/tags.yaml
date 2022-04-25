@@ -1,8 +1,13 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 # GlideinWMS release notes ordered by release version
 # YAML format used to generate tags.txt and history.html, starting w/ GlideinWMS v3.6
-# Each release is a list with features (strings), Bug fixes (Bug fix: dictionary containing ine string) and NOTES
-# (NOTE: dictionaries containing one string)
+# Each release is a dictionary following the template here below (defaults can be omitted).
+# There are some attributes, list with features (Feature: list of strings), Bug fixes (Bug fix: list of string)
+# and NOTES (NOTE, NOTE-FACTORY, NOTE-FRONTEND: all lists of string)
+# New releases are appended at the bottom (anyway the order is not important)
 
 # Special version names:
 # default
@@ -92,16 +97,6 @@ v3_6_2:
     - Adjust size of ClusterId and ProcessId fields for the condor_q custom format
     - Total of frontend info is 0 in Factory monitring
 
-v3_7:
-  Date: March 31, 2020
-  Series: Development
-  Tarball: true
-  Feature:
-    - Includes all features and fixes of 3.6.2
-    - Use of HTCondor token-auth for Glideins authentication
-    - Added secure logging channel
-    - Refactored glidien_startup.sh to separate out the code in heredoc sections and improve code quality
-
 v3_6_3:
   Date: July 16, 2020
   Series: Stable
@@ -117,7 +112,7 @@ v3_6_3:
     - Updated the singularity wrapper with new features form the OSG wrapper
     - Clean PYTHONPATH and setup GWMS environment in Singularity containers
     - Improved the environment handling of the Singularity wrapper
-  Bug fix: 
+  Bug fix:
     - Upgrade the factory documentation not to ask to install the switchboard
     - The Python version of condor_chirp now works with Singularity jobs
     - Enable RFC proxies by default for direct proxies
@@ -173,9 +168,26 @@ v3_7_1:
     - Configuration changes to make more compatible with HTCondor 8.9  on initial install
     - SciTokens authentication between Factory and CE
     - IDTokens authentication between Factory and Frontend
-  Bug fix: 
+  Bug fix:
     - Factory reconfigs and startups do not require manual creation of directories
     - Factory builds Condor Tarballs to send with glideins correctly
+
+v3_9:
+  Date: September 18, 2020
+  Series: Development
+  Tarball: false
+  Feature:
+    - Includes all features and fixes of 3.6.3 and 3.7.1
+    - Python 3 code, some pitfalls to pay attention to are in the Bug Fix section
+  Bug fix:
+    - custom disctionaries with __getattr__ in the creation package (an infinite loop was masked in Python 2)
+    - str vs bytes, especially in crypto libraries
+    - None cannot be used in sorted string lists and we use (None, None, None) for unmatched jobs in the Frontend
+    - Add __repr__ method to SubParams class
+    - Fixed pycache of creation/lib included in multiple packages
+    - Fixed spec file to include python3 compiled files and not python2 ones
+    - Fixed Mapping import
+    - Fixed str vs bytes confusion in cryptography functions and classes
 
 v3_7_2:
   Date: December 21, 2020
@@ -188,7 +200,17 @@ v3_7_2:
     - OSG_autoconf protection added to prevent failures when CE dissapears from OSG Collector
   Bug fix:
     - Frontend no longer over-generates tokens for entries
-    - Factory does not remove glideins when idle limit is hit
+    - Factory does not remove glideins when idle limit is hi
+
+v3_9_1:
+  Date: February 11, 2021
+  Series: Development
+  Tarball: false
+  Feature:
+    - Includes all features and fixes of 3.7.2
+    - Separates httpd packages from Factory and Frontend RPMs
+  Bug fix:
+    - Frontend no longer reports duplicate glideclient daemons to the Factory
 
 v3_7_3:
   Date: March 25, 2021
@@ -220,16 +242,89 @@ v3_7_4:
   Bug Fix:
     - Submissions from some 3.6.5 frontends to 3.7.3 factories go on hold
 
-v3_7_5:
-    Date: Sep 2 2021
-    Series: Development
-    Tarball: False
-    Feature:
-        - Support for big files in the glideinwms repository
-        - Additional download mechanism for files
-    Bug Fix:
-        - Have SciToken credential be per-entry
-        - Fix IDTOKEN generation in the Frontend
-        - Cleanup script not executing correctly at glidein termination
-        - Automount of CVMFS integrated into glidein script
+v3_9_2:
+  Date: Jun 1, 2021
+  Series: Development
+  Tarball: false
+  Feature:
+    - Includes all features and fixes of 3.7.3 and 3.7.4
+    - Drops support for BDII along with its LDAP requirements
+    - Adds check_python3_expr.py to validate python3 in match expressions
+  Bug fix:
+    - Fixes string encoding issues on glideFactoryLib
+    - Fixes an issue that would cause some factory configurations to generate malformed Condor files
 
+v3_7_5:
+  Date: Sep 2 2021
+  Series: Development
+  Tarball: False
+  Feature:
+    - Support for big files in the glideinwms repository
+    - Additional download mechanism for files
+  Bug Fix:
+    - Have SciToken credential be per-entry
+    - Fix IDTOKEN generation in the Frontend
+    - Cleanup script not executing correctly at glidein termination
+    - Automount of CVMFS integrated into glidein script
+
+v3_9_3:
+  Date: Sep 21, 2021
+  Series: Development
+  Tarball: false
+  Feature:
+    - Includes all features and fixes of 3.7.5
+    - Adds type validation to the check_python3_expr.py script
+    - Removes unused encodingSupport.py and its unit tests
+  Bug fix:
+    - Fixes an encoding issue affecting cloud submissions
+
+v3_7_6:
+  Date: Jan 18 2022
+  Series: Development
+  Tarball: False
+  Feature:
+    - Flexible mount point for CVMFS in glidein
+    - Frontend and factory check expiration of SciTokens
+    - Shared port is default for User Collector
+    - API to retrieve job information from condor jobID
+    - OSG_autoconf now allows override yaml configuration files
+    - expiration and other validity of JWT tokens checked before use
+
+  Bug Fix:
+    - condor_chirp no longer fail when python2 used in job
+    - IDTOKEN issuer changed from collector host to trust domain
+    - proxy was failing to renew when both SCITOKEN and grid_proxy auth used
+    - OSG_autoconf automatic assignment of submit attributes fixed
+    - OSG_autoconf common entry fields implemented
+    - OSG_autoconf now possible to append instead of replace values
+    - glidein clears LD_LIBRARY_PATH prior to starting HTCondor
+    - JOB_TOKENS no longer set in glidein environment if not needed
+    - IDTOKEN/SCITOKEN auth to bosco sites fixed
+    - improved IDTOKEN revocation procedures
+    - SSL added to condor *_AUTHENTICATION_METHODS
+    - Possible to have frontend group with only SCITOKEN authentication
+    - Factory stores frontend group information per-token
+    - Intermittent -check_v35 error fails to  startup factory
+    - Fix glidein_starup.sh in staging area to be one with payload
+    - GCB support removed
+    - glidein_cleanup can cleanup directories chmoded read-only
+    - improved shellcheck testing
+    - corrected paths for some variables in glideins
+    - eliminated spurious log messages in glideins
+    - STARTD_JOB_ATTRS fixed in glideins
+    - GWMS_PATH in glidein_startup.sh corrected
+    - better cleanup of tmpfiles after install
+
+v3_9_4:
+  Date: Jan 25, 2022
+  Series: Development
+  Tarball: false
+  Feature:
+    - Includes all features and fixes of 3.7.6
+    - Adds support for CentOS 8
+    - Adds two new RPM packages (vofrontend-libs and vofrontend-glidein) to provide essential libraries for frontend-like applications
+    - Updates license to Apache 2.0
+  Bug fix:
+    - Updates libraries for compatibility with PyYAML 6.0
+    - Fixes a sring encoding issue affecting the cat log scripts
+    - Fixes AWS/Google metadata encoding error

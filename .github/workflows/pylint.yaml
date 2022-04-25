@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 on: [pull_request, push]
 
 jobs:
@@ -27,7 +30,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          path: 'glideinwms'
+          path: "glideinwms"
         id: checkout
       - name: pylint action step
         uses: ./.github/actions/pylint-in-sl7-docker

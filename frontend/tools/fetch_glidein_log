@@ -1,8 +1,8 @@
-#!/usr/bin/env python
-#
-# Project:
-#   glideinWMS
-#
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
 #   Retrieve the log of a running glidein
 #
@@ -14,21 +14,17 @@
 # Options:
 #  -d DIR, --work-dir=DIR                  Frontend work dir (default: $FE_WORK_DIR)
 #  -g GROUP_NAME, --group-name=GROUP_NAME  Frontend group name (default: $FE_GROUP_NAME)
-#
-# Author:
-#   Igor Sfiligoi
-#
 
-from __future__ import print_function
+
+import optparse
 import os
 import sys
-import string
-import optparse
 
-sys.path.append(os.path.join(sys.path[0],"../../.."))
 from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend.tools.lib import frontenvparse
 from glideinwms.lib import condorExe
+
+sys.path.append(os.path.join(sys.path[0], "../../.."))
 
 
 ############################################################
@@ -36,11 +32,13 @@ from glideinwms.lib import condorExe
 def main(argv):
     feconfig = frontenvparse.FEConfig()
     # parse arguments
-    usage = ("Usage: %prog [options] glidein_name [log_type]\n\n" +
-             "Arguments:\n" +
-             "  glidein_name - Name of the glidein, e.g. glidein_637@cabinet-1-1-1.t2.ucsd.edu\n" +
-             "  log_type - Type of the log, defaults to STARTD\n" +
-             "             See condor_fetchlog help for the full list")
+    usage = (
+        "Usage: %prog [options] glidein_name [log_type]\n\n"
+        + "Arguments:\n"
+        + "  glidein_name - Name of the glidein, e.g. glidein_637@cabinet-1-1-1.t2.ucsd.edu\n"
+        + "  log_type - Type of the log, defaults to STARTD\n"
+        + "             See condor_fetchlog help for the full list"
+    )
     argparser = optparse.OptionParser(usage=usage)
     feconfig.config_optparse(argparser)
     (options, other_args) = argparser.parse_args(argv[1:])
@@ -52,13 +50,13 @@ def main(argv):
         log_type = other_args[1]
     else:
         log_type = "STARTD"
-        
+
     feconfig.load_frontend_config(options)
     feconfig.set_environment(wpilots=True)
-    
+
     try:
-        out = condorExe.exe_cmd_sbin("condor_fetchlog","-startd %s %s" % (glidein_name,log_type))
-        print(string.join(out, "\n"))
+        out = condorExe.exe_cmd_sbin("condor_fetchlog", f"-startd {glidein_name} {log_type}")
+        print("\n".join(out))
     except condorExe.ExeError as e:
         sys.stderr.write("%s\n" % e)
         return 1
@@ -71,7 +69,7 @@ def main(argv):
 #
 ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         sys.exit(main(sys.argv))
     except Exception as e:

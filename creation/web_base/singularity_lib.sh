@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # This script contains some utility functions for the singularity scripts
 # The script will be available outside and inside Singularity
@@ -316,7 +320,7 @@ list_get_intersection() {
 #
 # GWMS path functions
 #
-# TODO: to remove from here. These 3 variables and 3 functions are also in glidein_paths.source, 
+# TODO: to remove from here. These 3 variables and 3 functions are also in glidein_paths.source,
 #  because used in glidien_startup.sh
 #  This file should import from there
 #  Make sure that are in sync in the mean time. Consider glidein_paths.source authoritative
@@ -345,7 +349,7 @@ robust_realpath() {
 gwms_process_scripts() {
     # Process all the scripts in the directory, in lexicographic order
     #  ignore the files named .ignore files
-    #  run all the executable files passing glidein_config ($3) as argument, 
+    #  run all the executable files passing glidein_config ($3) as argument,
     #  source the remaining files if extension is .sh or .source
     # 1- directory scripts to process
     # 2- a modifier to search only in subdirectories (prejob)
@@ -601,7 +605,7 @@ htc_rematch() {
 
 
 htc_get_vars_from_env_str() {
-  local str_arr condor_var_string=""  
+  local str_arr condor_var_string=""
   # TODO: used \" instead of '"' - check w/ Carl if changes are ok, ask about quoting
   env_str=${env_str#\"}
   env_str=${env_str%\"}
@@ -653,8 +657,8 @@ env_clear_one() {
 env_process_options() {
     # The options string is a list of any of the following:
     #   clearall - clear all from the environment (at your own risk)
-    #   condorset - _CONDOR_ env variables AND variables set in the job ClassAd (Environment)
-    #   osgset - set of OSG variables (get it from OSG wrapper). Implied condorset
+    #   condorset - _CONDOR_ env variables AND variables set in the job ClassAd (Environment). Implied gwmsset
+    #   osgset - set of OSG variables (get it from OSG wrapper). Implied gwmsset
     #   gwmsset - set of GWMS utilities variables
     #   clear - same as: clearall,gwmsset,osgset,condorset
     #   clearpaths - clear only PATH,LD_LIBRARY_PATH,PYTHONPATH (default)
@@ -674,7 +678,8 @@ env_process_options() {
         retval=${1}
         [[ ",${retval}," = *",clear,"* ]] && retval="${retval},clearall,gwmsset,osgset,condorset"
         [[ ",${retval}," = *",osgset,"* && ! ",${retval}," = *",condorset,"* ]] && retval="${retval},condorset"
-
+        [[ ",${retval}," = *",osgset,"* && ! ",${retval}," = *",gwmsset,"* ]] && retval="${retval},gwmsset"
+        [[ ",${retval}," = *",condorset,"* && ! ",${retval}," = *",gwmsset,"* ]] && retval="${retval},gwmsset"
     fi
     echo "$retval"
 }
@@ -730,8 +735,8 @@ env_preserve() {
     # or referenced during the second execution of this script, they will
     # also need to be added to this list.  I don't know an elegant way
     # to automate that process.
-    # 
-    # CVMFS_MOUNT_DIR is important outside singularity, but CVMFS is assumed 
+    #
+    # CVMFS_MOUNT_DIR is important outside singularity, but CVMFS is assumed
     # to be mounted always as /cvmfs inside, so no need to preserve the variable
 
     # In
@@ -755,6 +760,7 @@ env_preserve() {
 
     local envvars_osgset="OSG_SINGULARITY_REEXEC \
     _CHIRP_DELAYED_UPDATE_PREFIX \
+    APPTAINER_WORKDIR \
     CONDOR_PARENT_ID \
     GLIDEIN_ResourceName \
     GLIDEIN_Site \
@@ -788,7 +794,8 @@ env_preserve() {
     env_options=",$(env_process_options "$1"),"
     local env_preserve=
     local all_condor_set_envvars varname newname envvars_condorset=""
-    local singenv_condor_set_envvars="" singenv_regex="^SINGULARITYENV_"
+    # ist of Singularity/Apptainer protected variables
+    local singenv_condor_set_envvars="" singenv_regex="^SINGULARITYENV_" apptenv_regex="^APPTAINERENV_"
     # Protect GWMS variables all the time the environment is cleared
     env_preserve="$env_preserve $envvars_gwmsset"
 #    if [[ "${env_options}" = *",gwmsset,"* ]]; then
@@ -803,12 +810,14 @@ env_preserve() {
         # protect the variables in HTCondor set
 
         # Determine all the _CONDOR_* variable names
-        env_preserve="$env_preserve $(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^_CONDOR_)"
+        env_preserve="$env_preserve $(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^_CONDOR_ | tr '\n' ' ')"
         # Determine all the environment variables from the job ClassAd
         if [[ -e "$_CONDOR_JOB_AD" ]]; then
             all_condor_set_envvars=$(htc_parse_env_file "$_CONDOR_JOB_AD")
             for varname in ${all_condor_set_envvars}; do
                 if [[ "$varname" =~ ${singenv_regex} ]]; then
+                    singenv_condor_set_envvars="$singenv_condor_set_envvars $varname"
+                elif [[ "$varname" =~ ${apptenv_regex} ]]; then
                     singenv_condor_set_envvars="$singenv_condor_set_envvars $varname"
                 else
                     envvars_condorset="$envvars_condorset $varname"
@@ -817,8 +826,8 @@ env_preserve() {
             # If the user set variables of the form SINGULARITYENV_VARNAME,
             # then warn them and unset those variables
             if [ -n "${singenv_condor_set_envvars}" ]; then
-                warn "The following variables beginning with 'SINGULARITYENV_' were set in the HTCondor " \
-                     "submission file and will not be propagated: ${singenv_condor_set_envvars}"
+                warn "The following variables beginning with 'SINGULARITYENV_' or 'APPTAINERENV_' were set " \
+                     "in the HTCondor submission file and will not be propagated: ${singenv_condor_set_envvars}"
                 for varname in ${singenv_condor_set_envvars}; do
                     unset "$varname"
                 done
@@ -829,7 +838,7 @@ env_preserve() {
 
     # Add to the list to preserve to Singularity
     # TODO: revise this once Singularity supports env-file (3.6)
-    info_dbg "Protecting the following variables by setting SINGULARITYENV_ variables: $env_preserve"
+    info_dbg "Protecting the following variables by setting SINGULARITYENV_/APPTAINERENV_ variables: $env_preserve"
     for varname in ${env_preserve}; do
         # If any of the variables above are unset, we don't want to
         # accidentally propagate that into the container as set but empty.
@@ -837,10 +846,13 @@ env_preserve() {
         # sure what we can assume.
         if [[ -n "${!varname+x}" ]]; then
             newname="SINGULARITYENV_${varname}"
-            # If there's already a variable of the form SINGULARITYENV_varname set,
-            # then do nothing.  Unsure if this should  be removed if setting up
+            newname_appt="APPTAINERENV_${varname}"
+            # If there's already a variable of the form APPTAINERENV_varname or SINGULARITYENV_varname set,
+            # then do nothing. No check on consistency if both are set, or setting the Apptainer one if not set.
+            # Unsure if this should  be removed if setting up
             # the condor-specified environment inside the container is implemented.
-            if [[ -z "${!newname+x}" ]]; then
+            if [[ -z "${!newname_appt+x}" && -z "${!newname+x}" ]]; then
+                export "$newname_appt"="${!varname}"
                 export "$newname"="${!varname}"
             fi
         fi
@@ -851,7 +863,7 @@ env_preserve() {
 
 env_restore() {
     # Restore the environment if the Singularity invocation fails
-    # Nothing to do for the env cleared by Singularity, we are ourside of it.
+    # Nothing to do for the env cleared by Singularity, we are outside of it.
     # The PATH... variables may need to be restored.
     #
     # In Singularity there is nothing to do.
@@ -921,8 +933,8 @@ cvmfs_test_and_open() {
 
 cvmfs_path_in_cvmfs_literal() {
     # True (0) if the image path is in CVMFS, i.e. is /cvmfs or starts with /cvmfs/
-    # TODO: What if cvmfs cannot be mounted there (non root, ...) and is mounted e.g. in /srv/cvmfs ? 
-    #  Should check for "/cvmfs" in path (not only at the beginning, could this be confusing 
+    # TODO: What if cvmfs cannot be mounted there (non root, ...) and is mounted e.g. in /srv/cvmfs ?
+    #  Should check for "/cvmfs" in path (not only at the beginning, could this be confusing
     #  moving to a function to change easily the heuristic
     # In:
     #  1 - path to check
@@ -931,7 +943,7 @@ cvmfs_path_in_cvmfs_literal() {
 
 
 cvmfs_path_in_cvmfs() {
-    # True (0) if the image path is in CVMFS, whichever the actual mount point is, 
+    # True (0) if the image path is in CVMFS, whichever the actual mount point is,
     # - the path is /cvmfs or starts with /cvmfs/ (could be symbolic)
     # - the path is $CVMFS_MOUNT_DIR or starts with $CVMFS_MOUNT_DIR/ and CVMFS_MOUNT_DIR is set
     # In:
@@ -1015,8 +1027,8 @@ singularity_get_binds() {
     local retv=  # default controlled from outside ($2)
     local checks=$1
 
-    # Get singularity binds from GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, 
-    # invoker adds default /cvmfs (via $2), 
+    # Get singularity binds from GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT,
+    # invoker adds default /cvmfs (via $2),
     # add overrides, and remove non existing src (checks=e) - if src is not existing Singularity will error (not run)
 
     info_dbg "Singularity binds: OVERRIDE:$3, BINDPATH:$GLIDEIN_SINGULARITY_BINDPATH, BINDPATH_DEFAULT:$GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, DEFAULT:$2, CHECKS($checks)"
@@ -1097,12 +1109,12 @@ singularity_update_path() {
                     esac
             esac
             # Warn about possible error conditions
-            [[ "${arg}" == *"${out_path}"* ]] && warn "Outside path (${outside_pwd}) still in argument ($arg), the path is a partial match or the conversion to run in Singularity may be incorrect"
+            [[ "${arg}" == *"${out_path}"* ]] && info_dbg "Outside path (${outside_pwd}) still in argument ($arg), the path is a partial match or the conversion to run in Singularity may be incorrect"
             $arg_found && break
         done
         IFS="$old_ifs"
         # Warn about possible error conditions
-        [[ "${arg}" == */execute/dir_* ]] && warn_muted "String '/execute/dir_' in argument path ($arg), path is a partial match or the conversion to run in Singularity may be incorrect"
+        [[ "${arg}" == */execute/dir_* ]] && info_dbg "String '/execute/dir_' in argument path ($arg), path is a partial match or the conversion to run in Singularity may be incorrect"
         GWMS_RETURN+=("${arg}")
     done
 }
@@ -1297,6 +1309,8 @@ singularity_test_bin() {
     # In:
     #   1 - type,path
     #   2 - s_image, if provided will be used to test Singularity (as additional test)
+    #   3 - s_binary_name, container system binary (and module) name, "singularity" by default,
+    #                      used to test for apptainer
     # Side effects:
     #  bread_crumbs - documents the tests for debugging purposes
     #     test:   -> test attempted, path not provided or 'singularity version' failed,
@@ -1305,39 +1319,46 @@ singularity_test_bin() {
     #     test:TT -> both singularity version and image invocation succeeded
     # Out:
     #  return 0 - all attempted tests succeeded, 1 - a test failed
-    #  stdout "_$step\n_$sin_type\n_$sin_version\n_$sin_path\n_@$bread_crumbs" ("$bread_crumbs" if failing)
+    #  stdout "_$step\n_$sin_type\n_$sin_version\n_$sin_version_full\n_$sin_path\n_@$bread_crumbs"
+    #         ("$bread_crumbs" if failing)
 
     local step="${1%%,*}"
     local sin_path="${1#*,}"
+    local sin_binary_name="${3:-singularity}"
     local sin_version
+    local sin_full_version
     local sin_type
     local sin_image="$2"
     if [[ "$step" = module ]]; then
-        local module_name=singularity
+        local module_name="$sin_binary_name"
         [[ -n "$sin_path" ]] && module_name=$sin_path
         module load "$module_name" >/dev/null 2>&1
         # message on error?
-        sin_path=$(which singularity)
+        sin_path=$(which "$sin_binary_name")
         # should check also CVMFS_MOUNT_DIR beside /cvmfs but not adding complication just for the warning message
         [[ -z "$sin_path" && "$LMOD_CMD" = /cvmfs/* ]] &&
-            warn "Singularity not found in module. OSG OASIS module from module-init.sh used. May override a system module."
+            warn "$sin_binary_name not found in module. OSG OASIS module from module-init.sh used. May override a system module."
     elif [[ "$step" = PATH ]]; then
         # find the full path
-        sin_path=$(which singularity)
+        [[ -n "$sin_path" ]] && sin_binary_name="$sin_path"
+        sin_path=$(which "$sin_binary_name")
     fi
     if [[ -z "$sin_path" ]] && [[ "$step" = module || "$step" = PATH ]]; then
-        info_dbg "which failed ($PATH). Trying command: $(command -v singularity)"
-        sin_path=$(command -v singularity)
-    fi    
-    local bread_crumbs=" $step($sin_path):"
-    if ! sin_version=$("$sin_path" version 2>/dev/null); then
-        # singularity 2.6.1 does not have the version command, must use option
-        sin_version=$("$sin_path" --version 2>/dev/null)
+        info_dbg "which failed ($PATH). Trying command: command -v \"$sin_binary_name\""
+        sin_path=$(command -v "$sin_binary_name")
     fi
-    [[ $? -ne 0 || -z "$sin_version" ]] && { echo "$bread_crumbs"; false; return; }
-    # More recent singularity versions add a "singularity version " prefix to the version number 
-    # in "singularity --version" this is not the case with "singularity version"
-    sin_version=${sin_version#singularity version }
+    local bread_crumbs=" $step($sin_path):"
+    sin_full_version=$("$sin_path" --version 2>/dev/null)
+    if ! sin_version=$("$sin_path" version 2>/dev/null); then
+        # The version command returns only the version number
+        # singularity 2.6.1 does not have the version command, must use option
+        # More recent singularity versions add a "singularity version " prefix to the version number
+        # in "singularity --version" this is not the case with "singularity version"
+        # Similarly, apptainer  --version has an "apptainer version " prefix
+        sin_version=${sin_full_version#singularity version }
+        sin_version=${sin_version#apptainer version }
+    fi
+    [[ -z "$sin_version" ]] && { echo "$bread_crumbs"; false; return; }
     if [[ -z "$sin_image" ]]; then
         sin_type=unknown
         bread_crumbs+="T"
@@ -1352,19 +1373,20 @@ singularity_test_bin() {
         fi
     fi
     # \n is the separator, _ is to ensure that all lines are counted when parsing, @ used for bread_crumbs quick parse
-    echo -e "_$step\n_$sin_type\n_$sin_version\n_$sin_path\n_@$bread_crumbs"
+    echo -e "_$step\n_$sin_type\n_$sin_version\n_$sin_full_version\n_$sin_path\n_@$bread_crumbs"
     # true; return
 }
 
 
 singularity_locate_bin() {
     # Find Singularity in search path, check the version and validate w/ the image (if an image is passed)
+    # Will look in some places also for apptainer (and singularitypro)
     # This will search in order:
     # 1. Optional: Look first in the override path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)
-    # 2. Look in the path suggested via $1 (SINGULARITY_BIN) 
-    #      (keywords: PATH -> go to step 3 - ie start w/ $PATH; 
+    # 2. Look for 'singularity' and then 'apptainer' in the path suggested via $1 (SINGULARITY_BIN)
+    #      (keywords: PATH -> go to step 3 - ie start w/ $PATH;
     #           OSG -> OSG location, and continue from step 3 if failed, this is the default)
-    # 3. Look in $PATH
+    # 3. Look in $PATH for 'apptainer' and then 'singularity'
     # 4. Invoke module singularitypro
     # 5. Invoke module singularity
     # 6. Look in the default OSG location
@@ -1399,20 +1421,28 @@ singularity_locate_bin() {
             # Try considering it a PATH
             local singularity_binary_override_bin
             if ! singularity_binary_override_bin=$(PATH="$singularity_binary_override" command -v singularity); then
-                info "Override path '$singularity_binary_override' (GLIDEIN_SINGULARITY_BINARY_OVERRIDE) is not a valid binary or a PATH containing singularity."
-                info "Will proceed with suggested path and auto-discover"
+                if singularity_binary_override_bin=$(PATH="$singularity_binary_override" command -v apptainer); then
+                    info "Found 'apptainer' instead of 'singularity' in the override path, trying that"
+                    bread_crumbs+="_path"
+                    test_out=$(singularity_test_bin "s_override,${singularity_binary_override_bin}" "$s_image" apptainer) &&
+                        HAS_SINGULARITY=True
+                    bread_crumbs+="${test_out##*@}"
+                else
+                    info "Override path '$singularity_binary_override' (GLIDEIN_SINGULARITY_BINARY_OVERRIDE) is not a valid binary or a PATH containing singularity."
+                    info "Will proceed with suggested path and auto-discover"
+                fi
             else
-            bread_crumbs+="_path"
-            test_out=$(singularity_test_bin "s_override,${singularity_binary_override_bin}" "$s_image") &&
-                HAS_SINGULARITY=True
-            bread_crumbs+="${test_out##*@}"                
+                bread_crumbs+="_path"
+                test_out=$(singularity_test_bin "s_override,${singularity_binary_override_bin}" "$s_image") &&
+                    HAS_SINGULARITY=True
+                bread_crumbs+="${test_out##*@}"
             fi
         else
             bread_crumbs+="_bin"
             test_out=$(singularity_test_bin "s_override,${singularity_binary_override}" "$s_image") &&
                 HAS_SINGULARITY=True
             bread_crumbs+="${test_out##*@}"
-        fi        
+        fi
     fi
     if [[ "$HAS_SINGULARITY" != True && -n "$s_location" && "$s_location" != PASS ]]; then
         s_location_msg=" at $s_location,"
@@ -1432,12 +1462,13 @@ singularity_locate_bin() {
         fi
     fi
     if [[ "$HAS_SINGULARITY" != True ]]; then
-        # 3. Look in $PATH
-        # 4. Invoke module singularitypro
-        # 5. Invoke module singularity
+        # 3. Look in $PATH for apptainer
+        # 4. Look in $PATH for singularity
+        # 5. Invoke module singularitypro
+        # 6. Invoke module singularity
         #    some sites requires us to do a module load first - not sure if we always want to do that
-        # 6. Look in the default OSG location
-        for attempt in "PATH,singularity" "module,singularitypro" "module,singularity" "OSG,${osg_singularity_binary}"; do
+        # 7. Look in the default OSG location
+        for attempt in "PATH,apptainer" "PATH,singularity" "module,singularitypro" "module,singularity" "OSG,${osg_singularity_binary}"; do
             if test_out=$(singularity_test_bin "$attempt" "$s_image"); then
                 HAS_SINGULARITY=True
                 break
@@ -1456,9 +1487,13 @@ singularity_locate_bin() {
             warn "Looks like we found Singularity, but were unable to determine the full path to the executable"
         else
             export HAS_SINGULARITY=${HAS_SINGULARITY}
-            export GWMS_SINGULARITY_PATH="${test_results[3]#_}"
+            export GWMS_SINGULARITY_PATH="${test_results[4]#_}"
             export GWMS_SINGULARITY_VERSION="${test_results[2]#_}"
             export GWMS_SINGULARITY_MODE="${test_results[1]#_}"
+            export GWMS_CONTAINERSW_PATH="${test_results[4]#_}"
+            export GWMS_CONTAINERSW_VERSION="${test_results[2]#_}"
+            export GWMS_CONTAINERSW_FULL_VERSION="${test_results[3]#_}"
+            export GWMS_CONTAINERSW_MODE="${test_results[1]#_}"
             info "Singularity found at \"${GWMS_SINGULARITY_PATH}\" ($GWMS_SINGULARITY_MODE mode, using ${test_results[0]#_})"
             true
             return
@@ -1469,9 +1504,12 @@ singularity_locate_bin() {
     export GWMS_SINGULARITY_PATH=""
     export GWMS_SINGULARITY_VERSION=""
     export GWMS_SINGULARITY_MODE=""
+    export GWMS_CONTAINERSW_PATH=""
+    export GWMS_CONTAINERSW_VERSION=""
+    export GWMS_CONTAINERSW_FULL_VERSION=""
+    export GWMS_CONTAINERSW_MODE=""
     warn "Singularity not found$s_location_msg in OSG_SINGULARITY_BINARY[_DEFAULT], PATH and module"
-    # TODO: Adding as warning to troubleshoot [#24282]. This extra message should be debug information
-    warn "PATH(${PATH}), attempt results(${bread_crumbs})"
+    info_dbg "PATH(${PATH}), attempt results(${bread_crumbs})"
     false
 }
 
@@ -1666,7 +1704,7 @@ singularity_exit_or_fallback () {
             exit_wrapper "${@}"
         else
             # TODO: also this?: touch ../../.stop-glidein.stamp >/dev/null 2>&1
-            [[ -n "$1" ]] && warn "exit_wrapper not defined, printing message and exiting: $1" || 
+            [[ -n "$1" ]] && warn "exit_wrapper not defined, printing message and exiting: $1" ||
                 warn "exit_wrapper not defined, exiting"
             eixt ${2:-1}
         fi
@@ -1683,11 +1721,11 @@ singularity_verify_image() {
     # Exit codes
     #  0 - all OK
     #  1 - image (file or directory) does not exist
-    #  2 - image (directory) exists, is in CVMFS, but the listing fails 
+    #  2 - image (directory) exists, is in CVMFS, but the listing fails
     local singularity_image=$1
     local ok_compressed=false
     [[ "$2" = "ok_compressed" ]] && ok_compressed=true
-    
+
     # TODO: better -e or ls?
     #if ! ls -l "$GWMS_SINGULARITY_IMAGE/" >/dev/null; then
     #if [[ ! -e "$GWMS_SINGULARITY_IMAGE" ]]; then
@@ -1804,8 +1842,9 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     if [[ -n "$GLIDEIN_Tmp_Dir" && -e "$GLIDEIN_Tmp_Dir" ]]; then
         if mkdir "$GLIDEIN_Tmp_Dir/singularity-work.$$"; then
             export SINGULARITY_WORKDIR="$GLIDEIN_Tmp_Dir/singularity-work.$$"
+            export APPTAINER_WORKDIR="$GLIDEIN_Tmp_Dir/singularity-work.$$"
         else
-            warn "Unable to set SINGULARITY_WORKDIR to $GLIDEIN_Tmp_Dir/singularity-work.$$. Leaving it undefined."
+            warn "Unable to set SINGULARITY_WORKDIR/APPTAINER_WORKDIR to $GLIDEIN_Tmp_Dir/singularity-work.$$. Leaving it undefined."
         fi
     fi
 
@@ -1971,12 +2010,12 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
 
 
 setup_from_environment() {
-    # Retrieve variables from Machine and Job ClassAds
-    # Retrieve variables from Machine and Job ClassAds
+    # Retrieve variables from the environment and glidein_config file
     # Set up environment to know if Singularity is enabled and so we can execute Singularity
     # Out:
     #  export all of HAS_SINGULARITY, GWMS_SINGULARITY_STATUS, GWMS_SINGULARITY_PATH, GWMS_SINGULARITY_VERSION, GWMS_SINGULARITY_IMAGES_DICT,
     #    GLIDEIN_REQUIRED_OS, GLIDEIN_DEBUG_OUTPUT, REQUIRED_OS, GWMS_SINGULARITY_IMAGE, CVMFS_REPOS_LIST,
+    #    GWMS_CONTAINERSW_PATH, GWMS_CONTAINERSW_VERSION, GWMS_CONTAINERSW_FULL_VERSION,
     #    GLIDEIN_DEBUG_OUTPUT (if not already set)
 
     # For OSG - from Job ClassAd
@@ -1988,6 +2027,9 @@ setup_from_environment() {
     export GWMS_SINGULARITY_STATUS=${GWMS_SINGULARITY_STATUS:-$(gwms_from_config GWMS_SINGULARITY_STATUS "" get_prop_str)}
     export GWMS_SINGULARITY_PATH=${GWMS_SINGULARITY_PATH:-$(gwms_from_config SINGULARITY_PATH)}
     export GWMS_SINGULARITY_VERSION=${GWMS_SINGULARITY_VERSION:-$(gwms_from_config SINGULARITY_VERSION)}
+    export GWMS_CONTAINERSW_PATH=${GWMS_CONTAINERSW_PATH:-$(gwms_from_config CONTAINERSW_PATH)}
+    export GWMS_CONTAINERSW_VERSION=${GWMS_CONTAINERSW_VERSION:-$(gwms_from_config CONTAINERSW_VERSION)}
+    export GWMS_CONTAINERSW_FULL_VERSION=${GWMS_CONTAINERSW_FULL_VERSION:-$(gwms_from_config CONTAINERSW_FULL_VERSION)}
     # Removed old GWMS_SINGULARITY_IMAGE_DEFAULT6 GWMS_SINGULARITY_IMAGE_DEFAULT7, now in _DICT
     # TODO: send also the image used during test in setup? in case the VO does not care
     # export GWMS_SINGULARITY_IMAGE_DEFAULT=$(get_prop_str $_CONDOR_MACHINE_AD SINGULARITY_IMAGE_DEFAULT)
@@ -2071,6 +2113,9 @@ setup_classad_variables() {
     export GWMS_SINGULARITY_STATUS=$(get_prop_str ${_CONDOR_MACHINE_AD} GWMS_SINGULARITY_STATUS)
     export GWMS_SINGULARITY_PATH=$(get_prop_str ${_CONDOR_MACHINE_AD} SINGULARITY_PATH)
     export GWMS_SINGULARITY_VERSION=$(get_prop_str ${_CONDOR_MACHINE_AD} SINGULARITY_VERSION)
+    export GWMS_CONTAINERSW_PATH=$(get_prop_str ${_CONDOR_MACHINE_AD} CONTAINERSW_PATH)
+    export GWMS_CONTAINERSW_VERSION=$(get_prop_str ${_CONDOR_MACHINE_AD} CONTAINERSW_VERSION)
+    export GWMS_CONTAINERSW_FULL_VERSION=$(get_prop_str ${_CONDOR_MACHINE_AD} CONTAINERSW_FULL_VERSION)
     # Removed old GWMS_SINGULARITY_IMAGE_DEFAULT6 GWMS_SINGULARITY_IMAGE_DEFAULT7, now in _DICT
     # TODO: send also the image used during test in setup? in case the VO does not care
     # export GWMS_SINGULARITY_IMAGE_DEFAULT=$(get_prop_str $_CONDOR_MACHINE_AD SINGULARITY_IMAGE_DEFAULT)
@@ -2163,7 +2208,7 @@ singularity_setup_inside_env() {
             esac
             # Warn about possible error conditions
             [[ "${val}" == *"${out_path}"*  ]] &&
-                warn "Outside path (${out_path}) still in ${key} ($val), the conversion to run in Singularity may be incorrect" ||
+                info_dbg "Outside path (${out_path}) still in ${key} ($val), the conversion to run in Singularity may be incorrect" ||
                 true
             # update and exit loop if the value changed
             if [[ "$val" != "$old_val" ]]; then
@@ -2175,7 +2220,7 @@ singularity_setup_inside_env() {
         IFS="$old_ifs"
         # Warn about possible error conditions
         [[ "${val}" == */execute/dir_* ]] &&
-            warn "String '/execute/dir_' in ${key} ($val), the conversion to run in Singularity may be incorrect" ||
+            info_dbg "String '/execute/dir_' in ${key} ($val), the conversion to run in Singularity may be incorrect" ||
             true
     done
 }

@@ -1,10 +1,8 @@
 #!/bin/bash
-#
-# Project:
-#   glideinWMS
-#
-# File Version: 
-#
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
 #   This helper script creates a machine classad and
 #     and sends it to the collector

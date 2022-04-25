@@ -1,8 +1,11 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module implements time2string functions
@@ -11,18 +14,18 @@
 #   Igor Sfiligoi (Mar 15th 2007)
 #
 
-import time
 import calendar
+import time
 
 
 def getSeconds(now=None):
     if now is None:
         now = time.time()
-    return "%li" % long(now)
+    return "%li" % int(now)
 
 
 def extractSeconds(time_str):
-    return long(time_str)
+    return int(time_str)
 
 
 def getHuman(now=None):
@@ -49,13 +52,15 @@ def getISO8601_Local(now=None):
     if now is None:
         now = time.time()
     tzval = getTZval(now)
-    return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(now)) + ("%+03i:%02i" % ((-tzval / 3600), (-tzval % 3600 / 60)))
+    return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(now)) + (
+        "%+03i:%02i" % ((-tzval // 3600), (-tzval % 3600 // 60))
+    )
 
 
 def extractISO8601_Local(time_str):
     timestr = time_str[:-6]
     tzstr = time_str[-6:]
-    tzval = (long(tzstr[:3]) * 60 + long(tzstr[4:])) * 60
+    tzval = (int(tzstr[:3]) * 60 + int(tzstr[4:])) * 60
     return calendar.timegm(time.strptime(timestr, "%Y-%m-%dT%H:%M:%S")) - tzval
 
 
@@ -73,13 +78,15 @@ def getRFC2822_Local(now=None):
     if now is None:
         now = time.time()
     tzval = getTZval(now)
-    return time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime(now)) + ("%+03i%02i" % ((-tzval / 3600), (-tzval % 3600 / 60)))
+    return time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime(now)) + (
+        "%+03i%02i" % ((-tzval // 3600), (-tzval % 3600 // 60))
+    )
 
 
 def extractRFC2822_Local(time_str):
     timestr = time_str[:-6]
     tzstr = time_str[-5:]
-    tzval = (long(tzstr[:3]) * 60 + long(tzstr[3:])) * 60
+    tzval = (int(tzstr[:3]) * 60 + int(tzstr[3:])) * 60
     return calendar.timegm(time.strptime(timestr, "%a, %d %b %Y %H:%M:%S")) - tzval
 
 

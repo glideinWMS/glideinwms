@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Shell source file to be sourced to run Python unit tests and coverage (shebang added for linting purposes)
 # To be used only inside runtest.sh (runtest.sh and util.sh functions defined, VARIABLES available)
 # All function names start with do_...
@@ -382,10 +386,10 @@ do_process_branch() {
         echo "PYLINT_ERROR_FILES=\"${files_errors}\""
         echo "PYLINT_ERROR_FILES_COUNT=$(grep '^\*\*\*\*\*\*' ${out_pylint} | wc -l | tr -d " ")"
     } > "${outfile}"
-    # Formats differ from pylint version but only errors were requested. The following will include errors and fatal 
+    # Formats differ from pylint version but only errors were requested. The following will include errors and fatal
     # (all lines except file names)
     # TODO: in the future, different categories could be checked and a msg-format used, e.g. 2.5 default:
-    #       --msg-template='{path}:{line}:{column}: {msg_id}: {msg} ({symbol})' 
+    #       --msg-template='{path}:{line}:{column}: {msg_id}: {msg} ({symbol})'
     #       masg_id will start w/ category initial: Fatal Error Warning Refactor Convention
     local pylint_error_count pep8_error_count
     pylint_error_count=$(grep -v '^\*\*\*\*\*\*' ${out_pylint} | wc -l | tr -d " ")
@@ -413,7 +417,7 @@ do_process_branch() {
 
 do_table_headers() {
     # Tab separated list of fields
-    # example of table header 2 fields available start with ',' to keep first field from previous item 
+    # example of table header 2 fields available start with ',' to keep first field from previous item
     echo -e "Pylint,Files\t,ErrFiles\t,ErrNum\tPyCodeStyle,ErrNum"
 }
 
@@ -422,7 +426,7 @@ do_table_values() {
     # 2. output format: if not empty triggers annotation
     # Return a tab separated list of the values
     # $VAR1 $VAR2 $VAR3 expected in $1
-    # If the summary file is missing return tab separated "na" strings 
+    # If the summary file is missing return tab separated "na" strings
     [[ -n "$1" ]] && . "$1" || { echo -e "na\tna\tna\tna"; return; }
     if [[ "$2" = NOTAG ]]; then
         echo -e "${PYLINT_FILES_CHECKED_COUNT}\t${PYLINT_ERROR_FILES_COUNT}\t${PYLINT_ERROR_COUNT}\t${PEP8_ERROR_COUNT}"

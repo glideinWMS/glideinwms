@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 ######################################################################
 ##
 ##  condor_config.check.include
@@ -45,7 +48,7 @@ DS_TO_DIE = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie))
 
 
 # The condition pre 8.2 is valid only for not partitionable slots
-# Since the idle timer doesn't reset/stop when resources are reclaimed, 
+# Since the idle timer doesn't reset/stop when resources are reclaimed,
 # partitionable slots will get reaped sooner than non-partitionable.
 DS${I}_NOT_PARTITIONABLE = ((PartitionableSlot =!= True) || (TotalSlots =?=1))
 # The daemon shutdown expression for idle startds(glideins) depends on some conditions:
@@ -53,11 +56,11 @@ DS${I}_NOT_PARTITIONABLE = ((PartitionableSlot =!= True) || (TotalSlots =?=1))
 # If using condor 8.2 or later (NEW) or previous versions (PRE82). JobStarts defined
 # is used to discriminate
 DS${I}_IS_HCCONDOR_NEW = (Slot${I}_JobStarts =!= UNDEFINED)
-# No jobs started (using GLIDEIN_Max_Idle) 
+# No jobs started (using GLIDEIN_Max_Idle)
 
 
 # The condition pre 8.2 is valid only for not partitionable slots
-# Since the idle timer doesn't reset/stop when resources are reclaimed, 
+# Since the idle timer doesn't reset/stop when resources are reclaimed,
 # partitionable slots will get reaped sooner than non-partitionable.
 DS_NOT_PARTITIONABLE = ((PartitionableSlot =!= True) || (TotalSlots =?=1))
 # The daemon shutdown expression for idle startds(glideins) depends on some conditions:
@@ -73,7 +76,7 @@ DS_IDLE_NOJOB_PRE82 = ((TotalTimeUnclaimedIdle =!= UNDEFINED) && (GLIDEIN_Max_Id
         $(DS_NOT_PARTITIONABLE) && \
         (TotalTimeUnclaimedIdle > GLIDEIN_Max_Idle))
 DS_IDLE_NOJOB = ((GLIDEIN_Max_Idle =!= UNDEFINED) && \
-        ifThenElse($(DS_IS_HTCONDOR_NEW), $(DS_IDLE_NOJOB_NEW), $(DS_IDLE_NOJOB_PRE82))) 
+        ifThenElse($(DS_IS_HTCONDOR_NEW), $(DS_IDLE_NOJOB_NEW), $(DS_IDLE_NOJOB_PRE82)))
 # Some jobs started (using GLIDEIN_Max_Tail)
 DS_IDLE_TAIL_NEW = ((JobStarts =!= UNDEFINED) && (ExpectedMachineGracefulDrainingCompletion =!= UNDEFINED) && (GLIDEIN_Max_Tail =!= UNDEFINED) && \
         (JobStarts > 0) && \
@@ -98,4 +101,3 @@ STARTD.DAEMON_SHUTDOWN = $(DS_TO_DIE) || \
 # STARTD_StartTime is zero, that the startd is not currently running.
 #
 MASTER.DAEMON_SHUTDOWN = (STARTD_StartTime =?= 0)
-

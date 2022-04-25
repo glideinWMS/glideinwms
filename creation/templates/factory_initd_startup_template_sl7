@@ -3,6 +3,9 @@
 # chkconfig: 35 90 30
 # description: Starts and stops a glideinWMS factory
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Emulate function library.
 success() {
     echo -en "\\033[60G[\033[32mOK\033[0m]"
@@ -133,22 +136,6 @@ check_configured () {
     exit $RET_NOT_CONFIGURED
 }
 
-check_35_ready () {
-    # check if files and jobs ownership is correct. Needed for 3.5 single user factory
-    if [ -n "$GWMS_CHECK_35_READY" -o "$1" = "--check_35_ready" ]; then
-        invoke_as_factory $FACTORY_CHECK35_READY
-        f35exit=$?
-        if [ $f35exit -eq 0 ]; then
-            return 0
-        fi
-        echo "The Factory is not ready for 3.5.x. Please run $FACTORY_CHECK35_READY --verbose as the factory user for more details."
-        echo -n "To disable this check remove the --check_35_ready option from the gwms-factory.service file"
-        failure
-        echo
-        exit $RET_NOT_35_READY
-    fi
-    return 0
-}
 
 export HOME="/var/lib/gwms-factory"
 export X509_CERT_DIR="/etc/grid-security/certificates"
@@ -260,7 +247,6 @@ help_usage() {
 start() {
     check_installed
     pushd $factory_dir 1>/dev/null
-    check_35_ready $1
     check_configured
     echo -n "Starting GlideinWMS Factory $id_str: "
 
@@ -425,7 +411,7 @@ reconfig() {
             writeback="$GLIDEIN_WRITEBACK"
 	fi
 
-	echo -n "Reconfiguring the factory"
+	echo -n "Reconfiguring the factory... "
 	pushd $factory_dir 1>/dev/null
 	if [ "$RPM_INSTALL" = "True" ]; then
             extra_options=
@@ -621,4 +607,3 @@ case $1 in
 esac
 
 exit $RETVAL
-

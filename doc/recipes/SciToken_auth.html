@@ -1,185 +1,283 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<html>
-<head>
-    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-    <title>Glidein Recipes -SciTokens Authorization</title>
-    <link rel="stylesheet" type="text/css" href="../common/glideinWMS2.css" media="screen, projection" />
-    <style type="text/css">
-    </style>
-</head>
+<!--
+SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+SPDX-License-Identifier: Apache-2.0
+-->
 
-<body lang="en-US" dir="ltr">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+  <head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8" />
+    <title>Glidein Recipes -SciTokens Authorization</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="../common/glideinWMS2.css"
+      media="screen, projection"
+    />
+    <style type="text/css"></style>
+  </head>
+
+  <body lang="en-US" dir="ltr">
     <h1>
-        <a href="index.html">GlideinWMS</a>
-        <span>The Glidein-based Workflow Management System</span>
+      <a href="index.html">GlideinWMS</a>
+      <span>The Glidein-based Workflow Management System</span>
     </h1>
     <ul class="breadcrumbs">
-        <li><a href="../index.html">Home</a></li>
-        <li><a href="./index.html">Glidein Recipes</a></li>
-        <li><a href="./token_auth.html">Token Authorization</a></li>
-        <li>SciToken Authorization</li>
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="./index.html">Glidein Recipes</a></li>
+      <li><a href="./token_auth.html">Token Authorization</a></li>
+      <li>SciToken Authorization</li>
     </ul>
     <div class="clear" />
     <div class="leftmenu">
-        <ul class="components">
-            <li> <a href="../index.html">Home</a></li>
-            <li> <a href="../download.html">Download</a></li>
-            <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-            <li> <a href="../factory/index.html">WMS Factory</a></li>
-            <li> <a href="../components/index.html" >Components</a></li>
-            <li> <a href="../recipes/index.html">Recipes</a></li>
-            <li> <a href="../components/faq.html" class="last">FAQ</a></li>
-        </ul>
-        <div class="search">
-            <script>
-            (function() {
-                var cx = '013439253731257915088:h-xvmglqvrq';
-                var gcse = document.createElement('script');
-                gcse.type = 'text/javascript';
-                gcse.async = true;
-                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
-                var s = document.getElementsByTagName('script')[0];
-                s.parentNode.insertBefore(gcse, s);
-            })();
-            </script>
-            <gcse:search enableAutoComplete=true></gcse:search>
-        </div>
+      <ul class="components">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../download.html">Download</a></li>
+        <li><a href="../frontend/index.html">Glidein Frontend</a></li>
+        <li><a href="../factory/index.html">WMS Factory</a></li>
+        <li><a href="../components/index.html">Components</a></li>
+        <li><a href="../recipes/index.html">Recipes</a></li>
+        <li><a href="../components/faq.html" class="last">FAQ</a></li>
+      </ul>
+      <div class="search">
+        <script>
+          (function () {
+            var cx = "013439253731257915088:h-xvmglqvrq";
+            var gcse = document.createElement("script");
+            gcse.type = "text/javascript";
+            gcse.async = true;
+            gcse.src = "https://cse.google.com/cse.js?cx=" + cx;
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(gcse, s);
+          })();
+        </script>
+        <gcse:search enableAutoComplete="true"></gcse:search>
+      </div>
     </div>
     <div class="content">
-        <div class="heading">
-            <img align="right" width="280px" border="0px" src="../images/simple_diagram.png" usemap="#rightimage">
-            <map name="rightimage">
-                <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
-                <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
-                <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-            </map>
+      <div class="heading">
+        <img
+          align="right"
+          width="280px"
+          border="0px"
+          src="../images/simple_diagram.png"
+          usemap="#rightimage"
+        />
+        <map name="rightimage">
+          <area
+            shape="rect"
+            coords="90,3,177,60"
+            href="../frontend/index.html"
+          />
+          <area
+            shape="rect"
+            coords="5,88,118,146"
+            href="../components/collector_install.html"
+          />
+          <area
+            shape="rect"
+            coords="134,88,275,146"
+            href="../factory/index.html"
+          />
+        </map>
 
-            <h2>SciToken Authorization</h2>
-            <ul class="subcomponents">
-                <li><a href="./index.html">Overview</a></li>
-                <li> <a href="./batch.html">Batch (BOSCO)</a></li>
-                <li><a href="./cloud.html">Cloud Recipes</a></li>
-                <li><a href="./token_auth.html">Token Auth</a></li>
-                <li class="last"> <a href="./ec2vmroll.html">EC2 VM Roll</a></li>
-            </ul>
+        <h2>SciToken Authorization</h2>
+        <ul class="subcomponents">
+          <li><a href="./index.html">Overview</a></li>
+          <li><a href="./batch.html">Batch (BOSCO)</a></li>
+          <li><a href="./cloud.html">Cloud Recipes</a></li>
+          <li><a href="./token_auth.html">Token Auth</a></li>
+          <li class="last"><a href="./ec2vmroll.html">EC2 VM Roll</a></li>
+        </ul>
         <div class="space">
           <p>&nbsp</p>
           <p>&nbsp</p>
         </div>
-        </div>
-        <div class="jump">
-           <u>Jump to:</u>
-            <ol>
-                <li><a href="#Description">Description</a> </li>
-                <li><a href="#Requirements">Requirements</a> </li>
-                <li><a href="SciToken_auth_old.html#Generate">Obtain a SciToken </a> </li>
-                <li><a href="#FrontendConfig">Configure VOFrontend to use SciToken</a> </li>
-                <li><a href="#FactoryConfig">Configure Factory to submit your SciToken</a> </li>
-                <li><a href="#CEConfig">Configure CE to accept your SciToken</a> </li>
-                <li><a href="#Check">Verify Token Functionality</a> </li>
-                <li><a href="#Useful">Useful Links</a> </li>
-          </ol>
-        </div>
-        <div class="section">
-          <h2 id="Description" class="western">Description</h2
-            <p>
-             This page documents a recipe for enabling and managing SciTokens Authorization between Glidein VOFrontend Groups and the
-             Compute Elements(CE)s they request glideins to run on. 
-            </p>
-        </div>
-        <div class="section">
-            <h2 id="Requirements" class="western">Requirements</h2>
-            <p>
+      </div>
+      <div class="jump">
+        <u>Jump to:</u>
+        <ol>
+          <li><a href="#Description">Description</a></li>
+          <li><a href="#Requirements">Requirements</a></li>
+          <li>
+            <a href="SciToken_auth_old.html#Generate">Obtain a SciToken </a>
+          </li>
+          <li>
+            <a href="#FrontendConfig">Configure VOFrontend to use SciToken</a>
+          </li>
+          <li>
+            <a href="#FactoryConfig"
+              >Configure Factory to submit your SciToken</a
+            >
+          </li>
+          <li><a href="#CEConfig">Configure CE to accept your SciToken</a></li>
+          <li><a href="#Check">Verify Token Functionality</a></li>
+          <li><a href="#Useful">Useful Links</a></li>
+        </ol>
+      </div>
+      <div class="section">
+        <h2 id="Description" class="western">Description</h2>
+        <p>
+          This page is out of date but may contain useful information. Please
+          see <a href="../components/jwt.html">JWT configuration</a> for current
+          JWT instructions.
+        </p>
+        <p>
+          This page documents a recipe for enabling and managing SciTokens
+          Authorization between Glidein VOFrontend Groups and the Compute
+          Elements(CE)s they request glideins to run on.
+        </p>
+      </div>
+      <div class="section">
+        <h2 id="Requirements" class="western">Requirements</h2>
+        <p></p>
+        <table
+          summary="Requirements for SciTokens Authorization"
+          class="requirements"
+        >
+          <tbody>
+            <tr class="head">
+              <td scope="col">Requirement</td>
+              <td scope="col">Description</td>
+            </tr>
+            <tr>
+              <td>
+                Compatible GlideinWMS Versions For both Factory and VOFrontend
+              </td>
+              <td>
+                This documentation refers to GlideinWMS v3_7_3 and above for
+                both Factory and VOFrontend
+              </td>
+            </tr>
+            <tr>
+              <td>Compatible HTCondor Versions</td>
+              <td>
+                GlideinWMS v3_7_3 installs condor 8.9.11 at the time of this
+                writing. Condor version must be 8.9.11 or greater
+              </td>
+            </tr>
 
-            </p>
-            <table summary="Requirements for SciTokens Authorization" class="requirements">
-                <tbody>
-                    <tr class="head">
-                        <td scope="col">Requirement</td>
-                        <td scope="col">Description</td>
-                    </tr>
-                    <tr>
-                        <td>Compatible GlideinWMS Versions For both Factory and VOFrontend</td>
-                        <td>
-                          This documentation refers to GlideinWMS v3_7_3 and above for both Factory and VOFrontend
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Compatible HTCondor Versions  </td>
-                        <td>
-                          GlideinWMS v3_7_3  installs condor 8.9.11 at the time of this writing. Condor version must
-                          be 8.9.11 or greater
-                        </td>
-                    <tr>
-                      <td>An HTCondor Compute Element (htcondor-ce) Compatible with and correctly configured for SciTokens</td>
-                        <td>
-Minimal version requirements at the time of this writing
-<pre>
+            <tr>
+              <td>
+                An HTCondor Compute Element (htcondor-ce) Compatible with and
+                correctly configured for SciTokens
+              </td>
+              <td>
+                Minimal version requirements at the time of this writing
+                <pre>
 htcondor-ce.noarch        4.4.1-3.el7  @htcondor-development
 htcondor-ce-client.noarch 4.4.1-3.el7  @htcondor-development
 htcondor-ce-condor.noarch 4.4.1-3.el7  @htcondor-development
 condor.x86_64             8.9.11-1.el7 @htcondor-development
-</pre>
-                        </td>
-                    </tr>
-                    <tr><td>A SciToken that the htcondor-ce will accept
-                      </td>
-                      <td> Link to method for generating a working token is given below.  This is not how SciTokens would be generated and used in a production environment.
-                      </td>
-                </tbody>
-            </table>
-        </div>
-        <div class="section">
-            <h2 id="Generate" class="western">Obtain a SciToken </h2>
-            <p> These instructions are expected to change rapidly, so for release 3.7.3 we will link to 
-             <a href="SciToken_auth_old.html#Generate">older instructions</a>
-        </div>
-        <div class="section">
-          <h2 id="FrontendConfig" class="western">Configure VOFrontend to use SciTokens</h2>
-            <p>The SciToken must be configured in the "credentials" section of the frontend.xml config file.  Example:
-              <pre>
+</pre
+                >
+              </td>
+            </tr>
+            <tr>
+              <td>A SciToken that the htcondor-ce will accept</td>
+              <td>
+                Link to method for generating a working token is given below.
+                This is not how SciTokens would be generated and used in a
+                production environment.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="section">
+        <h2 id="Generate" class="western">Obtain a SciToken</h2>
+        <p>
+          These instructions are expected to change rapidly, so for release
+          3.7.3 we will link to
+          <a href="SciToken_auth_old.html#Generate">older instructions</a>
+        </p>
+      </div>
+
+      <div class="section">
+        <h2 id="FrontendConfig" class="western">
+          Configure VOFrontend to use SciTokens
+        </h2>
+        <p>
+          The SciToken must be configured in the "credentials" section of the
+          frontend.xml config file. Example:
+        </p>
+        <pre>
 &lt;credentials&gt;
   &lt;credential absfname="/var/lib/gwms-frontend/tokens.d/fermicloud127.scitoken" security_class="frontend" trust_domain="OSG" type="scitoken"/&gt;
 &lt;/credentials&gt;
-              </pre>
-              <p> In this example,  <b>absfname</b> is the full path to the SciToken. The <b>type</b> must be 
-              set to "scitoken". The <b>trust_domain</b> and <b>security_class</b> are used to communicate  routing and matching 
-              when the credential is passed  the factory.  They  behave the same way for SciTokens as they do for other credential types.
-              <p>Multiple credential lines can be placed in a frontend &lt;credentials&gt; section.  Example
-              <pre>
+              </pre
+        >
+        <p>
+          In this example, <b>absfname</b> is the full path to the SciToken. The
+          <b>type</b> must be set to "scitoken". The <b>trust_domain</b> and
+          <b>security_class</b> are used to communicate routing and matching
+          when the credential is passed the factory. They behave the same way
+          for SciTokens as they do for other credential types.
+        </p>
+
+        <p>
+          Multiple credential lines can be placed in a frontend
+          &lt;credentials&gt; section. Example
+        </p>
+        <pre>
 &lt;credentials&gt;
   &lt;credential absfname="/var/lib/gwms-frontend/proxy1" security_class="frontend" trust_domain="OSG" type="grid_proxy"/&gt;
   &lt;credential absfname="/var/lib/gwms-frontend/proxy2" security_class="frontend" trust_domain="OSG" type="grid_proxy"/&gt;
   &lt;credential absfname="/var/lib/gwms-frontend/tokens.d/fermicloud127.scitoken" security_class="frontend" trust_domain="OSG" type="scitoken"/&gt;
 &lt;/credentials&gt;
-              </pre>
-              <p>In such a configuration, all the above credentials will be passed to the factory. The factory will try SciTokens 
-              authentication to the CE first, if this is unsuccessful, the other credentials will be tried as dictated by the 
-              xml configuration of the factory.
-              
-              <p>If the SciToken is refreshed on the VOFrontend it will be updated at the Factory.  Currently running glideins will
-              not automatically pick up the refreshed SciToken.
-              
-              <p>The frontend.xml configuration file has two &lt;credentials&gt; sections that can pass on a token, the 
-              "global" and "frontend group" sections.  A "frontend group" configured SciToken will be preferred over a 
-              "global" SciToken if they exist in both &lt;credentials&gt; sections.
-        </div>
-        <div class="section">
-          <h2 id="FactoryConfig" class="western">Configure Factory to submit your SciToken</h2>
-          <p> Beginning of an example SciTokens entry configuration:
+              </pre
+        >
+        <p>
+          In such a configuration, all the above credentials will be passed to
+          the factory. The factory will try SciTokens authentication to the CE
+          first, if this is unsuccessful, the other credentials will be tried as
+          dictated by the xml configuration of the factory.
+        </p>
 
-              <pre>
+        <p>
+          If the SciToken is refreshed on the VOFrontend it will be updated at
+          the Factory. Currently running glideins will not automatically pick up
+          the refreshed SciToken.
+        </p>
+
+        <p>
+          The frontend.xml configuration file has two &lt;credentials&gt;
+          sections that can pass on a token, the "global" and "frontend group"
+          sections. A "frontend group" configured SciToken will be preferred
+          over a "global" SciToken if they exist in both &lt;credentials&gt;
+          sections.
+        </p>
+      </div>
+
+      <div class="section">
+        <h2 id="FactoryConfig" class="western">
+          Configure Factory to submit your SciToken
+        </h2>
+        <p>Beginning of an example SciTokens entry configuration:</p>
+
+        <pre>
 &lt;entry name="el7_osg35ST" auth_method="scitoken" grid_type="condor"  trust_domain="OSG"  ...../&gt;
-              </pre>
-              <p>Note that the auth_method is "scitoken", meaning no GSI credentials are sent to this entry.  If the auth_method were "grid_proxy"
-              or other GSI based method, and the frontend was configured to send a SciToken to the factory, SciTokens authorization
-              would be attempted prior to any other method, with a fallback to GSI if there was a problem with the token auth.
-        </div>
-        <div class="section">
-          <h2 id="Check" class="western">Verify Token Functionality</h2>
-          <p>SciTokens can be used to interrogate the CE's collector using condor_ping from either the Factory or VOFrontend to verify that
-          the token is valid and the CE is correctly configured.
-<pre>
+              </pre
+        >
+        <p>
+          Note that the auth_method is "scitoken", meaning no GSI credentials
+          are sent to this entry. If the auth_method were "grid_proxy" or other
+          GSI based method, and the frontend was configured to send a SciToken
+          to the factory, SciTokens authorization would be attempted prior to
+          any other method, with a fallback to GSI if there was a problem with
+          the token auth.
+        </p>
+      </div>
+
+      <div class="section">
+        <h2 id="Check" class="western">Verify Token Functionality</h2>
+        <p>
+          SciTokens can be used to interrogate the CE's collector using
+          condor_ping from either the Factory or VOFrontend to verify that the
+          token is valid and the CE is correctly configured.
+        </p>
+
+        <pre>
 [root@fermicloud359 ~]# MY_CE=fermicloud127.fnal.gov
 [root@fermicloud359 ~]# _condor_SCITOKENS_FILE=/path/to/scitoken condor_ping -address "<$(host $MY_CE | awk '{print $4}'):9619>" -table ALL
          Instruction Authentication Encryption Integrity Decision Identity
@@ -195,25 +293,44 @@ condor.x86_64             8.9.11-1.el7 @htcondor-development
     ADVERTISE_SCHEDD           FAIL       FAIL      FAIL     FAIL FAIL  (use -verbose for more info)
     ADVERTISE_MASTER           FAIL       FAIL      FAIL     FAIL FAIL  (use -verbose for more info)
 [root@fermicloud359 ~]#
-</pre>
-<p> Another check is to disable GSI communication between the Factory and the CE by changing the auth_method from "grid_proxy" to "scitoken", reconfig
-the factory, and submit a job.  If the factory can still submit jobs to the CE, SCITOKENS authentication must be working.
+</pre
+        >
+        <p>
+          Another check is to disable GSI communication between the Factory and
+          the CE by changing the auth_method from "grid_proxy" to "scitoken",
+          reconfig the factory, and submit a job. If the factory can still
+          submit jobs to the CE, SCITOKENS authentication must be working.
+        </p>
+      </div>
 
-        </div>
-        <div class="section">
-          <h2 id="Useful" class="western">Useful Links</h2>
-          <ul>
-            <li><a href="https://scitokens.org/technical_docs/Claims">SciTokens Claims and Scopes Language</a> A good description of what claims you may want to put in your SciTokens and why.
-            <li><a href="https://zenodo.org/record/3460258#.XrMgksZ7nOQ">WLCG Common JWT Profiles</a> WLCG Tokens are 'nearly' interoperable with SciTokens and are more mature.
-        </div>
-        <div class="footer">
-            Banner image by
-            <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
-            used under Creative Commons license.
-            <br>
-            Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-            GlideinWMS email support: glideinwms-support at fnal.gov
-        </div>
+      <div class="section">
+        <h2 id="Useful" class="western">Useful Links</h2>
+        <ul>
+          <li>
+            <a href="https://scitokens.org/technical_docs/Claims"
+              >SciTokens Claims and Scopes Language</a
+            >
+            A good description of what claims you may want to put in your
+            SciTokens and why.
+          </li>
+          <li>
+            <a href="https://zenodo.org/record/3460258#.XrMgksZ7nOQ"
+              >WLCG Common JWT Profiles</a
+            >
+            WLCG Tokens are 'nearly' interoperable with SciTokens and are more
+            mature.
+          </li>
+        </ul>
+      </div>
+      <div class="footer">
+        Banner image by
+        <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+        used under Creative Commons license.
+        <br />
+        Original Home URL:
+        <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+        GlideinWMS email support: glideinwms-support at fnal.gov
+      </div>
     </div>
-</body>
+  </body>
 </html>

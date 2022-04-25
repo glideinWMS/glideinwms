@@ -1,4 +1,6 @@
-from __future__ import absolute_import
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Project:
 #   glideinWMS
@@ -14,23 +16,22 @@ from __future__ import absolute_import
 #
 
 import os.path
-import string
-from . import cWConsts
-from . import cWDictFile
+
+from . import cWConsts, cWDictFile
 
 
 def is_true(s):
     """Case insensitive string parsing helper. Return True for true (case insensitive matching), False otherwise."""
-    return s.lower() == 'true'
+    return type(s) == str and s.lower() == "true"
 
 
 def has_file_wrapper(dicts):
-    for file_dict in ['preentry_file_list', 'file_list', 'aftergroup_preentry_file_list', 'aftergroup_file_list']:
+    for file_dict in ["preentry_file_list", "file_list", "aftergroup_preentry_file_list", "aftergroup_file_list"]:
         if file_dict in dicts:
             # dicts[file_dict] contains information about status, ..., vals are the tuples w/ files info and content
             # tuples are (fname, type, ...)
-            for file_info in dicts[file_dict].vals.values():
-                if file_info[1] == 'wrapper':
+            for file_info in list(dicts[file_dict].vals.values()):
+                if file_info[1] == "wrapper":
                     return True
     return False
 
@@ -69,25 +70,25 @@ def add_file_unparsed(user_file, dicts, is_factory):
     do_untar = is_true(user_file.untar)
     try:
         period_value = int(user_file.period)
-    except (AttributeError, KeyError, ValueError):
+    except (AttributeError, KeyError, ValueError, TypeError):
         period_value = 0
 
     if is_factory:
         # Factory (file_list, after_file_list)
-        file_list_idx = 'file_list'
-        if 'after_entry' in user_file:
+        file_list_idx = "file_list"
+        if "after_entry" in user_file:
             if is_true(user_file.after_entry):  # eval(user_file.after_entry,{},{}):
-                file_list_idx = 'after_file_list'
+                file_list_idx = "after_file_list"
     else:
         # Frontend (preentry_file_list, file_list, aftergroup_preentry_file_list, aftergroup_file_list)
-        file_list_idx = 'preentry_file_list'
-        if 'after_entry' in user_file:
+        file_list_idx = "preentry_file_list"
+        if "after_entry" in user_file:
             if is_true(user_file.after_entry):
-                file_list_idx = 'file_list'
+                file_list_idx = "file_list"
 
-        if 'after_group' in user_file:
+        if "after_group" in user_file:
             if is_true(user_file.after_group):
-                file_list_idx = 'aftergroup_%s' % file_list_idx
+                file_list_idx = "aftergroup_%s" % file_list_idx
 
     # period has 0 as default (in dictionary definition). Should I still protect against it not being defined?
     if period_value > 0:
@@ -106,52 +107,56 @@ def add_file_unparsed(user_file, dicts, is_factory):
             if user_file.type == "run:s" or user_file.type == "run:singularity":
                 if file_list_idx.endswith("preentry_file_list"):
                     raise RuntimeError("An executable cannot use singularity before the entry setup: %s" % user_file)
-                file_type="exec:s"
+                file_type = "exec:s"
             else:
                 if not user_file.type.startswith("run"):
                     raise RuntimeError("An executable file type must start with 'run': $s" % user_file)
-        dicts[file_list_idx].add_from_file(relfname,
-                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), 
-                                                                                  file_type,
-                                                                                  user_file.period, user_file.prefix),
-                                           absfname)
+        dicts[file_list_idx].add_from_file(
+            relfname,
+            cWDictFile.FileDictFile.make_val_tuple(
+                cWConsts.insert_timestr(relfname), file_type, user_file.period, user_file.prefix
+            ),
+            absfname,
+        )
 
     elif is_wrapper:  # a source-able script for the wrapper
         if not is_const:
             raise RuntimeError("A file cannot be a wrapper if it is not constant: %s" % user_file)
         if do_untar:
             raise RuntimeError("A tar file cannot be a wrapper: %s" % user_file)
-        dicts[file_list_idx].add_from_file(relfname,
-                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), 'wrapper'),
-                                           absfname)
+        dicts[file_list_idx].add_from_file(
+            relfname, cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), "wrapper"), absfname
+        )
     elif do_untar:  # a tarball
         if not is_const:
             raise RuntimeError("A file cannot be untarred if it is not constant: %s" % user_file)
 
         wnsubdir = user_file.untar_options.dir
         if wnsubdir is None:
-            wnsubdir = string.split(relfname, '.', 1)[0]  # default is relfname up to the first .
+            wnsubdir = relfname.split(".", 1)[0]  # default is relfname up to the first .
 
         config_out = user_file.untar_options.absdir_outattr
         if config_out is None:
             config_out = "FALSE"
         cond_attr = user_file.untar_options.cond_attr
 
-        dicts[file_list_idx].add_from_file(relfname,
-                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname),
-                                                                                  'untar',
-                                                                                  cond_download=cond_attr,
-                                                                                  config_out=config_out),
-                                           absfname)
-        dicts['untar_cfg'].add(relfname, wnsubdir)
+        dicts[file_list_idx].add_from_file(
+            relfname,
+            cWDictFile.FileDictFile.make_val_tuple(
+                cWConsts.insert_timestr(relfname), "untar", cond_download=cond_attr, config_out=config_out
+            ),
+            absfname,
+        )
+        dicts["untar_cfg"].add(relfname, wnsubdir)
 
     else:  # not executable nor tarball => simple file
         if is_const:
-            val = 'regular'
-            dicts[file_list_idx].add_from_file(relfname,
-                                               cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), val),
-                                               absfname)
+            val = "regular"
+            dicts[file_list_idx].add_from_file(
+                relfname, cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), val), absfname
+            )
         else:
-            val = 'nocache'
-            dicts[file_list_idx].add_from_file(relfname, cWDictFile.FileDictFile.make_val_tuple(relfname, val),
-                                               absfname)  # no timestamp in the name if it can be modified
+            val = "nocache"
+            dicts[file_list_idx].add_from_file(
+                relfname, cWDictFile.FileDictFile.make_val_tuple(relfname, val), absfname
+            )  # no timestamp in the name if it can be modified

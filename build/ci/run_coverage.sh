@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 show_help(){
     PROG=$(basename "$0")
     echo "generate a python coverage report for `pwd`/glideinwms"
@@ -27,7 +30,7 @@ do
     h) show_help;;
     b) shift; BRANCH=$1;;
     c) BRANCH='current';;
-    *) echo "illegal option: -$OPTARG"; show_help;;    
+    *) echo "illegal option: -$OPTARG"; show_help;;
     esac
     shift $((OPTIND-1))
 done
@@ -61,8 +64,8 @@ if ! . "$ultil_file" ; then
 fi
 
 
-if [ -z "$VIRTUAL_ENV" ]; then
-     setup_python2_venv "$WORKSPACE"
+if [ "x$VIRTUAL_ENV" = "x" ]; then
+     setup_python3_venv $WORKSPACE
 fi
 
 cd "${GLIDEINWMS_SRC}/unittests" || exit 1
@@ -76,7 +79,7 @@ fi
 SOURCES="${GLIDEINWMS_SRC},${GLIDEINWMS_SRC}/factory/"
 SOURCES="${SOURCES},${GLIDEINWMS_SRC}/factory/tools,${GLIDEINWMS_SRC}/frontend"
 SOURCES="${SOURCES},${GLIDEINWMS_SRC}/frontend/tools,${GLIDEINWMS_SRC}/install"
-SOURCES="${SOURCES},${GLIDEINWMS_SRC}/install/services,${GLIDEINWMS_SRC}/lib"
+SOURCES="${SOURCES},${GLIDEINWMS_SRC}/lib"
 SOURCES="${SOURCES},${GLIDEINWMS_SRC}/tools,${GLIDEINWMS_SRC}/tools/lib"
 BR_NO_SLASH=$(echo ${BRANCH} | sed -e 's/\//-/g')
 

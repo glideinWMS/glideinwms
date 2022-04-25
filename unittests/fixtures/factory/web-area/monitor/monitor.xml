@@ -1,14 +1,6 @@
 <monitor_config>
   <entries>
-    <entry name="TEST_SITE_3">
-      <monitorgroups>
-      </monitorgroups>
-    </entry>
-    <entry name="TEST_SITE_4">
-      <monitorgroups>
-      </monitorgroups>
-    </entry>
-    <entry name="TEST_SITE_HTCCE_5">
+    <entry name="FNAL_HEPCLOUD_GOOGLE_us-central1-a_n1-standard-1">
       <monitorgroups>
       </monitorgroups>
     </entry>
@@ -20,7 +12,7 @@
       <monitorgroups>
       </monitorgroups>
     </entry>
-    <entry name="TEST_SITE_HTCCE_2">
+    <entry name="TEST_SITE_BOSCO">
       <monitorgroups>
       </monitorgroups>
     </entry>

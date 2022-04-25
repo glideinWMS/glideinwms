@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Project:
 #   glideinWMS
@@ -104,9 +108,9 @@ status_error(){
 # print usage                                               #
 # --------------------------------------------------------- #
 usage() {
-    echo "Usage: -error|-ok [params]"; 
-    echo "       -error id failstr detailfail [metricid metricval]+"; 
-    echo "       -ok    id                    [metricid metricval]+"; 
+    echo "Usage: -error|-ok [params]";
+    echo "       -error id failstr detailfail [metricid metricval]+";
+    echo "       -ok    id                    [metricid metricval]+";
 }
 
 
@@ -124,5 +128,3 @@ case "$mycmd" in
     -ok)       status_ok "$@";;
     *)  (warn "Unknown option $mycmd"; usage) 1>&2; exit 1
 esac
-
-

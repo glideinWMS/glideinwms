@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # GlideinWMS singularity wrapper. Invoked by HTCondor as user_job_wrapper
 # default_singularity_wrapper USER_JOB [job options and arguments]
 EXITSLEEP=10m

@@ -1,10 +1,13 @@
 #!/bin/bash
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This script will setup the Collector and CCB parameters
@@ -29,17 +32,17 @@ replace_range() {
     # that can contain a port range or a range in the sock names
     # The output replaces ranges N1-N2 with $RANDOM_INTEGER(N1,N2)
     # The Frontend is verifying the correctness when checking the configuration
-    # TODO: verify if dash is allowed or not in the sock name. If it is the regular expression should be fixed 
+    # TODO: verify if dash is allowed or not in the sock name. If it is the regular expression should be fixed
     echo "$1" | sed -E 's;^([^?:]+):([0-9]+)-([0-9]+);\1:\$RANDOM_INTEGER(\2,\3);;s;^([^?]+)\?(.*&)*sock=([^&\-]*[^0-9&]+)([0-9]+)-([0-9]+)(&.*)*$;\1?\2sock=\3\$RANDOM_INTEGER(\4,\5)\6;'
 }
 
 select_collector() {
     # choose one element at random from the comma separated list
-    # if one element has not ? and is of the form MY_ID:START-END or is a sinful string with sock of the form my_idSTART-END, 
-    # then the element is expanded assuming that START and END are integers 
+    # if one element has not ? and is of the form MY_ID:START-END or is a sinful string with sock of the form my_idSTART-END,
+    # then the element is expanded assuming that START and END are integers
     # and you want the range between them MY_ID:START,MY_ID:START+1,... MY_ID:END (or sock=my_idSTART,...sock=my_idEND respectively)
-    # NOTE that there is a double selection, each element in the list weight the same, 
-    # then if the element selected has a range, one of the numbers is picked at random 
+    # NOTE that there is a double selection, each element in the list weight the same,
+    # then if the element selected has a range, one of the numbers is picked at random
     local group="$1"
 
     # select one element from the csv list
@@ -118,11 +121,11 @@ _main() {
     # import add_config_line function
     add_config_line_source="$(grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)"
     source "$add_config_line_source"
-    
+
     error_gen="$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)"
-    
+
     condor_vars_file="$(grep -i "^CONDOR_VARS_FILE " "$glidein_config" | cut -d ' ' -f 2-)"
-    
+
     collector_host="$(parse_and_select_collectors GLIDEIN_Collector)"
     if [ -z "$collector_host" ]; then
         #echo "No GLIDEIN_Collector found!" 1>&2
@@ -131,13 +134,13 @@ _main() {
         exit 1
     fi
     add_config_line GLIDEIN_Collector "$collector_host"
-    
+
     # If $CONDORCE_COLLECTOR_HOST is set in the glidein's environment, site
     # wants to have some visibility into the glidein. Add to COLLECTOR_HOST
     if [ -n "$CONDORCE_COLLECTOR_HOST" ]; then
         add_config_line GLIDEIN_Site_Collector "$CONDORCE_COLLECTOR_HOST"
     fi
-    
+
     ccb_host="$(parse_and_select_collectors GLIDEIN_CCB)"
     if [ -z "$ccb_host" ]; then
         echo "No GLIDEIN_CCB found (will use collectors if CCB is enabled)!" 1>&2
@@ -150,19 +153,19 @@ _main() {
         # add_config_line GLIDEIN_CCB "`csv_shuffle $ccb_host`"
         add_config_line GLIDEIN_CCB "$ccb_host"
     fi
-    
-    
+
+
     factory_collector_host="$(parse_and_select_collectors GLIDEIN_Factory_Collector)"
     if [ -z "$factory_collector_host" ]; then
         # no factory collector, master will use the standard collector list
         master_collector_host="$collector_host"
     else
-        # factory has a collector, add it to the master collector list 
+        # factory has a collector, add it to the master collector list
         master_collector_host="$collector_host,$factory_collector_host"
         add_config_line GLIDEIN_Factory_Collector "$factory_collector_host"
     fi
     add_config_line GLIDEIN_Master_Collector "$master_collector_host"
-    
+
     "$error_gen" -ok "collector_setup.sh" "Collector" "$collector_host" "MasterCollector" "$master_collector_host"
 }
 

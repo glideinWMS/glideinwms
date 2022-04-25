@@ -1,9 +1,14 @@
-from __future__ import absolute_import
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+import errno
+import os
+
 #
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module implements functions and classes
@@ -15,23 +20,29 @@ from __future__ import absolute_import
 #
 # TODO: This could be rewritten so that the polling lists are registered once and the fd are removed only when
 #       not needed anymore (currently there is an extrnal structure and the poll object is a new one each time)
-import cPickle
-import os
+import pickle
+import select
 import sys
 import time
-import select
-import errno
-from .pidSupport import register_sighandler, unregister_sighandler, termsignal
+
 from . import logSupport
+from .pidSupport import register_sighandler, termsignal, unregister_sighandler
 
 
-class FetchError(RuntimeError):
+class ForkError(RuntimeError):
+    """Base class for this module's errors"""
+
+    def __init__(self, msg):
+        RuntimeError.__init__(self, msg)
+
+
+class FetchError(ForkError):
     pass
 
-    
-class ForkResultError(RuntimeError):
+
+class ForkResultError(ForkError):
     def __init__(self, nr_errors, good_results, failed=[]):
-        RuntimeError.__init__(self, "Found %i errors" % nr_errors)
+        ForkError.__init__(self, "Found %i errors" % nr_errors)
         self.nr_errors = nr_errors
         self.good_results = good_results
         self.failed = failed
@@ -40,13 +51,25 @@ class ForkResultError(RuntimeError):
 ################################################
 # Low level fork and collect functions
 
-def fork_in_bg(function_torun, *args):
-    # fork and call a function with args
-    #  return a dict with {'r': fd, 'pid': pid} where fd is the stdout from a pipe.
-    #    example:
-    #      def add(i, j): return i+j
-    #      d = fork_in_bg(add, i, j)
 
+def fork_in_bg(function_torun, *args):
+    """Fork and call a function with args
+
+    This function returns right away, returning the pid and a pipe to the stdout of the function process
+    where the output of the function will be pickled
+
+    example:
+          def add(i, j): return i+j
+          d = fork_in_bg(add, i, j)
+
+    Args:
+        function_torun (function): function to call after forking the process
+        *args: arguments list to pass to the function
+
+    Returns:
+        dict: dict with {'r': fd, 'pid': pid} where fd is the stdout from a pipe.
+
+    """
     r, w = os.pipe()
     unregister_sighandler()
     pid = os.fork()
@@ -55,7 +78,7 @@ def fork_in_bg(function_torun, *args):
         os.close(r)
         try:
             out = function_torun(*args)
-            os.write(w, cPickle.dumps(out))
+            os.write(w, pickle.dumps(out))
         except:
             logSupport.log.warning("Forked process '%s' failed" % str(function_torun))
             logSupport.log.exception("Forked process '%s' failed" % str(function_torun))
@@ -68,7 +91,7 @@ def fork_in_bg(function_torun, *args):
         register_sighandler()
         os.close(w)
 
-    return {'r': r, 'pid': pid}
+    return {"r": r, "pid": pid}
 
 
 ###############################
@@ -79,10 +102,10 @@ def fetch_fork_result(r, pid):
     OSError if Bad file descriptor or file already closed or if waitpid syscall returns -1
     FetchError if a os.read error was encountered
     Possible errors from os.read (catched here):
-    - EOFError if the forked process failed an nothing was written to the pipe, if cPickle finds an empty string 
+    - EOFError if the forked process failed an nothing was written to the pipe, if cPickle finds an empty string
     - IOError failure for an I/O-related reason, e.g., "pipe file not found" or "disk full".
     - OSError other system-related error
- 
+
     @type r: pipe
     @param r: Input pipe
 
@@ -93,20 +116,23 @@ def fetch_fork_result(r, pid):
     @return: Unpickled object
     """
 
-    rin = ""
+    rin = b""
     out = None
     try:
-        s = os.read(r, 1024*1024)
-        while s != "":  # "" means EOF
+        s = os.read(r, 1024 * 1024)
+        while s != b"":  # "" means EOF
             rin += s
-            s = os.read(r, 1024*1024)
-        # pickle can fail w/ EOFError if rin is empty. Any output from pickle is never an empty string, e.g. None is 'N.' 
-        out = cPickle.loads(rin)
-    except (OSError, IOError, EOFError, cPickle.UnpicklingError) as err:
+            s = os.read(r, 1024 * 1024)
+        # pickle can fail w/ EOFError if rin is empty. Any output from pickle is never an empty string, e.g. None is 'N.'
+        out = pickle.loads(rin)
+    except (OSError, EOFError, pickle.UnpicklingError) as err:
         etype, evalue, etraceback = sys.exc_info()
         # Adding message in case close/waitpid fail and preempt raise
-        logSupport.log.exception('Re-raising exception during read: %s' % err)
-        raise FetchError, 'Exception during read probably due to worker failure, original exception and trace %s: %s' % (etype, evalue), etraceback
+        logSupport.log.exception("Re-raising exception during read: %s" % err)
+        raise FetchError(
+            "Exception during read probably due to worker failure, original exception and trace %s: %s"
+            % (etype, evalue)
+        ).with_traceback(etraceback)
     finally:
         os.close(r)
         os.waitpid(pid, 0)
@@ -117,9 +143,9 @@ def fetch_fork_result_list(pipe_ids):
     """
     Read the output pipe of the children, used after forking to perform work
     and after forking to entry.writeStats()
- 
+
     @type pipe_ids: dict
-    @param pipe_ids: Dictinary of pipe and pid 
+    @param pipe_ids: Dictinary of pipe and pid
 
     @rtype: dict
     @return: Dictionary of fork_results
@@ -131,11 +157,10 @@ def fetch_fork_result_list(pipe_ids):
     for key in pipe_ids:
         try:
             # Collect the results
-            out[key] = fetch_fork_result(pipe_ids[key]['r'],
-                                         pipe_ids[key]['pid'])
+            out[key] = fetch_fork_result(pipe_ids[key]["r"], pipe_ids[key]["pid"])
         except (KeyError, OSError, FetchError) as err:
             # fetch_fork_result can raise OSError and FetchError
-            errmsg = "Failed to extract info from child '%s' %s" % (str(key), err)
+            errmsg = f"Failed to extract info from child '{str(key)}' {err}"
             logSupport.log.warning(errmsg)
             logSupport.log.exception(errmsg)
             # Record failed keys
@@ -182,9 +207,10 @@ def fetch_ready_fork_result_list(pipe_ids):
     work_info = {}
     failures = 0
     failed = []
-    fds_to_entry = dict((pipe_ids[x]['r'], x) for x in pipe_ids)
+    fds_to_entry = {pipe_ids[x]["r"]: x for x in pipe_ids}
     poll_obj = None
     time_this = False
+    t_begin = None
     if time_this:
         t_begin = time.time()
     try:
@@ -193,37 +219,38 @@ def fetch_ready_fork_result_list(pipe_ids):
         # Level Trigger behavior (default)
         poll_obj = select.epoll()
         poll_type = "epoll"
-        for read_fd in fds_to_entry.keys():
+        for read_fd in list(fds_to_entry.keys()):
             try:
-                poll_obj.register(read_fd, select.EPOLLIN | select.EPOLLHUP | select.EPOLLERR | select.EPOLLRDBAND | select.EPOLLRDNORM)
-            except IOError as err:
+                poll_obj.register(
+                    read_fd,
+                    select.EPOLLIN | select.EPOLLHUP | select.EPOLLERR | select.EPOLLRDBAND | select.EPOLLRDNORM,
+                )
+            except OSError as err:
                 # Epoll (contrary to poll) complains about duplicate registrations:  IOError: [Errno 17] File exists
                 # All other errors are re-risen
                 if err.errno == errno.EEXIST:
-                    logSupport.log.warning("Ignoring duplicate fd %s registration in epoll(): '%s'" %
-                                           (read_fd, str(err)))
+                    logSupport.log.warning(f"Ignoring duplicate fd {read_fd} registration in epoll(): '{str(err)}'")
                 else:
-                    logSupport.log.warning("Unsupported fd %s registration failure in epoll(): '%s'" %
-                                           (read_fd, str(err)))
+                    logSupport.log.warning(f"Unsupported fd {read_fd} registration failure in epoll(): '{str(err)}'")
                     raise
         # File descriptors: [i[0] for i in poll_obj.poll(0) if i[1] & (select.EPOLLIN|select.EPOLLPRI)]
         # Filtering is not needed, done by epoll, both EPOLLIN and EPOLLPRI are OK
         # EPOLLHUP events are registered by default. The consumer will read eventual data and close the fd
         readable_fds = [i[0] for i in poll_obj.poll(POLL_TIMEOUT)]
-    except (AttributeError, IOError) as err:
-        logSupport.log.warning("Failed to load select.epoll() '%s'" % str(err))
+    except (AttributeError, OSError) as err:
+        logSupport.log.warning("Failed to load select.epoll(): %s" % str(err))
         try:
             # no epoll(), try poll(). Still supports > 1024 fds and
             # tested faster than select() on linux when multiple forks configured
             poll_obj = select.poll()
             poll_type = "poll"
-            for read_fd in fds_to_entry.keys():
+            for read_fd in list(fds_to_entry.keys()):
                 poll_obj.register(read_fd, select.POLLIN | select.POLLHUP | select.POLLERR)
             readable_fds = [i[0] for i in poll_obj.poll(POLL_TIMEOUT)]
-        except (AttributeError, IOError) as err:
-            logSupport.log.warning("Failed to load select.poll() '%s'" % str(err))
+        except (AttributeError, OSError) as err:
+            logSupport.log.warning("Failed to load select.poll(): %s" % str(err))
             # no epoll() or poll(), use select()
-            readable_fds = select.select(fds_to_entry.keys(), [], [], POLL_TIMEOUT/1000.0)[0]
+            readable_fds = select.select(list(fds_to_entry.keys()), [], [], POLL_TIMEOUT / 1000.0)[0]
             poll_type = "select"
 
     count = 0
@@ -231,20 +258,21 @@ def fetch_ready_fork_result_list(pipe_ids):
     for fd in readable_fds:
         if fd not in fds_to_entry:
             continue
+        key = None
         try:
             key = fds_to_entry[fd]
-            pid = pipe_ids[key]['pid']
+            pid = pipe_ids[key]["pid"]
             out = fetch_fork_result(fd, pid)
             if poll_obj:
                 poll_obj.unregister(fd)  # Is this needed? the poll object is no more used, next time will be a new one
             work_info[key] = out
             count += 1
-        except (IOError, ValueError, KeyError, OSError, FetchError) as err:
+        except (OSError, ValueError, KeyError, FetchError) as err:
             # KeyError: inconsistent dictionary or reverse dictionary
             # IOError: Error in poll_obj.unregister()
             # OSError: [Errno 9] Bad file descriptor - fetch_fork_result with wrong file descriptor
-            # FetchError: read error in fetch_fork_result 
-            errmsg = ("Failed to extract info from child '%s': %s" % (str(key), err))
+            # FetchError: read error in fetch_fork_result
+            errmsg = f"Failed to extract info from child '{str(key)}': {err}"
             logSupport.log.warning(errmsg)
             logSupport.log.exception(errmsg)
             # Record failed keys
@@ -253,26 +281,27 @@ def fetch_ready_fork_result_list(pipe_ids):
 
     if failures > 0:
         raise ForkResultError(failures, work_info, failed=failed)
-    
+
     if time_this:
-        logSupport.log.debug("%s: using %s fetched %s of %s in %s seconds" %
-            ('fetch_ready_fork_result_list', poll_type, count, len(fds_to_entry.keys()), time.time()-t_begin))
+        logSupport.log.debug(
+            "%s: using %s fetched %s of %s in %s seconds"
+            % ("fetch_ready_fork_result_list", poll_type, count, len(list(fds_to_entry.keys())), time.time() - t_begin)
+        )
 
     return work_info
 
 
 def wait_for_pids(pid_list):
-    """
-    Wait for all pids to finish.
+    """Wait for all pids to finish.
     Throw away any stdout or err
     """
     for pidel in pid_list:
-        pid = pidel['pid']
-        r = pidel['r']
+        pid = pidel["pid"]
+        r = pidel["r"]
         try:
             # empty the read buffer first
             s = os.read(r, 1024)
-            while s != "":  # "" means EOF
+            while s != b"":  # "" means EOF, pipes are binary
                 s = os.read(r, 1024)
         finally:
             os.close(r)
@@ -281,6 +310,7 @@ def wait_for_pids(pid_list):
 
 ################################################
 # Fork Class
+
 
 class ForkManager:
     def __init__(self):
@@ -295,7 +325,7 @@ class ForkManager:
     def add_fork(self, key, function, *args):
         if key in self.functions_tofork:
             raise KeyError("Fork key '%s' already in use" % key)
-        self.functions_tofork[key] = ((function, ) + args)
+        self.functions_tofork[key] = (function,) + args
         self.key_list.append(key)
 
     def fork_and_wait(self):
@@ -323,11 +353,11 @@ class ForkManager:
         # try to fork all the functions
         for key in self.key_list:
             # Check if we can fork more
-            if (forks_remaining == 0):
+            if forks_remaining == 0:
                 if log_progress:
                     # log here, since we will have to wait
-                    logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks, functions_remaining))
-            while (forks_remaining == 0):
+                    logSupport.log.info("Active forks = %i, Forks to finish = %i" % (max_forks, functions_remaining))
+            while forks_remaining == 0:
                 failed_keys = []
                 # Give some time for the processes to finish the work
                 # logSupport.log.debug("Reached parallel_workers limit of %s" % parallel_workers)
@@ -349,7 +379,7 @@ class ForkManager:
                 forks_remaining += len(post_work_info_subset)
                 functions_remaining -= len(post_work_info_subset)
 
-                for i in (post_work_info_subset.keys() + failed_keys):
+                for i in list(post_work_info_subset.keys()) + failed_keys:
                     if pipe_ids.get(i):
                         del pipe_ids[i]
                 # end for
@@ -361,10 +391,12 @@ class ForkManager:
         # end for
 
         if log_progress:
-            logSupport.log.info("Active forks = %i, Forks to finish = %i" % (max_forks-forks_remaining, functions_remaining))
+            logSupport.log.info(
+                "Active forks = %i, Forks to finish = %i" % (max_forks - forks_remaining, functions_remaining)
+            )
 
         # now we just have to wait for all to finish
-        while (functions_remaining>0):
+        while functions_remaining > 0:
             failed_keys = []
             # Give some time for the processes to finish the work
             time.sleep(sleep_time)
@@ -385,15 +417,17 @@ class ForkManager:
             forks_remaining += len(post_work_info_subset)
             functions_remaining -= len(post_work_info_subset)
 
-            for i in (post_work_info_subset.keys() + failed_keys):
+            for i in list(post_work_info_subset.keys()) + failed_keys:
                 del pipe_ids[i]
 
-            if len(post_work_info_subset)>0:
+            if len(post_work_info_subset) > 0:
                 if log_progress:
-                    logSupport.log.info("Active forks = %i, Forks to finish = %i" % (max_forks-forks_remaining, functions_remaining))
+                    logSupport.log.info(
+                        "Active forks = %i, Forks to finish = %i" % (max_forks - forks_remaining, functions_remaining)
+                    )
         # end while
 
-        if nr_errors>0:
+        if nr_errors > 0:
             raise ForkResultError(nr_errors, post_work_info)
 
         return post_work_info

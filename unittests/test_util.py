@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Project:
 #   glideinWMS
@@ -10,12 +14,13 @@
 #   Marco Mascheroni
 #
 
-from __future__ import absolute_import
-from __future__ import print_function
+
+import unittest
+
 import xmlrunner
-import unittest2 as unittest
 
 from glideinwms.lib.util import safe_boolcomp
+
 
 class TestUtils(unittest.TestCase):
     def test_safe_boolcomp(self):
@@ -30,7 +35,6 @@ class TestUtils(unittest.TestCase):
         self.assertFalse(safe_boolcomp("foo", True))
         self.assertFalse(safe_boolcomp("foo", False))
 
-if __name__ == '__main__':
-    unittest.main(
-        testRunner=xmlrunner.XMLTestRunner(
-            output='unittests-reports'))
+
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))

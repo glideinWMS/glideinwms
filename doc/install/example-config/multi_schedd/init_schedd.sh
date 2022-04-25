@@ -1,4 +1,8 @@
 #!/bin/sh
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 CONDOR_LOCATION=/opt/glidecondor
 script=$CONDOR_LOCATION/new_schedd_setup.sh
 source $script $1

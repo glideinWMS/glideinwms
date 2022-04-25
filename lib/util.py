@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # Project:
 #   glideinWMS
@@ -12,26 +16,36 @@
 #   Marco Mambelli (some functions are from other modules and hardened)
 #
 
-from __future__ import print_function
+
+import contextlib
 import os
+import pickle
 import shutil
-import cPickle as pickle
+import subprocess
 import tempfile
 import time
-import subprocess
+
+from base64 import b32encode
+
+# imports and global for flattenDict
+from collections.abc import Mapping
+
+# imports for hash_nc
+from hashlib import md5
+from operator import add
+
+from glideinwms.lib.defaults import BINARY_ENCODING_ASCII, force_bytes
 
 #################################
 # Dictionary functions
 #################################
 
-# imports and global for flattenDict
-from collections import Mapping
-from operator import add
 
 _FLAG_FIRST = object()
 
 HOOK_PRE_RECONFIG_DIRNAME = "hooks.reconfig.pre"
 HOOK_POST_RECONFIG_DIRNAME = "hooks.reconfig.post"
+
 
 # From http://stackoverflow.com/questions/6027558/flatten-nested-python-dictionaries-compressing-keys
 # Much faster than my first version
@@ -76,7 +90,7 @@ def flattenDict(d, join=add, lift=lambda x: x):
     results = []
 
     def visit(subdict, results, partialKey):
-        for k, v in subdict.items():
+        for k, v in list(subdict.items()):
             newKey = lift(k) if partialKey == _FLAG_FIRST else join(partialKey, lift(k))
             if isinstance(v, Mapping):
                 visit(v, results, newKey)
@@ -103,11 +117,11 @@ def dict_to_flat(in_dict, prefix="", suffix="", sep=""):
     :return: flattened dictionary
     """
     if sep:
-        out_list = flattenDict(in_dict, join=lambda a, b: a+sep+b)
+        out_list = flattenDict(in_dict, join=lambda a, b: a + sep + b)
     else:
         out_list = flattenDict(in_dict)
     if prefix or suffix:
-        out_dict = dict([("%s%s%s" % (prefix, i[0], suffix), i[1]) for i in out_list])
+        out_dict = {f"{prefix}{i[0]}{suffix}": i[1] for i in out_list}
     else:
         out_dict = dict(out_list)
     return out_dict
@@ -124,12 +138,12 @@ def dict_to_flat_slow(in_dict, prefix="", suffix=""):
     :return: flattened dictionary
     """
     out_dict = {}
-    for k, v in in_dict.items():
+    for k, v in list(in_dict.items()):
         if isinstance(v, dict):
-            for k2, v2 in dict_to_flat(v).items():
-                out_dict["%s%s%s%s" % (prefix, k, k2, suffix)] = v2
+            for k2, v2 in list(dict_to_flat(v).items()):
+                out_dict[f"{prefix}{k}{k2}{suffix}"] = v2
         else:
-            out_dict["%s%s%s" % (prefix, k, suffix)] = v
+            out_dict[f"{prefix}{k}{suffix}"] = v
     return out_dict
 
 
@@ -145,9 +159,9 @@ def dict_normalize(in_dict, keys=None, prefix="", suffix="", default=None):
     """
     out_dict = {}
     if not keys:
-        keys = in_dict.keys()
+        keys = list(in_dict.keys())
     for k in keys:  # glideFactoryMonitoring.getAllJobRanges():
-        out_dict["%s%s%s" % (prefix, k, suffix)] = in_dict.get(k, default)
+        out_dict[f"{prefix}{k}{suffix}"] = in_dict.get(k, default)
     return out_dict
 
 
@@ -168,8 +182,8 @@ except AttributeError:
 
 
 class ExpiredFileException(Exception):
-    """The file is too old to be used
-    """
+    """The file is too old to be used"""
+
     pass
 
 
@@ -181,15 +195,15 @@ def print_funct(*args, **kwargs):
     :param kwargs: keywords, valid keywords: 'sep' separator, default is space
     :return: None
     """
-    sep = ' '
+    sep = " "
     try:
-        sep = kwargs['sep']
+        sep = kwargs["sep"]
     except KeyError:
         pass
     print(sep.join([str(i) for i in args]))
 
 
-#pylint: disable=misplaced-bare-raise
+# pylint: disable=misplaced-bare-raise
 def conditional_raise(mask_exceptions):
     """Auxiliary function to handle conditional raising
 
@@ -199,15 +213,17 @@ def conditional_raise(mask_exceptions):
       if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
     :return: None
     """
-    if mask_exceptions and hasattr(mask_exceptions[0], '__call__'):
+    if mask_exceptions and hasattr(mask_exceptions[0], "__call__"):
         # protect and report
         mask_exceptions[0](*mask_exceptions[1:])
         return
     raise
 
-#pylint: enable=misplaced-bare-raise
 
-def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None, protocol=pickle.HIGHEST_PROTOCOL):
+# pylint: enable=misplaced-bare-raise
+
+
+def file_pickle_dump(fname, content, tmp_type="PID", mask_exceptions=None, protocol=pickle.HIGHEST_PROTOCOL):
     """Serialize and save content
 
     To avoid inconsistent content
@@ -218,12 +234,12 @@ def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None, proto
       The callback function can access the exception via sys.exc_info()
       If a function is not provided, the exception is re-risen
       if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
-    @param protocol: Pickle protocol to be used (Default: pickle.HIGHEST_PROTOCOL, 2)
+    @param protocol: Pickle protocol to be used (Default: pickle.HIGHEST_PROTOCOL, 5 as of py3.8)
     @return: True if the saving was successful, False or an exception otherwise
     """
     tmp_fname = file_get_tmp(fname, tmp_type)
     try:
-        with open(tmp_fname, "w") as pfile:
+        with open(tmp_fname, "wb") as pfile:
             pickle.dump(content, pfile, protocol)
     except:
         conditional_raise(mask_exceptions)
@@ -257,7 +273,7 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
     """
     data = default
     try:
-        with open(fname, 'r') as fo:
+        with open(fname, "rb") as fo:
             if expiration >= 0:
                 # check date of file and time
                 fname_time = os.path.getmtime(fname)
@@ -265,13 +281,14 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
                 if expiration > 0:
                     if fname_time < current_time - expiration:
                         # if expired raise ExpiredFile (w/ timestamp)
-                        raise ExpiredFileException("File %s expired, older then %s seconds (file time: %s)" %
-                                                   (fname, expiration, fname_time))
+                        raise ExpiredFileException(
+                            f"File {fname} expired, older then {expiration} seconds (file time: {fname_time})"
+                        )
                 else:
                     try:
                         if fname_time <= last_time[fname]:
                             # expired
-                            raise ExpiredFileException("File %s already used at %s" % (fname, last_time[fname]))
+                            raise ExpiredFileException(f"File {fname} already used at {last_time[fname]}")
                     except KeyError:
                         pass
                     last_time[fname] = fname_time
@@ -295,8 +312,9 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
 #     KEL this exact method is also in glideinFrontendMonitoring.py
 # TODO: replace all definitions with this one
 
+
 def file_tmp2final(fname, tmp_fname=None, bck_fname=None, do_backup=True, mask_exceptions=None):
-    """ Complete an atomic write by moving a file new version to its destination.
+    """Complete an atomic write by moving a file new version to its destination.
 
     If do_backup is True it removes the previous backup and copies the file to bak_fname.
     Moves tmp_fname to fname.
@@ -355,17 +373,18 @@ def file_get_tmp(fname=None, tmp_type=None):
     if not tmp_type:
         return fname + ".tmp"
     elif tmp_type == "PID":
-        return "%s.%s.tmp" % (fname, os.getpid())
+        return f"{fname}.{os.getpid()}.tmp"
     else:
         f_dir = os.path.dirname(fname)
         f_name = os.path.basename(fname)
-        tmp_file, tmp_fname = tempfile.mkstemp(suffix='tmp', prefix=f_name, dir=f_dir)
+        tmp_file, tmp_fname = tempfile.mkstemp(suffix="tmp", prefix=f_name, dir=f_dir)
         # file is open, reopening it is OK
         return tmp_fname
 
 
 # in classadSupport
 # def generate_classad_filename(prefix='gwms_classad'):
+
 
 def safe_boolcomp(value, expected):
     """Safely do a boolean comparison.
@@ -384,20 +403,18 @@ def safe_boolcomp(value, expected):
 
 
 def str2bool(val):
-    """ Convert u"True" or u"False" to boolean or raise ValueError
-    """
-    if val not in [u"True", u"False"]:
+    """Convert u"True" or u"False" to boolean or raise ValueError"""
+    if val not in ["True", "False"]:
         # Not using ValueError intentionally: all config errors are RuntimeError
         raise RuntimeError("Found %s instead of 'True' of 'False'" % val)
-    elif val == u"True":
+    elif val == "True":
         return True
     else:
         return False
 
 
 def handle_hooks(basedir, script_dir):
-    """The function itaretes over the script_dir directory and executes any script found there
-    """
+    """The function itaretes over the script_dir directory and executes any script found there"""
 
     dirname = os.path.join(basedir, script_dir)
     if not os.path.isdir(dirname):
@@ -407,3 +424,36 @@ def handle_hooks(basedir, script_dir):
         if os.path.isfile(script_name) and os.access(script_name, os.X_OK):
             print("\nExecuting reconfigure hook: " + script_name)
             subprocess.call(script_name)
+
+
+def hash_nc(data, len=None):
+    """Returns a non-cryptographic MD5 hash encoded in base32
+
+    Args:
+        data (AnyStr): Data to hash
+        len (int, optional): Hash length. Defaults to None.
+
+    Returns:
+        str: Hash
+    """
+
+    # TODO set md5 usedforsecurity to False when updating to Python 3.9
+    out = b32encode(md5(force_bytes(data)).digest()).decode(BINARY_ENCODING_ASCII)
+    if len:
+        out = out[:len]
+
+    return out
+
+
+def chmod(*args, **kwargs):
+    """Wrapper for os.chmod that supresses PermissionError exceptions
+
+    Args:
+        *args: Positional arguments to pass to os.chmod
+        **kwargs: Keyword arguments to pass to os.chmod
+
+    Returns:
+        None
+    """
+    with contextlib.suppress(PermissionError):
+        os.chmod(*args, **kwargs)

@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Function to process bigfiles
 
 # variables to change depending on the software project
@@ -37,19 +41,19 @@ ${filename} [options]
   -d REPO_DIR software ($SOFTWARE_NAME) repository root directory (default: trying to guess, otherwise '.')
   -p          pull: download and unpack the big files to the bigfiles directory if not already there
   -P          push: compress the big files
-  -s SERVER   upload to SERVER via scp the bundled big files (ignored if -P is not specified)         
+  -s SERVER   upload to SERVER via scp the bundled big files (ignored if -P is not specified)
   -u          update (download and unpack even if files are already there). Used with -r and -p
   -r          replace the symbolic links with the linked linked to files in the bigfiles directory
               and write a list of replaced files to BF_LIST. Big files are downloaded if not in the bigfiles directory
-  -R          copy the big files (from BF_LIST) to the bigfiles directory and replace the big files with the 
+  -R          copy the big files (from BF_LIST) to the bigfiles directory and replace the big files with the
               symbolic links to the bigfiles directory
   -b BF_LIST  big files list (default: REPO_DIR/$BIGFILES_LIST)
  Examples:
   ./bifiles.sh -p           Use this before running unit tests or packaging the software, to pull the big files
-  ./bifiles.sh -pr          Use this if you plan to edit a big file in place. Will pull and replace the symbolic links 
+  ./bifiles.sh -pr          Use this if you plan to edit a big file in place. Will pull and replace the symbolic links
                             w/ the actual file
   ./bifiles.sh -PR          Use this before committing if you used ./bifiles.sh -pr. Will make sure that the big file
-                            is replaced with the proper link. Remember to send the archive wit the new 
+                            is replaced with the proper link. Remember to send the archive wit the new
                             big files ($TARNAME) to a software ($SOFTWARE_NAME) librarian
 EOF
 }
@@ -103,7 +107,7 @@ parse_options() {
         esac
     done
     # Validate options
-    if [[ -n "${REPLACE_LINKS}${BF_PULL}" && -n "${REPLACE_BIGFILES}${BF_PUSH}" ]]; then 
+    if [[ -n "${REPLACE_LINKS}${BF_PULL}" && -n "${REPLACE_BIGFILES}${BF_PUSH}" ]]; then
         logerror "illegal option combination: -r or -p cannot be used at the same time of -R or -P"
         help_msg 1>&2
         exit 1
@@ -120,7 +124,7 @@ pull() {
     # Download the latest big files
     if ! wget -q "${DEFAULT_SERVER_URL}${TARNAME}" 2> /dev/null; then
       curl -s -o "./$TARNAME"  "${DEFAULT_SERVER_URL}${TARNAME}" 2> /dev/null
-    fi    
+    fi
     if [ ! -e "./$TARNAME" ]; then
       logerror "Download with wget and curl failed. Could not update big files."
       exit 1
@@ -165,13 +169,13 @@ _main() {
     export MYDIR
 
     parse_options "$@"
-    
+
     # Abort if the branch has no big files (bigfiles directory)
     if [ ! -d "$REPO_DIR/bigfiles" ]; then
         logverbose "No bigfiles directory. Nothing to do. Exiting"
         exit 0
     fi
-    # Should download and expand the bigfiles? Using $SEEDNAME, "__bigfiles_seed.txt", 
+    # Should download and expand the bigfiles? Using $SEEDNAME, "__bigfiles_seed.txt",
     # to verify that files have been expanded
     if [[ -n "$DO_DOWNLOAD" ]]; then
         if [[ -n "$UPDATE_FILES" || ! -e "$REPO_DIR/bigfiles/$SEEDNAME" ]]; then
@@ -186,7 +190,7 @@ _main() {
             logverbose "Big files already in '$REPO_DIR/bigfiles/'"
         fi
         if [[ -n "$REPLACE_LINKS" ]]; then
-            # Replace the links (and write bigfiles_list) if requested 
+            # Replace the links (and write bigfiles_list) if requested
             pushd "$REPO_DIR" > /dev/null
             rm -f ${BIGFILES_LIST}
             local links_list
@@ -198,7 +202,7 @@ _main() {
                     logerror "Invalid file name. No commas allowed ($file -> $to_file). Aborting"
                     popd  > /dev/null
                     exit 1
-                fi 
+                fi
                 if [[ "$to_file" = *bigfiles/* ]]; then
                     if rm "$file" && cp "$(dirname "$file")/$to_file" "$file"; then
                         echo "${to_file},${file}" >> "${BIGFILES_LIST}"
@@ -220,7 +224,7 @@ _main() {
             to_file="${line%,*}"
             file="${line#*,}"
             cp "$file" "$(dirname "$file")/$to_file"
-            rm "$file" 
+            rm "$file"
             ln -sf "$to_file" "$file"
             logverbose "'$file' copied to '$(dirname "$file")/$to_file' and replaced w/ link"
         done < "${BIGFILES_LIST}"

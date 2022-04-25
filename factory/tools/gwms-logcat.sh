@@ -1,7 +1,11 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Cat log GWMS files using tools
 
-TOOLDIR="$(python -c 'import glideinwms; print glideinwms.__path__[0]')/factory/tools"
+TOOLDIR="$(python3 -c 'import glideinwms; print(glideinwms.__path__[0])')/factory/tools"
 JOBLOGROOTPREFIX=/var/log/gwms-factory/client
 FEUSER=user_frontend
 INSTANCE_NAME=glidein_gfactory_instance
@@ -20,9 +24,9 @@ $0 [options] LOG_TYPE ENTRY [JOB_ID]
 $0 -f URL [options] LOG_TYPE
 $0 -r [options] LOG_TYPE JOB_ID
 $0 -l
-  LOG_TYPE HTCondor log to extract from the job logfile: 
+  LOG_TYPE HTCondor log to extract from the job logfile:
            all (all logs, only the main starter), master, startd, starter, startdhistory, xml
-           starter.SLOT (to get the starter log of a slot), id_FILE_NAME (to select a log by its name), 
+           starter.SLOT (to get the starter log of a slot), id_FILE_NAME (to select a log by its name),
            none (no log, to get the list of log names with -v)
   LOGFILE  Job log file (stderr from a glidein)
   ENTRY    Entry name
@@ -40,19 +44,19 @@ EOF
 }
 
 find_dirs() {
-  if [ ! -f "$TOOLDIR/cat_logs.py" ]; then 
+  if [ ! -f "$TOOLDIR/cat_logs.py" ]; then
     TOOLDIR=$(dirname "$(readlink -f "$0")")
     # The following should not be needed (import should catch all system paths), but kept here to be fool proof
-    if [ ! -f "$TOOLDIR/cat_logs.py" ]; then 
+    if [ ! -f "$TOOLDIR/cat_logs.py" ]; then
       TOOLDIR=/usr/lib/python2.6/site-packages/glideinwms/factory/tools
-      if [ ! -f "$TOOLDIR/cat_logs.py" ]; then 
+      if [ ! -f "$TOOLDIR/cat_logs.py" ]; then
         TOOLDIR=/usr/lib/python2.4/site-packages/glideinwms/factory/tools
-        if [ ! -f "$TOOLDIR/cat_logs.py" ]; then 
+        if [ ! -f "$TOOLDIR/cat_logs.py" ]; then
           TOOLDIR=/usr/lib/python2.7/site-packages/glideinwms/factory/tools
         fi
       fi
     fi
-    if [ ! -f "$TOOLDIR/cat_logs.py" ]; then 
+    if [ ! -f "$TOOLDIR/cat_logs.py" ]; then
       echo "Unable to find the directory with the factory tools."
       exit 1
     fi
@@ -105,7 +109,7 @@ list_entries() {
 }
 
 get_unique_name() {
-  # $1 file name 
+  # $1 file name
   # $2 log type
   local dir_name file_name entry_part log_type
   dir_name=$(dirname "$1")
@@ -118,7 +122,7 @@ get_unique_name() {
 }
 
 forward_file() {
-  # 1. file name (logid) 
+  # 1. file name (logid)
   # 2. log type (logoption)
   # Using: LOGNAME was set using log type
   local logid=$1
@@ -145,8 +149,8 @@ forward_file() {
 FORWARD_STATS_FNAME=forwarding_stats_last_
 forward_entry() {
   # 1. entry directory
-  # 2. log option 
-  local stats_fname="$1/$FORWARD_STATS_FNAME$2" 
+  # 2. log option
+  local stats_fname="$1/$FORWARD_STATS_FNAME$2"
   touch "${stats_fname}.new"
   date_opts=""
   if [ -f "$stats_fname" ]; then
@@ -185,7 +189,7 @@ do
   r) REMOTE=yes;;
   c) CONFIG_FNAME=$OPTARG;;
   u) FEUSER=$OPTARG;;
-  f) FORWARD_URL=$OPTARG;; 
+  f) FORWARD_URL=$OPTARG;;
   i) INSTANCE_NAME=$OPTARG;;
   a) ACTIVE=yes
   esac
@@ -194,10 +198,10 @@ done
 find_dirs
 JOBLOGPREFIX="$JOBLOGROOTPREFIX/$FEUSER/$INSTANCE_NAME/entry_"
 
-if [ -n "$LIST_ENTRIES" ]; then 
-  list_all_entries 
+if [ -n "$LIST_ENTRIES" ]; then
+  list_all_entries
   exit 0
-fi 
+fi
 
 if [ ! -d "${JOBLOGPREFIX%/entry_}" ]; then
   echo "Unable to find the factory client log directory for this user (${JOBLOGPREFIX%/entry_})."
@@ -257,14 +261,14 @@ fi
 
 if [[ ! -e "$logid" ]]; then
   # find the log file of this job ID
-  entryname=$logid 
-  jobid=$3 
+  entryname=$logid
+  jobid=$3
   if [[ -z "$jobid" ]]; then
-    # select the last log file 
+    # select the last log file
     logid=$(get_last_log "${JOBLOGPREFIX}${entryname}")
     [[ -z "$logid" ]] && echo "Entry $entryname has no valid log file"
   else
-    [[ ! "$jobid" =~ .*\..* ]] && jobid="${jobid}.0" 
+    [[ ! "$jobid" =~ .*\..* ]] && jobid="${jobid}.0"
     logid="${JOBLOGPREFIX}${entryname}/job.$jobid.err"
   fi
 fi

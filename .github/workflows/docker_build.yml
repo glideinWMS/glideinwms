@@ -1,0 +1,69 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+# This workflow can be triggered w/ a dispatch event, e.g.:
+#  curl -X POST -H "Authorization: token $(cat ../token_file)" \
+#    -H "Content-Type: application/json" -H "Accept: application/vnd.github.v3+json" \
+#    https://api.github.com/repos/glideinwms/glideinwms/dispatches \
+#    -d '{"event_type":"docker-build", "client_payload": {"label":"latest", "date_tag":true}}'
+# A valid GitHub token must be saved in the file (so that is presented in the authorization)
+# otherwise a misleading "Not Found" message is returned. No reply is provided for successful posts.
+# The client_payload label and date_tag are optional
+#  label is used as Docker Hub label instead of "latest"
+#  if date_tag id true a date tag is added to the Docker Hub label (+%Y%m%d-%H%M)
+# -X POST is also optional
+
+name: Build and Push Docker image (CI)
+
+on:
+  push:
+    branches: [master, master_ci]
+    path:
+      - build/packaging/containers/gwms-ci-sl7/Dockerfile
+      - build/packaging/containers/gwms-ci-sl7/Dockerfile
+  repository_dispatch:
+    types:
+      - docker-build
+
+env:
+  DH_LABEL: latest
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: set label
+        continue-on-error: true
+        if: ${{ github.event.client_payload.label }}
+        run: |
+          echo "DH_LABEL=${{ github.event.client_payload.label }}" >> $GITHUB_ENV
+
+      - name: make date tag
+        id: mkdatetag
+        run: echo "::set-output name=dtag::$(date +%Y%m%d-%H%M)"
+
+      - name: add date tag
+        continue-on-error: true
+        if: ${{ github.event.client_payload.date_tag }}
+        run: |
+          echo "DH_LABEL=$DH_LABEL-${{ steps.mkdatetag.outputs.dtag }}" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          context: build/packaging/containers
+          file: build/packaging/containers/gwms-ci-sl7/Dockerfile
+          tags: glideinwms/gwms-ci-sl7:${{env.DH_LABEL}}
