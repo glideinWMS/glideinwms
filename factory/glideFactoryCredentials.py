@@ -257,7 +257,7 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
     return sym_key_obj, frontend_sec_name
 
 
-def check_security_credentials(auth_method, params, client_int_name, entry_name):
+def check_security_credentials(auth_method, params, client_int_name, entry_name, scitoken_passthru=False):
     """
     Verify taht only credentials for the given auth method are in the params
 
@@ -284,26 +284,28 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
                          'PublicCert', 'PrivateCert', 'PublicKey', 'PrivateKey',
                          'VMId', 'VMType', 'AuthFile'])
 
-    if 'scitoken' in auth_method_list:
-        #TODO check validity
-        return
-    elif 'grid_proxy' in auth_method_list:
+
+
+    if 'frontend_scitoken' in params and scitoken_passthru:
+            return
+    if 'grid_proxy' in auth_method_list:
         if 'SubmitProxy' in params:
             # v3+ protocol
             valid_keys = set(['SubmitProxy'])
             invalid_keys = relevant_keys.difference(valid_keys)
-            if params_keys.intersection(invalid_keys):
+            if params_keys.intersection(invalid_keys) and not scitoken_passthru:
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" %
                                       (client_int_name, entry_name))
         else:
             # No proxy sent
-            raise CredentialError("Request from client %s did not provide a proxy as required by the entry %s, skipping request" %
-                                  (client_int_name, entry_name))
+            if not scitoken_passthru:
+                raise CredentialError("Request from client %s did not provide a proxy as required by the entry %s, skipping request" %
+                                     (client_int_name, entry_name))
 
     else:
         # Only v3+ protocol supports non grid entries
         # Verify that the glidein proxy was provided for non-proxy auth methods
-        if 'GlideinProxy' not in params:
+        if 'GlideinProxy' not in params and not scitoken_passthru:
             raise CredentialError("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
 
         if 'cert_pair' in auth_method_list:
