@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # (shebang added only for shellcheck purposes)
 # Project:
 #   glideinWMS
@@ -19,12 +23,15 @@ glidein_config="$1"
 #error_gen="echo"
 
 # import add_config_line function
-add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
+add_config_line_source="$(grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)"
 source "$add_config_line_source"
 
-error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
+error_gen="$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)"
 
-GLIDEIN_CONDOR_TOKEN="`grep '^GLIDEIN_CONDOR_TOKEN ' "$glidein_config" | cut -d ' ' -f 2-`"
+GLIDEIN_CONDOR_TOKEN="$(grep '^GLIDEIN_CONDOR_TOKEN ' "$glidein_config" | cut -d ' ' -f 2-)"
+GLIDEIN_START_DIR_ORIG="$(grep '^GLIDEIN_START_DIR_ORIG ' "$glidein_config" | cut -d ' ' -f 2-)"
+GLIDEIN_WORKSPACE_ORIG="$(grep '^GLIDEIN_WORKSPACE_ORIG ' "$glidein_config" | cut -d ' ' -f 2-)"
+
 
 #if an IDTOKEN is available, continue.  Else exit
 exit_if_no_token(){
@@ -196,24 +203,52 @@ copy_x509_proxy() {
     return 0
 }
 
+
 config_idtoken() {
     #
-    if [ -e "$GLIDEIN_CONDOR_TOKEN" ]; then
-        export GLIDEIN_CONDOR_TOKEN_ORIG="$GLIDEIN_CONDOR_TOKEN"
-        idtoken=$(basename $GLIDEIN_CONDOR_TOKEN)
-        local_proxy_dir=$(pwd)/ticket
-        mkdir -p $local_proxy_dir
-        cp $GLIDEIN_CONDOR_TOKEN_ORIG $local_proxy_dir/$idtoken
-        export GLIDEIN_CONDOR_TOKEN=$local_proxy_dir/$idtoken
-        echo "glidein IDTOKEN set to $GLIDEIN_CONDOR_TOKEN"
-        if [ ! -e "$GLIDEIN_CONDOR_TOKEN" ]; then
-            "$error_gen" -error "setup_x509.sh" "Corruption" "IDTOKEN" "$GLIDEIN_CONDOR_TOKEN" "not_copied"
+    local num_tokens search_dir local_proxy_dir cred_base
+    num_tokens=0
+    local_proxy_dir="$(pwd)/ticket"
+    mkdir -p "${local_proxy_dir}"
+    cred_base="$(dirname "${GLIDEIN_CONDOR_TOKEN}")"
+
+    for search_dir  in "${cred_base}" "${GLIDEIN_START_DIR_ORIG}" "${GLIDEIN_WORKSPACE_ORIG}"; do
+        for tok in "${search_dir}"/*.idtoken; do
+           cp "${tok}"  "${local_proxy_dir}"
+           num_tokens=$(( num_tokens + 1 ))
+           echo "copied ${tok} to ${local_proxy_dir}"
+           if [ ! -a "${GLIDEIN_CONDOR_TOKEN}" ]; then
+               if echo "${tok}" | grep 'credential_' | grep -q '\.idtoken' ; then
+                   export GLIDEIN_CONDOR_TOKEN="${tok}"
+                   echo "GLIDEIN_CONDOR_TOKEN set to ${GLIDEIN_CONDOR_TOKEN}"
+               fi
+           fi
+        done
+        if [ -a "${GLIDEIN_CONDOR_TOKEN}" ]; then
+           break
         fi
-        head_node="$(grep '^GLIDEIN_Collector ' "$glidein_config" | cut -d ' ' -f 2- )"
-        if [ -z "$head_node" ]; then
-            head_node="$(grep '^CCB_ADDRESS ' "$glidein_config" | cut -d ' ' -f 2- )"
+    done
+
+
+    if [ "${num_tokens}" -lt 1 ]; then
+        "$error_gen" -error "setup_x509.sh" "Corruption" "IDTOKEN" "no idtokens found or copied"
+    fi
+
+    if [ -a "${GLIDEIN_CONDOR_TOKEN}" ]; then
+        export GLIDEIN_CONDOR_TOKEN_ORIG="${GLIDEIN_CONDOR_TOKEN}"
+        idtoken="$(basename "${GLIDEIN_CONDOR_TOKEN}")"
+        cp "${GLIDEIN_CONDOR_TOKEN_ORIG}" "${local_proxy_dir}/${idtoken}"
+        export GLIDEIN_CONDOR_TOKEN="${local_proxy_dir}/${idtoken}"
+        echo "GLIDEIN_CONDOR_TOKEN re-set to ${GLIDEIN_CONDOR_TOKEN}"
+        echo "GLIDEIN_CONDOR_TOKEN_ORIG set to ${GLIDEIN_CONDOR_TOKEN_ORIG}"
+        if [ ! -e "${GLIDEIN_CONDOR_TOKEN}" ]; then
+            "$error_gen" -error "setup_x509.sh" "Corruption" "IDTOKEN" "${GLIDEIN_CONDOR_TOKEN}" "not_copied"
         fi
-        TRUST_DOMAIN="$(echo "$head_node" | sed -e 's/?.*//' -e 's/-.*//' )"
+        head_node="$(grep '^GLIDEIN_Collector ' "${glidein_config}" | cut -d ' ' -f 2- )"
+        if [ -z "${head_node}" ]; then
+            head_node="$(grep '^CCB_ADDRESS ' "${glidein_config}" | cut -d ' ' -f 2- )"
+        fi
+        TRUST_DOMAIN="$(echo "${head_node}" | sed -e 's/?.*//' -e 's/-.*//' )"
         export TRUST_DOMAIN
     fi
     return 0
@@ -225,7 +260,7 @@ openssl_get_x509_timeleft() {
         return 1
     fi
     cert_pathname=$1
-    output=$(openssl x509 -noout -subject -dates -in $cert_pathname 2>/dev/null)
+    output=$(openssl x509 -noout -dates -in $cert_pathname 2>/dev/null)
     [ $? -eq 0 ] || return 1
 
     start_date=$(echo $output | sed 's/.*notBefore=\(.*\).*not.*/\1/g')
@@ -245,7 +280,7 @@ openssl_get_x509_timeleft() {
         echo "Certificate for $1 is not yet valid" >&2
         seconds_to_expire=0
     else
-        seconds_to_expire=$(($end_epoch - $epoch_now))
+        seconds_to_expire=$(( end_epoch -  epoch_now ))
     fi
 
     echo $seconds_to_expire
@@ -299,10 +334,11 @@ get_x509_expiration() {
 
 
 refresh_proxy() {
-    X509_USER_PROXY_ORIG="`grep '^X509_USER_PROXY_ORIG ' "$glidein_config" | cut -d ' ' -f 2-`"
-    GLIDEIN_CONDOR_TOKEN_ORIG="`grep '^GLIDEIN_CONDOR_TOKEN_ORIG ' "$glidein_config" | cut -d ' ' -f 2-`"
+    X509_USER_PROXY_ORIG="$(grep '^X509_USER_PROXY_ORIG ' "$glidein_config" | cut -d ' ' -f 2-)"
+    GLIDEIN_CONDOR_TOKEN_ORIG="$(grep '^GLIDEIN_CONDOR_TOKEN_ORIG ' "$glidein_config" | cut -d ' ' -f 2-)"
 
-    # If X509_USER_PROXY_ORIG is set it means the script has run at least once
+    # If either X509_USER_PROXY_ORIG or GLIDEIN_CONDOR_TOKEN_ORIG
+    # are  set it means the script has run at least once
     if [ -n "${X509_USER_PROXY_ORIG}" ]; then
         X509_USER_PROXY="`grep '^X509_USER_PROXY ' "$glidein_config" | cut -d ' ' -f 2-`"
 
@@ -315,11 +351,18 @@ refresh_proxy() {
 
     #TODO all the token updating stuff
     # assuming condor will eventually copy in updated tokens like it does proxies now
-    #
+
     if [ -n "${GLIDEIN_CONDOR_TOKEN_ORIG}" ]; then
-       cp ${GLIDEIN_CONDOR_TOKEN_ORIG} ${GLIDEIN_CONDOR_TOKEN}
-       REFRESHED="True"
+       GLIDEIN_CONDOR_TOKEN="$(grep '^GLIDEIN_CONDOR_TOKEN ' "$glidein_config" | cut -d ' ' -f 2-)"
+       local orig cred_dir
+       orig="$(dirname "${GLIDEIN_CONDOR_TOKEN_ORIG}")"
+       cred_dir="$(dirname "${GLIDEIN_CONDOR_TOKEN}")"
+       for tok in "${orig}"/*idtoken; do
+            cp "${tok}" "${cred_dir}"
+            REFRESHED="True"
+       done
     fi
+
     if [ -z "$REFRESHED" ]; then
        return 1
     fi
