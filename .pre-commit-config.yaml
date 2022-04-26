@@ -1,0 +1,63 @@
+---
+# For more information see
+#  https://pre-commit.com/index.html#install
+#  https://pre-commit.com/index.html#automatically-enabling-pre-commit-on-repositories
+default_language_version:
+  # force all unspecified python hooks to run python3
+  python: python3
+repos:
+  - repo: "https://github.com/pre-commit/pre-commit-hooks"
+    rev: v4.1.0
+    hooks:
+      - id: check-ast
+      - id: check-docstring-first
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: fix-byte-order-marker
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+        args:
+          - "--markdown-linebreak-ext=md"
+  - repo: "https://github.com/pre-commit/pygrep-hooks"
+    rev: v1.9.0
+    hooks:
+      - id: python-check-blanket-noqa
+      - id: python-check-blanket-type-ignore
+      - id: python-use-type-annotations
+  - repo: "https://github.com/pycqa/isort"
+    rev: 5.10.1
+    hooks:
+      - id: isort
+  - repo: "https://github.com/psf/black"
+    rev: 22.3.0
+    hooks:
+      - id: black
+  - repo: "https://github.com/pre-commit/mirrors-prettier"
+    rev: v2.6.2
+    hooks:
+      - id: prettier
+        exclude_types:
+          - "python"
+        additional_dependencies:
+          - "prettier"
+          - "prettier-plugin-toml@0.3.1"
+  - repo: "https://github.com/asottile/pyupgrade"
+    rev: v2.31.0 # This is the last version that works with python3.6
+    hooks:
+      - id: pyupgrade
+        args:
+          - "--py36-plus"
+  - repo: "https://github.com/fsfe/reuse-tool"
+    rev: v0.14.0
+    hooks:
+      - id: reuse
+        additional_dependencies:
+          - python-debian==0.1.40
+#  sort-all requires python 3.8+, uncomment when we are compatible
+#  - repo: "https://github.com/aio-libs/sort-all"
+#    rev: v1.1.0
+#    hooks:
+#      - id: sort-all
+#        language_version: "3.8"
