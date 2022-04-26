@@ -1052,11 +1052,12 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         #
 
         # Check request has the required credentials and nothing else
+        scitoken_passthru  = (params.get('CONTINUE_IF_NO_PROXY') == 'True')
         try:
-            entry.log.debug("Checking security credentials for client %s " % client_int_name)
+            entry.log.info("Checking security credentials for client %s scitoken_passthru = %s" % (client_int_name, scitoken_passthru))
             glideFactoryCredentials.check_security_credentials(
                 auth_method, decrypted_params, client_int_name,
-                entry.name)
+                entry.name, scitoken_passthru)
         except glideFactoryCredentials.CredentialError:
             entry.log.exception("Error checking credentials, skipping request: ")
             continue
@@ -1236,16 +1237,14 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         if not submit_credentials.add_identity_credential('frontend_condortoken', condortoken_file):
             entry.log.warning('failed to add frontend_condortoken %s to the identity credentials %s' % (condortoken_file,str(submit_credentials.identity_credentials)))
 
+    scitoken_passthru = (params.get('CONTINUE_IF_NO_PROXY') == 'True')
+
     scitoken = "credential_%s_%s.scitoken" % (client_int_name, entry.name)
     scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
     scitoken_data = decrypted_params.get('frontend_scitoken')
     if scitoken_data:
         if token_util.token_str_expired(scitoken_data):
-            entry.log.warning("frontend_scitoken supplied by frontend, but expired. Renaming to %s.expired" % scitoken_file)
-            if os.path.exists(scitoken_file):
-                os.rename(scitoken_file, scitoken_file+".expired")
-            if 'frontend_scitoken' in submit_credentials.identity_credentials:
-                del submit_credentials.identity_credentials['frontend_scitoken']
+            entry.log.warning("frontend_scitoken supplied by frontend, but expired. ")
         else:
             (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
             try:
@@ -1264,15 +1263,12 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         if not submit_credentials.add_identity_credential('frontend_scitoken', scitoken_file):
             entry.log.warning('failed to add frontend_scitoken %s to identity credentials %s' % (scitoken_file, str(submit_credentials.identity_credentials)))
 
-    if 'scitoken' in auth_method:
+    if 'scitoken' in auth_method or scitoken_passthru:
         if os.path.exists(scitoken_file):
             if token_util.token_file_expired(scitoken_file):
-                entry.log.warning('frontend_scitoken %s is expired, skipping request' % (scitoken_file))
-                if 'frontend_scitoken' in submit_credentials.identity_credentials:
-                    del submit_credentials.identity_credentials['frontend_scitoken']
-                return return_dict
+                entry.log.warning('frontend_scitoken %s is expired submission may fail' % (scitoken_file))
         else:
-            entry.log.warning("auth method is scitoken, but file %s not found. skipping request" % scitoken_file)
+            entry.log.warning("auth method supports  scitoken, but file %s not found. skipping request" % scitoken_file)
             return return_dict
 
 
@@ -1297,11 +1293,11 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
 
         # Determine identifier for file name and add to
         # credentials to be passed to submit
-        proxy_id = decrypted_params['SubmitProxy']
-
+        proxy_id = decrypted_params.get('SubmitProxy')
         if not submit_credentials.add_security_credential('SubmitProxy', "%s_%s" % (client_int_name, proxy_id)):
-            entry.log.warning("Credential %s for the submit proxy cannot be found for client %s, skipping request." % (proxy_id, client_int_name))
-            return return_dict
+            if not scitoken_passthru:
+                entry.log.warning("Credential %s for the submit proxy cannot be found for client %s, skipping request." % (proxy_id, client_int_name))
+                return return_dict
 
         # Set the id used for tracking what is in the factory queue
         submit_credentials.id = proxy_id
@@ -1327,11 +1323,13 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                 # BOSCO is using regular proxy, not compressed
                 credential_name = "%s_%s" % (client_int_name, proxy_id)
             if not submit_credentials.add_security_credential('GlideinProxy', credential_name):
-                entry.log.warning("Credential %s for the glidein proxy cannot be found for client %s, skipping request." % (proxy_id, client_int_name))
-                return return_dict
+                if not scitoken_passthru:
+                    entry.log.warning("Credential %s for the glidein proxy cannot be found for client %s, skipping request." % (proxy_id, client_int_name))
+                    return return_dict
         else:
-            entry.log.warning("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
-            return return_dict
+            if not scitoken_passthru:
+                entry.log.warning("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
+                return return_dict
 
         # VM id and type are required for cloud sites.
         # Either frontend or factory should provide it
