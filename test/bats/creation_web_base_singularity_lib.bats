@@ -1,4 +1,8 @@
 #!/usr/bin/env bats
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 load 'lib/bats-support/load'
 load 'lib/bats-assert/load'
 
@@ -18,7 +22,7 @@ robust_realpath_mock() {
 }
 
 
-setup () {
+setup() {
     source compat.bash
     # glidein_config=fixtures/glidein_config
     # export GLIDEIN_QUIET=true
@@ -161,7 +165,8 @@ dit() { echo "TEST:<$1><$2><$3>"; }
     [ "$(env_process_options $envoptions)" = "clearpath" ]  # Default is 'clearpath'
     [[ ",$(env_process_options clear)," = *",clearall,gwmsset,osgset,condorset,"* ]] || false  # clear substitution
     [[ ",$(env_process_options aaa,osgset)," = *",condorset,"* ]] || false  # osgset implies condorset
-    [ "$(env_process_options aaa,osgset,condorset)" = "aaa,osgset,condorset" ]  # should be the same
+    [[ ",$(env_process_options aaa,osgset)," = *",gwmsset,"* ]] || false  # osgset implies gwmsset
+    [ "$(env_process_options aaa,osgset,condorset)" = "aaa,osgset,condorset,gwmsset" ]  # should be the same
     echo "Should print a warning (clear+keepall):" >&3
     env_process_options clear,osgset,condorset,keepall
 }
@@ -201,13 +206,18 @@ dit() { echo "TEST:<$1><$2><$3>"; }
 }
 
 
-preset_env () {
+preset_env() {
     # 1- environment file (optional)
     # 2- HTCondor Job ClassAd file (optional)
     local env_file="fixtures/environment_singularity"
     [[ -n "$1" ]] && env_file="$1" || true
     env_sing="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^SINGULARITYENV_ || true)"
     for i in $env_sing ; do
+        #echo "UE unsetting: $i" >&3
+        unset $i
+    done
+    env_appt="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^APPTAINERENV_ || true)"
+    for i in $env_appt ; do
         #echo "UE unsetting: $i" >&3
         unset $i
     done
@@ -229,43 +239,53 @@ preset_env () {
     for i in env_sing ; do
         unset $i
     done
+    env_sing="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^APPTAINERENV_ || true)"
+    for i in env_sing ; do
+        unset $i
+    done
     preset_env
     env_preserve
     count_env_sing="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^SINGULARITYENV_ | wc -l)"
-    [ $count_env_sing -eq 10 ]  # default is clearpath, GWMS set is preserved
+    [ $count_env_sing -eq 13 ]  # default is clearpath, GWMS set is preserved
     preset_env
     env_preserve gwmsset
     count_env_sing="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^SINGULARITYENV_ | wc -l)"
-    echo "Count: $count_env_sing" >&3
-    [ $count_env_sing -eq 10 ]  # 10 variables in GWMS set
+    count_env_appt="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^APPTAINERENV_ | wc -l)"
+    echo "Count: $count_env_sing, $count_env_appt" >&3
+    [ $count_env_appt -eq $count_env_sing ]  # Singularity and Apptainer variables should match
+    [ $count_env_sing -eq 13 ]  # 13 variables in GWMS set
     preset_env
     env_preserve condorset
     count_env_sing="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^SINGULARITYENV_ | wc -l)"
-    echo "Count: $count_env_sing" >&3
-    [ $count_env_sing -eq 14 ]  # 4 variables in HTCondor set + Job classad
+    count_env_appt="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^APPTAINERENV_ | wc -l)"
+    echo "Count: $count_env_sing, $count_env_appt" >&3
+    [ $count_env_appt -eq $count_env_sing ]  # Singularity and Apptainer variables should match
+    [ $count_env_sing -eq 17 ]  # 4 variables in HTCondor set + Job classad (+GWMS set)
     preset_env
     env_preserve osgset
     count_env_sing="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^SINGULARITYENV_ | wc -l)"
-    echo "Count: $count_env_sing" >&3
-    [ $count_env_sing -eq 40 ]  # 34 variables in OSG set + HTCondor
+    count_env_appt="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^APPTAINERENV_ | wc -l)"
+    echo "Count: $count_env_sing, $count_env_appt" >&3
+    [ $count_env_appt -eq $count_env_sing ]  # Singularity and Apptainer variables should match
+    [ $count_env_sing -eq 44 ]  # 31 variables in OSG set (+13 in GWMS set, +4 in implied HTCondor set) (4 overlap)
     preset_env
     env_preserve clear
     count_env_sing="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^SINGULARITYENV_ | wc -l)"
     echo "Count: $count_env_sing" >&3
-    [ $count_env_sing -eq 40 ]  # 40 variables in OSG set + HTCondor + GWMS (5 overlap)
+    [ $count_env_sing -eq 44 ]  # 44 variables in OSG set (31) + HTCondor (4) + GWMS (13) (4 overlap)
     preset_env
     unset STASHCACHE
     unset STASHCACHE_WRITABLE
     env_preserve gwmsset
     count_env_sing="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^SINGULARITYENV_ | wc -l)"
     echo "Count: $count_env_sing" >&3
-    [ $count_env_sing -eq 8 ]  # 10 variables in GWMS set, 2 unset
+    [ $count_env_sing -eq 11 ]  # 13 variables in GWMS set, 2 unset
     preset_env
     export SINGULARITYENV_STASHCACHE=val_notfromfile
     env_preserve gwmsset
     count_env_sing="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^SINGULARITYENV_ | wc -l)"
     echo "Count: $count_env_sing, SINGULARITYENV_STASHCACHE: $SINGULARITYENV_STASHCACHE" >&3
-    [ $count_env_sing -eq 10 ]  # 10 variables in GWMS set, 1 already_protected, still 10
+    [ $count_env_sing -eq 13 ]  # 13 variables in GWMS set, 1 already_protected, still 13
     [ "$(env | grep ^SINGULARITYENV_STASHCACHE= | cut -d'=' -f2 )" = val_notfromfile ]  # val_notfromfile preserved
     # Add a test also with a Job classad w/ a SINGULARITYENV_ in the environment to get a warning
 }
@@ -435,12 +455,13 @@ mock_singularity_test_bin() {
     local step="${1%%,*}"
     local sin_path="${1#*,}"
     local sin_version=3.6.4
+    local sin_version_full="singularity version 3.6.4"
     local sin_type=mock_$step
     if [[ -z "$sin_path" ]] && [[ "$step" = module || "$step" = PATH ]]; then
         sin_path=/path/to/singularity
     fi
     if [[ "$mock_singularity_test_bin_control" = "true" || "$mock_singularity_test_bin_control" = "$step" ]]; then
-        echo -e "_$step\n_$sin_type\n_$sin_version\n_$sin_path\n_@ $step($sin_path):TT"
+        echo -e "_$step\n_$sin_type\n_$sin_version\n_$sin_version_full\n_$sin_path\n_@ $step($sin_path):TT"
     else
         echo -e " $step($sin_path):"
         false
@@ -489,7 +510,7 @@ mock_singularity_test_bin() {
     run  singularity_locate_bin_wrapped "ppp" "/path/to/image"
     echo "part 3: $output" >&3
     #[ "$output" = "SLB: 0, True, mock_OSG, $OSG_SINGULARITY_BINARY_DEFAULT, 1" ]
-    [ "$output" = "SLB: 0, True, mock_PATH, singularity, 1" ]
+    [ "$output" = "SLB: 0, True, mock_PATH, apptainer, 1" ]
     OSG_SINGULARITY_BINARY=$tmp_singularity_bin
     # default
     run  singularity_locate_bin_wrapped "" "/path/to/image"
@@ -498,7 +519,7 @@ mock_singularity_test_bin() {
     # keyword PATH
     run  singularity_locate_bin_wrapped "PATH" "/path/to/image"
     echo "part 5: $output" >&3
-    [ "$output" = "SLB: 0, True, mock_PATH, singularity, 1" ]
+    [ "$output" = "SLB: 0, True, mock_PATH, apptainer, 1" ]
     # keyword OSG
     run  singularity_locate_bin_wrapped "OSG" "/path/to/image"
     echo "part 6: $output" >&3
@@ -511,29 +532,29 @@ mock_singularity_test_bin() {
     if [ -e "$OSG_SINGULARITY_BINARY_DEFAULT" ]; then
         [ "$output" = "SLB: 0, True, mock_s_bin_OSG, $OSG_SINGULARITY_BINARY_DEFAULT, 1" ]
     else
-        [ "$output" = "SLB: 0, True, mock_PATH, singularity, 1" ]
+        [ "$output" = "SLB: 0, True, mock_PATH, apptainer, 1" ]
     fi
     mock_singularity_test_bin_control=false  # all fail
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 8: $output" >&3
     if [ -e "$OSG_SINGULARITY_BINARY_DEFAULT" ]; then
-        [ "$output" = "SLB: 1, False, , , 5" ]
+        [ "$output" = "SLB: 1, False, , , 6" ]
     else
-        [ "$output" = "SLB: 1, False, , , 4" ]
+        [ "$output" = "SLB: 1, False, , , 5" ]
     fi
     OSG_SINGULARITY_BINARY=$tmp_singularity_bin # To avoid having 2 versions for when /cvmfs is available and when not
     mock_singularity_test_bin_control=PATH  # only PATH successful
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 9: $output" >&3
-    [ "$output" = "SLB: 0, True, mock_PATH, singularity, 2" ]
+    [ "$output" = "SLB: 0, True, mock_PATH, apptainer, 2" ]
     mock_singularity_test_bin_control=module  # only module successful
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 10: $output" >&3
-    [ "$output" = "SLB: 0, True, mock_module, singularitypro, 3" ]
+    [ "$output" = "SLB: 0, True, mock_module, singularitypro, 4" ]
     mock_singularity_test_bin_control=OSG  # only OSG successful
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 11: $output" >&3
-    [ "$output" = "SLB: 0, True, mock_OSG, $tmp_singularity_bin, 5" ]
+    [ "$output" = "SLB: 0, True, mock_OSG, $tmp_singularity_bin, 6" ]
 
     [[ -n "${tmp_singularity_dir}" ]] && rm -rf "${tmp_singularity_dir}"
 }
