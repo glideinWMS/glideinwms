@@ -307,7 +307,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name,
         "AuthFile",
     }
 
-    if 'scitoken' in auth_method_list or 'frontend_scitoken' in params and scitoken_passthru::
+    if 'scitoken' in auth_method_list or 'frontend_scitoken' in params and scitoken_passthru:
         #TODO  check validity
         return
     if "grid_proxy" in auth_method_list:
