@@ -168,10 +168,10 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         submit_attrs = entry.get_child("config").get_child("submit").get_child_list("submit_attrs")
         enc_input_files = []
 
-        enc_input_files.append("$ENV(IDTOKENS_FILE)")
+        enc_input_files.append("$ENV(IDTOKENS_FILE:)")
 
         if gridtype not in ["ec2", "gce"]:
-            self.add("+SciTokensFile", '"$ENV(SCITOKENS_FILE)"')
+            self.add("+SciTokensFile", '"$ENV(SCITOKENS_FILE:)"')
 
         # Folders and files of tokens for glidein logging authentication
         # leos token stuff, left it in for now
