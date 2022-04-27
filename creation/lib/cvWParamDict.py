@@ -1106,6 +1106,7 @@ def populate_common_descript(descript_dict, params):
 
     if params.security.proxy_selection_plugin is not None:
         descript_dict.add("ProxySelectionPlugin", params.security.proxy_selection_plugin)
+    descript_dict.add('IDTokenLifetime', getattr(params.security, 'idtoken_lifetime', 24))
 
     if len(params.security.credentials) > 0:
         proxies = []

@@ -349,6 +349,12 @@ class VOFrontendParams(cWParams.CommonParams):
             "What name will we advertize for security purposes?",
             None,
         )
+        security_defaults["idtoken_lifetime"] = (
+           '24',
+           "idtoken_lifetime",
+           "The lifetime of the idtoken used connect WN startds to the VO collector (in hours)",
+           None
+        )
 
         self.group_defaults = cWParams.CommentedOrderedDict()
         self.group_defaults["match"] = match_defaults
