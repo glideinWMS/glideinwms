@@ -307,15 +307,15 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name,
         "AuthFile",
     }
 
-    if 'scitoken' in auth_method_list or 'frontend_scitoken' in params and scitoken_passthru:
-        #TODO  check validity
+    if "scitoken" in auth_method_list or "frontend_scitoken" in params and scitoken_passthru:
+        # TODO  check validity
         return
     if "grid_proxy" in auth_method_list:
         if "SubmitProxy" in params:
             # v3+ protocol
             valid_keys = {"SubmitProxy"}
             invalid_keys = relevant_keys.difference(valid_keys)
-            if params_keys.intersection(invalid_keys)  and not scitoken_passthru:
+            if params_keys.intersection(invalid_keys) and not scitoken_passthru:
                 raise CredentialError(
                     "Request from %s has credentials not required by the entry %s, skipping request"
                     % (client_int_name, entry_name)
