@@ -139,7 +139,7 @@ Click on any piece for a more detailed description.
         <br/>
         <a href="#monitor">&lt;monitor base_dir="/var/www/html/vofrontend/monitor" flot_dir="/opt/javascriptrrd-0.6.3/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.3/src/lib" jquery_dir="/opt/javascriptrrd-0.6.3/flot" /&gt;</a><br/>
         <a href="#monitor_footer">&lt;monitor_footer display_txt="Legal Disclaimer" href_link="/site/disclaimer.html"  /&gt;</a><br/><br/>
-        <a href="#security">&lt;security classad_proxy="/etc/grid-security/hostcert.pem" comment="use hostcert here if not doing GSI authentication  through  GWMS versions 3.6.5" proxy_DN="/DC=org/DC=doegrids/OU=Services/CN=frontend-server.fnal.gov" proxy_selection_plugin="ProxyAll" security_name="frontenduser" sym_key="aes_256_cbc"&gt;</a><br/>
+        <a href="#security">&lt;security classad_proxy="/etc/grid-security/hostcert.pem" comment="use hostcert here if not doing GSI authentication  through  GWMS versions 3.6.5" proxy_DN="/DC=org/DC=doegrids/OU=Services/CN=frontend-server.fnal.gov" idtoken_lifetime="24" proxy_selection_plugin="ProxyAll" security_name="frontenduser" sym_key="aes_256_cbc"&gt;</a><br/>
         <blockquote>
         <a href="#credentials">&lt;credentials&gt;</a><br/>
         <blockquote>
@@ -410,6 +410,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         &lt;frontend&gt;&lt;security
         proxy_DN=&quot;<I>/DC=org/DC=doegrids/OU=Service/CN=frontend/frontend1.my.org</I>&quot;
         classad_proxy=&quot;<I>proxy_dir</I>&quot;
+        idtoken_lifetime=&quot;<I>proxy_dir</I>&quot;
         proxy_selection_plugin=&quot;<I>ProxyAll</I>&quot;
         security_name=&quot;<I>vofrontend1</I>&quot;&gt;
 
@@ -417,6 +418,8 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
     Grid proxy to use is located in the classad_proxy directory and you must
     specify the full path to the proxy. security_name signifies the name
     under which the Frontend is registered with the factory.
+
+    The idtoken_lifetime is used to indicate the number of hours the idtoken is valid. The idtoken is used on the worker node to connect back to the VO collector.
     <br> <br>For A GSI free configuration, set the classad_proxy to "/etc/grid-security/hostcert.pem" and set up a scitoken in the &lt;credentials&gt; section below.
     </P></li>
     <LI><P>
