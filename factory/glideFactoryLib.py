@@ -1153,7 +1153,7 @@ def logWorkRequest(
         "Client %s (secid: %s) requesting %i glideins, max running %i, idle lifetime %s, remove excess '%s', remove_excess_margin %s"
         % (client_int_name, client_log_name, req_idle, req_max_run, idle_lifetime, remove_excess[0], remove_excess[1])
     )
-    log.info("  Params: %s" % work_el["params"])
+    #log.info("  Params: %s" % work_el["params"])
     # Do not log decrypted values ... they are most likely sensitive
     # Just log the keys for debugging purposes
     log.info("  Decrypted Param Names: %s" % list(work_el["params_decrypted"].keys()))
