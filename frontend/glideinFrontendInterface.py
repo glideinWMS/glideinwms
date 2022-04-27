@@ -467,7 +467,7 @@ class Credential:
         """
         type_set = set(self.type.split('+'))
         am_set = set(auth_method.split('+'))
-        #dbox scitokens are supposed to auth grid_proxy sites
+        # scitokens are supposed to auth grid_proxy sites
         if 'grid_proxy' in am_set and 'scitoken' in type_set:
             return True
         return am_set.issubset(type_set)
