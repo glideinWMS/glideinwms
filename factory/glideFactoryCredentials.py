@@ -271,7 +271,7 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
 def check_security_credentials(auth_method, params, client_int_name, entry_name, scitoken_passthru=False):
     """
     Verify that only credentials for the given auth method are in the params
-    
+
     Args:
         auth_method: (string): authentication method of an entry, defined in the config
         params: (dictionary): decrypted params passed in a frontend (client) request
@@ -306,9 +306,9 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name,
         "AuthFile",
     }
 
-    if 'scitoken' in auth_method_list or 'frontend_scitoken' in params and scitoken_passthru:
-        # TODO  check validity  
-        # TODO  Specifically, Add checks that no undesired credentials are 
+    if "scitoken" in auth_method_list or "frontend_scitoken" in params and scitoken_passthru:
+        # TODO  check validity
+        # TODO  Specifically, Add checks that no undesired credentials are
         #       sent also when token is used
         return
     if "grid_proxy" in auth_method_list:
@@ -328,7 +328,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name,
                     "Request from client %s did not provide a proxy as required by the entry %s, skipping request"
                     % (client_int_name, entry_name)
                 )
-    
+
     else:
         # Only v3+ protocol supports non grid entries
         # Verify that the glidein proxy was provided for non-proxy auth methods
