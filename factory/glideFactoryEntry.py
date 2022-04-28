@@ -1057,10 +1057,11 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         #
 
         # Check request has the required credentials and nothing else
+        scitoken_passthru = params.get("CONTINUE_IF_NO_PROXY") == "True"
         try:
             entry.log.debug("Checking security credentials for client %s " % client_int_name)
             glideFactoryCredentials.check_security_credentials(
-                auth_method, decrypted_params, client_int_name, entry.name
+                auth_method, decrypted_params, client_int_name, entry.name, scitoken_passthru
             )
         except glideFactoryCredentials.CredentialError:
             entry.log.exception("Error checking credentials, skipping request: ")
