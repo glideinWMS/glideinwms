@@ -257,20 +257,20 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
     return sym_key_obj, frontend_sec_name
 
 
-def check_security_credentials(auth_method, params, client_int_name, entry_name):
+def check_security_credentials(auth_method, params, client_int_name, entry_name, scitoken_passthru=False):
     """
     Verify taht only credentials for the given auth method are in the params
 
-    @type auth_method: string
-    @param auth_method: authentication method of an entry, defined in the config
-    @type params: dictionary
-    @param params: decrypted params passed in a frontend (client) request
-    @type client_int_name: string
-    @param client_int_name: internal client name
-    @type entry_name: string
-    @param entry_name: name of the entry
+    Args:
 
-    @raise CredentialError: if the credentials in params don't match what is defined for the auth method
+        auth_method:(string): authentication method of an entry, defined in the config
+        params: dictionary of decrypted params passed in a frontend (client) request
+        client_int_name:(string): internal client name
+        entry_name:(string): name of the entry
+        scitoken_passthr:(bool): ignore most credential checks if true.  Means a scitoken
+                                 is present in credential to be used instead of 'auth_method'
+    Raises:
+        CredentialError: if the credentials in params don't match what is defined for the auth method
     """
 
     auth_method_list = auth_method.split('+')
@@ -284,26 +284,30 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
                          'PublicCert', 'PrivateCert', 'PublicKey', 'PrivateKey',
                          'VMId', 'VMType', 'AuthFile'])
 
-    if 'scitoken' in auth_method_list:
-        #TODO check validity
-        return
-    elif 'grid_proxy' in auth_method_list:
-        if 'SubmitProxy' in params:
-            # v3+ protocol
-            valid_keys = set(['SubmitProxy'])
-            invalid_keys = relevant_keys.difference(valid_keys)
-            if params_keys.intersection(invalid_keys):
-                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" %
-                                      (client_int_name, entry_name))
-        else:
-            # No proxy sent
-            raise CredentialError("Request from client %s did not provide a proxy as required by the entry %s, skipping request" %
-                                  (client_int_name, entry_name))
 
+
+    if 'scitoken' in auth_method_list or 'frontend_scitoken' in params and scitoken_passthru:
+        #TODO check validity 
+        #TODO specifically check that no undesired credentials are sent also when token is used
+        return
+    if 'grid_proxy' in auth_method_list:
+        if not scitoken_passthru:
+            if 'SubmitProxy' in params:
+                # v3+ protocol
+                valid_keys = set(['SubmitProxy'])
+                invalid_keys = relevant_keys.difference(valid_keys)
+                if params_keys.intersection(invalid_keys):
+                    raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" %
+                                          (client_int_name, entry_name))
+            else:
+                # No proxy sent
+                raise CredentialError("Request from client %s did not provide a proxy as required by the entry %s, skipping request" %
+                                     (client_int_name, entry_name))
+    
     else:
         # Only v3+ protocol supports non grid entries
         # Verify that the glidein proxy was provided for non-proxy auth methods
-        if 'GlideinProxy' not in params:
+        if 'GlideinProxy' not in params and not scitoken_passthru:
             raise CredentialError("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
 
         if 'cert_pair' in auth_method_list:

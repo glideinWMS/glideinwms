@@ -1032,7 +1032,8 @@ for tk in "$(pwd)/credential_"*".idtoken"; do
   echo "Setting GLIDEIN_CONDOR_TOKEN to ${tk} " 1>&2
   num_gct=$(( num_gct + 1 ))
   export GLIDEIN_CONDOR_TOKEN="${tk}"
-  if fullpath=$(readlink -f "${tk}" ); then
+  fullpath="$(readlink -f "${tk}" )"
+  if [ $? -eq 0 ]; then
      echo "Setting GLIDEIN_CONDOR_TOKEN ${tk} to canonical path ${fullpath}" 1>&2
      export GLIDEIN_CONDOR_TOKEN="${fullpath}"
   else

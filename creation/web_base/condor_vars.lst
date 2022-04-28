@@ -4,6 +4,9 @@
 #                                                                        @ = Use CondorName
 #################################################################################################################
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Singularity variables
 # GLIDEIN_Singularity_Use (DISABLE_GWMS, NEVER, OPTIONAL, PREFERRED, REQUIRED)
 # GLIDEIN_SINGULARITY_REQUIRE (NEVER, OPTIONAL, PREFERRED, REQUIRED, REQUIRED_GWMS)
@@ -16,6 +19,9 @@ SINGULARITY_IMAGE_RESTRICTIONS          S   cvmfs   +   N   Y   -
 GLIDEIN_SINGULARITY_OPTS                S   -   +   N   Y   -
 SINGULARITY_MODE                        S   -   +   N   Y   -
 SINGULARITY_VERSION                     S   -   +   N   Y   -
+CONTAINERSW_MODE                        S   -   +   N   Y   -
+CONTAINERSW_VERSION                     S   -   +   N   Y   -
+CONTAINERSW_FULL_VERSION                S   -   +   N   Y   -
 GLIDEIN_REQUIRED_OS         S   any             +   N   Y   -
 REQUIRED_OS                 S   any             +   N   Y   -
 GLIDEIN_DEBUG_OUTPUT        S   -               +   N   Y   -
@@ -120,7 +126,7 @@ GLIDEIN_Monitoring_Enabled	C	False	+				N	Y	+
 GLIDEIN_Resource_Slots  C   -       +               N   N   -
 # this will be used for MaxJobRetirementTime of the main startd
 PREEMPT_GRACE_TIME	I	10000000	+				N	Y	+
-GLIDEIN_CPUS		C	1		+				N	N	@ 
+GLIDEIN_CPUS		C	1		+				N	N	@
 GLIDEIN_NODES		C	1		+				N	N	@
 HOLD_GRACE_TIME 	I	0	        +				N	Y	+
 
