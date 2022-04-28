@@ -231,7 +231,7 @@ class glideinFrontendElement:
             self.x509_proxy_plugin = proxy_plugins[self.elementDescript.merged_data['ProxySelectionPlugin']](
                 group_dir, glideinFrontendPlugins.createCredentialList(self.elementDescript))
 
-        self.idtoken_lifetime = int(self.elementDescript.merged_data['IDTokenLifetime'])
+        self.idtoken_lifetime = int(self.elementDescript.merged_data.get('IDTokenLifetime',24))
 
         # set the condor configuration and GSI setup globally, so I don't need to worry about it later on
         os.environ['CONDOR_CONFIG'] = self.elementDescript.frontend_data['CondorConfig']
