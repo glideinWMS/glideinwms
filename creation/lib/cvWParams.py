@@ -161,6 +161,7 @@ class VOFrontendParams(cWParams.CommonParams):
         security_defaults["proxy_selection_plugin"]=(None, "proxy_name", "Which credentials selection plugin should I use (ProxyAll if None)", None)
         security_defaults["credentials"]=([], 'List of credentials',"Each credential element contains", proxy_defaults)
         security_defaults["security_name"]=(None, "frontend_name", "What name will we advertize for security purposes?", None)
+        security_defaults["idtoken_lifetime"]=('24', "idtoken_lifetime", "The lifetime of the idtoken used connect WN startds to the VO collector (in hours)", None)
 
         self.group_defaults=cWParams.commentedOrderedDict()
         self.group_defaults["match"]=match_defaults
