@@ -33,6 +33,8 @@ import tempfile
 import time
 import traceback
 
+from importlib import import_module
+
 from glideinwms.frontend import (
     glideinFrontendConfig,
     glideinFrontendDowntimeLib,
@@ -60,6 +62,10 @@ from glideinwms.lib.util import chmod, safe_boolcomp
 
 # this should not be needed in RPM install: sys.path.append(os.path.join(sys.path[0], "../.."))
 
+# credential generator plugins support
+# TODO: This path should come from the frontend configuration, but it's not available yet.
+sys.path.append("/etc/gwms-frontend/plugin.d")
+plugins = {}
 
 ###########################################################
 # Support class that mimics the 2.7 collections.Counter class
@@ -992,7 +998,7 @@ class glideinFrontendElement:
 
         if os.path.exists(scitoken_fullpath):
             try:
-                logSupport.log.debug("found scitoken %s" % scitoken_fullpath)
+                logSupport.log.debug(f"found scitoken {scitoken_fullpath}")
                 stkn = ""
                 with open(scitoken_fullpath) as fbuf:
                     for line in fbuf:
@@ -1000,7 +1006,7 @@ class glideinFrontendElement:
                 stkn = stkn.strip()
                 return stkn
             except Exception as err:
-                logSupport.log.exception("failed to read scitoken: %s" % err)
+                logSupport.log.exception(f"failed to read scitoken: {err}")
 
         return None
 
@@ -1036,34 +1042,35 @@ class glideinFrontendElement:
         # KeyError - miss some information to generate
         # ValueError - could not generate the token
 
-        credential_generator = None
-        credential_generators = elementDescript.element_data.get("CredentialGenerators")
+        generator = None
+        generators = elementDescript.element_data.get("CredentialGenerators")
         trust_domain_data = elementDescript.element_data.get("ProxyTrustDomains")
-        if not credential_generators:
-            credential_generators = elementDescript.frontend_data.get("CredentialGenerators")
+        if not generators:
+            generators = elementDescript.frontend_data.get("CredentialGenerators")
         if not trust_domain_data:
             trust_domain_data = elementDescript.frontend_data.get("ProxyTrustDomains")
-        if trust_domain_data and credential_generators:
-            credential_generators_map = eval(credential_generators)
+        if trust_domain_data and generators:
+            generators_map = eval(generators)
             trust_domain_map = eval(trust_domain_data)
-            for cfname in credential_generators_map:
+            for cfname in generators_map:
                 if trust_domain_map[cfname] == trust_domain:
-                    credential_generator = credential_generators_map[cfname]
-                    logSupport.log.debug("found credential generator plugin %s" % credential_generator)
+                    generator = generators_map[cfname]
+                    logSupport.log.debug(f"found credential generator plugin {generator}")
                     try:
-                        get_credential = __import__(credential_generator, fromlist=["get_credential"])
+                        if not generator in plugins:
+                            plugins[generator] = import_module(generator)
                         entry = {
                             "name": glidein_el["attrs"].get("EntryName"),
                             "gatekeeper": glidein_el["attrs"].get("GLIDEIN_Gatekeeper"),
                         }
-                        stkn, _ = get_credential(logSupport, group_name, entry, trust_domain)
+                        stkn, _ = plugins[generator].get_credential(logSupport, group_name, entry, trust_domain)
                         return stkn
                     except ModuleNotFoundError:
-                        logSupport.log.warning("Failed to load credential generator plugin %s" % credential_generator)
-                    except (KeyError, ValueError) as e:
-                        logSupport.log.warning("Failed to generate credential: %s." % e)
+                        logSupport.log.warning(f"Failed to load credential generator plugin {generator}")
+                    except Exception as e:  # catch any exception from the plugin to prevent the frontend from crashing
+                        logSupport.log.warning(f"Failed to generate credential: {e}.")
 
-            return None
+        return None
 
     def refresh_entry_token(self, glidein_el):
         """

@@ -22,11 +22,24 @@ from glideinwms.lib import subprocessSupport, token_util
 # key_id, and issuer need to be changed to the VO specific ones.
 
 
-def get_credential(logger, group, entry, trust_domain):
-    """
-    Generates a credential given the parameters. This is called once
+# TODO: tkn_dir default path should come from the frontend configuration, but it's not available yet.
+def get_credential(logger, group, entry, trust_domain, tkn_dir="/var/lib/gwms-frontend/tokens.d"):
+    """Generates a credential given the parameters. This is called once
     per group, per entry. It is a good idea for the VO to do some
     caching here so that new tokens are only generated when required.
+
+    Args:
+        logger (logSupport): Logger module
+        group (str): Frontend group
+        entry (str): Factory entry
+        trust_domain (str): Credential trust domain
+        tkn_dir (str, optional): Directory where the tokens are stored. Defaults to "/var/lib/gwms-frontend/tokens.d".
+
+    Raises:
+        err: If the token could not be generated.
+
+    Returns:
+        (str, int): The token string and the lifetime of the token.
     """
 
     key_file = "/etc/condor/scitokens.pem"
@@ -34,6 +47,8 @@ def get_credential(logger, group, entry, trust_domain):
     issuer = "https://scitokens.org/osg-connect"
     scope = "compute.read compute.modify compute.create compute.cancel"
     wlcg_ver = "1.0"
+    # The token lifetime is controlled by the plugin (the issuer and the VO), like it happens for all credentials.
+    # If configurable, it should be in the plugin/generator call-out configuration
     tkn_max_lifetime = 3600
     tkn_file = ""
     tkn_str = ""
@@ -45,9 +60,8 @@ def get_credential(logger, group, entry, trust_domain):
         audience = entry["gatekeeper"].split()[-1]
     subject = None
     if "name" in entry:
-        subject = "vofrontend-%s" % (entry["name"])
+        subject = f"vofrontend-{entry['name']}"
 
-    tkn_dir = "/var/lib/gwms-frontend/tokens.d"
     if not os.path.exists(tkn_dir):
         os.mkdir(tkn_dir, 0o700)
     tkn_file = os.path.join(tkn_dir, group + "." + entry["name"] + ".scitoken")
@@ -77,7 +91,7 @@ def get_credential(logger, group, entry, trust_domain):
             os.close(fd)
             shutil.move(tmpnm, tkn_file)
             os.chmod(tkn_file, 0o600)
-            logger.debug("created token %s" % tkn_file)
+            logger.debug(f"created token {tkn_file}")
         elif os.path.exists(tkn_file):
             with open(tkn_file) as fbuf:
                 for line in fbuf:
@@ -85,7 +99,8 @@ def get_credential(logger, group, entry, trust_domain):
             tkn_str = tkn_str.strip()
             tkn_lifetime = tkn_max_lifetime - tkn_age
     except Exception as err:
-        logger.warning("failed to create %s" % tkn_file)
+        logger.log.warning(f"failed to create {tkn_file}")
+        raise err
     finally:
         if os.path.exists(tmpnm):
             os.remove(tmpnm)
