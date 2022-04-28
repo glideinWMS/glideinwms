@@ -470,7 +470,7 @@ class Credential:
         """
         type_set = set(self.type.split("+"))
         am_set = set(auth_method.split("+"))
-        if 'grid_proxy' in am_set and 'scitoken' in type_set:
+        if "grid_proxy" in am_set and "scitoken" in type_set:
             return True
         return am_set.issubset(type_set)
 
