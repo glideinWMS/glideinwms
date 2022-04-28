@@ -245,6 +245,7 @@ class glideinFrontendElement:
             self.x509_proxy_plugin = proxy_plugins[self.elementDescript.merged_data["ProxySelectionPlugin"]](
                 group_dir, glideinFrontendPlugins.createCredentialList(self.elementDescript)
             )
+        self.idtoken_lifetime = int(self.elementDescript.merged_data.get("IDTokenLifetime", 24))
 
         # set the condor configuration and GSI setup globally, so I don't need to worry about it later on
         os.environ["CONDOR_CONFIG"] = self.elementDescript.frontend_data["CondorConfig"]
@@ -1019,7 +1020,7 @@ class glideinFrontendElement:
                     os.mkdir(pwd_dir, 0o700)
                 if not os.path.exists(req_dir):
                     os.mkdir(req_dir, 0o700)
-                tkn_file = tkn_dir + "/" + glidein_site + ".idtoken"
+                tkn_file = tkn_dir + "/" + self.group_name + "." + glidein_site + ".idtoken"
                 pwd_file = pwd_dir + "/" + glidein_site
                 pwd_default = pwd_dir + "/" + "FRONTEND"
                 req_file = req_dir + "/" + glidein_site
@@ -1034,9 +1035,9 @@ class glideinFrontendElement:
                     # TODO: scope, duration, identity  should be configurable from frontend.xml
                     (fd, tmpnm) = tempfile.mkstemp()
                     scope = "condor:/READ condor:/ADVERTISE_STARTD condor:/ADVERTISE_MASTER"
-                    duration = 24 * one_hr
+                    duration = self.idtoken_lifetime * one_hr
                     identity = f"{glidein_site}@{socket.gethostname()}"
-                    logSupport.log.debug("creating  token %s" % tkn_file)
+                    logSupport.log.debug("creating token %s" % tkn_file)
                     logSupport.log.debug("pwd_flie= %s" % pwd_file)
                     logSupport.log.debug("scope= %s" % scope)
                     logSupport.log.debug("duration= %s" % duration)
