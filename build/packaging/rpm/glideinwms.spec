@@ -322,6 +322,7 @@ rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/test
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/unittests
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/chksum.sh
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/requirements.txt
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/CHANGELOG.md
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/tox.ini
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/LICENSE
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/ACKNOWLEDGMENTS.txt
