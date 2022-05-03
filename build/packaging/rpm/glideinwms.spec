@@ -302,6 +302,9 @@ chmod 700 chksum.sh
 rm -rf $RPM_BUILD_ROOT
 
 # Set the Python version
+%global __python %{__python3}
+
+# TODO: Check if some of the following are needed
 # seems never used
 # %define py_ver %(python -c "import sys; v=sys.version_info[:2]; print '%d.%d'%v")
 
@@ -368,7 +371,9 @@ rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.gitmodules
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.mailmap
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.pep8speaks.yml
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.pre-commit-config.yaml
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.prettierignore
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.travis.yml
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/pyproject.toml
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/test
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/unittests
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/chksum.sh
@@ -380,6 +385,7 @@ rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/LICENSES
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/ACKNOWLEDGMENTS.md
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/DEVELOPMENT.md
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/README.md
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/CHANGELOG.md
 
 # Following files are Put in other places. Remove them from python3_sitelib
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/web_base
@@ -389,6 +395,7 @@ rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/create_condor_tarbal
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/create_frontend
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/create_glidein
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/info_glidein
+rm -rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/plugins
 
 # For sl7 sighup to work, we need reconfig_frontend and reconfig_glidein
 # under this directory
@@ -943,9 +950,9 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0644, root, root) %{_sysconfdir}/cron.d/gwms-renew-proxies
 %endif
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend
-%attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/plugin.d
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.pre
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.post
+%attr(-, frontend, frontend) %config(noreplace) %{_sysconfdir}/gwms-frontend/plugin.d
 %attr(-, frontend, frontend) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gwms-frontend/frontend.xml
 %attr(-, frontend, frontend) %config(noreplace) %{_sysconfdir}/gwms-frontend/proxies.ini
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-frontend
