@@ -3,14 +3,15 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-USAGE_STR="$0 [-h] TAG USER
+USAGE_STR="$0 [-h] TAG USER [REPO]
  TAG       - tag or branch ID in the Git repository (branch pointers change, use a branch name only for scratch builds)
  USER      - username on the OSG build machine
+ REPO      - url of the Git repository (default: https://github.com/glideinWMS/glideinwms.git)
  -h --help - print this message and exit"
 
 [ "$1" == "-h" ] || [ "$1" == "--help" ] && { echo "$USAGE_STR"; exit 0; }
 
-if [ $# -ne 2 ]; then
+if [ $# -lt 2 ]; then
     echo "ERROR: Missing arguments 'tag' and 'user'"
     echo "$USAGE_STR"
     exit 1
@@ -18,11 +19,14 @@ fi
 
 gwms_tag=$1
 username=$2
+gwms_repo="https://github.com/glideinWMS/glideinwms.git"
+if [ $# -eq 3 ]; then
+    gwms_repo=$3
+fi
+
 # At the end of 2019 OSG switched to moria. library still works but is deprecated. was: osg_buildmachine="library.cs.wisc.edu"
 osg_buildmachine="moria.cs.wisc.edu"
 osg_uploaddir="/p/vdt/public/html/upstream/glideinwms/$gwms_tag"
-
-gwms_repo="ssh://p-glideinwms@cdcvs.fnal.gov/cvs/projects/glideinwms"
 
 work_dir="/tmp/osgrelease.$$"
 gwms_location="$work_dir/glideinwms"
