@@ -1275,7 +1275,7 @@ def unit_work_v3(
                 % (condortoken_file, str(submit_credentials.identity_credentials))
             )
 
-    scitoken_passthru = (params.get('CONTINUE_IF_NO_PROXY') == 'True')
+    scitoken_passthru = params.get("CONTINUE_IF_NO_PROXY") == "True"
     scitoken = f"credential_{client_int_name}_{entry.name}.scitoken"
     scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
     scitoken_data = decrypted_params.get("frontend_scitoken")
