@@ -47,20 +47,22 @@ class fakeObj:
 
 class fakeDescript:
     def __init__(self):
-        self.merged_data = {}
-        self.merged_data["ProxySecurityClasses"] = {}
-        self.merged_data["ProxyTrustDomains"] = {}
-        self.merged_data["ProxyTypes"] = {}
-        self.merged_data["ProxyKeyFiles"] = {}
-        self.merged_data["ProxyPilotFiles"] = {}
-        self.merged_data["ProxyVMIds"] = {}
-        self.merged_data["ProxyVMTypes"] = {}
-        self.merged_data["ProxyVMIdFname"] = {}
-        self.merged_data["ProxyVMTypeFname"] = {}
-        self.merged_data["ProxyRemoteUsernames"] = {}
-        self.merged_data["ProxyProjectIds"] = {}
-        self.merged_data["ProxyCreationScripts"] = {}
-        self.merged_data["ProxyUpdateFrequency"] = {}
+        self.merged_data = {
+            "ProxySecurityClasses": {},
+            "ProxyTrustDomains": {},
+            "ProxyTypes": {},
+            "CredentialGenerators": {},
+            "ProxyKeyFiles": {},
+            "ProxyPilotFiles": {},
+            "ProxyVMIds": {},
+            "ProxyVMTypes": {},
+            "ProxyVMIdFname": {},
+            "ProxyVMTypeFname": {},
+            "ProxyRemoteUsernames": {},
+            "ProxyProjectIds": {},
+            "ProxyCreationScripts": {},
+            "ProxyUpdateFrequency": {},
+        }
 
     def addproxy(self, name):
         self.merged_data["ProxySecurityClasses"][name] = "frontend"
@@ -87,8 +89,8 @@ class TestPlugins(unittest.TestCase):
             rtnlist.append(Credential(t, proxyfile, self.elementDescript))
         return rtnlist
 
-    def killCredlist(self, list):
-        for cred in list:
+    def killCredlist(self, cred_list):
+        for cred in cred_list:
             os.remove(cred.filename)
 
     def setUp(self):

@@ -33,6 +33,8 @@ import tempfile
 import time
 import traceback
 
+from importlib import import_module
+
 from glideinwms.frontend import (
     glideinFrontendConfig,
     glideinFrontendDowntimeLib,
@@ -60,6 +62,10 @@ from glideinwms.lib.util import chmod, safe_boolcomp
 
 # this should not be needed in RPM install: sys.path.append(os.path.join(sys.path[0], "../.."))
 
+# credential generator plugins support
+# TODO: This path should come from the frontend configuration, but it's not available yet.
+sys.path.append("/etc/gwms-frontend/plugin.d")
+plugins = {}
 
 ###########################################################
 # Support class that mimics the 2.7 collections.Counter class
@@ -863,7 +869,6 @@ class glideinFrontendElement:
             if key_obj is not None:
                 # determine whether to encrypt a condor token or scitoken into the classad
                 ctkn = ""
-                stkn = ""
                 gp_encrypt = {}
                 # see if site supports condor token
                 ctkn = self.refresh_entry_token(glidein_el)
@@ -872,37 +877,19 @@ class glideinFrontendElement:
                     entry_token_name = "%s.idtoken" % glidein_el["attrs"].get("EntryName", "condor")
                     logSupport.log.debug("found condor token: %s" % entry_token_name)
                     gp_encrypt[entry_token_name] = ctkn
-                # now see if theres a scitoken for this site
-                scitoken_fullpath = ""
-                cred_type_data = self.elementDescript.element_data.get("ProxyTypes")
-                trust_domain_data = self.elementDescript.element_data.get("ProxyTrustDomains")
-                if not cred_type_data:
-                    cred_type_data = self.elementDescript.frontend_data.get("ProxyTypes")
-                if not trust_domain_data:
-                    trust_domain_data = self.elementDescript.frontend_data.get("ProxyTrustDomains")
-                if trust_domain_data and cred_type_data:
-                    cred_type_map = eval(cred_type_data)
-                    trust_domain_map = eval(trust_domain_data)
-                    for cfname in cred_type_map:
-                        if cred_type_map[cfname] == "scitoken":
-                            if trust_domain_map[cfname] == trust_domain:
-                                scitoken_fullpath = cfname
 
-                if os.path.exists(scitoken_fullpath):
-                    try:
-                        logSupport.log.debug("found scitoken %s" % scitoken_fullpath)
-                        with open(scitoken_fullpath) as fbuf:
-                            for line in fbuf:
-                                stkn += line
-                        stkn = stkn.strip()
+                # now try to generate a credential using a generator plugin
+                stkn = self.generate_credential(self.elementDescript, glidein_el, self.group_name, trust_domain)
 
-                        if stkn:
-                            if token_util.token_str_expired(stkn):
-                                logSupport.log.warning("%s is expired, not forwarding" % scitoken_fullpath)
-                            else:
-                                gp_encrypt["frontend_scitoken"] = stkn
-                    except Exception as err:
-                        logSupport.log.exception("failed to read scitoken: %s" % err)
+                # look for a local scitoken if no credential was generated
+                if not stkn:
+                    stkn = self.get_scitoken(self.elementDescript, trust_domain)
+
+                if stkn:
+                    if token_util.token_str_expired(stkn):
+                        logSupport.log.warning("SciToken is expired, not forwarding.")
+                    else:
+                        gp_encrypt["frontend_scitoken"] = stkn
 
                 # now advertise
                 logSupport.log.debug("advertising tokens %s" % gp_encrypt.keys())
@@ -982,6 +969,108 @@ class glideinFrontendElement:
         servicePerformance.endPerfMetricEvent(self.group_name, "advertize_classads")
 
         return
+
+    def get_scitoken(self, elementDescript, trust_domain):
+        """Look for a local SciToken specified for the trust domain.
+
+        Args:
+            elementDescript (ElementMergedDescript): element descript
+            trust_domain (string): trust domain for the element
+
+        Returns:
+            string, None: SciToken or None if not found
+        """
+
+        scitoken_fullpath = ""
+        cred_type_data = elementDescript.element_data.get("ProxyTypes")
+        trust_domain_data = elementDescript.element_data.get("ProxyTrustDomains")
+        if not cred_type_data:
+            cred_type_data = elementDescript.frontend_data.get("ProxyTypes")
+        if not trust_domain_data:
+            trust_domain_data = elementDescript.frontend_data.get("ProxyTrustDomains")
+        if trust_domain_data and cred_type_data:
+            cred_type_map = eval(cred_type_data)
+            trust_domain_map = eval(trust_domain_data)
+            for cfname in cred_type_map:
+                if cred_type_map[cfname] == "scitoken":
+                    if trust_domain_map[cfname] == trust_domain:
+                        scitoken_fullpath = cfname
+
+        if os.path.exists(scitoken_fullpath):
+            try:
+                logSupport.log.debug(f"found scitoken {scitoken_fullpath}")
+                stkn = ""
+                with open(scitoken_fullpath) as fbuf:
+                    for line in fbuf:
+                        stkn += line
+                stkn = stkn.strip()
+                return stkn
+            except Exception as err:
+                logSupport.log.exception(f"failed to read scitoken: {err}")
+
+        return None
+
+    def generate_credential(self, elementDescript, glidein_el, group_name, trust_domain):
+        """Generates a credential with a credential generator plugin provided for the trust domain.
+
+        Args:
+            elementDescript (ElementMergedDescript): element descript
+            glidein_el (dict): glidein element
+            group_name (string): group name
+            trust_domain (string): trust domain for the element
+
+        Returns:
+            string, None: Credential or None if not generated
+        """
+
+        ### The credential generator plugin should define the following function:
+        # def get_credential(log:logger, group:str, dentry:dict{name:str, gatekeeper:str}, trust_domain:str):
+        # Generates a credential given the parameter
+
+        # Args:
+        # log:logger
+        # group:str,
+        # entry:dict{
+        #     name:str,
+        #     gatekeeper:str},
+        # trust_domain:str,
+        # Return
+        # tuple
+        #     token:str
+        #     lifetime:int seconds of remaining lifetime
+        # Exception
+        # KeyError - miss some information to generate
+        # ValueError - could not generate the token
+
+        generator = None
+        generators = elementDescript.element_data.get("CredentialGenerators")
+        trust_domain_data = elementDescript.element_data.get("ProxyTrustDomains")
+        if not generators:
+            generators = elementDescript.frontend_data.get("CredentialGenerators")
+        if not trust_domain_data:
+            trust_domain_data = elementDescript.frontend_data.get("ProxyTrustDomains")
+        if trust_domain_data and generators:
+            generators_map = eval(generators)
+            trust_domain_map = eval(trust_domain_data)
+            for cfname in generators_map:
+                if trust_domain_map[cfname] == trust_domain:
+                    generator = generators_map[cfname]
+                    logSupport.log.debug(f"found credential generator plugin {generator}")
+                    try:
+                        if not generator in plugins:
+                            plugins[generator] = import_module(generator)
+                        entry = {
+                            "name": glidein_el["attrs"].get("EntryName"),
+                            "gatekeeper": glidein_el["attrs"].get("GLIDEIN_Gatekeeper"),
+                        }
+                        stkn, _ = plugins[generator].get_credential(logSupport, group_name, entry, trust_domain)
+                        return stkn
+                    except ModuleNotFoundError:
+                        logSupport.log.warning(f"Failed to load credential generator plugin {generator}")
+                    except Exception as e:  # catch any exception from the plugin to prevent the frontend from crashing
+                        logSupport.log.warning(f"Failed to generate credential: {e}.")
+
+        return None
 
     def refresh_entry_token(self, glidein_el):
         """
