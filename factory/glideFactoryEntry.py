@@ -1275,6 +1275,7 @@ def unit_work_v3(
                 % (condortoken_file, str(submit_credentials.identity_credentials))
             )
 
+    scitoken_passthru = (params.get('CONTINUE_IF_NO_PROXY') == 'True')
     scitoken = f"credential_{client_int_name}_{entry.name}.scitoken"
     scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
     scitoken_data = decrypted_params.get("frontend_scitoken")
@@ -1343,14 +1344,15 @@ def unit_work_v3(
 
         # Determine identifier for file name and add to
         # credentials to be passed to submit
-        proxy_id = decrypted_params["SubmitProxy"]
+        proxy_id = decrypted_params.get("SubmitProxy")
 
         if not submit_credentials.add_security_credential("SubmitProxy", f"{client_int_name}_{proxy_id}"):
-            entry.log.warning(
-                "Credential %s for the submit proxy cannot be found for client %s, skipping request."
-                % (proxy_id, client_int_name)
-            )
-            return return_dict
+            if not scitoken_passthru:
+                entry.log.warning(
+                    "Credential %s for the submit proxy cannot be found for client %s, skipping request."
+                    % (proxy_id, client_int_name)
+                )
+                return return_dict
 
         # Set the id used for tracking what is in the factory queue
         submit_credentials.id = proxy_id
