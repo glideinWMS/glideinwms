@@ -330,7 +330,7 @@ v3_9_4:
     - Fixes AWS/Google metadata encoding error
 
 v3_9_5:
-  Date: May 2, 2022
+  Date: May 5, 2022
   Series: Development
   Tarball: false
   Feature:
