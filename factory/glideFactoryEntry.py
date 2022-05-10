@@ -1284,23 +1284,18 @@ def unit_work_v3(
             entry.log.warning(
                 "frontend_scitoken supplied by frontend, but expired. Renaming to %s.expired" % scitoken_file
             )
-            if os.path.exists(scitoken_file):
-                os.rename(scitoken_file, scitoken_file + ".expired")
-            if "frontend_scitoken" in submit_credentials.identity_credentials:
-                del submit_credentials.identity_credentials["frontend_scitoken"]
-        else:
-            try:
-                entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
-                (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
-                with os.fdopen(fd, "w", encoding="utf-8") as f:
-                    f.write(f"{scitoken_data.strip()}\n")
-                chmod(tmpnm, 0o600)
-                util.file_tmp2final(scitoken_file, tmpnm)
-            except Exception as err:
-                entry.log.exception("failed to create scitoken: %s" % err)
-            finally:
-                if os.path.exists(tmpnm):
-                    os.remove(tmpnm)
+        try:
+            entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
+            (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                f.write(f"{scitoken_data.strip()}\n")
+            chmod(tmpnm, 0o600)
+            util.file_tmp2final(scitoken_file, tmpnm)
+        except Exception as err:
+            entry.log.exception("failed to create scitoken: %s" % err)
+        finally:
+            if os.path.exists(tmpnm):
+                os.remove(tmpnm)
 
     if os.path.exists(scitoken_file):
         if not submit_credentials.add_identity_credential("frontend_scitoken", scitoken_file):
@@ -1312,10 +1307,7 @@ def unit_work_v3(
     if "scitoken" in auth_method:
         if os.path.exists(scitoken_file):
             if token_util.token_file_expired(scitoken_file):
-                entry.log.warning("frontend_scitoken %s is expired, skipping request" % (scitoken_file))
-                if "frontend_scitoken" in submit_credentials.identity_credentials:
-                    del submit_credentials.identity_credentials["frontend_scitoken"]
-                return return_dict
+                entry.log.warning("frontend_scitoken %s is expired" % (scitoken_file))
         else:
             entry.log.warning("auth method is scitoken, but file %s not found. skipping request" % scitoken_file)
             return return_dict
