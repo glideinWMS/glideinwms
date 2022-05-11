@@ -1854,6 +1854,21 @@ add_to_path() {
     export PATH="${old_path%:}"
 }
 
+fixup_condor_dir() {
+    # All files in the native condor tarballs have a directory like condor-9.0.11-1-x86_64_CentOS7-stripped
+    # However the (not used anymore) gwms create_condor_tarball removes that dir
+    # Here we remove that dir as well to allow factory ops to use native condor tarballs
+
+    # Check if the condor dir has only one subdir, the one like "condor-9.0.11-1-x86_64_CentOS7-stripped"
+    # See https://stackoverflow.com/questions/32429333/how-to-test-if-a-linux-directory-contain-only-one-subdirectory-and-no-other-file
+    if [ $(find "${gs_id_work_dir}/condor" -maxdepth 1 -type d -printf 1 | wc -m) -eq 2 ]; then
+        echo "Fixing directory structure of condor tarball"
+        mv "${gs_id_work_dir}"/condor/condor*/* "${gs_id_work_dir}"/condor > /dev/null
+    else
+        echo "Condor tarball does not need to be fixed"
+    fi
+}
+
 echo "Downloading files from Factory and Frontend"
 log_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"
 
@@ -2015,6 +2030,8 @@ do
         [[ -e "${gs_id_work_dir}/setup_prejob.sh" ]] && { cp "${gs_id_work_dir}/setup_prejob.sh" "$gwms_exec_dir"/prejob/ ; chmod a-x "$gwms_exec_dir"/prejob/setup_prejob.sh ; }
     fi
 done
+
+fixup_condor_dir
 
 ##############################
 # Start the glidein main script
