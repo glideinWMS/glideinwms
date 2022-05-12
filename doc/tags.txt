@@ -1,3 +1,22 @@
+v3_9_5
+	Support for credential generator plugins
+	Support for Apptainer
+	Support for python3-rrdtool added in OSG 3.6 also for RHEL7
+	Support for CVMFS on-demand
+	Configurable idtokens lifetime
+	Improved frontend logging
+	Improved default SHARED_PORT configuration
+	Special handling of multiline condor config values
+	Advertise CONTAINERSW_ variables
+	Bug fix: Fixes an issue causing SciTokens transfered to the factory to be corrupted
+	Bug fix: Fixes to manual_glidein_submit for compatibility with Python 3
+	Bug fix: Fixes to OSG_autoconf for compatibility with Python 3
+	Bug fix: Fixes a minor issue in job.condor
+	Bug fix: Fixes OS detection for CentOS Stream 8
+	Bug fix: Fixes an issue with scitoken handling to gsi_proxy configured factory entries
+	Bug fix: Stops clearing LD_LIBRARY_PATH before starting HTCondor
+	Bug fix: Ensures that idtokens are transferred to glidein credential directory
+
 v3_9_4
 	Includes all features and fixes of 3.7.6
 	Adds support for CentOS 8
