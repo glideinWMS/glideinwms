@@ -328,3 +328,27 @@ v3_9_4:
     - Updates libraries for compatibility with PyYAML 6.0
     - Fixes a sring encoding issue affecting the cat log scripts
     - Fixes AWS/Google metadata encoding error
+
+v3_9_5:
+  Date: May 12, 2022
+  Series: Development
+  Tarball: false
+  Feature:
+    - Support for credential generator plugins
+    - Support for Apptainer
+    - Support for python3-rrdtool added in OSG 3.6 also for RHEL7
+    - Support for CVMFS on-demand
+    - Configurable idtokens lifetime
+    - Improved frontend logging
+    - Improved default SHARED_PORT configuration
+    - Special handling of multiline condor config values
+    - Advertise CONTAINERSW_ variables
+  Bug fix:
+    - Fixes an issue causing SciTokens transfered to the factory to be corrupted
+    - Fixes to manual_glidein_submit for compatibility with Python 3
+    - Fixes to OSG_autoconf for compatibility with Python 3
+    - Fixes a minor issue in job.condor
+    - Fixes OS detection for CentOS Stream 8
+    - Fixes an issue with scitoken handling to gsi_proxy configured factory entries
+    - Stops clearing LD_LIBRARY_PATH before starting HTCondor
+    - Ensures that idtokens are transferred to glidein credential directory
