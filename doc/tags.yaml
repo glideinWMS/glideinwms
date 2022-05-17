@@ -330,7 +330,7 @@ v3_9_4:
     - Fixes AWS/Google metadata encoding error
 
 v3_9_5:
-  Date: May 12, 2022
+  Date: May 17, 2022
   Series: Development
   Tarball: false
   Feature:
@@ -350,5 +350,6 @@ v3_9_5:
     - Fixes a minor issue in job.condor
     - Fixes OS detection for CentOS Stream 8
     - Fixes an issue with scitoken handling to gsi_proxy configured factory entries
+    - Fixes condor tarball directory structure
     - Stops clearing LD_LIBRARY_PATH before starting HTCondor
     - Ensures that idtokens are transferred to glidein credential directory

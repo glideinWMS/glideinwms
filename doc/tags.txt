@@ -14,6 +14,7 @@ v3_9_5
 	Bug fix: Fixes a minor issue in job.condor
 	Bug fix: Fixes OS detection for CentOS Stream 8
 	Bug fix: Fixes an issue with scitoken handling to gsi_proxy configured factory entries
+	Bug fix: Fixes condor tarball directory structure
 	Bug fix: Stops clearing LD_LIBRARY_PATH before starting HTCondor
 	Bug fix: Ensures that idtokens are transferred to glidein credential directory
 

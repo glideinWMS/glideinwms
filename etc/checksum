@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_9_5_rc3
+# GLIDEINWMS_VERSION v3_9_5
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
 f9c3b0701914d3fdfe8aadee01e54627  ./bigfiles/README.md
@@ -125,7 +125,7 @@ ae00694d95f1f19fad37d33c5d7b95b6  ./creation/web_base/glidein_cpus_setup.sh
 ae602da4e43654f0f49c274a4f92b3f4  ./creation/web_base/glidein_memory_setup.sh
 8429702f3b82d48343b570773e626b51  ./creation/web_base/glidein_paths.source
 5636332011d6c93c1f4c8bbde43df250  ./creation/web_base/glidein_sitewms_setup.sh
-a0adbe8002bc52482825a38b11bccc23  ./creation/web_base/glidein_startup.sh
+9f4497d2d980893cd72338be7c4fdb45  ./creation/web_base/glidein_startup.sh
 e03b602820c9ef0eb1b05eb0713d8f64  ./creation/web_base/gwms-python
 07f4886bbe4a452da2b25be6e54a0d95  ./creation/web_base/htchirp.tar.gz
 e330a00cbf9966d96edaf33e9f3bf164  ./creation/web_base/htchirp.tar.gz.license
@@ -194,7 +194,7 @@ d8369054fc7fe56b53eaca96df651495  ./factory/tools/manual_glidein_submit.py
 cb3a3407e6b27e7a09577eebb9a95151  ./frontend/checkFrontend.py
 0b73c7bce33832ff237beb416c6a36b6  ./frontend/glideinFrontendConfig.py
 61a7ef53b9fec90462987f0a2f2d7b3c  ./frontend/glideinFrontendDowntimeLib.py
-2fc8da4a370e69daba15cebcb730e8ee  ./frontend/glideinFrontendElement.py
+395b7cbfa7ba6997aa41275836a4f2b2  ./frontend/glideinFrontendElement.py
 837acf0963591d162cb4179e3a47292b  ./frontend/glideinFrontendInterface.py
 3ce82ff32b8294856e2e02485d689625  ./frontend/glideinFrontendLib.py
 28d5d183c1ed4e579830c1cd5c0ab206  ./frontend/glideinFrontendMonitorAggregator.py
@@ -256,7 +256,7 @@ f11c3fd71d04c7d7b6598c4e511cd40a  ./lib/xmlFormat.py
 411affecf420b3e2bcba1d4c7e3dc211  ./lib/xmlParse.py
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
-2bf81c82b0a54b49c2457b0c2a314c75  ./plugins/scitokens_callout.py
+9109d2d742472c24c95c5da9af772b04  ./plugins/scitokens_callout.py
 1214dfa0ee4074edda62d5dc0f94247c  ./.pre-commit-config.yaml
 c0f7ece3208870e8bbdb1147c7601e97  ./.prettierignore
 5893d42abe7488418aa38218d579b850  ./pyproject.toml
