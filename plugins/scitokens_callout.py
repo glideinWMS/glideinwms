@@ -29,17 +29,21 @@ def get_credential(logger, group, entry, trust_domain, tkn_dir="/var/lib/gwms-fr
     caching here so that new tokens are only generated when required.
 
     Args:
-        logger (logSupport): Logger module
+        logger (logSupport): Python logger module passed by the caller
         group (str): Frontend group
-        entry (str): Factory entry
+        entry (dict): Factory entry information dictionary, containing at least:
+            name (str): the entry name, and
+            gatekeeper (str): the gatekeeper string
         trust_domain (str): Credential trust domain
         tkn_dir (str, optional): Directory where the tokens are stored. Defaults to "/var/lib/gwms-frontend/tokens.d".
 
-    Raises:
-        err: If the token could not be generated.
-
     Returns:
-        (str, int): The token string and the lifetime of the token.
+        (str, int): tuple with:
+            credential, a string containing the token or whichever credential is returned
+            lifetime, seconds of remaining lifetime
+    Raises:
+        KeyError: missing some information to generate the credential
+        ValueError: could not generate the credential
     """
 
     key_file = "/etc/condor/scitokens.pem"

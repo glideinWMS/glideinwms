@@ -1024,7 +1024,7 @@ class glideinFrontendElement:
         """
 
         ### The credential generator plugin should define the following function:
-        # def get_credential(log:logger, group:str, dentry:dict{name:str, gatekeeper:str}, trust_domain:str):
+        # def get_credential(log:logger, group:str, entry:dict{name:str, gatekeeper:str}, trust_domain:str):
         # Generates a credential given the parameter
 
         # Args:
