@@ -2163,11 +2163,14 @@ job_match_attrs = {
         <h2>Using the credential generator plug-in</h2>
 
         <p>
-          Credential generators allow to generate credentials dynamically.
-          Instead of specifying a file, <tt>absfilename</tt>, you can specify a
-          <tt>generator</tt>, the name of a Python module somewhere in the
-          PYTHONPATH, e.g. in <tt>/etc/gwms-frontend/plugin.d/</tt>. Here is an
-          example of the credential configuration:
+          Credential generators allow to generate credentials dynamically. You
+          must specify a <tt>generator</tt>, the name of a Python module
+          somewhere in the PYTHONPATH, e.g. in
+          <tt>/etc/gwms-frontend/plugin.d/</tt>, and use the same value for
+          <tt>absfilename</tt> (absfilename here is used only as key for the
+          credential, so any unique value will be OK, e.g. the generator name,
+          or the path of the python module, or a unique ID. Just do not live it
+          empty). Here is an example of the credential configuration:
         </p>
         <div class="config">
           <blockquote>
@@ -2175,8 +2178,9 @@ job_match_attrs = {
             <blockquote>
               &lt;credentials&gt;<br />
               <blockquote>
-                &lt;credential type="token" trust_domain="OSG"
-                generator="mygenerator" security_class="cmsprio"/&gt;<br />
+                &lt;credential type="scitoken" trust_domain="OSG"
+                generator="mygenerator" absfname="mygenerator"
+                security_class="cmsprio"/&gt;<br />
               </blockquote>
               &lt/credentials&gt;<br />
             </blockquote>
