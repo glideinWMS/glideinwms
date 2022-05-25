@@ -44,7 +44,8 @@ repos:
           - "prettier"
           - "prettier-plugin-toml@0.3.1"
   - repo: "https://github.com/asottile/pyupgrade"
-    rev: v2.31.0 # This is the last version that works with python3.6
+    rev: e695ecd365119ab4e5463f6e49bea5f4b7ca786b
+    # lock to v2.31.0 (must specify the git hash), v2.32.0 requires python >= 3.7
     hooks:
       - id: pyupgrade
         args:
