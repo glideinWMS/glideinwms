@@ -68,7 +68,7 @@ def get_credential(logger, group, entry, trust_domain, tkn_dir="/var/lib/gwms-fr
 
     if not os.path.exists(tkn_dir):
         os.mkdir(tkn_dir, 0o700)
-    tkn_file = os.path.join(tkn_dir, group + "." + entry["name"] + ".scitoken")
+    tkn_file = os.path.join(tkn_dir, group + "." + entry["name"] + "." + entry["factory"] + ".scitoken")
 
     try:
         # only generate a new token if the file is expired

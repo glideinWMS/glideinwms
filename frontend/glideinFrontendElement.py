@@ -1062,6 +1062,7 @@ class glideinFrontendElement:
                         entry = {
                             "name": glidein_el["attrs"].get("EntryName"),
                             "gatekeeper": glidein_el["attrs"].get("GLIDEIN_Gatekeeper"),
+                            "factory": glidein_el["attrs"].get("AuthenticatedIdentity"),
                         }
                         stkn, _ = plugins[generator].get_credential(logSupport, group_name, entry, trust_domain)
                         return stkn
