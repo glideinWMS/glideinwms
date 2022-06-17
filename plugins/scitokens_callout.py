@@ -34,6 +34,7 @@ def get_credential(logger, group, entry, trust_domain, tkn_dir="/var/lib/gwms-fr
         entry (dict): Factory entry information dictionary, containing at least:
             name (str): the entry name, and
             gatekeeper (str): the gatekeeper string
+            factory (str): HTCondor identity of the Factory, name@host
         trust_domain (str): Credential trust domain
         tkn_dir (str, optional): Directory where the tokens are stored. Defaults to "/var/lib/gwms-frontend/tokens.d".
 
@@ -78,7 +79,7 @@ def get_credential(logger, group, entry, trust_domain, tkn_dir="/var/lib/gwms-fr
             # file modification age is the same as the token age
             tkn_age = time.time() - os.stat(tkn_file).st_mtime
         if tkn_age > tkn_max_lifetime - 600:  # renew slightly before token expires
-            (fd, tmpnm) = tempfile.mkstemp()
+            (fd, tmpnm) = tempfile.mkstemp()  # the file permission is 0o600
             cmd = (
                 f"/usr/bin/scitokens-admin-create-token"
                 f" --keyfile {key_file}"
@@ -94,7 +95,6 @@ def get_credential(logger, group, entry, trust_domain, tkn_dir="/var/lib/gwms-fr
             os.write(fd, tkn_str.encode("utf-8"))
             os.close(fd)
             shutil.move(tmpnm, tkn_file)
-            os.chmod(tkn_file, 0o600)
             logger.debug(f"created token {tkn_file}")
         elif os.path.exists(tkn_file):
             with open(tkn_file) as fbuf:
