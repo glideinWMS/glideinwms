@@ -911,8 +911,8 @@ def clean_glidein_queue(
                 sec_class_idle,
                 0,
             )
-            logSupport.log.info("Too many glideins: %s" % stat_str)
-            logSupport.log.info("Removing %i idle glideins" % len(idle_list))
+            log.info("Too many glideins: %s" % stat_str)
+            log.info("Removing %i idle glideins" % len(idle_list))
             if len(idle_list) > 0:
                 removeGlideins(condorQ.schedd_name, idle_list, log=log, factoryConfig=factoryConfig)
                 return 1  # exit, even if no submitted
@@ -1390,7 +1390,7 @@ def extractIdleUnsubmitted(q, factoryConfig=None):
 
     """
     qidle = q.fetchStored(lambda el: hash_status(el) == 1001)  #  1001 == Unsubmitted (aka Waiting)
-    qidle_list = qidle.keys()
+    qidle_list = list(qidle.keys())
     return qidle_list
 
 
@@ -1408,7 +1408,7 @@ def extractIdleQueued(q, factoryConfig=None):
 
     """
     qidle = q.fetchStored(lambda el: (hash_status(el) in (1002, 1010, 1100)))  #  All 1xxx but 1001
-    qidle_list = qidle.keys()
+    qidle_list = list(qidle.keys())
     return qidle_list
 
 
@@ -1423,7 +1423,7 @@ def extractNonRunSimple(q, factoryConfig=None):
 
     """
     qnrun = q.fetchStored(lambda el: el["JobStatus"] != 2)  #  Run==2
-    qnrun_list = qnrun.keys()
+    qnrun_list = list(qnrun.keys())
     return qnrun_list
 
 
