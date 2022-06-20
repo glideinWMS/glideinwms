@@ -199,6 +199,15 @@ def main():
                 ),
                 fname,
             )
+        scitoken = "credential_{}_{}.scitoken".format(ad_gc['ClientName'], entry_name)
+        scitoken_file = os.path.join(credentials.cred_dir, scitoken)
+        if not os.path.exists(scitoken_file):
+            logging.warning("Cannot find scitoken file %s" % scitoken_file)
+        elif not credentials.add_identity_credential("frontend_scitoken", scitoken_file):
+            loging.warning(
+                "failed to add frontend_scitoken %s to identity credentials %s"
+                % (scitoken_file, str(credentials.identity_credentials))
+
 
         # Set the arguments
         # I was using escapeParam for GLIDECLIENT_ReqNode and GLIDECLIENT_Collector but turned out it's not necessary
