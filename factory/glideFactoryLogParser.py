@@ -370,7 +370,7 @@ def extractLogData(fname):
     if size < 10:
         return copy.deepcopy(EMPTY_LOG_DATA)
     with open(fname) as fd:
-        buf_mm = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ) # Buffer memory map
+        buf_mm = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)  # Buffer memory map
         try:
             buf = buf_mm.read().decode("utf-8")
             buf_idx = 0
