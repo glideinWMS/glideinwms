@@ -370,8 +370,9 @@ def extractLogData(fname):
     if size < 10:
         return copy.deepcopy(EMPTY_LOG_DATA)
     with open(fname) as fd:
-        buf = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
+        buf_mm = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ) # Buffer memory map
         try:
+            buf = buf_mm.read().decode("utf-8")
             buf_idx = 0
             validate_re = ELD_RC_VALIDATE_END.search(buf, buf_idx)
             if validate_re is not None:
@@ -446,7 +447,7 @@ def extractLogData(fname):
                 glidein_duration = None
 
         finally:
-            buf.close()
+            buf_mm.close()
 
     out = {"condor_started": condor_starting}
     if validation_duration is not None:
