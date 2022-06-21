@@ -153,6 +153,11 @@ SPDX-License-Identifier: Apache-2.0
           period specified (in seconds):
         </p>
         <blockquote>period=&quot;3600&quot;</blockquote>
+        <p>
+          Periodic script can know if they are run at setup or later by looking
+          at the GLIDEIN_PERIODIC_SCRIPT environment variable, which is set only
+          when they run in the following invocations, periodically.
+        </p>
 
         <h2><a name="api"></a>Script API</h2>
         <p>A script is provided with exactly 2 arguments:</p>
@@ -180,7 +185,6 @@ SPDX-License-Identifier: Apache-2.0
           user jobs, the <a href="#condor_vars">condor vars</a> file should also
           be modified.
         </p>
-
         <p>
           NOTE that periodic scripts provide an additional output mechanism:
           since they run via

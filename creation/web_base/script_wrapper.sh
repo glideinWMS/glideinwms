@@ -78,7 +78,7 @@ verbose=
 # write to stderr only if verbose is set
 vmessage() {
     # echo `date` $@ 1>&2
-    [ -n "$verbose" ] && echo "# script_wrapper.sh `date`" "$@" 1>&2
+    [ -n "$verbose" ] && echo "# script_wrapper.sh $(date)" "$@" 1>&2
 }
 
 
@@ -116,10 +116,10 @@ list_manage() {
     local re=",*([^,]|[^,].*[^,]),*"
     if [[ "$1" == "del" && "$tmp_list" == *,$2,* ]]; then
         tmp_list="${tmp_list/,$2,/,}"
-        add_config_line_safe "$3" "`[[ "$tmp_list" =~ $re ]]; echo -n "${BASH_REMATCH[1]}"`"
+        add_config_line_safe "$3" "$([[ "$tmp_list" =~ $re ]]; echo -n "${BASH_REMATCH[1]}")"
     elif [[ "$1" == "add" && ! "$tmp_list," == *,$2,* ]]; then
         tmp_list="${tmp_list}$2"
-        add_config_line_safe "$3" "`[[ "$tmp_list" =~ $re ]]; echo -n "${BASH_REMATCH[1]}"`"
+        add_config_line_safe "$3" "$([[ "$tmp_list" =~ $re ]]; echo -n "${BASH_REMATCH[1]}")"
     fi
     if [ "$3" == GLIDEIN_PS_FAILING_LIST ]; then
         # publish test status
@@ -144,8 +144,8 @@ failed() {
     publish FAILED_LAST "\"$s_name:$s_fname\""
     publish FAILED_LAST_REASON "\"$1\""
     publish FAILED_LAST_END "$END"
-    list_manage add $s_name GLIDEIN_PS_FAILING_LIST
-    list_manage add $s_name GLIDEIN_PS_FAILED_LIST
+    list_manage add "$s_name" GLIDEIN_PS_FAILING_LIST
+    list_manage add "$s_name" GLIDEIN_PS_FAILED_LIST
     #TODO: should publish the lists to the schedd classad?
     publish LAST "\"$s_fname\""
     publish LAST_END "$END"
@@ -154,14 +154,14 @@ failed() {
     [[ -n "$3" ]] && exit_code=$3
     if [[ "$2" == "wrapper" ]]; then
         "$error_gen" -error "script_wrapper.sh" Corruption "$1" GLIDEIN_PS_LAST "$s_fname" GLIDEIN_PS_LAST_END "$END"
-        "${main_dir}"/error_augment.sh  -process $exit_code "${s_ffb_id}/script_wrapper.sh" "$PWD" "script_wrapper.sh $glidein_config" "$START" "$END"
+        "${main_dir}"/error_augment.sh  -process "$exit_code" "${s_ffb_id}/script_wrapper.sh" "$PWD" "script_wrapper.sh $glidein_config" "$START" "$END"
         "${main_dir}"/error_augment.sh -concat
     fi
     # cleanup
     cd "$start_dir" || true
     [ -d "$tmp_dir" ] && rm -r "$tmp_dir"
     # exit
-    [ -n "$3" ] && exit $3
+    [ -n "$3" ] && exit "$3"
     exit 1
 }
 
@@ -196,14 +196,15 @@ cd "$tmp_dir" || failed "Failed to cd in temporary directory" wrapper
 
 ### Run the program (user script)
 
-${main_dir}/error_augment.sh -init
+"${main_dir}"/error_augment.sh -init
+export GLIDEIN_PERIODIC_SCRIPT=true  # When set the script is running under condor_cron, considering adding more context
 START=$(date +%s)
 "$s_fname" "$glidein_config" "$s_ffb_id"
 ret=$?
 END=$(date +%s)
-${main_dir}/error_augment.sh  -process $ret "$s_ffb_id/$(basename "$s_fname")" "$PWD" "$s_fname $glidein_config" "$START" "$END"  #generating test result document
-${main_dir}/error_augment.sh -locked-concat
-if [ $? -ne 0 ]; then
+unset GLIDEIN_PERIODIC_SCRIPT
+"${main_dir}"/error_augment.sh  -process $ret "$s_ffb_id/$(basename "$s_fname")" "$PWD" "$s_fname $glidein_config" "$START" "$END"  #generating test result document
+if ! "${main_dir}"/error_augment.sh -locked-concat ; then
     vmessage "=== Error: unable to save the log file for $s_name ($s_fname): check for orphaned lock file ==="
 fi
 if [ $ret -ne 0 ]; then
@@ -216,7 +217,7 @@ fi
 
 # Ran successfully (failed includes exit)
 vmessage "=== Periodic script ran OK: $s_fname ==="
-list_manage del $s_name GLIDEIN_PS_FAILING_LIST
+list_manage del "$s_name" GLIDEIN_PS_FAILING_LIST
 publish LAST "\"$s_fname\""
 publish LAST_END "$END"
 echo "-"
