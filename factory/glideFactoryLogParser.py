@@ -370,8 +370,7 @@ def extractLogData(fname):
     if size < 10:
         return copy.deepcopy(EMPTY_LOG_DATA)
     with open(fname, encoding="utf-8") as fd:
-        with mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ) as buf_mm:  # Buffer memory map
-            buf = buf_mm.read().decode("utf-8")
+            buf = fd.read()
             buf_idx = 0
             validate_re = ELD_RC_VALIDATE_END.search(buf, buf_idx)
             if validate_re is not None:
