@@ -370,79 +370,79 @@ def extractLogData(fname):
     if size < 10:
         return copy.deepcopy(EMPTY_LOG_DATA)
     with open(fname, encoding="utf-8") as fd:
-            buf = fd.read()
-            buf_idx = 0
-            validate_re = ELD_RC_VALIDATE_END.search(buf, buf_idx)
-            if validate_re is not None:
-                try:
-                    validation_duration = int(validate_re.group("secs"))
-                except:
-                    validation_duration = None
-                # KEL unused variable - do we need to use this?
-                bux_idx = validate_re.end() + 1
+        buf = fd.read()
+        buf_idx = 0
+        validate_re = ELD_RC_VALIDATE_END.search(buf, buf_idx)
+        if validate_re is not None:
+            try:
+                validation_duration = int(validate_re.group("secs"))
+            except:
+                validation_duration = None
+            # KEL unused variable - do we need to use this?
+            bux_idx = validate_re.end() + 1
 
-            start_re = ELD_RC_CONDOR_START.search(buf, buf_idx)
-            if start_re is not None:
-                condor_starting = 1
-                buf_idx = start_re.end() + 1
-                end_re = ELD_RC_CONDOR_END.search(buf, buf_idx)
-                if end_re is not None:
-                    try:
-                        condor_duration = int(end_re.group("secs"))
-                    except:
-                        condor_duration = None
-                    buf_idx = end_re.end() + 1
+        start_re = ELD_RC_CONDOR_START.search(buf, buf_idx)
+        if start_re is not None:
+            condor_starting = 1
+            buf_idx = start_re.end() + 1
+            end_re = ELD_RC_CONDOR_END.search(buf, buf_idx)
+            if end_re is not None:
+                try:
+                    condor_duration = int(end_re.group("secs"))
+                except:
+                    condor_duration = None
+                buf_idx = end_re.end() + 1
+                slot_re = ELD_RC_CONDOR_SLOT.search(buf, buf_idx)
+                while slot_re is not None:
+                    buf_idx = slot_re.end() + 1
+                    slot_name = slot_re.group("slot")
+                    if slot_name[-1] != "1":  # ignore slot 1, it is used for monitoring only
+                        slot_buf = slot_re.group("content")
+                        count_re = ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(slot_buf, 0)
+                        while count_re is not None:
+                            count_name = count_re.group("name")
+                            # need to trim it, comes out with spaces
+                            if count_name == " ":  # special case
+                                count_name = "Total"
+                            else:
+                                count_name = count_name[1:-1]
+
+                            try:
+                                jobsnr = int(count_re.group("jobsnr"))
+                                secs = int(count_re.group("secs"))
+                            except:
+                                jobsnr = None
+
+                            if jobsnr is not None:  # check I had no errors in integer conversion
+                                if count_name not in slot_stats:
+                                    slot_stats[count_name] = {"jobsnr": jobsnr, "secs": secs}
+
+                            count_re = ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(slot_buf, count_re.end() + 1)
+                            # end while count_re
+
                     slot_re = ELD_RC_CONDOR_SLOT.search(buf, buf_idx)
-                    while slot_re is not None:
-                        buf_idx = slot_re.end() + 1
-                        slot_name = slot_re.group("slot")
-                        if slot_name[-1] != "1":  # ignore slot 1, it is used for monitoring only
-                            slot_buf = slot_re.group("content")
-                            count_re = ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(slot_buf, 0)
-                            while count_re is not None:
-                                count_name = count_re.group("name")
-                                # need to trim it, comes out with spaces
-                                if count_name == " ":  # special case
-                                    count_name = "Total"
-                                else:
-                                    count_name = count_name[1:-1]
+                    # end while slot_re
 
-                                try:
-                                    jobsnr = int(count_re.group("jobsnr"))
-                                    secs = int(count_re.group("secs"))
-                                except:
-                                    jobsnr = None
-
-                                if jobsnr is not None:  # check I had no errors in integer conversion
-                                    if count_name not in slot_stats:
-                                        slot_stats[count_name] = {"jobsnr": jobsnr, "secs": secs}
-
-                                count_re = ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(slot_buf, count_re.end() + 1)
-                                # end while count_re
-
-                        slot_re = ELD_RC_CONDOR_SLOT.search(buf, buf_idx)
-                        # end while slot_re
-
-            activations_re = ELD_RC_CONDOR_SLOT_ACTIVATIONS_COUNT.search(buf, buf_idx)
-            if activations_re is not None:
-                try:
-                    num_activations = int(activations_re.group("nr"))
-                except:
-                    num_activations = None
-                bux_idx = activations_re.end() + 1
-            else:
+        activations_re = ELD_RC_CONDOR_SLOT_ACTIVATIONS_COUNT.search(buf, buf_idx)
+        if activations_re is not None:
+            try:
+                num_activations = int(activations_re.group("nr"))
+            except:
                 num_activations = None
+            bux_idx = activations_re.end() + 1
+        else:
+            num_activations = None
 
-            glidein_end_re = ELD_RC_GLIDEIN_END.search(buf, buf_idx)
-            if glidein_end_re is not None:
-                try:
-                    glidein_duration = int(glidein_end_re.group("secs"))
-                except:
-                    glidein_duration = None
-                # KEL - unused variable - do we need to use this?
-                bux_idx = glidein_end_re.end() + 1
-            else:
+        glidein_end_re = ELD_RC_GLIDEIN_END.search(buf, buf_idx)
+        if glidein_end_re is not None:
+            try:
+                glidein_duration = int(glidein_end_re.group("secs"))
+            except:
                 glidein_duration = None
+            # KEL - unused variable - do we need to use this?
+            bux_idx = glidein_end_re.end() + 1
+        else:
+            glidein_duration = None
 
     out = {"condor_started": condor_starting}
     if validation_duration is not None:
