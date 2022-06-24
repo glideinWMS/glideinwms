@@ -328,15 +328,15 @@ class dirSummaryTimingsOutFull(condorLogParser.cacheDirClass):
 #     P R I V A T E
 #########################################################
 
-ELD_RC_VALIDATE_END = re.compile("=== Last script starting .* after validating for (?P<secs>[0-9]+) ===")
-ELD_RC_CONDOR_START = re.compile("=== Condor starting.*===")
-ELD_RC_CONDOR_END = re.compile("=== Condor ended.*after (?P<secs>[0-9]+) ===")
+ELD_RC_VALIDATE_END = re.compile(b"=== Last script starting .* after validating for (?P<secs>[0-9]+) ===")
+ELD_RC_CONDOR_START = re.compile(b"=== Condor starting.*===")
+ELD_RC_CONDOR_END = re.compile(b"=== Condor ended.*after (?P<secs>[0-9]+) ===")
 ELD_RC_CONDOR_SLOT = re.compile(
-    r"=== Stats of (?P<slot>\S+) ===(?P<content>.*)=== End Stats of (?P<slot2>\S+) ===", re.M | re.DOTALL
+    rb"=== Stats of (?P<slot>\S+) ===(?P<content>.*)=== End Stats of (?P<slot2>\S+) ===", re.M | re.DOTALL
 )
-ELD_RC_CONDOR_SLOT_CONTENT_COUNT = re.compile("Total(?P<name>.*)jobs (?P<jobsnr>[0-9]+) .*utilization (?P<secs>[0-9]+)")
-ELD_RC_CONDOR_SLOT_ACTIVATIONS_COUNT = re.compile("Total number of activations/claims: (?P<nr>[0-9]+)")
-ELD_RC_GLIDEIN_END = re.compile("=== Glidein ending .* with code (?P<code>[0-9]+) after (?P<secs>[0-9]+) ===")
+ELD_RC_CONDOR_SLOT_CONTENT_COUNT = re.compile(b"Total(?P<name>.*)jobs (?P<jobsnr>[0-9]+) .*utilization (?P<secs>[0-9]+)")
+ELD_RC_CONDOR_SLOT_ACTIVATIONS_COUNT = re.compile(b"Total number of activations/claims: (?P<nr>[0-9]+)")
+ELD_RC_GLIDEIN_END = re.compile(b"=== Glidein ending .* with code (?P<code>[0-9]+) after (?P<secs>[0-9]+) ===")
 
 KNOWN_SLOT_STATS = ["Total", "goodZ", "goodNZ", "badSignal", "badOther"]
 
@@ -396,12 +396,12 @@ def extractLogData(fname):
                     slot_re = ELD_RC_CONDOR_SLOT.search(buf, buf_idx)
                     while slot_re is not None:
                         buf_idx = slot_re.end() + 1
-                        slot_name = slot_re.group("slot")
+                        slot_name = slot_re.group("slot").decode("utf-8")
                         if slot_name[-1] != "1":  # ignore slot 1, it is used for monitoring only
                             slot_buf = slot_re.group("content")
                             count_re = ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(slot_buf, 0)
                             while count_re is not None:
-                                count_name = count_re.group("name")
+                                count_name = count_re.group("name").decode("utf-8")
                                 # need to trim it, comes out with spaces
                                 if count_name == " ":  # special case
                                     count_name = "Total"
