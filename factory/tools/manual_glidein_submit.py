@@ -206,7 +206,7 @@ def main():
         elif not credentials.add_identity_credential("frontend_scitoken", scitoken_file):
             loging.warning(
                 "failed to add frontend_scitoken %s to identity credentials %s"
-                % (scitoken_file, str(credentials.identity_credentials))
+                % (scitoken_file, str(credentials.identity_credentials)))
 
 
         # Set the arguments
