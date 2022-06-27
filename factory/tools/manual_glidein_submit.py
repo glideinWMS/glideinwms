@@ -204,7 +204,7 @@ def main():
         if not os.path.exists(scitoken_file):
             logging.warning("Cannot find scitoken file %s" % scitoken_file)
         elif not credentials.add_identity_credential("frontend_scitoken", scitoken_file):
-            loging.warning(
+            logging.warning(
                 "failed to add frontend_scitoken %s to identity credentials %s"
                 % (scitoken_file, str(credentials.identity_credentials))
             )
