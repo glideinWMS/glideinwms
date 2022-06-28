@@ -7,30 +7,121 @@ warn() {
  echo "$(date)" "$@" 1>&2
 }
 
+# Mac compatibility
+TAC=$(command -v tac)
+[[ -z "$TAC" && "$OSTYPE" =~ darwin* ]] && TAC="tail -r"
+
+# glidein_config is a key-value file
+# each line is a key (case sensitive ID name), a space, and a value (rest of the line)
+# if there are multiple lines w/ the same key, the last one counts
+# ecah linke can be max 4K
+GWSM_CONFIG_LINE_MAX=4k
+
+# Return the value stored in glidein_config
+#  1: id (key) of the value to retrieve;
+#  2(opt): path of the config file ("glidein_config" by default)
+gconfig_get() {
+    # compatible w/: grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-
+    local config_file=${2:-glidein_config}
+    $TAC "$config_file" | grep -m1 "^$1" | cut -d ' ' -f 2-
+}
+
+# keep only the last value for each key (ie the last line)
+#  1(opt): path of the config file ("glidein_config" by default)
+gconfig_trim() {
+    local config_file=${1:-glidein_config}
+    local config_tmp1="$config_file.$$.1.tmp"
+    local config_tmp2="$config_file.$$.2.tmp"
+    cp "$config_file" "$config_tmp1"
+    $TAC "$config_tmp1" | sort -u -t' ' -k1,1 >  "$config_tmp2"
+    mv "$config_tmp2" "$config_file"
+}
+
+gconfig_trim_safe()
+{
+    local config_file=${1:-glidein_config}
+    local config_tmp1="$config_file.$$.1.tmp"
+    { flock 200
+        $TAC "$config_file" | awk '!x[$1]++' > "$config_tmp1"
+        $TAC "$config_tmp1" > "$config_file"
+        rm "$config_tmp1"
+    } 200<"$config_file"
+}
+
 ###################################
 # Add a line to the config file
 # Arg: line to add, first element is the id
 # Uses global variable glidein_config
-add_config_line() {
+# Uses temporary files to make sure multiple add_config_line() calls don't clobber the glidein_config.
+# There could be race conditions resulting in values being ignored (intermixed processing)
+# but glidein_config will never be inconsistent
+# Safe implementations could either:
+# 1. use flock, see add_config_line_safe(), may have problems on NFS
+# 2. use a DB or some gatekeeping process
+# 3. use a separate file per entry (see https://github.com/damphat/kv-bash/blob/master/kv-bash)
+gconfig_add() {
+    # Add the value also to a log that will help troubleshoot problems
+    echo "REG$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX >> "${glidein_config}.history"
     if ! grep -q "^${*}$" "${glidein_config}"; then
-        rm -f "${glidein_config}.old"  #just in case one was there
-        if ! mv "${glidein_config}" "${glidein_config}.old"; then
-            warn "Error renaming ${glidein_config} into ${glidein_config}.old"
+        # Copy the glidein config so it doesn't get modified while we grep out the old value
+        local tmp_config1="${glidein_config}.$$.1.tmp"
+        local tmp_config2="${glidein_config}.$$.2.tmp"
+        if ! cp -p "${glidein_config}" "${tmp_config1}"; then
+            warn "Error writing ${tmp_config1}"
+            rm -f "${tmp_config1}"
             exit 1
         fi
-        grep -v "^$1 " "${glidein_config}.old" > "${glidein_config}"
+        grep -v "^$1 " "${tmp_config1}" > "${tmp_config2}"
+        if [[ $? -gt 1 ]]; then
+            # 1 only lines to remove (0 matches), >1 error
+            warn "Error writing ${tmp_config2} with grep"
+            rm -f "${tmp_config1}"
+            rm -f "${tmp_config2}"
+            exit 1
+        fi
+        rm -f "${tmp_config1}"
         # NOTE that parameters are flattened if not quoted, if there are blanks they are separated by single space
-        echo "$@" >> "${glidein_config}"
-        rm -f "${glidein_config}.old"
+        echo "$@" >> "${tmp_config2}"
+        if ! mv "${tmp_config2}" "${glidein_config}"; then
+            warn "Error renaming processed ${tmp_config1} into ${glidein_config}"
+            exit 1
+        fi
     fi
 }
+add_config_line=gconfig_add
 
+# Unsafe version, should be used only when sequentiality is guaranteed
+# add_config_line... are the only writing functions
+# only one call at the time happen
+# read may
+gconfig_add_unsafe() {
+    # Add the value also to a log that will help troubleshoot problems
+    echo "UNS$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX >> "${glidein_config}.history"
+    if ! grep -q "^${*}$" "${glidein_config}"; then
+        local config_tmp="${glidein_config}.old"
+        rm -f "${config_tmp}"  #just in case one was there
+        grep -v "^$1 " "${glidein_config}" > "${config_tmp}"
+        if [[ $? -gt 1 ]]; then
+            warn "Error creating ${config_tmp} via grep"
+            rm -f "${config_tmp}"
+            exit 1
+        fi
+        # NOTE that parameters are flattened if not quoted, if there are blanks they are separated by single space
+        echo "$@" >> "${config_tmp}"
+        if ! mv "${config_tmp}" "${glidein_config}"; then
+            warn "Error renaming temporary ${config_tmp} into ${glidein_config}"
+            exit 1
+        fi
+    fi
+}
 
 ##################################################
 # Add a line to the config file using a lock file
 # Replace add_config_line in script_wrapper where multiple instances run in parallel
 # Uses FD 200, fails after a timeout of 300 sec
-add_config_line_safe() {
+gconfig_add_safe() {
+    # Add the value also to a log that will help troubleshoot problems (calling add_config_line, duplicate)
+    echo "SAFDUP$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX >> "${glidein_config}.history"
     if ! grep -q "^${*}$" "${glidein_config}"; then
         # when fd is closed the lock is released, no need to trap and remove the file
         (
@@ -39,7 +130,7 @@ add_config_line_safe() {
         ) 200>"${glidein_config}".lock
     fi
 }
-
+add_config_line_safe=gconfig_add_safe
 
 ####################################
 # Add a line to the condor_vars file
@@ -54,6 +145,6 @@ add_condor_vars_line() {
         exit 1
     fi
     grep -v "^$id\b" "${condor_vars_file}.old" > "${condor_vars_file}"
-    echo "$@" >> "${condor_vars_file}"
+    echo "$@" | dd bs=$GWSM_CONFIG_LINE_MAX >> "${condor_vars_file}"
     rm -f "${condor_vars_file}.old"
 }

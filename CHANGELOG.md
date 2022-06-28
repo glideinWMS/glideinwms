@@ -18,9 +18,17 @@ Developers updated changelog. For curated release notes see doc/tags.yaml or htt
 
 ### Deprecated / removed options and commands
 
+-   To make `glidein_config` more robust and resistant to concurrent interactions the handling function to use in custom scripts have been updated:
+    -   `add_config_line`, `add_config_line_safe` and custom parsing or writing from/to `glidein_config` are deprecated and will be removed form future versions (a change in format will make custom read not work correctly)
+    -   `gconfig_add` and `gconfig_add_safe` replace the current `add_config_line` and `add_config_line_safe` respectively
+    -   `gconfig_get` should be used to retrieve values form `glidein_config`
+    -   During the transition period both new and old functions will work
+
 ### Security Related Fixes
 
 ### Bug Fixes
+
+-   Fixed `glidien_config` corrupted by concurrent custom scripts run via HTCSS startd cron (#163)
 
 ### Testing / Development
 
