@@ -250,8 +250,10 @@ SPDX-License-Identifier: Apache-2.0
         </p>
         <p>
           To write into the glidein configuration file, the best approach in
-          bash is to use the add_config_line support script. Just source the
-          provided script and use it. Here is an example:
+          bash is to use the gconfig_add function. And to read from the glidein
+          configuration file, use the gconfig_get function. Both are in the same
+          support script. Just source the provided script and use it. Here is an
+          example:
         </p>
         <blockquote>
           # get the glidein configuration file name<br />
@@ -260,14 +262,18 @@ SPDX-License-Identifier: Apache-2.0
         </blockquote>
 
         <blockquote>
-          # import add_config_line function<br />
+          # import glidein_config functions<br />
           add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE '
           $glidein_config | awk '{print $2}'`<br />
           source $add_config_line_source
         </blockquote>
         <blockquote>
-          # add an attributes<br />
-          add_config_line <i>myattribute myvalue</i>
+          # add an attribute<br />
+          gconfig_add <i>myattribute myvalue</i>
+        </blockquote>
+        <blockquote>
+          # read an attributes (set by you or some other script)<br />
+          <i>myvar</i>=gconfig_get <i>myattribute</i>
         </blockquote>
       </div>
 
