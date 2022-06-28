@@ -98,7 +98,7 @@ Fri Jun 24 04:06:07 CEST 2022 Starting singularity_setup.sh. Importing singulari
 Fri Jun 24 04:06:07 CEST 2022 SINGULARITY_IMAGE_RESTRICTIONS not configured. Defaulting to cvmfs
 Fri Jun 24 04:06:07 CEST 2022 Factory's desire to use Singularity: OPTIONAL
 Fri Jun 24 04:06:07 CEST 2022 VO's desire to use Singularity:      REQUIRED
-Fri Jun 24 04:06:07 CEST 2022 Entry configured with Singularity:   
+Fri Jun 24 04:06:07 CEST 2022 Entry configured with Singularity:
 Fri Jun 24 04:06:07 CEST 2022 Looking for Singularity image for [default,rhel7,rhel6,rhel8] with restrictions cvmfs
 Fri Jun 24 04:06:07 CEST 2022 Searching and testing the singularity binary
 HAS_SINGULARITY = True
@@ -530,9 +530,9 @@ GLIDEIN_SINGULARITY_REQUIRE OPTIONAL
 GSI_DELEGATION_KEYBITS 1024
 Site_Req_Explicit_Auth False
 USE_CCB True
-VOS_USING_SE_BASEPATH 
-VOS_USING_SE_OTHER_SUBDIR 
-VOS_USING_SE_VONAME_LOWERCASE 
+VOS_USING_SE_BASEPATH
+VOS_USING_SE_OTHER_SUBDIR
+VOS_USING_SE_VONAME_LOWERCASE
 CONDOR_PLATFORM_9.0.7-linux-rhel7-default 1
 CONDOR_DIR /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/condor
 GLIDEIN_Collector cmssrvz02.fnal.gov:9618?sock=collector$RANDOM_INTEGER(9621,9720),vocms0814.cern.ch:9618?sock=collector$RANDOM_INTEGER(9621,9720)
@@ -577,7 +577,7 @@ ENTRY_CONSTS_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1
 ENTRY_CONDOR_VARS_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/entry_CMSHTPC_T2_AT_Vienna_ce-1/condor_vars.lst
 ENTRY_UNTAR_CFG_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/entry_CMSHTPC_T2_AT_Vienna_ce-1/untar.cfg
 ENTRY_BLACKLIST_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/entry_CMSHTPC_T2_AT_Vienna_ce-1/nodes.blacklist
-# 
+#
 GLEXEC_BIN NONE
 GLIDEIN_CMSSite T2_AT_Vienna
 GLIDEIN_CPUS 8
@@ -641,7 +641,7 @@ Fri Jun 24 04:06:24 CEST 2022 VO does not want to use Java
 Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/glidein_memory_setup.sh
 Fri Jun 24 04:06:25 CEST 2022 Setting GLIDEIN_MaxMemMBs=20000
 Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/glidein_cpus_setup.sh
-Fri Jun 24 04:06:25 CEST 2022 Setting GLIDEIN_CPUS=8 
+Fri Jun 24 04:06:25 CEST 2022 Setting GLIDEIN_CPUS=8
 Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/glidein_sitewms_setup.sh
 Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/script_wrapper.sh
 Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/smart_partitionable.sh
