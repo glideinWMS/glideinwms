@@ -1,0 +1,696 @@
+Starting glidein_startup.sh at Fri Jun 24 04:05:25 CEST 2022 (1656036325)
+script_checksum   = '1cda5e9ab12734279b46cb55a6e8d668  /grid/condor/1808/0/cluster1301808.proc0.subproc0/glidein_startup.sh'
+debug_mode        = 'std'
+condorg_cluster   = '10176593'
+condorg_subcluster= '0'
+condorg_schedd    = 'schedd_glideins9@gfactory-2.opensciencegrid.org'
+glidein_uuid      = '3ce9dfca-0e7f-4d69-bfc9-5f58cb266ab7'
+glidein_credential_id = '411868'
+glidein_factory   = 'OSG'
+glidein_name      = 'gfactory_instance'
+glidein_entry     = 'CMSHTPC_T2_AT_Vienna_ce-1'
+client_name       = 'CMSG-v1_0.main-token'
+client_group      = 'main-token'
+multi_glidein/restart = ''/''
+work_dir          = '.'
+web_dir           = 'http://gfactory-2.opensciencegrid.org/factory/stage'
+sign_type         = 'sha1'
+proxy_url         = 'None'
+descript_fname    = 'description.m6n994.cfg'
+descript_entry_fname = 'description.m6n994.cfg'
+sign_id           = '676abd435d86ecf505ec1f9ec98cffa270ca6478'
+sign_entry_id     = 'c8a64e090968ce9d09c09a435a465caa54b36aba'
+client_web_dir              = 'http://vocms080.cern.ch/vofrontend/stage'
+client_descript_fname       = 'description.m6n8m0.cfg'
+client_sign_type            = 'sha1'
+client_sign_id              = 'cf6f208a4365088473f7d80bc69b94f286d88afd'
+client_web_group_dir        = 'http://vocms080.cern.ch/vofrontend/stage/group_main-token'
+client_descript_group_fname = 'description.m6n8m0.cfg'
+client_sign_group_id        = '57b515ce83b3d62b9d947e51126a0727e54afb5f'
+
+Running on clip-c2-99.cbe.vbc.ac.at
+System: Linux clip-c2-99.cbe.vbc.ac.at 3.10.0-1160.62.1.el7.x86_64 #1 SMP Tue Apr 5 16:57:59 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
+Release: CentOS Linux release 7.9.2009 (Core)
+As: uid=43700(grid.cms.pilot01) gid=43700(role.grid.cms.pilot) groups=43700(role.grid.cms.pilot),11294(perm.fso.stark.traverse),11295(role.fso.stark.traverse),12020(perm.vpn.vbc),12021(role.vpn.vbc),12089(perm.fso.vbc_tools.rx),12090(role.fso.vbc_tools.rx),12139(perm.fso.vbcf-em-gaudi.rx),12140(role.fso.vbcf-em-gaudi.rx),49994(role.grid),49995(role.grid.cms) context=system_u:system_r:unconfined_service_t:s0
+PID: 70628
+
+Started in /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224
+Running in /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip
+copied idtoken /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/credential_CMSG-v1_0.main-token_CMSHTPC_T2_AT_Vienna_ce-1.idtoken to /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip
+Extracting file add_config_line.source
+Sourcing file add_config_line.source
+Extracting file get_id_selectors.source
+Sourcing file get_id_selectors.source
+Extracting file logging_utils.source
+Sourcing file logging_utils.source
+Extracting file b64uuencode.source
+Sourcing file b64uuencode.source
+Extracting file glidein_paths.source
+Sourcing file glidein_paths.source
+PARAM_LIST GLIDEIN_Client,GLIDEIN_Collector,USE_MATCH_AUTH,GLIDEIN_CustomizeStart_Sitelist,STARTD_JOB_ATTRS,GLIDEIN_CustomizeStart_Entrylist,GLIDECLIENT_ReqNode,CONDOR_OS,GLIDEIN_Monitoring_Enabled,GLIDEIN_Max_Idle,USE_PSS,MEMORY_USAGE_METRIC,GLIDEIN_CLAIM_WORKLIFE_DYNAMIC,GLIDEIN_Job_Max_Time,GLIDEIN_Singularity_Use,GLIDEIN_Glexec_Use,CONDOR_VERSION,GLIDEIN_CCB,GLIDEIN_Max_Tail,CMS_GLIDEIN_VERSION,GLIDEIN_Report_Failed,CONDOR_ARCH,MIN_DISK_GBS,UPDATE_COLLECTOR_WITH_TCP
+Fri Jun 24 04:05:26 CEST 2022: Started logging stdout on file too
+Downloading files from Factory and Frontend
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/setup_script.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/cat_consts.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/condor_platform_select.sh
+###OS RELEASE INFORMATION###
+linux-rhel7,rhel7
+linux-rhel7,rhel7
+###END RELEASE INFORMATION###
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/singularity_wrapper.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/collector_setup.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/create_temp_mapfile.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/gwms-python
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/setup_x509.sh
+copied /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/credential_CMSG-v1_0.main-token_CMSHTPC_T2_AT_Vienna_ce-1.idtoken to /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/ticket
+GLIDEIN_CONDOR_TOKEN set to /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/credential_CMSG-v1_0.main-token_CMSHTPC_T2_AT_Vienna_ce-1.idtoken
+GLIDEIN_CONDOR_TOKEN re-set to /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/ticket/credential_CMSG-v1_0.main-token_CMSHTPC_T2_AT_Vienna_ce-1.idtoken
+GLIDEIN_CONDOR_TOKEN_ORIG set to /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/credential_CMSG-v1_0.main-token_CMSHTPC_T2_AT_Vienna_ce-1.idtoken
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/check_wn_drainstate.sh
+SiteWMS_WN_Draining = False
+SiteWMS_WN_Preempt = False
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/mjf_setparams.sh
+MACHINE_TOTAL_CPU = "Unknown"
+MACHINE_HS06 = "Unknown"
+MACHINE_SHUTDOWNTIME = "Unknown"
+MACHINE_GRACE_SECS = "Unknown"
+JOB_ALLOCATED_CPU = "Unknown"
+JOB_HS06_JOB = "Unknown"
+JOB_SHUTDOWNTIME_JOB = "Unknown"
+JOB_GRACE_SECS_JOB = "Unknown"
+JOB_JOBSTART_SECS = "Unknown"
+JOB_ID = "Unknown"
+JOB_WALL_LIMIT_SECS = "Unknown"
+JOB_CPU_LIMIT_SECS = "Unknown"
+JOB_MAX_RSS_BYTES = "Unknown"
+JOB_MAX_SWAP_BYTES = "Unknown"
+JOB_SCRATCH_LIMIT_BYTES = "Unknown"
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client/cat_consts.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client/check_blacklist.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client/set_singularity_binds.sh
+Singularity mountpoints have been updated to: /storage,/lfs_roots,/cms,/etc/cvmfs/SITECONF,/ceph,/cvmfs/grid.cern.ch/etc/grid-security:/etc/grid-security
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client_group_main-token/cat_consts.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client_group_main-token/check_blacklist.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/entry_CMSHTPC_T2_AT_Vienna_ce-1/cat_consts.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/entry_CMSHTPC_T2_AT_Vienna_ce-1/check_blacklist.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/singularity_setup.sh
+Fri Jun 24 04:06:07 CEST 2022 Starting singularity_setup.sh. Importing singularity_util.sh.
+Fri Jun 24 04:06:07 CEST 2022 SINGULARITY_IMAGE_RESTRICTIONS not configured. Defaulting to cvmfs
+Fri Jun 24 04:06:07 CEST 2022 Factory's desire to use Singularity: OPTIONAL
+Fri Jun 24 04:06:07 CEST 2022 VO's desire to use Singularity:      REQUIRED
+Fri Jun 24 04:06:07 CEST 2022 Entry configured with Singularity:   
+Fri Jun 24 04:06:07 CEST 2022 Looking for Singularity image for [default,rhel7,rhel6,rhel8] with restrictions cvmfs
+Fri Jun 24 04:06:07 CEST 2022 Searching and testing the singularity binary
+HAS_SINGULARITY = True
+GWMS_SINGULARITY_STATUS = "REQUIRED"
+SINGULARITY_PATH = "/usr/bin/singularity"
+GWMS_SINGULARITY_PATH = "/usr/bin/singularity"
+SINGULARITY_VERSION = "3.8.7-1.el7"
+GWMS_SINGULARITY_VERSION = "3.8.7-1.el7"
+SINGULARITY_FULL_VERSION = "singularity version 3.8.7-1.el7"
+SINGULARITY_MODE = "privileged"
+GWMS_SINGULARITY_MODE = "privileged"
+CONTAINERSW_PATH = "/usr/bin/singularity"
+GWMS_CONTAINERSW_PATH = "/usr/bin/singularity"
+CONTAINERSW_VERSION = "3.8.7-1.el7"
+GWMS_CONTAINERSW_VERSION = "3.8.7-1.el7"
+CONTAINERSW_FULL_VERSION = "singularity version 3.8.7-1.el7"
+GWMS_CONTAINERSW_FULL_VERSION = "singularity version 3.8.7-1.el7"
+CONTAINERSW_MODE = "privileged"
+GWMS_CONTAINERSW_MODE = "privileged"
+SINGULARITY_IMAGES_DICT = "default:/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7,rhel6:/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel6,rhel7:/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7,rhel8:/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel8"
+GLIDEIN_REQUIRED_OS = "any"
+GLIDEIN_PROVIDES = "singularity/privileged"
+Fri Jun 24 04:06:08 CEST 2022 Decided to use Singularity (REQUIRED)
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/condor_chirp
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client/set_hold.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client/discover_CMSSW.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client/test_squid.sh
+starting SQUID VALIDATION
+node: clip-c2-99.cbe.vbc.ac.at
+
+script version: 2020-03-30, Dave Dykstra and Edita Kizinevic
+
+Current directory is: /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/squid
+
+Set up CMSSW ... starting
+Set up of CMSSW_12_4_0 completed
+
+Contents of cmsGetFnConnect frontier://FrontierProd are:
+frontier://(loadbalance=proxies)
+(proxyurl=http://frontiersquid-1.grid.vbc.ac.at:3128)
+(proxyurl=http://frontiersquid-2.grid.vbc.ac.at:3128)
+(backupproxyurl=http://cmsbpfrontier.cern.ch:3128)
+(backupproxyurl=http://cmsbproxy.fnal.gov:3128)
+(serverurl=http://cmsfrontier.cern.ch:8000/FrontierProd)
+(serverurl=http://cmsfrontier1.cern.ch:8000/FrontierProd)
+(serverurl=http://cmsfrontier2.cern.ch:8000/FrontierProd)
+(serverurl=http://cmsfrontier3.cern.ch:8000/FrontierProd)
+/FrontierProd
+
+Query (proxyurl=http://frontiersquid-1.grid.vbc.ac.at:3128) started: Fri Jun 24 04:06:19 CEST 2022
+(proxyurl=http://172.24.16.80:3128) is OK
+Query (proxyurl=http://frontiersquid-1.grid.vbc.ac.at:3128) ended: Fri Jun 24 04:06:19 CEST 2022
+
+Proxy test is OK.
+exit status squid frontier validation 0
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client/export_siteconf_info.py
+No glidein_config environment variable present; defaulting value to 'glidein_config'
+Using SITECONF found at /cvmfs/cms.cern.ch/SITECONF/local.
+Setting value of CMSProcessingSiteName to T2_AT_Vienna.
+Setting value of CMSPhedexNodeName to T2_AT_Vienna.
+Setting value of CMSFallback_PhedexNodeName to T1_IT_CNAF_Disk.
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/test_os.sh
+Any OS OK, passing by default
+OS test passed
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/define_OSG_SE.sh
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+GLIDEIN_UUID 3ce9dfca-0e7f-4d69-bfc9-5f58cb266ab7
+GLIDEIN_Factory OSG
+GLIDEIN_Name gfactory_instance
+GLIDEIN_Entry_Name CMSHTPC_T2_AT_Vienna_ce-1
+GLIDECLIENT_Name CMSG-v1_0.main-token
+GLIDECLIENT_Group main-token
+GLIDEIN_CredentialIdentifier 411868
+CONDORG_CLUSTER 10176593
+CONDORG_SUBCLUSTER 0
+CONDORG_SCHEDD schedd_glideins9@gfactory-2.opensciencegrid.org
+DEBUG_MODE 1
+GLIDEIN_STARTUP_PID 70628
+GLIDEIN_START_DIR_ORIG  /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224
+GLIDEIN_WORKSPACE_ORIG  /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip
+GLIDEIN_WORK_DIR /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main
+GLIDEIN_ENTRY_WORK_DIR /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/entry_CMSHTPC_T2_AT_Vienna_ce-1
+TMP_DIR /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/tmp
+GLIDEIN_LOCAL_TMP_DIR /tmp/glide_grid.cms.pilot01_F6JTUL
+PROXY_URL None
+DESCRIPTION_FILE description.m6n994.cfg
+DESCRIPTION_ENTRY_FILE description.m6n994.cfg
+GLIDEIN_Signature 676abd435d86ecf505ec1f9ec98cffa270ca6478
+GLIDEIN_Entry_Signature c8a64e090968ce9d09c09a435a465caa54b36aba
+GLIDECLIENT_WORK_DIR /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client
+GLIDECLIENT_DESCRIPTION_FILE description.m6n8m0.cfg
+GLIDECLIENT_Signature cf6f208a4365088473f7d80bc69b94f286d88afd
+GLIDECLIENT_GROUP_WORK_DIR /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client_group_main-token
+GLIDECLIENT_DESCRIPTION_GROUP_FILE description.m6n8m0.cfg
+GLIDECLIENT_Group_Signature 57b515ce83b3d62b9d947e51126a0727e54afb5f
+B64UUENCODE_SOURCE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/b64uuencode.source
+ADD_CONFIG_LINE_SOURCE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/add_config_line.source
+GET_ID_SELECTORS_SOURCE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/get_id_selectors.source
+LOGGING_UTILS_SOURCE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/logging_utils.source
+GLIDEIN_PATHS_SOURCE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/glidein_paths.source
+WRAPPER_LIST /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/wrapper_list.lst
+GLIDEIN_INITIALIZED 0
+GLIDEIN_ADVERTISE_ONLY 0
+GLIDEIN_Client CMSG-v1_0.main-token
+USE_MATCH_AUTH True
+GLIDEIN_CustomizeStart_Sitelist T2_US_Caltech
+STARTD_JOB_ATTRS $(STARTD_JOB_ATTRS),MemoryUsage,ResidentSetSize,ProportionalSetSizeKb
+GLIDEIN_CustomizeStart_Entrylist CMSHTPC_T1_IT_CNAF_CINECA,CMSHTPC_T1_DE_KIT_cloud-htcondor-ce-1-kit,CMSHTPC_T1_DE_KIT_cloud-htcondor-ce-1-kit-short,CMSHTPC_T1_DE_KIT_cloud-htcondor-ce-1-kit-medium,CMSHTPC_T1_DE_KIT_cloud-htcondor-ce-2-kit,CMSHTPC_T1_DE_KIT_cloud-htcondor-ce-2-kit-short,CMSHTPC_T1_DE_KIT_cloud-htcondor-ce-2-kit-medium
+GLIDECLIENT_ReqNode gfactory-2.opensciencegrid.org
+CONDOR_OS auto
+GLIDEIN_Monitoring_Enabled False
+GLIDEIN_Max_Idle 600
+USE_PSS True
+MEMORY_USAGE_METRIC ((ProportionalSetSizeKb ?: ResidentSetSize) + 1023) / 1024
+GLIDEIN_CLAIM_WORKLIFE_DYNAMIC cpus*(6*3600)
+GLIDEIN_Job_Max_Time 14400
+GLIDEIN_Singularity_Use REQUIRED
+GLIDEIN_Glexec_Use OPTIONAL
+CONDOR_VERSION 9.0.7
+GLIDEIN_Max_Tail 600
+CMS_GLIDEIN_VERSION 19
+CONDOR_ARCH default
+MIN_DISK_GBS 1
+UPDATE_COLLECTOR_WITH_TCP True
+GLIDEIN_LOGDIR logs/3ce9dfca-0e7f-4d69-bfc9-5f58cb266ab7
+GLIDEIN_STDOUT_LOGFILE 3ce9dfca-0e7f-4d69-bfc9-5f58cb266ab7.out
+GLIDEIN_STDERR_LOGFILE 3ce9dfca-0e7f-4d69-bfc9-5f58cb266ab7.err
+GLIDEIN_LOG_LOGFILE 3ce9dfca-0e7f-4d69-bfc9-5f58cb266ab7.log
+GLIDEIN_LOG_RELATIVE_BASEPATH /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip
+CURL_VERSION curl 7.29.0 (x86_64-redhat-linux-gnu) libcurl/7.29.0 NSS/3.53.1 zlib/1.2.7 libidn/1.28 libssh2/1.8.0
+GLIDEIN_LOG_NO_SEND 1
+GLIDEIN_LOG_INITIALIZED 1
+ERROR_GEN_PATH /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/error_gen.sh
+CONSTS_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/constants.cfg
+CONDOR_VARS_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/condor_vars.lst
+UNTAR_CFG_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/untar.cfg
+GRIDMAP /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/grid-mapfile
+CONDOR_PLATFORM_9.9.0-default-default 0
+CONDOR_PLATFORM_9.9.0-rhel7-default 0
+CONDOR_PLATFORM_9.9.0-linux-rhel7-default 0
+CONDOR_PLATFORM_9.9.0-rhel8-default 0
+CONDOR_PLATFORM_9.9.0-linux-rhel8-default 0
+CONDOR_PLATFORM_9.9.0-ubuntu18-default 0
+CONDOR_PLATFORM_9.9.0-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.9.0-ubuntu20-default 0
+CONDOR_PLATFORM_9.9.0-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.8.1-default-default 0
+CONDOR_PLATFORM_9.8.1-rhel7-default 0
+CONDOR_PLATFORM_9.8.1-linux-rhel7-default 0
+CONDOR_PLATFORM_9.x-default-default 0
+CONDOR_PLATFORM_9.x-rhel7-default 0
+CONDOR_PLATFORM_9.x-linux-rhel7-default 0
+CONDOR_PLATFORM_9.8.1-rhel8-default 0
+CONDOR_PLATFORM_9.8.1-linux-rhel8-default 0
+CONDOR_PLATFORM_9.x-rhel8-default 0
+CONDOR_PLATFORM_9.x-linux-rhel8-default 0
+CONDOR_PLATFORM_9.8.1-ubuntu18-default 0
+CONDOR_PLATFORM_9.8.1-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.x-ubuntu18-default 0
+CONDOR_PLATFORM_9.x-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.8.1-ubuntu20-default 0
+CONDOR_PLATFORM_9.8.1-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.x-ubuntu20-default 0
+CONDOR_PLATFORM_9.x-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.7.1-default-default 0
+CONDOR_PLATFORM_9.7.1-rhel7-default 0
+CONDOR_PLATFORM_9.7.1-linux-rhel7-default 0
+CONDOR_PLATFORM_9.7.1-rhel8-default 0
+CONDOR_PLATFORM_9.7.1-linux-rhel8-default 0
+CONDOR_PLATFORM_9.7.1-ubuntu18-default 0
+CONDOR_PLATFORM_9.7.1-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.7.1-ubuntu20-default 0
+CONDOR_PLATFORM_9.7.1-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.7.0-default-default 0
+CONDOR_PLATFORM_9.7.0-rhel7-default 0
+CONDOR_PLATFORM_9.7.0-linux-rhel7-default 0
+CONDOR_PLATFORM_9.7.0-rhel8-default 0
+CONDOR_PLATFORM_9.7.0-linux-rhel8-default 0
+CONDOR_PLATFORM_9.7.0-ubuntu18-default 0
+CONDOR_PLATFORM_9.7.0-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.7.0-ubuntu20-default 0
+CONDOR_PLATFORM_9.7.0-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.5.4-default-default 0
+CONDOR_PLATFORM_9.5.4-rhel7-default 0
+CONDOR_PLATFORM_9.5.4-linux-rhel7-default 0
+CONDOR_PLATFORM_9.5.4-rhel8-default 0
+CONDOR_PLATFORM_9.5.4-linux-rhel8-default 0
+CONDOR_PLATFORM_9.5.4-ubuntu18-default 0
+CONDOR_PLATFORM_9.5.4-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.5.4-ubuntu20-default 0
+CONDOR_PLATFORM_9.5.4-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.5.2-default-default 0
+CONDOR_PLATFORM_9.5.2-rhel7-default 0
+CONDOR_PLATFORM_9.5.2-linux-rhel7-default 0
+CONDOR_PLATFORM_9.5.2-rhel8-default 0
+CONDOR_PLATFORM_9.5.2-linux-rhel8-default 0
+CONDOR_PLATFORM_9.5.2-ubuntu18-default 0
+CONDOR_PLATFORM_9.5.2-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.5.2-ubuntu20-default 0
+CONDOR_PLATFORM_9.5.2-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.4.0-default-default 0
+CONDOR_PLATFORM_9.4.0-rhel7-default 0
+CONDOR_PLATFORM_9.4.0-linux-rhel7-default 0
+CONDOR_PLATFORM_9.4.0-rhel8-default 0
+CONDOR_PLATFORM_9.4.0-linux-rhel8-default 0
+CONDOR_PLATFORM_9.4.0-ubuntu20-default 0
+CONDOR_PLATFORM_9.4.0-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.4.0-ubuntu18-default 0
+CONDOR_PLATFORM_9.4.0-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.4.0-linux-rhel6-default 0
+CONDOR_PLATFORM_9.x-linux-rhel6-default 0
+CONDOR_PLATFORM_9.1.4-default-default 0
+CONDOR_PLATFORM_9.1.4-rhel7-default 0
+CONDOR_PLATFORM_9.1.4-linux-rhel7-default 0
+CONDOR_PLATFORM_9.1.x-default-default 0
+CONDOR_PLATFORM_9.1.x-rhel7-default 0
+CONDOR_PLATFORM_9.1.x-linux-rhel7-default 0
+CONDOR_PLATFORM_9.1.4-rhel8-default 0
+CONDOR_PLATFORM_9.1.4-linux-rhel8-default 0
+CONDOR_PLATFORM_9.1.x-rhel8-default 0
+CONDOR_PLATFORM_9.1.x-linux-rhel8-default 0
+CONDOR_PLATFORM_9.1.4-ubuntu18-default 0
+CONDOR_PLATFORM_9.1.4-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.1.x-ubuntu18-default 0
+CONDOR_PLATFORM_9.1.x-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.1.4-ubuntu20-default 0
+CONDOR_PLATFORM_9.1.4-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.1.x-ubuntu20-default 0
+CONDOR_PLATFORM_9.1.x-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.1.4-linux-rhel6-default 0
+CONDOR_PLATFORM_9.1.x-linux-rhel6-default 0
+CONDOR_PLATFORM_9.1.3-default-default 0
+CONDOR_PLATFORM_9.1.3-rhel7-default 0
+CONDOR_PLATFORM_9.1.3-linux-rhel7-default 0
+CONDOR_PLATFORM_9.1.3-rhel8-default 0
+CONDOR_PLATFORM_9.1.3-linux-rhel8-default 0
+CONDOR_PLATFORM_9.1.3-ubuntu20-default 0
+CONDOR_PLATFORM_9.1.3-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.1.3-ubuntu18-default 0
+CONDOR_PLATFORM_9.1.3-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.1.3-linux-rhel6-default 0
+CONDOR_PLATFORM_9.1.1-default-default 0
+CONDOR_PLATFORM_9.1.1-rhel7-default 0
+CONDOR_PLATFORM_9.1.1-linux-rhel7-default 0
+CONDOR_PLATFORM_9.1.1-rhel8-default 0
+CONDOR_PLATFORM_9.1.1-linux-rhel8-default 0
+CONDOR_PLATFORM_9.1.1-ubuntu20-default 0
+CONDOR_PLATFORM_9.1.1-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.1.1-ubuntu18-default 0
+CONDOR_PLATFORM_9.1.1-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.1.1-linux-rhel6-default 0
+CONDOR_PLATFORM_9.0.11-default-default 0
+CONDOR_PLATFORM_9.0.11-rhel7-default 0
+CONDOR_PLATFORM_9.0.11-linux-rhel7-default 0
+CONDOR_PLATFORM_9.0.x-default-default 0
+CONDOR_PLATFORM_9.0.x-rhel7-default 0
+CONDOR_PLATFORM_9.0.x-linux-rhel7-default 0
+CONDOR_PLATFORM_default-default-default 0
+CONDOR_PLATFORM_default-rhel7-default 0
+CONDOR_PLATFORM_default-linux-rhel7-default 0
+CONDOR_PLATFORM_9.0.11-rhel8-default 0
+CONDOR_PLATFORM_9.0.11-linux-rhel8-default 0
+CONDOR_PLATFORM_9.0.x-rhel8-default 0
+CONDOR_PLATFORM_9.0.x-linux-rhel8-default 0
+CONDOR_PLATFORM_default-rhel8-default 0
+CONDOR_PLATFORM_default-linux-rhel8-default 0
+CONDOR_PLATFORM_9.0.11-ubuntu18-default 0
+CONDOR_PLATFORM_9.0.11-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.0.x-ubuntu18-default 0
+CONDOR_PLATFORM_9.0.x-linux-ubuntu18-default 0
+CONDOR_PLATFORM_default-ubuntu18-default 0
+CONDOR_PLATFORM_default-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.0.11-ubuntu20-default 0
+CONDOR_PLATFORM_9.0.11-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.0.x-ubuntu20-default 0
+CONDOR_PLATFORM_9.0.x-linux-ubuntu20-default 0
+CONDOR_PLATFORM_default-ubuntu20-default 0
+CONDOR_PLATFORM_default-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.0.8-default-default 0
+CONDOR_PLATFORM_9.0.8-rhel7-default 0
+CONDOR_PLATFORM_9.0.8-linux-rhel7-default 0
+CONDOR_PLATFORM_9.0.8-rhel8-default 0
+CONDOR_PLATFORM_9.0.8-linux-rhel8-default 0
+CONDOR_PLATFORM_9.0.8-ubuntu20-default 0
+CONDOR_PLATFORM_9.0.8-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.0.8-ubuntu18-default 0
+CONDOR_PLATFORM_9.0.8-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.0.8-linux-rhel6-default 0
+CONDOR_PLATFORM_9.0.x-linux-rhel6-default 0
+CONDOR_PLATFORM_9.0.7-rhel8-default 0
+CONDOR_PLATFORM_9.0.7-linux-rhel8-default 0
+CONDOR_PLATFORM_9.0.7-default-default 0
+CONDOR_PLATFORM_9.0.7-rhel7-default 0
+CONDOR_PLATFORM_9.0.6-rhel8-default 0
+CONDOR_PLATFORM_9.0.6-linux-rhel8-default 0
+CONDOR_PLATFORM_9.0.6-default-default 0
+CONDOR_PLATFORM_9.0.6-rhel7-default 0
+CONDOR_PLATFORM_9.0.6-linux-rhel7-default 0
+CONDOR_PLATFORM_9.0.6-ubuntu20-default 0
+CONDOR_PLATFORM_9.0.6-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.0.6-ubuntu18-default 0
+CONDOR_PLATFORM_9.0.6-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.0.5-default-default 0
+CONDOR_PLATFORM_9.0.5-rhel7-default 0
+CONDOR_PLATFORM_9.0.5-linux-rhel7-default 0
+CONDOR_PLATFORM_9.0.5-rhel8-default 0
+CONDOR_PLATFORM_9.0.5-linux-rhel8-default 0
+CONDOR_PLATFORM_9.0.5-ubuntu20-default 0
+CONDOR_PLATFORM_9.0.5-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.0.5-ubuntu18-default 0
+CONDOR_PLATFORM_9.0.5-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.0.5-linux-rhel6-default 0
+CONDOR_PLATFORM_9.0.1-linux-rhel6-default 0
+CONDOR_PLATFORM_9.0.1-default-default 0
+CONDOR_PLATFORM_9.0.1-rhel7-default 0
+CONDOR_PLATFORM_9.0.1-linux-rhel7-default 0
+CONDOR_PLATFORM_9.0.1-rhel8-default 0
+CONDOR_PLATFORM_9.0.1-linux-rhel8-default 0
+CONDOR_PLATFORM_9.0.0-default-default 0
+CONDOR_PLATFORM_9.0.0-rhel7-default 0
+CONDOR_PLATFORM_9.0.0-linux-rhel7-default 0
+CONDOR_PLATFORM_9.0.0-rhel8-default 0
+CONDOR_PLATFORM_9.0.0-linux-rhel8-default 0
+CONDOR_PLATFORM_9.0.0-ubuntu20-default 0
+CONDOR_PLATFORM_9.0.0-linux-ubuntu20-default 0
+CONDOR_PLATFORM_9.0.0-ubuntu18-default 0
+CONDOR_PLATFORM_9.0.0-linux-ubuntu18-default 0
+CONDOR_PLATFORM_9.0.0-linux-rhel6-default 0
+CONDOR_PLATFORM_8.9.13-default-default 0
+CONDOR_PLATFORM_8.9.13-rhel7-default 0
+CONDOR_PLATFORM_8.9.13-linux-rhel7-default 0
+CONDOR_PLATFORM_8.9.13-rhel8-default 0
+CONDOR_PLATFORM_8.9.13-linux-rhel8-default 0
+CONDOR_PLATFORM_8.9.13-ubuntu18-default 0
+CONDOR_PLATFORM_8.9.13-linux-ubuntu18-default 0
+CONDOR_PLATFORM_8.9.x-ubuntu18-default 0
+CONDOR_PLATFORM_8.9.x-linux-ubuntu18-default 0
+CONDOR_PLATFORM_8.9.11-default-default 0
+CONDOR_PLATFORM_8.9.11-rhel7-default 0
+CONDOR_PLATFORM_8.9.11-linux-rhel7-default 0
+CONDOR_PLATFORM_8.9.x-default-default 0
+CONDOR_PLATFORM_8.9.x-rhel7-default 0
+CONDOR_PLATFORM_8.9.x-linux-rhel7-default 0
+CONDOR_PLATFORM_8.9.11-rhel8-default 0
+CONDOR_PLATFORM_8.9.11-linux-rhel8-default 0
+CONDOR_PLATFORM_8.9.x-rhel8-default 0
+CONDOR_PLATFORM_8.9.x-linux-rhel8-default 0
+CONDOR_PLATFORM_8.9.11-ubuntu20-default 0
+CONDOR_PLATFORM_8.9.11-linux-ubuntu20-default 0
+CONDOR_PLATFORM_8.9.x-ubuntu20-default 0
+CONDOR_PLATFORM_8.9.x-linux-ubuntu20-default 0
+CONDOR_PLATFORM_8.8.12-linux-rhel6-default 0
+CONDOR_PLATFORM_8.8.x-linux-rhel6-default 0
+CONDOR_PLATFORM_default-linux-rhel6-default 0
+CONDOR_PLATFORM_8.8.12-default-default 0
+CONDOR_PLATFORM_8.8.12-rhel7-default 0
+CONDOR_PLATFORM_8.8.12-linux-rhel7-default 0
+CONDOR_PLATFORM_8.8.x-default-default 0
+CONDOR_PLATFORM_8.8.x-rhel7-default 0
+CONDOR_PLATFORM_8.8.x-linux-rhel7-default 0
+CONDOR_PLATFORM_8.8.12-rhel8-default 0
+CONDOR_PLATFORM_8.8.12-linux-rhel8-default 0
+CONDOR_PLATFORM_8.8.x-rhel8-default 0
+CONDOR_PLATFORM_8.8.x-linux-rhel8-default 0
+CONDOR_PLATFORM_8.9.6-linux-rhel6-default 0
+CONDOR_PLATFORM_8.9.x-linux-rhel6-default 0
+CONDOR_PLATFORM_8.8.10-linux-rhel6-default 0
+CONDOR_PLATFORM_8.8.10-default-default 0
+CONDOR_PLATFORM_8.8.10-rhel7-default 0
+CONDOR_PLATFORM_8.8.10-linux-rhel7-default 0
+CONDOR_PLATFORM_8.8.8-linux-rhel6-default 0
+CONDOR_PLATFORM_8.8.8-default-default 0
+CONDOR_PLATFORM_8.8.8-rhel7-default 0
+CONDOR_PLATFORM_8.8.8-linux-rhel7-default 0
+CONDOR_PLATFORM_8.8.7-linux-rhel6-default 0
+CONDOR_PLATFORM_8.8.7-default-default 0
+CONDOR_PLATFORM_8.8.7-rhel7-default 0
+CONDOR_PLATFORM_8.8.7-linux-rhel7-default 0
+CONDOR_PLATFORM_8.8.6-linux-rhel6-default 0
+CONDOR_PLATFORM_8.8.6-default-default 0
+CONDOR_PLATFORM_8.8.6-rhel7-default 0
+CONDOR_PLATFORM_8.8.6-linux-rhel7-default 0
+CONDOR_PLATFORM_8.8.5-linux-rhel6-default 0
+CONDOR_PLATFORM_8.8.5-default-default 0
+CONDOR_PLATFORM_8.8.5-rhel7-default 0
+CONDOR_PLATFORM_8.8.5-linux-rhel7-default 0
+CONDOR_PLATFORM_8.8.2-linux-rhel6-default 0
+CONDOR_PLATFORM_8.8.2-default-default 0
+CONDOR_PLATFORM_8.8.2-rhel7-default 0
+CONDOR_PLATFORM_8.8.2-linux-rhel7-default 0
+CONDOR_PLATFORM_8.7.9-linux-rhel6-default 0
+CONDOR_PLATFORM_8.7.x-linux-rhel6-default 0
+CONDOR_PLATFORM_8.7.9-default-default 0
+CONDOR_PLATFORM_8.7.9-rhel7-default 0
+CONDOR_PLATFORM_8.7.9-linux-rhel7-default 0
+CONDOR_PLATFORM_8.7.x-default-default 0
+CONDOR_PLATFORM_8.7.x-rhel7-default 0
+CONDOR_PLATFORM_8.7.x-linux-rhel7-default 0
+CONDOR_PLATFORM_8.6.12-linux-rhel6-default 0
+CONDOR_PLATFORM_8.6.x-linux-rhel6-default 0
+CONDOR_PLATFORM_8.6.12-default-default 0
+CONDOR_PLATFORM_8.6.12-rhel7-default 0
+CONDOR_PLATFORM_8.6.12-linux-rhel7-default 0
+CONDOR_PLATFORM_8.6.x-default-default 0
+CONDOR_PLATFORM_8.6.x-rhel7-default 0
+CONDOR_PLATFORM_8.6.x-linux-rhel7-default 0
+CONDOR_PLATFORM_8.6.5-linux-rhel6-default 0
+CONDOR_PLATFORM_8.6.5-default-default 0
+CONDOR_PLATFORM_8.6.5-rhel7-default 0
+CONDOR_PLATFORM_8.6.5-linux-rhel7-default 0
+CONDOR_PLATFORM_8.6.3-linux-rhel6-default 0
+CONDOR_PLATFORM_8.6.3-default-default 0
+CONDOR_PLATFORM_8.6.3-rhel7-default 0
+CONDOR_PLATFORM_8.6.3-linux-rhel7-default 0
+CVMFSEXEC_PLATFORM_osg-rhel7-x86_64 0
+CVMFSEXEC_PLATFORM_osg-rhel8-x86_64 0
+CVMFSEXEC_PLATFORM_osg-suse15-x86_64 0
+CVMFSEXEC_PLATFORM_egi-rhel7-x86_64 0
+CVMFSEXEC_PLATFORM_egi-suse15-x86_64 0
+CVMFSEXEC_PLATFORM_default-rhel7-x86_64 0
+CVMFSEXEC_PLATFORM_default-rhel8-x86_64 0
+CVMFSEXEC_PLATFORM_default-suse15-x86_64 0
+FactoryType production
+GCB_ORDER NONE
+GLIDEIN_Req_MUPJ_gLExec False
+GLIDEIN_Retire_Time_Spread 1200
+GLIDEIN_SINGULARITY_REQUIRE OPTIONAL
+GSI_DELEGATION_KEYBITS 1024
+Site_Req_Explicit_Auth False
+USE_CCB True
+VOS_USING_SE_BASEPATH 
+VOS_USING_SE_OTHER_SUBDIR 
+VOS_USING_SE_VONAME_LOWERCASE 
+CONDOR_PLATFORM_9.0.7-linux-rhel7-default 1
+CONDOR_DIR /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/condor
+GLIDEIN_Collector cmssrvz02.fnal.gov:9618?sock=collector$RANDOM_INTEGER(9621,9720),vocms0814.cern.ch:9618?sock=collector$RANDOM_INTEGER(9621,9720)
+GLIDEIN_Site_Collector ce-1.grid.vbc.ac.at:9619
+GLIDEIN_CCB vocms0813.cern.ch:9618?sock=collector$RANDOM_INTEGER(9621,9720),cmssrvz03.fnal.gov:9618?sock=collector$RANDOM_INTEGER(9621,9720)
+GLIDEIN_Master_Collector cmssrvz02.fnal.gov:9618?sock=collector$RANDOM_INTEGER(9621,9720),vocms0814.cern.ch:9618?sock=collector$RANDOM_INTEGER(9621,9720)
+X509_CONDORMAP /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/condor_mapfile
+X509_GRIDMAP_TRUSTED_DNS *
+TRUST_DOMAIN cmssrvz02.fnal.gov:9618
+GLIDEIN_CONDOR_TOKEN /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/ticket/credential_CMSG-v1_0.main-token_CMSHTPC_T2_AT_Vienna_ce-1.idtoken
+GLIDEIN_CONDOR_TOKEN_ORIG /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/credential_CMSG-v1_0.main-token_CMSHTPC_T2_AT_Vienna_ce-1.idtoken
+X509_CERT_DIR /etc/grid-security/certificates
+X509_USER_PROXY /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/ticket/myproxy
+X509_USER_PROXY_ORIG /grid/condor/1808/0/cluster1301808.proc0.subproc0/credential_CMSG-v1_0.main-token_411868
+X509_EXPIRE 1656280807
+GLIDEIN_condor_config_startd_cron_include condor_config_startd_cron_include
+GLIDECLIENT_CONSTS_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client/constants.cfg
+GLIDECLIENT_CONDOR_VARS_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client/condor_vars.lst
+GLIDECLIENT_UNTAR_CFG_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client/untar.cfg
+GLIDECLIENT_BLACKLIST_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client/nodes.blacklist
+GLEXEC_HOLD_ON_INITIAL_FAILURE 0
+GLEXEC_RETRY_DELAY 30
+GLIDEIN_Expose_Grid_Env True
+GLIDEIN_Report_Failed ALWAYS
+MODULE_USE 0
+CVMFS_REPOS_LIST cms.cern.ch,oasis.opensciencegrid.org,singularity.opensciencegrid.org
+SINGULARITY_IMAGES_DICT default:/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7,rhel6:/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel6,rhel7:/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7,rhel8:/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel8
+SLOTS_LAYOUT partitionable
+UPDATE_INTERVAL $RANDOM_INTEGER(680,750,1)
+STARTD_PARTITIONABLE_SLOT_ATTRS MemoryUsage,ProportionalSetSizeKb
+TotalMemoryUsage ifthenelse(sum(ChildMemoryUsage)=!=ERROR,sum(ChildMemoryUsage),0)
+PREFER_IPV4 False
+GLIDECLIENT_Start ifthenelse(GLIDEIN_REQUIRED_OS=?="any", (HAS_SINGULARITY=?=true && GLIDEIN_PS_HAS_SINGULARITY=!=false),( isUndefined(REQUIRED_OS) || REQUIRED_OS=?="any" || REQUIRED_OS=?=GLIDEIN_REQUIRED_OS )) && ifthenelse(MaxWallTimeMins=!=UNDEFINED,(MaxWallTimeMins*60)<(GLIDEIN_ToDie-MyCurrentTime),(16*3600)<(GLIDEIN_ToDie-MyCurrentTime)) && ((DynamicSlot =!= true) || (RequestCpus=?=Cpus)) && ifthenelse(SlotType=?="Static", RequestCpus <= Cpus, True)
+GLIDEIN_SINGULARITY_BINDPATH /storage,/lfs_roots,/cms,/etc/cvmfs/SITECONF,/ceph,/cvmfs/grid.cern.ch/etc/grid-security:/etc/grid-security
+GLIDECLIENT_GRIDMAP /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client/grid-mapfile
+GLIDECLIENT_GROUP_CONSTS_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client_group_main-token/constants.cfg
+GLIDECLIENT_GROUP_CONDOR_VARS_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client_group_main-token/condor_vars.lst
+GLIDECLIENT_GROUP_UNTAR_CFG_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client_group_main-token/untar.cfg
+GLIDECLIENT_GROUP_BLACKLIST_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client_group_main-token/nodes.blacklist
+GLIDECLIENT_Group_Start (ifthenelse(DESIRED_Sites isnt undefined, stringListMember(GLIDEIN_CMSSite,DESIRED_Sites), undefined) || ifthenelse(DESIRED_Gatekeepers isnt undefined, stringListMember(GLIDEIN_Gatekeeper,DESIRED_Gatekeepers), undefined)) && (isUndefined(RequestGPUs) || RequestGPUs =?= 0 )
+ENTRY_CONSTS_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/entry_CMSHTPC_T2_AT_Vienna_ce-1/constants.cfg
+ENTRY_CONDOR_VARS_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/entry_CMSHTPC_T2_AT_Vienna_ce-1/condor_vars.lst
+ENTRY_UNTAR_CFG_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/entry_CMSHTPC_T2_AT_Vienna_ce-1/untar.cfg
+ENTRY_BLACKLIST_FILE /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/entry_CMSHTPC_T2_AT_Vienna_ce-1/nodes.blacklist
+# 
+GLEXEC_BIN NONE
+GLIDEIN_CMSSite T2_AT_Vienna
+GLIDEIN_CPUS 8
+GLIDEIN_Country AT
+GLIDEIN_Max_Walltime 171000
+GLIDEIN_MaxMemMBs 20000
+GLIDEIN_REQUIRED_OS any
+GLIDEIN_ResourceName Hephy-Vienna
+GLIDEIN_Site Hephy-Vienna
+GLIDEIN_Supported_VOs CMS
+GLIDEIN_Gatekeeper ce-1.grid.vbc.ac.at ce-1.grid.vbc.ac.at:9619
+GLIDEIN_GridType condor
+GLIDEIN_REQUIRE_VOMS False
+GLIDEIN_TrustDomain grid
+GLIDEIN_SupportedAuthenticationMethod grid_proxy
+GLIDEIN_SlotsLayout fixed
+GLIDEIN_WorkDir .
+GLIDEIN_Verbosity std
+# --- End entry constants       ---
+HAS_SINGULARITY True
+GWMS_SINGULARITY_STATUS REQUIRED
+SINGULARITY_PATH /usr/bin/singularity
+GWMS_SINGULARITY_PATH /usr/bin/singularity
+SINGULARITY_VERSION 3.8.7-1.el7
+GWMS_SINGULARITY_VERSION 3.8.7-1.el7
+SINGULARITY_FULL_VERSION singularity version 3.8.7-1.el7
+SINGULARITY_MODE privileged
+GWMS_SINGULARITY_MODE privileged
+CONTAINERSW_PATH /usr/bin/singularity
+GWMS_CONTAINERSW_PATH /usr/bin/singularity
+CONTAINERSW_VERSION 3.8.7-1.el7
+GWMS_CONTAINERSW_VERSION 3.8.7-1.el7
+CONTAINERSW_FULL_VERSION singularity version 3.8.7-1.el7
+GWMS_CONTAINERSW_FULL_VERSION singularity version 3.8.7-1.el7
+CONTAINERSW_MODE privileged
+GWMS_CONTAINERSW_MODE privileged
+GLIDEIN_PROVIDES singularity/privileged
+CMS_HOLD_MEMORY ((ResidentSetSize=!=undefined)&&(ResidentSetSize>4000000))
+CMS_HOLDREASON_MEMORY Memory of 4G as per CMS rules exceeded
+CMS_HOLD_DISK ((DiskUsage=!=undefined)&&(DiskUsage>80000000))
+CMS_HOLDREASON_DISK Disk of 80G as per CMS rules exceeded
+WANT_HOLD (($(CMS_HOLD_MEMORY))||($(CMS_HOLD_DISK)))
+WANT_HOLD_REASON ifThenElse($(CMS_HOLD_MEMORY),$(CMS_HOLDREASON_MEMORY),ifThenElse($(CMS_HOLD_DISK),$(CMS_HOLDREASON_DISK),undefined))
+PREEMPT $(WANT_HOLD)
+WANT_SUSPEND False
+WANT_SUSPEND_VANILLA False
+WANT_VACATE True
+PREEMPT_GRACE_TIME 10000000*(($(PREEMPT))=!=True)
+GLIDECLIENT_CMS_TEST_SQUID /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/client/test_squid
+CMS_VALIDATION_FRONTIER 0
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+define_OSG_SE: VO did not identify itself.. nothing to do
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/smart_partitionable_rc.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/check_proxy.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/create_mapfile.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/validate_node.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/setup_network.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/java_setup.sh
+Fri Jun 24 04:06:24 CEST 2022 GLIDEIN_Java_Use not configured. Defaulting it to NEVER
+Fri Jun 24 04:06:24 CEST 2022 VO does not want to use Java
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/glidein_memory_setup.sh
+Fri Jun 24 04:06:25 CEST 2022 Setting GLIDEIN_MaxMemMBs=20000
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/glidein_cpus_setup.sh
+Fri Jun 24 04:06:25 CEST 2022 Setting GLIDEIN_CPUS=8 
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/glidein_sitewms_setup.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/script_wrapper.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/smart_partitionable.sh
+Executing (flags:) /grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224/glide_tsIhip/main/cvmfs_setup.sh
+Condor tarball does not need to be fixed
+=== Last script starting Fri Jun 24 04:06:28 CEST 2022 (1656036388) after validating for 63 ===
+
+=== Condor starting Fri Jun 24 04:06:30 CEST 2022 (1656036390) ===
+=== Condor started in background, now waiting on process 9315 ===
+=== Condor ended Fri Jun 24 06:24:57 CEST 2022 (1656044697) after 8307 ===
+
+Total jobs/goodZ jobs/goodNZ jobs/badSignal jobs/badOther jobs below are normalized to 1 Core
+=== Stats of main ===
+=== End Stats of main ===
+Total number of activations/claims: 34
+
+
+
+
+
+
+
+
+=== Last script ended Fri Jun 24 06:24:58 CEST 2022 (1656044698) with code 0 after 8310 ===
+
+Unmounting CVMFS as part of glidein cleanup...
+=== Glidein ending Fri Jun 24 06:25:01 CEST 2022 (1656044701) with code 0 after 8376 ===
+
+=== XML description of glidein activity ===
+<?xml version="1.0"?>
+<OSGTestResult id="glidein_startup.sh" version="4.3.1">
+  <operatingenvironment>
+    <env name="client_name">CMSG-v1_0.main-token</env>
+    <env name="client_group">main-token</env>
+    <env name="user">grid.cms.pilot01</env>
+    <env name="arch">x86_64</env>
+    <env name="os">CentOS Linux release 7.9.2009 (Core)</env>
+    <env name="hostname">clip-c2-99.cbe.vbc.ac.at</env>
+    <env name="cwd">/grid/condor/1808/0/cluster1301808.proc0.subproc0/home_bl_ce-1.grid.vbc.ac.at_9619_ce-1.grid.vbc.ac.at_1301810.0_1656036224</env>
+  </operatingenvironment>
+  <test>
+    <tStart>2022-06-24T04:05:25+02:00</tStart>
+    <tEnd>2022-06-24T06:24:58+02:00</tEnd>
+  </test>
+  <result>
+    <status>OK</status>
+    <metric name="AutoShutdown" ts="2022-06-24T06:24:58+02:00" uri="local">False</metric>
+    <metric name="CondorDuration" ts="2022-06-24T06:24:58+02:00" uri="local">8307</metric>
+    <metric name="CondorKilled" ts="2022-06-24T06:24:58+02:00" uri="local">False</metric>
+  </result>
+</OSGTestResult>
+=== End XML description of glidein activity ===
