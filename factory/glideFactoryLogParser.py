@@ -334,7 +334,9 @@ ELD_RC_CONDOR_END = re.compile(b"=== Condor ended.*after (?P<secs>[0-9]+) ===")
 ELD_RC_CONDOR_SLOT = re.compile(
     rb"=== Stats of (?P<slot>\S+) ===(?P<content>.*)=== End Stats of (?P<slot2>\S+) ===", re.M | re.DOTALL
 )
-ELD_RC_CONDOR_SLOT_CONTENT_COUNT = re.compile(b"Total(?P<name>.*)jobs (?P<jobsnr>[0-9]+) .*utilization (?P<secs>[0-9]+)")
+ELD_RC_CONDOR_SLOT_CONTENT_COUNT = re.compile(
+    b"Total(?P<name>.*)jobs (?P<jobsnr>[0-9]+) .*utilization (?P<secs>[0-9]+)"
+)
 ELD_RC_CONDOR_SLOT_ACTIVATIONS_COUNT = re.compile(b"Total number of activations/claims: (?P<nr>[0-9]+)")
 ELD_RC_GLIDEIN_END = re.compile(b"=== Glidein ending .* with code (?P<code>[0-9]+) after (?P<secs>[0-9]+) ===")
 
