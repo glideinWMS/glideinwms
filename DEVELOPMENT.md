@@ -29,7 +29,7 @@ Run `./glideinwms/build/ci/runtest.sh -h` for instructions and to list the avail
 
 ```shell
 ./glideinwms/build/ci/runtest.sh -i pylint -a
-./glideinwms/build/ci/runtest.sh -i pyunittests -a
+./glideinwms/build/ci/runtest.sh -i pyunittest -a
 ```
 
 Document your code so we can easily generate API documentation using Sphinx.
