@@ -86,7 +86,6 @@ ${filename} [options] COMMAND [command options]
   bats - run Shell unit tests and coverage
   pyunittest (unittest) - run Python unit test and coverage
   pylint - run pylint and pycodestyle (pep8)
-  NOT_IMPLEMENTED: futurize - run futurize
   shellcheck - run shellcheck
   summary - finalize the summary table only
  Options:
