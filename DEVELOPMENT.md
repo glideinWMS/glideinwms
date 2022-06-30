@@ -13,7 +13,8 @@ https://glideinwms.fnal.gov/api/
 
 # Developer Workflow
 
-https://cdcvs.fnal.gov/redmine/projects/glideinwms/wiki
+We use GitHub flow (aka fork and branch). You can find more details in:
+https://github.com/glideinWMS/glideinwms/wiki/Development-Workflow
 
 # Getting Started with development
 
@@ -21,6 +22,11 @@ NOTE: This project has a pre-commit config.
 To install it run `pre-commit install` from the repository root.
 You may want to setup automatic notifications for pre-commit enabled
 repos: https://pre-commit.com/index.html#automatically-enabling-pre-commit-on-repositories
+You can run manually pre-commit:
+
+```shell
+pre-commit run --all-files
+```
 
 GlideinWMS code must work w/ Python 3.6+.
 
