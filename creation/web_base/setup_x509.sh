@@ -38,7 +38,7 @@ exit_if_no_token(){
     if [ !  -e "$GLIDEIN_CONDOR_TOKEN" ]; then
         exit $1
     fi
-    echo  "setup_x509.sh" "found" "$GLIDEIN_CONDOR_TOKEN" "so...continuing"
+    echo  "setup_x509.sh" "found" "$GLIDEIN_CONDOR_TOKEN" "so...continuing" 1>&2
 }
 
 # check that x509 certificates exist and set the env variable if needed
@@ -86,7 +86,7 @@ get_x509_proxy() {
         X509_USER_PROXY="$cert_fname"
     fi
     if [ ! -e "$cert_fname" ]; then
-        echo "Proxy certificate '$cert_fname' does not exist."
+        echo "Proxy certificate '$cert_fname' does not exist." 1>&2
         #exit_if_no_token 1
     fi
     if [ ! -r "$cert_fname" ]; then
@@ -130,7 +130,7 @@ check_x509_tools() {
     if [ $missing_commands -ne 0 ]; then
         if [ $missing_commands -ge 3 ]; then
 	    STR="No x509 command (grid-proxy-init, voms-proxy-init, openssl) found in path!"
-            "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR"
+            "$error_gen" -ok "setup_x509.sh" "WN_Resource" "$STR"
             exit_if_no_token 1
         else
             STR="Not all x509 commands found in path ($missing_commands missing)!"
@@ -148,9 +148,10 @@ copy_x509_proxy() {
     else
         STR="Could not find user proxy!"
         STR+="Looked in X509_USER_PROXY='$X509_USER_PROXY'\n"
-        STR+=`ls -la "$X509_USER_PROXY"`
+        #STR+=`ls -la "$X509_USER_PROXY"`
         STR1=`echo -e "$STR"`
-        "$error_gen" -error "setup_x509.sh" "Corruption" "$STR1" "proxy" "$X509_USER_PROXY"
+        #"$error_gen" -error "setup_x509.sh"  "$STR1" "proxy" "$X509_USER_PROXY"
+        echo $STR1 1>&2
         exit_if_no_token 1
     fi
 
@@ -161,7 +162,7 @@ copy_x509_proxy() {
 
     if [ $? -ne 0 ]; then
         STR="Failed in reading old umask!"
-        "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY"
+        "$error_gen" -ok "setup_x509.sh"  "$STR" "file" "$X509_USER_PROXY"
         exit_if_no_token 1
     fi
 
@@ -169,7 +170,7 @@ copy_x509_proxy() {
     umask 0077
     if [ $? -ne 0 ]; then
         STR="Failed to set umask 0077!"
-        "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY" "command" "umask"
+        "$error_gen" -ok "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY" "command" "umask"
         exit_if_no_token 1
     fi
 
@@ -177,14 +178,14 @@ copy_x509_proxy() {
     mkdir -p "$local_proxy_dir"
     if [ $? -ne 0 ]; then
         STR="Failed in creating proxy dir $local_proxy_dir."
-        "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "directory" "$local_proxy_dir"
+        "$error_gen" -ok "setup_x509.sh"  "$STR" "directory" "$local_proxy_dir"
         exit_if_no_token 1
     fi
 
     cp "$X509_USER_PROXY" "$local_proxy_dir/myproxy"
     if [ $? -ne 0 ]; then
         STR="Failed in copying proxy $X509_USER_PROXY."
-        "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY"
+        "$error_gen" -ok "setup_x509.sh"  "$STR" "file" "$X509_USER_PROXY"
         exit_if_no_token 1
     fi
 
@@ -196,7 +197,7 @@ copy_x509_proxy() {
     umask $old_umask
     if [ $? -ne 0 ]; then
         STR="Failed to set back umask!"
-        "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY" "command" "umask"
+        "$error_gen" -ok "setup_x509.sh"  "$STR" "command" "umask" "$old_mask"
         exit_if_no_token 1
     fi
 
@@ -214,15 +215,16 @@ config_idtoken() {
 
     for search_dir  in "${cred_base}" "${GLIDEIN_START_DIR_ORIG}" "${GLIDEIN_WORKSPACE_ORIG}"; do
         for tok in "${search_dir}"/*.idtoken; do
-           cp "${tok}"  "${local_proxy_dir}"
-           num_tokens=$(( num_tokens + 1 ))
-           echo "copied ${tok} to ${local_proxy_dir}"
-           if [ ! -a "${GLIDEIN_CONDOR_TOKEN}" ]; then
+           if cp "${tok}"  "${local_proxy_dir}"; then
+             num_tokens=$(( num_tokens + 1 ))
+             echo "copied ${tok} to ${local_proxy_dir}" 1>&2
+             if [ ! -a "${GLIDEIN_CONDOR_TOKEN}" ]; then
                if echo "${tok}" | grep 'credential_' | grep -q '\.idtoken' ; then
                    export GLIDEIN_CONDOR_TOKEN="${tok}"
-                   echo "GLIDEIN_CONDOR_TOKEN set to ${GLIDEIN_CONDOR_TOKEN}"
+                   echo "GLIDEIN_CONDOR_TOKEN set to ${GLIDEIN_CONDOR_TOKEN}" 1>&2
                fi
-           fi
+             fi
+        fi
         done
         if [ -a "${GLIDEIN_CONDOR_TOKEN}" ]; then
            break
@@ -231,7 +233,7 @@ config_idtoken() {
 
 
     if [ "${num_tokens}" -lt 1 ]; then
-        "$error_gen" -error "setup_x509.sh" "Corruption" "IDTOKEN" "no idtokens found or copied"
+        "$error_gen" -ok "setup_x509.sh" "Corruption" "IDTOKEN" "no idtokens found or copied"
     fi
 
     if [ -a "${GLIDEIN_CONDOR_TOKEN}" ]; then
@@ -239,10 +241,10 @@ config_idtoken() {
         idtoken="$(basename "${GLIDEIN_CONDOR_TOKEN}")"
         cp "${GLIDEIN_CONDOR_TOKEN_ORIG}" "${local_proxy_dir}/${idtoken}"
         export GLIDEIN_CONDOR_TOKEN="${local_proxy_dir}/${idtoken}"
-        echo "GLIDEIN_CONDOR_TOKEN re-set to ${GLIDEIN_CONDOR_TOKEN}"
-        echo "GLIDEIN_CONDOR_TOKEN_ORIG set to ${GLIDEIN_CONDOR_TOKEN_ORIG}"
+        echo "GLIDEIN_CONDOR_TOKEN re-set to ${GLIDEIN_CONDOR_TOKEN}" 1>&2
+        echo "GLIDEIN_CONDOR_TOKEN_ORIG set to ${GLIDEIN_CONDOR_TOKEN_ORIG}" 1>&2
         if [ ! -e "${GLIDEIN_CONDOR_TOKEN}" ]; then
-            "$error_gen" -error "setup_x509.sh" "Corruption" "IDTOKEN" "${GLIDEIN_CONDOR_TOKEN}" "not_copied"
+            "$error_gen" -ok "setup_x509.sh" "Corruption" "IDTOKEN" "${GLIDEIN_CONDOR_TOKEN}" "not_copied"
         fi
         head_node="$(grep '^GLIDEIN_Collector ' "${glidein_config}" | cut -d ' ' -f 2- )"
         if [ -z "${head_node}" ]; then
@@ -296,7 +298,8 @@ get_x509_expiration() {
     if [ $? -ne 0 ]; then
         STR="Date not found!"
         "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "date"
-        exit 1 # just to be sure
+        #exit 1 # just to be sure
+        exit_if_no_token 1
     fi
     CMD="grid-proxy-info"
     l=$(grid-proxy-info -timeleft 2>/dev/null)
@@ -318,14 +321,14 @@ get_x509_expiration() {
 	    STR="Proxy not valid in 1 minute, only $l seconds left!\n"
 	    STR+="Not enough time to do anything with it."
 	    STR1=`echo -e "$STR"`
-	    "$error_gen" -error "setup_x509.sh" "VO_Proxy" "$STR1" "proxy" "$X509_USER_PROXY"
+	    "$error_gen" -ok "setup_x509.sh" "VO_Proxy" "$STR1" "proxy" "$X509_USER_PROXY"
 	    exit_if_no_token 1
         fi
         RETVAL="$(/usr/bin/expr $now + $l)"
     else
         #echo "Could not obtain -timeleft" 1>&2
         STR="Could not obtain -timeleft from grid-proxy-info/voms-proxy-info/openssl"
-        "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "$CMD"
+        "$error_gen" -ok "setup_x509.sh" "WN_Resource" "$STR" "command" "$CMD"
         exit_if_no_token 1
     fi
 
