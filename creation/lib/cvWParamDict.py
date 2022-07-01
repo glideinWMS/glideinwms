@@ -32,7 +32,7 @@ from .matchPolicy import MatchPolicy
 
 ####################################################################################
 # Functions to validate the match expression once expanded
-# validate_node() was removed, should these also be removed or moved somewhere else?
+# validate_node() was moved to cWDictFile, should these also be removed or moved somewhere else?
 
 
 def translate_match_attrs(loc_str, match_attrs_name, match_attrs):
@@ -426,13 +426,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             for filename in files:
                 if filename == name:
                     return root
-        raise RuntimeError(
-            "Unable to find %(file)s in %(dir)s path"
-            % {
-                "file": name,
-                "dir": search_path,
-            }
-        )
+        raise RuntimeError(f"Unable to find {name} in {search_path} path")
 
     def reuse(self, other):
         """
@@ -1059,14 +1053,17 @@ def match_attrs_to_array(match_attrs):
 
 # In 5345 there was an additional parameter but it was not used in the function:
 # def populate_common_descript(descript_dict, params, attrs_dict):
-#    attrs_dict: dictionary of attributes to expand attributes (but expansion is handles later)
+#    attrs_dict: dictionary of attributes to expand attributes (but expansion is handled later)
 def populate_common_descript(descript_dict, params):
     """Populate info common for both frontend (global) and group in the descript dict.
     descript_dict will be modified in this function
 
     Args:
-        descript_dict (dict):  description dictionary, modified in this function (side effect)
+        descript_dict (cWDictFile.StrDictFile):  description dictionary, modified in this function (side effect)
         params: params or sub_params from the config file
+
+    Raises:
+        RuntimeError when no schedd is known to DNS (or via invoked validation functions)
     """
 
     if params.match.policy_file:
@@ -1100,9 +1097,21 @@ def populate_common_descript(descript_dict, params):
     descript_dict.add("FactoryCollectors", repr(collectors))
 
     schedds = []
+    valid_schedd = False
+    undefined_schedds = 0
     for el in params.match.job.schedds:
-        cWDictFile.validate_node(el["fullname"])
+        # A single submit host not in the DNS should not fail the reconfig
+        # Especially in production there are many submit hosts, some are temporary nodes
+        # Would be useful to have a WARNING message, but the current implementation allows only fail/continue
+        # Still raising an invalid configuration exception if no schedd is in DNS
+        try:
+            cWDictFile.validate_node(el["fullname"], check_dns=False)
+            valid_schedd = True  # skipped if exception is risen
+        except RuntimeWarning:
+            undefined_schedds += 1
         schedds.append(el["fullname"])
+    if undefined_schedds > 0 and not valid_schedd:
+        raise RuntimeError("No valid schedd found, all are unknown to DNS")
     descript_dict.add("JobSchedds", ",".join(schedds))
 
     if params.security.proxy_selection_plugin is not None:
@@ -1195,9 +1204,15 @@ def validate_credential_type(cred_type):
     #    raise RuntimeError("Credential type '%s' has mutually exclusive components %s" % (cred_type, list(common_types)))
 
 
-#####################################################
-# Returns a string usable for GLIDEIN_Collector
 def calc_glidein_collectors(collectors):
+    """Return a string usable for GLIDEIN_Collector
+
+    Args:
+        collectors (list): list of collectors elements (dict)
+
+    Returns:
+        str: string usable for the GLIDEIN_Collector attribute
+    """
     collector_nodes = {}
     glidein_collectors = []
 
@@ -1223,9 +1238,16 @@ def calc_glidein_collectors(collectors):
     return ";".join(glidein_collectors)
 
 
-#####################################################
-# Returns a string usable for GLIDEIN_CCB
 def calc_glidein_ccbs(collectors):
+    """Return a string usable for GLIDEIN_CCB
+
+    Args:
+        collectors (list): list of CCB collectors elements (dict)
+
+    Returns:
+        str: string usable for the GLIDEIN_CCB attribute
+
+    """
     # CCB collectors are subdivided in groups, mainly to control how many to use at the same time
     ccb_nodes = {}
     glidein_ccbs = []

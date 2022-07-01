@@ -2238,17 +2238,23 @@ class MonitorFileDicts:
 # 'fermicloudui.fnal.gov:9618?key1=val1&sock=collector&key2=val2']
 
 
-def validate_node(nodestr, allow_range=False):
+def validate_node(nodestr, allow_range=False, check_dns=True):
     """Validate HTCondor endpoint (node) string
-    this can be a node, node:port, node:port-range
+
+    This can be a node, node:port, node:port-range
     or a shared port sinful string node[:port]?[var=val&]sock=collectorN1[-N2][&var=val]
     or a schedd schedd_name@node:port[?sock=collector&var=val]
     'sock' cannot appear more than once
     ranges can be either in ports or in 'sock', not in both at the same time
 
-    @param nodestr: endpoint (node) string
-    @param allow_range: True if a port range is allowed (e.g. for secondary collectors or CCBs)
-    @return: raise RuntimeError if the validation fails
+    Args:
+        nodestr (str): endpoint (node) string
+        allow_range (bool): True if a port range is allowed (e.g. for secondary collectors or CCBs)
+        check_dns (bool): False if the DNS check should raise only a RuntimeWarning (e.g. for schedds)
+
+    Raises:
+        RuntimeWarning if the DNS check fails and check_dns is False
+        RuntimeError if the validation fails in any other way
     """
     # check that ; and , are not in the node string
     if "," in nodestr or ";" in nodestr:
@@ -2318,6 +2324,9 @@ def validate_node(nodestr, allow_range=False):
     try:
         socket.getaddrinfo(nodename, None)
     except:
-        raise RuntimeError("Node name unknown to DNS: '%s'" % nodestr)
+        if check_dns:
+            raise RuntimeError("Node name unknown to DNS: '%s'" % nodestr)
+        else:
+            raise RuntimeWarning("Node name unknown to DNS: '%s'" % nodestr)
     # OK, all looks good
     return
