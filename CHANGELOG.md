@@ -17,6 +17,8 @@ Changes since the last release
 
 ### Changed defaults / behaviours
 
+-   Frontend configuration valid (reconfig/upgrade successful) even if some HTCSS schedds are not in DNS. Failing only if all schedds are unknown to DNS.
+
 ### Deprecated / removed options and commands
 
 -   To make `glidein_config` more robust and resistant to concurrent interactions the handling function to use in custom scripts have been updated:

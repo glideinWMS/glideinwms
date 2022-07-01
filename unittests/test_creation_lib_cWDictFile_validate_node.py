@@ -77,7 +77,7 @@ class Test_validate_node(unittest.TestCase):
             try:
                 validate_node(node, allow_range=True)
                 raise RuntimeError("node %s validated, it should not")
-            except RuntimeError as e:
+            except RuntimeError:
                 pass
 
     def test_range_not_allowed(self):
@@ -85,8 +85,17 @@ class Test_validate_node(unittest.TestCase):
             try:
                 validate_node(node, allow_range=False)
                 raise RuntimeError("node %s validated, it should not")
-            except RuntimeError as e:
+            except RuntimeError:
                 pass
+
+    def test_no_dns(self):
+        try:
+            validate_node("I.dont.exist:9618", check_dns=False)
+            raise RuntimeWarning("node %s validated, it should have raised a RuntimeWarning")
+        except RuntimeWarning:
+            pass
+        except RuntimeError as e:
+            raise e
 
 
 if __name__ == "__main__":
