@@ -353,3 +353,31 @@ v3_9_5:
     - Fixes condor tarball directory structure
     - Stops clearing LD_LIBRARY_PATH before starting HTCondor
     - Ensures that idtokens are transferred to glidein credential directory
+
+v3_7_7:
+  Date: June 1 2022
+  Series: Development
+  Tarball: False
+  Feature:
+    - Authenticate w/ tokens w/ the HTCondor-CE collector
+  Bug fix:
+    - Fixes an issue causing SciTokens transfered to the factory to be corrupted
+    - Fixes condor_config -dump is not safe if the pool config has multiline entries
+    - Add job.condor typo fix for bosco to 3.7.7
+  NOTE:
+    - Now branch_v3_7 is completely separate. Feature or fixes have to be backported
+
+v3_9_6:
+  Date: July 5, 2022
+  Series: Development
+  Tarball: false
+  Feature:
+    - Added `GLIDEIN_PERIODIC_SCRIPT` env variable to notify periodic custom scripts
+  Bug fix:
+    - Fixes glidien_config corrupted by concurrent custom scripts
+  NOTE:
+    - custom scripts should always read values via gconfig_get(). The only exception is
+      the parsing or the line to get the add_config_line source file
+    - add_config_line is deprecated in favor of gconfig_add. Will be removed from future versions
+    - add_config_line_safe is deprecated in favor of gconfig_add_safe. gconfig_add is the recommended method to use also in concurrent scripts
+    - gconfig_add_unsafe, with a similar behavior to the former add_config_line, has been added. Its use is not recommended, unless absolutely sure that no script will be run in parallel

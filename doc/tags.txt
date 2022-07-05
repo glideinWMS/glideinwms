@@ -1,3 +1,11 @@
+v3_9_6
+	Added `GLIDEIN_PERIODIC_SCRIPT` env variable to notify periodic custom scripts
+	Bug fix: Fixes glidien_config corrupted by concurrent custom scripts
+	NOTE: custom scripts should always read values via gconfig_get(). The only exception is the parsing or the line to get the add_config_line source file
+	NOTE: add_config_line is deprecated in favor of gconfig_add. Will be removed from future versions
+	NOTE: add_config_line_safe is deprecated in favor of gconfig_add_safe. gconfig_add is the recommended method to use also in concurrent scripts
+	NOTE: gconfig_add_unsafe, with a similar behavior to the former add_config_line, has been added. Its use is not recommended, unless absolutely sure that no script will be run in parallel
+
 v3_9_5
 	Support for credential generator plugins
 	Support for Apptainer
@@ -56,6 +64,13 @@ v3_9
 	Bug fix: Fixed spec file to include python3 compiled files and not python2 ones
 	Bug fix: Fixed Mapping import
 	Bug fix: Fixed str vs bytes confusion in cryptography functions and classes
+
+v3_7_7
+	Authenticate w/ tokens w/ the HTCondor-CE collector
+	Bug fix: Fixes an issue causing SciTokens transfered to the factory to be corrupted
+	Bug fix: Fixes condor_config -dump is not safe if the pool config has multiline entries
+	Bug fix: Add job.condor typo fix for bosco to 3.7.7
+	NOTE: Now branch_v3_7 is completely separate. Feature or fixes have to be backported
 
 v3_7_6
 	Flexible mount point for CVMFS in glidein
