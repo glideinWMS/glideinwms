@@ -26,7 +26,8 @@ import xmlrunner
 # pylint: disable=E0611,F0401
 import yaml
 
-# use tesfixtures.test_time speed up clock so test takes less elapsed time
+# use tesfixtures.test_time to speed up clock so test takes less elapsed time
+# TODO: test_time() deprecated in testfixtures 7.0.0, use mock_time() in the future
 from testfixtures import Replacer, test_time
 
 from glideinwms.lib import logSupport
@@ -48,6 +49,7 @@ class TestLogSupport(unittest.TestCase):
         config_file = "%s/test_logSupport.yaml" % os.path.join(sys.path[0], "test_configurations")
         self.config = yaml.load(open(config_file), Loader=yaml.FullLoader)
         self.replace = Replacer()
+        # pylint: disable=redundant-keyword-arg; E1124, test_time is overloaded, OK to invoke that way
         self.replace(
             "glideinwms.lib.logSupport.time.time", test_time(2018, 6, 13, 16, 0, 1, delta=60, delta_type="seconds")
         )
