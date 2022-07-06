@@ -56,7 +56,7 @@ setup_nameprint() {
 @test "Test that bats is working with basic shell commands" {
     run bash -c "echo 'foo bar baz' | cut -d' ' -f2"
     # Do not use double brackets [[ ]] because they are conditionals and always true
-    # Al least for Bash <4.1. You can append || false if you must
+    # At least for Bash <4.1. You can append || false if you must
     [ "$output" = "bar" ]
 }
 

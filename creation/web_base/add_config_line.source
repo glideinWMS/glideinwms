@@ -3,49 +3,46 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-warn() {
- echo "$(date)" "$@" 1>&2
-}
-
-# Mac compatibility
-TAC=$(command -v tac)
-[[ -z "$TAC" && "$OSTYPE" =~ darwin* ]] && TAC="tail -r"
-
+# Constants
 # glidein_config is a key-value file
 # each line is a key (case sensitive ID name), a space, and a value (rest of the line)
 # if there are multiple lines w/ the same key, the last one counts
 # ecah linke can be max 4K
 GWSM_CONFIG_LINE_MAX=4k
+# Number of seconds before forcing unlock if the owner process is not there
+UNLOCK_TIMEOUT=60
+# Fails to acquire the lock after attempting for N seconds
+LOCK_TIMEOUT=300
+
+warn() {
+    echo "$(date)" "$@" 1>&2
+}
+
+# Mac compatibility
+TAC=$(command -v tac)
+[[ -z "$TAC" && "$OSTYPE" =~ darwin* ]] && TAC="tail -r"
+PSPID="$(command -v ps) -q"
+[[ "$OSTYPE" =~ darwin* ]] && PSPID="$(command -v ps) -p"  # Quick-pid option not available on Mac/BSD
 
 # Return the value stored in glidein_config
 #  1: id (key) of the value to retrieve;
-#  2(opt): path of the config file ("glidein_config" by default)
+#  2(opt): path of the config file ("$glidein_config" by default)
+# Counting on $glidein_config if $2 not provided
 gconfig_get() {
     # compatible w/: grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-
-    local config_file=${2:-glidein_config}
+    local config_file=${2:-$glidein_config}
+    [[ -z "${config_file}" ]] && { warn "Error: glidein_config not provided and not defined"; exit 1; }
     $TAC "$config_file" | grep -m1 "^$1" | cut -d ' ' -f 2-
 }
 
-# keep only the last value for each key (ie the last line)
-#  1(opt): path of the config file ("glidein_config" by default)
-gconfig_trim() {
-    local config_file=${1:-glidein_config}
-    local config_tmp1="$config_file.$$.1.tmp"
-    local config_tmp2="$config_file.$$.2.tmp"
-    cp "$config_file" "$config_tmp1"
-    $TAC "$config_tmp1" | sort -u -t' ' -k1,1 >  "$config_tmp2"
-    mv "$config_tmp2" "$config_file"
+gconfig_log_name() {
+    echo "${1:-$glidein_config}.history"
 }
 
-gconfig_trim_safe()
-{
-    local config_file=${1:-glidein_config}
-    local config_tmp1="$config_file.$$.1.tmp"
-    { flock 200
-        $TAC "$config_file" | awk '!x[$1]++' > "$config_tmp1"
-        $TAC "$config_tmp1" > "$config_file"
-        rm "$config_tmp1"
-    } 200<"$config_file"
+gconfig_log_add() {
+    local log_name=$(gconfig_log_name "$1")
+    shift
+    echo "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${log_name}"
 }
 
 ###################################
@@ -60,19 +57,22 @@ gconfig_trim_safe()
 # 2. use a DB or some gatekeeping process
 # 3. use a separate file per entry (see https://github.com/damphat/kv-bash/blob/master/kv-bash)
 gconfig_add() {
+    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config not defined"; exit 1; }
     # Add the value also to a log that will help troubleshoot problems
-    echo "REG$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX >> "${glidein_config}.history"
+    echo "REG$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${glidein_config}.history"
     if ! grep -q "^${*}$" "${glidein_config}"; then
         # Copy the glidein config so it doesn't get modified while we grep out the old value
         local tmp_config1="${glidein_config}.$$.1.tmp"
         local tmp_config2="${glidein_config}.$$.2.tmp"
+        local ec=0
         if ! cp -p "${glidein_config}" "${tmp_config1}"; then
             warn "Error writing ${tmp_config1}"
             rm -f "${tmp_config1}"
             exit 1
         fi
-        grep -v "^$1 " "${tmp_config1}" > "${tmp_config2}"
-        if [[ $? -gt 1 ]]; then
+        # OR needed to avoid set -e problems when the file is empty
+        grep -v "^$1 " "${tmp_config1}" > "${tmp_config2}" || ec=$?
+        if [[ "$ec" -gt 1 ]]; then
             # 1 only lines to remove (0 matches), >1 error
             warn "Error writing ${tmp_config2} with grep"
             rm -f "${tmp_config1}"
@@ -88,15 +88,18 @@ gconfig_add() {
         fi
     fi
 }
-add_config_line=gconfig_add
+
+# alias add_config_line=gconfig_add  # This is not working w/ bats
+add_config_line(){ gconfig_add "$@"; }
 
 # Unsafe version, should be used only when sequentiality is guaranteed
 # add_config_line... are the only writing functions
 # only one call at the time happen
 # read may
 gconfig_add_unsafe() {
+    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config not defined"; exit 1; }
     # Add the value also to a log that will help troubleshoot problems
-    echo "UNS$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX >> "${glidein_config}.history"
+    echo "UNS$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${glidein_config}.history"
     if ! grep -q "^${*}$" "${glidein_config}"; then
         local config_tmp="${glidein_config}.old"
         rm -f "${config_tmp}"  #just in case one was there
@@ -115,22 +118,123 @@ gconfig_add_unsafe() {
     fi
 }
 
+# keep only the last value for each key (ie the last line)
+#  1(opt): path of the config file ("$glidein_config" by default)
+# It's OK to be NOOP, so returning 1 instead of exiting 1 when glidein_config is not found
+gconfig_trim() {
+    local config_file=${1:-$glidein_config}
+    [[ -z "${config_file}" ]] && { warn "Warning: glidein_config not provided and not defined. Skipping gconfig_trim"; return 1; }
+    local config_tmp1="$config_file.$$.1.tmp"
+    local config_tmp2="$config_file.$$.2.tmp"
+    cp "$config_file" "$config_tmp1"
+    $TAC "$config_tmp1" | sort -u -t' ' -k1,1 >  "$config_tmp2"
+    mv "$config_tmp2" "$config_file"
+}
+
+# NFS spec has two operations that are guaranteed to be atomic: symlink and rename.
+# These lock_file and unlock_file rely only on that so should be NFS safe
+# Thanks to Tim Theisen for suggesting this solution
+unlock_file() {
+    local file="$1"
+    if [[ -f "${file}.lock" ]]; then
+        rm "${file}.pid"
+        mv "${file}.lock" "${file}.deleteme"
+        rm -f "${file}.deleteme"
+        return 0
+    fi
+    warn "Error: ${file} is not locked!"
+    return 1
+}
+
+lock_file() {
+    local file="$1"
+    local file_pid gone_pid=0 count_initialized=false count=0 lock_count=$LOCK_TIMEOUT
+    if [[ -f "${file}" ]]; then
+        while ! ln -s "${file}" "${file}.lock" 2> /dev/null; do
+            # Remove stale lock if the locking process is gone
+            if [[ -f "${file}.pid" ]]; then
+                # Defensive coding file.pid can disappear when unlocking
+                file_pid=$(<"${file}.pid") || file_pid=1
+                if [[ "$$" -eq "${file_pid}" ]]; then
+                    warn "Process $$ already holding the lock"
+                    return 0
+                fi
+                if ! $PSPID "${file_pid}" > /dev/null 2>&1; then
+                    # Added count_initialized to be resilient to malformed file_pid
+                    if [[ $gone_pid -eq "$file_pid" ]] && $count_initialized; then
+                        ((count=count-1))
+                    else
+                        count=$UNLOCK_TIMEOUT
+                        count_initialized=true
+                        gone_pid=${file_pid}
+                        warn "Apparently dead lock holder. Unlocking ${file} in $count seconds"
+                    fi
+                    if [[ $count -le 0 ]]; then
+                        warn "Apparently dead lock holder. Timeout expired. Unlocking ${file}"
+                        unlock_file "${file}"
+                    fi
+                fi
+            fi
+            if [[ lock_count -le 0 ]]; then
+                warn "Error acquiring the lock for ${file}: timeout, waited $LOCK_TIMEOUT seconds."
+                return 1
+            fi
+            sleep 1
+            ((lock_count=lock_count-1))
+        done
+        echo $$ > "${file}.pid"
+        return 0
+    fi
+    warn "Error acquiring the lock for ${file}: file does not exist!"
+    return 1
+}
+
 ##################################################
 # Add a line to the config file using a lock file
-# Replace add_config_line in script_wrapper where multiple instances run in parallel
-# Uses FD 200, fails after a timeout of 300 sec
+# Replace gconfig_add in script_wrapper where multiple instances run in parallel
+# Previously using flock, not NSF safe. Uses FD 200, fails after a timeout of 300 sec
+#        (  # subprocess to cleanup the file
+#        flock -w 300 -e 200 || (warn "Error acquiring lock for glidein_config"; exit 1)
+#        gconfig_add "$@"
+#        ) 200>"${glidein_config}".lock
+
 gconfig_add_safe() {
+    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config not defined"; exit 1; }
     # Add the value also to a log that will help troubleshoot problems (calling add_config_line, duplicate)
-    echo "SAFDUP$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX >> "${glidein_config}.history"
+    echo "DUPSAF$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${glidein_config}.history"
     if ! grep -q "^${*}$" "${glidein_config}"; then
-        # when fd is closed the lock is released, no need to trap and remove the file
+        # when fd is closed the lock process is terminated, unlock can be forced, no need to trap and remove the file
         (
-        flock -w 300 -e 200 || (warn "Error acquiring lock for glidein_config"; exit 1)
-        add_config_line "$@"
-        ) 200>"${glidein_config}".lock
+        if lock_file "${glidein_config}"; then
+            gconfig_add "$@"
+            unlock_file "${glidein_config}"
+        else
+            warn "Failed to add: $*"
+            exit 1
+        fi
+        )
     fi
 }
-add_config_line_safe=gconfig_add_safe
+
+add_config_line_safe() { gconfig_add_safe "$@"; }
+
+gconfig_trim_safe() {
+    local config_file=${1:-$glidein_config}
+    [[ -z "${config_file}" ]] && { warn "Warning: glidein_config not provided and not defined. Skipping gconfig_trim"; return 1; }
+    local config_tmp1="$config_file.$$.tmp"
+    # when fd is closed the lock process is terminated, unlock can be forced, no need to trap and remove the file
+    (
+        if lock_file "${config_file}"; then
+            $TAC "$config_file" | awk '!x[$1]++' > "$config_tmp1"
+            $TAC "$config_tmp1" > "$config_file"
+            rm "$config_tmp1"
+            unlock_file "${config_file}"
+        else
+            warn "Failed to trim $config_file"
+            false  # OK to tolerate trim failure
+        fi
+    )
+}
 
 ####################################
 # Add a line to the condor_vars file
@@ -145,6 +249,6 @@ add_condor_vars_line() {
         exit 1
     fi
     grep -v "^$id\b" "${condor_vars_file}.old" > "${condor_vars_file}"
-    echo "$@" | dd bs=$GWSM_CONFIG_LINE_MAX >> "${condor_vars_file}"
+    echo "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${condor_vars_file}"
     rm -f "${condor_vars_file}.old"
 }
