@@ -585,7 +585,7 @@ def fair_split(i, n, p):
     n1 = int(n)
     i1 = int(i)
     p1 = int(p)
-    return int((n1 * i1) / p1) - int((n1 * (i1 - 1)) / p1)
+    return (n1 * i1) // p1 - (n1 * (i1 - 1)) // p1
 
 
 def random_split(n, p):
@@ -615,6 +615,17 @@ def fair_assign(cred_list, params_obj):
     total_idle = params_obj.min_nr_glideins
     total_max = params_obj.max_run_glideins
     num_cred = len(cred_list)
+
+    # TODO: Remove this block when we stop sending scitokens with proxies automatically
+    # This is a special case to send a scitoken as a secondary credential alongside a proxy
+    if num_cred == 2:
+        cred_pair = {cred.type: cred for cred in cred_list}
+        if set(cred_pair.keys()) == {"grid_proxy", "scitoken"}:
+            cred_pair["grid_proxy"].add_usage_details(total_idle, total_max)
+            cred_pair["scitoken"].add_usage_details(0, 0)
+            return cred_list
+    # End of special case
+
     random_arr = random_split(total_idle, num_cred)
     for cred in cred_list:
         this_idle = random_arr[i - 1]
