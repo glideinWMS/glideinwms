@@ -60,7 +60,10 @@ def create_client_mapfile(mapfile_fname, my_DN, factory_DNs, schedd_DNs, collect
 
     """
     with open(mapfile_fname, "w") as fd:
-        fd.write('GSI "^{}$" {}\n'.format(re.escape(my_DN), "me"))
+        try:
+            fd.write('GSI "^{}$" {}\n'.format(re.escape(my_DN), "me"))
+        except:
+            pass
         for (uid, dns) in (
             ("factory", factory_DNs),
             ("schedd", schedd_DNs),
