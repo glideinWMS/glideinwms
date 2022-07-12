@@ -654,8 +654,8 @@ class VOFrontendParams(cWParams.CommonParams):
             raise RuntimeError("Attribute GLIDEIN_CCB cannot be defined by the user")
 
         ####################
-        if self.security.proxy_DN is None:
-            raise RuntimeError("security.proxy_DN not defined")
+        #if self.security.proxy_DN is None:
+        #    raise RuntimeError("security.proxy_DN not defined")
 
         if len(self.collectors) == 0:
             raise RuntimeError("At least one pool collector is needed")
