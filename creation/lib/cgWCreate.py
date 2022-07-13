@@ -353,7 +353,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add(
             "gce_metadata", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####"
         )
-        self.add("gce_metadata_file", "$ENV(GLIDEIN_PROXY_FNAME)")
+        self.add("gce_metadata_file", "$ENV(IDTOKENS_FILE)")
 
     def populate_ec2_grid(self):
         self.add("ec2_ami_id", "$ENV(IMAGE_ID)")
@@ -369,7 +369,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add(
             "ec2_user_data", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####"
         )
-        self.add("ec2_user_data_file", "$ENV(GLIDEIN_PROXY_FNAME)")
+        self.add("ec2_user_data_file", "$ENV(IDTOKENS_FILE)")
 
     def populate_glidein_classad(self, proxy_url):
         # add in the classad attributes for the WMS collector

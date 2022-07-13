@@ -1980,7 +1980,7 @@ def get_submit_environment(
 
                 ini_template = """[glidein_startup]
 args = %s
-proxy_file_name = pilot_proxy
+idtoken_file_name = credential_frontend.idtoken
 webbase= %s
 
 [vm_properties]
