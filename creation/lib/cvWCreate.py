@@ -61,6 +61,7 @@ def create_client_mapfile(mapfile_fname, my_DN, factory_DNs, schedd_DNs, collect
     """
     with open(mapfile_fname, "w") as fd:
         try:
+            # issue 66 transition from GSI, keep going if no DNs for proxies
             fd.write('GSI "^{}$" {}\n'.format(re.escape(my_DN), "me"))
         except:
             pass
