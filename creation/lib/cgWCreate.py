@@ -353,6 +353,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add(
             "gce_metadata", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####"
         )
+        # change from proxy to idtoken
         self.add("gce_metadata_file", "$ENV(IDTOKENS_FILE)")
 
     def populate_ec2_grid(self):
@@ -369,6 +370,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add(
             "ec2_user_data", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####"
         )
+        # also the idtoken instead of a proxy
         self.add("ec2_user_data_file", "$ENV(IDTOKENS_FILE)")
 
     def populate_glidein_classad(self, proxy_url):

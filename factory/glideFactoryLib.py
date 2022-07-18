@@ -1955,6 +1955,7 @@ def get_submit_environment(
                     log.debug("No disable flag set.  Defaulting to: False")
                     vm_disable_shutdown = "False"
 
+                # change proxy to token in template
                 ini_template = """[glidein_startup]
 args = %s
 idtoken_file_name = credential_frontend.idtoken
