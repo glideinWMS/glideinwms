@@ -32,7 +32,7 @@ Changes since the last release
 ### Bug Fixes
 
 -   Fixed `glidien_config` corrupted by concurrent custom scripts run via HTCSS startd cron (#163)
--   Fixed unnecessary proxy/hostcert.pem workaround in frontend config (#66)
+-   Fixed unnecessary proxy/hostcert.pem workaround in frontend config (issue #66)
 
 ### Testing / Development
 

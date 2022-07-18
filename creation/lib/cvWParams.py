@@ -653,8 +653,8 @@ class VOFrontendParams(cWParams.CommonParams):
         if has_ccb:
             raise RuntimeError("Attribute GLIDEIN_CCB cannot be defined by the user")
 
-        ####################
-        #if self.security.proxy_DN is None:
+        # issue 66, proceed if no proxy, assume JWT
+        # if self.security.proxy_DN is None:
         #    raise RuntimeError("security.proxy_DN not defined")
 
         if len(self.collectors) == 0:
