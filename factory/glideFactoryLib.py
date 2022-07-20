@@ -1263,7 +1263,7 @@ def sum_idle_count(qc_status):
 
 def hash_statusStale(el):
     global factoryConfig
-    age = el["ServerTime"] - el["EnteredCurrentStatus"]
+    age = el.get("ServerTime", time.time()) - el["EnteredCurrentStatus"]
     jstatus = el["JobStatus"]
     if jstatus in factoryConfig.stale_maxage:
         return [jstatus, age > factoryConfig.stale_maxage[jstatus]]
