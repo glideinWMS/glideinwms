@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_9_6_rc1
+# GLIDEINWMS_VERSION v3_9_6_rc2
 ###################################################################
 f4464a02ea050fec59393327cc248cd5  ./.pre-commit-config.yaml
 c0f7ece3208870e8bbdb1147c7601e97  ./.prettierignore
@@ -48,7 +48,7 @@ fc648630677156904ef40f5434d25872  ./creation/templates/gwms-renew-proxies.cron
 7d7d2ee057fdbc10ec548b01d85c8229  ./creation/templates/gwms-renew-proxies.service
 11a437db8f082df96ea3858d2912cc29  ./creation/templates/gwms-renew-proxies.timer
 8fbe2ecd0d56fb58d7f7aa4c4b152632  ./creation/templates/proxies.ini
-3bec3c1fb6928b5fb9797b3d6cf4aad6  ./creation/web_base/add_config_line.source
+15c1b3dbb3d41bde6df2bcdcf7ec0413  ./creation/web_base/add_config_line.source
 81745ec60a29b34e5f116f8e06e8b139  ./creation/web_base/advertise_failure.helper
 4d922eae346324f7fe9bf372bafecf5a  ./creation/web_base/b64uuencode.source
 a4f123e1b75818c03bce478e0d395612  ./creation/web_base/cat_consts.sh
@@ -135,7 +135,7 @@ b50b028bb14e66fc129e773268aa89f2  ./factory/glideFactoryConfig.py
 1970c617b3e3496093b1c219f2f33e1f  ./factory/glideFactoryEntryGroup.py
 7ca07460fe5740020cab198d4ed9c47e  ./factory/glideFactoryInterface.py
 0914108ed52ed7d530656cd64339d1b3  ./factory/glideFactoryLib.py
-1f39fcaa23039875fd8fc8991b086743  ./factory/glideFactoryLogParser.py
+f40a69a17e8b5b764f4fec365dabd412  ./factory/glideFactoryLogParser.py
 a01e7d2fdc742f60932a4f3cf88e4042  ./factory/glideFactoryMonitorAggregator.py
 a7e04e3debdc85e60e79adbcd71aee6e  ./factory/glideFactoryMonitoring.py
 540d98c147a4bb18c563f72865524fe3  ./factory/glideFactoryPidLib.py
