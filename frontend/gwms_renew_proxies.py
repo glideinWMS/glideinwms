@@ -130,6 +130,12 @@ def parse_vomses(vomses_contents):
 
     1. Case insensitive VO name to their canonical versions
     2. VO certificate DN to URI, i.e. HOSTNAME:PORT
+
+    Args:
+        vomses_contents(str): vomses file content
+
+    Returns:
+        dict, dict: lower case VO names to correct case, DN to "host:port"
     """
     vo_info = re.findall(r'"[\w\.]+"\s+"([^"]+)"\s+"(\d+)"\s+"([^"]+)"\s+"([\w\.]+)"', vomses_contents, re.IGNORECASE)
     # VO names are case-sensitive but we don't expect users to get the case right in proxies.ini

@@ -42,3 +42,34 @@ def force_bytes(instr, encoding=BINARY_ENCODING_CRYPTO):
             )
         return instr.encode(encoding)
     return instr
+
+
+def force_str(inbytes, encoding=BINARY_ENCODING_CRYPTO):
+    """Forces the output to be str, decoding the input if it is a bytestring (bytes)
+
+    AnyStr is str or bytes types
+
+    Args:
+        inbytes (AnyStr): string to be converted
+        encoding (str): a valid encoding, utf8, ascii, latin-1
+
+    Returns:
+        str: instr as unicode string
+
+    Raises:
+        ValueError: if it detects an improper str conversion (b'' around the string) or
+            the input is neither string or bytes
+    """
+    if isinstance(inbytes, str):
+        # raise Exception("ALREADY str!")
+        if inbytes.startswith("b'"):
+            raise ValueError(
+                "Input was improperly converted into string (resulting in b'' characters added): %s" % inbytes
+            )
+        return inbytes
+    # if isinstance(inbytes, (bytes, bytearray)):
+    try:
+        return inbytes.decode(encoding)
+    except AttributeError:
+        # This is not bytes, bytearray (and was not str)
+        raise ValueError(f"Input is not str or bytes: {type(inbytes)} ({inbytes})")
