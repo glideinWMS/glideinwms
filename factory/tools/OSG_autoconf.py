@@ -9,8 +9,8 @@
 
 import argparse
 import copy
-import fractions
 import logging
+import math
 import os
 import sys
 
@@ -94,7 +94,7 @@ def get_bestfit_pilot(celem, resource):
             if cpus == None:
                 cpus = osg_catalog["CPUs"]
             else:
-                cpus = fractions.gcd(cpus, osg_catalog["CPUs"])
+                cpus = math.gcd(cpus, osg_catalog["CPUs"])
 
     return get_entry_dictionary(resource, vos, cpus, walltime, memory)
 

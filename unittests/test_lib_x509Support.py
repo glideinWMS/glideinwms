@@ -30,10 +30,19 @@ except ImportError as err:
 
 class TestExtractDN(unittest.TestCase):
     def test_extract_dn(self):
+        """Testing DN extraction. Need to adapt to change in behavior of openssl
+
+        On EL8: "openssl x509 -noout -subject -nameopt compat -in %s" returns the desired /DN=... string
+        and "openssl x509 -noout -subject -in %s" returns DN = org, DC =...
+        On El7 happens exactly the opposite
+        """
         fname = "fixtures/hostcert.pem"
-        cmd = "openssl x509 -in %s -noout -subject" % fname
-        out = glideinwms.lib.subprocessSupport.iexe_cmd(cmd)
-        expected = " ".join(out.split()[1:])
+        cmd = f"openssl x509 -noout -subject -in {fname}"
+        out = glideinwms.lib.subprocessSupport.iexe_cmd(f"{cmd} -nameopt compat")
+        expected = "=".join(out.split("=")[1:]).strip(" \n")
+        if not expected.startswith("/"):
+            out = glideinwms.lib.subprocessSupport.iexe_cmd(cmd)
+            expected = " ".join(out.split()[1:])
         self.assertEqual(expected, extract_DN(fname))
 
 

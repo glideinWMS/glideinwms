@@ -1295,6 +1295,17 @@ def populate_main_security(client_security, params):
 
 
 def populate_group_security(client_security, params, sub_params, group_name):
+    """Populate the DNs in client_security (factory_DNs, schedd_DNs, pilot_DNs)
+
+    There is no return. Only via side effects
+
+    Args:
+        client_security(dict): Frontend security info
+        params: parameters form the configuration
+        sub_params:
+        group_name(str): group name
+
+    """
     factory_dns = []
     for collectors in (params.match.factory.collectors, sub_params.match.factory.collectors):
         for el in collectors:

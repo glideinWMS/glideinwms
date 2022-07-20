@@ -450,13 +450,36 @@ def getCondorStatusData(
     return status
 
 
-#
-# Create/update the proxy file
-# returns the proxy fname
 def update_x509_proxy_file(entry_name, username, client_id, proxy_data, factoryConfig=None):
+    """Create/update the proxy file
+
+    It is simply a safe update of the file w/ the new proxy data if different from the current data.
+    The data is written in a binary proxy file. The path of the proxy file is:
+    `f"{factoryConfig.client_proxies_base_dir}/user_{username}/glidein_{factoryConfig.glidein_name}/entry_{entry_name}"`
+    with name `"x509_%s.proxy" % escapeParam(client_id)`
+
+    Proxy DN and VOMS extension are extracted but never used (?!)
+
+    Args:
+        entry_name(str): entry name
+        username(str): user name (identity of the Frontend)
+        client_id(str): client ID
+        proxy_data(bytes): Proxy data in PEM format
+        factoryConfig: Factory configuration
+
+    Returns:
+        str: Proxy file full path
+
+    """
+    # TODO: revise the safe write function. New file case is not atomic. There can be better option.
+    #  Should be a common functionality provided in lib
     if factoryConfig is None:
         factoryConfig = globals()["factoryConfig"]
 
+    # TODO: This whole section seems to do nothing and should be removed (MM):
+    #  gets the DN, gets the voms exception and does nothing w/ those variables.
+    #  It is also silently protected for any failure, so not even the verification is important
+    #  Since dn and voms are extracted, should they be used in a log message or the file name?
     dn = ""
     voms = ""
     try:
@@ -467,7 +490,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data, factoryC
         logSupport.log.error("Unable to create tempfile %s!" % tempfilename)
 
     try:
-        dn = x509Support.extract_DN(tempfilename)
+        dn = x509Support.extract_DN(tempfilename)  # not really used
 
         voms_proxy_info = which("voms-proxy-info")
         if voms_proxy_info is not None:
@@ -482,12 +505,15 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data, factoryC
         os.unlink(tempfilename)
     except:
         logSupport.log.error("Unable to delete tempfile %s!" % tempfilename)
+    # TODO: end of the section to remove
 
     # proxy_dir = factoryConfig.get_client_proxies_dir(username)
     # Have to hack this since the above code was modified to support v3plus going forward
     proxy_dir = os.path.join(
         factoryConfig.client_proxies_base_dir,
-        f"user_{username}/glidein_{factoryConfig.glidein_name}/entry_{entry_name}",
+        f"user_{username}",
+        f"glidein_{factoryConfig.glidein_name}",
+        f"entry_{entry_name}",
     )
     fname_short = "x509_%s.proxy" % escapeParam(client_id)
     fname = os.path.join(proxy_dir, fname_short)
@@ -497,7 +523,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data, factoryC
         # new file, create
         fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
         try:
-            os.write(fd, proxy_data)
+            os.write(fd, proxy_data)  # proxy_data is a bytestring
         finally:
             os.close(fd)
         return fname
@@ -523,20 +549,17 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data, factoryC
     # create new file
     fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600)
     try:
-        os.write(fd, proxy_data)
+        os.write(fd, proxy_data)  # proxy_data is a bytestring
     finally:
         os.close(fd)
 
     # move the old file to a tmp and the new one into the official name
     try:
         os.rename(fname, fname + ".old")
-    except:
+    except OSError:
         pass  # just protect
     os.rename(fname + ".new", fname)
     return fname
-
-    # end of update_x509_proxy_file
-    # should never reach this point
 
 
 #
