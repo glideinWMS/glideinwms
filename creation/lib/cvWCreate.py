@@ -60,11 +60,8 @@ def create_client_mapfile(mapfile_fname, my_DN, factory_DNs, schedd_DNs, collect
 
     """
     with open(mapfile_fname, "w") as fd:
-        try:
-            # issue 66 transition from GSI, keep going if no DNs for proxies
+        if my_DN:
             fd.write('GSI "^{}$" {}\n'.format(re.escape(my_DN), "me"))
-        except:
-            pass
         for (uid, dns) in (
             ("factory", factory_DNs),
             ("schedd", schedd_DNs),
@@ -72,7 +69,8 @@ def create_client_mapfile(mapfile_fname, my_DN, factory_DNs, schedd_DNs, collect
             ("pilot", pilot_DNs),
         ):
             for i in range(len(dns)):
-                fd.write('GSI "^%s$" %s%i\n' % (re.escape(dns[i]), uid, i))
+                if dns[i]:
+                    fd.write('GSI "^%s$" %s%i\n' % (re.escape(dns[i]), uid, i))
         fd.write("GSI (.*) anonymous\n")
         # Add FS and other mappings just for completeness
         # Condor should never get here because these mappings are not accepted
