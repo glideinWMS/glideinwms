@@ -845,15 +845,13 @@ def populate_frontend_descript(work_dir, frontend_dict, active_sub_list, params)
         frontend_dict.add("MonitoringWebURL", params.web_url.replace("stage", "monitor"))
 
     # TODO: refcred (refactoring of credentials) remove proxy requirement, replace w/ any credential, maybe ID
-    # for now, just allow absence of proxies in face of JWT hedgemony
-    # if params.security.classad_proxy is None:
-    #    raise RuntimeError("Missing security.classad_proxy")
-    try:
-        params.subparams.data["security"]["classad_proxy"] = os.path.abspath(params.security.classad_proxy)
-    except:
+    if params.security.classad_proxy is None:
         params.subparams.data["security"]["classad_proxy"] = None
-    # if not os.path.isfile(params.security.classad_proxy):
-    #    raise RuntimeError("security.classad_proxy(%s) is not a file" % params.security.classad_proxy)
+    else:
+        params.subparams.data["security"]["classad_proxy"] = os.path.abspath(params.security.classad_proxy)
+        if not os.path.isfile(params.security.classad_proxy):
+            raise RuntimeError("security.classad_proxy(%s) is not a file" % params.security.classad_proxy)
+
     frontend_dict.add("ClassAdProxy", params.security.classad_proxy)
 
     frontend_dict.add("SymKeyType", params.security.sym_key)
