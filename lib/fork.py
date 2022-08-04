@@ -263,8 +263,22 @@ def fetch_ready_fork_result_list(pipe_ids):
             key = fds_to_entry[fd]
             pid = pipe_ids[key]["pid"]
             out = fetch_fork_result(fd, pid)
-            if poll_obj:
-                poll_obj.unregister(fd)  # Is this needed? the poll object is no more used, next time will be a new one
+            try:
+                if poll_obj:
+                    poll_obj.unregister(fd)  # Is this needed? Lots of hoops to jump through here
+            except OSError as err:
+                if err.errno == 9:
+                    # python.select < 3.9 treated unregister on  closed pipe as NO_OP
+                    # python 3.9 + raises OSError: [Errno 9] Bad file descriptor
+                    # we don't care about this for now, continue processing fd's
+                    pass
+                else:
+                    # some other OSError, log and raise
+                    errmsg = f"unregister failed pid='{pid}' fd='{fd}' key='{str(key)}': {err}"
+                    logSupport.log.warning(errmsg)
+                    logSupport.log.exception(errmsg)
+                    raise
+
             work_info[key] = out
             count += 1
         except (OSError, ValueError, KeyError, FetchError) as err:

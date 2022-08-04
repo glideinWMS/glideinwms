@@ -100,6 +100,7 @@ class FakeLogger:
         @param msg: A message string.
         @param args: Arguments which should be evaluated into the message.
         """
+        msg = "DEBUG: %s" % msg
         print(str(msg) % args, file=self.file, flush=True)
 
     def info(self, msg, *args):
@@ -108,6 +109,7 @@ class FakeLogger:
 
         @see: debug
         """
+        msg = "INFO: %s" % msg
         print(str(msg) % args, file=self.file, flush=True)
 
     def warning(self, msg, *args):
@@ -116,6 +118,7 @@ class FakeLogger:
 
         @see: debug
         """
+        msg = "WARNING: %s" % msg
         print(str(msg) % args, file=self.file, flush=True)
 
     def error(self, msg, *args):
@@ -124,6 +127,7 @@ class FakeLogger:
 
         @see: debug
         """
+        msg = "ERROR: %s" % msg
         print(str(msg) % args, file=self.file, flush=True)
 
     def exception(self, msg, *args):
@@ -132,6 +136,7 @@ class FakeLogger:
 
         @see: debug
         """
+        msg = "EXCEPTION: %s" % msg
         print(str(msg) % args, file=self.file, flush=True)
 
 
