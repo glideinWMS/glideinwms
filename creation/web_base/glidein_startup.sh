@@ -25,7 +25,7 @@ export LANG=C
 
 # Tracing Global Variable
 # Used to set the environment TRACE_START
-GWMS_TRACE_START= 
+GWMS_TRACE_START=
 
 # General options
 GWMS_MULTIUSER_GLIDEIN=
@@ -244,7 +244,7 @@ esac
 shift 2
 done
 
-if [[ -n "$glidein_trace_id" ]] ; then 
+if [[ -n "$glidein_trace_id" ]] ; then
     export TRACE_ID="$glidein_trace_id"
     GWMS_TRACE_START=$(date)
 fi
@@ -414,7 +414,7 @@ work_dir_created=0
 glide_local_tmp_dir_created=0
 
 
-glidien_cleanup() { 
+glidien_cleanup() {
     # Remove Glidein directories (work_dir, glide_local_tmp_dir)
     # 1 - exit code
     # Using GLIDEIN_DEBUG_OPTIONS, start_dir, work_dir_created, work_dir,
@@ -601,7 +601,7 @@ glidein_exit() {
 
   glidien_cleanup
 
-  if [[ -n "$glidein_trace_id" ]] ; then 
+  if [[ -n "$glidein_trace_id" ]] ; then
     export TRACE_START="$GWMS_TRACE_START" # These are the lines to close and send the current span
     "${gwms_bin_dir}"/pfeil -v -t span=cleanup -t UUID=${glidein_uuid} cleanup
     GWMS_TRACE_START=$(date)  # This is the line to start the next span
@@ -1289,19 +1289,19 @@ params2file ${params}
 
 ############################################
 # Setup tracing
-if [[ -n "$glidein_trace_id" ]] ; then 
+if [[ -n "$glidein_trace_id" ]] ; then
     if ! cp "$start_dir"/pfeil "${gwms_bin_dir}"/ ; then
         warn "Could not copy pfeil."
         glidein_trace_id=
     else
         chmod +x "${gwms_bin_dir}"/pfeil
         export TRACE_START="$GWMS_TRACE_START"
-        "${gwms_bin_dir}"/pfeil -v -t span=pretracing -t UUID=${glidein_uuid} pretracing 
+        "${gwms_bin_dir}"/pfeil -v -t span=pretracing -t UUID=${glidein_uuid} pretracing
         GWMS_TRACE_START=$(date)
     fi
 fi
 
-if [[ -n "$glidein_trace_id" ]] ; then 
+if [[ -n "$glidein_trace_id" ]] ; then
     export TRACE_START="$GWMS_TRACE_START" # These are the lines to close and send the current span
     "${gwms_bin_dir}"/pfeil -v -t span=TAG_NAME -t UUID=${glidein_uuid} span_name
     GWMS_TRACE_START=$(date)  # This is the line to start the next span
@@ -1912,7 +1912,7 @@ fixup_condor_dir() {
 echo "Downloading files from Factory and Frontend"
 log_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"
 
-if [[ -n "$glidein_trace_id" ]] ; then 
+if [[ -n "$glidein_trace_id" ]] ; then
     export TRACE_START="$GWMS_TRACE_START" # These are the lines to close and send the current span
     "${gwms_bin_dir}"/pfeil -v -t span=init -t UUID=${glidein_uuid} init
     GWMS_TRACE_START=$(date)  # This is the line to start the next span
@@ -2005,7 +2005,7 @@ fi
 #cleanup_script="$(grep "^cleanup_script " "${gs_id_work_dir}/${gs_id_descript_file}" | cut -s -f 2-)"
 cleanup_script=$(grep "^GLIDEIN_CLEANUP_SCRIPT " "${glidein_config}" | cut -d ' ' -f 2-)
 
-if [[ -n "$glidein_trace_id" ]] ; then 
+if [[ -n "$glidein_trace_id" ]] ; then
     export TRACE_START="$GWMS_TRACE_START" # These are the lines to close and send the current span
     "${gwms_bin_dir}"/pfeil -v -t span=pre_setup -t UUID=${glidein_uuid} pre_setup
     GWMS_TRACE_START=$(date)  # This is the line to start the next span
@@ -2084,7 +2084,7 @@ done
 
 fixup_condor_dir
 
-if [[ -n "$glidein_trace_id" ]] ; then 
+if [[ -n "$glidein_trace_id" ]] ; then
     export TRACE_START="$GWMS_TRACE_START" # These are the lines to close and send the current span
     "${gwms_bin_dir}"/pfeil -v -t span=setup -t UUID=${glidein_uuid} setup
     GWMS_TRACE_START=$(date)  # This is the line to start the next span
@@ -2126,7 +2126,7 @@ if [ ${ret} -ne 0 ]; then
     warn "Error running '${last_script}'"
 fi
 
-if [[ -n "$glidein_trace_id" ]] ; then 
+if [[ -n "$glidein_trace_id" ]] ; then
     export TRACE_START="$GWMS_TRACE_START" # These are the lines to close and send the current span
     "${gwms_bin_dir}"/pfeil -v -t span=main -t UUID=${glidein_uuid} main
     GWMS_TRACE_START=$(date)  # This is the line to start the next span
