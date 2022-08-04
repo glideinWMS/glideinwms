@@ -1640,7 +1640,7 @@ def submitGlideins(
     submitted_jids = []
 
     trace_id = None
-    ## need to re look at how I can add the tracer class to the lib folder 
+    ## need to re look at how I can add the tracer class to the lib folder
 
     try:
         entry_env = get_submit_environment(
@@ -1693,7 +1693,7 @@ def submitGlideins(
                 if nr_to_submit > factoryConfig.max_cluster_size:
                     nr_to_submit = factoryConfig.max_cluster_size
 
-                #Initialize GlideIn Trace
+                # Initialize GlideIn Trace
                 T = glideinTracer.Tracer(jaeger_collector_endpoint)
                 T.initial_trace()
                 trace_id = T.GLIDEIN_TRACE_ID
@@ -1703,7 +1703,7 @@ def submitGlideins(
                 sub_env.append("GLIDEIN_FRONTEND_NAME=%s" % frontend_name)
                 sub_env.append("GLIDEIN_ENTRY_SUBMIT_FILE=%s" % submit_file)
                 exe_env = entry_env + sub_env
-            
+
                 submit_out = executeSubmit(log, factoryConfig, username, schedd, exe_env, submit_file)
 
                 cluster, count = extractJobId(submit_out)
