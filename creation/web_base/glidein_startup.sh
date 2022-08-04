@@ -235,7 +235,9 @@ do case "$1" in
     -v)          operation_mode="$2";;
     -multiglidein)  multi_glidein="$2";;
     -multirestart)  multi_glidein_restart="$2";;
-    -traceid)    glidein_trace_id="$2";;
+    -traceid)                   glidein_trace_id="$2";;
+    -jaegerServiceName)         service_name="$2";;
+    -jaegerCollectorEndpoint)   collector_endpoint="$2";;
     -param_*)    params="$params $(echo "$1" | awk '{print substr($0,8)}') $2";;
     *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
 esac
@@ -457,6 +459,8 @@ early_glidein_failure() {
   final_result_simple="$(basexml2simplexml "${final_result}")"
   # have no global section
   final_result_long="$(simplexml2longxml "${final_result_simple}" "")"
+
+  glidein_cleanup
 
   print_tail 1 "${final_result_simple}" "${final_result_long}"
 
@@ -910,7 +914,7 @@ dir_id() {
 
 # Generate glidein UUID
 if command -v uuidgen >/dev/null 2>&1; then
-    # glidein_uuid="$(uuidgen)"
+    glidein_uuid="$(uuidgen)"
 else
     glidein_uuid="$(od -x -w32 -N32 /dev/urandom | awk 'NR==1{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')"
 fi
