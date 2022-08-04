@@ -34,6 +34,7 @@ from glideinwms.lib import (
     condorExe,
     condorManager,
     condorMonitor,
+    glideinTracer,
     logSupport,
     subprocessSupport,
     timeConversion,
@@ -42,6 +43,10 @@ from glideinwms.lib import (
 from glideinwms.lib.defaults import BINARY_ENCODING
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
+
+
+# TODO; these will come from the configuration
+jaeger_collector_endpoint = "http://fermicloud296.fnal.gov:14268/api/traces?format=jaeger.thrift"
 
 
 ############################################################
@@ -1634,6 +1639,9 @@ def submitGlideins(
     # List of job ids that have been submitted - initialize to empty array
     submitted_jids = []
 
+    trace_id = None
+    ## need to re look at how I can add the tracer class to the lib folder 
+
     try:
         entry_env = get_submit_environment(
             entry_name,
@@ -1685,11 +1693,17 @@ def submitGlideins(
                 if nr_to_submit > factoryConfig.max_cluster_size:
                     nr_to_submit = factoryConfig.max_cluster_size
 
+                #Initialize GlideIn Trace
+                T = glideinTracer.Tracer(jaeger_collector_endpoint)
+                T.initial_trace()
+                trace_id = T.GLIDEIN_TRACE_ID
+
+                sub_env.append("GLIDEIN_TRACE_ID=%s" % trace_id)
                 sub_env.append("GLIDEIN_COUNT=%s" % nr_to_submit)
                 sub_env.append("GLIDEIN_FRONTEND_NAME=%s" % frontend_name)
                 sub_env.append("GLIDEIN_ENTRY_SUBMIT_FILE=%s" % submit_file)
                 exe_env = entry_env + sub_env
-
+            
                 submit_out = executeSubmit(log, factoryConfig, username, schedd, exe_env, submit_file)
 
                 cluster, count = extractJobId(submit_out)
