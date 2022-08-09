@@ -34,20 +34,20 @@ glidien_cleanup() {
 # Arguments:
 #   1: error message
 early_glidein_failure() {
-  result = "<metric name=\"failure\" ts=\"%s\" uri=\"local\">%s</metric>
-                   </result>
-                   <detail>%s</detail>"
+  #result = "<metric name=\"failure\" ts=\"%s\" uri=\"local\">%s</metric>
+  #                 </result>
+  #                 <detail>%s</detail>"
   error_msg="$1"
   log_warn "${error_msg}"
   sleep "${sleep_time}"
   # wait a bit in case of error, to reduce lost glideins
   glidein_end_time="$(date +%s)"
-  printf "$result" "$(date --date=@\"${glidein_end_time}\" +%Y-%m-%dT%H:%M:%S%:z)" "WN_RESOURCE" "${error_msg}"
-  #result="    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">WN_RESOURCE</metric>
-  #  <status>ERROR</status>
-  #  <detail>
-  #   ${error_msg}
-  #  </detail>"
+  #printf "$result" "$(date --date=@\"${glidein_end_time}\" +%Y-%m-%dT%H:%M:%S%:z)" "WN_RESOURCE" "${error_msg}"
+  result="    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">WN_RESOURCE</metric>
+    <status>ERROR</status>
+    <detail>
+     ${error_msg}
+    </detail>"
   final_result="$(construct_xml "${result}")"
   final_result_simple="$(basexml2simplexml "${final_result}")"
   # have no global section
