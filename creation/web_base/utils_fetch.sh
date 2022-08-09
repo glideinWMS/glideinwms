@@ -1,13 +1,3 @@
-. utils_tarballs.sh
-. utils_signals.sh
-. utils_log.sh
-. utils_xml.sh
-. utils_filesystem.sh
-. utils_params.sh
-. utils_crypto.sh
-. utils_http.sh
-. glidein_cleanup.sh
-
 ############################################
 # get the proper descript file based on id
 # Arg: type (main/entry/client/client_group)

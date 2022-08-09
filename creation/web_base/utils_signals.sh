@@ -1,12 +1,3 @@
-. utils_tarballs.sh
-. utils_log.sh
-. utils_xml.sh
-. utils_params.sh
-. utils_crypto.sh
-. utils_http.sh
-. glidein_cleanup.sh
-. utils_fetch.sh
-
 ################################
 # Extends 'trap' allowing to pass the signal name as argument to the handler
 # Arguments:

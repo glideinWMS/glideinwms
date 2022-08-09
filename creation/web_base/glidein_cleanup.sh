@@ -1,13 +1,3 @@
-. utils_tarballs.sh
-. utils_signals.sh
-. utils_log.sh
-. utils_xml.sh
-. utils_filesystem.sh
-. utils_params.sh
-. utils_crypto.sh
-. utils_http.sh
-. utils_fetch.sh
-
 work_dir_created=0
 glide_local_tmp_dir_created=0
 
