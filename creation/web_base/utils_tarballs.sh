@@ -1,12 +1,3 @@
-. utils_signals.sh
-. utils_log.sh
-. utils_xml.sh
-. utils_params.sh
-. utils_crypto.sh
-. utils_http.sh
-. glidein_cleanup.sh
-. utils_fetch.sh
-
 ##############################
 # Utility functions to allow the script to source functions and retrieve data stored as tarball at the end of the script itself
 
