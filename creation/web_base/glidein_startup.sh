@@ -37,16 +37,16 @@ GWMS_MULTIUSER_GLIDEIN=
 GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
 GWMS_MULTIGLIDEIN_CHILDS=
 
-. utils_tarballs.sh
-. utils_signals.sh
-. utils_log.sh
-. utils_xml.sh
-. utils_filesystem.sh
-. utils_params.sh
-. utils_fetch.sh
-. utils_crypto.sh
-. utils_http.sh
-. glidein_cleanup.sh
+source utils_tarballs.sh
+source utils_signals.sh
+source utils_log.sh
+source utils_xml.sh
+source utils_filesystem.sh
+source utils_params.sh
+source utils_fetch.sh
+source utils_crypto.sh
+source utils_http.sh
+source glidein_cleanup.sh
 
 ################################
 # Function used to start multiple glideins
@@ -196,7 +196,44 @@ add_to_path() {
 # add global, environment
 # careful about subprocesses and enviornment parents
 # careful to local as assignment
-menu
+#TODO: can use an array instead?
+params=""
+while [ $# -gt 0 ]
+    do case "$1" in
+        -factory)    glidein_factory="$2";;
+        -name)       glidein_name="$2";;
+        -entry)      glidein_entry="$2";;
+        -clientname) client_name="$2";;
+        -clientgroup) client_group="$2";;
+        -web)        repository_url="$2";;
+        -proxy)      proxy_url="$2";;
+        -dir)        work_dir="$2";;
+        -sign)       sign_id="$2";;
+        -signtype)   sign_type="$2";;
+        -signentry)  sign_entry_id="$2";;
+        -cluster)    condorg_cluster="$2";;
+        -subcluster) condorg_subcluster="$2";;
+        -submitcredid) glidein_cred_id="$2";;
+        -schedd)     condorg_schedd="$2";;
+        -descript)   descript_file="$2";;
+        -descriptentry)   descript_entry_file="$2";;
+        -clientweb)             client_repository_url="$2";;
+        -clientwebgroup)        client_repository_group_url="$2";;
+        -clientsign)            client_sign_id="$2";;
+        -clientsigntype)        client_sign_type="$2";;
+        -clientsigngroup)       client_sign_group_id="$2";;
+        -clientdescript)        client_descript_file="$2";;
+        -clientdescriptgroup)   client_descript_group_file="$2";;
+        -slotslayout)           slots_layout="$2";;
+        -v)          operation_mode="$2";;
+        -multiglidein)  multi_glidein="$2";;
+        -multirestart)  multi_glidein_restart="$2";;
+        -param_*)    params="$params $(echo "$1" | awk '{print substr($0,8)}') $2";;
+        *)  (log_warn "Unknown option $1"; usage) 1>&2; exit 1
+    esac
+    shift 2
+done  
+
 set_slots_layout
 parse_arguments
 generate_glidein_uuid

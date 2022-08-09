@@ -1,5 +1,9 @@
 #!/bin/bash -xv
 
+rm utils_*
+rm glidein_startup_github.sh
+rm glidein_cleanup.sh
+rm glidein_startup.sh
 wget -O glidein_startup_github.sh https://raw.githubusercontent.com/terranovaa/glideinwms/master/creation/web_base/glidein_startup.sh
 wget https://raw.githubusercontent.com/terranovaa/glideinwms/master/creation/web_base/glidein_cleanup.sh
 wget https://raw.githubusercontent.com/terranovaa/glideinwms/master/creation/web_base/utils_crypto.sh
