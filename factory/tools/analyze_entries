@@ -381,7 +381,7 @@ USAGE:
     for name, xml in rrd_list.items():
         try:
             file_loc = os.path.join(file_dir, xml)
-            u = urlopen(file_loc)
+            u = urlopen("file://" + file_loc)
             data[name] = xmlParse.xmlfile2dict(u)
         except:
             print("\nCannot open", file_loc)
@@ -564,8 +564,7 @@ Glidein log analysis for frontend %s - %s
     ######################################################################
 
     # sort periods from least to greatest, with 24 hours at the top
-    period_list = period_data.keys()
-    period_list.sort()
+    period_list = sorted(period_data.keys())
     period_list.remove(86400)
     period_list.insert(0, 86400)
 
