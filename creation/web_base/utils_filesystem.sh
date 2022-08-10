@@ -2,8 +2,6 @@
 # Function used to automatically determine and setup work directories
 # Globals:
 #   targets
-#   disk_required
-#   free
 #   work_dir
 # Returns:
 #   1 in case you are not allowed to write
@@ -19,6 +17,7 @@ automatic_work_dir() {
                         )
     unset TMPDIR
 
+    local disk_required free
     # 1 kB
     disk_required=1000000
 

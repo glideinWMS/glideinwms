@@ -41,7 +41,7 @@ glidien_cleanup() {
 #   warnings to stderr
 #   tail to stdout
 early_glidein_failure() {
-  local error_msg, glidein_end_time, result, final_result, final_result_simple, final_result_long
+  local error_msg glidein_end_time result final_result final_result_simple final_result_long
   error_msg="$1"
   log_warn "${error_msg}"
   sleep "${sleep_time}"
@@ -67,8 +67,8 @@ early_glidein_failure() {
 # Arguments:
 #   1: exit code
 glidein_exit() {
-  local exit_code, final_result, final_result_simple, final_result_long, global_result, ge_last_script_name, result, report_failed
-  local factory_report_failes, factory_collector, do_report, dlf, condor_vars_file, main_work_dir
+  local exit_code final_result final_result_simple final_result_long global_result ge_last_script_name result report_failed
+  local factory_report_failes factory_collector do_report dlf condor_vars_file main_work_dir
   exit_code=$1
   # Removed lines about $lock_file (lock file for whole machine) not present elsewhere
   gwms_process_scripts "$GWMS_DIR" cleanup "${glidein_config}"

@@ -83,12 +83,11 @@ copy_all() {
 #   1: number of glideins
 # Global:
 #   GWMS_MULTIGLIDEIN_CHILDS
-#   g_dir
 # Important Variables:
 #   GLIDEIN_MULTIGLIDEIN_LAUNCHALL - if set in attrs, command to start all Glideins at once (multirestart 0)
 #   GLIDEIN_MULTIGLIDEIN_LAUNCHER - if set in attrs, command to start the individual Glideins
 do_start_all() {
-    local num_glideins initial_dir multiglidein_launchall multiglidein_launcher
+    local num_glideins initial_dir multiglidein_launchall multiglidein_launcher g_dir
     num_glideins=$1
     initial_dir="$(pwd)"
     multiglidein_launchall=$(params_decode "$(params_get_simple GLIDEIN_MULTIGLIDEIN_LAUNCHALL "${params}")")
@@ -119,6 +118,7 @@ do_start_all() {
     fi
 }
 
+# TODO (HERE)
 
 ################################
 # Function used to spawn multiple glideins and wait, if needed

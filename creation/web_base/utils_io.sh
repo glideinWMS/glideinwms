@@ -20,6 +20,7 @@ log_debug() {
 #   1: content of the header line
 #   2 (optional): 2 if needs to write to stderr 
 print_header_line(){
+    local content
     if [ $# -eq 1 ]; then
         content=$1
         echo "===  ${content}  ==="
