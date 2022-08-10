@@ -3,7 +3,7 @@
 #                      glidein_startup.sh                           #
 #     SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC     #
 #              SPDX-License-Identifier: Apache-2.0                  #
-#                     File Version:                                 #
+#                      File Version:                                 #
 #*******************************************************************#
 
 
@@ -12,7 +12,7 @@
 # better than "unset IFS" because works with restoring old one
 IFS=$' \t\n'
 
-global_args="$*"
+GLOBAL_ARGS="$*"
 
 # GWMS_STARTUP_SCRIPT=$0
 GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
@@ -23,7 +23,6 @@ GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "$
 GWMS_PATH=""
 GWMS_SUBDIR=".gwms.d"
 
-export LANG=C
 ################################
 # General options
 # Set GWMS_MULTIUSER_GLIDEIN if the Glidein may spawn processes (for jobs) as a different user.
@@ -46,6 +45,8 @@ source utils_params.sh
 source utils_crypto.sh
 source utils_http.sh
 source glidein_cleanup.sh
+
+export LANG=C
 
 ################################
 # Function used to start multiple glideins
@@ -80,11 +81,12 @@ do_start_all() {
     initial_dir="$(pwd)"
     multiglidein_launchall=$(params_decode "$(params_get_simple GLIDEIN_MULTIGLIDEIN_LAUNCHALL "${params}")")
     multiglidein_launcher=$(params_decode "$(params_get_simple GLIDEIN_MULTIGLIDEIN_LAUNCHER "${params}")")
-    local startup_script="${GWMS_STARTUP_SCRIPT}"
+    local startup_script
+    startup_script="${GWMS_STARTUP_SCRIPT}"
     if [[ -n "${multiglidein_launchall}" ]]; then
         echo "Starting multi-glidein using launcher: ${multiglidein_launchall}"
         # shellcheck disable=SC2086
-        ${multiglidein_launchall} "${startup_script}" -multirestart 0 ${global_args} &
+        ${multiglidein_launchall} "${startup_script}" -multirestart 0 ${GLOBAL_ARGS} &
         GWMS_MULTIGLIDEIN_CHILDS="${GWMS_MULTIGLIDEIN_CHILDS} $!"
     else
         if [[ "${initial_dir}" = "$(dirname "${startup_script}")" ]]; then
@@ -97,7 +99,7 @@ do_start_all() {
             pushd "${g_dir}" || echo "Unable to cd in start directory"
             chmod +x "${startup_script}"
             # shellcheck disable=SC2086
-            ${multiglidein_launcher} "${startup_script}" -multirestart "${i}" ${global_args} &
+            ${multiglidein_launcher} "${startup_script}" -multirestart "${i}" ${GLOBAL_ARGS} &
             GWMS_MULTIGLIDEIN_CHILDS="${GWMS_MULTIGLIDEIN_CHILDS} $!"
             popd || true
         done
@@ -171,9 +173,11 @@ setup_OSG_Globus(){
 #   PATH
 add_to_path() {
     logdebug "Adding to GWMS_PATH: $1"
-    local old_path=":${PATH%:}:"
+    local old_path
+    old_path=":${PATH%:}:"
     old_path="${old_path//:$GWMS_PATH:/}"
-    local old_gwms_path=":${GWMS_PATH%:}:"
+    local old_gwms_path
+    old_gwms_path=":${GWMS_PATH%:}:"
     old_gwms_path="${old_gwms_path//:$1:/}"
     old_gwms_path="${1%:}:${old_gwms_path#:}"
     export GWMS_PATH="${old_gwms_path%:}"
@@ -271,6 +275,30 @@ create_glidein_config(){
 # params will contain the full list of parameters
 # -param_XXX YYY will become "XXX YYY"
 #TODO: can use an array instead?
+# Transform long options to short ones
+#for arg in "$@"; do
+#    shift
+#    case "$arg" in
+#        '-factory') set -- "$@" '-f'  ;;
+#        '-name') set -- "$@" '-n'  ;;
+#        '-entry') set -- "$@" '-e'  ;;
+#        *) set -- "$@" "$arg" ;;
+#    esac
+#done
+
+#OPTIND=1
+#while getopts "hn:rw" opt
+#do
+#    case "Sopt" in
+#        'h') print_usage; exit 0 ;;
+#        'n') a=2 ;;
+#        'r') rest=true ;;
+#        'w') ws=true ;;
+#        '?') print_usage >&2; exit 1;; 
+#    esac
+#done
+#shift $(expr $OPTIND- 1)
+
 params=""
 while [ $# -gt 0 ]
     do case "$1" in

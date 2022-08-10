@@ -33,22 +33,32 @@ add_startd_cron_counter=0
 #   add_startd_cron_counter
 add_periodic_script() {
     #TODO: should it allow for variable number of parameters?
-    local include_fname=condor_config_startd_cron_include
-    local s_wrapper="$1"
-    local s_period_sec="${2}s"
-    local s_cwd="$3"
-    local s_fname="$4"
-    local s_config="$5"
-    local s_ffb_id="$6"
-    local s_cc_prefix="$7"
+    local include_fname
+    local s_wrapper
+    local s_period_sec
+    local s_cwd
+    local s_fname
+    local s_config
+    local s_ffb_id
+    local s_cc_prefix
+    include_fname=condor_config_startd_cron_include
+    s_wrapper="$1"
+    s_period_sec="${2}s"
+    s_cwd="$3"
+    s_fname="$4"
+    s_config="$5"
+    s_ffb_id="$6"
+    s_cc_prefix="$7"
     if [ ${add_startd_cron_counter} -eq 0 ]; then
         # Make sure that no undesired file is there when called for first cron
         rm -f ${include_fname}
     fi
 
     let add_startd_cron_counter=add_startd_cron_counter+1
-    local name_prefix=GLIDEIN_PS_
-    local s_name="${name_prefix}${add_startd_cron_counter}"
+    local name_prefix
+    name_prefix=GLIDEIN_PS_
+    local s_name
+    s_name="${name_prefix}${add_startd_cron_counter}"
 
     # Append the following to the startd configuration
     # Instead of Periodic and Kill wait for completion:

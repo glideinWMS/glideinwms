@@ -55,8 +55,10 @@ automatic_work_dir() {
 # It creates an ID to distinguish the directories when preserved
 dir_id() {
     [[ ! ",${GLIDEIN_DEBUG_OPTIONS}," = *,nocleanup,* ]] && return
-    local dir_id=""
-    local tmp="${repository_url%%.*}"
+    local dir_id
+    dir_id=""
+    local tmp
+    tmp="${repository_url%%.*}"
     tmp="${tmp#*//}"
     dir_id="${tmp: -4}"
     tmp="${client_repository_url%%.*}"

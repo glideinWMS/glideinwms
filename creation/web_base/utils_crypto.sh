@@ -6,12 +6,14 @@
 # Returns:
 #   1 in case the md5sum cannot be calculated, or neither the md5sum nor the md5 can be found
 md5wrapper() {
-    local ERROR_RESULT="???"
+    local ERROR_RESULT
+    ERROR_RESULT="???"
     local ONLY_SUM
     if [ "x$2" = "xquiet" ]; then
         ONLY_SUM=yes
     fi
-    local executable=md5sum
+    local executable
+    executable=md5sum
     if which ${executable} 1>/dev/null 2>&1; then
         [ -n "${ONLY_SUM}" ] && executable="md5sum \"$1\" | cut -d ' ' -f 1" ||  executable="md5sum \"$1\""
     else
