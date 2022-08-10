@@ -1,15 +1,24 @@
 ################################
 # Function used to log warning statements
+# Arguments:
+#   @: content to warn 
 log_warn() {
     echo "WARN $(date)" "$@" 1>&2
 }
 
 ################################
 # Function used to log debug statements
+# Arguments:
+#   @: content to debug 
 log_debug() {
     echo "DEBUG $(date)" "$@" 1>&2
 }
 
+#####################
+# Function used to prit a header line
+# Arguments:
+#   1: content of the header line
+#   2 (optional): 2 if needs to write to stderr 
 print_header_line(){
     if [ $# -eq 1 ]; then
         content=$1
@@ -24,9 +33,15 @@ print_header_line(){
 ################################
 # Function used to print the tail with the final results of the glideins
 # Arguments:
-#   1: exitcode
+#   1: exit code
 #   2: short version of the final results
 #   3: long version of the final results
+# Global:
+#   exit_code
+#   final_result_simple
+#   final_result_long
+#   glidein_end_time
+#   total_time
 print_tail() {
   exit_code=$1
   final_result_simple="$2"
@@ -52,6 +67,8 @@ print_tail() {
 
 ################################
 # Function used to have information about the usage of the glidein_startup.sh script
+# Returns:
+#   1 in any case
 usage() {
     echo "Usage: glidein_startup.sh <options>"
     echo "where <options> is:"
@@ -89,6 +106,8 @@ usage() {
 
 ################################
 # Function used to print initial information header
+# Global:
+#   startup_time
 print_header(){
     startup_time="$(date +%s)"
     echo "Starting glidein_startup.sh at $(date) (${startup_time})"

@@ -2,6 +2,9 @@
 # Function used to create the xml content
 # Arguments:
 #   1: result
+# Global:
+#    result
+#    glidein_end_time
 construct_xml() {
   #TODO(F): Check
  # OSG_test_result="<?xml version=\"1.0\"?>
@@ -17,6 +20,8 @@ construct_xml() {
  #   %s
   #  </OSGTestResult>"
   #printf "$OSG_test_result" "${start_dir}" "$0" "${global_args}" "$(date --date=@\"${startup_time}\" +%Y-%m-%dT%H:%M:%S%:z)" "$(date --date=@\"${glidein_end_time}\" +%Y-%m-%dT%H:%M:%S%:z)" "$result"
+  #create_xml OSG --id glidein_startup.sh { operatingenvironment { env --name cwd ${start_dir} } test { cmd $0 ${global_args} tStart $(date --date=@"${startup_time}" +%Y-%m-%dT%H:%M:%S%:z) tEnd $(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)} }    
+  create_xml OSG --id 0 { operatingenvironment { env --name cwd 0 } test { cmd 0 0 tStart 0 tEnd 0 } 0 }      
   echo "<?xml version=\"1.0\"?>
   <OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">
     <operatingenvironment>
@@ -36,8 +41,12 @@ construct_xml() {
 ################################
 # Function used to extract the parent xml fname
 # Arguments:
-#   1: exitcode
-extract_parent_fname() {
+#   1: exit code
+# Global:
+#   last_result
+#   last_script_name
+#   exitcode
+extract_parent_fname(){
   exitcode=$1
   if [ -s otrx_output.xml ]; then # file exists and is not 0 size
       last_result=$(cat otrx_output.xml)
@@ -55,7 +64,14 @@ extract_parent_fname() {
 ################################
 # Function used to extract the parent xml details
 # Arguments:
-#   1: exitcode
+#   1: exit code
+# Global:
+#   exitcode
+#   glidein_end_time
+#   last_result
+#   last_script_name
+#   last_script_reason
+#   my_reason
 extract_parent_xml_detail() {
  # fail_result="<result>
  #         <status>%s</status>
@@ -116,6 +132,8 @@ extract_parent_xml_detail() {
 # Function used to convert base xml to simple xml
 # Arguments:
 #   1: final result
+# Global:
+#   final_result
 basexml2simplexml() {
   final_result="$1"
   #env="    <env name=\"%s\">%s</env>"
@@ -143,6 +161,10 @@ basexml2simplexml() {
 # Arguments:
 #   1: simple final result
 #   2: global result
+# Global:
+#   final_result_simple
+#   global_result
+#   content
 simplexml2longxml() {
   final_result_simple="$1"
   global_result="$2"
@@ -181,9 +203,15 @@ simplexml2longxml() {
   echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'
 }
 
-
-#look at err_gen.sh
-# bigfiles.sh per costrutto finale source
+################################
+# Function used to create an xml file structure
+# Arguments:
+#   @: tags, options, values
+# Global:
+#   xml
+#   end_xml
+# Returns:
+#   xml
 create_xml(){
     xml="<?xml version=\"1.0\"?>"
     endxml=""

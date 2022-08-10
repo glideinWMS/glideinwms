@@ -2,6 +2,22 @@
 # Function used to perform a wget request
 # Arguments:
 #   @: wget args
+# Globals:
+#   wget_args
+#   wget_cmd
+#   wget_resp
+#   wget_retval
+#   wget_version
+#   arg_len
+#   ffb_url
+#   ffb_repository
+#   ffb_real_fname
+#   ffb_tmp_outname
+#   proxy_url
+# Returns:
+#   wget_retval
+# Environment:
+#   http_proxy
 perform_wget() {
     wget_args=("$@")
     arg_len="${#wget_args[@]}"
@@ -79,6 +95,22 @@ perform_wget() {
 # Function used to perform a curl request
 # Arguments:
 #   @: curl args
+# Globals:
+#   curl_args
+#   arg_len
+#   ffb_url
+#   ffb_repository
+#   ffb_real_fname
+#   ffb_tmp_outname
+#   proxy_url
+#   curl_cmd
+#   curl_resp
+#   curl_retval
+#   curl_version
+# Returns:
+#   curl_retval
+# Environment:
+#   http_proxy
 perform_curl() {
     curl_args=("$@")
     arg_len="${#curl_args[@]}"
@@ -102,8 +134,7 @@ perform_curl() {
     if [ ${curl_retval} -eq 0 ] && [ ! -e "${ffb_tmp_outname}" ] ; then
         touch "${ffb_tmp_outname}"
     fi
-
-
+    
     if [ "${curl_retval}" -ne 0 ]; then
         curl_version="$(curl --version 2>&1 | head -1)"
         log_warn "${curl_cmd} failed. version:${curl_version}  exit code ${curl_retval} stderr: ${curl_resp} "

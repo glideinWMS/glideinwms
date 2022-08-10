@@ -80,6 +80,9 @@ copy_all() {
 # Function used to start all glideins
 # Arguments:
 #   1: number of glideins
+# Global:
+#   GWMS_MULTIGLIDEIN_CHILDS
+#   g_dir
 # Important Variables:
 #   GLIDEIN_MULTIGLIDEIN_LAUNCHALL - if set in attrs, command to start all Glideins at once (multirestart 0)
 #   GLIDEIN_MULTIGLIDEIN_LAUNCHER - if set in attrs, command to start the individual Glideins
@@ -114,29 +117,11 @@ do_start_all() {
     fi
 }
 
-################################
-# Function used to set the slots_layout
-# make sure to have a valid slots_layout
-set_slots_layout(){
-    if (echo "x${slots_layout}" | grep -i fixed) >/dev/null 2>&1 ; then
-        slots_layout="fixed"
-    else
-        slots_layout="partitionable"
-    fi
-}
-
-################################
-# Function used to generate the glidein UUID
-generate_glidein_uuid(){
-    if command -v uuidgen >/dev/null 2>&1; then
-        glidein_uuid="$(uuidgen)"
-    else
-        glidein_uuid="$(od -x -w32 -N32 /dev/urandom | awk 'NR==1{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')"
-    fi
-}
 
 ################################
 # Function used to spawn multiple glideins and wait, if needed
+# Global:
+#   ON_DIE
 spawn_multiple_glideins(){
     if [[ -n "${multi_glidein}" ]] && [[ -z "${multi_glidein_restart}" ]] && [[ "${multi_glidein}" -gt 1 ]]; then
         # start multiple glideins
@@ -155,6 +140,8 @@ spawn_multiple_glideins(){
 
 ########################################
 # Function used to setup OSG and/or Globus
+# Global:
+#   GLOBUS_LOCATION
 setup_OSG_Globus(){
     if [ -r "${OSG_GRID}/setup.sh" ]; then
         . "${OSG_GRID}/setup.sh"
@@ -191,6 +178,9 @@ setup_OSG_Globus(){
 
 ########################################
 # Function used to add $1 to GWMS_PATH and update PATH
+# Environment:
+#   GWMS_PATH
+#   PATH
 add_to_path() {
     logdebug "Adding to GWMS_PATH: $1"
     local old_path=":${PATH%:}:"
@@ -203,10 +193,25 @@ add_to_path() {
     export PATH="${old_path%:}"
 }
 
-#check return code
-# add global, environment
-# careful about subprocesses and enviornment parents
-# careful to local as assignment
+########################################
+# Function that removes the native condor tarballs directory to allow factory ops to use native condor tarballs
+# All files in the native condor tarballs have a directory like condor-9.0.11-1-x86_64_CentOS7-stripped
+# However the (not used anymore) gwms create_condor_tarball removes that dir
+fixup_condor_dir() {
+    # Check if the condor dir has only one subdir, the one like "condor-9.0.11-1-x86_64_CentOS7-stripped"
+    # See https://stackoverflow.com/questions/32429333/how-to-test-if-a-linux-directory-contain-only-one-subdirectory-and-no-other-file
+    if [ $(find "${gs_id_work_dir}/condor" -maxdepth 1 -type d -printf 1 | wc -m) -eq 2 ]; then
+        echo "Fixing directory structure of condor tarball"
+        mv "${gs_id_work_dir}"/condor/condor*/* "${gs_id_work_dir}"/condor > /dev/null
+    else
+        echo "Condor tarball does not need to be fixed"
+    fi
+}
+
+################################
+# Block of code used to handle the list of parameters
+# params will contain the full list of parameters
+# -param_XXX YYY will become "XXX YYY"
 #TODO: can use an array instead?
 params=""
 while [ $# -gt 0 ]
@@ -245,15 +250,69 @@ while [ $# -gt 0 ]
     shift 2
 done  
 
-set_slots_layout
+################################
+# Code block used to set the slots_layout
+# make sure to have a valid slots_layout
+if (echo "x${slots_layout}" | grep -i fixed) >/dev/null 2>&1 ; then
+    slots_layout="fixed"
+else
+    slots_layout="partitionable"
+fi
+
 parse_arguments
-generate_glidein_uuid
+
+################################
+# Code block used to generate the glidein UUID
+if command -v uuidgen >/dev/null 2>&1; then
+    glidein_uuid="$(uuidgen)"
+else
+    glidein_uuid="$(od -x -w32 -N32 /dev/urandom | awk 'NR==1{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')"
+fi
+
 print_header
+
 spawn_multiple_glideins
-check_umask
+
+########################################
+# Code block used to make sure nobody else can write my files
+# In the Grid world I cannot trust anybody
+if ! umask 0022; then
+    early_glidein_failure "Failed in umask 0022"
+fi
+
 setup_OSG_Globus
-set_proxy
+
+########################################
+# Code block used to set the tokens
+[ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
+num_gct=0
+for tk in "$(pwd)/credential_"*".idtoken"; do
+    echo "Setting GLIDEIN_CONDOR_TOKEN to ${tk} " 1>&2
+    num_gct=$(( num_gct + 1 ))
+    export GLIDEIN_CONDOR_TOKEN="${tk}"
+    fullpath="$(readlink -f "${tk}" )"
+    if [ $? -eq 0 ]; then
+        echo "Setting GLIDEIN_CONDOR_TOKEN ${tk} to canonical path ${fullpath}" 1>&2
+        export GLIDEIN_CONDOR_TOKEN="${fullpath}"
+    else
+        echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN ${tk}" 1>&2
+    fi
+done
+if [ ! -f "${GLIDEIN_CONDOR_TOKEN}" ] ; then
+    token_err_msg="problem setting GLIDEIN_CONDOR_TOKEN"
+    token_err_msg="${token_err_msg} will attempt to recover, but condor IDTOKEN auth may fail"
+    echo "${token_err_msg}"
+    echo "${token_err_msg}" 1>&2
+fi
+if [ ! "${num_gct}" -eq  1 ] ; then
+    token_err_msg="WARNING  GLIDEIN_CONDOR_TOKEN set ${num_gct} times, should be 1 !"
+    token_err_msg="${token_err_msg} condor IDTOKEN auth may fail"
+    echo "${token_err_msg}"
+    echo "${token_err_msg}" 1>&2
+fi
+
 prepare_workdir
+
 extract_all_data # extract and source all the data contained at the end of this script as tarball
 
 wrapper_list="${PWD}/wrapper_list.lst"
@@ -332,22 +391,6 @@ log_init "${glidein_uuid}" "${work_dir}"
 # Remove these files, if they are still there
 rm -rf tokens.tgz url_dirs.desc tokens
 log_setup "${glidein_config}"
-
-
-fixup_condor_dir() {
-    # All files in the native condor tarballs have a directory like condor-9.0.11-1-x86_64_CentOS7-stripped
-    # However the (not used anymore) gwms create_condor_tarball removes that dir
-    # Here we remove that dir as well to allow factory ops to use native condor tarballs
-
-    # Check if the condor dir has only one subdir, the one like "condor-9.0.11-1-x86_64_CentOS7-stripped"
-    # See https://stackoverflow.com/questions/32429333/how-to-test-if-a-linux-directory-contain-only-one-subdirectory-and-no-other-file
-    if [ $(find "${gs_id_work_dir}/condor" -maxdepth 1 -type d -printf 1 | wc -m) -eq 2 ]; then
-        echo "Fixing directory structure of condor tarball"
-        mv "${gs_id_work_dir}"/condor/condor*/* "${gs_id_work_dir}"/condor > /dev/null
-    else
-        echo "Condor tarball does not need to be fixed"
-    fi
-}
 
 echo "Downloading files from Factory and Frontend"
 log_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"
