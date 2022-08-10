@@ -112,7 +112,14 @@ usage() {
 print_header(){
     startup_time="$(date +%s)"
     echo "Starting glidein_startup.sh at $(date) (${startup_time})"
-    echo "script_checksum   = '$(md5wrapper "$0")'"
+    local md5wrapped
+    md5wrapped = $(md5wrapper "$0")
+    retVal=$?
+    if [ $retVal -ne 0 ]; then
+        echo "Error on the md5wrapper"
+        glidein_exit 1 #TODO(F): o solo exit?
+    fi
+    echo "script_checksum   = '${md5wrapped}'"
     echo "debug_mode        = '${operation_mode}'"
     echo "condorg_cluster   = '${condorg_cluster}'"
     echo "condorg_subcluster= '${condorg_subcluster}'"
