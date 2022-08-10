@@ -1,4 +1,4 @@
-#!/bin/bash -xv
+#!/bin/bash -x
 #*******************************************************************#
 #                      glidein_startup.sh                           #
 #     SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC     #
