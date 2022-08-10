@@ -10,6 +10,8 @@ glide_local_tmp_dir_created=0
 # It uses GLIDEIN_DEBUG_OPTIONS, start_dir, work_dir_created, work_dir, glide_local_tmp_dir_created, glide_local_tmp_dir
 # Arguments:
 #   1: exit code
+# Outputs:
+#   warnings to stderr
 glidien_cleanup() {
     if ! cd "${start_dir}"; then
         log_warn "Cannot find ${start_dir} anymore, exiting but without cleanup"
@@ -35,14 +37,11 @@ glidien_cleanup() {
 # too bad we end up with some repeated code, but difficult to do better
 # Arguments:
 #   1: error message
-# Global:
-#   error_msg
-#   glidein_end_time
-#   result
-#   final_result
-#   final_result_simple
-#   final_result_long
+# Outputs:
+#   warnings to stderr
+#   tail to stdout
 early_glidein_failure() {
+  local error_msg, glidein_end_time, result, final_result, final_result_simple, final_result_long
   error_msg="$1"
   log_warn "${error_msg}"
   sleep "${sleep_time}"
@@ -67,22 +66,9 @@ early_glidein_failure() {
 # too bad we end up with some repeated code, but difficult to do better
 # Arguments:
 #   1: exit code
-# Global:
-#   exit_code
-#   global_result
-#   ge_last_script_name
-#   result
-#   final_result
-#   final_result_simple
-#   final_result_long
-#   report_failed
-#   factory_report_failes
-#   factory_collector
-#   do_report
-#   dlf
-#   condor_vars_file
-#   main_work_dir
 glidein_exit() {
+  local exit_code, final_result, final_result_simple, final_result_long, global_result, ge_last_script_name, result, report_failed
+  local factory_report_failes, factory_collector, do_report, dlf, condor_vars_file, main_work_dir
   exit_code=$1
   # Removed lines about $lock_file (lock file for whole machine) not present elsewhere
   gwms_process_scripts "$GWMS_DIR" cleanup "${glidein_config}"

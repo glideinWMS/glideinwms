@@ -32,7 +32,8 @@ list_data() {
 extract_all_data() {
     local -a files
     # change separator to split the output file list from 'tar tz' command
-    local IFS_OLD="${IFS}"
+    local IFS_OLD
+    IFS_OLD="${IFS}"
     IFS=$'\n'
     files=($(list_data))
     for f in "${files[@]}"; do

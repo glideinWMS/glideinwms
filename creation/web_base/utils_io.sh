@@ -37,15 +37,13 @@ print_header_line(){
 #   2: short version of the final results
 #   3: long version of the final results
 # Global:
-#   exit_code
-#   final_result_simple
-#   final_result_long
-#   glidein_end_time
 #   total_time
 print_tail() {
+  local final_result_simple, final_result_long, exit_code
   exit_code=$1
   final_result_simple="$2"
   final_result_long="$3"
+  local glidein_end_time
   glidein_end_time=$(date +%s)
   let total_time=${glidein_end_time}-${startup_time}
   print_header_line "Glidein ending $(date) (${glidein_end_time}) with code ${exit_code} after ${total_time}"

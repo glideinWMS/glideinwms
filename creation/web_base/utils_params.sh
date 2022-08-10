@@ -9,7 +9,8 @@
 #   2: param_list (quoted string w/ spaces)
 params_get_simple() {
     [[ ${2} = *\ ${1}\ * ]] || return
-    local retval="${2##*\ ${1}\ }"
+    local retval
+    retval="${2##*\ ${1}\ }"
     echo "${retval%%\ *}"
 }
 
