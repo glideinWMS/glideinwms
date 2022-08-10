@@ -2,9 +2,8 @@
 # Function used to create the xml content
 # Arguments:
 #   1: result
-# Global:
-#    result
 construct_xml() {    
+  local result
   result="$1"
   local glidein_end_time
   glidein_end_time="$(date +%s)"
@@ -26,11 +25,8 @@ construct_xml() {
 # Function used to extract the parent xml fname
 # Arguments:
 #   1: exit code
-# Global:
-#   last_result
-#   last_script_name
-#   exitcode
 extract_parent_fname(){
+  local exitcode last_result last_script_name
   exitcode=$1
   if [ -s otrx_output.xml ]; then # file exists and is not 0 size
       last_result=$(cat otrx_output.xml)
@@ -49,15 +45,9 @@ extract_parent_fname(){
 # Function used to extract the parent xml details
 # Arguments:
 #   1: exit code
-# Global:
-#   exitcode
-#   last_result
-#   last_script_name
-#   last_script_reason
-#   my_reason
 extract_parent_xml_detail() { 
+  local glidein_end_time exitcode last_result last_script_name last_script_reason my_reason
   exitcode=$1
-  local glidein_end_time
   glidein_end_time="$(date +%s)"
   if [ -s otrx_output.xml ]; then
       # file exists and is not 0 size
@@ -121,10 +111,8 @@ basexml2simplexml() {
 # Arguments:
 #   1: simple final result
 #   2: global result
-# Global:
-#   content
 simplexml2longxml() {
-  local final_result_simple, global_result
+  local final_result_simple global_result content
   final_result_simple="$1"
   global_result="$2"
   echo "${final_result_simple}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<OSGTestResult /{fr=0;}'
@@ -149,6 +137,17 @@ simplexml2longxml() {
 }
 
 ################################
+# Function used as support to add tabs
+# Global:
+#   xml
+add_tabs(){
+  for (( c=1; c<=tabs; c++ ))
+      do
+        xml+="\t"
+      done
+}
+
+################################
 # Function used to create an xml file structure
 # Arguments:
 #   @: tags, options, values
@@ -159,71 +158,127 @@ simplexml2longxml() {
 #   xml
 create_xml(){
     xml="<?xml version=\"1.0\"?>"
-    endxml=""
+    end_xml=""
+    declare -i tabs=0;
     until [ $# -lt 1 ]
     do
+        xml+="\n"
         case "$1" in
-            OSG)  xml+="<OSGTestResult id=\"$2\" version=\"4.3.1\">"
-                    if [ $3 == "{" ]; then
-                        endxml="</OSGTestResult>"+$endxml
+            OSG)
+                    add_tabs
+                    xml+="<OSGTestResult"
+                    while [[ $2 = "-"* ]]
+                    do
+                       if [ $2 == "--id" ]; then
+                          xml+=" id=\"$3\""
+                       fi
+                       shift 2
+                    done
+                    xml+=" version=\"4.3.1\">"
+                    if [ $2 == "{" ]; then
+                        tabs+=1
+                        end_xml="</OSGTestResult>"$end_xml
                         shift 1
                     else
                         xml+="</OSGTestResult>"
-                    fi
-                    shift 2;;
-            OSGShort)    xml+="<OSGTestResult>"
+                    fi;;
+            OSGShort)
+                    add_tabs
+                    xml+="<OSGTestResult>"
                     if [ $2 == "{" ]; then
-                        endxml="</OSGTestResult>"+$endxml
+                        tabs+=1
+                        end_xml="</OSGTestResult>"$end_xml
                         shift 1
                     else
                         xml+="</OSGTestResult>"
-                    fi
-                    shift 1;;
-            operatingenvironment)    xml+="<operatingenvironment>"
+                    fi;;
+            operatingenvironment)
+                    add_tabs
+                    xml+="<operatingenvironment>"
                     if [ $2 == "{" ]; then
-                        endxml="</operatingenvironment>"+$endxml
+                        tabs+=1
+                        end_xml="</operatingenvironment>"$end_xml
                         shift 1
                     else
                         xml+="</operatingenvironment>"
-                    fi
+                    fi;;
+            env)
+                    add_tabs
+                    xml+="<env"
+                    while [[ $2 = "-"* ]]
+                    do
+                          if [ $2 == "--name" ]; then
+                              xml+=" name=\"$3\""
+                          fi
+                          shift 2
+                    done
+                    xml+=">$2</env>"
                     shift 1;;
-            env)    xml+="<env name=\"$2\">$3</env>"
-                shift 3;;
-            test)   xml+="<test>"
+            test)
+                    add_tabs
+                    xml+="<test>"
                     if [ $2 == "{" ]; then
-                        endxml="</test>"+$endxml
+                        tabs+=1
+                        end_xml="</test>"$end_xml
                         shift 1
                     else
                         xml+="</test>"
-                    fi
+                    fi;;
+            cmd)
+                    add_tabs
+                    xml+="<cmd>$2</cmd>"
                     shift 1;;
-            cmd)    xml+="<cmd>$2</cmd>"
-                shift 2;;
-            tStart)    xml+="<tStart>$2</tStart>"
-                            shift 2;;
-            tEnd)      xml+="<tEnd>$2</tEnd>"
-                shift 2;;
-            result)   xml+="<result>"
+            tStart)
+                    add_tabs
+                    xml+="<tStart>$2</tStart>"
+                    shift 1;;
+            tEnd)
+                    add_tabs
+                    xml+="<tEnd>$2</tEnd>"
+                    shift 1;;
+            result)
+                    add_tabs
+                    xml+="<result>"
                     if [ $2 == "{" ]; then
-                        endxml="</result>"+$endxml
+                        tabs+=1
+                        end_xml="</result>"$end_xml
                         shift 1
                     else
                         xml+="</result>"
-                    fi
-                    shift 1;;
-            status)     xml+="<status>$2</status>"
-                        shift 2;;
-            metric)     xml+="<metric name=\"$2\" ts=\"$3)\" uri=\"local\">$4</metric>"
-                        shift 4;;
-            detail)     xml+="<detail>$2</detail>"
-                        shift 2;;
-            "}")          output=$(echo $endxml | cut -d'>' -f 1 | awk '{print $1">"}')
-                        xml+=$output
-                        endxml=$(echo $endxml | cut -d'<' -f 3 | awk '{print "<"$1}')
+                    fi;;
+            status)     add_tabs
+                        xml+="<status>$2</status>"
                         shift 1;;
-            *)  echo "not available";
-              shift 1;;
+            metric)     add_tabs
+                        xml+="<metric"
+                        while [[ $2 = "-"* ]]
+                        do
+                              if [ $2 == "--name" ]; then
+                                 xml+=" name=\"$3\""
+                              elif [ $2 == "--ts" ]; then
+                                 xml+=" ts=\"$3\""
+                              elif [ $2 == "--uri" ]; then
+                                 xml+=" uri=\"$3\""
+                              fi
+                              shift 2
+                        done
+                        xml+=">$2</metric>"
+                        shift 1;;
+            detail)     add_tabs
+                        xml+="<detail>$2</detail>"
+                        shift 1;;
+            "}")        output=$(echo $end_xml | cut -d'>' -f 1 | awk '{print $1">"}')
+                        tabs=tabs-1
+                        add_tabs
+                        xml+=$output
+                        end_xml=${end_xml#"$output"};;
+            *)  add_tabs
+                xml+=$1;;
         esac
+        shift 1
     done
-    echo "$xml"
+    echo -e "$xml"
+    # TODO(F)
+    #return xml
 }
+

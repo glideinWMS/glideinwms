@@ -67,34 +67,34 @@ params2file() {
         # TODO: Use params_decode. For 3.4.8, not to introduce many changes now. Use params_converter
         # Note: using $() we escape blackslash with \\ like above. Using backticks would require \\\
         pfval=$(echo "$2" | sed \
-     -e 's/\.nbsp,/ /g' \
-     -e 's/\.semicolon,/;/g' \
-     -e 's/\.colon,/:/g' \
-     -e 's/\.tilde,/~/g' \
-     -e 's/\.not,/!/g' \
-     -e 's/\.question,/?/g' \
-     -e 's/\.star,/*/g' \
-     -e 's/\.dollar,/$/g' \
-     -e 's/\.comment,/#/g' \
-     -e 's/\.sclose,/]/g' \
-     -e 's/\.sopen,/[/g' \
-     -e 's/\.gclose,/}/g' \
-     -e 's/\.gopen,/{/g' \
-     -e 's/\.close,/)/g' \
-     -e 's/\.open,/(/g' \
-     -e 's/\.gt,/>/g' \
-     -e 's/\.lt,/</g' \
-     -e 's/\.minus,/-/g' \
-     -e 's/\.plus,/+/g' \
-     -e 's/\.eq,/=/g' \
-     -e "s/\.singquot,/'/g" \
-     -e 's/\.quot,/"/g' \
-     -e 's/\.fork,/\`/g' \
-     -e 's/\.pipe,/|/g' \
-     -e 's/\.backslash,/\\/g' \
-     -e 's/\.amp,/\&/g' \
-     -e 's/\.comma,/,/g' \
-     -e 's/\.dot,/./g')
+         -e 's/\.nbsp,/ /g' \
+         -e 's/\.semicolon,/;/g' \
+         -e 's/\.colon,/:/g' \
+         -e 's/\.tilde,/~/g' \
+         -e 's/\.not,/!/g' \
+         -e 's/\.question,/?/g' \
+         -e 's/\.star,/*/g' \
+         -e 's/\.dollar,/$/g' \
+         -e 's/\.comment,/#/g' \
+         -e 's/\.sclose,/]/g' \
+         -e 's/\.sopen,/[/g' \
+         -e 's/\.gclose,/}/g' \
+         -e 's/\.gopen,/{/g' \
+         -e 's/\.close,/)/g' \
+         -e 's/\.open,/(/g' \
+         -e 's/\.gt,/>/g' \
+         -e 's/\.lt,/</g' \
+         -e 's/\.minus,/-/g' \
+         -e 's/\.plus,/+/g' \
+         -e 's/\.eq,/=/g' \
+         -e "s/\.singquot,/'/g" \
+         -e 's/\.quot,/"/g' \
+         -e 's/\.fork,/\`/g' \
+         -e 's/\.pipe,/|/g' \
+         -e 's/\.backslash,/\\/g' \
+         -e 's/\.amp,/\&/g' \
+         -e 's/\.comma,/,/g' \
+         -e 's/\.dot,/./g')
         if ! add_config_line "$1 ${pfval}"; then
             glidein_exit 1
         fi
