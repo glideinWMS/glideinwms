@@ -21,7 +21,7 @@ construct_xml() {
   #  </OSGTestResult>"
   #printf "$OSG_test_result" "${start_dir}" "$0" "${global_args}" "$(date --date=@\"${startup_time}\" +%Y-%m-%dT%H:%M:%S%:z)" "$(date --date=@\"${glidein_end_time}\" +%Y-%m-%dT%H:%M:%S%:z)" "$result"
   #create_xml OSG --id glidein_startup.sh { operatingenvironment { env --name cwd ${start_dir} } test { cmd $0 ${global_args} tStart $(date --date=@"${startup_time}" +%Y-%m-%dT%H:%M:%S%:z) tEnd $(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)} }    
-  create_xml OSG --id 0 { operatingenvironment { env --name cwd 0 } test { cmd 0 0 tStart 0 tEnd 0 } 0 }      
+  ##create_xml OSG --id 0 { operatingenvironment { env --name cwd 0 } test { cmd 0 0 tStart 0 tEnd 0 } 0 }      
   echo "<?xml version=\"1.0\"?>
   <OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">
     <operatingenvironment>
