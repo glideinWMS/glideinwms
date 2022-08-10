@@ -22,7 +22,6 @@ on_die() {
     kill -s "$1" %1
 }
 
-
 ################################
 # Function that forwards signals to the children processes
 # Arguments:

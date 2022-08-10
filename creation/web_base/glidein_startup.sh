@@ -39,11 +39,10 @@ GWMS_MULTIGLIDEIN_CHILDS=
 
 source utils_tarballs.sh
 source utils_signals.sh
-source utils_log.sh
+source utils_io.sh
 source utils_xml.sh
 source utils_filesystem.sh
 source utils_params.sh
-source utils_fetch.sh
 source utils_crypto.sh
 source utils_http.sh
 source glidein_cleanup.sh
@@ -51,7 +50,7 @@ source glidein_cleanup.sh
 ################################
 # Function used to start multiple glideins
 # Arguments:
-#   1: prefix (of the files to skip)
+#   1: prefix of the files to skip
 #   2: directory
 copy_all() {
    mkdir -p "$2"
@@ -197,6 +196,76 @@ fixup_condor_dir() {
     fi
 }
 
+########################################
+# Function that creates the glidein configuration
+# Global:
+#   glidein_config
+create_glidein_config(){
+    glidein_config="${PWD}/glidein_config"
+    if ! echo > "${glidein_config}"; then
+        early_glidein_failure "Could not create '${glidein_config}'"
+    fi
+    if ! {
+        echo "# --- glidein_startup vals ---"
+        echo "GLIDEIN_UUID ${glidein_uuid}"
+        echo "GLIDEIN_Factory ${glidein_factory}"
+        echo "GLIDEIN_Name ${glidein_name}"
+        echo "GLIDEIN_Entry_Name ${glidein_entry}"
+    
+        if [ -n "${client_name}" ]; then
+            # client name not required as it is not used for anything but debug info
+            echo "GLIDECLIENT_Name ${client_name}"
+        fi
+        if [ -n "${client_group}" ]; then
+            # client group not required as it is not used for anything but debug info
+            echo "GLIDECLIENT_Group ${client_group}"
+        fi
+        echo "GLIDEIN_CredentialIdentifier ${glidein_cred_id}"
+        echo "CONDORG_CLUSTER ${condorg_cluster}"
+        echo "CONDORG_SUBCLUSTER ${condorg_subcluster}"
+        echo "CONDORG_SCHEDD ${condorg_schedd}"
+        echo "DEBUG_MODE ${set_debug}"
+        echo "GLIDEIN_STARTUP_PID $$"
+        echo "GLIDEIN_START_DIR_ORIG  ${start_dir}"
+        echo "GLIDEIN_WORKSPACE_ORIG  $(pwd)"
+        echo "GLIDEIN_WORK_DIR ${main_dir}"
+        echo "GLIDEIN_ENTRY_WORK_DIR ${entry_dir}"
+        echo "TMP_DIR ${glide_tmp_dir}"
+        echo "GLIDEIN_LOCAL_TMP_DIR ${glide_local_tmp_dir}"
+        echo "PROXY_URL ${proxy_url}"
+        echo "DESCRIPTION_FILE ${descript_file}"
+        echo "DESCRIPTION_ENTRY_FILE ${descript_entry_file}"
+        echo "GLIDEIN_Signature ${sign_id}"
+        echo "GLIDEIN_Entry_Signature ${sign_entry_id}"
+    
+        if [ -n "${client_repository_url}" ]; then
+            echo "GLIDECLIENT_WORK_DIR ${client_dir}"
+            echo "GLIDECLIENT_DESCRIPTION_FILE ${client_descript_file}"
+            echo "GLIDECLIENT_Signature ${client_sign_id}"
+            if [ -n "${client_repository_group_url}" ]; then
+                echo "GLIDECLIENT_GROUP_WORK_DIR ${client_group_dir}"
+                echo "GLIDECLIENT_DESCRIPTION_GROUP_FILE ${client_descript_group_file}"
+                echo "GLIDECLIENT_Group_Signature ${client_sign_group_id}"
+            fi
+        fi
+        echo "B64UUENCODE_SOURCE ${PWD}/b64uuencode.source"
+        echo "ADD_CONFIG_LINE_SOURCE ${PWD}/add_config_line.source"
+        echo "GET_ID_SELECTORS_SOURCE ${PWD}/get_id_selectors.source"
+        echo "LOGGING_UTILS_SOURCE ${PWD}/logging_utils.source"
+        echo "GLIDEIN_PATHS_SOURCE ${PWD}/glidein_paths.source"
+        echo "WRAPPER_LIST ${wrapper_list}"
+        echo "SLOTS_LAYOUT ${slots_layout}"
+        # Add a line saying we are still initializing...
+        echo "GLIDEIN_INITIALIZED 0"
+        # ...but be optimist, and leave advertise_only for the actual error handling script
+        echo "GLIDEIN_ADVERTISE_ONLY 0"
+        echo "GLIDEIN_CONDOR_TOKEN ${GLIDEIN_CONDOR_TOKEN}"
+        echo "# --- User Parameters ---"
+    } >> "${glidein_config}"; then
+        early_glidein_failure "Failed in updating '${glidein_config}'"
+    fi
+}
+
 ################################
 # Block of code used to handle the list of parameters
 # params will contain the full list of parameters
@@ -248,6 +317,7 @@ else
     slots_layout="partitionable"
 fi
 
+################################
 parse_arguments
 
 ################################
@@ -258,17 +328,20 @@ else
     glidein_uuid="$(od -x -w32 -N32 /dev/urandom | awk 'NR==1{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')"
 fi
 
-print_header
+################################
+print_header "@"
 
-spawn_multiple_glideins
+################################
+spawn_multiple_glideins 
 
 ########################################
 # Code block used to make sure nobody else can write my files
-# In the Grid world I cannot trust anybody
+# in the Grid world I cannot trust anybody
 if ! umask 0022; then
     early_glidein_failure "Failed in umask 0022"
 fi
 
+########################################
 setup_OSG_Globus
 
 ########################################
@@ -300,77 +373,21 @@ if [ ! "${num_gct}" -eq  1 ] ; then
     echo "${token_err_msg}" 1>&2
 fi
 
+########################################
 prepare_workdir
 
-extract_all_data # extract and source all the data contained at the end of this script as tarball
+########################################
+# extract and source all the data contained at the end of this script as tarball
+extract_all_data 
 
+########################################
 wrapper_list="${PWD}/wrapper_list.lst"
 touch "${wrapper_list}"
 
-# create glidein_config
-glidein_config="${PWD}/glidein_config"
-if ! echo > "${glidein_config}"; then
-    early_glidein_failure "Could not create '${glidein_config}'"
-fi
-if ! {
-    echo "# --- glidein_startup vals ---"
-    echo "GLIDEIN_UUID ${glidein_uuid}"
-    echo "GLIDEIN_Factory ${glidein_factory}"
-    echo "GLIDEIN_Name ${glidein_name}"
-    echo "GLIDEIN_Entry_Name ${glidein_entry}"
+########################################
+create_glidein_config 
 
-    if [ -n "${client_name}" ]; then
-        # client name not required as it is not used for anything but debug info
-        echo "GLIDECLIENT_Name ${client_name}"
-    fi
-    if [ -n "${client_group}" ]; then
-        # client group not required as it is not used for anything but debug info
-        echo "GLIDECLIENT_Group ${client_group}"
-    fi
-    echo "GLIDEIN_CredentialIdentifier ${glidein_cred_id}"
-    echo "CONDORG_CLUSTER ${condorg_cluster}"
-    echo "CONDORG_SUBCLUSTER ${condorg_subcluster}"
-    echo "CONDORG_SCHEDD ${condorg_schedd}"
-    echo "DEBUG_MODE ${set_debug}"
-    echo "GLIDEIN_STARTUP_PID $$"
-    echo "GLIDEIN_START_DIR_ORIG  ${start_dir}"
-    echo "GLIDEIN_WORKSPACE_ORIG  $(pwd)"
-    echo "GLIDEIN_WORK_DIR ${main_dir}"
-    echo "GLIDEIN_ENTRY_WORK_DIR ${entry_dir}"
-    echo "TMP_DIR ${glide_tmp_dir}"
-    echo "GLIDEIN_LOCAL_TMP_DIR ${glide_local_tmp_dir}"
-    echo "PROXY_URL ${proxy_url}"
-    echo "DESCRIPTION_FILE ${descript_file}"
-    echo "DESCRIPTION_ENTRY_FILE ${descript_entry_file}"
-    echo "GLIDEIN_Signature ${sign_id}"
-    echo "GLIDEIN_Entry_Signature ${sign_entry_id}"
-
-    if [ -n "${client_repository_url}" ]; then
-        echo "GLIDECLIENT_WORK_DIR ${client_dir}"
-        echo "GLIDECLIENT_DESCRIPTION_FILE ${client_descript_file}"
-        echo "GLIDECLIENT_Signature ${client_sign_id}"
-        if [ -n "${client_repository_group_url}" ]; then
-            echo "GLIDECLIENT_GROUP_WORK_DIR ${client_group_dir}"
-            echo "GLIDECLIENT_DESCRIPTION_GROUP_FILE ${client_descript_group_file}"
-            echo "GLIDECLIENT_Group_Signature ${client_sign_group_id}"
-        fi
-    fi
-    echo "B64UUENCODE_SOURCE ${PWD}/b64uuencode.source"
-    echo "ADD_CONFIG_LINE_SOURCE ${PWD}/add_config_line.source"
-    echo "GET_ID_SELECTORS_SOURCE ${PWD}/get_id_selectors.source"
-    echo "LOGGING_UTILS_SOURCE ${PWD}/logging_utils.source"
-    echo "GLIDEIN_PATHS_SOURCE ${PWD}/glidein_paths.source"
-    echo "WRAPPER_LIST ${wrapper_list}"
-    echo "SLOTS_LAYOUT ${slots_layout}"
-    # Add a line saying we are still initializing...
-    echo "GLIDEIN_INITIALIZED 0"
-    # ...but be optimist, and leave advertise_only for the actual error handling script
-    echo "GLIDEIN_ADVERTISE_ONLY 0"
-    echo "GLIDEIN_CONDOR_TOKEN ${GLIDEIN_CONDOR_TOKEN}"
-    echo "# --- User Parameters ---"
-} >> "${glidein_config}"; then
-    early_glidein_failure "Failed in updating '${glidein_config}'"
-fi
+########################################
 # shellcheck disable=SC2086
 params2file ${params}
 
@@ -380,13 +397,11 @@ log_init "${glidein_uuid}" "${work_dir}"
 # Remove these files, if they are still there
 rm -rf tokens.tgz url_dirs.desc tokens
 log_setup "${glidein_config}"
-
 echo "Downloading files from Factory and Frontend"
 log_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"
 
 #####################################
 # Fetch descript and signature files
-
 # disable signature check before I get the signature file itself
 # check_signature is global
 check_signature=0
@@ -543,12 +558,12 @@ do
     fi
 done
 
+#############################
 fixup_condor_dir
 
 ##############################
 # Start the glidein main script
 add_config_line "GLIDEIN_INITIALIZED" "1"
-
 log_write "glidein_startup.sh" "text" "Starting the glidein main script" "info"
 log_write "glidein_startup.sh" "file" "${glidein_config}" "debug"
 send_logs_to_remote          # checkpoint
@@ -573,7 +588,6 @@ fi
 last_startup_end_time=$(date +%s)
 "${main_dir}"/error_augment.sh  -process ${ret} "${last_script}" "${PWD}" "${gs_id_work_dir}/${last_script} glidein_config" "${last_startup_time}" "${last_startup_end_time}"
 "${main_dir}"/error_augment.sh -concat
-
 let last_script_time=${last_startup_end_time}-${last_startup_time}
 echo "=== Last script ended $(date) (${last_startup_end_time}) with code ${ret} after ${last_script_time} ==="
 echo
@@ -581,6 +595,7 @@ if [ ${ret} -ne 0 ]; then
     log_warn "Error running '${last_script}'"
 fi
 
+#############################
 #Things like periodic scripts might put messages here if they want them printed in the (stderr) logfile
 echo "=== Exit messages left by periodic scripts ===" 1>&2
 if [ -f exit_message ]; then

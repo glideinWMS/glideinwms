@@ -4,7 +4,7 @@
 #   1: file name
 #   2: option (quiet)
 # Returns:
-#   1 un case the md5sum cannot be calculated, or neither the md5sum nor the md5 can be found
+#   1 in case the md5sum cannot be calculated, or neither the md5sum nor the md5 can be found
 md5wrapper() {
     local ERROR_RESULT="???"
     local ONLY_SUM

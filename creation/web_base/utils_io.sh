@@ -106,6 +106,8 @@ usage() {
 
 ################################
 # Function used to print initial information header
+# Parameters:
+#   @: shell parameters
 # Global:
 #   startup_time
 print_header(){
