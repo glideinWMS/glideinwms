@@ -154,8 +154,6 @@ add_tabs(){
 # Global:
 #   xml
 #   end_xml
-# Returns:
-#   xml
 create_xml(){
     xml="<?xml version=\"1.0\"?>"
     end_xml=""

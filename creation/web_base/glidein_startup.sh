@@ -331,7 +331,7 @@ while [ $# -gt 0 ]
         -multiglidein)  multi_glidein="$2";;
         -multirestart)  multi_glidein_restart="$2";;
         -param_*)    params="$params $(echo "$1" | awk '{print substr($0,8)}') $2";;
-        *)  (log_warn "Unknown option $1"; usage) 1>&2; exit 1
+        *)  (log_warn "Unknown option $1"; usage; exit 1) 1>&2; exit 1
     esac
     shift 2
 done  
