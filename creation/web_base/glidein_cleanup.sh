@@ -1,3 +1,6 @@
+################################
+# Global variables of support to the glidein cleanup
+
 work_dir_created=0
 glide_local_tmp_dir_created=0
 
@@ -33,6 +36,13 @@ glidien_cleanup() {
 # too bad we end up with some repeated code, but difficult to do better
 # Arguments:
 #   1: error message
+# Global:
+#   error_msg
+#   glidein_end_time
+#   result
+#   final_result
+#   final_result_simple
+#   final_result_long
 early_glidein_failure() {
   #result = "<metric name=\"failure\" ts=\"%s\" uri=\"local\">%s</metric>
   #                 </result>
@@ -62,6 +72,21 @@ early_glidein_failure() {
 # too bad we end up with some repeated code, but difficult to do better
 # Arguments:
 #   1: exit code
+# Global:
+#   exit_code
+#   global_result
+#   ge_last_script_name
+#   result
+#   final_result
+#   final_result_simple
+#   final_result_long
+#   report_failed
+#   factory_report_failes
+#   factory_collector
+#   do_report
+#   dlf
+#   condor_vars_file
+#   main_work_dir
 glidein_exit() {
   exit_code=$1
   # Removed lines about $lock_file (lock file for whole machine) not present elsewhere

@@ -1,5 +1,12 @@
 ################################
 # Function used to automatically determine and setup work directories
+# Globals:
+#   targets
+#   disk_required
+#   free
+#   work_dir
+# Returns:
+#   1 in case you are not allowed to write
 automatic_work_dir() {
     declare -a targets=("${_CONDOR_SCRATCH_DIR}"
                         "${OSG_WN_TMP}"
@@ -59,52 +66,31 @@ dir_id() {
     echo "${dir_id}_"
 }
 
-########################################
-# Function used to make sure nobody else can write my files
-# In the Grid world I cannot trust anybody
-check_umask(){
-    if ! umask 0022; then
-        early_glidein_failure "Failed in umask 0022"
-    fi
-}    
-
-###########################################
-# Function used to check the file signature
-check_file_signature() {
-    cfs_id="$1"
-    cfs_fname="$2"
-    cfs_work_dir="$(get_work_dir "${cfs_id}")"
-    cfs_desc_fname="${cfs_work_dir}/${cfs_fname}"
-    cfs_signature="${cfs_work_dir}/signature.sha1"
-    if [ "${check_signature}" -gt 0 ]; then # check_signature is global for simplicity
-        tmp_signname="${cfs_signature}_$$_$(date +%s)_${RANDOM}"
-        if ! grep " ${cfs_fname}$" "${cfs_signature}" > "${tmp_signname}"; then
-            rm -f "${tmp_signname}"
-            echo "No signature for ${cfs_desc_fname}." 1>&2
-        else
-            (cd "${cfs_work_dir}" && sha1sum -c "${tmp_signname}") 1>&2
-            cfs_rc=$?
-            if [ ${cfs_rc} -ne 0 ]; then
-                "${main_dir}"/error_augment.sh -init
-                "${main_dir}"/error_gen.sh -error "check_file_signature" "Corruption" "File $cfs_desc_fname is corrupted." "file" "${cfs_desc_fname}" "source_type" "${cfs_id}"
-                "${main_dir}"/error_augment.sh  -process ${cfs_rc} "check_file_signature" "${PWD}" "sha1sum -c ${tmp_signname}" "$(date +%s)" "(date +%s)"
-                "${main_dir}"/error_augment.sh -concat
-                log_warn "File ${cfs_desc_fname} is corrupted."
-                rm -f "${tmp_signname}"
-                return 1
-            fi
-            rm -f "${tmp_signname}"
-            echo "Signature OK for ${cfs_id}:${cfs_fname}." 1>&2
-        fi
-    fi
-    return 0
-}
-
 ###########################################
 # Function used to prepare and move to the work directory
 # Replace known keywords: Condor, CONDOR, OSG, TMPDIR, AUTO, .
 # Empty $work_dir means PWD (same as ".")
 # A custom path could be provided (no "*)" in case)
+# Globals:
+#   work_dir
+#   start_dir
+#   def_work_dir
+#   work_dir_created
+#   GWMS_DIR
+#   gwms_lib_dir
+#   gwms_bin_dir
+#   gwms_exec_dir
+#   def_glide_local_tmp_dir
+#   glide_local_tmp_dir_created
+#   glide_tmp_dir
+#   short_main_dir
+#   main_dir
+#   short_entry_dir
+#   entry_dir
+#   short_client_dir
+#   client_dir
+#   short_client_group_dir
+#   client_group_dir
 prepare_workdir(){
     if [ -z "${work_dir}" ]; then
         work_dir="$(pwd)"

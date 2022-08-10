@@ -3,6 +3,8 @@
 # Arguments:
 #   1: file name
 #   2: option (quiet)
+# Returns:
+#   1 un case the md5sum cannot be calculated, or neither the md5sum nor the md5 can be found
 md5wrapper() {
     local ERROR_RESULT="???"
     local ONLY_SUM
@@ -31,8 +33,55 @@ md5wrapper() {
     echo "${res}" # result returned on stdout
 }
 
+###########################################
+# Function used to check the file signature
+# Arguments:
+#   1: id
+#   2: file name
+# Globals:
+#   cfs_id
+#   cfs_fname
+#   cfs_work_dir
+#   cfs_desc_fname
+#   cfs_signature
+#   cfs_rc
+#   tmp_signname
+# Returns:
+#   1 in case of corrupted file
+check_file_signature() {
+    cfs_id="$1"
+    cfs_fname="$2"
+    cfs_work_dir="$(get_work_dir "${cfs_id}")"
+    cfs_desc_fname="${cfs_work_dir}/${cfs_fname}"
+    cfs_signature="${cfs_work_dir}/signature.sha1"
+    if [ "${check_signature}" -gt 0 ]; then # check_signature is global for simplicity
+        tmp_signname="${cfs_signature}_$$_$(date +%s)_${RANDOM}"
+        if ! grep " ${cfs_fname}$" "${cfs_signature}" > "${tmp_signname}"; then
+            rm -f "${tmp_signname}"
+            echo "No signature for ${cfs_desc_fname}." 1>&2
+        else
+            (cd "${cfs_work_dir}" && sha1sum -c "${tmp_signname}") 1>&2
+            cfs_rc=$?
+            if [ ${cfs_rc} -ne 0 ]; then
+                "${main_dir}"/error_augment.sh -init
+                "${main_dir}"/error_gen.sh -error "check_file_signature" "Corruption" "File $cfs_desc_fname is corrupted." "file" "${cfs_desc_fname}" "source_type" "${cfs_id}"
+                "${main_dir}"/error_augment.sh  -process ${cfs_rc} "check_file_signature" "${PWD}" "sha1sum -c ${tmp_signname}" "$(date +%s)" "(date +%s)"
+                "${main_dir}"/error_augment.sh -concat
+                log_warn "File ${cfs_desc_fname} is corrupted."
+                rm -f "${tmp_signname}"
+                return 1
+            fi
+            rm -f "${tmp_signname}"
+            echo "Signature OK for ${cfs_id}:${cfs_fname}." 1>&2
+        fi
+    fi
+    return 0
+}
+
 ########################################
 # Function used to set the X509_USER_PROXY path to full path to the file
+# Environment variables exported:
+#   X509_USER_PROXY
 set_proxy_fullpath() {
     if fullpath="$(readlink -f "${X509_USER_PROXY}")"; then
         echo "Setting X509_USER_PROXY ${X509_USER_PROXY} to canonical path ${fullpath}" 1>&2
@@ -42,35 +91,3 @@ set_proxy_fullpath() {
     fi
 }
 
-#TODO(F): check if all together is ok
-########################################
-# Function used to set the tokens
-set_proxy(){
-    [ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
-    num_gct=0
-    
-    for tk in "$(pwd)/credential_"*".idtoken"; do
-      echo "Setting GLIDEIN_CONDOR_TOKEN to ${tk} " 1>&2
-      num_gct=$(( num_gct + 1 ))
-      export GLIDEIN_CONDOR_TOKEN="${tk}"
-      fullpath="$(readlink -f "${tk}" )"
-      if [ $? -eq 0 ]; then
-         echo "Setting GLIDEIN_CONDOR_TOKEN ${tk} to canonical path ${fullpath}" 1>&2
-         export GLIDEIN_CONDOR_TOKEN="${fullpath}"
-      else
-         echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN ${tk}" 1>&2
-      fi
-    done
-    if [ ! -f "${GLIDEIN_CONDOR_TOKEN}" ] ; then
-        token_err_msg="problem setting GLIDEIN_CONDOR_TOKEN"
-        token_err_msg="${token_err_msg} will attempt to recover, but condor IDTOKEN auth may fail"
-        echo "${token_err_msg}"
-        echo "${token_err_msg}" 1>&2
-    fi
-    if [ ! "${num_gct}" -eq  1 ] ; then
-        token_err_msg="WARNING  GLIDEIN_CONDOR_TOKEN set ${num_gct} times, should be 1 !"
-        token_err_msg="${token_err_msg} condor IDTOKEN auth may fail"
-        echo "${token_err_msg}"
-        echo "${token_err_msg}" 1>&2
-    fi
-}

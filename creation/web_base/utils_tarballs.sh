@@ -27,6 +27,8 @@ list_data() {
 
 #######################################
 # Extract and source all the tarball files
+# Global:
+#   IFS
 extract_all_data() {
     local -a files
     # change separator to split the output file list from 'tar tz' command
@@ -48,6 +50,15 @@ extract_all_data() {
 # Arguments:
 #   1: id
 #   2: filename
+# Global:
+#   gus_id
+#   gus_fname
+#   gus_prefix
+#   gus_config_cfg
+#   gus_config_file
+#   gus_dir
+# Returns:
+#   0 in case of success, otherwise glidein_exit with 1
 get_untar_subdir() {
     gus_id="$1"
     gus_fname="$2"

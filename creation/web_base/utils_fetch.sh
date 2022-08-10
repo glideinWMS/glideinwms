@@ -1,6 +1,9 @@
 ############################################
-# get the proper descript file based on id
-# Arg: type (main/entry/client/client_group)
+# Function that gets the proper descript file based on id
+# Arguments:
+#   1: type (main/entry/client/client_group)
+# Returns:
+#   1 in case of invalid ID
 get_repository_url() {
     case "$1" in
         main) echo "${repository_url}";;
@@ -16,11 +19,19 @@ get_repository_url() {
 #####################
 # Periodic execution support function and global variable
 add_startd_cron_counter=0
+
+#####################
+# Function that schedules a script for periodic execution using startd_cron
+# Arguments:
+#   1: wrapper full path
+#   2: period
+#   3: cwd
+#   4: executable path (from cwd),
+#   5: config file path (from cwd)
+#   6: ID
+# Globals:
+#   add_startd_cron_counter
 add_periodic_script() {
-    # schedules a script for periodic execution using startd_cron
-    # parameters: wrapper full path, period, cwd, executable path (from cwd),
-    # config file path (from cwd), ID
-    # global variable: add_startd_cron_counter
     #TODO: should it allow for variable number of parameters?
     local include_fname=condor_config_startd_cron_include
     local s_wrapper="$1"
@@ -59,25 +70,31 @@ EOF
     add_config_line "# --- Lines starting with ${s_cc_prefix} are from periodic scripts ---"
 }
 
-#####################
-# Fetch a single file
-#
+############################################
+# Function that fetches a single regular file
 # Check cWDictFile/FileDictFile for the number and type of parameters (has to be consistent)
 fetch_file_regular() {
     fetch_file "$1" "$2" "$2" "regular" 0 "GLIDEIN_PS_" "TRUE" "FALSE"
 }
 
+############################################
+# Function that fetches a single file
+# custom_scripts parameters format is set in the GWMS configuration (creation/lib)
+# Check cWDictFile/FileDictFile for the number and type of parameters (has to be consistent)
+# Arguments:
+#   1: ID
+#   2: target fname
+#   3: real fname
+#   4: file type (regular, exec, exec:s, untar, nocache)
+#   5: period (0 if not a periodic file)
+#   6: periodic scripts prefix
+#   7: config check TRUE,FALSE
+#   8: config out TRUE,FALSE
+# The above is the most recent list, below some adaptations for different versions
+# Returns:
+#   0 in case of success
+#   otherwise glidein_exit with 1
 fetch_file() {
-    # custom_scripts parameters format is set in the GWMS configuration (creation/lib)
-    # 1. ID
-    # 2. target fname
-    # 3. real fname
-    # 4. file type (regular, exec, exec:s, untar, nocache)
-    # 5. period (0 if not a periodic file)
-    # 6. periodic scripts prefix
-    # 7. config check TRUE,FALSE
-    # 8. config out TRUE,FALSE
-    # The above is the most recent list, below some adaptations for different versions
     if [ $# -gt 8 ]; then
         # For compatibility w/ future versions (add new parameters at the end)
         echo "More then 8 arguments, considering the first 8 ($#/${ifs_str}): $*" 1>&2
@@ -112,15 +129,36 @@ fetch_file() {
     return 0
 }
 
+############################################
+# Function that verifies if the file should be downloaded and acted upon (extracted, executed, ...) or not
+# There are 2 mechanisms to control the download
+# 1. tar files have the attribute "cond_attr" that is a name of a variable in glidein_config.
+#    if the named variable has value 1, then the file is downloaded. TRUE (default) means always download
+#    even if the mechanism is generic, there is no way to specify "cond_attr" for regular files in the configuration
+# 2. if the file name starts with "gconditional_AAA_", the file is downloaded only if a variable GLIDEIN_USE_AAA
+#    exists in glidein_config and the value is not empty
+# Both conditions are checked. If either one fails the file is not downloaded
+# Arguments:
+#   1: ID
+#   2: target fname
+#   3: real fname
+#   4: file type (regular, exec, exec:s, untar, nocache)
+#   5: period (0 if not a periodic file)
+#   6: periodic scripts prefix
+#   7: config check TRUE,FALSE
+#   8: config out TRUE,FALSE
+# Globals:
+#   fft_id
+#   fft_target_fname
+#   fft_real_fname
+#   fft_file_type
+#   fft_period
+#   fft_cc_prefix
+#   fft_config_check
+#   fft_config_out
+# Returns:
+#   0 in case of success
 fetch_file_try() {
-    # Verifies if the file should be downloaded and acted upon (extracted, executed, ...) or not
-    # There are 2 mechanisms to control the download
-    # 1. tar files have the attribute "cond_attr" that is a name of a variable in glidein_config.
-    #    if the named variable has value 1, then the file is downloaded. TRUE (default) means always download
-    #    even if the mechanism is generic, there is no way to specify "cond_attr" for regular files in the configuration
-    # 2. if the file name starts with "gconditional_AAA_", the file is downloaded only if a variable GLIDEIN_USE_AAA
-    #    exists in glidein_config and the value is not empty
-    # Both conditions are checked. If either one fails the file is not downloaded
     fft_id="$1"
     fft_target_fname="$2"
     fft_real_fname="$3"
@@ -153,9 +191,43 @@ fetch_file_try() {
     # returning the exit code of fetch_file_base
 }
 
-
+############################################
+# Function that performs the file download and corresponding action (untar, execute, ...)
+# Arguments:
+#   1: ID
+#   2: target fname
+#   3: real fname
+#   4: file type (regular, exec, exec:s, untar, nocache)
+#   5: config out TRUE,FALSE
+#   5: period (0 if not a periodic file)
+#   6: periodic scripts prefix
+# Globals:
+#   ffb_id
+#   ffb_target_fname
+#   ffb_real_fname
+#   ffb_file_type
+#   ffb_period
+#   ffb_cc_prefix
+#   ffb_config_out
+#   ffb_work_dir
+#   ffb_repository
+#   ffb_tmp_outname
+#   ffb_short_untar_dir
+#   ffb_untar_dir
+#   ffb_outname
+#   have_dummy_otrx
+#   user_agent
+#   ffb_url
+#   curl_version
+#   curl_args
+#   wget_version
+#   wget_args
+#   fetch_completed
+# Returns:
+#   1 in case the error is already displayed inside the function,
+#   in case of tarring, in case of failure in renaming it, 
+#   of making it executable, or executing it
 fetch_file_base() {
-    # Perform the file download and corresponding action (untar, execute, ...)
     ffb_id="$1"
     ffb_target_fname="$2"
     ffb_real_fname="$3"
