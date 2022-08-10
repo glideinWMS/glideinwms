@@ -113,7 +113,7 @@ print_header(){
     startup_time="$(date +%s)"
     echo "Starting glidein_startup.sh at $(date) (${startup_time})"
     local md5wrapped
-    md5wrapped = $(md5wrapper "$0")
+    md5wrapped=$(md5wrapper "$0")
     retVal=$?
     if [ $retVal -ne 0 ]; then
         echo "Error on the md5wrapper"
