@@ -100,7 +100,6 @@ usage() {
     echo "  -multiglidein <num>         : spawn multiple (<num>) glideins (unless also multirestart is set)"
     echo "  -multirestart <num>         : started as one of multiple glideins (glidein number <num>)"
     echo "  -param_* <arg>              : user specified parameters"
-    exit 1 #TODO(F): why?
 }
 
 ################################
@@ -113,7 +112,7 @@ print_header(){
     startup_time="$(date +%s)"
     echo "Starting glidein_startup.sh at $(date) (${startup_time})"
     local md5wrapped
-    md5wrapped=$(md5wrapper "$0")
+    md5wrapped="$(md5wrapper "$0")"
     retVal=$?
     if [ $retVal -ne 0 ]; then
         echo "Error on the md5wrapper"

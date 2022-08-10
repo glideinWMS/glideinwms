@@ -168,6 +168,7 @@ fetch_file() {
 #   fft_config_out
 # Returns:
 #   0 in case of success
+#   otherwise it returns the exit code of fetch_file_base
 fetch_file_try() {
     fft_id="$1"
     fft_target_fname="$2"
@@ -198,6 +199,7 @@ fetch_file_try() {
     fi
 
     fetch_file_base "${fft_id}" "${fft_target_fname}" "${fft_real_fname}" "${fft_file_type}" "${fft_config_out}" "${fft_period}" "${fft_cc_prefix}"
+    return $?
     # returning the exit code of fetch_file_base
 }
 
