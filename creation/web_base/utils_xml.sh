@@ -11,19 +11,7 @@ construct_xml() {
   tStart="$(date --date=@"${startup_time}" +%Y-%m-%dT%H:%M:%S%:z)"
   tEnd="$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)"
   create_xml OSG --id glidein_startup.sh { oe { e --name cwd "${start_dir}" } t { c "${cmd}" tS "${tStart}" tE "${tEnd}" } "${result}" }
-  #echo -e $result
-  #echo "<?xml version=\"1.0\"?>
-  #<OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">
-  #  <operatingenvironment>
-  #    <env name=\"cwd\">${start_dir}</env>
-  #  </operatingenvironment>
-  #  <test>
-  #    <cmd>$0 ${GLOBAL_ARGS}</cmd>
-  #    <tStart>$(date --date=@"${startup_time}" +%Y-%m-%dT%H:%M:%S%:z)</tStart>
-  #    <tEnd>$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
-  #  </test>
-  #${result}
-  #</OSGTestResult>"
+  echo -e "$result"
 }
 
 ################################
