@@ -41,8 +41,8 @@ import jwt
 from M2Crypto.RSA import RSAError
 
 from glideinwms.factory import (
+    credentialClass,
     glideFactoryConfig,
-    glideFactoryCredentials,
     glideFactoryDowntimeLib,
     glideFactoryEntryGroup,
     glideFactoryInterface,
@@ -653,14 +653,14 @@ def spawn(
             # available when the Entries startup
             classads = {}
             try:
-                classads = glideFactoryCredentials.get_globals_classads()
+                classads = credentialClass.get_globals_classads()
             except Exception:
                 logSupport.log.error("Error occurred retrieving globals classad -- is Condor running?")
 
             for classad_key in classads:
                 classad = classads[classad_key]
                 try:
-                    glideFactoryCredentials.process_global(classad, glideinDescript, frontendDescript)
+                    credentialClass.process_global(classad, glideinDescript, frontendDescript)
                 except:
                     logSupport.log.exception("Error occurred processing the globals classads: ")
 

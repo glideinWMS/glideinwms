@@ -12,7 +12,7 @@ import sys
 
 from glideinwms.creation.lib.factoryXmlConfig import parse
 from glideinwms.factory import glideFactoryConfig as gfc
-from glideinwms.factory.glideFactoryCredentials import SubmitCredentials, validate_frontend
+from glideinwms.factory.credentialClass import SubmitCredentials, validate_frontend
 from glideinwms.factory.glideFactoryLib import (
     ClientWeb,
     escapeParam,
