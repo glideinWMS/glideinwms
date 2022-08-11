@@ -167,7 +167,7 @@ create_xml(){
     declare -i spaces=0;
     if [[ $1 == "-h" ]]
         then
-            result="<?xml version=\"1.0\"?>\n"
+            result="<?xml version=\"1.0\"?>"
             return 0
     fi
     if [[ $1 == "-t" ]]
