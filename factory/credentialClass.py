@@ -56,7 +56,7 @@ class Credential(ABC):
 
     @classmethod
     @abstractmethod
-    def get_cred_type():
+    def get_cred_type(self):
         pass
 
     # Next Methods - Get?
@@ -85,7 +85,7 @@ class scitoken(Credential):
         self.update_frequency = update_freq
 
     @classmethod
-    def get_cred_type():
+    def get_cred_type(self):
         return "scitoken"
 
 
@@ -104,7 +104,7 @@ class grid_proxy(Credential):
         self.update_frequency = update_freq
 
     @classmethod
-    def get_cred_type():
+    def get_cred_type(self):
         return "grid_proxy"
 
 
@@ -124,7 +124,7 @@ class cert_pair(Credential):
         self.update_frequency = update_freq
 
     @classmethod
-    def get_cred_type():
+    def get_cred_type(self):
         return "cert_pair"
 
 
@@ -158,7 +158,7 @@ class key_pair(Credential):
         self.rem_user = rem_user
 
     @classmethod
-    def get_cred_type():
+    def get_cred_type(self):
         return "key_pair"
 
 
@@ -180,7 +180,7 @@ class username_password(Credential):
         self.update_frequency = update_freq
 
     @classmethod
-    def get_cred_type():
+    def get_cred_type(self):
         return "username_password"
 
 
@@ -199,7 +199,7 @@ class auth_file(Credential):
         self.update_frequency = update_freq
 
     @classmethod
-    def get_cred_type():
+    def get_cred_type(self):
         return "auth_file"
 
 
