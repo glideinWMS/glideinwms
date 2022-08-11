@@ -236,8 +236,8 @@ do case "$1" in
     -multiglidein)  multi_glidein="$2";;
     -multirestart)  multi_glidein_restart="$2";;
     -traceid)                   glidein_trace_id="$2";;
-    -jaegerServiceName)         service_name="$2";;
-    -jaegerCollectorEndpoint)   collector_endpoint="$2";;
+    -jaegerservicename)         service_name="$2";;
+    -jaegecollectorendpoint)   collector_endpoint="$2";;
     -param_*)    params="$params $(echo "$1" | awk '{print substr($0,8)}') $2";;
     *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
 esac

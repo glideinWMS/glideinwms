@@ -5,7 +5,9 @@
 # a Tracer and Trace class to give Glidein's unique TRACE_ID
 # and methods to send child spans or print the TRACE_ID of Glidein
 import os
-
+# fmt: off
+os.environ["OTEL_PROPAGATORS"] = "jaeger" 
+# fmt: on
 from opentelemetry import propagate, trace
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.sdk.resources import Resource, SERVICE_NAME
@@ -13,17 +15,15 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
-os.environ["OTEL_PROPAGATORS"] = "jaeger"
 
 
 # Global variables to establish tracing to Jaeger
 # ideally, these are read from the environment and have defaults (ex: server = "localhost", port = 6831)
-jaeger_service = "glidein"
 jaeger_collector_endpoint = "http://fermicloud296.fnal.gov:14268/api/traces?format=jaeger.thrift"
 
 
 class Tracer:
-    def __init__(self, collector_endpoint):
+    def __init__(self, collector_endpoint, jaeger_service_name="glidein"):
         """Initializes a tracer with OpenTelemetry and Jaeger when operated in the GlideinWMS Factory
 
         Args:
@@ -36,12 +36,15 @@ class Tracer:
             carrier = the injected SpanContext to be used to propogate child spans
         """
         self.collector_endpoint = collector_endpoint
+        self.jaeger_service_name = jaeger_service_name
         self.GLIDEIN_TRACE_ID = None
         self.tracer = None
         self.carrier = None
 
-    def initial_trace(self):
-        trace.set_tracer_provider(TracerProvider(resource=Resource.create({SERVICE_NAME: jaeger_service})))
+    def initial_trace(self,tags={}):
+        self.tags = tags
+        
+        trace.set_tracer_provider(TracerProvider(resource=Resource.create({SERVICE_NAME: self.jaeger_service_name})))
 
         self.tracer = trace.get_tracer(__name__)
 
@@ -51,9 +54,9 @@ class Tracer:
 
         self.carrier = {}  # used to propogate spanContext to child spans
 
-        with self.tracer.start_as_current_span(
-            "parent"
-        ) as parent:  # this is the parent span for each submitted glidein
+        with self.tracer.start_as_current_span("parent") as parent: # this is the parent span for each submitted glidein
+            for key,value in self.tags.items():
+                parent.set_attribute(key,value)
             TraceContextTextMapPropagator().inject(carrier=self.carrier)
             c = {}
             propagate.inject(c)
@@ -94,7 +97,7 @@ class Trace:
 
 def main():  # use classes above to initialize a tracer and send a span and print trace id
     T = Tracer(jaeger_collector_endpoint)
-    T.initial_trace()
+    T.initial_trace({"entry":"entry_name","client":"client_name"})
     print(T.GLIDEIN_TRACE_ID)
     t = Trace(T.tracer, T.carrier)
     print(t.GLIDEIN_SPAN_ID)

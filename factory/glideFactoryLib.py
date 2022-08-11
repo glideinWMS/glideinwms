@@ -1694,11 +1694,14 @@ def submitGlideins(
                     nr_to_submit = factoryConfig.max_cluster_size
 
                 # Initialize GlideIn Trace
-                T = glideinTracer.Tracer(jaeger_collector_endpoint)
-                T.initial_trace()
-                trace_id = T.GLIDEIN_TRACE_ID
+                t = glideinTracer.Tracer(jaeger_collector_endpoint)
+                t.initial_trace({"entry":entry_name, "client":client_name})
+                trace_id = t.GLIDEIN_TRACE_ID
 
-                sub_env.append("GLIDEIN_TRACE_ID=%s" % trace_id)
+                for i in range(len(entry_env)):
+                    if entry_env[i].startswith("GLIDEIN_ARGUMENTS="):
+                        entry_env[i] += f" -traceid {trace_id} -jaegercollectorendpoint {jaeger_collector_endpoint} -jaegerservicename {t.jaeger_service_name}"
+
                 sub_env.append("GLIDEIN_COUNT=%s" % nr_to_submit)
                 sub_env.append("GLIDEIN_FRONTEND_NAME=%s" % frontend_name)
                 sub_env.append("GLIDEIN_ENTRY_SUBMIT_FILE=%s" % submit_file)
