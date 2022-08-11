@@ -42,11 +42,14 @@ early_glidein_failure() {
   sleep "${sleep_time}"
   # wait a bit in case of error, to reduce lost glideins
   glidein_end_time="$(date +%s)"
-  result="    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">WN_RESOURCE</metric>
-    <status>ERROR</status>
-    <detail>
-     ${error_msg}
-    </detail>"
+  ts="$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)"
+  create_xml metric --name failure --ts "$ts" --uri local WN_RESOURCE status ERROR detail ${error_msg}
+  #result 
+  #result="    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">WN_RESOURCE</metric>
+  #  <status>ERROR</status>
+  #  <detail>
+  #   ${error_msg}
+  #  </detail>"
   final_result="$(construct_xml "${result}")"
   final_result_simple="$(basexml2simplexml "${final_result}")"
   # have no global section
