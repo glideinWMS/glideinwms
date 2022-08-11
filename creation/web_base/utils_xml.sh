@@ -11,7 +11,7 @@ construct_xml() {
   tStart="$(date --date=@"${startup_time}" +%Y-%m-%dT%H:%M:%S%:z)"
   tEnd="$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)"
   create_xml OSG --id glidein_startup.sh { operatingenvironment { env --name cwd "${start_dir}" } test { cmd "${cmd}" tStart "${tStart}" tEnd "${tEnd}" } "${result}" }
-  echo -e $result
+  #echo -e $result
   #echo "<?xml version=\"1.0\"?>
   #<OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">
   #  <operatingenvironment>
@@ -58,9 +58,12 @@ extract_parent_xml_detail() {
       # file exists and is not 0 size
       last_result="$(cat otrx_output.xml)"
       if [ "${exitcode}" -eq 0 ]; then
+          echo "my version"
+          create_xml result { status OK }
           echo "  <result>"
           echo "    <status>OK</status>"
           #propagate metrics as well
+          echo "previous version"
           echo "${last_result}" | grep '<metric '
           echo "  </result>"
       else
@@ -148,7 +151,7 @@ simplexml2longxml() {
 add_tabs(){
   for (( c=1; c<=tabs; c++ ))
       do
-        xml+="\t"
+        xml+=" "
       done
 }
 
@@ -157,13 +160,14 @@ add_tabs(){
 # Arguments:
 #   @: tags, options, values
 # Global:
+#   spaces
 #   xml
 #   end_xml
 #   result
 create_xml(){
     xml="<?xml version=\"1.0\"?>"
     end_xml=""
-    declare -i tabs=0;
+    declare -i spaces=0;
     until [ $# -lt 1 ]
     do
         xml+="\n"
@@ -276,12 +280,11 @@ create_xml(){
                         add_tabs
                         xml+=$output
                         end_xml=${end_xml#"$output"};;
-            *)  add_tabs
-                xml+=$1;;
+            *)  xml+=$1;;
         esac
         shift 1
     done
-    #echo -e "$xml"
+    echo -e "$xml"
     result=$xml
     #return xml
 }
