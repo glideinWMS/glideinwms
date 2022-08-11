@@ -260,6 +260,7 @@ fetch_file_base() {
     date=$(date +%Y-%m-%dT%H:%M:%S%:z)
     create_xml OSG --id fetch_file_base { oe { e --name cwd "${PWD}" } t { c Unknown tStart "${date}" tEnd "${date}" } r { s ERROR m --name failure --ts "${date}" --uri local Unknown m --name source_type --ts "${date}" --uri local "${ffb_id}" } d "An unknown error occurred." }
     echo "breakpoint1"
+    echo -e "$result"
     echo -e "$result" > otrx_output.xml
     
 #    echo "<?xml version=\"1.0\"?>
@@ -659,6 +660,7 @@ perform_curl() {
         create_xml -h
         echo $result > otrx_output.xml
         echo "breakpoint4"
+        echo -e $result
         echo -e otrx_output.xml
         cat otrb_output.xml >> otrx_output.xml
         rm -f otrb_output.xml
