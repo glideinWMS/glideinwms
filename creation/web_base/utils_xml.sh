@@ -58,12 +58,9 @@ extract_parent_xml_detail() {
       # file exists and is not 0 size
       last_result="$(cat otrx_output.xml)"
       if [ "${exitcode}" -eq 0 ]; then
-          echo "my version"
-          create_xml result { status OK }
           echo "  <result>"
           echo "    <status>OK</status>"
           #propagate metrics as well
-          echo "previous version"
           echo "${last_result}" | grep '<metric '
           echo "  </result>"
       else
