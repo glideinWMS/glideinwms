@@ -520,8 +520,7 @@ perform_wget() {
         create_xml -s 1 d "Failed to load file '${ffb_real_fname}' from '${ffb_repository}' using proxy '${proxy_url}'.  ${wget_resp}"
         xmlResult+=$result
         create_xml -t
-        xmlResult+=$result
-        xmlResult+="\n</OSGTestResult>"    
+        xmlResult+=$result 
         echo "breakpoint3"
         echo -e "$xmlResult" 
         echo -e "$xmlResult" > otrb_output.xml
@@ -556,7 +555,8 @@ perform_wget() {
             touch otr_outlist.list
         fi
         cat otrb_output.xml >> otr_outlist.list
-        echo "<?xml version=\"1.0\"?>" > otrx_output.xml
+        create_xml -h
+        echo $result > otrx_output.xml
         cat otrb_output.xml >> otrx_output.xml
         rm -f otrb_output.xml
         chmod a-w otr_outlist.list
@@ -659,9 +659,6 @@ perform_curl() {
         cat otrb_output.xml >> otr_outlist.list
         create_xml -h
         echo $result > otrx_output.xml
-        echo "breakpoint4"
-        echo -e $result
-        echo -e otrx_output.xml
         cat otrb_output.xml >> otrx_output.xml
         rm -f otrb_output.xml
         chmod a-w otr_outlist.list
