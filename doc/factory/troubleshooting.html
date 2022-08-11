@@ -269,7 +269,7 @@ SPDX-License-Identifier: Apache-2.0
             ><font color="chocolate"
               >my_identity="frontend_identity@myfactory.example.org"</font
             ></strong
-          >
+          > ...
           <br />
           &lt;security
           <strong
@@ -279,11 +279,11 @@ SPDX-License-Identifier: Apache-2.0
           >
           proxy_DN="<font color="crimson">
             <strong
-              >/DC=org/DC=doegrids/OU=Services/CN=glidein/myfactory.example.org</strong
+              >/DC=org/DC=doegrids/OU=Services/CN=glidein/myfrontend\.example\.org</strong
             > </font
-          >"<br />
-          &lt;credential type="grid_proxy"
-          <font color="dodgerblue">security_class="frontend"</font><br /><br />
+          >" ... <br />
+             &lt;credential type="grid_proxy"
+          <font color="dodgerblue">security_class="frontend"</font> ... <br /><br />
 
           <u>Factory config</u> (on myfactory.example.org) <br />
           &lt;frontend<font color="darkcyan">
@@ -302,11 +302,12 @@ SPDX-License-Identifier: Apache-2.0
           myfrontend.example.org and myfactory.example.org)<br />
           GSI " <strong>^</strong>
           <font color="crimson">
-            <strong
-              >\/DC\=org\/DC\=doegrids\/OU\=Services\/CN\=glidein\/myfactory\.fnal\.gov$</strong
-            > </font
-          >" <strong><font color="coral">frontend_identity</font></strong>
-        </blockquote>
+            <strong>\/DC\=org\/DC\=doegrids\/OU\=Services\/CN\=glidein\/myfactory\.example\.org$</strong> </font>"
+          <font color="coral"><strong>factory_identity</strong></font>
+          <font color="crimson">
+            <strong>\/DC\=org\/DC\=doegrids\/OU\=Services\/CN\=glidein\/myfrontend\.example\.org$</strong> </font>"
+          <font color="coral"><strong>frontend_identity</strong></font>
+         </blockquote>
 
         For a visual representation of the JWT configuration that must match,
         see the below:
