@@ -1,11 +1,14 @@
 #!/bin/bash -x
+
 #*******************************************************************#
 #                      glidein_startup.sh                           #
-#     SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC     #
-#              SPDX-License-Identifier: Apache-2.0                  #
-#                      File Version:                                 #
+#  Script containing the variables and fuctions used as support     #
+#   for the glidein startup. The script load the content of         #
+#             glidein_cleanup and other utility functions           #
+#                      File Version: 1.0                            #
 #*******************************************************************#
-
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
 
 ################################
 # Default IFS, to protect against unusual environment

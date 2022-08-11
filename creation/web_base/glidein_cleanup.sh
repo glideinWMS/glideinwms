@@ -1,3 +1,13 @@
+
+#*******************************************************************#
+#                      glidein_cleanup.sh                           #
+#   Script containing the variables and functions used to support   #
+#        the glidein cleanup, failure and exit operations           # 
+#                      File Version: 1.0                            #
+#*******************************************************************#
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 ################################
 # Global variables of support to the glidein cleanup operations
 work_dir_created=0

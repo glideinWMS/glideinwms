@@ -1,3 +1,11 @@
+#*******************************************************************#
+#                        utils_crypto.sh                            #
+#       This script contains parameters utility functions           #
+#                      File Version: 1.0                            #
+#*******************************************************************#
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 ################################
 # Parameters utility functions
 

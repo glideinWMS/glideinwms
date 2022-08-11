@@ -1,3 +1,12 @@
+#*******************************************************************#
+#                    utils_gs_filesystem.sh                         #
+#       This script contains filesystem utility functions for       #
+#                 the glidein_startup.sh script                     #
+#                      File Version: 1.0                            #
+#*******************************************************************#
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 ################################
 # Function used to automatically determine and setup work directories
 # Globals:

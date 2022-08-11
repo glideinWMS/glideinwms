@@ -1,3 +1,11 @@
+#*******************************************************************#
+#                            utils_io.sh                            #
+#              This script contains I/O utility functions           #
+#                      File Version: 1.0                            #
+#*******************************************************************#
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 ################################
 # Function used to log warning statements
 # Arguments:
