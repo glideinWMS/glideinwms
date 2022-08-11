@@ -1,3 +1,12 @@
+#*******************************************************************#
+#                        utils_gs_io.sh                             #
+#       This script contains I/O utility functions for the          #
+#                 glidein_startup.sh script                         #                     
+#                      File Version: 1.0                            #
+#*******************************************************************#
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 ################################
 # Function used to print the tail with the final results of the glideins
 # Arguments:

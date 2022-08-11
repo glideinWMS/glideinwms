@@ -1,3 +1,11 @@
+#*******************************************************************#
+#                        utils_signals.sh                           #
+#       This script contains signals utility functions              #
+#                      File Version: 1.0                            #
+#*******************************************************************#
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 ################################
 # Extends 'trap' allowing to pass the signal name as argument to the handler
 # Arguments:

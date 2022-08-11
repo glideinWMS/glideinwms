@@ -1,3 +1,13 @@
+#*******************************************************************#
+#                       utils_gs_http.sh                            #
+#       This script contains http utility functions for the         #
+#                   glidein_startup.sh script                       #
+#                      File Version: 1.0                            #
+#*******************************************************************#
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+
 ############################################
 # Function that gets the proper descript file based on id
 # Arguments:

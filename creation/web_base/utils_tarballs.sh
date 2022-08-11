@@ -1,3 +1,11 @@
+#*******************************************************************#
+#                        utils_crypto.sh                            #
+#        This script contains tarballs utility functions            #
+#                      File Version: 1.0                            #
+#*******************************************************************#
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 ##############################
 # Utility functions to allow the script to source functions and retrieve data stored as tarball at the end of the script itself
 

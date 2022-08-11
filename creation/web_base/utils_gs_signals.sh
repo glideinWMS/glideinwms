@@ -1,3 +1,12 @@
+#*******************************************************************#
+#                      utils_gs_signals.sh                          #
+#       This script contains signals' utility functions for the     #
+#                   glidein_startup.sh script                       #
+#                      File Version: 1.0                            #
+#*******************************************************************#
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 ################################
 # Function that forwards signals to the children processes
 # Arguments:

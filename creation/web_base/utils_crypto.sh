@@ -1,3 +1,11 @@
+#*******************************************************************#
+#                        utils_crypto.sh                            #
+#       This script contains cryptography utility functions         #
+#                      File Version: 1.0                            #
+#*******************************************************************#
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 ################################
 # Function used to calculate the md5 sum
 # Arguments:
