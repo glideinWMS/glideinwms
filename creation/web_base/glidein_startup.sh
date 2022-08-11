@@ -5,7 +5,6 @@
 #  Script containing the variables and fuctions used as support     #
 #   for the glidein startup. The script load the content of         #
 #             glidein_cleanup and other utility functions           #
-#                      File Version: 1.0                            #
 #*******************************************************************#
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
@@ -404,7 +403,7 @@ wrapper_list="${PWD}/wrapper_list.lst"
 touch "${wrapper_list}"
 
 ########################################
-create_glidein_config 
+create_glidein_config
 
 ########################################
 # shellcheck disable=SC2086

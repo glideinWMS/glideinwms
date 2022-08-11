@@ -113,18 +113,18 @@ prepare_workdir(){
             .) work_dir="$(pwd)";;
         esac
     fi
-    
+
     if [ -z "${work_dir}" ]; then
         early_glidein_failure "Unable to identify Startup dir for the glidein."
     fi
-    
+
     if [ ! -e "${work_dir}" ]; then
         early_glidein_failure "Startup dir ${work_dir} does not exist."
     fi
-    
+
     start_dir="$(pwd)"
     echo "Started in ${start_dir}"
-    
+
     def_work_dir="${work_dir}/glide_$(dir_id)XXXXXX"
     if ! work_dir="$(mktemp -d "${def_work_dir}")"; then
         early_glidein_failure "Cannot create temp '${def_work_dir}'"
@@ -136,7 +136,7 @@ prepare_workdir(){
         fi
     fi
     work_dir_created=1
-    
+
     # GWMS_SUBDIR defined on top
     GWMS_DIR="${work_dir}/$GWMS_SUBDIR"
     if ! mkdir "$GWMS_DIR" ; then
@@ -158,7 +158,7 @@ prepare_workdir(){
             mkdir -p "$gwms_exec_dir"/$i
         done
     fi
-    
+
     # mktemp makes it user readable by definition (ignores umask)
     # TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
     if [ -n "${GWMS_MULTIUSER_GLIDEIN}" ]; then
@@ -166,18 +166,18 @@ prepare_workdir(){
             early_glidein_failure "Failed chmod '${work_dir}'"
         fi
     fi
-    
+
     def_glide_local_tmp_dir="/tmp/glide_$(dir_id)$(id -u -n)_XXXXXX"
     if ! glide_local_tmp_dir="$(mktemp -d "${def_glide_local_tmp_dir}")"; then
         early_glidein_failure "Cannot create temp '${def_glide_local_tmp_dir}'"
     fi
     glide_local_tmp_dir_created=1
-    
+
     glide_tmp_dir="${work_dir}/tmp"
     if ! mkdir "${glide_tmp_dir}"; then
         early_glidein_failure "Cannot create '${glide_tmp_dir}'"
     fi
-    
+
     if [ -n "${GWMS_MULTIUSER_GLIDEIN}" ]; then
         # TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
         # the tmpdirs should be world writable
@@ -186,31 +186,31 @@ prepare_workdir(){
         if ! chmod 1777 "${glide_local_tmp_dir}"; then
             early_glidein_failure "Failed chmod '${glide_local_tmp_dir}'"
         fi
-    
+
         if ! chmod 1777 "${glide_tmp_dir}"; then
             early_glidein_failure "Failed chmod '${glide_tmp_dir}'"
         fi
     fi
-    
+
     short_main_dir=main
     main_dir="${work_dir}/${short_main_dir}"
     if ! mkdir "${main_dir}"; then
         early_glidein_failure "Cannot create '${main_dir}'"
     fi
-    
+
     short_entry_dir=entry_${glidein_entry}
     entry_dir="${work_dir}/${short_entry_dir}"
     if ! mkdir "${entry_dir}"; then
         early_glidein_failure "Cannot create '${entry_dir}'"
     fi
-    
+
     if [ -n "${client_repository_url}" ]; then
         short_client_dir=client
         client_dir="${work_dir}/${short_client_dir}"
         if ! mkdir "$client_dir"; then
             early_glidein_failure "Cannot create '${client_dir}'"
         fi
-    
+
         if [ -n "${client_repository_group_url}" ]; then
             short_client_group_dir=client_group_${client_group}
             client_group_dir="${work_dir}/${short_client_group_dir}"
@@ -219,7 +219,7 @@ prepare_workdir(){
             fi
         fi
     fi
-    
+
     # Move the token files from condor to glidein workspace
     mv "${start_dir}/tokens.tgz" .
     mv "${start_dir}/url_dirs.desc" .
