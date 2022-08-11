@@ -257,25 +257,30 @@ fetch_file_base() {
     # cannot use error_*.sh helper functions
     # may not have been loaded yet
     have_dummy_otrx=1
-    echo "<?xml version=\"1.0\"?>
-<OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
-  <operatingenvironment>
-    <env name=\"cwd\">${PWD}</env>
-  </operatingenvironment>
-  <test>
-    <cmd>Unknown</cmd>
-    <tStart>$(date +%Y-%m-%dT%H:%M:%S%:z)</tStart>
-    <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
-  </test>
-  <result>
-    <status>ERROR</status>
-    <metric name=\"failure\" ts=\"$(date +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Unknown</metric>
-    <metric name=\"source_type\" ts=\"$(date +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
-  </result>
-  <detail>
-     An unknown error occurred.
-  </detail>
-</OSGTestResult>" > otrx_output.xml
+    date=$(date +%Y-%m-%dT%H:%M:%S%:z)
+    create_xml OSG --id fetch_file_base { operatingenvironment { env --name cwd "${PWD}" } test { cmd Unknown tStart $date tEnd $date} result { status ERROR metric --name failure --ts $date --uri local Unknown metric --name source_type --ts $date --uri local ${ffb_id} } detail "An unknown error occurred."}
+    echo "breakpoint"
+    echo -e $result > otrx_output.xml
+    
+#    echo "<?xml version=\"1.0\"?>
+#<OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
+#  <operatingenvironment>
+#    <env name=\"cwd\">${PWD}</env>
+#  </operatingenvironment>
+#  <test>
+#    <cmd>Unknown</cmd>
+#    <tStart>$(date +%Y-%m-%dT%H:%M:%S%:z)</tStart>
+#    <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
+#  </test>
+#  <result>
+#    <status>ERROR</status>
+#    <metric name=\"failure\" ts=\"$(date +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Unknown</metric>
+#    <metric name=\"source_type\" ts=\"$(date +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
+#  </result>
+#  <detail>
+#     An unknown error occurred.
+#  </detail>
+#</OSGTestResult>" > otrx_output.xml
     user_agent="glidein/${glidein_entry}/${condorg_schedd}/${condorg_cluster}.${condorg_subcluster}/${client_name}"
     ffb_url="${ffb_repository}/${ffb_real_fname}"
     curl_version=$(curl --version | head -1 )
@@ -427,20 +432,24 @@ fetch_file_base() {
 
     if [ "${have_dummy_otrx}" -eq 1 ]; then
         # no one should really look at this file, but just to avoid confusion
-        echo "<?xml version=\"1.0\"?>
-<OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
-  <operatingenvironment>
-    <env name=\"cwd\">${PWD}</env>
-  </operatingenvironment>
-  <test>
-    <cmd>Unknown</cmd>
-    <tStart>$(date +%Y-%m-%dT%H:%M:%S%:z)</tStart>
-    <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
-  </test>
-  <result>
-    <status>OK</status>
-  </result>
-</OSGTestResult>" > otrx_output.xml
+        date=$(date +%Y-%m-%dT%H:%M:%S%:z)
+        create_xml OSG --id fetch_file_base { operatingenvironment { env --name cwd "${PWD}" } test { cmd Unknown tStart "$date" tEnd "$date"} result { status OK } }
+        echo "breakpoint"
+        echo -e $result > otrx_output.xml
+#        echo "<?xml version=\"1.0\"?>
+#<OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
+#  <operatingenvironment>
+#    <env name=\"cwd\">${PWD}</env>
+#  </operatingenvironment>
+#  <test>
+ #   <cmd>Unknown</cmd>
+ #   <tStart>$(date +%Y-%m-%dT%H:%M:%S%:z)</tStart>
+ #   <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
+ # </test>
+ # <result>
+ #   <status>OK</status>
+ # </result>
+#</OSGTestResult>" > otrx_output.xml
     fi
 
    return 0
