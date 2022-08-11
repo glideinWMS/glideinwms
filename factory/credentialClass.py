@@ -56,7 +56,7 @@ class Credential(ABC):
 
     @classmethod
     @abstractmethod
-    def get_cred_type(self):
+    def get_cred_type():
         pass
 
     # Next Methods - Get?
@@ -84,7 +84,8 @@ class scitoken(Credential):
         self.creation_script = creation_script
         self.update_frequency = update_freq
 
-    def get_cred_type(self):
+    @classmethod
+    def get_cred_type():
         return "scitoken"
 
 
@@ -102,7 +103,8 @@ class grid_proxy(Credential):
         self.creation_script = creation_script
         self.update_frequency = update_freq
 
-    def get_cred_type(self):
+    @classmethod
+    def get_cred_type():
         return "grid_proxy"
 
 
@@ -121,7 +123,8 @@ class cert_pair(Credential):
         self.creation_script = creation_script
         self.update_frequency = update_freq
 
-    def get_cred_type(self):
+    @classmethod
+    def get_cred_type():
         return "cert_pair"
 
 
@@ -154,7 +157,8 @@ class key_pair(Credential):
         # Optional for Key_pair (Remote Username)
         self.rem_user = rem_user
 
-    def get_cred_type(self):
+    @classmethod
+    def get_cred_type():
         return "key_pair"
 
 
@@ -175,7 +179,8 @@ class username_password(Credential):
         self.creation_script = creation_script
         self.update_frequency = update_freq
 
-    def get_cred_type(self):
+    @classmethod
+    def get_cred_type():
         return "username_password"
 
 
@@ -193,7 +198,8 @@ class auth_file(Credential):
         self.creation_script = creation_script
         self.update_frequency = update_freq
 
-    def get_cred_type(self):
+    @classmethod
+    def get_cred_type():
         return "auth_file"
 
 
@@ -242,7 +248,7 @@ class SubmitCredentials:
 def create_cred(cred_type, **krx):
     class_dict = {}
     for i in Credential.__subclasses__():
-        class_dict[i().get_cred_type()] = i
+        class_dict[i.get_cred_type()] = i
 
     try:
         cred = class_dict[cred_type](**krx)
