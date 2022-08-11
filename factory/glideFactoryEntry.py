@@ -24,7 +24,7 @@ import sys
 import tempfile
 import traceback
 
-from glideinwms.factory import glideFactoryConfig, glideFactoryCredentials, glideFactoryDowntimeLib
+from glideinwms.factory import credentialClass, glideFactoryConfig, glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryInterface as gfi
 from glideinwms.factory import glideFactoryLib, glideFactoryLogParser, glideFactoryMonitoring, glideFactoryPidLib
 from glideinwms.lib import classadSupport, cleanupSupport, glideinWMSVersion, logSupport, token_util, util
@@ -1060,10 +1060,10 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         scitoken_passthru = params.get("CONTINUE_IF_NO_PROXY") == "True"
         try:
             entry.log.debug("Checking security credentials for client %s " % client_int_name)
-            glideFactoryCredentials.check_security_credentials(
+            credentialClass.check_security_credentials(
                 auth_method, decrypted_params, client_int_name, entry.name, scitoken_passthru
             )
-        except glideFactoryCredentials.CredentialError:
+        except credentialClass.CredentialError:
             entry.log.exception("Error checking credentials, skipping request: ")
             continue
 
@@ -1245,7 +1245,7 @@ def unit_work_v3(
         return return_dict
 
     # Initialize submit credential object & determine the credential location
-    submit_credentials = glideFactoryCredentials.SubmitCredentials(credential_username, credential_security_class)
+    submit_credentials = credentialClass.SubmitCredentials(credential_username, credential_security_class)
     submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username)
 
     condortoken = "%s.idtoken" % entry.name
