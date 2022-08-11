@@ -142,11 +142,11 @@ simplexml2longxml() {
 }
 
 ################################
-# Function used as support to add tabs
+# Function used as support to add spaces
 # Global:
 #   xml
-add_tabs(){
-  for (( c=1; c<=tabs; c++ ))
+add_spaces(){
+  for (( c=1; c<=spaces; c++ ))
       do
         xml+=" "
       done
@@ -162,15 +162,22 @@ add_tabs(){
 #   end_xml
 #   result
 create_xml(){
-    xml="<?xml version=\"1.0\"?>"
+    xml = ""
     end_xml=""
     declare -i spaces=0;
+    if [[ $1 == "-s" ]]
+    then
+        spaces+=$2
+        shift 2
+    else
+      xml="<?xml version=\"1.0\"?>"
+    fi
     until [ $# -lt 1 ]
     do
         xml+="\n"
         case "$1" in
             OSG)
-                    add_tabs
+                    add_spaces
                     xml+="<OSGTestResult"
                     while [[ $2 = "-"* ]]
                     do
@@ -181,34 +188,34 @@ create_xml(){
                     done
                     xml+=" version=\"4.3.1\">"
                     if [ $2 == "{" ]; then
-                        tabs+=1
+                        spaces+=1
                         end_xml="</OSGTestResult>"$end_xml
                         shift 1
                     else
                         xml+="</OSGTestResult>"
                     fi;;
             OSGShort)
-                    add_tabs
+                    add_spaces
                     xml+="<OSGTestResult>"
                     if [ $2 == "{" ]; then
-                        tabs+=1
+                        spaces+=1
                         end_xml="</OSGTestResult>"$end_xml
                         shift 1
                     else
                         xml+="</OSGTestResult>"
                     fi;;
             operatingenvironment)
-                    add_tabs
+                    add_spaces
                     xml+="<operatingenvironment>"
                     if [ $2 == "{" ]; then
-                        tabs+=1
+                        spaces+=1
                         end_xml="</operatingenvironment>"$end_xml
                         shift 1
                     else
                         xml+="</operatingenvironment>"
                     fi;;
             env)
-                    add_tabs
+                    add_spaces
                     xml+="<env"
                     while [[ $2 = "-"* ]]
                     do
@@ -220,41 +227,41 @@ create_xml(){
                     xml+=">$2</env>"
                     shift 1;;
             test)
-                    add_tabs
+                    add_spaces
                     xml+="<test>"
                     if [ $2 == "{" ]; then
-                        tabs+=1
+                        spaces+=1
                         end_xml="</test>"$end_xml
                         shift 1
                     else
                         xml+="</test>"
                     fi;;
             cmd)
-                    add_tabs
+                    add_spaces
                     xml+="<cmd>$2</cmd>"
                     shift 1;;
             tStart)
-                    add_tabs
+                    add_spaces
                     xml+="<tStart>$2</tStart>"
                     shift 1;;
             tEnd)
-                    add_tabs
+                    add_spaces
                     xml+="<tEnd>$2</tEnd>"
                     shift 1;;
             result)
-                    add_tabs
+                    add_spaces
                     xml+="<result>"
                     if [ $2 == "{" ]; then
-                        tabs+=1
+                        spaces+=1
                         end_xml="</result>"$end_xml
                         shift 1
                     else
                         xml+="</result>"
                     fi;;
-            status)     add_tabs
+            status)     add_spaces
                         xml+="<status>$2</status>"
                         shift 1;;
-            metric)     add_tabs
+            metric)     add_spaces
                         xml+="<metric"
                         while [[ $2 = "-"* ]]
                         do
@@ -269,12 +276,12 @@ create_xml(){
                         done
                         xml+=">$2</metric>"
                         shift 1;;
-            detail)     add_tabs
+            detail)     add_spaces
                         xml+="<detail>$2</detail>"
                         shift 1;;
             "}")        output=$(echo $end_xml | cut -d'>' -f 1 | awk '{print $1">"}')
-                        tabs=tabs-1
-                        add_tabs
+                        spaces=spaces-1
+                        add_spaces
                         xml+=$output
                         end_xml=${end_xml#"$output"};;
             *)  xml+=$1;;
