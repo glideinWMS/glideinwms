@@ -10,7 +10,7 @@ construct_xml() {
   cmd="$0 ${GLOBAL_ARGS}"
   tStart="$(date --date=@"${startup_time}" +%Y-%m-%dT%H:%M:%S%:z)"
   tEnd="$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)"
-  create_xml OSG --id glidein_startup.sh { operatingenvironment { env --name cwd "${start_dir}" } test { cmd "${cmd}" tStart "${tStart}" tEnd "${tEnd}" } "${result}" }
+  create_xml OSG --id glidein_startup.sh { oe { e --name cwd "${start_dir}" } t { c "${cmd}" tS "${tStart}" tE "${tEnd}" } "${result}" }
   #echo -e $result
   #echo "<?xml version=\"1.0\"?>
   #<OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">
@@ -162,9 +162,19 @@ add_spaces(){
 #   end_xml
 #   result
 create_xml(){
-    xml = ""
+    xml=""
     end_xml=""
     declare -i spaces=0;
+    if [[ $1 == "-h" ]]
+        then
+            result="<?xml version=\"1.0\"?>\n"
+            return 0
+    fi
+    if [[ $1 == "-t" ]]
+        then
+            result="\n</OSGTestResult>"
+            return 0
+    fi
     if [[ $1 == "-s" ]]
     then
         spaces+=$2
@@ -176,7 +186,7 @@ create_xml(){
     do
         xml+="\n"
         case "$1" in
-            OSG)
+            OSG|O)
                     add_spaces
                     xml+="<OSGTestResult"
                     while [[ $2 = "-"* ]]
@@ -194,7 +204,7 @@ create_xml(){
                     else
                         xml+="</OSGTestResult>"
                     fi;;
-            OSGShort)
+            OSGShort|OS)
                     add_spaces
                     xml+="<OSGTestResult>"
                     if [ $2 == "{" ]; then
@@ -204,7 +214,7 @@ create_xml(){
                     else
                         xml+="</OSGTestResult>"
                     fi;;
-            operatingenvironment)
+            operatingenvironment|oe)
                     add_spaces
                     xml+="<operatingenvironment>"
                     if [ $2 == "{" ]; then
@@ -214,7 +224,7 @@ create_xml(){
                     else
                         xml+="</operatingenvironment>"
                     fi;;
-            env)
+            env|e)
                     add_spaces
                     xml+="<env"
                     while [[ $2 = "-"* ]]
@@ -226,7 +236,7 @@ create_xml(){
                     done
                     xml+=">$2</env>"
                     shift 1;;
-            test)
+            test|t)
                     add_spaces
                     xml+="<test>"
                     if [ $2 == "{" ]; then
@@ -236,19 +246,19 @@ create_xml(){
                     else
                         xml+="</test>"
                     fi;;
-            cmd)
+            cmd|c)
                     add_spaces
                     xml+="<cmd>$2</cmd>"
                     shift 1;;
-            tStart)
+            tStart|tS)
                     add_spaces
                     xml+="<tStart>$2</tStart>"
                     shift 1;;
-            tEnd)
+            tEnd|tE)
                     add_spaces
                     xml+="<tEnd>$2</tEnd>"
                     shift 1;;
-            result)
+            result|r)
                     add_spaces
                     xml+="<result>"
                     if [ $2 == "{" ]; then
@@ -258,10 +268,10 @@ create_xml(){
                     else
                         xml+="</result>"
                     fi;;
-            status)     add_spaces
+            status|s)   add_spaces
                         xml+="<status>$2</status>"
                         shift 1;;
-            metric)     add_spaces
+            metric|m)     add_spaces
                         xml+="<metric"
                         while [[ $2 = "-"* ]]
                         do
@@ -276,7 +286,7 @@ create_xml(){
                         done
                         xml+=">$2</metric>"
                         shift 1;;
-            detail)     add_spaces
+            detail|d)     add_spaces
                         xml+="<detail>$2</detail>"
                         shift 1;;
             "}")        output=$(echo $end_xml | cut -d'>' -f 1 | awk '{print $1">"}')
@@ -287,8 +297,9 @@ create_xml(){
             *)  xml+=$1;;
         esac
         shift 1
+        #echo $end_xml
     done
-    echo -e "$xml"
+    #echo -e "$xml"
     result=$xml
     #return xml
 }
