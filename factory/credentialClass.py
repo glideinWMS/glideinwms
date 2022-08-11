@@ -22,6 +22,8 @@ import re
 import shutil
 import sys
 
+from io import StringIO
+
 from abc import ABC, abstractmethod
 from importlib import import_module
 
@@ -199,7 +201,8 @@ class SubmitCredentials:
     def __init__(self, username, security_class):
         self.username = username
         self.security_class = security_class
-        self.id = None
+        self.id = None # id used for tacking the submit credentials
+        self.cred_dir = "" # location of credentials
         self.security_credentials = Credentials()
         self.identity_credentials = Credentials()
 
@@ -239,7 +242,7 @@ class SubmitCredentials:
 def create_cred(cred_type, **krx):
     class_dict = {}
     for i in Credential.__subclasses__():
-        class_dict[i.get_cred_type()] = i
+        class_dict[i().get_cred_type()] = i
 
     try:
         cred = class_dict[cred_type](**krx)
@@ -372,7 +375,7 @@ def get_globals_classads(factory_collector=glideFactoryInterface.DEFAULT_VAL):
 
 # Helper for update_credential_file
 def compress_credential(credential_data):
-    with io.StringIO.StringIO() as cfile:
+    with StringIO() as cfile:
         with gzip.GzipFile(fileobj=cfile, mode="wb") as f:
             # Calling a GzipFile object's close() method does not close fileobj, so cfile is available outside
             f.write(credential_data)
