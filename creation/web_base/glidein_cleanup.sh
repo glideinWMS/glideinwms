@@ -54,7 +54,7 @@ early_glidein_failure() {
   glidein_end_time="$(date +%s)"
   ts="$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)"
   create_xml -s 4 metric --name failure --ts "$ts" --uri local WN_RESOURCE status ERROR detail ${error_msg}
-  #result 
+  #result
   #result="    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">WN_RESOURCE</metric>
   #  <status>ERROR</status>
   #  <detail>
@@ -100,7 +100,7 @@ glidein_exit() {
       if [ -z "${report_failed}" ]; then
           report_failed="NEVER"
       fi
-      
+
       factory_report_failed=$(grep -i "^GLIDEIN_Factory_Report_Failed " "${glidein_config}" | cut -d ' ' -f 2-)
 
       if [ -z "${factory_report_failed}" ]; then
@@ -200,4 +200,3 @@ glidein_exit() {
   print_tail "$1" "${final_result_simple}" "${final_result_long}"
   exit "$1"
 }
-

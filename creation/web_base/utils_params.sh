@@ -116,4 +116,3 @@ params2file() {
     echo "PARAM_LIST ${param_list}"
     return 0
 }
-

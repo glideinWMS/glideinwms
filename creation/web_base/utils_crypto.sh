@@ -100,4 +100,3 @@ set_proxy_fullpath() {
         echo "Unable to get canonical path for X509_USER_PROXY, using ${X509_USER_PROXY}" 1>&2
     fi
 }
-

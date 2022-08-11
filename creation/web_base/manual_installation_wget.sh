@@ -18,4 +18,4 @@ wget https://raw.githubusercontent.com/terranovaa/glideinwms/master/creation/web
 cat glidein_startup_github.sh term_file tar_utils.tar.gz > glidein_startup.sh
 chmod +x glidein_startup.sh
 ./manual_glidein_startup --wms-collector=fermicloud532.fnal.gov --client-name=fermicloud597-fnal-gov_OSG_gWMSFrontend.main --req-name=ITB_FC_CE2b@gfactory_instance@gfactory_service --cmd-out-file=glidein_startup_wrapper --glidein-startup=./glidein_startup.sh
-./glidein_startup_wrapper 
+./glidein_startup_wrapper

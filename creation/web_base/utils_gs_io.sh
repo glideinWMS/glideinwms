@@ -28,7 +28,7 @@ print_tail() {
   print_header_line "XML description of glidein activity"
   echo  "${final_result_simple}" | grep -v "<cmd>"
   print_header_line "End XML description of glidein activity"
-  
+
   echo "" 1>&2
   print_header_line "Encoded XML description of glidein activity" 2
   echo "${final_result_long}" | gzip --stdout - | b64uuencode 1>&2
@@ -135,7 +135,7 @@ print_header(){
     echo "As: $(id)"
     echo "PID: $$"
     echo
-    
+
     if [ ${set_debug} -ne 0 ]; then
       echo "------- Initial environment ---------------"  1>&2
       env 1>&2
@@ -186,7 +186,7 @@ parse_options(){
             *)  (log_warn "Unknown option $1"; usage; exit 1) 1>&2; exit 1
         esac
         shift 2
-    done  
+    done
 }
 
 ################################
@@ -201,7 +201,7 @@ parse_arguments(){
     # multiglidein GLIDEIN_MULTIGLIDEIN -> multi_glidein
     tmp_par=$(params_get_simple GLIDEIN_MULTIGLIDEIN "${params}")
     [ -n "${tmp_par}" ] &&  multi_glidein=${tmp_par}
-    
+
     case "${operation_mode}" in
         nodebug)
             sleep_time=1199
@@ -217,39 +217,39 @@ parse_arguments(){
             sleep_time=1199
             set_debug=1;;
     esac
-    
+
     if [ -z "${descript_file}" ]; then
         log_warn "Missing descript fname."
         usage
     fi
-    
+
     if [ -z "${descript_entry_file}" ]; then
         log_warn "Missing descript fname for entry."
         usage
     fi
-    
+
     if [ -z "${glidein_name}" ]; then
         log_warn "Missing gliden name."
         usage
     fi
-    
+
     if [ -z "${glidein_entry}" ]; then
         log_warn "Missing glidein entry name."
         usage
     fi
-    
-    
+
+
     if [ -z "${repository_url}" ]; then
         log_warn "Missing Web URL."
         usage
     fi
-    
+
     repository_entry_url="${repository_url}/entry_${glidein_entry}"
-    
+
     if [ -z "${proxy_url}" ]; then
       proxy_url="None"
     fi
-    
+
     if [ "${proxy_url}" = "OSG" ]; then
       if [ -z "${OSG_SQUID_LOCATION}" ]; then
          # if OSG does not define a Squid, then don't use any
@@ -259,53 +259,53 @@ parse_arguments(){
          proxy_url="$(echo "${OSG_SQUID_LOCATION}" | awk -F ':' '{if ($2 =="") {print $1 ":3128"} else {print $0}}')"
       fi
     fi
-    
+
     if [ -z "${sign_id}" ]; then
         log_warn "Missing signature."
         usage
     fi
-    
+
     if [ -z "${sign_entry_id}" ]; then
         log_warn "Missing entry signature."
         usage
     fi
-    
+
     if [ -z "${sign_type}" ]; then
         sign_type="sha1"
     fi
-    
+
     if [ "${sign_type}" != "sha1" ]; then
         log_warn "Unsupported signtype ${sign_type} found."
         usage
     fi
-    
+
     if [ -n "${client_repository_url}" ]; then
       # client data is optional, user url as a switch
       if [ -z "${client_sign_type}" ]; then
           client_sign_type="sha1"
       fi
-    
+
       if [ "${client_sign_type}" != "sha1" ]; then
         log_warn "Unsupported clientsigntype ${client_sign_type} found."
         usage
       fi
-    
+
       if [ -z "${client_descript_file}" ]; then
         log_warn "Missing client descript fname."
         usage
       fi
-    
+
       if [ -n "${client_repository_group_url}" ]; then
           # client group data is optional, user url as a switch
           if [ -z "${client_group}" ]; then
               log_warn "Missing client group name."
               usage
           fi
-    
+
           if [ -z "${client_descript_group_file}" ]; then
               log_warn "Missing client descript fname for group."
               usage
           fi
       fi
-    fi    
+    fi
 }

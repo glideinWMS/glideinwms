@@ -133,7 +133,7 @@ spawn_multiple_glideins(){
         echo "------ Exiting multi-glidein parent ----------" 1>&2
         exit 0
     fi
-}  
+}
 
 ########################################
 # Function used to setup OSG and/or Globus
@@ -147,7 +147,7 @@ setup_OSG_Globus(){
         . "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh"
       fi
     fi
-    
+
     if [ -z "${GLOBUS_PATH}" ]; then
       if [ -z "${GLOBUS_LOCATION}" ]; then
         # if GLOBUS_LOCATION not defined, try to guess it
@@ -163,14 +163,14 @@ setup_OSG_Globus(){
            log_warn 'Continuing like nothing happened'
         fi
       fi
-    
+
       if [ -r "${GLOBUS_LOCATION}/etc/globus-user-env.sh" ]; then
         . "${GLOBUS_LOCATION}/etc/globus-user-env.sh"
       else
         log_warn "GLOBUS_PATH not defined and ${GLOBUS_LOCATION}/etc/globus-user-env.sh does not exist."
         log_warn 'Continuing like nothing happened'
       fi
-    fi    
+    fi
 }
 
 ########################################
@@ -222,7 +222,7 @@ create_glidein_config(){
         echo "GLIDEIN_Factory ${glidein_factory}"
         echo "GLIDEIN_Name ${glidein_name}"
         echo "GLIDEIN_Entry_Name ${glidein_entry}"
-    
+
         if [ -n "${client_name}" ]; then
             # client name not required as it is not used for anything but debug info
             echo "GLIDECLIENT_Name ${client_name}"
@@ -248,7 +248,7 @@ create_glidein_config(){
         echo "DESCRIPTION_ENTRY_FILE ${descript_entry_file}"
         echo "GLIDEIN_Signature ${sign_id}"
         echo "GLIDEIN_Entry_Signature ${sign_entry_id}"
-    
+
         if [ -n "${client_repository_url}" ]; then
             echo "GLIDECLIENT_WORK_DIR ${client_dir}"
             echo "GLIDECLIENT_DESCRIPTION_FILE ${client_descript_file}"
@@ -301,7 +301,7 @@ create_glidein_config(){
 #        'n') a=2 ;;
 #        'r') rest=true ;;
 #        'w') ws=true ;;
-#        '?') print_usage >&2; exit 1;; 
+#        '?') print_usage >&2; exit 1;;
 #    esac
 #done
 #shift $(expr $OPTIND- 1)
@@ -333,7 +333,7 @@ fi
 print_header "@"
 
 ################################
-spawn_multiple_glideins 
+spawn_multiple_glideins
 
 ########################################
 # Code block used to make sure nobody else can write my files
@@ -379,14 +379,14 @@ prepare_workdir
 
 ########################################
 # extract and source all the data contained at the end of this script as tarball
-extract_all_data 
+extract_all_data
 
 ########################################
 wrapper_list="${PWD}/wrapper_list.lst"
 touch "${wrapper_list}"
 
 ########################################
-create_glidein_config 
+create_glidein_config
 
 ########################################
 # shellcheck disable=SC2086
