@@ -1,7 +1,7 @@
 ################################
 # Function used to log warning statements
 # Arguments:
-#   @: content to warn 
+#   @: content to warn
 log_warn() {
     echo "WARN $(date)" "$@" 1>&2
 }
@@ -9,7 +9,7 @@ log_warn() {
 ################################
 # Function used to log debug statements
 # Arguments:
-#   @: content to debug 
+#   @: content to debug
 log_debug() {
     echo "DEBUG $(date)" "$@" 1>&2
 }
@@ -18,7 +18,7 @@ log_debug() {
 # Function used to prit a header line
 # Arguments:
 #   1: content of the header line
-#   2 (optional): 2 if needs to write to stderr 
+#   2 (optional): 2 if needs to write to stderr
 print_header_line(){
     local content
     if [ $# -eq 1 ]; then

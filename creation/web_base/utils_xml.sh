@@ -2,7 +2,7 @@
 # Function used to create the xml content
 # Arguments:
 #   1: result
-construct_xml() {    
+construct_xml() {
   local result
   result="$1"
   local glidein_end_time
@@ -33,12 +33,12 @@ extract_parent_fname(){
       echo "Unknown"
   fi
 }
- 
+
 ################################
 # Function used to extract the parent xml details
 # Arguments:
 #   1: exit code
-extract_parent_xml_detail() { 
+extract_parent_xml_detail() {
   local glidein_end_time exitcode last_result last_script_name last_script_reason my_reason
   exitcode=$1
   glidein_end_time="$(date +%s)"
@@ -291,4 +291,3 @@ create_xml(){
     result=$xml
     #return xml
 }
-

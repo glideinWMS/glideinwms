@@ -237,7 +237,7 @@ fetch_file_try() {
 #   fetch_completed
 # Returns:
 #   1 in case the error is already displayed inside the function,
-#   in case of tarring, in case of failure in renaming it, 
+#   in case of tarring, in case of failure in renaming it,
 #   of making it executable, or executing it
 fetch_file_base() {
     ffb_id="$1"
@@ -482,7 +482,7 @@ perform_wget() {
         create_xml -s 1 d "Failed to load file '${ffb_real_fname}' from '${ffb_repository}' using proxy '${proxy_url}'.  ${wget_resp}"
         xmlResult+=$result
         create_xml -t
-        xmlResult+=$result 
+        xmlResult+=$result
         echo -e "$xmlResult" > otrb_output.xml
         log_warn "Failed to load file '${ffb_real_fname}' from '${ffb_repository}'."
 
@@ -544,7 +544,7 @@ perform_curl() {
     if [ ${curl_retval} -eq 0 ] && [ ! -e "${ffb_tmp_outname}" ] ; then
         touch "${ffb_tmp_outname}"
     fi
-    
+
     if [ "${curl_retval}" -ne 0 ]; then
         curl_version="$(curl --version 2>&1 | head -1)"
         log_warn "${curl_cmd} failed. version:${curl_version}  exit code ${curl_retval} stderr: ${curl_resp} "
@@ -561,7 +561,7 @@ perform_curl() {
         xmlResult+=$result
         create_xml -t
         xmlResult+=$result
-        echo -e "$xmlResult" > otrb_output.xml  
+        echo -e "$xmlResult" > otrb_output.xml
         log_warn "Failed to load file '${ffb_real_fname}' from '${ffb_repository}'."
 
         if [ -f otr_outlist.list ]; then
