@@ -606,7 +606,6 @@ fi
 last_startup_end_time=$(date +%s)
 "${main_dir}"/error_augment.sh  -process ${ret} "${last_script}" "${PWD}" "${gs_id_work_dir}/${last_script} glidein_config" "${last_startup_time}" "${last_startup_end_time}"
 "${main_dir}"/error_augment.sh -concat
-
 let last_script_time=${last_startup_end_time}-${last_startup_time}
 echo "=== Last script ended $(date) (${last_startup_end_time}) with code ${ret} after ${last_script_time} ==="
 echo
