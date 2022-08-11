@@ -258,8 +258,9 @@ fetch_file_base() {
     # may not have been loaded yet
     have_dummy_otrx=1
     date=$(date +%Y-%m-%dT%H:%M:%S%:z)
-    create_xml OSG --id fetch_file_base { operatingenvironment { env --name cwd "${PWD}" } test { cmd Unknown tStart $date tEnd $date} result { status ERROR metric --name failure --ts $date --uri local Unknown metric --name source_type --ts $date --uri local ${ffb_id} } detail "An unknown error occurred."}
+    create_xml OSG --id fetch_file_base { operatingenvironment { env --name cwd "${PWD}" } test { cmd Unknown tStart $date tEnd $date} result { status ERROR metric --name failure --ts $date --uri local Unknown metric --name source_type --ts $date --uri local ${ffb_id} } detail "An unknown error occurred." }
     echo "breakpoint"
+    echo -e $result
     echo -e $result > otrx_output.xml
     
 #    echo "<?xml version=\"1.0\"?>
@@ -435,6 +436,7 @@ fetch_file_base() {
         date=$(date +%Y-%m-%dT%H:%M:%S%:z)
         create_xml OSG --id fetch_file_base { operatingenvironment { env --name cwd "${PWD}" } test { cmd Unknown tStart "$date" tEnd "$date"} result { status OK } }
         echo "breakpoint"
+        echo -e $result
         echo -e $result > otrx_output.xml
 #        echo "<?xml version=\"1.0\"?>
 #<OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
@@ -508,30 +510,42 @@ perform_wget() {
         log_warn "${wget_cmd} failed. version:${wget_version}  exit code ${wget_retval} stderr: ${wget_resp}"
         # cannot use error_*.sh helper functions
         # may not have been loaded yet, and wget fails often
-        # create_xml operatingenvironment { env cwd ${PWD} env uname $(uname -a) env release $(cat /etc/system-release) env wget_version ${wget_version}
-        echo "<OSGTestResult id=\"perform_wget\" version=\"4.3.1\">
-  <operatingenvironment>
-    <env name=\"cwd\">${PWD}</env>
-    <env name=\"uname\">$(uname -a)</env>
-    <env name=\"release\">$(cat /etc/system-release)</env>
-    <env name=\"wget_version\">${wget_version}</env>
-  </operatingenvironment>
-  <test>
-    <cmd>${wget_cmd}</cmd>
-    <tStart>$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)</tStart>
-    <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
-  </test>
-  <result>
-    <status>ERROR</status>
-    <metric name=\"failure\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Network</metric>
-    <metric name=\"URL\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_url}</metric>
-    <metric name=\"http_proxy\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${proxy_url}</metric>
-    <metric name=\"source_type\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
-  </result>
-  <detail>
-  Failed to load file '${ffb_real_fname}' from '${ffb_repository}' using proxy '${proxy_url}'.  ${wget_resp}
-  </detail>
-</OSGTestResult>" > otrb_output.xml
+        tStart="$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)"
+        tEnd="$(date +%Y-%m-%dT%H:%M:%S%:z)"
+        xml=""
+        create_xml OSG --id perform_wget { operatingenvironment { env --name cwd "${PWD}" env --name uname "$(uname -a)" env --name release "$(cat /etc/system-release)" env --name wget_version "${wget_version}" }
+        xml+=$result
+        create_xml -s 1 test { cmd ${wget_cmd} tStart ${tStart} tEnd ${tEnd} } result { status ERROR metric --name failure ${tStart} --uri local Network metric --name URL --ts ${tStart} --uri local ${ffb_url} metric --name http_proxy --ts ${tStart} --uri local ${proxy_url} metric --name source_type --ts ${tStart} --uri local ${ffb_id} } }
+        xml+=$result
+        create_xml -s 1 detail "Failed to load file '${ffb_real_fname}' from '${ffb_repository}' using proxy '${proxy_url}'.  ${wget_resp}"
+        xml+=$result
+        xml+="</OSGTestResult>"
+        xml > otrb_output.xml     
+        echo "breakpoint"
+        echo -e $xml    
+      #  echo "<OSGTestResult id=\"perform_wget\" version=\"4.3.1\">
+  #<operatingenvironment>
+  #  <env name=\"cwd\">${PWD}</env>
+  #  <env name=\"uname\">$(uname -a)</env>
+  #  <env name=\"release\">$(cat /etc/system-release)</env>
+  #  <env name=\"wget_version\">${wget_version}</env>
+  #</operatingenvironment>
+  #<test>
+  #  <cmd>${wget_cmd}</cmd>
+  #  <tStart>$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)</tStart>
+  #  <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
+  #</test>
+  #<result>
+  #  <status>ERROR</status>
+  #  <metric name=\"failure\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Network</metric>
+  #  <metric name=\"URL\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_url}</metric>
+  #  <metric name=\"http_proxy\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${proxy_url}</metric>
+  #  <metric name=\"source_type\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
+  #</result>
+  #<detail>
+  #Failed to load file '${ffb_real_fname}' from '${ffb_repository}' using proxy '${proxy_url}'.  ${wget_resp}
+  #</detail>
+#</OSGTestResult>" > otrb_output.xml
         log_warn "Failed to load file '${ffb_real_fname}' from '${ffb_repository}'."
 
         if [ -f otr_outlist.list ]; then
@@ -597,29 +611,42 @@ perform_curl() {
         log_warn "${curl_cmd} failed. version:${curl_version}  exit code ${curl_retval} stderr: ${curl_resp} "
         # cannot use error_*.sh helper functions
         # may not have been loaded yet, and wget fails often
-        echo "<OSGTestResult id=\"perform_curl\" version=\"4.3.1\">
-  <operatingenvironment>
-    <env name=\"cwd\">${PWD}</env>
-    <env name=\"uname\">$(uname -a)</env>
-    <env name=\"release\">$(cat /etc/system-release)</env>
-    <env name=\"curl_version\">${curl_version}</env>
-  </operatingenvironment>
-  <test>
-    <cmd>${curl_cmd}</cmd>
-    <tStart>$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)</tStart>
-    <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
-  </test>
-  <result>
-    <status>ERROR</status>
-    <metric name=\"failure\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Network</metric>
-    <metric name=\"URL\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_url}</metric>
-    <metric name=\"http_proxy\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${proxy_url}</metric>
-    <metric name=\"source_type\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
-  </result>
-  <detail>
-  Failed to load file '${ffb_real_fname}' from '${ffb_repository}' using proxy '${proxy_url}'.  ${curl_resp}
-  </detail>
-</OSGTestResult>" > otrb_output.xml
+        tStart="$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)"
+        tEnd="$(date +%Y-%m-%dT%H:%M:%S%:z)"
+        xml=""
+        create_xml OSG --id perform_curl { operatingenvironment { env --name cwd "${PWD}" env --name uname "$(uname -a)" env --name release "$(cat /etc/system-release)" env --name curl_version "${curl_version}" }
+        xml+=$result
+        create_xml -s 1 test { cmd ${curl_cmd} tStart ${tStart} tEnd ${tEnd} } result { status ERROR metric --name failure ${tStart} --uri local Network metric --name URL --ts ${tStart} --uri local ${ffb_url} metric --name http_proxy --ts ${tStart} --uri local ${proxy_url} metric --name source_type --ts ${tStart} --uri local ${ffb_id} } }
+        xml+=$result
+        create_xml -s 1 detail "Failed to load file '${ffb_real_fname}' from '${ffb_repository}' using proxy '${proxy_url}'.  ${curl_resp}"
+        xml+=$result
+        xml+="</OSGTestResult>"
+        xml > otrb_output.xml     
+        echo "breakpoint"
+        echo -e $xml    
+   #     echo "<OSGTestResult id=\"perform_curl\" version=\"4.3.1\">
+#  <operatingenvironment>
+#    <env name=\"cwd\">${PWD}</env>
+#    <env name=\"uname\">$(uname -a)</env>
+#    <env name=\"release\">$(cat /etc/system-release)</env>
+#    <env name=\"curl_version\">${curl_version}</env>
+#  </operatingenvironment>
+#  <test>
+#    <cmd>${curl_cmd}</cmd>
+#    <tStart>$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)</tStart>
+#    <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
+#  </test>
+#  <result>
+#    <status>ERROR</status>
+#    <metric name=\"failure\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Network</metric>
+#    <metric name=\"URL\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_url}</metric>
+#    <metric name=\"http_proxy\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${proxy_url}</metric>
+#    <metric name=\"source_type\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
+#  </result>
+#  <detail>
+#  Failed to load file '${ffb_real_fname}' from '${ffb_repository}' using proxy '${proxy_url}'.  ${curl_resp}
+#  </detail>
+#</OSGTestResult>" > otrb_output.xml
         log_warn "Failed to load file '${ffb_real_fname}' from '${ffb_repository}'."
 
         if [ -f otr_outlist.list ]; then
