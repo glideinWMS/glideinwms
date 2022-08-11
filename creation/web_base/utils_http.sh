@@ -379,6 +379,7 @@ fetch_file_base() {
             END=$(date +%s)
             "${main_dir}"/error_augment.sh -process ${ret} "${ffb_id}/${ffb_target_fname}" "${PWD}" "${ffb_outname} glidein_config" "${START}" "${END}" #generating test result document
             "${main_dir}"/error_augment.sh -concat
+            # TODO(F): qui
             if [ ${ret} -ne 0 ]; then
                 echo "=== Validation error in ${ffb_outname} ===" 1>&2
                 log_warn "Error running '${ffb_outname}'"

@@ -10,8 +10,6 @@ glide_local_tmp_dir_created=0
 # It uses GLIDEIN_DEBUG_OPTIONS, start_dir, work_dir_created, work_dir, glide_local_tmp_dir_created, glide_local_tmp_dir
 # Arguments:
 #   1: exit code
-# Outputs:
-#   warnings to stderr
 glidien_cleanup() {
     if ! cd "${start_dir}"; then
         log_warn "Cannot find ${start_dir} anymore, exiting but without cleanup"
@@ -37,9 +35,6 @@ glidien_cleanup() {
 # too bad we end up with some repeated code, but difficult to do better
 # Arguments:
 #   1: error message
-# Outputs:
-#   warnings to stderr
-#   tail to stdout
 early_glidein_failure() {
   local error_msg glidein_end_time result final_result final_result_simple final_result_long
   error_msg="$1"
