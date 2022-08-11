@@ -259,8 +259,6 @@ fetch_file_base() {
     have_dummy_otrx=1
     date=$(date +%Y-%m-%dT%H:%M:%S%:z)
     create_xml OSG --id fetch_file_base { oe { e --name cwd "${PWD}" } t { c Unknown tStart "${date}" tEnd "${date}" } r { s ERROR m --name failure --ts "${date}" --uri local Unknown m --name source_type --ts "${date}" --uri local "${ffb_id}" } d "An unknown error occurred." }
-    echo "breakpoint1"
-    echo -e "$result"
     echo -e "$result" > otrx_output.xml
     
 #    echo "<?xml version=\"1.0\"?>
@@ -435,8 +433,6 @@ fetch_file_base() {
         # no one should really look at this file, but just to avoid confusion
         date="$(date +%Y-%m-%dT%H:%M:%S%:z)"
         create_xml OSG --id fetch_file_base { oe { e --name cwd "${PWD}" } t { c Unknown tStart "${date}" tEnd "${date}" } r { status OK } }
-        echo "breakpoint2"
-        echo -e "$result"
         echo -e "$result" > otrx_output.xml
 #        echo "<?xml version=\"1.0\"?>
 #<OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
@@ -521,8 +517,6 @@ perform_wget() {
         xmlResult+=$result
         create_xml -t
         xmlResult+=$result 
-        echo "breakpoint3"
-        echo -e "$xmlResult" 
         echo -e "$xmlResult" > otrb_output.xml
       #  echo "<OSGTestResult id=\"perform_wget\" version=\"4.3.1\">
   #<operatingenvironment>
@@ -624,7 +618,6 @@ perform_curl() {
         xmlResult+=$result
         create_xml -t
         xmlResult+=$result
-        echo -e "$xmlResult"
         echo -e "$xmlResult" > otrb_output.xml  
    #     echo "<OSGTestResult id=\"perform_curl\" version=\"4.3.1\">
 #  <operatingenvironment>
