@@ -22,10 +22,9 @@ import re
 import shutil
 import sys
 
-from io import StringIO
-
 from abc import ABC, abstractmethod
 from importlib import import_module
+from io import StringIO
 
 from glideinwms.lib import condorMonitor, logSupport
 
@@ -207,8 +206,8 @@ class SubmitCredentials:
     def __init__(self, username, security_class):
         self.username = username
         self.security_class = security_class
-        self.id = None # id used for tacking the submit credentials
-        self.cred_dir = "" # location of credentials
+        self.id = None  # id used for tacking the submit credentials
+        self.cred_dir = ""  # location of credentials
         self.security_credentials = Credentials()
         self.identity_credentials = Credentials()
 
