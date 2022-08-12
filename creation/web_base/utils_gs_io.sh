@@ -153,6 +153,9 @@ print_header(){
 parse_options(){
     params=""
     while [ $# -gt 0 ]
+        if [[ $2 == "-"* ]]; then
+            (log_warn "Wrong argument: $2 for option $1."; log_warn "You cannot set two consecutive options without specifying the option value!"; usage; exit 1) 1>&2; exit 1
+        fi
         do case "$1" in
             -factory)    glidein_factory="$2";;
             -name)       glidein_name="$2";;
@@ -183,6 +186,7 @@ parse_options(){
             -multiglidein)  multi_glidein="$2";;
             -multirestart)  multi_glidein_restart="$2";;
             -param_*)    params="$params $(echo "$1" | awk '{print substr($0,8)}') $2";;
+            -h|--help) usage; exit 0;;
             *)  (log_warn "Unknown option $1"; usage; exit 1) 1>&2; exit 1
         esac
         shift 2
