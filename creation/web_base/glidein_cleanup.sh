@@ -2,7 +2,7 @@
 #*******************************************************************#
 #                      glidein_cleanup.sh                           #
 #   Script containing the variables and functions used to support   #
-#        the glidein cleanup, failure and exit operations           # 
+#        the glidein cleanup, failure and exit operations           #
 #                      File Version: 1.0                            #
 #*******************************************************************#
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
@@ -20,7 +20,7 @@ glide_local_tmp_dir_created=0
 # It uses GLIDEIN_DEBUG_OPTIONS, start_dir, work_dir_created, work_dir, glide_local_tmp_dir_created, glide_local_tmp_dir
 # Arguments:
 #   1: exit code
-glidien_cleanup() {
+glidein_cleanup() {
     if ! cd "${start_dir}"; then
         log_warn "Cannot find ${start_dir} anymore, exiting but without cleanup"
     else
@@ -60,13 +60,13 @@ early_glidein_failure() {
   #  <detail>
   #   ${error_msg}
   #  </detail>"
-  echo "testing xml"
-  echo -e $result
+  #echo "testing xml"
+  #echo -e $result
   final_result="$(construct_xml "${result}")"
   final_result_simple="$(basexml2simplexml "${final_result}")"
   # have no global section
   final_result_long="$(simplexml2longxml "${final_result_simple}" "")"
-  glidien_cleanup
+  glidein_cleanup
   print_tail 1 "${final_result_simple}" "${final_result_long}"
   exit 1
 }
@@ -126,7 +126,6 @@ glidein_exit() {
       add_config_line "GLIDEIN_Expire" "${dl}"
       add_config_line "GLIDEIN_LAST_SCRIPT" "${ge_last_script_name}"
       add_config_line "GLIDEIN_ADVERTISE_TYPE" "Retiring"
-
       add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Keeping node busy until ${dl} (${dlf})."
 
       condor_vars_file="$(grep -i "^CONDOR_VARS_FILE " "${glidein_config}" | cut -d ' ' -f 2-)"
@@ -141,7 +140,6 @@ glidein_exit() {
          add_condor_vars_line "GLIDEIN_FAILURE_REASON" "S" "-" "+" "Y" "Y" "-"
       fi
       main_work_dir="$(get_work_dir main)"
-
       for ((t=$(date +%s); t < dl; t=$(date +%s)))
       do
         if [ -e "${main_work_dir}/${last_script}" ] && [ "${do_report}" = "1" ] ; then
@@ -196,7 +194,7 @@ glidein_exit() {
   fi
   log_write "glidein_startup.sh" "text" "glidein is about to exit with retcode $1" "info"
   send_logs_to_remote
-  glidien_cleanup
+  glidein_cleanup
   print_tail "$1" "${final_result_simple}" "${final_result_long}"
   exit "$1"
 }

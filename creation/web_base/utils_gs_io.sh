@@ -1,7 +1,7 @@
 #*******************************************************************#
 #                        utils_gs_io.sh                             #
 #       This script contains I/O utility functions for the          #
-#                 glidein_startup.sh script                         #                     
+#                 glidein_startup.sh script                         #
 #                      File Version: 1.0                            #
 #*******************************************************************#
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
