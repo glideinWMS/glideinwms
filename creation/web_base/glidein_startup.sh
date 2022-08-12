@@ -26,6 +26,8 @@ export LANG=C
 # Tracing Global Variable
 # Used to set the environment TRACE_START
 GWMS_TRACE_START=
+export JAEGER_ENDPOINT="http://fermicloud296.fnal.gov:14268/api/traces"
+export JAEGER_SERVICE_NAME="glidein"
 
 # General options
 GWMS_MULTIUSER_GLIDEIN=
@@ -198,6 +200,7 @@ usage() {
     echo "  -traceid <id>               : Jaeger trace ID"
     echo "  -jaegerservicename <name>   : "
     echo "  -jaegercollectorendpoint <URL>: "
+    echo "  -param_* <arg>              : user specified parameters"
     exit 1
 }
 
@@ -962,6 +965,7 @@ if [ -n "${client_repository_url}" ]; then
         echo "client_sign_group_id        = '${client_sign_group_id}'"
     fi
 fi
+# TODO: print tracing parameters
 echo
 echo "Running on $(uname -n)"
 echo "System: $(uname -a)"

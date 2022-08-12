@@ -1640,7 +1640,6 @@ def submitGlideins(
     submitted_jids = []
 
     trace_id = None
-    ## need to re look at how I can add the tracer class to the lib folder
 
     try:
         entry_env = get_submit_environment(
@@ -1697,7 +1696,7 @@ def submitGlideins(
                 t = glideinTracer.Tracer(jaeger_collector_endpoint)
                 t.initial_trace({"entry":entry_name, "client":client_name})
                 trace_id = t.GLIDEIN_TRACE_ID
-
+                log.info(f"Generated traceID {trace_id} at collector_endpoint {collector_endpoint}")
                 for i in range(len(entry_env)):
                     if entry_env[i].startswith("GLIDEIN_ARGUMENTS="):
                         entry_env[i] += f" -traceid {trace_id} -jaegercollectorendpoint {jaeger_collector_endpoint} -jaegerservicename {t.jaeger_service_name}"

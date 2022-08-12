@@ -27,9 +27,8 @@ class Tracer:
         """Initializes a tracer with OpenTelemetry and Jaeger when operated in the GlideinWMS Factory
 
         Args:
-            server (str): if not "localhost", then the host where the Jaeger Agent is running in a container
-            port (int): the port to which traces will talk to Jaeger
-
+            collector_endpoint (str): the http url for the collector endpoint (ex: "http://localhost:14268/api/traces?format=jaeger.thrift")
+            jaeger_service_name (str): the service to which the trace sends to through Jaeger
         Variables:
             GLIDEIN_TRACE_ID (hex): the parent trace_id of each submitted glidein instance
             tracer: a tracer instance for each glidein to generate more spans
@@ -44,7 +43,7 @@ class Tracer:
     def initial_trace(self,tags={}):
         self.tags = tags
         
-        trace.set_tracer_provider(TracerProvider(resource=Resource.create({SERVICE_NAME: self.jaeger_service_name})))
+        trace.set_tracer_provider(TracerProvider(resource=Resource.create({SERVICE_NAME:self.jaeger_service_name})))
 
         self.tracer = trace.get_tracer(__name__)
 
@@ -99,8 +98,7 @@ def main():  # use classes above to initialize a tracer and send a span and prin
     T = Tracer(jaeger_collector_endpoint)
     T.initial_trace({"entry":"entry_name","client":"client_name"})
     print(T.GLIDEIN_TRACE_ID)
-    t = Trace(T.tracer, T.carrier)
-    print(t.GLIDEIN_SPAN_ID)
+
 
 
 if __name__ == "__main__":
