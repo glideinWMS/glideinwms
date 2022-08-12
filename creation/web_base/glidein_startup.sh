@@ -40,8 +40,8 @@ GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
 GWMS_MULTIGLIDEIN_CHILDS=
 
 # Include all source scripts
-source utils_gs_filesystem.sh
 source utils_gs_http.sh
+source utils_gs_filesystem.sh
 source utils_gs_io.sh
 source utils_gs_signals.sh
 source utils_gs_tarballs.sh

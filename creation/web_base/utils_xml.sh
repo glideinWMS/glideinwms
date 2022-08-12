@@ -155,7 +155,7 @@ add_spaces(){
 # create_xml TAG --option option_value .... tag_value TAG2 .....
 # use '{' to specify the start if an inner tag and use '}' to specify the end
 # use create_xml -s SPACES ... in case you want to create a subpart of an xml file not starting from the beginning specifying
-# the number of spaces needed at the beginning in order to have a good indentation 
+# the number of spaces needed at the beginning in order to have a good indentation
 # use create_xml -t to require as output only the tail tag of the xml file, i.e. </OSGTestResult>
 # use create_xml -h to require as output only the header tag of the xml file, i.e. <?xml version=\"1.0\"?>"
 # Arguments:
