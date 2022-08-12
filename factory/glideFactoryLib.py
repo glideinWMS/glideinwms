@@ -1693,10 +1693,13 @@ def submitGlideins(
                     nr_to_submit = factoryConfig.max_cluster_size
 
                 # Initialize GlideIn Trace
-                t = glideinTracer.Tracer(jaeger_collector_endpoint)
-                t.initial_trace({"entry":entry_name, "client":client_name})
-                trace_id = t.GLIDEIN_TRACE_ID
-                log.info(f"Generated traceID {trace_id} at collector_endpoint {collector_endpoint}")
+                try:
+                    t = glideinTracer.Tracer(jaeger_collector_endpoint)
+                    t.initial_trace({"entry":entry_name, "client":client_name})
+                    trace_id = t.GLIDEIN_TRACE_ID
+                    log.info(f"Generated traceID {trace_id} at collector_endpoint {collector_endpoint}")
+                except:
+                    loglinfo(f"FAILED TO GENERATE TRACEID AND SEND TO COLLECTOR ENDPOINT AND SERVICE")
                 for i in range(len(entry_env)):
                     if entry_env[i].startswith("GLIDEIN_ARGUMENTS="):
                         entry_env[i] += f" -traceid {trace_id} -jaegercollectorendpoint {jaeger_collector_endpoint} -jaegerservicename {t.jaeger_service_name}"
