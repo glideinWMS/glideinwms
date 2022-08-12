@@ -54,6 +54,7 @@ extract_parent_xml_detail() {
       # file exists and is not 0 size
       last_result="$(cat otrx_output.xml)"
       if [ "${exitcode}" -eq 0 ]; then
+          #create_xml -s 2 result { status OK }
           echo "  <result>"
           echo "    <status>OK</status>"
           #propagate metrics as well
@@ -150,6 +151,13 @@ add_spaces(){
 
 ################################
 # Function used to create an xml file structure
+# Call the function with the following syntax:
+# create_xml TAG --option option_value .... tag_value TAG2 .....
+# use '{' to specify the start if an inner tag and use '}' to specify the end
+# use create_xml -s SPACES ... in case you want to create a subpart of an xml file not starting from the beginning specifying
+# the number of spaces needed at the beginning in order to have a good indentation 
+# use create_xml -t to require as output only the tail tag of the xml file, i.e. </OSGTestResult>
+# use create_xml -h to require as output only the header tag of the xml file, i.e. <?xml version=\"1.0\"?>"
 # Arguments:
 #   @: tags, options, values
 # Global:
@@ -293,9 +301,6 @@ create_xml(){
             *)  xml+=$1;;
         esac
         shift 1
-        #echo $end_xml
     done
-    #echo -e "$xml"
     result=$xml
-    #return xml
 }
