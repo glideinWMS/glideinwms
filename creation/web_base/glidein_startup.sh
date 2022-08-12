@@ -195,7 +195,9 @@ usage() {
     echo "  -v <id>                     : operation mode (std, nodebug, fast, check supported)"
     echo "  -multiglidein <num>         : spawn multiple (<num>) glideins (unless also multirestart is set)"
     echo "  -multirestart <num>         : started as one of multiple glideins (glidein number <num>)"
-    echo "  -param_* <arg>              : user specified parameters"
+    echo "  -traceid <id>               : Jaeger trace ID"
+    echo "  -jaegerservicename <name>   : "
+    echo "  -jaegercollectorendpoint <URL>: "
     exit 1
 }
 
@@ -237,7 +239,7 @@ do case "$1" in
     -multirestart)  multi_glidein_restart="$2";;
     -traceid)                   glidein_trace_id="$2";;
     -jaegerservicename)         service_name="$2";;
-    -jaegecollectorendpoint)   collector_endpoint="$2";;
+    -jaegercollectorendpoint)   collector_endpoint="$2";;
     -param_*)    params="$params $(echo "$1" | awk '{print substr($0,8)}') $2";;
     *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
 esac
