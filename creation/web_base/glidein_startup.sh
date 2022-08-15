@@ -1059,6 +1059,7 @@ fi
 # Replace known keywords: Condor, CONDOR, OSG, TMPDIR, AUTO, .
 # Empty $work_dir means PWD (same as ".")
 # A custom path could be provided (no "*)" in case)
+tmp="${work_dir}"
 if [ -z "${work_dir}" ]; then
     work_dir="$(pwd)"
 else
@@ -1072,22 +1073,22 @@ else
 fi
 
 if [ -z "${work_dir}" ]; then
-    early_glidein_failure "Unable to identify Startup dir for the glidein."
+    early_glidein_failure "Unable to identify Startup dir for the glidein ($tmp)."
 fi
 
 if [ ! -e "${work_dir}" ]; then
-    early_glidein_failure "Startup dir ${work_dir} does not exist."
+    early_glidein_failure "Startup dir '${work_dir}' ($tmp) does not exist."
 fi
 
 start_dir="$(pwd)"
-echo "Started in ${start_dir}"
+echo "Started in '${start_dir}' ($tmp)"
 
-def_work_dir="${work_dir}/glide_$(dir_id)XXXXXX"
-if ! work_dir="$(mktemp -d "${def_work_dir}")"; then
-    early_glidein_failure "Cannot create temp '${def_work_dir}'"
+work_dir_template="${work_dir}/glide_$(dir_id)XXXXXX"
+if ! work_dir="$(mktemp -d "${work_dir_template}")"; then
+    early_glidein_failure "Cannot create word_dir '${work_dir_template}'"
 else
     if ! cd "${work_dir}"; then
-        early_glidein_failure "Dir '${work_dir}' was created but cannot cd into it."
+        early_glidein_failure "Work dir '${work_dir}' was created but cannot cd into it."
     else
         echo "Running in ${work_dir}"
     fi
@@ -1097,19 +1098,19 @@ work_dir_created=1
 # GWMS_SUBDIR defined on top
 GWMS_DIR="${work_dir}/$GWMS_SUBDIR"
 if ! mkdir "$GWMS_DIR" ; then
-    early_glidein_failure "Cannot create '$GWMS_DIR'"
+    early_glidein_failure "Cannot create GWMS_DIR '$GWMS_DIR'"
 fi
 gwms_lib_dir="${GWMS_DIR}/lib"
 if ! mkdir -p "$gwms_lib_dir" ; then
-    early_glidein_failure "Cannot create '$gwms_lib_dir'"
+    early_glidein_failure "Cannot create lib dir '$gwms_lib_dir'"
 fi
 gwms_bin_dir="${GWMS_DIR}/bin"
 if ! mkdir -p "$gwms_bin_dir" ; then
-    early_glidein_failure "Cannot create '$gwms_bin_dir'"
+    early_glidein_failure "Cannot create bin dir '$gwms_bin_dir'"
 fi
 gwms_exec_dir="${GWMS_DIR}/exec"
 if ! mkdir -p "$gwms_exec_dir" ; then
-    early_glidein_failure "Cannot create '$gwms_exec_dir'"
+    early_glidein_failure "Cannot create exec dir '$gwms_exec_dir'"
 else
     for i in setup prejob postjob cleanup setup_singularity ; do
         mkdir -p "$gwms_exec_dir"/$i
@@ -1124,9 +1125,9 @@ if [ -n "${GWMS_MULTIUSER_GLIDEIN}" ]; then
     fi
 fi
 
-def_glide_local_tmp_dir="/tmp/glide_$(dir_id)$(id -u -n)_XXXXXX"
-if ! glide_local_tmp_dir="$(mktemp -d "${def_glide_local_tmp_dir}")"; then
-    early_glidein_failure "Cannot create temp '${def_glide_local_tmp_dir}'"
+glide_local_tmp_dir_template="/tmp/glide_$(dir_id)$(id -u -n)_XXXXXX"
+if ! glide_local_tmp_dir="$(mktemp -d "${glide_local_tmp_dir_template}")"; then
+    early_glidein_failure "Cannot create temp '${glide_local_tmp_dir_template}'"
 fi
 glide_local_tmp_dir_created=1
 
@@ -1178,6 +1179,7 @@ if [ -n "${client_repository_url}" ]; then
 fi
 
 # Move the token files from condor to glidein workspace
+# TODO: compare this w/ setup_x509.sh
 mv "${start_dir}/tokens.tgz" .
 mv "${start_dir}/url_dirs.desc" .
 for idtk in ${start_dir}/*.idtoken; do
