@@ -1,17 +1,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description;
-#   This is an include file for glidein_startup.sh
-#   It has the routins to setup the X509 environment
+#   This is a factory provided custom script invoked by glidein_startup.sh
+#   It checks that the X509 proxies ar valid for enough time
+#   This script will run after all the antry and group files (after_file_list_scripts)
+#   It cannot run periodically (startd cron) because it writes to stdout
 #
-# To make chhanges to this file check first setup_x509.sh that defines X509_CERT_DIR and X509_USER_PROXY
+# To make changes to this file check first setup_x509.sh that defines X509_CERT_DIR and X509_USER_PROXY
 # and has the same get_x509_expiration function
 
 glidein_config="$1"
@@ -20,12 +16,12 @@ glidein_config="$1"
 add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | cut -d ' ' -f 2-`"
 source "$add_config_line_source"
 
-error_gen="`grep '^ERROR_GEN_PATH ' $glidein_config | cut -d ' ' -f 2-`"
-X509_CERT_DIR="`grep '^X509_CERT_DIR ' $glidein_config | cut -d ' ' -f 2-`"
+error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
+X509_CERT_DIR=$(gconfig_get X509_CERT_DIR "$glidein_config")
 export X509_CERT_DIR
-X509_USER_PROXY="`grep '^X509_USER_PROXY ' $glidein_config | cut -d ' ' -f 2-`"
+X509_USER_PROXY=$(gconfig_get X509_USER_PROXY "$glidein_config")
 export X509_USER_PROXY
-GLIDEIN_CONDOR_TOKEN="`grep '^GLIDEIN_CONDOR_TOKEN ' $glidein_config | cut -d ' ' -f 2-`"
+GLIDEIN_CONDOR_TOKEN=$(gconfig_get GLIDEIN_CONDOR_TOKEN "$glidein_config")
 export GLIDEIN_CONDOR_TOKEN
 
 #if an IDTOKEN is available, continue.  Else exit
@@ -74,36 +70,36 @@ function openssl_get_x509_timeleft {
 # return value in RETVAL
 function get_x509_expiration {
     RETVAL=0
-    now=`date +%s`
-    if [ $? -ne 0 ]; then
+    #now=$(date +%s)
+    if ! now=$(date +%s); then
         STR="Date not found!"
         "$error_gen" -error "check_proxy.sh" "WN_Resource" "$STR" "command" "date"
-        exit 1 # just to be sure
+        exit 1  # just to be sure
     fi
     CMD="grid-proxy-info"
     l=$(grid-proxy-info -timeleft 2>/dev/null)
     ret=$?
-    if [ $ret -ne 0 ]; then
+    if [[ $ret -ne 0 ]]; then
         CMD="voms-proxy-info"
         # using  -dont-verify-ac to avoid exit code 1 if AC signatures are not present
         l=$(voms-proxy-info -dont-verify-ac -timeleft 2>/dev/null)
         ret=$?
-        if [ $ret -ne 0 ]; then
+        if [[ $ret -ne 0 ]]; then
             CMD="openssl"
-            l=$(openssl_get_x509_timeleft "$X509_USER_PROXY" $now)
+            l=$(openssl_get_x509_timeleft "$X509_USER_PROXY" "$now")
             ret=$?
         fi
     fi
 
-    if [ $ret -eq 0 ]; then
-        if [ $l -lt 43200 ]; then
+    if [[ $ret -eq 0 ]]; then
+        if [[ "$l" -lt 43200 ]]; then
             STR="Proxy not valid in in 12 hours, only $l seconds left!\n"
             STR+="Proxy shorter than 12 hours are not allowed."
-            STR1=`echo -e "$STR"`
+            STR1=$(echo -e "$STR")
             "$error_gen" -error "check_proxy.sh" "VO_Proxy" "$STR1" "proxy" "$X509_USER_PROXY"
             exit_if_no_token 1
         fi
-        RETVAL="$(/usr/bin/expr $now + $l)"
+        RETVAL=$(/usr/bin/expr $now + $l)
     else
         #echo "Could not obtain -timeleft" 1>&2
         STR="Could not obtain -timeleft from grid-proxy-info/voms-proxy-info/openssl"
@@ -128,6 +124,6 @@ function get_x509_expiration {
 get_x509_expiration
 X509_EXPIRE="$RETVAL"
 
-"$error_gen" -ok "check_proxy.sh" "proxy" "$X509_USER_PROXY" "proxy_expire" "`date --date=@$X509_EXPIRE +%Y-%m-%dT%H:%M:%S%:z`" "cert_dir" "$X509_CERT_DIR"
+"$error_gen" -ok "check_proxy.sh" "proxy" "$X509_USER_PROXY" "proxy_expire" "$(date --date=@"$X509_EXPIRE" +%Y-%m-%dT%H:%M:%S%:z)" "cert_dir" "$X509_CERT_DIR"
 
 exit 0

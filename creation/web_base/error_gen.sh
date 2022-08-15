@@ -3,13 +3,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
 # Description:
 #   Helper script to create the XML output file
-#   containing the result of the validation test
+#   containing the result of a validation test (custom script)
 #
 
 # --------------------------------------------------------- #
