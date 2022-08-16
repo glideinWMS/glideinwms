@@ -23,7 +23,7 @@ construct_xml() {
 }
 
 ################################
-# Function used to extract the parent xml fname
+# Function used to extract the parent xml fname (element inside the id of OSGTestResult)
 # Arguments:
 #   1: exit code
 extract_parent_fname(){
@@ -172,11 +172,13 @@ create_xml(){
     if [[ $1 == "-h" ]]
         then
             result="<?xml version=\"1.0\"?>"
+            echo -e "$result"
             return 0
     fi
     if [[ $1 == "-t" ]]
         then
-            result="\n</OSGTestResult>"
+            result="</OSGTestResult>"
+            echo -e "$result"
             return 0
     fi
     if [[ $1 == "-s" ]]
@@ -185,15 +187,15 @@ create_xml(){
         shift 2
     else
       xml="<?xml version=\"1.0\"?>"
+      xml+="\n"
     fi
     until [ $# -lt 1 ]
     do
-        xml+="\n"
         case "$1" in
             OSG|O)
                     add_spaces
                     xml+="<OSGTestResult"
-                    while [[ $2 = "-"* ]]
+                    while [[ "$2" = "-"* ]]
                     do
                        if [ $2 == "--id" ]; then
                           xml+=" id=\"$3\""
@@ -201,7 +203,7 @@ create_xml(){
                        shift 2
                     done
                     xml+=" version=\"4.3.1\">"
-                    if [ $2 == "{" ]; then
+                    if [ "$2" == "{" ]; then
                         spaces+=1
                         end_xml="</OSGTestResult>"$end_xml
                         shift 1
@@ -211,7 +213,7 @@ create_xml(){
             OSGShort|OS)
                     add_spaces
                     xml+="<OSGTestResult>"
-                    if [ $2 == "{" ]; then
+                    if [ "$2" == "{" ]; then
                         spaces+=1
                         end_xml="</OSGTestResult>"$end_xml
                         shift 1
@@ -221,7 +223,7 @@ create_xml(){
             operatingenvironment|oe)
                     add_spaces
                     xml+="<operatingenvironment>"
-                    if [ $2 == "{" ]; then
+                    if [ "$2" == "{" ]; then
                         spaces+=1
                         end_xml="</operatingenvironment>"$end_xml
                         shift 1
@@ -231,9 +233,9 @@ create_xml(){
             env|e)
                     add_spaces
                     xml+="<env"
-                    while [[ $2 = "-"* ]]
+                    while [[ "$2" = "-"* ]]
                     do
-                          if [ $2 == "--name" ]; then
+                          if [ "$2" == "--name" ]; then
                               xml+=" name=\"$3\""
                           fi
                           shift 2
@@ -243,7 +245,7 @@ create_xml(){
             test|t)
                     add_spaces
                     xml+="<test>"
-                    if [ $2 == "{" ]; then
+                    if [ "$2" == "{" ]; then
                         spaces+=1
                         end_xml="</test>"$end_xml
                         shift 1
@@ -265,7 +267,7 @@ create_xml(){
             result|r)
                     add_spaces
                     xml+="<result>"
-                    if [ $2 == "{" ]; then
+                    if [ "$2" == "{" ]; then
                         spaces+=1
                         end_xml="</result>"$end_xml
                         shift 1
@@ -277,13 +279,13 @@ create_xml(){
                         shift 1;;
             metric|m)     add_spaces
                         xml+="<metric"
-                        while [[ $2 = "-"* ]]
+                        while [[ "$2" = "-"* ]]
                         do
-                              if [ $2 == "--name" ]; then
+                              if [ "$2" == "--name" ]; then
                                  xml+=" name=\"$3\""
-                              elif [ $2 == "--ts" ]; then
+                              elif [ "$2" == "--ts" ]; then
                                  xml+=" ts=\"$3\""
-                              elif [ $2 == "--uri" ]; then
+                              elif [ "$2" == "--uri" ]; then
                                  xml+=" uri=\"$3\""
                               fi
                               shift 2
@@ -301,6 +303,8 @@ create_xml(){
             *)  xml+=$1;;
         esac
         shift 1
+        xml+="\n"
     done
     result=$xml
+    echo -e "$result"
 }

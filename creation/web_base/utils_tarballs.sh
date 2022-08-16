@@ -13,6 +13,8 @@
 # Retrieve the specified data, which is appended as tarball
 # Arguments:
 #   1: selected file
+# Global:
+#   GWMS_STARTUP_SCRIPT
 get_data() {
     sed '1,/^#EOF$/d' < "${GWMS_STARTUP_SCRIPT}" | tar xz -O "$1"
 }
@@ -29,6 +31,8 @@ source_data() {
 
 #######################################
 # Show a list of the payload tarballed files in this script
+# Global:
+#   GWMS_STARTUP_SCRIPT
 list_data() {
     sed '1,/^#EOF$/d' < "${GWMS_STARTUP_SCRIPT}" | tar tz
 }
