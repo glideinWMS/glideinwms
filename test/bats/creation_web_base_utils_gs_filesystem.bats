@@ -100,3 +100,24 @@ early_glidein_failure() {
     assert_output --partial "copied idtoken"
     [ "$status" == 0 ]
 }
+
+@test "copy_all" {
+    tmp_dir="/tmp/prova"
+    mkdir -p "$tmp_dir"
+    cd "$tmp_dir"
+    touch file1.txt
+    touch file2.txt
+    touch file3.txt
+    touch afile1.txt
+    target_dir="/tmp/prova2"
+    mkdir -p "$target_dir"
+    run copy_all "pfile" "${target_dir}"
+    [ "$output" == "" ]
+    [ -f "${target_dir}"/file1.txt ]
+    [ -f "${target_dir}"/file2.txt ]
+    [ -f "${target_dir}"/file3.txt ]
+    [ ! -f "${target_dir}"/pfile1.txt ]
+    [ "$status" -eq 0 ]
+    rm -rf "$tmp_dir"
+    rm -rf "$target_dir"
+}

@@ -63,24 +63,6 @@ extract_all_data() {
 }
 
 ################################
-# Function used to copy all files from a directory to another
-# (to support when needed to start multiple glideins)
-# Arguments:
-#   1: prefix of the files to skip
-#   2: destination directory
-copy_all() {
-   mkdir -p "$2"
-   for f in *; do
-       [[ -e "${f}" ]] || break    # TODO: should this be a continue?
-       if [[ "${f}" = ${1}* ]]; then
-           continue
-       fi
-       cp -r "${f}" "$2"/
-   done
-}
-# TODO: should it copy also hidden files?
-
-################################
 # Function used to start all glideins
 # Arguments:
 #   1: number of glideins

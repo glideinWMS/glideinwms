@@ -36,32 +36,6 @@ setup () {
     #load 'mock_gwms_logs'
 }
 
-setup_nameprint() {
-    if [ "${BATS_TEST_NUMBER}" = 1 ];then
-        echo "# --- TEST NAME IS $(basename "${BATS_TEST_FILENAME}")" >&3
-    fi
-}
-
-@test "copy_all" {
-    tmp_dir="/tmp/prova"
-    mkdir -p "$tmp_dir"
-    cd "$tmp_dir"
-    touch file1.txt
-    touch file2.txt
-    touch file3.txt
-    touch afile1.txt
-    target_dir="/tmp/prova2"
-    mkdir -p "$target_dir"
-    run copy_all "pfile" "${target_dir}"
-    [ "$output" == "" ]
-    [ -f "${target_dir}"/file1.txt ]
-    [ -f "${target_dir}"/file2.txt ]
-    [ -f "${target_dir}"/file3.txt ]
-    [ ! -f "${target_dir}"/pfile1.txt ]
-    [ "$status" -eq 0 ]
-    rm -rf "$tmp_dir"
-    rm -rf "$target_dir"
-}
 
 @test "do_start_all" {
     GWMS_SOURCEDIR="../../../creation/web_base"
