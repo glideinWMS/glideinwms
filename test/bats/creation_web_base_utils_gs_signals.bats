@@ -7,22 +7,14 @@ load 'lib/bats-assert/load'
 [[ -z "$GWMS_SOURCEDIR" ]] && GWMS_SOURCEDIR="../../creation/web_base"
 
 setup () {
-    source "$GWMS_SOURCEDIR"/utils_signals.sh
+    source "$GWMS_SOURCEDIR"/utils_gs_signals.sh
 }
 
-@test "trap_with_arg" {
-    run trap 'ignore_signal' SIGTERM SIGINT SIGQUIT
-    echo "$output" >& 3
-    # Todo: How  to check if handler has been correctly assigned?
-    [ "$output" == "" ]
-    [ "$status" == 0 ]
-}
-
-@test "on_die" {
+@test "on_die_multi" {
     sleep 5 &
     pid=$!
     GWMS_MULTIGLIDEIN_CHILDS=${pid}
-    run on_die "KILL"
+    run on_die_multi "KILL"
     echo "$output" >& 3
     if ! ps -p ${pid} > /dev/null
     then
@@ -31,5 +23,5 @@ setup () {
        [ 1 -eq 0 ]
     fi
     [ "$status" == 0 ]
-    assert_output --partial "forwarding KILL signal"
+    assert_output --partial "forwarding KILL signal to"
 }

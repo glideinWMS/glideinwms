@@ -13,6 +13,7 @@
 #   1: signal
 # Globals:
 #   ON_DIE
+#   GWMS_MULTIGLIDEIN_CHILDS
 on_die_multi() {
     echo "Multi-Glidein received signal... shutting down child glideins (forwarding $1 signal to ${GWMS_MULTIGLIDEIN_CHILDS})" 1>&2
     ON_DIE=1
