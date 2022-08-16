@@ -4,8 +4,6 @@
 load 'lib/bats-support/load'
 load 'lib/bats-assert/load'
 
-#load 'helper'
-
 [[ -z "$GWMS_SOURCEDIR" ]] && GWMS_SOURCEDIR="../../creation/web_base"
 
 setup () {
