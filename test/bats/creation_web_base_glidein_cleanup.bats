@@ -4,40 +4,16 @@
 load 'lib/bats-support/load'
 load 'lib/bats-assert/load'
 
-#load 'helper'
-
 [[ -z "$GWMS_SOURCEDIR" ]] && GWMS_SOURCEDIR=../..
 
 setup () {
-    # get the containing directory of this file
-    # use $BATS_TEST_FILENAME instead of ${BASH_SOURCE[0]} or $0,
-    # as those will point to the bats executable's location or the preprocessed file respectively
-    DIR="$( cd "$( dirname "$BATS_TEST_FILENAME" )" >/dev/null 2>&1 && pwd )"
-    # make executables in src/ visible to PATH
-    PATH="$DIR/../src:$PATH"
-    source compat.bash
-    source "$GWMS_SOURCEDIR"/creation/web_base/utils_gs_signals.sh
-    source "$GWMS_SOURCEDIR"/creation/web_base/utils_gs_tarballs.sh
     source "$GWMS_SOURCEDIR"/creation/web_base/utils_io.sh
-    source "$GWMS_SOURCEDIR"/creation/web_base/utils_params.sh
-    source "$GWMS_SOURCEDIR"/creation/web_base/utils_signals.sh
-    source "$GWMS_SOURCEDIR"/creation/web_base/utils_tarballs.sh
     source "$GWMS_SOURCEDIR"/creation/web_base/utils_xml.sh
-    source "$GWMS_SOURCEDIR"/creation/web_base/utils_crypto.sh
-    source "$GWMS_SOURCEDIR"/creation/web_base/utils_gs_http.sh
-    source "$GWMS_SOURCEDIR"/creation/web_base/utils_gs_filesystem.sh
     source "$GWMS_SOURCEDIR"/creation/web_base/utils_gs_io.sh
     source "$GWMS_SOURCEDIR"/creation/web_base/logging_utils.source
     source "$GWMS_SOURCEDIR"/creation/web_base/glidein_cleanup.sh 2>&3
     source "$GWMS_SOURCEDIR"/creation/web_base/add_config_line.source
     source "$GWMS_SOURCEDIR"/creation/web_base/glidein_paths.source
-    load 'mock_gwms_logs'
-}
-
-setup_nameprint() {
-    if [ "${BATS_TEST_NUMBER}" = 1 ];then
-        echo "# --- TEST NAME IS $(basename "${BATS_TEST_FILENAME}")" >&3
-    fi
 }
 
 @test "glidien_cleanup" {
