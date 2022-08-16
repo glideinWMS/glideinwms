@@ -8,6 +8,7 @@ import os
 # fmt: off
 os.environ["OTEL_PROPAGATORS"] = "jaeger" 
 # fmt: on
+import time
 from opentelemetry import propagate, trace
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.sdk.resources import Resource, SERVICE_NAME
@@ -60,6 +61,7 @@ class Tracer:
             c = {}
             propagate.inject(c)
             self.GLIDEIN_TRACE_ID = c["uber-trace-id"]
+            time.sleep(2)
 
 
 class Trace:
@@ -79,25 +81,28 @@ class Trace:
         """
         self.tracer = tracer
         self.carrier = carrier
-        self.GLIDEIN_SPAN_ID = None
+        self.GLIDEIN_SPAN_ID = []
         self.SpanContext = None
         self.ctx = None
+        
 
     def send_span(self):
         self.ctx = TraceContextTextMapPropagator().extract(carrier=self.carrier)
-        with self.tracer.start_as_current_span("child", context=self.ctx) as child:
-            c = {}
-            propagate.inject(c)
-            self.GLIDEIN_SPAN_ID = c["uber-trace-id"]
-
-    def get_span_ID(self):
-        print(self.GLIDEIN_SPAN_ID)
+        for i in range(3):
+            with self.tracer.start_as_current_span("child_init", context=self.ctx) as child:
+                c={}
+                propagate.inject(c)
+                self.GLIDEIN_SPAN_ID.append(c['uber-trace-id'])
+                time.sleep(2)
+                i += 1
 
 
 def main():  # use classes above to initialize a tracer and send a span and print trace id
     T = Tracer(jaeger_collector_endpoint)
     T.initial_trace({"entry":"entry_name","client":"client_name"})
-    print(T.GLIDEIN_TRACE_ID)
+    t = Trace(T.tracer, T.carrier)
+    t.send_span()
+
 
 
 
