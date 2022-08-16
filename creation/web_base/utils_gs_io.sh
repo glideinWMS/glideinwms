@@ -16,7 +16,7 @@
 # Global:
 #   total_time
 print_tail() {
-  local final_result_simple, final_result_long, exit_code
+  local final_result_simple final_result_long exit_code
   exit_code=$1
   final_result_simple="$2"
   final_result_long="$3"
@@ -187,7 +187,7 @@ parse_options(){
             -multirestart)  multi_glidein_restart="$2";;
             -param_*)    params="$params $(echo "$1" | awk '{print substr($0,8)}') $2";;
             -h|--help) usage; exit 0;;
-            *)  (log_warn "Unknown option $1"; usage; exit 1) 1>&2; exit 1
+            *)  (log_warn "Unknown option $1"; usage; exit 1) 1>&2; exit 1;;
         esac
         shift 2
     done
@@ -198,13 +198,31 @@ parse_options(){
 # It allows some parameters to change arguments
 # Global:
 #   tmp_par
+#   params
+#   repository_url
+#   client_repository_url
 #   repository_entry_url
 #   proxy_url
 #   client_sign_type
+#   client_descript_file
+#   multi_glidein
+#   operation_mode
+#   descript_file
+#   descript_entry_file
+#   glidein_name
+#   glidein_entry
+#   sign_id
+#   sign_entry_id
+#   sign_type
+#   client_repository_group_url
+#   client_descript_group_file
+#   sleep_time
+#   set_debug
+#   OSG_SQUID_LOCATION
 parse_arguments(){
     # multiglidein GLIDEIN_MULTIGLIDEIN -> multi_glidein
     tmp_par=$(params_get_simple GLIDEIN_MULTIGLIDEIN "${params}")
-    [ -n "${tmp_par}" ] &&  multi_glidein=${tmp_par}
+    [ -n "${tmp_par}" ] && multi_glidein=${tmp_par}
 
     case "${operation_mode}" in
         nodebug)

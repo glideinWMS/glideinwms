@@ -10,7 +10,7 @@
 ################################
 # Function used to automatically determine and setup work directories
 # Globals:
-#   targets
+#   targets (_CONDOR_SCRATCH_DIR, OSG_WN_TMP, TG_NODE_SCRATCH, TG_CLUSTER_SCRATCH, SCRATCH, TMPDIR, TMP, PWD)
 #   work_dir
 # Returns:
 #   1 in case you are not allowed to write

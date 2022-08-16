@@ -13,6 +13,8 @@
 #   2: option (quiet)
 # Returns:
 #   1 in case the md5sum cannot be calculated, or neither the md5sum nor the md5 can be found
+# Global:
+#   res
 md5wrapper() {
     local ERROR_RESULT
     ERROR_RESULT="???"
@@ -56,6 +58,7 @@ md5wrapper() {
 #   cfs_signature
 #   cfs_rc
 #   tmp_signname
+#   check_signature
 # Returns:
 #   1 in case of corrupted file
 check_file_signature() {
@@ -93,6 +96,7 @@ check_file_signature() {
 # Environment variables exported:
 #   X509_USER_PROXY
 set_proxy_fullpath() {
+    local fullpath
     if fullpath="$(readlink -f "${X509_USER_PROXY}")"; then
         echo "Setting X509_USER_PROXY ${X509_USER_PROXY} to canonical path ${fullpath}" 1>&2
         export X509_USER_PROXY="${fullpath}"

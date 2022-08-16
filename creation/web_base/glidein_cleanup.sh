@@ -46,7 +46,7 @@ glidein_cleanup() {
 # Arguments:
 #   1: error message
 early_glidein_failure() {
-  local error_msg glidein_end_time result final_result final_result_simple final_result_long
+  local error_msg glidein_end_time result final_result
   error_msg="$1"
   log_warn "${error_msg}"
   sleep "${sleep_time}"
@@ -54,14 +54,6 @@ early_glidein_failure() {
   glidein_end_time="$(date +%s)"
   ts="$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)"
   create_xml -s 4 metric --name failure --ts "$ts" --uri local WN_RESOURCE status ERROR detail ${error_msg}
-  #result
-  #result="    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">WN_RESOURCE</metric>
-  #  <status>ERROR</status>
-  #  <detail>
-  #   ${error_msg}
-  #  </detail>"
-  #echo "testing xml"
-  #echo -e $result
   final_result="$(construct_xml "${result}")"
   final_result_simple="$(basexml2simplexml "${final_result}")"
   # have no global section
@@ -117,7 +109,7 @@ glidein_exit() {
           do_report=1
       fi
       # wait a bit in case of error, to reduce lost glideins
-      let "dl=$(date +%s) + ${sleep_time}"
+      let "dl=$(date +%s)+${sleep_time}"
       dlf=$(date --date="@${dl}")
       add_config_line "GLIDEIN_ADVERTISE_ONLY" "1"
       add_config_line "GLIDEIN_Failed" "True"

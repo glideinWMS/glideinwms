@@ -18,3 +18,9 @@ bigfiles/*
 # Scripts were moved. The following 2 are here for back compatibility, can be removed in the future
 !bigfiles/pull-bigfiles.sh
 !bigfiles/push-bigfiles.sh
+
+.idea/*
+node_modules/*
+output/*
+package-lock.json
+package.json

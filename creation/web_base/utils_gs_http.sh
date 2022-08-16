@@ -190,7 +190,7 @@ fetch_file_try() {
     fft_config_out="$8"
 
     if [[ "${fft_config_check}" != "TRUE" ]]; then
-        # TRUE is a special case, always downloaded and processed
+        # TRUE is a special case, always be downloaded and processed
         local fft_get_ss
         fft_get_ss=$(grep -i "^${fft_config_check} " glidein_config | cut -d ' ' -f 2-)
         # Stop download and processing if the cond_attr variable is not defined or has a value different from 1

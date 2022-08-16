@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 #*******************************************************************#
 #                      glidein_startup.sh                           #
@@ -16,7 +16,6 @@
 IFS=$' \t\n'
 
 GLOBAL_ARGS="$*"
-
 # GWMS_STARTUP_SCRIPT=$0
 GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 
@@ -39,27 +38,30 @@ GWMS_MULTIUSER_GLIDEIN=
 GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
 GWMS_MULTIGLIDEIN_CHILDS=
 
+[[ -z "$GWMS_SOURCEDIR" ]] && GWMS_SOURCEDIR=.
+
 # Include all source scripts
-source utils_gs_http.sh
-source utils_gs_filesystem.sh
-source utils_gs_io.sh
-source utils_gs_signals.sh
-source utils_gs_tarballs.sh
-source utils_io.sh
-source utils_params.sh
-source utils_signals.sh
-source utils_tarballs.sh
-source utils_xml.sh
-source utils_crypto.sh
-source glidein_cleanup.sh
+source "$GWMS_SOURCEDIR"/utils_gs_http.sh
+source "$GWMS_SOURCEDIR"/utils_gs_filesystem.sh
+source "$GWMS_SOURCEDIR"/utils_gs_io.sh
+source "$GWMS_SOURCEDIR"/utils_gs_signals.sh
+source "$GWMS_SOURCEDIR"/utils_gs_tarballs.sh
+source "$GWMS_SOURCEDIR"/utils_io.sh
+source "$GWMS_SOURCEDIR"/utils_params.sh
+source "$GWMS_SOURCEDIR"/utils_signals.sh
+source "$GWMS_SOURCEDIR"/utils_tarballs.sh
+source "$GWMS_SOURCEDIR"/utils_xml.sh
+source "$GWMS_SOURCEDIR"/utils_crypto.sh
+source "$GWMS_SOURCEDIR"/glidein_cleanup.sh
 
 export LANG=C
 
 ################################
-# Function used to start multiple glideins
+# Function used to copy all files from a directory to another
+# (to support when needed to start multiple glideins)
 # Arguments:
 #   1: prefix of the files to skip
-#   2: directory
+#   2: destination directory
 copy_all() {
    mkdir -p "$2"
    for f in *; do
@@ -113,7 +115,7 @@ do_start_all() {
     fi
 }
 
-# TODO (HERE)
+# TODO(F): bats tests HERE
 
 ################################
 # Function used to spawn multiple glideins and wait, if needed
@@ -277,337 +279,315 @@ create_glidein_config(){
     fi
 }
 
-################################
-# Block of code used to handle the list of parameters
-# params will contain the full list of parameters
-# -param_XXX YYY will become "XXX YYY"
-#TODO: can use an array instead?
-# Transform long options to short ones
-#for arg in "$@"; do
-#    shift
-#    case "$arg" in
-#        '-factory') set -- "$@" '-f'  ;;
-#        '-name') set -- "$@" '-n'  ;;
-#        '-entry') set -- "$@" '-e'  ;;
-#        *) set -- "$@" "$arg" ;;
-#    esac
-#done
+_main(){
 
-#OPTIND=1
-#while getopts "hn:rw" opt
-#do
-#    case "Sopt" in
-#        'h') print_usage; exit 0 ;;
-#        'n') a=2 ;;
-#        'r') rest=true ;;
-#        'w') ws=true ;;
-#        '?') print_usage >&2; exit 1;;
-#    esac
-#done
-#shift $(expr $OPTIND- 1)
+    ################################
+    parse_options "$@"
 
-################################
-parse_options $@
-
-################################
-# Code block used to set the slots_layout
-# make sure to have a valid slots_layout
-if (echo "x${slots_layout}" | grep -i fixed) >/dev/null 2>&1 ; then
-    slots_layout="fixed"
-else
-    slots_layout="partitionable"
-fi
-
-################################
-parse_arguments
-
-################################
-# Code block used to generate the glidein UUID
-if command -v uuidgen >/dev/null 2>&1; then
-    glidein_uuid="$(uuidgen)"
-else
-    glidein_uuid="$(od -x -w32 -N32 /dev/urandom | awk 'NR==1{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')"
-fi
-
-################################
-print_header "@"
-
-################################
-spawn_multiple_glideins
-
-########################################
-# Code block used to make sure nobody else can write my files
-# in the Grid world I cannot trust anybody
-if ! umask 0022; then
-    early_glidein_failure "Failed in umask 0022"
-fi
-
-########################################
-setup_OSG_Globus
-
-########################################
-# Code block used to set the tokens
-[ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
-num_gct=0
-for tk in "$(pwd)/credential_"*".idtoken"; do
-    echo "Setting GLIDEIN_CONDOR_TOKEN to ${tk} " 1>&2
-    num_gct=$(( num_gct + 1 ))
-    export GLIDEIN_CONDOR_TOKEN="${tk}"
-    fullpath="$(readlink -f "${tk}" )"
-    if [ $? -eq 0 ]; then
-        echo "Setting GLIDEIN_CONDOR_TOKEN ${tk} to canonical path ${fullpath}" 1>&2
-        export GLIDEIN_CONDOR_TOKEN="${fullpath}"
+    ################################
+    # Code block used to set the slots_layout
+    # make sure to have a valid slots_layout
+    if (echo "x${slots_layout}" | grep -i fixed) >/dev/null 2>&1 ; then
+        slots_layout="fixed"
     else
-        echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN ${tk}" 1>&2
+        slots_layout="partitionable"
     fi
-done
-if [ ! -f "${GLIDEIN_CONDOR_TOKEN}" ] ; then
-    token_err_msg="problem setting GLIDEIN_CONDOR_TOKEN"
-    token_err_msg="${token_err_msg} will attempt to recover, but condor IDTOKEN auth may fail"
-    echo "${token_err_msg}"
-    echo "${token_err_msg}" 1>&2
-fi
-if [ ! "${num_gct}" -eq  1 ] ; then
-    token_err_msg="WARNING  GLIDEIN_CONDOR_TOKEN set ${num_gct} times, should be 1 !"
-    token_err_msg="${token_err_msg} condor IDTOKEN auth may fail"
-    echo "${token_err_msg}"
-    echo "${token_err_msg}" 1>&2
-fi
 
-########################################
-prepare_workdir
+    ################################
+    parse_arguments
 
-########################################
-# extract and source all the data contained at the end of this script as tarball
-extract_all_data
+    ################################
+    # Code block used to generate the glidein UUID
+    if command -v uuidgen >/dev/null 2>&1; then
+        glidein_uuid="$(uuidgen)"
+    else
+        glidein_uuid="$(od -x -w32 -N32 /dev/urandom | awk 'NR==1{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')"
+    fi
 
-########################################
-wrapper_list="${PWD}/wrapper_list.lst"
-touch "${wrapper_list}"
+    ################################
+    print_header "$@"
 
-########################################
-create_glidein_config
+    ################################
+    spawn_multiple_glideins
 
-########################################
-# shellcheck disable=SC2086
-params2file ${params}
+    ########################################
+    # Code block used to make sure nobody else can write my files
+    # in the Grid world I cannot trust anybody
+    if ! umask 0022; then
+        early_glidein_failure "Failed in umask 0022"
+    fi
 
-############################################
-# Setup logging
-log_init "${glidein_uuid}" "${work_dir}"
-# Remove these files, if they are still there
-rm -rf tokens.tgz url_dirs.desc tokens
-log_setup "${glidein_config}"
-echo "Downloading files from Factory and Frontend"
-log_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"
+    ########################################
+    setup_OSG_Globus
 
-#####################################
-# Fetch descript and signature files
-# disable signature check before I get the signature file itself
-# check_signature is global
-check_signature=0
+    ########################################
+    # Code block used to set the tokens
+    [ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
+    num_gct=0
+    for tk in "$(pwd)/credential_"*".idtoken"; do
+        echo "Setting GLIDEIN_CONDOR_TOKEN to ${tk} " 1>&2
+        num_gct=$(( num_gct + 1 ))
+        export GLIDEIN_CONDOR_TOKEN="${tk}"
+        fullpath="$(readlink -f "${tk}" )"
+        if [ $? -eq 0 ]; then
+            echo "Setting GLIDEIN_CONDOR_TOKEN ${tk} to canonical path ${fullpath}" 1>&2
+            export GLIDEIN_CONDOR_TOKEN="${fullpath}"
+        else
+            echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN ${tk}" 1>&2
+        fi
+    done
+    if [ ! -f "${GLIDEIN_CONDOR_TOKEN}" ] ; then
+        token_err_msg="problem setting GLIDEIN_CONDOR_TOKEN"
+        token_err_msg="${token_err_msg} will attempt to recover, but condor IDTOKEN auth may fail"
+        echo "${token_err_msg}"
+        echo "${token_err_msg}" 1>&2
+    fi
+    if [ ! "${num_gct}" -eq  1 ] ; then
+        token_err_msg="WARNING  GLIDEIN_CONDOR_TOKEN set ${num_gct} times, should be 1 !"
+        token_err_msg="${token_err_msg} condor IDTOKEN auth may fail"
+        echo "${token_err_msg}"
+        echo "${token_err_msg}" 1>&2
+    fi
 
-for gs_id in main entry client client_group
-do
-  if [ -z "${client_repository_url}" ]; then
-      if [ "${gs_id}" = "client" ]; then
-          # no client file when no cilent_repository
-          continue
+    ########################################
+    prepare_workdir
+
+    ########################################
+    # extract and source all the data contained at the end of this script as tarball
+    extract_all_data
+
+    ########################################
+    wrapper_list="${PWD}/wrapper_list.lst"
+    touch "${wrapper_list}"
+
+    ########################################
+    create_glidein_config
+
+    ########################################
+    # shellcheck disable=SC2086
+    params2file ${params}
+
+    ############################################
+    # Setup logging
+    log_init "${glidein_uuid}" "${work_dir}"
+    # Remove these files, if they are still there
+    rm -rf tokens.tgz url_dirs.desc tokens
+    log_setup "${glidein_config}"
+    echo "Downloading files from Factory and Frontend"
+    log_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"
+
+    #####################################
+    # Fetch descript and signature files
+    # disable signature check before I get the signature file itself
+    # check_signature is global
+    check_signature=0
+
+    for gs_id in main entry client client_group
+    do
+      if [ -z "${client_repository_url}" ]; then
+          if [ "${gs_id}" = "client" ]; then
+              # no client file when no cilent_repository
+              continue
+          fi
       fi
-  fi
-  if [ -z "${client_repository_group_url}" ]; then
-      if [ "${gs_id}" = "client_group" ]; then
-          # no client group file when no cilent_repository_group
-          continue
+      if [ -z "${client_repository_group_url}" ]; then
+          if [ "${gs_id}" = "client_group" ]; then
+              # no client group file when no cilent_repository_group
+              continue
+          fi
       fi
-  fi
 
-  gs_id_work_dir="$(get_work_dir ${gs_id})"
-
-  # Fetch description file
-  gs_id_descript_file="$(get_descript_file ${gs_id})"
-  fetch_file_regular "${gs_id}" "${gs_id_descript_file}"
-  if ! signature_file_line="$(grep "^signature " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
-      log_warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file} (wc: $(wc < "${gs_id_work_dir}/${gs_id_descript_file}" 2>/dev/null))."
-      glidein_exit 1
-  fi
-  signature_file=$(echo "${signature_file_line}" | cut -s -f 2-)
-
-  # Fetch signature file
-  gs_id_signature="$(get_signature ${gs_id})"
-  fetch_file_regular "${gs_id}" "${signature_file}"
-  echo "${gs_id_signature}  ${signature_file}" > "${gs_id_work_dir}/signature.sha1.test"
-  if ! (cd "${gs_id_work_dir}" && sha1sum -c signature.sha1.test) 1>&2 ; then
-      log_warn "Corrupted signature file '${gs_id_work_dir}/${signature_file}'."
-      glidein_exit 1
-  fi
-  # for simplicity use a fixed name for signature file
-  mv "${gs_id_work_dir}/${signature_file}" "${gs_id_work_dir}/signature.sha1"
-done
-
-# re-enable for everything else
-check_signature=1
-
-# Now verify the description was not tampered with
-# doing it so late should be fine, since nobody should have been able
-# to fake the signature file, even if it faked its name in
-# the description file
-for gs_id in main entry client client_group
-do
-  if [ -z "${client_repository_url}" ]; then
-      if [ "${gs_id}" = "client" ]; then
-          # no client file when no cilent_repository
-          continue
-      fi
-  fi
-  if [ -z "${client_repository_group_url}" ]; then
-      if [ "${gs_id}" = "client_group" ]; then
-          # no client group file when no cilent_repository_group
-          continue
-      fi
-  fi
-
-  gs_id_descript_file="$(get_descript_file ${gs_id})"
-  if ! check_file_signature "${gs_id}" "${gs_id_descript_file}"; then
       gs_id_work_dir="$(get_work_dir ${gs_id})"
-      log_warn "Corrupted description file ${gs_id_work_dir}/${gs_id_descript_file}."
-      glidein_exit 1
-  fi
-done
 
-#TODO(F): qui
+      # Fetch description file
+      gs_id_descript_file="$(get_descript_file ${gs_id})"
+      fetch_file_regular "${gs_id}" "${gs_id_descript_file}"
+      if ! signature_file_line="$(grep "^signature " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
+          log_warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file} (wc: $(wc < "${gs_id_work_dir}/${gs_id_descript_file}" 2>/dev/null))."
+          glidein_exit 1
+      fi
+      signature_file=$(echo "${signature_file_line}" | cut -s -f 2-)
 
-###################################################
-# get last_script, as it is used by the fetch_file
-gs_id_work_dir="$(get_work_dir main)"
-gs_id_descript_file="$(get_descript_file main)"
-last_script="$(grep "^last_script " "${gs_id_work_dir}/${gs_id_descript_file}" | cut -s -f 2-)"
-if [ -z "${last_script}" ]; then
-    log_warn "last_script not in description file ${gs_id_work_dir}/${gs_id_descript_file}."
-    glidein_exit 1
-fi
-#cleanup_script="$(grep "^cleanup_script " "${gs_id_work_dir}/${gs_id_descript_file}" | cut -s -f 2-)"
-cleanup_script=$(grep "^GLIDEIN_CLEANUP_SCRIPT " "${glidein_config}" | cut -d ' ' -f 2-)
+      # Fetch signature file
+      gs_id_signature="$(get_signature ${gs_id})"
+      fetch_file_regular "${gs_id}" "${signature_file}"
+      echo "${gs_id_signature}  ${signature_file}" > "${gs_id_work_dir}/signature.sha1.test"
+      if ! (cd "${gs_id_work_dir}" && sha1sum -c signature.sha1.test) 1>&2 ; then
+          log_warn "Corrupted signature file '${gs_id_work_dir}/${signature_file}'."
+          glidein_exit 1
+      fi
+      # for simplicity use a fixed name for signature file
+      mv "${gs_id_work_dir}/${signature_file}" "${gs_id_work_dir}/signature.sha1"
+    done
 
+    # re-enable for everything else
+    check_signature=1
 
-##############################
-# Fetch all the other files
-for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "main at_file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
-do
-    gs_id="$(echo "${gs_file_id}" |awk '{print $1}')"
+    # Now verify the description was not tampered with
+    # doing it so late should be fine, since nobody should have been able
+    # to fake the signature file, even if it faked its name in
+    # the description file
+    for gs_id in main entry client client_group
+    do
+      if [ -z "${client_repository_url}" ]; then
+          if [ "${gs_id}" = "client" ]; then
+              # no client file when no cilent_repository
+              continue
+          fi
+      fi
+      if [ -z "${client_repository_group_url}" ]; then
+          if [ "${gs_id}" = "client_group" ]; then
+              # no client group file when no cilent_repository_group
+              continue
+          fi
+      fi
 
-    if [ -z "${client_repository_url}" ]; then
-        if [ "${gs_id}" = "client" ]; then
-            # no client file when no client_repository
-            continue
-        fi
+      gs_id_descript_file="$(get_descript_file ${gs_id})"
+      if ! check_file_signature "${gs_id}" "${gs_id_descript_file}"; then
+          gs_id_work_dir="$(get_work_dir ${gs_id})"
+          log_warn "Corrupted description file ${gs_id_work_dir}/${gs_id_descript_file}."
+          glidein_exit 1
+      fi
+    done
+
+    #TODO(F): qui
+
+    ###################################################
+    # get last_script, as it is used by the fetch_file
+    gs_id_work_dir="$(get_work_dir main)"
+    gs_id_descript_file="$(get_descript_file main)"
+    last_script="$(grep "^last_script " "${gs_id_work_dir}/${gs_id_descript_file}" | cut -s -f 2-)"
+    if [ -z "${last_script}" ]; then
+        log_warn "last_script not in description file ${gs_id_work_dir}/${gs_id_descript_file}."
+        glidein_exit 1
     fi
-    if [ -z "${client_repository_group_url}" ]; then
-        if [ "${gs_id}" = "client_group" ]; then
-            # no client group file when no client_repository_group
-            continue
-        fi
-    fi
+    #cleanup_script="$(grep "^cleanup_script " "${gs_id_work_dir}/${gs_id_descript_file}" | cut -s -f 2-)"
+    cleanup_script=$(grep "^GLIDEIN_CLEANUP_SCRIPT " "${glidein_config}" | cut -d ' ' -f 2-)
 
-    gs_file_list_id="$(echo "${gs_file_id}" |awk '{print $2}')"
 
-    gs_id_work_dir="$(get_work_dir "${gs_id}")"
-    gs_id_descript_file="$(get_descript_file "${gs_id}")"
+    ##############################
+    # Fetch all the other files
+    for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "main at_file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
+    do
+        gs_id="$(echo "${gs_file_id}" |awk '{print $1}')"
 
-    # extract list file name
-    if ! gs_file_list_line="$(grep "^${gs_file_list_id} " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
-        if [ -z "${client_repository_group_url}" ]; then
-            if [ "${gs_file_list_id:0:11}" = "aftergroup_" ]; then
-                # afterfile_.. files optional when no client_repository_group
+        if [ -z "${client_repository_url}" ]; then
+            if [ "${gs_id}" = "client" ]; then
+                # no client file when no client_repository
                 continue
             fi
         fi
-      log_warn "No '${gs_file_list_id}' in description file ${gs_id_work_dir}/${gs_id_descript_file}."
-      glidein_exit 1
-    fi
-    # space+tab separated file with multiple elements (was: awk '{print $2}', not safe for spaces in file name)
-    gs_file_list="$(echo "${gs_file_list_line}" | cut -s -f 2 | sed -e 's/[[:space:]]*$//')"
-
-    # fetch list file
-    fetch_file_regular "${gs_id}" "${gs_file_list}"
-
-    # Fetch files contained in list
-    # TODO: $file is actually a list, so it cannot be doublequoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
-    # shellcheck disable=2086
-    while read -r file
-    do
-        if [ "${file:0:1}" != "#" ]; then
-            fetch_file "${gs_id}" $file
+        if [ -z "${client_repository_group_url}" ]; then
+            if [ "${gs_id}" = "client_group" ]; then
+                # no client group file when no client_repository_group
+                continue
+            fi
         fi
-    done < "${gs_id_work_dir}/${gs_file_list}"
 
-    # Files to go into the GWMS_PATH
-    if [ "$gs_file_id" = "main at_file_list" ]; then
-        # setup here to make them available for other setup scripts
-        add_to_path "$gwms_bin_dir"
-        # all available now: gwms-python was in main,file_list; condor_chirp is in main,at_file_list
-        for file in "gwms-python" "condor_chirp"
+        gs_file_list_id="$(echo "${gs_file_id}" |awk '{print $2}')"
+
+        gs_id_work_dir="$(get_work_dir "${gs_id}")"
+        gs_id_descript_file="$(get_descript_file "${gs_id}")"
+
+        # extract list file name
+        if ! gs_file_list_line="$(grep "^${gs_file_list_id} " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
+            if [ -z "${client_repository_group_url}" ]; then
+                if [ "${gs_file_list_id:0:11}" = "aftergroup_" ]; then
+                    # afterfile_.. files optional when no client_repository_group
+                    continue
+                fi
+            fi
+          log_warn "No '${gs_file_list_id}' in description file ${gs_id_work_dir}/${gs_id_descript_file}."
+          glidein_exit 1
+        fi
+        # space+tab separated file with multiple elements (was: awk '{print $2}', not safe for spaces in file name)
+        gs_file_list="$(echo "${gs_file_list_line}" | cut -s -f 2 | sed -e 's/[[:space:]]*$//')"
+
+        # fetch list file
+        fetch_file_regular "${gs_id}" "${gs_file_list}"
+
+        # Fetch files contained in list
+        # TODO: $file is actually a list, so it cannot be doublequoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
+        # shellcheck disable=2086
+        while read -r file
         do
-            cp "${gs_id_work_dir}/$file" "$gwms_bin_dir"/
-        done
-        cp -r "${gs_id_work_dir}/lib"/* "$gwms_lib_dir"/
-    elif [ "$gs_file_id" = "main after_file_list" ]; then
-        # in case some library has been added/updated
-        rsync -ar "${gs_id_work_dir}/lib"/ "$gwms_lib_dir"/
-        # new knowns binaries? add a loop like above: for file in ...
-    elif [[ "$gs_file_id" = client* ]]; then
-        # TODO: gwms25073 this is a workaround until there is an official designation for setup script fragments
-        [[ -e "${gs_id_work_dir}/setup_prejob.sh" ]] && { cp "${gs_id_work_dir}/setup_prejob.sh" "$gwms_exec_dir"/prejob/ ; chmod a-x "$gwms_exec_dir"/prejob/setup_prejob.sh ; }
+            if [ "${file:0:1}" != "#" ]; then
+                fetch_file "${gs_id}" $file
+            fi
+        done < "${gs_id_work_dir}/${gs_file_list}"
+
+        # Files to go into the GWMS_PATH
+        if [ "$gs_file_id" = "main at_file_list" ]; then
+            # setup here to make them available for other setup scripts
+            add_to_path "$gwms_bin_dir"
+            # all available now: gwms-python was in main,file_list; condor_chirp is in main,at_file_list
+            for file in "gwms-python" "condor_chirp"
+            do
+                cp "${gs_id_work_dir}/$file" "$gwms_bin_dir"/
+            done
+            cp -r "${gs_id_work_dir}/lib"/* "$gwms_lib_dir"/
+        elif [ "$gs_file_id" = "main after_file_list" ]; then
+            # in case some library has been added/updated
+            rsync -ar "${gs_id_work_dir}/lib"/ "$gwms_lib_dir"/
+            # new knowns binaries? add a loop like above: for file in ...
+        elif [[ "$gs_file_id" = client* ]]; then
+            # TODO: gwms25073 this is a workaround until there is an official designation for setup script fragments
+            [[ -e "${gs_id_work_dir}/setup_prejob.sh" ]] && { cp "${gs_id_work_dir}/setup_prejob.sh" "$gwms_exec_dir"/prejob/ ; chmod a-x "$gwms_exec_dir"/prejob/setup_prejob.sh ; }
+        fi
+    done
+
+    #############################
+    fixup_condor_dir
+
+    ##############################
+    # Start the glidein main script
+    add_config_line "GLIDEIN_INITIALIZED" "1"
+    log_write "glidein_startup.sh" "text" "Starting the glidein main script" "info"
+    log_write "glidein_startup.sh" "file" "${glidein_config}" "debug"
+    send_logs_to_remote          # checkpoint
+    echo "# --- Last Script values ---" >> glidein_config
+    last_startup_time=$(date +%s)
+    let validation_time=${last_startup_time}-${startup_time}
+    echo "=== Last script starting $(date) (${last_startup_time}) after validating for ${validation_time} ==="
+    echo
+    ON_DIE=0
+    trap 'ignore_signal' SIGHUP
+    trap_with_arg 'on_die' SIGTERM SIGINT SIGQUIT
+    #trap 'on_die' TERM
+    #trap 'on_die' INT
+    gs_id_work_dir=$(get_work_dir main)
+    "${main_dir}"/error_augment.sh -init
+    "${gs_id_work_dir}/${last_script}" glidein_config &
+    wait $!
+    ret=$?
+    if [ ${ON_DIE} -eq 1 ]; then
+        ret=0
     fi
-done
+    last_startup_end_time=$(date +%s)
+    "${main_dir}"/error_augment.sh  -process ${ret} "${last_script}" "${PWD}" "${gs_id_work_dir}/${last_script} glidein_config" "${last_startup_time}" "${last_startup_end_time}"
+    "${main_dir}"/error_augment.sh -concat
+    let last_script_time=${last_startup_end_time}-${last_startup_time}
+    echo "=== Last script ended $(date) (${last_startup_end_time}) with code ${ret} after ${last_script_time} ==="
+    echo
+    if [ ${ret} -ne 0 ]; then
+        log_warn "Error running '${last_script}'"
+    fi
 
-#############################
-fixup_condor_dir
+    #############################
+    #Things like periodic scripts might put messages here if they want them printed in the (stderr) logfile
+    echo "=== Exit messages left by periodic scripts ===" 1>&2
+    if [ -f exit_message ]; then
+        cat exit_message 1>&2
+    else
+        echo "No message left" 1>&2
+    fi
+    echo 1>&2
 
-##############################
-# Start the glidein main script
-add_config_line "GLIDEIN_INITIALIZED" "1"
-log_write "glidein_startup.sh" "text" "Starting the glidein main script" "info"
-log_write "glidein_startup.sh" "file" "${glidein_config}" "debug"
-send_logs_to_remote          # checkpoint
-echo "# --- Last Script values ---" >> glidein_config
-last_startup_time=$(date +%s)
-let validation_time=${last_startup_time}-${startup_time}
-echo "=== Last script starting $(date) (${last_startup_time}) after validating for ${validation_time} ==="
-echo
-ON_DIE=0
-trap 'ignore_signal' SIGHUP
-trap_with_arg 'on_die' SIGTERM SIGINT SIGQUIT
-#trap 'on_die' TERM
-#trap 'on_die' INT
-gs_id_work_dir=$(get_work_dir main)
-"${main_dir}"/error_augment.sh -init
-"${gs_id_work_dir}/${last_script}" glidein_config &
-wait $!
-ret=$?
-if [ ${ON_DIE} -eq 1 ]; then
-    ret=0
+    #########################
+    # clean up after I finish
+    glidein_exit ${ret}
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+	_main "$@"
 fi
-last_startup_end_time=$(date +%s)
-"${main_dir}"/error_augment.sh  -process ${ret} "${last_script}" "${PWD}" "${gs_id_work_dir}/${last_script} glidein_config" "${last_startup_time}" "${last_startup_end_time}"
-"${main_dir}"/error_augment.sh -concat
-let last_script_time=${last_startup_end_time}-${last_startup_time}
-echo "=== Last script ended $(date) (${last_startup_end_time}) with code ${ret} after ${last_script_time} ==="
-echo
-if [ ${ret} -ne 0 ]; then
-    log_warn "Error running '${last_script}'"
-fi
-
-#############################
-#Things like periodic scripts might put messages here if they want them printed in the (stderr) logfile
-echo "=== Exit messages left by periodic scripts ===" 1>&2
-if [ -f exit_message ]; then
-    cat exit_message 1>&2
-else
-    echo "No message left" 1>&2
-fi
-echo 1>&2
-
-#########################
-# clean up after I finish
-glidein_exit ${ret}
