@@ -35,8 +35,6 @@ get_untar_subdir() {
     fi
 
     gus_dir="$(grep -i "^${gus_fname} " "${gus_config_file}" | cut -s -f 2-)"
-    echo "$(grep -i "^${gus_fname} " "${gus_config_file}")"
-    echo "${gus_dir}"
     if [ -z "${gus_dir}" ]; then
         log_warn "Error, untar dir for '${gus_fname}' cannot be empty."
         glidein_exit 1
