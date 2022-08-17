@@ -146,4 +146,5 @@ teardown() {
     rm -f "glidein_config"
     rm -f "glidein_config.history"
     rm -rf "${GWMS_DIR}"
+    rm -rf "logs/"
 }
