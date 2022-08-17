@@ -1696,9 +1696,8 @@ def submitGlideins(
                 try:
                     t_parent = glideinTracer.Tracer(jaeger_collector_endpoint)
                     t_parent.initial_trace({"entry":entry_name, "client":client_name})
-                    for i in range(1):
-                        trace_id = t_parent.GLIDEIN_TRACE_ID
-                        time.sleep(2)
+                    trace_id = t_parent.GLIDEIN_TRACE_ID
+                    time.sleep(2)
                     log.info(f"Generated parent traceID {trace_id} at collector_endpoint {jaeger_collector_endpoint}")
                 except:
                     log.info(f"FAILED TO GENERATE TRACEID AND SEND TO COLLECTOR ENDPOINT AND SERVICE")
