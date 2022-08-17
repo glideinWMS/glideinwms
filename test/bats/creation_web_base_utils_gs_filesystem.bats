@@ -50,13 +50,6 @@ setup () {
     mkdir ${_CONDOR_SCRATCH_DIR}
     run automatic_work_dir
     [ "$status" -eq 0 ]
-    rm -rf "${_CONDOR_SCRATCH_DIR}"
-    rm -rf "${OSG_WN_TMP}"
-    rm -rf "${TG_NODE_SCRATCH}"
-    rm -rf "${TG_CLUSTER_SCRATCH}"
-    rm -rf "${SCRATCH}"
-    rm -rf "${TMPDIR}"
-    rm -rf "${TMP}"
 }
 
 @test "dir_id" {
@@ -135,4 +128,14 @@ early_glidein_failure() {
     [ "${PATH}" == "${element}:${OLD_GWMS_PATH}:${OLD_PATH}" ]
     [ "${GWMS_PATH}" == "${element}:${OLD_GWMS_PATH}" ]
     PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+}
+
+teardown() {
+    rm -rf "${_CONDOR_SCRATCH_DIR}"
+    rm -rf "${OSG_WN_TMP}"
+    rm -rf "${TG_NODE_SCRATCH}"
+    rm -rf "${TG_CLUSTER_SCRATCH}"
+    rm -rf "${SCRATCH}"
+    rm -rf "${TMPDIR}"
+    rm -rf "${TMP}"
 }
