@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 #*******************************************************************#
 #                      glidein_startup.sh                           #
@@ -164,40 +164,6 @@ setup_OSG_Globus(){
 }
 
 ########################################
-# Function used to add $1 to GWMS_PATH and update PATH
-# Environment:
-#   GWMS_PATH
-#   PATH
-add_to_path() {
-    logdebug "Adding to GWMS_PATH: $1"
-    local old_path
-    old_path=":${PATH%:}:"
-    old_path="${old_path//:$GWMS_PATH:/}"
-    local old_gwms_path
-    old_gwms_path=":${GWMS_PATH%:}:"
-    old_gwms_path="${old_gwms_path//:$1:/}"
-    old_gwms_path="${1%:}:${old_gwms_path#:}"
-    export GWMS_PATH="${old_gwms_path%:}"
-    old_path="${GWMS_PATH}:${old_path#:}"
-    export PATH="${old_path%:}"
-}
-
-########################################
-# Function that removes the native condor tarballs directory to allow factory ops to use native condor tarballs
-# All files in the native condor tarballs have a directory like condor-9.0.11-1-x86_64_CentOS7-stripped
-# However the (not used anymore) gwms create_condor_tarball removes that dir
-fixup_condor_dir() {
-    # Check if the condor dir has only one subdir, the one like "condor-9.0.11-1-x86_64_CentOS7-stripped"
-    # See https://stackoverflow.com/questions/32429333/how-to-test-if-a-linux-directory-contain-only-one-subdirectory-and-no-other-file
-    if [ $(find "${gs_id_work_dir}/condor" -maxdepth 1 -type d -printf 1 | wc -m) -eq 2 ]; then
-        echo "Fixing directory structure of condor tarball"
-        mv "${gs_id_work_dir}"/condor/condor*/* "${gs_id_work_dir}"/condor > /dev/null
-    else
-        echo "Condor tarball does not need to be fixed"
-    fi
-}
-
-########################################
 # Function that creates the glidein configuration
 # Global:
 #   glidein_config
@@ -267,56 +233,6 @@ create_glidein_config(){
     fi
 }
 
-################################
-# Block of code used to handle the list of parameters
-# params will contain the full list of parameters
-# -param_XXX YYY will become "XXX YYY"
-#TODO: can use an array instead?
-params=""
-while [ $# -gt 0 ]
-    do case "$1" in
-        -factory)    glidein_factory="$2";;
-        -name)       glidein_name="$2";;
-        -entry)      glidein_entry="$2";;
-        -clientname) client_name="$2";;
-        -clientgroup) client_group="$2";;
-        -web)        repository_url="$2";;
-        -proxy)      proxy_url="$2";;
-        -dir)        work_dir="$2";;
-        -sign)       sign_id="$2";;
-        -signtype)   sign_type="$2";;
-        -signentry)  sign_entry_id="$2";;
-        -cluster)    condorg_cluster="$2";;
-        -subcluster) condorg_subcluster="$2";;
-        -submitcredid) glidein_cred_id="$2";;
-        -schedd)     condorg_schedd="$2";;
-        -descript)   descript_file="$2";;
-        -descriptentry)   descript_entry_file="$2";;
-        -clientweb)             client_repository_url="$2";;
-        -clientwebgroup)        client_repository_group_url="$2";;
-        -clientsign)            client_sign_id="$2";;
-        -clientsigntype)        client_sign_type="$2";;
-        -clientsigngroup)       client_sign_group_id="$2";;
-        -clientdescript)        client_descript_file="$2";;
-        -clientdescriptgroup)   client_descript_group_file="$2";;
-        -slotslayout)           slots_layout="$2";;
-        -v)          operation_mode="$2";;
-        -multiglidein)  multi_glidein="$2";;
-        -multirestart)  multi_glidein_restart="$2";;
-        -param_*)    params="$params $(echo "$1" | awk '{print substr($0,8)}') $2";;
-        *)  (log_warn "Unknown option $1"; usage; exit 1) 1>&2; exit 1
-    esac
-    shift 2
-done  
-
-################################
-# Code block used to set the slots_layout
-# make sure to have a valid slots_layout
-if (echo "x${slots_layout}" | grep -i fixed) >/dev/null 2>&1 ; then
-    slots_layout="fixed"
-else
-    slots_layout="partitionable"
-fi
 _main(){
 
     ################################

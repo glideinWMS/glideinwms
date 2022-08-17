@@ -11,41 +11,56 @@ setup () {
 }
 
 @test "construct_xml" {
+    echo "Testing the presence of xml fields in the output..." >& 3
     run construct_xml "result"
-    echo "$output" >& 3
     assert_output --partial '<?xml version="1.0"?>'
+    assert_output --partial '<OSGTestResult id="glidein_startup.sh" version="4.3.1">'
+    assert_output --partial '<operatingenvironment>'
+    assert_output --partial '<env name="cwd">'
+    assert_output --partial '<test>'
+    assert_output --partial '<cmd>'
+    assert_output --partial '<tStart>'
+    assert_output --partial '<tEnd>'
+    assert_output --partial '<result>'
     [ "$status" -eq 0 ]
 }
 
 @test "extract_parent_fname" {
+    echo "Testing a non-valid parent to extract..." >& 3
     run extract_parent_fname 0
     assert_output --partial "Unknown"
     [ "$status" -eq 0 ]
+    echo "Testing a valid parent to extract with exitcode = 0 ..." >& 3
     touch "otrx_output.xml"
     echo "<?xml version=\"1.0\"?><OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">" > otrx_output.xml
     run extract_parent_fname 0
     assert_output --partial "SUCCESS"
     [ "$status" -eq 0 ]
+    echo "Testing a valid parent to extract with exitcode = 1 ..." >& 3
     run extract_parent_fname 1
     assert_output --partial "glidein_startup.sh"
     [ "$status" -eq 0 ]
 }
 
 @test "extract_parent_xml_detail" {
+    echo "Testing a call with non-valid XML file and exit code 0..." >& 3
     run extract_parent_xml_detail 0
     assert_output --partial "<status>OK</status>"
     assert_output --partial "No detail. Could not find source XML file."
     [ "$status" -eq 0 ]
+    echo "Testing a call with non-valid XML file and exit code 1.." >& 3
     run extract_parent_xml_detail 1
     assert_output --partial "<status>ERROR</status>"
     assert_output --partial "No detail. Could not find source XML file."
     [ "$status" -eq 0 ]
+    echo "Testing a call with valid XML file and exit code 0..." >& 3
     touch "otrx_output.xml"
     echo "<metric name=\"trial\">Content</metric>" > otrx_output.xml
     run extract_parent_xml_detail 0
     assert_output --partial "<status>OK</status>"
     assert_output --partial "<metric name=\"trial\">Content</metric>"
     [ "$status" -eq 0 ]
+    echo "Testing a call with non-valid XML file and exit code 1..." >& 3
     echo "<?xml version=\"1.0\"?><OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">" > otrx_output.xml
     echo "<detail>Trial</detail>\n" >> otrx_output.xml
     run extract_parent_xml_detail 1
@@ -56,6 +71,7 @@ setup () {
 }
 
 @test "basexml2simplexml" {
+    echo "Testing the addition of env tags..." >& 3
     argument="<trial>Content</trial>"
     run basexml2simplexml ${argument}
     assert_output --partial "${argument}"
@@ -64,11 +80,11 @@ setup () {
     assert_output --partial  "<env name=\"user\">"
     assert_output --partial  "<env name=\"arch\">"
     assert_output --partial  "<env name=\"hostname\">"
-    echo "$output" >& 3
     [ "$status" -eq 0 ]
 }
 
 @test "simplexml2longxml" {
+    echo "Testing the addition of env tags..." >& 3
     argument="<trial>Content</trial>"
     run simplexml2longxml ${argument}
     assert_output --partial "${argument}"
@@ -79,11 +95,11 @@ setup () {
     assert_output --partial  "<env name=\"condorg_subcluster\">"
     assert_output --partial  "<env name=\"glidein_credential_id\">"
     assert_output --partial  "<env name=\"condorg_schedd\">"
-    echo "$output" >& 3
     [ "$status" -eq 0 ]
 }
 
 @test "create_xml" {
+    echo "Testing the creation of an xml element with all tags..." >& 3
     run create_xml OSG { oe { e --name "Trial" "Trial" t { c "Trial" tS "Trial" tE "Trial" r { s "Trial" m --name "Trial" --ts "Trial" --uri "Trial" "Trial" } d "Trial" } "Trial" } }
     assert_output --partial "<?xml version=\"1.0\"?>"
     assert_output --partial "<OSGTestResult version=\"4.3.1\">"
@@ -104,10 +120,13 @@ setup () {
     assert_output --partial "</operatingenvironment>"
     assert_output --partial "</OSGTestResult>"
     [ "$status" -eq 0 ]
+    echo "Testing the creation of an xml header..." >& 3
     run create_xml -h
     assert_output --partial "<?xml version=\"1.0\"?>"
+    echo "Testing the creation of an xml tail..." >& 3
     run create_xml -t
     assert_output --partial "</OSGTestResult>"
+    echo "Testing the creation of an inner xml (with spaces)..." >& 3
     run create_xml -s 5 OSG
     assert_output --partial "     <OSGTestResult version=\"4.3.1\"></OSGTestResult>"
 }

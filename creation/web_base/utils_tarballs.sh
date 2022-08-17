@@ -57,3 +57,5 @@ extract_all_data() {
     done
     IFS="${IFS_OLD}"
 }
+
+#TODO: Bats test files need to be defined for these functions
