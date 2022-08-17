@@ -303,7 +303,9 @@ create_xml(){
             *)  xml+=$1;;
         esac
         shift 1
-        xml+="\n"
+        if [ ! $# -eq 0 ]; then
+            xml+="\n"
+        fi
     done
     result=$xml
     echo -e "$result"

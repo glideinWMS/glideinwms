@@ -14,47 +14,56 @@ setup () {
     source "$GWMS_SOURCEDIR"/creation/web_base/glidein_cleanup.sh 2>&3
     source "$GWMS_SOURCEDIR"/creation/web_base/add_config_line.source
     source "$GWMS_SOURCEDIR"/creation/web_base/glidein_paths.source
+    source "$GWMS_SOURCEDIR"/creation/web_base/get_id_selectors.source
 }
 
 @test "glidien_cleanup" {
+    echo "Checking the case of not existing start_dir..." >& 3
     start_dir="random/stuff/"
     run glidein_cleanup 0
-    echo "$output"
     assert_output --partial "Cannot find ${start_dir} anymore, exiting but without cleanup"
     [ "$status" -eq 0 ]
+    echo "Checking the case of disabled cleanup..." >& 3
     start_dir="/tmp/start_dir/"
-    mkdir -p /tmp/start_dir/
+    mkdir -p "${start_dir}"
     GLIDEIN_DEBUG_OPTIONS=",nocleanup,"
     run glidein_cleanup 0
     assert_output --partial "Skipping cleanup, disabled via GLIDEIN_DEBUG_OPTIONS"
     [ "$status" -eq 0 ]
+    echo "Checking the case of work_dir created..." >& 3
     work_dir="/tmp/work_dir/"
-    mkdir -p /tmp/work_dir/
+    mkdir -p "${work_dir}"
     GLIDEIN_DEBUG_OPTIONS=""
     work_dir_created=1
     run glidein_cleanup 0
-    echo "$output" >& 3
-    [ "$output" == "" ]
+    [ -z "$output" ]
     [ "$status" -eq 0 ]
-    work_dir="/tmp/work_dir/"
-    mkdir -p /tmp/work_dir/
+    echo "Checking the case of glide_local_tmp_dir created..." >& 3
     glide_local_tmp_dir="/tmp/glide_local_tmp_dir/"
-    mkdir -p /tmp/glide_local_tmp_dir/
+    mkdir -p "${glide_local_tmp_dir}"
+    mkdir -p "${work_dir}"
     glide_local_tmp_dir_created=1
     run glidein_cleanup 0
-    echo "$output" >& 3
-    [ "$output" == "" ]
+    [ -z "$output" ]
     [ "$status" -eq 0 ]
 }
 
 @test "early_glidein_failure" {
-    message="random"
+    echo "Checking the correctness of the xml structure..." >& 3
+    glidein_cleanup(){
+        echo "glidein_cleanup"
+        return 0
+    }
+    message="message"
     sleep_time=1
     let startup_time=$(date +%s)
     run early_glidein_failure "${message}"
-    echo "$output" >&3
     assert_output --partial "WARN"
+    assert_output --partial "glidein_cleanup"
     assert_output --partial "===  Glidein ending"
+    assert_output --partial "<metric name=\"failure\""
+    assert_output --partial "<status>ERROR</status>"
+    assert_output --partial "<detail>"
     assert_output --partial "===  XML description of glidein activity  ==="
     assert_output --partial "===  End XML description of glidein activity  ==="
     assert_output --partial "===  Encoded XML description of glidein activity  ==="
@@ -63,6 +72,7 @@ setup () {
 }
 
 @test "glidein_exit" {
+    echo "Checking the correctness of the output and gliein_config file in case of exit call with 0 as argument..." >& 3
     if command -v uuidgen >/dev/null 2>&1; then
         glidein_uuid="$(uuidgen)"
     else
@@ -85,19 +95,55 @@ setup () {
     assert_output --partial "===  End XML description of glidein activity  ==="
     assert_output --partial "===  Encoded XML description of glidein activity  ==="
     assert_output --partial "===  End encoded XML description of glidein activity  ==="
+    grep -iq "ADD_CONFIG_LINE_SOURCE" "${glidein_config}"
+    grep -iq "GLIDEIN_LOGDIR" "${glidein_config}"
+    grep -iq "GLIDEIN_STDOUT_LOGFILE" "${glidein_config}"
+    grep -iq "GLIDEIN_STDERR_LOGFILE" "${glidein_config}"
+    grep -iq "GLIDEIN_LOG_LOGFILE" "${glidein_config}"
+    grep -iq "GLIDEIN_LOG_RELATIVE_BASEPATH" "${glidein_config}"
+    grep -iq "CURL_VERSION" "${glidein_config}"
+    grep -iq "GLIDEIN_LOG_NO_SEND" "${glidein_config}"
+    grep -iq "GLIDEIN_LOG_INITIALIZED" "${glidein_config}"
     [ "$status" -eq 0 ]
+    echo "Checking the correctness of the output and gliein_config file in case of exit call with a value different than 0 as argument..." >& 3
     run glidein_exit 1
-    echo "$output" >&3
     assert_output --partial "===  Glidein ending"
+    assert_output --partial "===  XML description of glidein activity  ==="
+    assert_output --partial "===  End XML description of glidein activity  ==="
+    assert_output --partial "===  Encoded XML description of glidein activity  ==="
+    assert_output --partial "===  End encoded XML description of glidein activity  ==="
     [ "$status" -eq 1 ]
-    rm "${PWD}/add_config_line.source"
-    rm glidein_config
-    rm "glidein_config.history"
-    rm -rf "$GWMS_DIR"
+    grep -iq "ADD_CONFIG_LINE_SOURCE" "${glidein_config}"
+    grep -iq "GLIDEIN_LOGDIR" "${glidein_config}"
+    grep -iq "GLIDEIN_STDOUT_LOGFILE" "${glidein_config}"
+    grep -iq "GLIDEIN_STDERR_LOGFILE" "${glidein_config}"
+    grep -iq "GLIDEIN_LOG_LOGFILE" "${glidein_config}"
+    grep -iq "GLIDEIN_LOG_RELATIVE_BASEPATH" "${glidein_config}"
+    grep -iq "CURL_VERSION" "${glidein_config}"
+    grep -iq "GLIDEIN_LOG_NO_SEND" "${glidein_config}"
+    grep -iq "GLIDEIN_LOG_INITIALIZED" "${glidein_config}"
+    grep -iq "GLIDEIN_ADVERTISE_ONLY" "${glidein_config}"
+    grep -iq "GLIDEIN_Failed" "${glidein_config}"
+    grep -iq "GLIDEIN_EXIT_CODE" "${glidein_config}"
+    grep -iq "GLIDEIN_ToDie" "${glidein_config}"
+    grep -iq "GLIDEIN_Expire" "${glidein_config}"
+    grep -iq "GLIDEIN_LAST_SCRIPT" "${glidein_config}"
+    grep -iq "GLIDEIN_ADVERTISE_TYPE" "${glidein_config}"
+    grep -iq "GLIDEIN_FAILURE_REASON" "${glidein_config}"
+    # TODO: Missing checks of the special cases of report failed
 }
 
 teardown() {
-    rm -rf /tmp/glide_local_tmp_dir/
-    rm -rf /tmp/work_dir/
-    rm -rf /tmp/start_dir/
+    glide_local_tmp_dir="/tmp/glide_local_tmp_dir/"
+    work_dir="/tmp/work_dir/"
+    start_dir="/tmp/start_dir/"
+    rm -rf "${glide_local_tmp_dir}"
+    rm -rf "${work_dir}"
+    rm -rf "${start_dir}"
+    GWMS_SUBDIR=".gwms.d"
+    GWMS_DIR="${work_dir}/${GWMS_SUBDIR}"
+    rm "${PWD}/add_config_line.source"
+    rm "glidein_config"
+    rm "glidein_config.history"
+    rm -rf "${GWMS_DIR}"
 }

@@ -11,25 +11,25 @@ setup () {
 }
 
 @test "trap_with_arg" {
+    echo "Testing the assignment of the handler to some signals..." >& 3
     run trap 'ignore_signal' SIGTERM SIGINT SIGQUIT
-    echo "$output" >& 3
-    # Todo: How  to check if handler has been correctly assigned?
+    # Todo: How to check if the handler has been correctly assigned?
     [ "$output" == "" ]
-    [ "$status" == 0 ]
+    [ "$status" -eq 0 ]
 }
 
 @test "on_die" {
+    echo "Testing the launch of a signal to a process..." >& 3
     sleep 5 &
     pid=$!
-    GWMS_MULTIGLIDEIN_CHILDS=${pid}
+    GWMS_MULTIGLIDEIN_CHILDS="${pid}"
     run on_die "KILL"
-    echo "$output" >& 3
     if ! ps -p ${pid} > /dev/null
     then
-       [ 0 -eq 0 ]
+       [ true ]
     else
-       [ 1 -eq 0 ]
+       [ false]
     fi
-    [ "$status" == 0 ]
+    [ "$status" -eq 0 ]
     assert_output --partial "forwarding KILL signal"
 }

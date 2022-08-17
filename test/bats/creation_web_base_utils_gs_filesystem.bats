@@ -8,6 +8,7 @@ load 'lib/bats-assert/load'
 
 setup () {
     source "$GWMS_SOURCEDIR"/utils_gs_filesystem.sh
+    source ../../build/ci/utils.sh
 }
 
 @test "automatic_work_dir" {
@@ -18,13 +19,7 @@ setup () {
     SCRATCH="/tmp/scratch/"
     TMPDIR="/tmp/tmpdir/"
     TMP="/tmp/tmp/"
-    rm -rf ${_CONDOR_SCRATCH_DIR}
-    rm -rf ${OSG_WN_TMP}
-    rm -rf ${TG_NODE_SCRATCH}
-    rm -rf ${TG_CLUSTER_SCRATCH}
-    rm -rf ${SCRATCH}
-    rm -rf ${TMPDIR}
-    rm -rf ${TMP}
+    echo "Testing the correctness with non-existing work directories..." >& 3
     run automatic_work_dir
     assert_output --partial "Workdir: ${_CONDOR_SCRATCH_DIR} does not exist"
     assert_output --partial "Workdir: ${OSG_WN_TMP} does not exist"
@@ -34,7 +29,8 @@ setup () {
     assert_output --partial "Workdir: ${TMPDIR} does not exist"
     assert_output --partial "Workdir: ${TMP} does not exist"
     assert_output --partial "Workdir: ${PWD} selected"
-    [ "$status" == 0 ]
+    [ "$status" -eq 0 ]
+    echo "Testing the correctness with existing work directories..." >& 3
     mkdir ${_CONDOR_SCRATCH_DIR}
     mkdir ${OSG_WN_TMP}
     mkdir ${TG_NODE_SCRATCH}
@@ -45,36 +41,40 @@ setup () {
     run automatic_work_dir
     assert_output --partial "Workdir: ${_CONDOR_SCRATCH_DIR} selected"
     [ "$status" == 0 ]
+    echo "Testing the correctness with non-existing first target work directory..." >& 3
     rm -rf ${_CONDOR_SCRATCH_DIR}
     run automatic_work_dir
     assert_output --partial "Workdir: ${OSG_WN_TMP} selected"
     [ "$status" == 0 ]
+    echo "Testing the correctness with non-writable work directory..." >& 3
     mkdir ${_CONDOR_SCRATCH_DIR}
     chmod 000 ${_CONDOR_SCRATCH_DIR}
     run automatic_work_dir
     chmod 777 ${_CONDOR_SCRATCH_DIR}
     assert_output --partial "Workdir: not allowed to write to ${_CONDOR_SCRATCH_DIR}"
-    [ "$status" == 0 ]
-    rm -rf ${_CONDOR_SCRATCH_DIR}
-    rm -rf ${OSG_WN_TMP}
-    rm -rf ${TG_NODE_SCRATCH}
-    rm -rf ${TG_CLUSTER_SCRATCH}
-    rm -rf ${SCRATCH}
-    rm -rf ${TMPDIR}
-    rm -rf ${TMP}
+    [ "$status" -eq 0 ]
+    rm -rf "${_CONDOR_SCRATCH_DIR}"
+    rm -rf "${OSG_WN_TMP}"
+    rm -rf "${TG_NODE_SCRATCH}"
+    rm -rf "${TG_CLUSTER_SCRATCH}"
+    rm -rf "${SCRATCH}"
+    rm -rf "${TMPDIR}"
+    rm -rf "${TMP}"
 }
 
 @test "dir_id" {
+    echo "Testing the correctness with no debug options..." >& 3
     GLIDEIN_DEBUG_OPTIONS=""
     repository_url="/tmp/repository/"
     client_repository_url="/tmp/client_repository/"
     run dir_id
     [ "$output" == "" ]
-    [ "$status" == 0 ]
+    [ "$status" -eq 0 ]
+    echo "Testing the correctness with 'nocleanup' debug option..." >& 3
     GLIDEIN_DEBUG_OPTIONS="nocleanup"
     run dir_id
     [ "$output" == "ory/ory/_" ]
-    [ "$status" == 0 ]
+    [ "$status" -eq 0 ]
 }
 
 # mock
@@ -84,12 +84,14 @@ early_glidein_failure() {
 }
 
 @test "prepare_workdir" {
+    rm -rf "${work_dir}"
+    echo "Testing the function with non-existing work directory..." >& 3
     work_dir="/tmp/workdir"
-    rm -rf ${work_dir}
     run prepare_workdir
     assert_output --partial "Startup dir ${work_dir} does not exist"
-    [ "$status" == 1 ]
-    mkdir ${work_dir}
+    [ "$status" -eq 1 ]
+    echo "Testing the function with existing work directory..." >& 3
+    mkdir "${work_dir}"
     GWMS_SUBDIR="subdir"
     touch "tokens.tgz"
     touch "url_dirs.desc"
@@ -98,10 +100,13 @@ early_glidein_failure() {
     assert_output --partial "Started in ${pwd}"
     assert_output --partial "Running in ${work_dir}"
     assert_output --partial "copied idtoken"
-    [ "$status" == 0 ]
+    [ "$status" -eq 0 ]
+    rm "trial.idtoken"
+    rm -rf "${work_dir}"
 }
 
 @test "copy_all" {
+    echo "Testing the correctness with some trial files..." >& 3
     tmp_dir="/tmp/prova"
     mkdir -p "$tmp_dir"
     cd "$tmp_dir"
@@ -120,4 +125,17 @@ early_glidein_failure() {
     [ "$status" -eq 0 ]
     rm -rf "$tmp_dir"
     rm -rf "$target_dir"
+}
+
+@test "add_to_path" {
+    echo "Testing the addition of an element to the path..." >& 3
+    GWMS_PATH="/tmp/gwms_path"
+    PATH="/tmp/path"
+    OLD_GWMS_PATH=${GWMS_PATH}
+    OLD_PATH=${PATH}
+    element="element"
+    add_to_path "${element}"
+    [ "${PATH}" == "${element}:${OLD_GWMS_PATH}:${OLD_PATH}" ]
+    [ "${GWMS_PATH}" == "${element}:${OLD_GWMS_PATH}" ]
+    PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 }

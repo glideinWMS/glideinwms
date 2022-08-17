@@ -255,3 +255,22 @@ copy_all() {
    done
 }
 # TODO: should it copy also hidden files?
+
+########################################
+# Function used to add $1 to GWMS_PATH and update PATH
+# Environment:
+#   GWMS_PATH
+#   PATH
+add_to_path() {
+    logdebug "Adding to GWMS_PATH: $1"
+    local old_path
+    old_path=":${PATH%:}:"
+    old_path="${old_path//:$GWMS_PATH:/}"
+    local old_gwms_path
+    old_gwms_path=":${GWMS_PATH%:}:"
+    old_gwms_path="${old_gwms_path//:$1:/}"
+    old_gwms_path="${1%:}:${old_gwms_path#:}"
+    export GWMS_PATH="${old_gwms_path%:}"
+    old_path="${GWMS_PATH}:${old_path#:}"
+    export PATH="${old_path%:}"
+}

@@ -40,20 +40,6 @@ GWMS_MULTIGLIDEIN_CHILDS=
 
 [[ -z "$GWMS_SOURCEDIR" ]] && GWMS_SOURCEDIR=.
 
-# Include all source scripts
-source "$GWMS_SOURCEDIR"/utils_gs_http.sh
-source "$GWMS_SOURCEDIR"/utils_gs_filesystem.sh
-source "$GWMS_SOURCEDIR"/utils_gs_io.sh
-source "$GWMS_SOURCEDIR"/utils_gs_signals.sh
-source "$GWMS_SOURCEDIR"/utils_gs_tarballs.sh
-source "$GWMS_SOURCEDIR"/utils_io.sh
-source "$GWMS_SOURCEDIR"/utils_params.sh
-source "$GWMS_SOURCEDIR"/utils_signals.sh
-source "$GWMS_SOURCEDIR"/utils_tarballs.sh
-source "$GWMS_SOURCEDIR"/utils_xml.sh
-source "$GWMS_SOURCEDIR"/utils_crypto.sh
-source "$GWMS_SOURCEDIR"/glidein_cleanup.sh
-
 export LANG=C
 
 ################################
@@ -74,6 +60,7 @@ do_start_all() {
     local startup_script
     startup_script="${GWMS_STARTUP_SCRIPT}"
     if [[ -n "${multiglidein_launchall}" ]]; then
+        echo "launchall"
         echo "Starting multi-glidein using launcher: ${multiglidein_launchall}"
         # shellcheck disable=SC2086
         ${multiglidein_launchall} "${startup_script}" -multirestart 0 ${GLOBAL_ARGS} &
@@ -154,40 +141,6 @@ setup_OSG_Globus(){
         log_warn "GLOBUS_PATH not defined and ${GLOBUS_LOCATION}/etc/globus-user-env.sh does not exist."
         log_warn 'Continuing like nothing happened'
       fi
-    fi
-}
-
-########################################
-# Function used to add $1 to GWMS_PATH and update PATH
-# Environment:
-#   GWMS_PATH
-#   PATH
-add_to_path() {
-    logdebug "Adding to GWMS_PATH: $1"
-    local old_path
-    old_path=":${PATH%:}:"
-    old_path="${old_path//:$GWMS_PATH:/}"
-    local old_gwms_path
-    old_gwms_path=":${GWMS_PATH%:}:"
-    old_gwms_path="${old_gwms_path//:$1:/}"
-    old_gwms_path="${1%:}:${old_gwms_path#:}"
-    export GWMS_PATH="${old_gwms_path%:}"
-    old_path="${GWMS_PATH}:${old_path#:}"
-    export PATH="${old_path%:}"
-}
-
-########################################
-# Function that removes the native condor tarballs directory to allow factory ops to use native condor tarballs
-# All files in the native condor tarballs have a directory like condor-9.0.11-1-x86_64_CentOS7-stripped
-# However the (not used anymore) gwms create_condor_tarball removes that dir
-fixup_condor_dir() {
-    # Check if the condor dir has only one subdir, the one like "condor-9.0.11-1-x86_64_CentOS7-stripped"
-    # See https://stackoverflow.com/questions/32429333/how-to-test-if-a-linux-directory-contain-only-one-subdirectory-and-no-other-file
-    if [ $(find "${gs_id_work_dir}/condor" -maxdepth 1 -type d -printf 1 | wc -m) -eq 2 ]; then
-        echo "Fixing directory structure of condor tarball"
-        mv "${gs_id_work_dir}"/condor/condor*/* "${gs_id_work_dir}"/condor > /dev/null
-    else
-        echo "Condor tarball does not need to be fixed"
     fi
 }
 
@@ -571,5 +524,18 @@ _main(){
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    # Include all source scripts
+    source "$GWMS_SOURCEDIR"/utils_gs_http.sh
+    source "$GWMS_SOURCEDIR"/utils_gs_filesystem.sh
+    source "$GWMS_SOURCEDIR"/utils_gs_io.sh
+    source "$GWMS_SOURCEDIR"/utils_gs_signals.sh
+    source "$GWMS_SOURCEDIR"/utils_gs_tarballs.sh
+    source "$GWMS_SOURCEDIR"/utils_io.sh
+    source "$GWMS_SOURCEDIR"/utils_params.sh
+    source "$GWMS_SOURCEDIR"/utils_signals.sh
+    source "$GWMS_SOURCEDIR"/utils_tarballs.sh
+    source "$GWMS_SOURCEDIR"/utils_xml.sh
+    source "$GWMS_SOURCEDIR"/utils_crypto.sh
+    source "$GWMS_SOURCEDIR"/glidein_cleanup.sh
 	_main "$@"
 fi

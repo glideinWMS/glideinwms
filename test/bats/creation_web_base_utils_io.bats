@@ -10,27 +10,26 @@ setup () {
     source "$GWMS_SOURCEDIR"/utils_io.sh
 }
 
-
 @test "log_warn" {
     run log_warn "trial"
     assert_output --partial "WARN"
-    [ "$status" == 0 ]
+    [ "$status" -eq 0 ]
 }
 
 @test "log_debug" {
     run log_debug "trial"
     assert_output --partial "DEBUG"
-    [ "$status" == 0 ]
+    [ "$status" -eq 0 ]
 }
 
 @test "print_header_line" {
     run print_header_line "trial"
     [ "$output" == "===  trial  ===" ]
-    [ "$status" == 0 ]
+    [ "$status" -eq 0 ]
     run print_header_line "trial" 1
     [ "$output" == "===  trial  ===" ]
-    [ "$status" == 0 ]
+    [ "$status" -eq 0 ]
     run print_header_line "trial" 2
     [ "$output" == "===  trial  ===" ]
-    [ "$status" == 0 ]
+    [ "$status" -eq 0 ]
 }
