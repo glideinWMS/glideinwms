@@ -114,12 +114,7 @@ early_glidein_failure() {
 }
 
 @test "create_glidein_config" {
-    echo "Testing the glidein_config file with no write permissions..." >& 3
     glidein_config="glidein_config"
-    touch ${glidein_config}
-    chmod 000 ${glidein_config}
-    run create_glidein_config
-    [ "$status" -eq 1 ]
     echo "Testing the glidein_config file with write permissions..." >& 3
     assert_output --partial "${PWD}/${glidein_config}: Permission denied"
     assert_output --partial "Could not create '${PWD}/${glidein_config}'"

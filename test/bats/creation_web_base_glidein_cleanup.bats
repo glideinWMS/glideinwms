@@ -142,8 +142,8 @@ teardown() {
     rm -rf "${start_dir}"
     GWMS_SUBDIR=".gwms.d"
     GWMS_DIR="${work_dir}/${GWMS_SUBDIR}"
-    rm "${PWD}/add_config_line.source"
-    rm "glidein_config"
-    rm "glidein_config.history"
+    rm -f "${PWD}/add_config_line.source"
+    rm -f "glidein_config"
+    rm -f "glidein_config.history"
     rm -rf "${GWMS_DIR}"
 }
