@@ -86,6 +86,7 @@ check_file_signature() {
             f
             rm -f "${tmp_signname}"
             echo "Signature OK for ${cfs_id}:${cfs_fname}." 1>&2
+            fi
         fi
     fi
     return 0
