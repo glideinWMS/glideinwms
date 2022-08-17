@@ -84,7 +84,6 @@ do_start_all() {
     fi
 }
 
-# TODO(F): bats tests HERE
 
 ################################
 # Function used to spawn multiple glideins and wait, if needed
@@ -385,7 +384,6 @@ _main(){
       fi
     done
 
-    #TODO(F): qui
 
     ###################################################
     # get last_script, as it is used by the fetch_file

@@ -153,6 +153,9 @@ print_header(){
 parse_options(){
     params=""
     while [ $# -gt 0 ]
+        if [[ $1 != "-"* ]]; then
+            break
+        fi
         if [[ $2 == "-"* ]]; then
             (log_warn "Wrong argument: $2 for option $1."; log_warn "You cannot set two consecutive options without specifying the option value!"; usage; exit 1) 1>&2; exit 1
         fi
