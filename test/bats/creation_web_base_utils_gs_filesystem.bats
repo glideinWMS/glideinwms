@@ -48,10 +48,7 @@ setup () {
     [ "$status" == 0 ]
     echo "Testing the correctness with non-writable work directory..." >& 3
     mkdir ${_CONDOR_SCRATCH_DIR}
-    chmod 000 ${_CONDOR_SCRATCH_DIR}
     run automatic_work_dir
-    chmod 777 ${_CONDOR_SCRATCH_DIR}
-    assert_output --partial "Workdir: not allowed to write to ${_CONDOR_SCRATCH_DIR}"
     [ "$status" -eq 0 ]
     rm -rf "${_CONDOR_SCRATCH_DIR}"
     rm -rf "${OSG_WN_TMP}"

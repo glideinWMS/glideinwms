@@ -83,7 +83,7 @@ check_file_signature() {
                 log_warn "File ${cfs_desc_fname} is corrupted."
                 rm -f "${tmp_signname}"
                 return 1
-            fi
+            f
             rm -f "${tmp_signname}"
             echo "Signature OK for ${cfs_id}:${cfs_fname}." 1>&2
         fi
