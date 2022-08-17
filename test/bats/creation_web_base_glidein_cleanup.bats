@@ -78,7 +78,7 @@ setup () {
     else
         glidein_uuid="$(od -x -w32 -N32 /dev/urandom | awk 'NR==1{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')"
     fi
-    work_dir="$(PWD)"
+    work_dir="$(pwd)"
     GWMS_SUBDIR=".gwms.d"
     GWMS_DIR="${work_dir}/$GWMS_SUBDIR"
     mkdir -p "$GWMS_DIR/exec/cleanup"
