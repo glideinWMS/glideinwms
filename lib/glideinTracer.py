@@ -61,7 +61,7 @@ class Tracer:
             c = {}
             propagate.inject(c)
             self.GLIDEIN_TRACE_ID = c["uber-trace-id"]
-            time.sleep(2)
+
 
 
 class Trace:
@@ -88,13 +88,10 @@ class Trace:
 
     def send_span(self):
         self.ctx = TraceContextTextMapPropagator().extract(carrier=self.carrier)
-        for i in range(3):
-            with self.tracer.start_as_current_span("child_init", context=self.ctx) as child:
-                c={}
-                propagate.inject(c)
-                self.GLIDEIN_SPAN_ID.append(c['uber-trace-id'])
-                time.sleep(2)
-                i += 1
+        with self.tracer.start_as_current_span("child_init", context=self.ctx) as child:
+            c={}
+            propagate.inject(c)
+            self.GLIDEIN_SPAN_ID.append(c['uber-trace-id'])
 
 
 def main():  # use classes above to initialize a tracer and send a span and print trace id
