@@ -1704,7 +1704,7 @@ def submitGlideins(
                     log.info(f"FAILED TO GENERATE TRACEID AND SEND TO COLLECTOR ENDPOINT AND SERVICE")
                 for i in range(len(entry_env)):
                     if entry_env[i].startswith("GLIDEIN_ARGUMENTS="):
-                        entry_env[i] += f" -traceid {trace_id} -jaegercollectorendpoint {jaeger_collector_endpoint} -jaegerservicename {t.jaeger_service_name}"
+                        entry_env[i] += f" -traceid {trace_id} -jaegercollectorendpoint {jaeger_collector_endpoint} -jaegerservicename {t_parent.jaeger_service_name}"
 
                 sub_env.append("GLIDEIN_COUNT=%s" % nr_to_submit)
                 sub_env.append("GLIDEIN_FRONTEND_NAME=%s" % frontend_name)
