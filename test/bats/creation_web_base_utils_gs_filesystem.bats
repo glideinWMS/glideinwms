@@ -46,10 +46,15 @@ setup () {
     run automatic_work_dir
     assert_output --partial "Workdir: ${OSG_WN_TMP} selected"
     [ "$status" == 0 ]
-    echo "Testing the correctness with non-writable work directory..." >& 3
-    mkdir ${_CONDOR_SCRATCH_DIR}
-    run automatic_work_dir
-    [ "$status" -eq 0 ]
+    if [ "$EUID" -ne 0 ]; then
+        echo "Testing the correctness with non-writable work directory..." >& 3
+        chmod 000 ${_CONDOR_SCRATCH_DIR}
+        run automatic_work_dir
+        assert_output --partial "Workdir: not allowed to write to ${_CONDOR_SCRATCH_DIR}"
+        chmod 777 ${_CONDOR_SCRATCH_DIR}
+        run automatic_work_dir
+        [ "$status" -eq 0 ]
+    fi
 }
 
 @test "dir_id" {
