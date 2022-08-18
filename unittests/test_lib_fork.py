@@ -38,17 +38,41 @@ from glideinwms.lib.fork import (
 )
 from glideinwms.unittests.unittest_utils import create_temp_file, FakeLogger
 
-LOG_FILE = create_temp_file()
+LOGFILE = None
+LOGDICT = {}
 
 
-def global_log_setup():
-    fd = open(LOG_FILE, "w")
+def init_log(file_suffix="test_lib_fork"):
+    """
+    Initialize a new log file for a test
+
+    Args: file_suffix (char):
+
+    Creates a file named /tmp/tmp(randchars)_(file_suffix) to be used as a log file.
+    Some of the code being tested forks and creates multiple log files with the
+    naming conventiion above (with different random chars of course) this can be
+    helpful for debugging.  A global dictionary LOGDICT keeps track of all the
+    created file names and handles.
+    """
+    global LOGFILE, LOGDICT
+    LOGFILE = create_temp_file(file_suffix="_" + file_suffix)
+    fd = open(LOGFILE, "a")
+    LOGDICT[LOGFILE] = fd
     glideinwms.lib.logSupport.log = FakeLogger(fd)
 
 
 def global_log_cleanup():
-    if os.path.exists(LOG_FILE):
-        os.remove(LOG_FILE)
+    """
+    Closes all the file handles in LOGDICT.
+    Erases all the log files in LOGDICT unless
+    environment variable SAVE_LOGFILES is defined.
+    """
+
+    remove_logfiles = not os.environ.get("SAVE_LOGFILES")
+    for file_name in LOGDICT:
+        LOGDICT[file_name].close()
+        if remove_logfiles and os.path.exists(file_name):
+            os.remove(file_name)
 
 
 def sleep_fn(sleep_tm=None):
@@ -71,26 +95,24 @@ class TestForkResultError(unittest.TestCase):
 
 class TestForkInBg(unittest.TestCase):
     def test_fork_in_bg(self):
-        global_log_setup()
+        init_log("TestForkInBg")
         results = fork_in_bg(sleep_fn, 1)
         self.assertTrue("r" in results)
         self.assertTrue("pid" in results)
-        global_log_cleanup()
 
 
 class TestFetchForkResult(unittest.TestCase):
     def test_fetch_fork_result(self):
-        global_log_setup()
+        init_log("TestFetchForkRslt")
         sleep_arg = "1"
         results = fork_in_bg(sleep_fn, sleep_arg)
         expected = fetch_fork_result(results["r"], results["pid"])
         self.assertEqual(expected, sleep_arg)
-        global_log_cleanup()
 
 
 class TestFetchForkResultList(unittest.TestCase):
     def test_fetch_fork_result_list(self):
-        global_log_setup()
+        init_log("TestFetchForkRsltList")
         pipe_ids = {}
         expected = {}
         svl = 10
@@ -100,12 +122,11 @@ class TestFetchForkResultList(unittest.TestCase):
 
         result = fetch_fork_result_list(pipe_ids)
         self.assertTrue(expected, result)
-        global_log_cleanup()
 
 
 class TestFetchReadyForkResultList(unittest.TestCase):
     def test_fetch_ready_fork_result_list(self):
-        global_log_setup()
+        init_log("TestFetchReadyForkRsltList")
         pipe_ids = {}
         expected = {}
         svl = 10
@@ -115,30 +136,14 @@ class TestFetchReadyForkResultList(unittest.TestCase):
 
         result = fetch_ready_fork_result_list(pipe_ids)
         self.assertTrue(expected, result)
-        global_log_cleanup()
-
-
-class TestWaitForPids(unittest.TestCase):
-    def test_wait_for_pids(self):
-        global_log_setup()
-        pid_list = []
-        for i in range(1, 5):
-            pid_list.append(fork_in_bg(sleep_fn, 10))
-
-        wait_for_pids(pid_list)
-        global_log_cleanup()
 
 
 class TestForkManager(unittest.TestCase):
     def setUp(self):
-        # import select
-        global_log_setup()
+        init_log("TestForkManager")
         self.fork_manager = ForkManager()
         self.default_forks = 100
         self.default_sleep = 5
-
-    def tear_down(self):
-        global_log_cleanup()
 
     def load_forks(self, num_forks=None, sleep_val=None):
         if not num_forks:
@@ -182,7 +187,7 @@ class TestForkManager(unittest.TestCase):
         expected = self.load_forks()
         results = self.fork_manager.bounded_fork_and_collect(max_forks=50, log_progress=True, sleep_time=0.1)
         self.assertEqual(expected, results)
-        fd = open(LOG_FILE)
+        fd = open(LOGFILE)
         log_contents = fd.read()
         self.assertTrue(log_contents)  # False if Fakelogger is not working correctly
         self.assertTrue("Active forks =" in log_contents)
@@ -206,7 +211,7 @@ class TestForkManager(unittest.TestCase):
         fork.select = select
         # check results
         self.assertEqual(expected, results)
-        fd = open(LOG_FILE)
+        fd = open(LOGFILE)
         log_contents = fd.read()
         self.assertTrue(log_contents)  # False if Fakelogger is not working correctly
         self.assertTrue("Active forks = " in log_contents)
@@ -229,7 +234,7 @@ class TestForkManager(unittest.TestCase):
         fork.select = select
         # check results
         self.assertEqual(expected, results)
-        fd = open(LOG_FILE)
+        fd = open(LOGFILE)
         log_contents = fd.read()
         self.assertTrue(log_contents)  # False if Fakelogger is not working correctly
         self.assertTrue("Active forks = " in log_contents)
@@ -238,5 +243,18 @@ class TestForkManager(unittest.TestCase):
         self.assertTrue("module 'select' has no attribute 'poll'" in log_contents)
 
 
+class TestWaitForPids(unittest.TestCase):
+    def test_wait_for_pids(self):
+        init_log("TestWaitForPids")
+        pid_list = []
+        for i in range(1, 5):
+            pid_list.append(fork_in_bg(sleep_fn, 10))
+
+        wait_for_pids(pid_list)
+        # this is the last Test Class run, they are run in lexigraphical order
+        global_log_cleanup()
+
+
 if __name__ == "__main__":
+    init_log()
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))
