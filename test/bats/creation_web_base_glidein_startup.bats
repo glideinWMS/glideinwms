@@ -42,7 +42,7 @@ setup () {
     # TODO: Missing case of starting multi-glidein using launcher launchall
 }
 
-@test "spawn_multiple_glideins" { 
+@test "spawn_multiple_glideins" {
     skip
     echo "Testing the spawning of multiple glideins..." >& 3
     GWMS_SOURCEDIR="../../../creation/web_base"
