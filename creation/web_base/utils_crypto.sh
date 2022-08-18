@@ -35,7 +35,6 @@ md5wrapper() {
         fi
         [ -n "${ONLY_SUM}" ] && executable="md5 -q \"$1\"" || executable="md5 \"$1\""
     fi
-    local res
     # Flagged by some checkers but OK
     if ! res="$(eval "${executable}" 2>/dev/null)"; then
         echo "${ERROR_RESULT}"
