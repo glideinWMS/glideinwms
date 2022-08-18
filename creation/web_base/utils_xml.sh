@@ -11,7 +11,7 @@
 # Arguments:
 #   1: result
 construct_xml() {
-  local result
+  local result tStart tEnd cmd
   result="$1"
   local glidein_end_time
   glidein_end_time="$(date +%s)"
@@ -19,7 +19,6 @@ construct_xml() {
   tStart="$(date --date=@"${startup_time}" +%Y-%m-%dT%H:%M:%S%:z)"
   tEnd="$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)"
   create_xml OSG --id glidein_startup.sh { oe { e --name cwd "${start_dir}" } t { c "${cmd}" tS "${tStart}" tE "${tEnd}" } "${result}" }
-  echo -e "$result"
 }
 
 ################################
@@ -54,7 +53,6 @@ extract_parent_xml_detail() {
       # file exists and is not 0 size
       last_result="$(cat otrx_output.xml)"
       if [ "${exitcode}" -eq 0 ]; then
-          #create_xml -s 2 result { status OK }
           echo "  <result>"
           echo "    <status>OK</status>"
           #propagate metrics as well
@@ -120,7 +118,6 @@ simplexml2longxml() {
   echo "${final_result_simple}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<OSGTestResult /{fr=0;}'
   if [ "${global_result}" != "" ]; then
       # subtests first, so it is more readable, when tailing
-      content="${global_result}" | awk '{print "      " $0}'
       echo '  <subtestlist>'
       echo '    <OSGTestResults>'
       echo "${global_result}" | awk '{print "      " $0}'
@@ -143,6 +140,7 @@ simplexml2longxml() {
 # Global:
 #   xml
 add_spaces(){
+  local c
   for (( c=1; c<=spaces; c++ ))
       do
         xml+=" "

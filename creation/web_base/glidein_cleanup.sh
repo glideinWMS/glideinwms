@@ -45,8 +45,12 @@ glidein_cleanup() {
 # too bad we end up with some repeated code, but difficult to do better
 # Arguments:
 #   1: error message
+# Global:
+#   final_result
+#   final_result_simple
+#   final_result_long
 early_glidein_failure() {
-  local error_msg glidein_end_time result final_result
+  local error_msg glidein_end_time
   error_msg="$1"
   log_warn "${error_msg}"
   sleep "${sleep_time}"
@@ -68,9 +72,17 @@ early_glidein_failure() {
 # too bad we end up with some repeated code, but difficult to do better
 # Arguments:
 #   1: exit code
+# Global:
+#   final_result
+#   final_result_simple
+#   final_result_long
+#   global_result
+#   report_failed
+#   factory_report_failes
+#   ge_last_script_name
+#   do_report
 glidein_exit() {
-  local exit_code final_result final_result_simple final_result_long global_result ge_last_script_name result report_failed
-  local factory_report_failes factory_collector do_report dlf condor_vars_file main_work_dir
+  local exit_code factory_collector dlf condor_vars_file main_work_dir
   exit_code=$1
   # Removed lines about $lock_file (lock file for whole machine) not present elsewhere
   gwms_process_scripts "$GWMS_DIR" cleanup "${glidein_config}"
@@ -92,9 +104,9 @@ glidein_exit() {
       if [ -z "${report_failed}" ]; then
           report_failed="NEVER"
       fi
-
+      
       factory_report_failed=$(grep -i "^GLIDEIN_Factory_Report_Failed " "${glidein_config}" | cut -d ' ' -f 2-)
-
+      
       if [ -z "${factory_report_failed}" ]; then
           factory_collector=$(grep -i "^GLIDEIN_Factory_Collector " "${glidein_config}" | cut -d ' ' -f 2-)
           if [ -z "${factory_collector}" ]; then

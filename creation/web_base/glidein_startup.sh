@@ -60,7 +60,6 @@ do_start_all() {
     local startup_script
     startup_script="${GWMS_STARTUP_SCRIPT}"
     if [[ -n "${multiglidein_launchall}" ]]; then
-        echo "launchall"
         echo "Starting multi-glidein using launcher: ${multiglidein_launchall}"
         # shellcheck disable=SC2086
         ${multiglidein_launchall} "${startup_script}" -multirestart 0 ${GLOBAL_ARGS} &
@@ -258,6 +257,7 @@ _main(){
     # Code block used to set the tokens
     [ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
     num_gct=0
+    
     for tk in "$(pwd)/credential_"*".idtoken"; do
         echo "Setting GLIDEIN_CONDOR_TOKEN to ${tk} " 1>&2
         num_gct=$(( num_gct + 1 ))
@@ -290,23 +290,25 @@ _main(){
     # extract and source all the data contained at the end of this script as tarball
     extract_all_data
 
-    ########################################
+    #####################################
     wrapper_list="${PWD}/wrapper_list.lst"
     touch "${wrapper_list}"
 
-    ########################################
+    #####################################
     create_glidein_config
 
-    ########################################
+    #####################################
     # shellcheck disable=SC2086
     params2file ${params}
 
-    ############################################
+    #####################################
     # Setup logging
     log_init "${glidein_uuid}" "${work_dir}"
     # Remove these files, if they are still there
     rm -rf tokens.tgz url_dirs.desc tokens
     log_setup "${glidein_config}"
+    
+    #####################################
     echo "Downloading files from Factory and Frontend"
     log_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"
 

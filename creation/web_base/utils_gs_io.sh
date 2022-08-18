@@ -16,11 +16,10 @@
 # Global:
 #   total_time
 print_tail() {
-  local final_result_simple final_result_long exit_code
+  local final_result_simple final_result_long exit_code glidein_end_time
   exit_code=$1
   final_result_simple="$2"
   final_result_long="$3"
-  local glidein_end_time
   glidein_end_time=$(date +%s)
   let total_time=${glidein_end_time}-${startup_time}
   print_header_line "Glidein ending $(date) (${glidein_end_time}) with code ${exit_code} after ${total_time}"
@@ -28,7 +27,6 @@ print_tail() {
   print_header_line "XML description of glidein activity"
   echo  "${final_result_simple}" | grep -v "<cmd>"
   print_header_line "End XML description of glidein activity"
-
   echo "" 1>&2
   print_header_line "Encoded XML description of glidein activity" 2
   echo "${final_result_long}" | gzip --stdout - | b64uuencode 1>&2
@@ -246,27 +244,32 @@ parse_arguments(){
     if [ -z "${descript_file}" ]; then
         log_warn "Missing descript fname."
         usage
+        exit 1
     fi
 
     if [ -z "${descript_entry_file}" ]; then
         log_warn "Missing descript fname for entry."
         usage
+        exit 1
     fi
 
     if [ -z "${glidein_name}" ]; then
         log_warn "Missing gliden name."
         usage
+        exit 1
     fi
 
     if [ -z "${glidein_entry}" ]; then
         log_warn "Missing glidein entry name."
         usage
+        exit 1
     fi
 
 
     if [ -z "${repository_url}" ]; then
         log_warn "Missing Web URL."
         usage
+        exit 1
     fi
 
     repository_entry_url="${repository_url}/entry_${glidein_entry}"
@@ -288,11 +291,13 @@ parse_arguments(){
     if [ -z "${sign_id}" ]; then
         log_warn "Missing signature."
         usage
+        exit 1
     fi
 
     if [ -z "${sign_entry_id}" ]; then
         log_warn "Missing entry signature."
         usage
+        exit 1
     fi
 
     if [ -z "${sign_type}" ]; then
@@ -302,6 +307,7 @@ parse_arguments(){
     if [ "${sign_type}" != "sha1" ]; then
         log_warn "Unsupported signtype ${sign_type} found."
         usage
+        exit 1
     fi
 
     if [ -n "${client_repository_url}" ]; then
@@ -313,11 +319,13 @@ parse_arguments(){
       if [ "${client_sign_type}" != "sha1" ]; then
         log_warn "Unsupported clientsigntype ${client_sign_type} found."
         usage
+        exit 1
       fi
 
       if [ -z "${client_descript_file}" ]; then
         log_warn "Missing client descript fname."
         usage
+        exit 1
       fi
 
       if [ -n "${client_repository_group_url}" ]; then
@@ -325,11 +333,13 @@ parse_arguments(){
           if [ -z "${client_group}" ]; then
               log_warn "Missing client group name."
               usage
+              exit 1
           fi
 
           if [ -z "${client_descript_group_file}" ]; then
               log_warn "Missing client descript fname for group."
               usage
+              exit 1
           fi
       fi
     fi
