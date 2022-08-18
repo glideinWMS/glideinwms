@@ -20,6 +20,9 @@ Command options:
   -a        run on all unit tests (see above)
   -t        Test Anything Protocol (TAP) output format (the default is human readable)
   -c        generate a coverage report while running unit tests (requires kcov)
+  -k        set a timeout in seconds for the execution of singular tests.
+            A TERM signal is sent and if 20 seconds after the number of seconds specified the test
+            will not be terminated, a hard timeout will be triggered (KILL signal)
 EOF
 }
 
@@ -31,9 +34,12 @@ do_show_flags() {
 LIST_FILES=
 RUN_COVERAGE=
 BATSOPT=
+TIMEOUT=
+# delay after which the hard timeout will be triggered
+HARD_TIMEOUT_DELAY=20
 
 do_parse_options() {
-    while getopts ":hatc" option
+    while getopts ":hatck:" option
     do
       case "${option}"
       in
@@ -41,6 +47,7 @@ do_parse_options() {
       a) LIST_FILES=yes;;
       t) BATSOPT="-t";;
       c) RUN_COVERAGE=yes;;
+      k) TIMEOUT=${OPTARG};;
       : ) logerror "illegal option: -$OPTARG requires an argument"; help_msg 1>&2; do_help_msg 1>&2; exit 1;;
       *) logerror "illegal option: -$OPTARG"; help_msg 1>&2; do_help_msg 1>&2; exit 1;;
       ##\?) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
@@ -134,7 +141,19 @@ do_count_failures() {
                 fail=$(echo "$lline" | cut -f3 -d' ')
             fi
         fi
+    elif [[ $1 -gt 123 ]]; then
+        # timed out tests
+        fail=1
+        echo "-> Timeout of ${TIMEOUT}s triggered while executing test.."
+        if [[ $1 -eq 137 ]]; then
+            # hardly timed out tests
+            echo "-> Timeout signal wasn't able to stop the test.."
+            echo "-> Hard timeout triggered after ${HARD_TIMEOUT_DELAY}s.."
+            hardly_timed_out_files=$((hardly_timed_out_files + 1))
+        fi
+        timed_out_files=$((timed_out_files + 1))
     fi
+    #TODO: Should I add 1 to the failed tests also in the case of timed out files?
     fail_files=$((fail_files + 1))
     fail_all=$((fail_all + fail))
     logerror "Test $file failed ($1): $fail failed tests"
@@ -178,13 +197,19 @@ do_process_branch() {
     local -i fail=0
     local -i fail_files=0
     local -i fail_all=0
+    local -i timed_out_files=0
+    local -i hardly_timed_out_files=0
     local fail_files_list=
     local tmp_out=
     local -i tmp_exit_code
     local -i exit_code
     local test_outdir="${outfile}.d"
     mkdir -p "${test_outdir}"
-
+    local timeout_cmd=
+    # define the prefix to the command if the timout is set (prefix: 'timeout [--kill-after=HARD_DELAY] DELAY command')
+    if [[ ! -z ${TIMEOUT} ]]; then
+        timeout_cmd="timeout --kill-after=${HARD_TIMEOUT_DELAY} ${TIMEOUT}  "
+    fi
     for file in ${files_list} ; do
         loginfo "Testing: $file"
         out_file="${test_outdir}/$(basename "${test_outdir}").$(basename "${file%.*}").txt"
@@ -195,11 +220,13 @@ do_process_branch() {
 #            else
 #                ./"$file" ${BATSOPT} || log_nonzero_rc "$file" $?
 #            fi
+        # The prefix will not be considered if the timeout was not set
         if [[ -n "$RUN_COVERAGE" ]]; then
-            tmp_out="$(kcov --include-path="${SOURCES}" "$out_coverage" "$file" -p ${BATSOPT})" || do_count_failures $?
+            tmp_out="$( ${timeout_cmd} kcov --include-path="${SOURCES}" "$out_coverage" "$file" -p ${BATSOPT})" || do_count_failures $?
         else
-            tmp_out="$(./"$file" -p ${BATSOPT})" || do_count_failures $?
+            tmp_out="$( ${timeout_cmd} ./"$file" -p ${BATSOPT})" || do_count_failures $?
         fi
+        echo "$tmp_out"
         tmp_exit_code=$?
         [[ ${tmp_exit_code} -gt ${exit_code} ]] && exit_code=${tmp_exit_code}
         echo "$tmp_out" > "$out_file"
@@ -212,6 +239,10 @@ do_process_branch() {
     echo "BATS_ERROR_FILES_COUNT=${fail_files}" >> "${outfile}"
     BATS_ERROR_COUNT=${fail_all}
     echo "BATS_ERROR_COUNT=${BATS_ERROR_COUNT}" >> "${outfile}"
+    echo "BATS_ERROR_FILES_TIMED_OUT=${timed_out_files}" >> "${outfile}"
+    echo "BATS_ERROR_FILES_HARDLY_TIMED_OUT=${hardly_timed_out_files}" >> "${outfile}"
+    echo "BATS_TIMEOUT=${TIMEOUT}" >> "${outfile}"
+    echo "BATS_HARD_TIMEOUT_DELAY=${HARD_TIMEOUT_DELAY}" >> "${outfile}"
     echo "$(get_commom_info "$branch")" >> "${outfile}"
     echo "BATS=$(do_get_status)" >> "${outfile}"
     echo "----------------"
