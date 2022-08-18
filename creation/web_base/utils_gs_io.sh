@@ -77,6 +77,7 @@ usage() {
 #   @: shell parameters
 # Global:
 #   startup_time
+#   retVal
 print_header(){
     startup_time="$(date +%s)"
     echo "Starting glidein_startup.sh at $(date) (${startup_time})"
@@ -201,22 +202,11 @@ parse_options(){
 #   tmp_par
 #   params
 #   repository_url
-#   client_repository_url
 #   repository_entry_url
 #   proxy_url
 #   client_sign_type
-#   client_descript_file
 #   multi_glidein
-#   operation_mode
-#   descript_file
-#   descript_entry_file
-#   glidein_name
-#   glidein_entry
-#   sign_id
-#   sign_entry_id
 #   sign_type
-#   client_repository_group_url
-#   client_descript_group_file
 #   sleep_time
 #   set_debug
 #   OSG_SQUID_LOCATION

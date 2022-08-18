@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -xv
 
 #*******************************************************************#
 #                      glidein_startup.sh                           #
@@ -72,12 +72,11 @@ extract_all_data() {
 #   GLIDEIN_MULTIGLIDEIN_LAUNCHALL - if set in attrs, command to start all Glideins at once (multirestart 0)
 #   GLIDEIN_MULTIGLIDEIN_LAUNCHER - if set in attrs, command to start the individual Glideins
 do_start_all() {
-    local num_glideins initial_dir multiglidein_launchall multiglidein_launcher g_dir
+    local num_glideins initial_dir multiglidein_launchall multiglidein_launcher g_dir startup_script
     num_glideins=$1
     initial_dir="$(pwd)"
     multiglidein_launchall=$(params_decode "$(params_get_simple GLIDEIN_MULTIGLIDEIN_LAUNCHALL "${params}")")
     multiglidein_launcher=$(params_decode "$(params_get_simple GLIDEIN_MULTIGLIDEIN_LAUNCHER "${params}")")
-    local startup_script
     startup_script="${GWMS_STARTUP_SCRIPT}"
     if [[ -n "${multiglidein_launchall}" ]]; then
         echo "Starting multi-glidein using launcher: ${multiglidein_launchall}"
