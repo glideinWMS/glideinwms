@@ -26,7 +26,6 @@ setup () {
 }
 
 @test "do_start_all" {
-    skip
     echo "Testing the spawning of 5 glideins..." >& 3
     # exporting GWMS_SOURCEDIR in order to be visible to the children
     GWMS_SOURCEDIR="../../../creation/web_base"
@@ -43,7 +42,6 @@ setup () {
 }
 
 @test "spawn_multiple_glideins" { 
-    skip
     echo "Testing the spawning of multiple glideins..." >& 3
     GWMS_SOURCEDIR="../../../creation/web_base"
     export GWMS_SOURCEDIR
