@@ -18,8 +18,6 @@ glide_local_tmp_dir_created=0
 # It cleans-up, print out the message and exit
 # It removes Glidein directories (work_dir, glide_local_tmp_dir)
 # It uses GLIDEIN_DEBUG_OPTIONS, start_dir, work_dir_created, work_dir, glide_local_tmp_dir_created, glide_local_tmp_dir
-# Arguments:
-#   1: exit code
 glidein_cleanup() {
     if ! cd "${start_dir}"; then
         log_warn "Cannot find ${start_dir} anymore, exiting but without cleanup"
@@ -73,6 +71,7 @@ early_glidein_failure() {
 # Arguments:
 #   1: exit code
 # Global:
+#   RESULT
 #   final_result
 #   final_result_simple
 #   final_result_long
@@ -81,6 +80,8 @@ early_glidein_failure() {
 #   factory_report_failes
 #   ge_last_script_name
 #   do_report
+#   ds
+#   as
 glidein_exit() {
   local exit_code factory_collector dlf condor_vars_file main_work_dir
   exit_code=$1

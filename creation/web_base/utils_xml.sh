@@ -11,9 +11,8 @@
 # Arguments:
 #   1: result
 construct_xml() {
-  local result tStart tEnd cmd
-  result="$1"
-  local glidein_end_time
+  local result tStart tEnd cmd glidein_end_time
+  result=$1
   glidein_end_time="$(date +%s)"
   cmd="$0 ${GLOBAL_ARGS}"
   tStart="$(date --date=@"${startup_time}" +%Y-%m-%dT%H:%M:%S%:z)"
@@ -112,7 +111,7 @@ basexml2simplexml() {
 #   1: simple final result
 #   2: global result
 simplexml2longxml() {
-  local final_result_simple global_result content
+  local final_result_simple global_result
   final_result_simple="$1"
   global_result="$2"
   echo "${final_result_simple}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<OSGTestResult /{fr=0;}'

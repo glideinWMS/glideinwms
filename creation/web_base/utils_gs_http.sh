@@ -93,6 +93,10 @@ EOF
 ############################################
 # Function that fetches a single regular file
 # Check cWDictFile/FileDictFile for the number and type of parameters (has to be consistent)
+# Arguments:
+#   1: ID
+#   2: target fname
+#   3: real fname
 fetch_file_regular() {
     fetch_file "$1" "$2" "$2" "regular" 0 "GLIDEIN_PS_" "TRUE" "FALSE"
 }
@@ -176,6 +180,10 @@ fetch_file() {
 #   fft_cc_prefix
 #   fft_config_check
 #   fft_config_out
+#   fft_get_ss
+#   fft_base_name
+#   fft_condition_attr
+#   fft_condition_attr_val
 # Returns:
 #   0 in case of success
 #   otherwise it returns the exit code of fetch_file_base
@@ -191,14 +199,12 @@ fetch_file_try() {
 
     if [[ "${fft_config_check}" != "TRUE" ]]; then
         # TRUE is a special case, always be downloaded and processed
-        local fft_get_ss
         fft_get_ss=$(grep -i "^${fft_config_check} " glidein_config | cut -d ' ' -f 2-)
         # Stop download and processing if the cond_attr variable is not defined or has a value different from 1
         [[ "${fft_get_ss}" != "1" ]] && return 0
         # TODO: what if fft_get_ss is not 1? nothing, still skip the file?
     fi
 
-    local fft_base_name fft_condition_attr fft_condition_attr_val
     fft_base_name=$(basename "${fft_real_fname}")
     if [[ "${fft_base_name}" = gconditional_* ]]; then
         fft_condition_attr="${fft_base_name#gconditional_}"
@@ -237,6 +243,7 @@ fetch_file_try() {
 #   ffb_short_untar_dir
 #   ffb_untar_dir
 #   ffb_outname
+#   ffb_prefix
 #   have_dummy_otrx
 #   user_agent
 #   ffb_url
@@ -245,6 +252,7 @@ fetch_file_try() {
 #   wget_version
 #   wget_args
 #   fetch_completed
+#   ret
 # Returns:
 #   1 in case the error is already displayed inside the function,
 #   in case of tarring, in case of failure in renaming it,
@@ -370,6 +378,7 @@ fetch_file_base() {
                 "${ffb_outname}" glidein_config "${ffb_id}"
             fi
             ret=$?
+            local END
             END=$(date +%s)
             "${main_dir}"/error_augment.sh -process ${ret} "${ffb_id}/${ffb_target_fname}" "${PWD}" "${ffb_outname} glidein_config" "${START}" "${END}" #generating test result document
             "${main_dir}"/error_augment.sh -concat
@@ -392,6 +401,7 @@ fetch_file_base() {
     elif [ "${ffb_file_type}" = "untar" ]; then
         ffb_short_untar_dir="$(get_untar_subdir "${ffb_id}" "${ffb_target_fname}")"
         ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
+        local START
         START=$(date +%s)
         (mkdir "${ffb_untar_dir}" && cd "${ffb_untar_dir}" && tar -xmzf "${ffb_outname}") 1>&2
         ret=$?
@@ -421,6 +431,7 @@ fetch_file_base() {
 
     if [ "${have_dummy_otrx}" -eq 1 ]; then
         # no one should really look at this file, but just to avoid confusion
+        local date
         date="$(date +%Y-%m-%dT%H:%M:%S%:z)"
         create_xml OSG --id fetch_file_base { oe { e --name cwd "${PWD}" } t { c Unknown tStart "${date}" tEnd "${date}" } r { status OK } }
         echo -e "$result" > otrx_output.xml
@@ -465,6 +476,7 @@ perform_wget() {
             proxy_url=${wget_args[${i}+1]}
         fi
     done
+    local START
     START=$(date +%s)
     if [ "${proxy_url}" != "None" ]; then
         wget_args=(${wget_args[@]:0:${arg_len}-2})
@@ -482,6 +494,7 @@ perform_wget() {
         log_warn "${wget_cmd} failed. version:${wget_version}  exit code ${wget_retval} stderr: ${wget_resp}"
         # cannot use error_*.sh helper functions
         # may not have been loaded yet, and wget fails often
+        local tStart tEnd xmlResult
         tStart="$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)"
         tEnd="$(date +%Y-%m-%dT%H:%M:%S%:z)"
         xmlResult=""
@@ -546,7 +559,7 @@ perform_curl() {
             proxy_url="${curl_args[${i}+1]}"
         fi
     done
-
+    local START
     START="$(date +%s)"
     curl_cmd="$(echo "curl" "${curl_args[@]}" | sed 's/"/\\\"/g')"
     curl_resp="$(curl "${curl_args[@]}" 2>&1)"
@@ -560,6 +573,7 @@ perform_curl() {
         log_warn "${curl_cmd} failed. version:${curl_version}  exit code ${curl_retval} stderr: ${curl_resp} "
         # cannot use error_*.sh helper functions
         # may not have been loaded yet, and wget fails often
+        local tStart tEnd xmlResult
         tStart="$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)"
         tEnd="$(date +%Y-%m-%dT%H:%M:%S%:z)"
         xmlResult=""
