@@ -257,7 +257,7 @@ _main(){
     # Code block used to set the tokens
     [ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
     num_gct=0
-    
+
     for tk in "$(pwd)/credential_"*".idtoken"; do
         echo "Setting GLIDEIN_CONDOR_TOKEN to ${tk} " 1>&2
         num_gct=$(( num_gct + 1 ))
@@ -307,7 +307,7 @@ _main(){
     # Remove these files, if they are still there
     rm -rf tokens.tgz url_dirs.desc tokens
     log_setup "${glidein_config}"
-    
+
     #####################################
     echo "Downloading files from Factory and Frontend"
     log_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"

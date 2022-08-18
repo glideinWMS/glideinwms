@@ -104,9 +104,9 @@ glidein_exit() {
       if [ -z "${report_failed}" ]; then
           report_failed="NEVER"
       fi
-      
+
       factory_report_failed=$(grep -i "^GLIDEIN_Factory_Report_Failed " "${glidein_config}" | cut -d ' ' -f 2-)
-      
+
       if [ -z "${factory_report_failed}" ]; then
           factory_collector=$(grep -i "^GLIDEIN_Factory_Collector " "${glidein_config}" | cut -d ' ' -f 2-)
           if [ -z "${factory_collector}" ]; then
