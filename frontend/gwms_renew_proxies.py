@@ -79,6 +79,12 @@ class Proxy:
         """Cleanup temporary proxy files"""
         os.remove(self.tmp_output_fd.name)
 
+    @classmethod
+    def voms_proxy_info(filename, *opts):
+        """Run voms-proxy-info on a arbritary file. Returns stdout, stderr, and return code of voms-proxy-info for any arbitrary file"""
+        cmd = ["voms-proxy-info", "-file", filename] + list(opts)
+        return _run_command(cmd)
+
 
 class VO:
     """Class for holding information related to VOMS attributes"""
@@ -286,6 +292,15 @@ def main():
             else:
                 vo_attr.cert = proxy_config["vo_cert"]
                 vo_attr.key = proxy_config["vo_key"]
+                if _safe_int(Proxy.voms_proxy_info(vo_attr.cert, "-timeleft")[0]) <= 0:
+                    retcode = 1
+                    print(
+                        f"ERROR: Failed to renew proxy {proxy.output}: "
+                        + f"The VO certificate {vo_attr.cert} is expired. "
+                        + "Please verify your VO data installation."
+                    )
+                    proxy.cleanup()
+                    continue
                 try:
                     vo_attr.uri = vo_uri_map[x509Support.extract_DN(vo_attr.cert)]
                 except KeyError:
