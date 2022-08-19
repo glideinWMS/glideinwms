@@ -42,7 +42,7 @@ class ConfigError(BaseException):
 class Proxy:
     """Class for holding information related to the proxy"""
 
-    def __init__(self, cert, key, output, lifetime, uid=0, gid=0, rfc=True, pathlength="20", bits="2048"):
+    def __init__(self, cert, key, output, lifetime, uid=0, gid=0, rfc="true", pathlength="20", bits="2048"):
         self.cert = cert
         self.key = key
         self.tmp_output_fd = tempfile.NamedTemporaryFile(dir=os.path.dirname(output), delete=False)
@@ -50,7 +50,10 @@ class Proxy:
         self.lifetime = lifetime
         self.uid = uid
         self.gid = gid
-        self.rfc = rfc
+        if str(rfc).lower() == "true":
+            self.rfc = True
+        else:
+            self.rfc = False
         self.pathlength = pathlength
         self.bits = bits
 
@@ -79,11 +82,18 @@ class Proxy:
         """Cleanup temporary proxy files"""
         os.remove(self.tmp_output_fd.name)
 
-    @classmethod
+    @staticmethod
     def voms_proxy_info(filename, *opts):
-        """Run voms-proxy-info on a arbritary file. Returns stdout, stderr, and return code of voms-proxy-info for any arbitrary file"""
+        """Run voms-proxy-info on a arbritary file. Returns stdout, stderr, and return code of voms-proxy-info
+        for any arbitrary file"""
         cmd = ["voms-proxy-info", "-file", filename] + list(opts)
         return _run_command(cmd)
+
+    @classmethod
+    def timeleft_from_file(cls, filename):
+        """Safely return the remaining lifetime of the proxy in the arbitrary file, in seconds
+        (returns 0 if unexpected stdout)"""
+        return _safe_int(cls.voms_proxy_info(filename, "-timeleft")[0])
 
 
 class VO:
@@ -292,7 +302,7 @@ def main():
             else:
                 vo_attr.cert = proxy_config["vo_cert"]
                 vo_attr.key = proxy_config["vo_key"]
-                if _safe_int(Proxy.voms_proxy_info(vo_attr.cert, "-timeleft")[0]) <= 0:
+                if Proxy.timeleft_from_file(vo_attr.cert) <= 0:
                     retcode = 1
                     print(
                         f"ERROR: Failed to renew proxy {proxy.output}: "

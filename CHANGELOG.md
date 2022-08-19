@@ -34,6 +34,7 @@ Changes since the last release
 -   Fixed `glidien_config` corrupted by concurrent custom scripts run via HTCSS startd cron (#163)
 -   Fixed unnecessary proxy/hostcert.pem workaround in frontend config (issue #66)
 -   Fixed analyze_entries and python3 readiness (issue #194)
+-   Fixed gwms-renew-proxies service should check if local VOMS cert is expired (issue #21)
 
 ### Testing / Development
 
