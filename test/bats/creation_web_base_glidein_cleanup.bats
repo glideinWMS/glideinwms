@@ -80,8 +80,8 @@ setup () {
     fi
     work_dir="$(pwd)"
     GWMS_SUBDIR=".gwms.d"
-    GWMS_DIR="${work_dir}/$GWMS_SUBDIR"
-    mkdir -p "$GWMS_DIR/exec/cleanup"
+    GWMS_DIR="${work_dir}/${GWMS_SUBDIR}"
+    mkdir -p "${GWMS_DIR}/exec/cleanup"
     let startup_time=$(date +%s)
     glidein_config="${PWD}/glidein_config"
     echo "ADD_CONFIG_LINE_SOURCE ${PWD}/add_config_line.source" > glidein_config
@@ -134,14 +134,9 @@ setup () {
 }
 
 teardown() {
-    glide_local_tmp_dir="/tmp/glide_local_tmp_dir/"
-    work_dir="/tmp/work_dir/"
-    start_dir="/tmp/start_dir/"
     rm -rf "${glide_local_tmp_dir}"
     rm -rf "${work_dir}"
     rm -rf "${start_dir}"
-    GWMS_SUBDIR=".gwms.d"
-    GWMS_DIR="${work_dir}/${GWMS_SUBDIR}"
     rm -f "${PWD}/add_config_line.source"
     rm -f "glidein_config"
     rm -f "glidein_config.history"

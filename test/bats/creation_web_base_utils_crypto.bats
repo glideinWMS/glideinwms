@@ -18,8 +18,8 @@ setup () {
     assert_output --partial "md5wrapper error: can't calculate md5sum using"
     [ "$status" -eq 1 ]
     echo "Testing the call to md5wrapper with valid file..." >& 3
-    touch "/tmp/trial_file"
     filename="/tmp/trial_file"
+    touch ${filename}
     run md5wrapper ${filename}
     assert_output --regexp "^[0-9a-z]+  ${filename}"
     [ "$status" -eq 0 ]
@@ -43,6 +43,6 @@ setup () {
 #TODO: check_file_signature test
 
 teardown(){
-    rm -f "/tmp/trial_file"
+    rm -f "${filename}"
     rm -rf "/tmp/trial/"
 }

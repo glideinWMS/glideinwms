@@ -23,6 +23,7 @@ no_teardown() {
     # executed after each test
     echo "teardown" >&3
     #rm "$glidein_config"
+    rm -f "$glidein_config" "$glidein_config".lock "$glidein_config".pid
 }
 
 setup_nameprint() {
@@ -60,8 +61,7 @@ setup_nameprint() {
 
 
 @test "Test lock and unlock" {
-    glidein_config=glidein_config_test.tmp
-    rm -f "$glidein_config" "$glidein_config".lock "$glidein_config".pid
+    glidein_config="/tmp/glidein_config_test.tmp"
     # Failure, file not existing
     run lock_file "$glidein_config"
     [ "$status" -eq 1 ]

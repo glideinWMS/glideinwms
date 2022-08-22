@@ -31,8 +31,9 @@ setup () {
     assert_output --partial "Unknown"
     [ "$status" -eq 0 ]
     echo "Testing a valid parent to extract with exitcode = 0 ..." >& 3
-    touch "otrx_output.xml"
-    echo "<?xml version=\"1.0\"?><OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">" > otrx_output.xml
+    filename="otrx_output.xml"
+    touch $filename
+    echo "<?xml version=\"1.0\"?><OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">" > $filename
     run extract_parent_fname 0
     assert_output --partial "SUCCESS"
     [ "$status" -eq 0 ]
@@ -54,15 +55,16 @@ setup () {
     assert_output --partial "No detail. Could not find source XML file."
     [ "$status" -eq 0 ]
     echo "Testing a call with valid XML file and exit code 0..." >& 3
-    touch "otrx_output.xml"
-    echo "<metric name=\"trial\">Content</metric>" > otrx_output.xml
+    filename="otrx_output.xml"
+    touch $filename
+    echo "<metric name=\"trial\">Content</metric>" > $filename
     run extract_parent_xml_detail 0
     assert_output --partial "<status>OK</status>"
     assert_output --partial "<metric name=\"trial\">Content</metric>"
     [ "$status" -eq 0 ]
     echo "Testing a call with non-valid XML file and exit code 1..." >& 3
-    echo "<?xml version=\"1.0\"?><OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">" > otrx_output.xml
-    echo "<detail>Trial</detail>\n" >> otrx_output.xml
+    echo "<?xml version=\"1.0\"?><OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">" > $filename
+    echo "<detail>Trial</detail>\n" >> $filename
     run extract_parent_xml_detail 1
     assert_output --partial "<status>ERROR</status>"
     assert_output --partial "<metric name=\"TestID\""
@@ -132,5 +134,5 @@ setup () {
 }
 
 teardown() {
-    rm -f otrx_output.xml
+    rm -f "${filename}"
 }
