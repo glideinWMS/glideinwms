@@ -80,7 +80,6 @@ early_glidein_failure() {
 }
 
 @test "prepare_workdir" {
-    rm -rf "${work_dir}"
     echo "Testing the function with non-existing work directory..." >& 3
     work_dir="/tmp/workdir"
     run prepare_workdir
@@ -97,19 +96,16 @@ early_glidein_failure() {
     assert_output --partial "Running in ${work_dir}"
     assert_output --partial "copied idtoken"
     [ "$status" -eq 0 ]
-    rm "trial.idtoken"
-    rm -rf "${work_dir}"
 }
 
 @test "copy_all" {
     echo "Testing the correctness with some trial files..." >& 3
     tmp_dir="/tmp/prova"
     mkdir -p "$tmp_dir"
-    cd "$tmp_dir"
-    touch file1.txt
-    touch file2.txt
-    touch file3.txt
-    touch afile1.txt
+    touch "${tmp_dir}/file1.txt"
+    touch "${tmp_dir}/file2.txt"
+    touch "${tmp_dir}/file3.txt"
+    touch "${tmp_dir}/afile1.txt"
     target_dir="/tmp/prova2"
     mkdir -p "$target_dir"
     run copy_all "pfile" "${target_dir}"
@@ -119,8 +115,6 @@ early_glidein_failure() {
     [ -f "${target_dir}"/file3.txt ]
     [ ! -f "${target_dir}"/pfile1.txt ]
     [ "$status" -eq 0 ]
-    rm -rf "$tmp_dir"
-    rm -rf "$target_dir"
 }
 
 @test "add_to_path" {
@@ -144,4 +138,8 @@ teardown() {
     rm -rf "${SCRATCH}"
     rm -rf "${TMPDIR}"
     rm -rf "${TMP}"
+    rm -rf "$tmp_dir"
+    rm -rf "$target_dir"
+    rm "trial.idtoken"
+    rm -rf "${work_dir}"
 }

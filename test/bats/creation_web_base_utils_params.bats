@@ -36,7 +36,7 @@ glidein_exit(){
 
 @test "params2file" {
     echo "Testing the correctness of the decoding and conversion to file..." >& 3
-    file="trial.txt"
+    file="/tmp/trial.txt"
     glidein_config="glidein_config"
     touch "${glidein_config}"
     run params2file "${file}" "param2 .nbsp, .gt, .semicolon, .sclose, .comment, .minus, param3"
@@ -47,4 +47,5 @@ glidein_exit(){
 teardown() {
     rm -f "${glidein_config}"
     rm -f "${glidein_config}.history"
+    rm -f "${file}"
 }

@@ -21,14 +21,14 @@ glidein_exit(){
 @test "get_untar_subdir" {
     echo "Testing the absence of 'UNTAR_CFG_FILE' in glidein_config..." >& 3
     id="main"
-    fname="file"
+    fname="/tmp/file"
     glidein_config="glidein_config"
     touch "${glidein_config}"
     run get_untar_subdir "${id}" "${fname}"
     assert_output --partial "Error, cannot find 'UNTAR_CFG_FILE' in glidein_config."
     [ "$status" -eq 1 ]
     echo "Testing the case of untar empty directory..." >& 3
-    file="trial"
+    file="/tmp/trial"
     touch "${file}"
     echo "UNTAR_CFG_FILE ${file}" > "${glidein_config}"
     run get_untar_subdir "${id}" "${fname}"
@@ -58,4 +58,5 @@ teardown() {
     rm -rf "${gs_id_work_dir}"
     rm -f "${glidein_config}"
     rm -f "${file}"
+    rm -f "${fname}"
 }
