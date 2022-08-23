@@ -58,6 +58,37 @@ setup_nameprint() {
     [ $files_number -eq $(ls -f | wc -l) ]
 }
 
+@test "Test gconfig_get" {
+    # Without variable
+    run gconfig_get ATTR
+    [ "$status" -eq 1 ]
+    assert_output --partial "glidein_config not provided and not defined"
+    tmp_config_file="glidein_config_test.tmp"
+    echo "ATTR first" > "$tmp_config_file"
+    run gconfig_get ATTR "$tmp_config_file"
+    [ "$status" -eq 0 ]
+    [ "$output" = first ]
+    # Check against partial matches
+    glidein_config="$tmp_config_file"
+    cat << EOF > "$glidein_config"
+ATTRBEFORE before
+ATTR value
+ATTRAFTER after
+EOF
+    [ $(gconfig_get ATTR "$glidein_config") = value ]
+    # Chck config name override: not existing file, same as no attribute
+    run gconfig_get ATTR not_existing_file
+    [ "$status" -eq 0 ]
+    [ "$output" = "" ]
+    # New ATTR values and parsing spaces and tabs
+    echo "ATTR  new value with  spaces" >> "$glidein_config"
+    echo "Test 1 ($(gconfig_get ATTR))" >&3
+    [ "$(gconfig_get ATTR)" = " new value with  spaces" ]
+    echo -e "ATTR \t new value with tab and spaces " >> "$glidein_config"
+    echo "Test 2 ($(gconfig_get ATTR))" >&3
+    [ "$(gconfig_get ATTR)" = "	 new value with tab and spaces " ]
+    rm -f "$tmp_config_file"
+}
 
 @test "Test lock and unlock" {
     glidein_config=glidein_config_test.tmp
