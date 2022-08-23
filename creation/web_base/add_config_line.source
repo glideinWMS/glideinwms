@@ -33,7 +33,7 @@ PSPID="$(command -v ps) -q"
 gconfig_get() {
     local config_file=${2:-$glidein_config}
     [[ -z "${config_file}" ]] && { warn "Error: glidein_config not provided and not defined"; exit 1; }
-    [[ -r "$config_file" ]] || { true; return; } 
+    [[ -r "$config_file" ]] || { true; return; }
     # Leave the extra space in the grep, to parse correctly strings w/ the same beginning
     $TAC "$config_file" | grep -m1 "^$1 " | cut -d ' ' -f 2-
 }
