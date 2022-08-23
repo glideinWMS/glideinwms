@@ -35,7 +35,7 @@ LIST_FILES=
 RUN_COVERAGE=
 BATSOPT=
 TIMEOUT=
-# delay after which the hard timeout will be triggered
+# incremental delay to send a SIGKILL if the test keeps running after the timeout was triggered
 HARD_TIMEOUT_DELAY=20
 
 do_parse_options() {
@@ -106,15 +106,16 @@ do_count_failures_tap() {
     if [[ $1 -eq 1 ]]; then
         fail="$(echo "$tmp_out" | grep -c "^not ok")"
     elif [[ $1 -gt 123 ]]; then
-            # timed out tests
+         # timed out tests
          fail=1
-         echo "-> Timeout of ${TIMEOUT}s triggered while executing test.."
+         logwarn "Timeout of ${TIMEOUT}s triggered while executing test.."
          if [[ $1 -eq 137 ]]; then
              # hardly timed out tests
-             echo "-> Timeout signal wasn't able to stop the test.."
-             echo "-> Hard timeout triggered after ${HARD_TIMEOUT_DELAY}s.."
+             logdebug "Timeout signal wasn't able to stop the test.."
+             logwarn "Hard timeout triggered after ${HARD_TIMEOUT_DELAY}s.."
          fi
          timed_out_files=$((timed_out_files + 1))
+         timed_out_files_list="$timed_out_files_list $file"
      fi
     fail_files=$((fail_files + 1))
     fail_all=$((fail_all + fail))
@@ -154,13 +155,14 @@ do_count_failures() {
     elif [[ $1 -gt 123 ]]; then
         # timed out tests
         fail=1
-        echo "-> Timeout of ${TIMEOUT}s triggered while executing test.."
+        logwarn "Timeout of ${TIMEOUT}s triggered while executing test.."
         if [[ $1 -eq 137 ]]; then
             # hardly timed out tests
-            echo "-> Timeout signal wasn't able to stop the test.."
-            echo "-> Hard timeout triggered after ${HARD_TIMEOUT_DELAY}s.."
+            logdebug "Timeout signal wasn't able to stop the test.."
+            logwarn "Hard timeout triggered after ${HARD_TIMEOUT_DELAY}s.."
         fi
         timed_out_files=$((timed_out_files + 1))
+        timed_out_files_list="$timed_out_files_list $file"
     fi
     fail_files=$((fail_files + 1))
     fail_all=$((fail_all + fail))
@@ -207,6 +209,7 @@ do_process_branch() {
     local -i fail_all=0
     local -i timed_out_files=0
     local fail_files_list=
+    local timed_out_files_list=
     local tmp_out=
     local -i tmp_exit_code
     local -i exit_code
@@ -244,7 +247,8 @@ do_process_branch() {
     echo "BATS_ERROR_FILES_COUNT=${fail_files}" >> "${outfile}"
     BATS_ERROR_COUNT=${fail_all}
     echo "BATS_ERROR_COUNT=${BATS_ERROR_COUNT}" >> "${outfile}"
-    echo "BATS_ERROR_FILES_TIMED_OUT=${timed_out_files}" >> "${outfile}"
+    echo "BATS_ERROR_FILES_TIMED_OUT=${timed_out_files_list}" >> "${outfile}"
+    echo "BATS_ERROR_FILES_TIMED_OUT_COUNT=${timed_out_files}" >> "${outfile}"
     echo "BATS_TIMEOUT=${TIMEOUT}" >> "${outfile}"
     echo "$(get_commom_info "$branch")" >> "${outfile}"
     echo "BATS=$(do_get_status)" >> "${outfile}"
