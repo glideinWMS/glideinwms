@@ -1,13 +1,14 @@
-#*******************************************************************#
-#                        utils_crypto.sh                            #
-#       This script contains cryptography utility functions         #
-#                      File Version: 1.0                            #
-#*******************************************************************#
+#!/bin/bash
+
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
+#*******************************************************************#
+# utils_crypto.sh                                                   #
+# This script contains cryptography utility functions               #
+#*******************************************************************#
 
 ################################
-# Function used to calculate the md5 sum
+# Calculates the md5 sum
 # Arguments:
 #   1: file name
 #   2: option (quiet)
@@ -45,7 +46,7 @@ md5wrapper() {
 }
 
 ###########################################
-# Function used to check the file signature
+# Checks the file signature
 # Arguments:
 #   1: id
 #   2: file name
@@ -92,7 +93,7 @@ check_file_signature() {
 }
 
 ########################################
-# Function used to set the X509_USER_PROXY path to full path to the file
+# Set the X509_USER_PROXY path to full path to the file
 # Environment variables exported:
 #   X509_USER_PROXY
 set_proxy_fullpath() {

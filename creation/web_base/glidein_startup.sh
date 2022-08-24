@@ -1,14 +1,14 @@
 #!/bin/bash -xv
 
-#*******************************************************************#
-#                      glidein_startup.sh                           #
-#  Script containing the variables and fuctions used as support     #
-#   for the glidein startup. The script load the content of         #
-#             glidein_cleanup and other utility functions           #
-#                      File Version: 1.0                            #
-#*******************************************************************#
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
+
+#*******************************************************************#
+#  glidein_startup.sh                                               #
+# Main Glidein script. Load all components from separate scripts,   #
+# start the Glidein up, invoke HTCondor startup, and cleanup        #
+# at the end                                                        #
+#*******************************************************************#
 
 ################################
 # Default IFS, to protect against unusual environment
@@ -18,11 +18,11 @@ IFS=$' \t\n'
 GLOBAL_ARGS="$*"
 # GWMS_STARTUP_SCRIPT=$0
 GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+GWMS_PATH=""
 
 ################################
 # Relative to the work directory (GWMS_DIR, gwms_lib_dir, gwms_bin_dir and gwms_exec_dir will be the absolute paths)
 # bin (utilities), lib (libraries), exec (aux scripts to be executed/sourced, e.g. pre-job)
-GWMS_PATH=""
 GWMS_SUBDIR=".gwms.d"
 
 ################################
@@ -38,12 +38,10 @@ GWMS_MULTIUSER_GLIDEIN=
 GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
 GWMS_MULTIGLIDEIN_CHILDS=
 
-[[ -z "$GWMS_SOURCEDIR" ]] && GWMS_SOURCEDIR=.
-
 export LANG=C
 
 ################################
-# Function used to start all glideins
+# Start all glideins
 # Arguments:
 #   1: number of glideins
 # Global:
@@ -84,7 +82,7 @@ do_start_all() {
 
 
 ################################
-# Function used to spawn multiple glideins and wait, if needed
+# Spawn multiple glideins and wait, if needed
 # Global:
 #   ON_DIE
 spawn_multiple_glideins(){
@@ -104,7 +102,7 @@ spawn_multiple_glideins(){
 }
 
 ########################################
-# Function used to setup OSG and/or Globus
+# Setup OSG and/or Globus
 # Global:
 #   GLOBUS_LOCATION
 setup_OSG_Globus(){
@@ -142,7 +140,7 @@ setup_OSG_Globus(){
 }
 
 ########################################
-# Function that creates the glidein configuration
+# Creates the glidein configuration
 # Global:
 #   glidein_config
 create_glidein_config(){
@@ -211,14 +209,62 @@ create_glidein_config(){
     fi
 }
 
+##############################
+# Utility functions to allow the script to source functions and retrieve data stored as tarball at the end of the script itself
+#TODO: Bats test files need to be defined for these functions
+
+#######################################
+# Retrieve the specified data, which is appended as tarball
+# Arguments:
+#   1: selected file
+get_data() {
+    sed '1,/^#EOF$/d' < "${GWMS_STARTUP_SCRIPT}" | tar xz -O "$1"
+}
+
+#######################################
+# Source the specified data, which is appended as tarball, without saving it
+# Arguments:
+#   1: selected file
+source_data() {
+    local data
+    data=$(get_data "$1")
+    [[ -n "$data" ]] && eval "$data"
+}
+
+#######################################
+# Show a list of the payload tarballed files in this script
+list_data() {
+    sed '1,/^#EOF$/d' < "${GWMS_STARTUP_SCRIPT}" | tar tz
+}
+
+#######################################
+# Extract and source all the tarball files
+# Global:
+#   IFS
+extract_all_data() {
+    local -a files
+    # change separator to split the output file list from 'tar tz' command
+    local IFS_OLD
+    IFS_OLD="${IFS}"
+    IFS=$'\n'
+    files=($(list_data))
+    for f in "${files[@]}"; do
+        echo "Extracting file ${f}"
+        get_data "${f}" > "${f}"
+        echo "Sourcing file ${f}"
+        # source_data "${f}" - can source the file saved instead of re-extracting it
+        . "${f}"
+    done
+    IFS="${IFS_OLD}"
+}
+
 _main(){
 
     ################################
     parse_options "$@"
 
     ################################
-    # Code block used to set the slots_layout
-    # make sure to have a valid slots_layout
+    # Set the slots_layout, make sure to have a valid slots_layout
     if (echo "x${slots_layout}" | grep -i fixed) >/dev/null 2>&1 ; then
         slots_layout="fixed"
     else
@@ -229,7 +275,7 @@ _main(){
     parse_arguments
 
     ################################
-    # Code block used to generate the glidein UUID
+    # Generate the glidein UUID
     if command -v uuidgen >/dev/null 2>&1; then
         glidein_uuid="$(uuidgen)"
     else
@@ -243,8 +289,7 @@ _main(){
     spawn_multiple_glideins
 
     ########################################
-    # Code block used to make sure nobody else can write my files
-    # in the Grid world I cannot trust anybody
+    # Make sure nobody else can write my files. In the Grid world I cannot trust anybody.
     if ! umask 0022; then
         early_glidein_failure "Failed in umask 0022"
     fi
@@ -253,7 +298,7 @@ _main(){
     setup_OSG_Globus
 
     ########################################
-    # Code block used to set the tokens
+    # Set the tokens
     [ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
     num_gct=0
 
@@ -301,9 +346,9 @@ _main(){
     params2file ${params}
 
     #####################################
-    # Setup logging
+    # setup logging
     log_init "${glidein_uuid}" "${work_dir}"
-    # Remove these files, if they are still there
+    # remove these files, if they are still there
     rm -rf tokens.tgz url_dirs.desc tokens
     log_setup "${glidein_config}"
 
@@ -508,7 +553,7 @@ _main(){
     fi
 
     #############################
-    #Things like periodic scripts might put messages here if they want them printed in the (stderr) logfile
+    # Things like periodic scripts might put messages here if they want them printed in the (stderr) logfile
     echo "=== Exit messages left by periodic scripts ===" 1>&2
     if [ -f exit_message ]; then
         cat exit_message 1>&2
@@ -532,7 +577,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     source "$GWMS_SOURCEDIR"/utils_io.sh
     source "$GWMS_SOURCEDIR"/utils_params.sh
     source "$GWMS_SOURCEDIR"/utils_signals.sh
-    source "$GWMS_SOURCEDIR"/utils_tarballs.sh
     source "$GWMS_SOURCEDIR"/utils_xml.sh
     source "$GWMS_SOURCEDIR"/utils_crypto.sh
     source "$GWMS_SOURCEDIR"/glidein_cleanup.sh

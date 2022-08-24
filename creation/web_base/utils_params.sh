@@ -1,16 +1,18 @@
-#*******************************************************************#
-#                        utils_crypto.sh                            #
-#       This script contains parameters utility functions           #
-#                      File Version: 1.0                            #
-#*******************************************************************#
+#!/bin/bash
+
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
+
+#*******************************************************************#
+# utils_params.sh                                                   #
+# This script contains parameters utility functions                 #
+#*******************************************************************#
 
 ################################
 # Parameters utility functions
 
 ################################
-# Function used to retrieve a simple parameter (no special characters in its value) from the param list
+# Retrieve a simple parameter (no special characters in its value) from the param list
 # make sure to have a valid slots_layout
 # Arguments:
 #   1: param
@@ -23,7 +25,7 @@ params_get_simple() {
 }
 
 ###############################
-# Function used to decode the parameters
+# Decode the parameters
 # Arguments:
 #   1: param
 params_decode() {
@@ -59,7 +61,7 @@ params_decode() {
 }
 
 ###############################
-# Function used to put the parameters into the config file
+# Put the parameters into the config file
 # Arguments:
 #   @: parameters
 # Global:

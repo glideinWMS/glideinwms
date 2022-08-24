@@ -1,12 +1,13 @@
+#!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
 
 #*******************************************************************#
 #                      glidein_cleanup.sh                           #
-#   Script containing the variables and functions used to support   #
-#        the glidein cleanup, failure and exit operations           #
-#                      File Version: 1.0                            #
+# Script containing the variables and functions used to support     #
+# the glidein cleanup, failure and exit operations                 #
 #*******************************************************************#
-# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
-# SPDX-License-Identifier: Apache-2.0
 
 ################################
 # Global variables of support to the glidein cleanup operations
@@ -14,10 +15,8 @@ work_dir_created=0
 glide_local_tmp_dir_created=0
 
 ################################
-# Function used to clean up the glidein.
-# It cleans-up, print out the message and exit
-# It removes Glidein directories (work_dir, glide_local_tmp_dir)
-# It uses GLIDEIN_DEBUG_OPTIONS, start_dir, work_dir_created, work_dir, glide_local_tmp_dir_created, glide_local_tmp_dir
+# Clean-up the glidein, print out messages, and exit
+# Remove glidein directories: work_dir, glide_local_tmp_dir
 glidein_cleanup() {
     if ! cd "${start_dir}"; then
         log_warn "Cannot find ${start_dir} anymore, exiting but without cleanup"
@@ -39,7 +38,7 @@ glidein_cleanup() {
 }
 
 ################################
-# Function used for early failures of the glidein, when we cannot assume we can write to disk at all
+# Early failures of the glidein, when we cannot assume we can write to disk at all
 # too bad we end up with some repeated code, but difficult to do better
 # Arguments:
 #   1: error message
@@ -66,7 +65,7 @@ early_glidein_failure() {
 }
 
 ################################
-# Function used for exiting the glidein, to be used when the most basic ops have been done
+# Exiting the glidein, to be used when the most basic ops have been done
 # too bad we end up with some repeated code, but difficult to do better
 # Arguments:
 #   1: exit code

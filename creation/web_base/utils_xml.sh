@@ -1,13 +1,15 @@
-#*******************************************************************#
-#                        utils_crypto.sh                            #
-#           This script contains xml utility functions              #
-#                      File Version: 1.0                            #
-#*******************************************************************#
+#!/bin/bash
+
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+#*******************************************************************#
+# utils_xml.sh                                                      #
+# This script contains xml utility functions                        #
+#*******************************************************************#
+
 ################################
-# Function used to create the xml content
+# Create the xml general content
 # Arguments:
 #   1: result
 construct_xml() {
@@ -21,7 +23,7 @@ construct_xml() {
 }
 
 ################################
-# Function used to extract the parent xml fname (element inside the id of OSGTestResult)
+# Extract the parent xml fname (element inside the id of OSGTestResult)
 # Arguments:
 #   1: exit code
 extract_parent_fname(){
@@ -41,7 +43,7 @@ extract_parent_fname(){
 }
 
 ################################
-# Function used to extract the parent xml details
+# Extract the parent xml details
 # Arguments:
 #   1: exit code
 extract_parent_xml_detail() {
@@ -86,7 +88,7 @@ extract_parent_xml_detail() {
 }
 
 ################################
-# Function used to convert base xml to simple xml
+# Convert base xml to simple xml
 # Arguments:
 #   1: final result
 basexml2simplexml() {
@@ -106,7 +108,7 @@ basexml2simplexml() {
 }
 
 ################################
-# Function used to convert simple xml to long xml
+# Convert simple xml to long xml
 # Arguments:
 #   1: simple final result
 #   2: global result
@@ -135,7 +137,7 @@ simplexml2longxml() {
 }
 
 ################################
-# Function used as support to add spaces
+# Add spaces, support to create_xml
 # Global:
 #   xml
 add_spaces(){
@@ -147,8 +149,7 @@ add_spaces(){
 }
 
 ################################
-# Function used to create an xml file structure
-# Call the function with the following syntax:
+# Create an xml file structure:
 # create_xml TAG --option option_value .... tag_value TAG2 .....
 # use '{' to specify the start if an inner tag and use '}' to specify the end
 # use create_xml -s SPACES ... in case you want to create a subpart of an xml file not starting from the beginning specifying
