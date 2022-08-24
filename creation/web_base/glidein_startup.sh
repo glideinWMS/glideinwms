@@ -401,27 +401,27 @@ print_tail() {
 work_dir_created=0
 glide_local_tmp_dir_created=0
 
-
+# Remove Glidein directories (work_dir, glide_local_tmp_dir)
+# 1 - exit code
+# Using GLIDEIN_DEBUG_OPTIONS, start_dir, work_dir_created, work_dir,
+#   glide_local_tmp_dir_created, glide_local_tmp_dir
+# If the start directory has been removed (e.g. HTCSS bug Aug 2022),
+# may remove its current directory leaving the process in a non existing directory
 glidien_cleanup() {
-    # Remove Glidein directories (work_dir, glide_local_tmp_dir)
-    # 1 - exit code
-    # Using GLIDEIN_DEBUG_OPTIONS, start_dir, work_dir_created, work_dir,
-    #   glide_local_tmp_dir_created, glide_local_tmp_dir
     if ! cd "${start_dir}"; then
-        warn "Cannot find ${start_dir} anymore, exiting but without cleanup"
+        warn "Cannot find ${start_dir} anymore, will remove my current directory"
+    fi
+    if [[ ",${GLIDEIN_DEBUG_OPTIONS}," = *,nocleanup,* ]]; then
+        warn "Skipping cleanup, disabled via GLIDEIN_DEBUG_OPTIONS"
     else
-        if [[ ",${GLIDEIN_DEBUG_OPTIONS}," = *,nocleanup,* ]]; then
-            warn "Skipping cleanup, disabled via GLIDEIN_DEBUG_OPTIONS"
-        else
-            if [ "${work_dir_created}" -eq "1" ]; then
-                # rm -fR does not remove directories read only for the user
-                find "${work_dir}" -type d -exec chmod u+w {} \;
-                rm -fR "${work_dir}"
-            fi
-            if [ "${glide_local_tmp_dir_created}" -eq "1" ]; then
-                find "${glide_local_tmp_dir}" -type d -exec chmod u+w {} \;
-                rm -fR "${glide_local_tmp_dir}"
-            fi
+        if [[ "${work_dir_created}" -eq "1" ]]; then
+            # rm -fR does not remove directories read only for the user
+            find "${work_dir}" -type d -exec chmod u+w {} \;
+            rm -fR "${work_dir}"
+        fi
+        if [[ "${glide_local_tmp_dir_created}" -eq "1" ]]; then
+            find "${glide_local_tmp_dir}" -type d -exec chmod u+w {} \;
+            rm -fR "${glide_local_tmp_dir}"
         fi
     fi
 }
