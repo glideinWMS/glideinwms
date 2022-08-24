@@ -13,8 +13,10 @@
 # Forwards signals to the children processes
 # Arguments:
 #   1: signal
-# Globals:
+# Globals (r/w):
 #   ON_DIE
+# Used:
+#   GWMS_MULTIGLIDEIN_CHILDS
 signal_on_die_multi() {
     echo "Multi-Glidein received signal... shutting down child glideins (forwarding $1 signal to ${GWMS_MULTIGLIDEIN_CHILDS})" 1>&2
     ON_DIE=1

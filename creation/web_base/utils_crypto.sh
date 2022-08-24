@@ -14,7 +14,7 @@
 #   2: option (quiet)
 # Returns:
 #   1 in case the md5sum cannot be calculated, or neither the md5sum nor the md5 can be found
-# Global:
+# Globals (r/w):
 #   res
 md5wrapper() {
     local ERROR_RESULT
@@ -50,15 +50,18 @@ md5wrapper() {
 # Arguments:
 #   1: id
 #   2: file name
-# Globals:
+# Globals (r/w):
 #   cfs_id
 #   cfs_fname
 #   cfs_work_dir
 #   cfs_desc_fname
 #   cfs_signature
-#   cfs_rc
-#   tmp_signname
+# Used:
 #   check_signature
+#   tmp_signname
+#   main_dir
+#   cfs_rc
+#   PWD
 # Returns:
 #   1 in case of corrupted file
 check_file_signature() {

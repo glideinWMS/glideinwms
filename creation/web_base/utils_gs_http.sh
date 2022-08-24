@@ -13,6 +13,11 @@
 # Gets the proper descript file based on id
 # Arguments:
 #   1: type (main/entry/client/client_group)
+# Used:
+#   repository_url
+#   repository_entry_url
+#   client_repository_url
+#   client_repository_group_url
 # Returns:
 #   1 in case of invalid ID
 get_repository_url() {
@@ -40,8 +45,10 @@ add_startd_cron_counter=0
 #   4: executable path (from cwd),
 #   5: config file path (from cwd)
 #   6: ID
-# Globals:
+# Globals (r/w):
 #   add_startd_cron_counter
+# Used:
+#   condor_config_startd_cron_include
 add_periodic_script() {
     #TODO: should it allow for variable number of parameters?
     local include_fname
@@ -116,6 +123,9 @@ fetch_file_regular() {
 #   7: config check TRUE,FALSE
 #   8: config out TRUE,FALSE
 # The above is the most recent list, below some adaptations for different versions
+# Used:
+#   ifs_str
+#   IFS
 # Returns:
 #   0 in case of success
 #   otherwise glidein_exit with 1
@@ -172,7 +182,7 @@ fetch_file() {
 #   6: periodic scripts prefix
 #   7: config check TRUE,FALSE
 #   8: config out TRUE,FALSE
-# Globals:
+# Globals (r/w):
 #   fft_id
 #   fft_target_fname
 #   fft_real_fname
@@ -184,7 +194,7 @@ fetch_file() {
 #   fft_get_ss
 #   fft_base_name
 #   fft_condition_attr
-#   fft_condition_attr_val
+#   fft_condition_attr_val 
 # Returns:
 #   0 in case of success
 #   otherwise it returns the exit code of fetch_file_base
@@ -254,6 +264,18 @@ fetch_file_try() {
 #   wget_args
 #   fetch_completed
 #   ret
+# Used:
+#   glidein_entry
+#   condorg_schedd
+#   condorg_cluster
+#   condorg_subcluster
+#   client_name
+#   ffb_nocache_str
+#   gwms_exec_dir
+#   main_dir
+#   work_dir
+#   cfs_id
+#   result
 # Returns:
 #   1 in case the error is already displayed inside the function,
 #   in case of tarring, in case of failure in renaming it,
@@ -445,7 +467,7 @@ fetch_file_base() {
 # Perform a wget request
 # Arguments:
 #   @: wget args
-# Globals:
+# Globals (r/w):
 #   wget_args
 #   wget_cmd
 #   wget_resp
@@ -529,7 +551,7 @@ perform_wget() {
 # Perform a curl request
 # Arguments:
 #   @: curl args
-# Globals:
+# Globals (r/w):
 #   curl_args
 #   arg_len
 #   ffb_url

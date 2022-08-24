@@ -64,7 +64,7 @@ params_decode() {
 # Put the parameters into the config file
 # Arguments:
 #   @: parameters
-# Global:
+# Globals (r/w):
 #   param_list
 #   pfval
 # Returns:

@@ -14,7 +14,7 @@
 # Arguments:
 #   1: id
 #   2: filename
-# Global:
+# Globals (r/w):
 #   gus_id
 #   gus_fname
 #   gus_prefix
@@ -50,6 +50,8 @@ get_untar_subdir() {
 # Removes the native condor tarballs directory to allow factory ops to use native condor tarballs
 # All files in the native condor tarballs have a directory like condor-9.0.11-1-x86_64_CentOS7-stripped
 # However the (not used anymore) gwms create_condor_tarball removes that dir
+# Used:
+#   gs_id_work_dir
 fixup_condor_dir() {
     # Check if the condor dir has only one subdir, the one like "condor-9.0.11-1-x86_64_CentOS7-stripped"
     # See https://stackoverflow.com/questions/32429333/how-to-test-if-a-linux-directory-contain-only-one-subdirectory-and-no-other-file

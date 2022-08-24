@@ -15,7 +15,7 @@
 #   1: exit code
 #   2: short version of the final results
 #   3: long version of the final results
-# Global:
+# Globals (r/w):
 #   total_time
 print_tail() {
   local final_result_simple final_result_long exit_code glidein_end_time
@@ -77,9 +77,39 @@ usage() {
 # Print initial information header
 # Parameters:
 #   @: shell parameters
-# Global:
+# Globals(r/w):
 #   startup_time
 #   retVal
+# Used:
+#   operation_mode
+#   condorg_cluster
+#   condorg_subcluster
+#   condorg_schedd
+#   glidein_uuid
+#   glidein_cred_id
+#   glidein_factory
+#   glidein_name
+#   glidein_entry
+#   client_name
+#   client_group
+#   client_descript_file
+#   client_descript_group_file
+#   client_repository_url
+#   client_sign_type
+#   client_sign_id
+#   client_sign_group_id
+#   client_repository_group_url
+#   multi_glidein
+#   multi_glidein_restart
+#   work_dir
+#   repository_url
+#   sign_type
+#   descript_file
+#   proxy_url
+#   descript_entry_file
+#   sign_id
+#   sign_entry_id
+#   set_debug
 print_header(){
     startup_time="$(date +%s)"
     echo "Starting glidein_startup.sh at $(date) (${startup_time})"
@@ -148,7 +178,7 @@ print_header(){
 # Parse the glidein startup options
 # Parameters:
 #   @: shell parameters
-# Global:
+# Globals (r/w):
 #   params
 #   all other global variables to set
 parse_options(){
@@ -200,17 +230,26 @@ parse_options(){
 ################################
 # Parse and verify arguments
 # It allows some parameters to change arguments
-# Global:
+# Globals (r/w):
 #   tmp_par
-#   params
-#   repository_url
+#   multi_glidein
+#   sleep_time
+#   set_debug
 #   repository_entry_url
 #   proxy_url
 #   client_sign_type
-#   multi_glidein
 #   sign_type
-#   sleep_time
-#   set_debug
+# Used:
+#   params
+#   operation_mode
+#   descript_file
+#   descript_entry_file
+#   glidein_name
+#   glidein_entry
+#   repository_url
+#   client_descript_group_file, client_repository_group_url, client_descript_file, client_repository_url
+#   sign_entry_id
+#   sign_id
 #   OSG_SQUID_LOCATION
 parse_arguments(){
     # multiglidein GLIDEIN_MULTIGLIDEIN -> multi_glidein
