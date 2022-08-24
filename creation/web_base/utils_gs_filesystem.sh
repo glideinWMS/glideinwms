@@ -11,9 +11,18 @@
 
 ################################
 # Automatically determine and setup work directories
-# Globals:
+# Globals (r/w):
 #   targets (_CONDOR_SCRATCH_DIR, OSG_WN_TMP, TG_NODE_SCRATCH, TG_CLUSTER_SCRATCH, SCRATCH, TMPDIR, TMP, PWD)
 #   work_dir
+# Used:
+#   _CONDOR_SCRATCH_DIR
+#   OSG_WN_TMP
+#   TG_NODE_SCRATCH
+#   TG_CLUSTER_SCRATCH
+#   SCRATCH
+#   TMP
+#   TMPDIR
+#   PWD
 # Returns:
 #   1 in case you are not allowed to write
 automatic_work_dir() {
@@ -83,7 +92,7 @@ dir_id() {
 # Replace known keywords: Condor, CONDOR, OSG, TMPDIR, AUTO, .
 # Empty $work_dir means PWD (same as ".")
 # A custom path could be provided (no "*)" in case)
-# Globals:
+# Globals (r/w):
 #   work_dir
 #   start_dir
 #   def_work_dir
@@ -103,6 +112,15 @@ dir_id() {
 #   client_dir
 #   short_client_group_dir
 #   client_group_dir
+# Used:
+#   _CONDOR_SCRATCH_DIR
+#   OSG_WN_TMP
+#   TMPDIR
+#   GWMS_SUBDIR
+#   dir_id
+#   GWMS_MULTIUSER_GLIDEIN
+#   client_repository_url
+#   client_repository_group_url
 prepare_workdir(){
     if [ -z "${work_dir}" ]; then
         work_dir="$(pwd)"

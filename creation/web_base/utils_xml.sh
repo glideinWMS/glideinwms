@@ -12,6 +12,11 @@
 # Create the xml general content
 # Arguments:
 #   1: result
+# Used:
+#   GLOBAL_ARGS
+#   startup_time
+#   glidein_end_time
+#   start_dir
 construct_xml() {
   local result tStart tEnd cmd glidein_end_time
   result=$1
@@ -138,8 +143,10 @@ simplexml2longxml() {
 
 ################################
 # Add spaces, support to create_xml
-# Global:
+# Globals (r/w):
 #   xml
+# Used:
+#   spaces
 add_spaces(){
   local c
   for (( c=1; c<=spaces; c++ ))
@@ -158,7 +165,7 @@ add_spaces(){
 # use create_xml -h to require as output only the header tag of the xml file, i.e. <?xml version=\"1.0\"?>"
 # Arguments:
 #   @: tags, options, values
-# Global:
+# Globals (r/w):
 #   spaces
 #   xml
 #   end_xml

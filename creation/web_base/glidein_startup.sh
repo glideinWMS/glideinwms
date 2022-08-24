@@ -44,11 +44,15 @@ GWMS_MULTIGLIDEIN_CHILDS=
 # Start all glideins
 # Arguments:
 #   1: number of glideins
-# Global:
+# Globals (r/w):
 #   GWMS_MULTIGLIDEIN_CHILDS
-# Important Variables:
+# Used:
+#   params
+#   GLOBAL_ARG
+# Important variables:
 #   GLIDEIN_MULTIGLIDEIN_LAUNCHALL - if set in attrs, command to start all Glideins at once (multirestart 0)
 #   GLIDEIN_MULTIGLIDEIN_LAUNCHER - if set in attrs, command to start the individual Glideins
+
 do_start_all() {
     local num_glideins initial_dir multiglidein_launchall multiglidein_launcher g_dir startup_script
     num_glideins=$1
@@ -83,8 +87,11 @@ do_start_all() {
 
 ################################
 # Spawn multiple glideins and wait, if needed
-# Global:
+# Globals (r/w):
 #   ON_DIE
+# Used:
+#   multi_glidein
+#   multi_glidein_restart
 spawn_multiple_glideins(){
     if [[ -n "${multi_glidein}" ]] && [[ -z "${multi_glidein_restart}" ]] && [[ "${multi_glidein}" -gt 1 ]]; then
         # start multiple glideins
@@ -103,8 +110,12 @@ spawn_multiple_glideins(){
 
 ########################################
 # Setup OSG and/or Globus
-# Global:
+# Globals (r/w):
 #   GLOBUS_LOCATION
+# Used:
+#   OSG_GRID
+#   GLITE_LOCAL_CUSTOMIZATION_DIR
+#   GLOBUS_PATH
 setup_OSG_Globus(){
     if [ -r "${OSG_GRID}/setup.sh" ]; then
         . "${OSG_GRID}/setup.sh"
@@ -141,8 +152,17 @@ setup_OSG_Globus(){
 
 ########################################
 # Creates the glidein configuration
-# Global:
+# Globals (r/w):
 #   glidein_config
+# Used:
+#   glidein_uuid, glidein_factory, glidein_name, glidein_entry, glidein_cred_id
+#   client_name, client_group, client_dir, client_descript_file, client_sign_id. client_repository_group_url
+#   client_group_dir, client_descript_group_file, client_sign_group_id
+#   condorg_cluster, condorg_schedd, condorg_subcluster
+#   set_debug, proxy_url, PWD, wrapper_list, slots_layout, GLIDEIN_CONDOR_TOKEN
+#   start_dir, main_dir, entry_dir, glide_tmp_dir, glide_local_tmp_dir
+#   descript_file, descript_entry_file
+#   sign_id, sign_entry_id
 create_glidein_config(){
     glidein_config="${PWD}/glidein_config"
     if ! echo > "${glidein_config}"; then
@@ -217,6 +237,8 @@ create_glidein_config(){
 # Retrieve the specified data, which is appended as tarball
 # Arguments:
 #   1: selected file
+# Used:
+#   GWMS_STARTUP_SCRIPT
 get_data() {
     sed '1,/^#EOF$/d' < "${GWMS_STARTUP_SCRIPT}" | tar xz -O "$1"
 }
@@ -233,6 +255,8 @@ source_data() {
 
 #######################################
 # Show a list of the payload tarballed files in this script
+# Used:
+#   GWMS_STARTUP_SCRIPT
 list_data() {
     sed '1,/^#EOF$/d' < "${GWMS_STARTUP_SCRIPT}" | tar tz
 }

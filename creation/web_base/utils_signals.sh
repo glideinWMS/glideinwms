@@ -26,7 +26,7 @@ signal_trap_with_arg() {
 # There is no need to re-raise sigint, caller does unconditional exit (https://www.cons.org/cracauer/sigint.html)
 # Arguments:
 #   1: signal
-# Global:
+# Globals (r/w):
 #    ON_DIE
 signal_on_die() {
     echo "Received kill signal... shutting down child processes (forwarding $1 signal)" 1>&2
