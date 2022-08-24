@@ -1,14 +1,16 @@
-#*******************************************************************#
-#                        utils_gs_io.sh                             #
-#       This script contains I/O utility functions for the          #
-#                 glidein_startup.sh script                         #
-#                      File Version: 1.0                            #
-#*******************************************************************#
+#!/bin/bash
+
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+#*******************************************************************#
+# utils_gs_io.sh                                                    #
+# This script contains I/O utility functions for the                #
+# glidein_startup.sh script                                         #
+#*******************************************************************#
+
 ################################
-# Function used to print the tail with the final results of the glideins
+# Print the tail with the final results of the glideins
 # Arguments:
 #   1: exit code
 #   2: short version of the final results
@@ -34,7 +36,7 @@ print_tail() {
 }
 
 ################################
-# Function used to have information about the usage of the glidein_startup.sh script
+# Usage of the glidein_startup.sh script
 # Returns:
 #   1 in any case
 usage() {
@@ -72,7 +74,7 @@ usage() {
 }
 
 ################################
-# Function used to print initial information header
+# Print initial information header
 # Parameters:
 #   @: shell parameters
 # Global:
@@ -143,7 +145,7 @@ print_header(){
 }
 
 ################################
-# Function used to parse the glidein startup options
+# Parse the glidein startup options
 # Parameters:
 #   @: shell parameters
 # Global:
@@ -196,7 +198,7 @@ parse_options(){
 }
 
 ################################
-# Function used to parse and verify arguments
+# Parse and verify arguments
 # It allows some parameters to change arguments
 # Global:
 #   tmp_par

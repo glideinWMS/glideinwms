@@ -1,14 +1,16 @@
-#*******************************************************************#
-#                    utils_gs_filesystem.sh                         #
-#       This script contains filesystem utility functions for       #
-#                 the glidein_startup.sh script                     #
-#                      File Version: 1.0                            #
-#*******************************************************************#
+#!/bin/bash
+
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+#*******************************************************************#
+# utils_gs_filesystem.sh                                            #
+# This script contains filesystem utility functions for the         #
+# glidein_startup.sh script                                         #
+#*******************************************************************#
+
 ################################
-# Function used to automatically determine and setup work directories
+# Automatically determine and setup work directories
 # Globals:
 #   targets (_CONDOR_SCRATCH_DIR, OSG_WN_TMP, TG_NODE_SCRATCH, TG_CLUSTER_SCRATCH, SCRATCH, TMPDIR, TMP, PWD)
 #   work_dir
@@ -59,7 +61,7 @@ automatic_work_dir() {
 }
 
 ################################
-# Function used to generate the directory ID
+# Generate the directory ID
 # It creates an ID to distinguish the directories when preserved
 dir_id() {
     [[ ! ",${GLIDEIN_DEBUG_OPTIONS}," = *,nocleanup,* ]] && return
@@ -77,7 +79,7 @@ dir_id() {
 }
 
 ###########################################
-# Function used to prepare and move to the work directory
+# Prepare and move to the work directory
 # Replace known keywords: Condor, CONDOR, OSG, TMPDIR, AUTO, .
 # Empty $work_dir means PWD (same as ".")
 # A custom path could be provided (no "*)" in case)
@@ -239,7 +241,7 @@ prepare_workdir(){
 }
 
 ################################
-# Function used to copy all files from a directory to another
+# Copy all files from a directory to another
 # (to support when needed to start multiple glideins)
 # Arguments:
 #   1: prefix of the files to skip
@@ -257,7 +259,7 @@ copy_all() {
 # TODO: should it copy also hidden files?
 
 ########################################
-# Function used to add $1 to GWMS_PATH and update PATH
+# Add $1 to GWMS_PATH and update PATH
 # Environment:
 #   GWMS_PATH
 #   PATH

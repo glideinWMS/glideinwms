@@ -1,11 +1,13 @@
-#*******************************************************************#
-#                      utils_gs_tarballs.sh                         #
-#       This script contains tarballs utility functions for the     #
-#                    glidein_startup.sh script                      #
-#                       File Version: 1.0                           #
-#*******************************************************************#
+#!/bin/bash
+
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
+
+#*******************************************************************#
+# utils_gs_tarballs.sh                                              #
+# This script contains tarballs utility functions for the           #
+# glidein_startup.sh script                                         #
+#*******************************************************************#
 
 ###########################################
 # Untar support function
@@ -45,7 +47,7 @@ get_untar_subdir() {
 }
 
 ########################################
-# Function that removes the native condor tarballs directory to allow factory ops to use native condor tarballs
+# Removes the native condor tarballs directory to allow factory ops to use native condor tarballs
 # All files in the native condor tarballs have a directory like condor-9.0.11-1-x86_64_CentOS7-stripped
 # However the (not used anymore) gwms create_condor_tarball removes that dir
 fixup_condor_dir() {

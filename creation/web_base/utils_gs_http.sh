@@ -1,15 +1,16 @@
-#*******************************************************************#
-#                       utils_gs_http.sh                            #
-#       This script contains http utility functions for the         #
-#                   glidein_startup.sh script                       #
-#                      File Version: 1.0                            #
-#*******************************************************************#
+#!/bin/bash
+
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+#*******************************************************************#
+# utils_gs_http.sh                                                  #
+# This script contains http utility functions for the               #
+# glidein_startup.sh script                                         #
+#*******************************************************************#
 
 ############################################
-# Function that gets the proper descript file based on id
+# Gets the proper descript file based on id
 # Arguments:
 #   1: type (main/entry/client/client_group)
 # Returns:
@@ -31,7 +32,7 @@ get_repository_url() {
 add_startd_cron_counter=0
 
 #####################
-# Function that schedules a script for periodic execution using startd_cron
+# Schedules a script for periodic execution using startd_cron
 # Arguments:
 #   1: wrapper full path
 #   2: period
@@ -91,7 +92,7 @@ EOF
 }
 
 ############################################
-# Function that fetches a single regular file
+# Fetches a single regular file
 # Check cWDictFile/FileDictFile for the number and type of parameters (has to be consistent)
 # Arguments:
 #   1: ID
@@ -102,7 +103,7 @@ fetch_file_regular() {
 }
 
 ############################################
-# Function that fetches a single file
+# Fetches a single file
 # custom_scripts parameters format is set in the GWMS configuration (creation/lib)
 # Check cWDictFile/FileDictFile for the number and type of parameters (has to be consistent)
 # Arguments:
@@ -154,7 +155,7 @@ fetch_file() {
 }
 
 ############################################
-# Function that verifies if the file should be downloaded and acted upon (extracted, executed, ...) or not
+# Verifies if the file should be downloaded and acted upon (extracted, executed, ...) or not
 # There are 2 mechanisms to control the download
 # 1. tar files have the attribute "cond_attr" that is a name of a variable in glidein_config.
 #    if the named variable has value 1, then the file is downloaded. TRUE (default) means always download
@@ -220,7 +221,7 @@ fetch_file_try() {
 }
 
 ############################################
-# Function that performs the file download and corresponding action (untar, execute, ...)
+# Performs the file download and corresponding action (untar, execute, ...)
 # Arguments:
 #   1: ID
 #   2: target fname
@@ -441,7 +442,7 @@ fetch_file_base() {
 }
 
 ################################
-# Function used to perform a wget request
+# Perform a wget request
 # Arguments:
 #   @: wget args
 # Globals:
@@ -525,7 +526,7 @@ perform_wget() {
 }
 
 ################################
-# Function used to perform a curl request
+# Perform a curl request
 # Arguments:
 #   @: curl args
 # Globals:

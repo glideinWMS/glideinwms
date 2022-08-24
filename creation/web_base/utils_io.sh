@@ -1,13 +1,15 @@
-#*******************************************************************#
-#                            utils_io.sh                            #
-#              This script contains I/O utility functions           #
-#                      File Version: 1.0                            #
-#*******************************************************************#
+#!/bin/bash
+
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+#*******************************************************************#
+# utils_io.sh                                                       #
+# This script contains I/O utility functions                        #
+#*******************************************************************#
+
 ################################
-# Function used to log warning statements
+# Log warning statements
 # Arguments:
 #   @: content to warn
 log_warn() {
@@ -15,7 +17,7 @@ log_warn() {
 }
 
 ################################
-# Function used to log debug statements
+# Log debug statements
 # Arguments:
 #   @: content to debug
 log_debug() {
@@ -23,7 +25,7 @@ log_debug() {
 }
 
 #####################
-# Function used to print a header line, i.e. === HEADER ===
+# Print a header line, i.e. === HEADER ===
 # Arguments:
 #   1: content of the header line
 #   2 (optional): 1 if needs to write to stdout, 2 if needs to write to stderr

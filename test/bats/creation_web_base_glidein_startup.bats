@@ -12,7 +12,6 @@ setup () {
     source "$GWMS_SOURCEDIR"/utils_io.sh
     source "$GWMS_SOURCEDIR"/utils_params.sh
     source "$GWMS_SOURCEDIR"/utils_signals.sh
-    source "$GWMS_SOURCEDIR"/utils_tarballs.sh
     source "$GWMS_SOURCEDIR"/utils_xml.sh
     source "$GWMS_SOURCEDIR"/utils_crypto.sh
     source "$GWMS_SOURCEDIR"/utils_gs_http.sh
