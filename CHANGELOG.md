@@ -18,6 +18,7 @@ Changes since the last release
 ### Changed defaults / behaviours
 
 -   Frontend configuration valid (reconfig/upgrade successful) even if some HTCSS schedds are not in DNS. Failing only if all schedds are unknown to DNS.
+-   Working and local tmp directories are removed during Glidein cleanup also when the start directory is missing. This result in a loss of Glidein final status information but avoids sandbox leaks on the Worker Node. (issue #189)
 
 ### Deprecated / removed options and commands
 
