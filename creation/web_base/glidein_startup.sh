@@ -285,7 +285,7 @@ _main(){
     ########################################
     prepare_workdir
 
-    ########################################
+    ######################################
     # extract and source all the data contained at the end of this script as tarball
     extract_all_data
 
