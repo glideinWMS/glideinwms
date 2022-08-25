@@ -194,7 +194,7 @@ fetch_file() {
 #   fft_get_ss
 #   fft_base_name
 #   fft_condition_attr
-#   fft_condition_attr_val 
+#   fft_condition_attr_val
 # Returns:
 #   0 in case of success
 #   otherwise it returns the exit code of fetch_file_base
