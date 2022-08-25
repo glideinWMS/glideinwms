@@ -10,12 +10,12 @@ setup () {
     source "$GWMS_SOURCEDIR"/utils_gs_signals.sh
 }
 
-@test "on_die_multi" {
+@test "signal_on_die_multi" {
     echo "Testing the function killing one child..." >& 3
     sleep 5 &
     pid=$!
     GWMS_MULTIGLIDEIN_CHILDS="${pid}"
-    run on_die_multi "KILL"
+    run signal_on_die_multi "KILL"
     if ! ps -p ${pid} > /dev/null
     then
        [ true ]
@@ -30,7 +30,7 @@ setup () {
     sleep 5 &
     pid2=$!
     GWMS_MULTIGLIDEIN_CHILDS="${pid} ${pid2}"
-    run on_die_multi "KILL"
+    run signal_on_die_multi "KILL"
     if ! ps -p ${pid} > /dev/null; then
        [ true ]
     else
@@ -45,6 +45,6 @@ setup () {
     assert_output --partial "forwarding KILL signal to"
     echo "Testing the function killing no children..." >& 3
     GWMS_MULTIGLIDEIN_CHILDS=
-    run on_die_multi "KILL"
+    run signal_on_die_multi "KILL"
     [ "$status" -eq 0 ]
 }

@@ -8,7 +8,7 @@ load 'lib/bats-assert/load'
 
 setup () {
     source "$GWMS_SOURCEDIR"/utils_crypto.sh
-    source "$GWMS_SOURCEDIR"/utils_io.sh
+    source "$GWMS_SOURCEDIR"/utils_log.sh
 }
 
 @test "md5wrapper" {

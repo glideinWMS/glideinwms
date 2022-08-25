@@ -96,8 +96,8 @@ spawn_multiple_glideins(){
     if [[ -n "${multi_glidein}" ]] && [[ -z "${multi_glidein_restart}" ]] && [[ "${multi_glidein}" -gt 1 ]]; then
         # start multiple glideins
         ON_DIE=0
-        trap 'ignore_signal' SIGHUP
-        trap_with_arg 'on_die_multi' SIGTERM SIGINT SIGQUIT
+        trap 'signal_ignore' SIGHUP
+        signal_trap_with_arg 'signal_on_die_multi' SIGTERM SIGINT SIGQUIT
         do_start_all "${multi_glidein}"
         # Wait for all glideins and exit 0
         # TODO: Summarize exit codes and status from all child glideins
@@ -554,10 +554,10 @@ _main(){
     echo "=== Last script starting $(date) (${last_startup_time}) after validating for ${validation_time} ==="
     echo
     ON_DIE=0
-    trap 'ignore_signal' SIGHUP
-    trap_with_arg 'on_die' SIGTERM SIGINT SIGQUIT
-    #trap 'on_die' TERM
-    #trap 'on_die' INT
+    trap 'signal_ignore' SIGHUP
+    signal_trap_with_arg 'signal_on_die' SIGTERM SIGINT SIGQUIT
+    #trap 'signal_on_die' TERM
+    #trap 'signal_on_die' INT
     gs_id_work_dir=$(get_work_dir main)
     "${main_dir}"/error_augment.sh -init
     "${gs_id_work_dir}/${last_script}" glidein_config &
@@ -595,10 +595,10 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # Include all source scripts
     source "$GWMS_SOURCEDIR"/utils_gs_http.sh
     source "$GWMS_SOURCEDIR"/utils_gs_filesystem.sh
-    source "$GWMS_SOURCEDIR"/utils_gs_io.sh
+    source "$GWMS_SOURCEDIR"/utils_gs_log.sh
     source "$GWMS_SOURCEDIR"/utils_gs_signals.sh
     source "$GWMS_SOURCEDIR"/utils_gs_tarballs.sh
-    source "$GWMS_SOURCEDIR"/utils_io.sh
+    source "$GWMS_SOURCEDIR"/utils_log.sh
     source "$GWMS_SOURCEDIR"/utils_params.sh
     source "$GWMS_SOURCEDIR"/utils_signals.sh
     source "$GWMS_SOURCEDIR"/utils_xml.sh

@@ -9,14 +9,14 @@ load 'lib/bats-assert/load'
 setup () {
     source "$GWMS_SOURCEDIR"/utils_gs_signals.sh
     source "$GWMS_SOURCEDIR"/utils_gs_tarballs.sh
-    source "$GWMS_SOURCEDIR"/utils_io.sh
+    source "$GWMS_SOURCEDIR"/utils_log.sh
     source "$GWMS_SOURCEDIR"/utils_params.sh
     source "$GWMS_SOURCEDIR"/utils_signals.sh
     source "$GWMS_SOURCEDIR"/utils_xml.sh
     source "$GWMS_SOURCEDIR"/utils_crypto.sh
     source "$GWMS_SOURCEDIR"/utils_gs_http.sh
     source "$GWMS_SOURCEDIR"/utils_gs_filesystem.sh
-    source "$GWMS_SOURCEDIR"/utils_gs_io.sh
+    source "$GWMS_SOURCEDIR"/utils_gs_log.sh
     source "$GWMS_SOURCEDIR"/logging_utils.source
     source "$GWMS_SOURCEDIR"/glidein_startup.sh
     source "$GWMS_SOURCEDIR"/add_config_line.source
