@@ -8,7 +8,7 @@ load 'lib/bats-assert/load'
 
 setup () {
     source "$GWMS_SOURCEDIR"/utils_gs_tarballs.sh
-    source "$GWMS_SOURCEDIR"/utils_io.sh
+    source "$GWMS_SOURCEDIR"/utils_log.sh
     source "$GWMS_SOURCEDIR"/get_id_selectors.source
 }
 

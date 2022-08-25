@@ -7,9 +7,9 @@ load 'lib/bats-assert/load'
 [[ -z "$GWMS_SOURCEDIR" ]] && GWMS_SOURCEDIR=../..
 
 setup () {
-    source "$GWMS_SOURCEDIR"/creation/web_base/utils_io.sh
+    source "$GWMS_SOURCEDIR"/creation/web_base/utils_log.sh
     source "$GWMS_SOURCEDIR"/creation/web_base/utils_xml.sh
-    source "$GWMS_SOURCEDIR"/creation/web_base/utils_gs_io.sh
+    source "$GWMS_SOURCEDIR"/creation/web_base/utils_gs_log.sh
     source "$GWMS_SOURCEDIR"/creation/web_base/logging_utils.source
     source "$GWMS_SOURCEDIR"/creation/web_base/glidein_cleanup.sh 2>&3
     source "$GWMS_SOURCEDIR"/creation/web_base/add_config_line.source
@@ -135,7 +135,6 @@ setup () {
 
 teardown() {
     rm -rf "${glide_local_tmp_dir}"
-    rm -rf "${work_dir}"
     rm -rf "${start_dir}"
     rm -f "${PWD}/add_config_line.source"
     rm -f "glidein_config"

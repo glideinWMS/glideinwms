@@ -56,6 +56,13 @@ setup () {
         run automatic_work_dir
         [ "$status" -eq 0 ]
     fi
+    rm -rf "${_CONDOR_SCRATCH_DIR}"
+    rm -rf "${OSG_WN_TMP}"
+    rm -rf "${TG_NODE_SCRATCH}"
+    rm -rf "${TG_CLUSTER_SCRATCH}"
+    rm -rf "${SCRATCH}"
+    rm -rf "${TMPDIR}"
+    rm -rf "${TMP}"
 }
 
 @test "dir_id" {
@@ -96,6 +103,8 @@ early_glidein_failure() {
     assert_output --partial "Running in ${work_dir}"
     assert_output --partial "copied idtoken"
     [ "$status" -eq 0 ]
+    rm "trial.idtoken"
+    rm -rf "${work_dir}"
 }
 
 @test "copy_all" {
@@ -108,13 +117,17 @@ early_glidein_failure() {
     touch "${tmp_dir}/afile1.txt"
     target_dir="/tmp/prova2"
     mkdir -p "$target_dir"
+    cd ${tmp_dir}
     run copy_all "pfile" "${target_dir}"
+    cd -
     [ "$output" == "" ]
     [ -f "${target_dir}"/file1.txt ]
     [ -f "${target_dir}"/file2.txt ]
     [ -f "${target_dir}"/file3.txt ]
     [ ! -f "${target_dir}"/pfile1.txt ]
     [ "$status" -eq 0 ]
+    rm -rf "$tmp_dir"
+    rm -rf "$target_dir"
 }
 
 @test "add_to_path" {
@@ -128,18 +141,4 @@ early_glidein_failure() {
     [ "${PATH}" == "${element}:${OLD_GWMS_PATH}:${OLD_PATH}" ]
     [ "${GWMS_PATH}" == "${element}:${OLD_GWMS_PATH}" ]
     PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-}
-
-teardown() {
-    rm -rf "${_CONDOR_SCRATCH_DIR}"
-    rm -rf "${OSG_WN_TMP}"
-    rm -rf "${TG_NODE_SCRATCH}"
-    rm -rf "${TG_CLUSTER_SCRATCH}"
-    rm -rf "${SCRATCH}"
-    rm -rf "${TMPDIR}"
-    rm -rf "${TMP}"
-    rm -rf "$tmp_dir"
-    rm -rf "$target_dir"
-    rm "trial.idtoken"
-    rm -rf "${work_dir}"
 }

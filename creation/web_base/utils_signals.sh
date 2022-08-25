@@ -15,6 +15,7 @@
 signal_trap_with_arg() {
     local func
     func="$1"
+    shift 1
     for sig ; do
         # shellcheck disable=SC2064
         trap "${func} ${sig}" "${sig}"
