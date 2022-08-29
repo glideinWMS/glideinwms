@@ -30,12 +30,16 @@ warn() {
 }
 
 # Common setup for credentials
+# Proxy is in credentials dir, idtokens have subdirectory (./idtoken)
+# Uses GWMS_CREDENTIALS_SUBDIR
+# Out:  credentials directory (full path)
+#       error message if creation failed (return code 1)
 cred_setup() {
     local cred_dir
     cred_dir="$(pwd)/$GWMS_CREDENTIALS_SUBDIR"
-    if [[ ! -d "$cred_dir" ]]; then
-        if ! mkdir -p "$cred_dir"; then
-            echo "Failed in creating credentials directory: $cred_dir."
+    if [[ ! -d "${cred_dir}/idtokens" ]]; then
+        if ! mkdir -p "${cred_dir}/idtokens"; then
+            echo "Failed in creating credentials directory: $cred_dir (and ${cred_dir}/idtoken)."
             return 1
         fi
     fi
@@ -60,15 +64,21 @@ refresh_credentials() {
     # Refresh tokens (all *idtoken files in the source directory)
     # assuming condor will eventually copy in updated tokens like it does proxies now
     if [[ -n "${token_from}" && -n "$token_to" ]]; then
-       local from_dir to_dir
-       from_dir=$(dirname "${GLIDEIN_CONDOR_TOKEN_ORIG}")
-       to_dir=$(dirname "${GLIDEIN_CONDOR_TOKEN}")
-       for tok in "${from_dir}"/*idtoken; do
-            cp "${tok}" "${to_dir}" && refreshed="True"
-       done
+        local from_dir to_dir
+        from_dir=$(dirname "${GLIDEIN_CONDOR_TOKEN_ORIG}")
+        to_dir=$(dirname "${GLIDEIN_CONDOR_TOKEN}")
+        if [[ -d "${from_dir}" && -d "${to_dir}" ]]; then
+            for tok in "${from_dir}"/*idtoken; do
+                cp "${tok}" "${to_dir}" && refreshed="True"
+            done
+        else
+            ERROR="Token variables defined but no directories ($([[ ! -d "${from_dir}" ]] && echo "${from_dir}")"\
+            "$([[ ! -d "${to_dir}" ]] && echo "${to_dir}"))."
+        fi
     fi
 
     # Check results
+    ERROR="No proxy or token found. $ERROR"
     [[ -z "$refreshed" ]] && return 1 || true
     # Info message with what was refreshed?
     return 0
@@ -109,14 +119,16 @@ get_x509_certs_dir() {
 }
 
 # Look for the proxy certificate in $1 and $X509_USER_PROXY
+# Currently env X509_USER_PROXY is set by the job manager in the evvironment befor starting the Glidein,
+# on all CEs where Glideins run and proxyes are provided
+# TODO: HTCSS newer version do not define X509_USER_PROXY. Add here canonical paths where to look
+#       for possible proxy files (e.g. in ARC CE)
 # No more in /tmp/x509up_u`id -u`, other processes form the same user could share /tmp
 # $1 - optional certificate file name
 # Out: proxy file name to use if returning 0
 #      error message if returning 1
-# This function is also setting/changing the value of X509_USER_PROXY TODO: needed?
 get_x509_proxy() {
     local cert_fname=${1:-"$X509_USER_PROXY"}
-    X509_USER_PROXY="$cert_fname"
     if [[ -n "$cert_fname" || ! -e "$cert_fname" ]]; then
         echo "Proxy certificate '$cert_fname' does not exist."
         return 1
@@ -299,16 +311,19 @@ get_x509_expiration() {
 # Copy tokens that need to be copied in the credentials directory:
 # - glidein token (to call back to the VO collector): credential_*.idtoken in the start directory GLIDEIN_START_DIR_ORIG
 #   (1 file, 0 OK if x509 is used)
-#   TODO: could this be also in the work directory GLIDEIN_WORKSPACE_ORIG?
 # - CE collector tokens: ce_*.idtoken in the start directory GLIDEIN_START_DIR_ORIG (0 to many files)
 # 1. from dir: directory to copy from
 # 2. to dir: token directory
-# Sets GLIDEIN_CONDOR_TOKEN_ORIG
+# Globals (set): GLIDEIN_CONDOR_TOKEN GLIDEIN_CONDOR_TOKEN_ORIG
 copy_idtokens() {
     local start_dir from_dir=$1 to_dir=$2
-    local cred_glidein cred_glidein_ctr=0 cred_cecoll_ctr=0 cred_ctr=0
+    local cred_glidein_ctr=0 cred_cecoll_ctr=0 cred_ctr=0
     start_dir=$(pwd)
-    cd "$from_dir" || true
+    if ! cd "$from_dir"; then
+        ERROR="Cannot cd to from_dir ($from_dir)"
+        # did not change directory, OK to just return
+        return 1
+    fi
     for i in *.idtoken; do
         cp "$i" "$to_dir/$i"
         if [[ "$i" == ce_*.idtoken ]]; then
@@ -317,25 +332,25 @@ copy_idtokens() {
         elif [[ "$i" == credential_*.idtoken ]]; then
             warn "Copied glidein token '${i}' to '${to_dir}/'"
             (( cred_glidein_ctr++ ))
-            cred_glidein="${to_dir}/$i"
+            GLIDEIN_CONDOR_TOKEN="${to_dir}/$i"
             GLIDEIN_CONDOR_TOKEN_ORIG="${from_dir}/$i"
         else
             warn "Copied token '${i}' to '${to_dir}/'"
             (( cred_ctr++ ))
         fi
     done
-    (( cred_ctr += (cred_cecoll_ctr+cred_glidein) ))
+    (( cred_ctr += (cred_cecoll_ctr+cred_glidein_ctr) ))
     warn "Copied $cred_ctr tokens ($cred_glidein_ctr glidein, $cred_cecoll_ctr CE collector)"
     if [[ "$cred_glidein_ctr" -ne 1 ]]; then
         if [[ "$cred_glidein_ctr" -eq 0 ]]; then
-            echo "No glidein token found!"
+            ERROR="No glidein token found!"
         else
-            echo "There should be only one glidein token, $cred_glidein_ctr found"
+            ERROR="There should be only one glidein token, $cred_glidein_ctr found"
         fi
+        cd "$start_dir" || true
         return 1
     fi
     cd "$start_dir" || true
-    echo "$cred_glidein"
     return
 }
 
@@ -362,7 +377,12 @@ get_trust_domain() {
 #
 ############################################################
 
-start_dir=$(pwd)
+# Path read from and stored in glidein_config should always be full absolute paths
+GLIDEIN_CONDOR_TOKEN=$(gconfig_get GLIDEIN_CONDOR_TOKEN "$glidein_config")
+GLIDEIN_START_DIR_ORIG=$(gconfig_get GLIDEIN_START_DIR_ORIG "$glidein_config")
+GLIDEIN_WORKSPACE_ORIG=$(gconfig_get GLIDEIN_WORKSPACE_ORIG "$glidein_config")
+
+# Script terminated w/ exit N, OK to change directory w/o worrying to restore
 [[ -n "$GLIDEIN_WORKSPACE_ORIG" ]] && cd "$GLIDEIN_WORKSPACE_ORIG" || true
 
 if ! gwms_credentials_dir=$(cred_setup); then
@@ -370,10 +390,6 @@ if ! gwms_credentials_dir=$(cred_setup); then
     "$error_gen" -error "setup_x509.sh" "WN_Resource" "$gwms_credentials_dir"
     exit 1
 fi
-
-GLIDEIN_CONDOR_TOKEN=$(gconfig_get GLIDEIN_CONDOR_TOKEN "$glidein_config")
-GLIDEIN_START_DIR_ORIG=$(gconfig_get GLIDEIN_START_DIR_ORIG "$glidein_config")
-GLIDEIN_WORKSPACE_ORIG=$(gconfig_get GLIDEIN_WORKSPACE_ORIG "$glidein_config")
 
 # If it is not the first execution, but a periodic one, just refresh and exit
 
@@ -384,21 +400,20 @@ if [[ -n "$GLIDEIN_PERIODIC_SCRIPT" ]]; then
     GLIDEIN_CONDOR_TOKEN=$(gconfig_get GLIDEIN_CONDOR_TOKEN "$glidein_config")
 
     if refresh_credentials "$X509_USER_PROXY_ORIG" "$X509_USER_PROXY" "$GLIDEIN_CONDOR_TOKEN_ORIG" "$GLIDEIN_CONDOR_TOKEN"; then
-        "$error_gen" -ok "setup_x509.sh" "JWT" "${GLIDEIN_CONDOR_TOKEN:-unavailable}" "proxy" "${X509_USER_PROXY:-unavailable}"
+        "$error_gen" -ok "setup_x509.sh" "idtoken" "${GLIDEIN_CONDOR_TOKEN:-unavailable}" "proxy" "${X509_USER_PROXY:-unavailable}"
         exit 0
     fi
 
-    "$error_gen" -error "setup_x509.sh" "WN_Resource" "Periodic execution should not reach setup, probably needed glidein_config veriables are not set"
+    "$error_gen" -error "setup_x509.sh" "WN_Resource" "Periodic execution should not reach setup, probably needed glidein_config variables are not set"
     exit 1
 fi
 
-# On error functions return 1 and error msg on stdout
+# On error functions return 1 and error msg on stdout or in ERROR (optional ERROR_TYPE) if w/ side effect
 # TODO: change error return string to "error_type,mgs" for better error reporting
 cred_updated=
 
 # IDTOKENS
-if out=$(copy_idtokens "$GLIDEIN_START_DIR_ORIG" "$gwms_credentials_dir"/idtokens/); then
-    export GLIDEIN_CONDOR_TOKEN="$out"
+if copy_idtokens "$GLIDEIN_START_DIR_ORIG" "$gwms_credentials_dir"/idtokens/; then
     gconfig_add GLIDEIN_CONDOR_TOKEN "$GLIDEIN_CONDOR_TOKEN"
     gconfig_add GLIDEIN_CONDOR_TOKEN_ORIG "$GLIDEIN_CONDOR_TOKEN_ORIG"
     if out=$(get_trust_domain); then
@@ -409,46 +424,51 @@ if out=$(copy_idtokens "$GLIDEIN_START_DIR_ORIG" "$gwms_credentials_dir"/idtoken
         warn "$out"
     fi
 else
-    warn "$out"
+    warn "$ERROR"
 fi
 
-# x509
-if out=$(get_x509_certs_dir); then
-    export X509_CERT_DIR="$out"
-    if out=$(check_x509_tools); then
-        [[ -n "$out" ]] && warn "$out"
-        if out=$(safe_copy_and_protect "$X509_USER_PROXY" "$gwms_credentials_dir/myproxy"); then
-            # Copy successful, set env variables
-            export X509_USER_PROXY_ORIG="$X509_USER_PROXY"
-            export X509_USER_PROXY="$out"
-            if out=$(get_x509_expiration "$X509_USER_PROXY"); then
-                # Copy succesfull and proxy valid, set values in glidein_config
-                gconfig_add X509_CERT_DIR   "$X509_CERT_DIR"
-                gconfig_add X509_USER_PROXY "$X509_USER_PROXY"
-                gconfig_add X509_USER_PROXY_ORIG "$X509_USER_PROXY_ORIG"
-                gconfig_add X509_EXPIRE  "$out"
-                cred_updated+="proxy,"
+# x509 - skip if there is no X509_USER_PROXY
+if ! X509_USER_PROXY=$(get_x509_proxy); then
+    warn "Skipping x509, X509_USER_PROXY not available: $X509_USER_PROXY"
+    unset X509_USER_PROXY
+else
+    if out=$(get_x509_certs_dir); then
+        export X509_CERT_DIR="$out"
+        if out=$(check_x509_tools); then
+            [[ -n "$out" ]] && warn "$out"
+            if out=$(safe_copy_and_protect "$X509_USER_PROXY" "$gwms_credentials_dir/myproxy"); then
+                # Copy successful, set env variables
+                export X509_USER_PROXY_ORIG="$X509_USER_PROXY"
+                export X509_USER_PROXY="$out"
+                if out=$(get_x509_expiration "$X509_USER_PROXY"); then
+                    # Copy succesfull and proxy valid, set values in glidein_config
+                    gconfig_add X509_CERT_DIR   "$X509_CERT_DIR"
+                    gconfig_add X509_USER_PROXY "$X509_USER_PROXY"
+                    gconfig_add X509_USER_PROXY_ORIG "$X509_USER_PROXY_ORIG"
+                    gconfig_add X509_EXPIRE  "$out"
+                    cred_updated+="proxy,"
+                else
+                    warn "$out"
+                fi
             else
                 warn "$out"
             fi
         else
+            # "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR"
             warn "$out"
         fi
     else
-        # "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR"
+        #"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR1" "directory" "$X509_CERT_DIR"
         warn "$out"
     fi
-else
-    #"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR1" "directory" "$X509_CERT_DIR"
-    warn "$out"
 fi
 
 if [[ -z "$cred_updated" ]]; then
-    warn "setup_x509.sh: No valid credential (x509 proxy or token) found"
-    "$error_gen" -error "setup_x509.sh" "WN_Resource" "No valid credential (x509 proxy or token) found"
+    warn "setup_x509.sh: No valid credential (x509 proxy or idtoken) found"
+    "$error_gen" -error "setup_x509.sh" "WN_Resource" "No valid credential (x509 proxy or idtoken) found"
     exit 1
 fi
 
-echo "setup_x509.sh: Credentials copied, verified, amd added to glidein_config: ${cred_updated%,}"
-"$error_gen" -ok "setup_x509.sh" "JWT" "${GLIDEIN_CONDOR_TOKEN:-unavailable}" "trust_domain" "${TRUST_DOMAIN:-unavailable}" "proxy" "${X509_USER_PROXY:-unavailable}" "cert_dir" "${X509_CERT_DIR:-unavailable}"
+warn "setup_x509.sh: Credentials copied, verified, amd added to glidein_config: ${cred_updated%,}"
+"$error_gen" -ok "setup_x509.sh" "idtoken" "${GLIDEIN_CONDOR_TOKEN:-unavailable}" "trust_domain" "${TRUST_DOMAIN:-unavailable}" "proxy" "${X509_USER_PROXY:-unavailable}" "cert_dir" "${X509_CERT_DIR:-unavailable}"
 exit 0
