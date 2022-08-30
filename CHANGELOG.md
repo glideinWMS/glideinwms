@@ -35,6 +35,7 @@ Changes since the last release
 -   Fixed `glidien_config` corrupted by concurrent custom scripts run via HTCSS startd cron (#163)
 -   Fixed `setup_x509.sh` not to write to stdout when running as periodic script in HTCSS start cron (issues #162, #164 )
 -   Fixed setup_x509.sh creates proxy file in directory used for tokens (issue 201)
+-   Fixed GLIDEIN_START_DIR_ORIG and GLIDEIN_WORKSPACE_ORIG values in glidein_config
 -   Fixed unnecessary proxy/hostcert.pem workaround in frontend config (issue #66)
 -   Fixed analyze_entries and python3 readiness (issue #194)
 -   Fixed gwms-renew-proxies service should check if local VOMS cert is expired (issue #21)

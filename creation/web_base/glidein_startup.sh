@@ -1028,30 +1028,31 @@ set_proxy_fullpath() {
 
 num_gct=0
 
-for tk in "$(pwd)/credential_"*".idtoken"; do
-  echo "Setting GLIDEIN_CONDOR_TOKEN to ${tk} " 1>&2
-  num_gct=$(( num_gct + 1 ))
-  export GLIDEIN_CONDOR_TOKEN="${tk}"
-  fullpath="$(readlink -f "${tk}" )"
-  if [ $? -eq 0 ]; then
-     echo "Setting GLIDEIN_CONDOR_TOKEN ${tk} to canonical path ${fullpath}" 1>&2
-     export GLIDEIN_CONDOR_TOKEN="${fullpath}"
-  else
-     echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN ${tk}" 1>&2
-  fi
-done
-if [ ! -f "${GLIDEIN_CONDOR_TOKEN}" ] ; then
-    token_err_msg="problem setting GLIDEIN_CONDOR_TOKEN"
-    token_err_msg="${token_err_msg} will attempt to recover, but condor IDTOKEN auth may fail"
-    echo "${token_err_msg}"
-    echo "${token_err_msg}" 1>&2
-fi
-if [ ! "${num_gct}" -eq  1 ] ; then
-    token_err_msg="WARNING  GLIDEIN_CONDOR_TOKEN set ${num_gct} times, should be 1 !"
-    token_err_msg="${token_err_msg} condor IDTOKEN auth may fail"
-    echo "${token_err_msg}"
-    echo "${token_err_msg}" 1>&2
-fi
+# TODO: this is covered in setup_x590,sh - remove once verified
+#for tk in "$(pwd)/credential_"*".idtoken"; do
+#  echo "Setting GLIDEIN_CONDOR_TOKEN to ${tk} " 1>&2
+#  num_gct=$(( num_gct + 1 ))
+#  export GLIDEIN_CONDOR_TOKEN="${tk}"
+#  fullpath="$(readlink -f "${tk}" )"
+#  if [ $? -eq 0 ]; then
+#     echo "Setting GLIDEIN_CONDOR_TOKEN ${tk} to canonical path ${fullpath}" 1>&2
+#     export GLIDEIN_CONDOR_TOKEN="${fullpath}"
+#  else
+#     echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN ${tk}" 1>&2
+#  fi
+#done
+#if [ ! -f "${GLIDEIN_CONDOR_TOKEN}" ] ; then
+#    token_err_msg="problem setting GLIDEIN_CONDOR_TOKEN"
+#    token_err_msg="${token_err_msg} will attempt to recover, but condor IDTOKEN auth may fail"
+#    echo "${token_err_msg}"
+#    echo "${token_err_msg}" 1>&2
+#fi
+#if [ ! "${num_gct}" -eq  1 ] ; then
+#    token_err_msg="WARNING  GLIDEIN_CONDOR_TOKEN set ${num_gct} times, should be 1 !"
+#    token_err_msg="${token_err_msg} condor IDTOKEN auth may fail"
+#    echo "${token_err_msg}"
+#    echo "${token_err_msg}" 1>&2
+#fi
 
 ########################################
 # prepare and move to the work directory
@@ -1180,15 +1181,17 @@ fi
 
 # Move the token files from condor to glidein workspace
 # TODO: compare this w/ setup_x509.sh
+# monitoring tokens, Should be using same credentials directory?
 mv "${start_dir}/tokens.tgz" .
 mv "${start_dir}/url_dirs.desc" .
-for idtk in ${start_dir}/*.idtoken; do
-   if cp "${idtk}" . ; then
-       echo "copied idtoken ${idtk} to $(pwd)"
-   else
-       echo "failed to copy idtoken  ${idtk} to $(pwd)" 1>&2
-   fi
-done
+# idtokens are handled in setup_x509.sh - TODO: remove once verified
+#for idtk in ${start_dir}/*.idtoken; do
+#   if cp "${idtk}" . ; then
+#       echo "copied idtoken ${idtk} to $(pwd)"
+#   else
+#       echo "failed to copy idtoken  ${idtk} to $(pwd)" 1>&2
+#   fi
+#done
 #if [ -e "${GLIDEIN_CONDOR_TOKEN}" ]; then
 #    mkdir -p ticket
 #    tname="$(basename ${GLIDEIN_CONDOR_TOKEN})"
