@@ -106,7 +106,7 @@ EOF
 #   2: target fname
 #   3: real fname
 fetch_file_regular() {
-    fetch_file "$1" "$2" "$2" "regular" 0 "GLIDEIN_PS_" "TRUE" "FALSE"
+    fetch_file "$1" "$2" "$2" "regular" 0 "GLIDEIN_PS_" "TRUE" "FALSE" "no_time" "no_code"
 }
 
 ############################################
@@ -122,6 +122,9 @@ fetch_file_regular() {
 #   6: periodic scripts prefix
 #   7: config check TRUE,FALSE
 #   8: config out TRUE,FALSE
+#   9: time (startup, cleanup, before_job, after_job, periodic, specific_code, failure:exit_code, or a comma-separated combination of them)
+#   10: integer_code (internal representation of the coordination number of the scripts)
+#   11: tar_source
 # The above is the most recent list, below some adaptations for different versions
 # Used:
 #   ifs_str
@@ -130,35 +133,42 @@ fetch_file_regular() {
 #   0 in case of success
 #   otherwise glidein_exit with 1
 fetch_file() {
-    if [ $# -gt 8 ]; then
+    if [ $# -gt 11 ]; then
         # For compatibility w/ future versions (add new parameters at the end)
-        echo "More then 8 arguments, considering the first 8 ($#/${ifs_str}): $*" 1>&2
-    elif [ $# -ne 8 ]; then
-        if [ $# -eq 7 ]; then
+        echo "More then 11 arguments, considering the first 11 ($#/${ifs_str}): $*" 1>&2
+    elif [ $# -ne 11 ]; then
+        if [ $# -eq 10 ]; then
             #TODO: remove in version 3.3
             # For compatibility with past versions (old file list formats)
             # 3.2.13 and older: prefix (par 6) added in #12705, 3.2.14?
             # 3.2.10 and older: period (par 5) added:  fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6"
-            if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "GLIDEIN_PS_" "$6" "$7"; then
+            if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "GLIDEIN_PS_" "$6" "$7" "$8" "$9" "${10}"; then
                 glidein_exit 1
             fi
             return 0
         fi
-        if [ $# -eq 6 ]; then
+        if [ $# -eq 9 ]; then
             # added to maintain compatibility with older (3.2.10) file list format
             #TODO: remove in version 3.3
-            if ! fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6"; then
+            if ! fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6" "$7" "$8" "$9"; then
+                glidein_exit 1
+            fi
+            return 0
+        fi
+        if [ $# -eq 8 ]; then
+            # added to maintain compatibility with older (3.2.10) file list format
+            #TODO: remove in version 3.3
+            if ! fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6" "$7" "$8" "NULL"; then
                 glidein_exit 1
             fi
             return 0
         fi
         local ifs_str
         printf -v ifs_str '%q' "${IFS}"
-        log_warn "Not enough arguments in fetch_file, 8 expected ($#/${ifs_str}): $*"
+        log_warn "Not enough arguments in fetch_file, 11 expected ($#/${ifs_str}): $*"
         glidein_exit 1
     fi
-
-    if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8"; then
+    if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}"; then
         glidein_exit 1
     fi
     return 0
@@ -182,6 +192,8 @@ fetch_file() {
 #   6: periodic scripts prefix
 #   7: config check TRUE,FALSE
 #   8: config out TRUE,FALSE
+#   9: time (startup, cleanup, before_job, after_job, periodic, specific_code, failure:exit_code, or a comma-separated combination of them)
+#   10: integer_code (internal representation of the coordination number of the scripts)
 # Globals (r/w):
 #   fft_id
 #   fft_target_fname
@@ -191,6 +203,9 @@ fetch_file() {
 #   fft_cc_prefix
 #   fft_config_check
 #   fft_config_out
+#   fft_time
+#   fft_coordination
+#   fft_tar_source
 #   fft_get_ss
 #   fft_base_name
 #   fft_condition_attr
@@ -207,6 +222,9 @@ fetch_file_try() {
     fft_cc_prefix="$6"
     fft_config_check="$7"
     fft_config_out="$8"
+    fft_time="$9"
+    fft_coordination="${10}"
+    fft_tar_source="${11}"
 
     if [[ "${fft_config_check}" != "TRUE" ]]; then
         # TRUE is a special case, always be downloaded and processed
@@ -224,8 +242,12 @@ fetch_file_try() {
         # if the variable fft_condition_attr is not defined or empty, do not download
         [[ -z "${fft_condition_attr_val}" ]] && return 0
     fi
-
-    fetch_file_base "${fft_id}" "${fft_target_fname}" "${fft_real_fname}" "${fft_file_type}" "${fft_config_out}" "${fft_period}" "${fft_cc_prefix}"
+    
+    if [[ "${fft_tar_source}" != NULL ]]; then
+        return 0
+    fi
+    
+    fetch_file_base "${fft_id}" "${fft_target_fname}" "${fft_real_fname}" "${fft_file_type}" "${fft_config_out}" "${fft_period}" "${fft_cc_prefix}" "${fft_time}" "${fft_coordination}" "${fft_tar_source}"
     return $?
     # returning the exit code of fetch_file_base
 }
@@ -238,8 +260,10 @@ fetch_file_try() {
 #   3: real fname
 #   4: file type (regular, exec, exec:s, untar, nocache)
 #   5: config out TRUE,FALSE
-#   5: period (0 if not a periodic file)
-#   6: periodic scripts prefix
+#   6: period (0 if not a periodic file)
+#   7: periodic scripts prefix
+#   8: time (startup, cleanup, before_job, after_job, periodic, specific_code, failure:exit_code, or a comma-separated combination of them)
+#   9: integer_code (internal representation of the coordination number of the scripts)
 # Globals:
 #   ffb_id
 #   ffb_target_fname
@@ -255,6 +279,8 @@ fetch_file_try() {
 #   ffb_untar_dir
 #   ffb_outname
 #   ffb_prefix
+#   ffb_time
+#   ffb_coordination
 #   have_dummy_otrx
 #   user_agent
 #   ffb_url
@@ -289,6 +315,8 @@ fetch_file_base() {
     ffb_period=$6
     # condor cron prefix, used only for periodic executables
     ffb_cc_prefix="$7"
+    ffb_time="$8"
+    ffb_coordination="$9"
     ffb_work_dir="$(get_work_dir "${ffb_id}")"
     ffb_repository="$(get_repository_url "${ffb_id}")"
     ffb_tmp_outname="${ffb_work_dir}/${ffb_real_fname}"
@@ -372,59 +400,13 @@ fetch_file_base() {
             return 1
         fi
     fi
-
-    # if executable, execute
-    if [[ "${ffb_file_type}" = "exec" || "${ffb_file_type}" = "exec:"* ]]; then
-        if ! chmod u+x "${ffb_outname}"; then
-            log_warn "Error making '${ffb_outname}' executable"
-            return 1
-        fi
-        if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then  # last_script global for simplicity
-            echo "Skipping last script ${last_script}" 1>&2
-        elif [[ "${ffb_target_fname}" = "cvmfs_umount.sh" ]] || [[ -n "${cleanup_script}" && "${ffb_target_fname}" = "${cleanup_script}" ]]; then  # cleanup_script global for simplicity
-            # TODO: temporary OR checking for cvmfs_umount.sh; to be removed after Bruno's ticket on cleanup [#25073]
-            echo "Skipping cleanup script ${ffb_outname} (${cleanup_script})" 1>&2
-            cp "${ffb_outname}" "$gwms_exec_dir/cleanup/${ffb_target_fname}"
-            chmod a+x "${gwms_exec_dir}/cleanup/${ffb_target_fname}"
-        else
-            echo "Executing (flags:${ffb_file_type#exec}) ${ffb_outname}"
-            # have to do it here, as this will be run before any other script
-            chmod u+rx "${main_dir}"/error_augment.sh
-
-            # the XML file will be overwritten now, and hopefully not an error situation
-            have_dummy_otrx=0
-            "${main_dir}"/error_augment.sh -init
-            START=$(date +%s)
-            if [[ "${ffb_file_type}" = "exec:s" ]]; then
-                "${main_dir}/singularity_wrapper.sh" "${ffb_outname}" glidein_config "${ffb_id}"
-            else
-                "${ffb_outname}" glidein_config "${ffb_id}"
-            fi
-            ret=$?
-            local END
-            END=$(date +%s)
-            "${main_dir}"/error_augment.sh -process ${ret} "${ffb_id}/${ffb_target_fname}" "${PWD}" "${ffb_outname} glidein_config" "${START}" "${END}" #generating test result document
-            "${main_dir}"/error_augment.sh -concat
-            # TODO(F): qui
-            if [ ${ret} -ne 0 ]; then
-                echo "=== Validation error in ${ffb_outname} ===" 1>&2
-                log_warn "Error running '${ffb_outname}'"
-                < otrx_output.xml awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2
-                return 1
-            else
-                # If ran successfully and periodic, schedule to execute with schedd_cron
-                echo "=== validation OK in ${ffb_outname} (${ffb_period}) ===" 1>&2
-                if [ "${ffb_period}" -gt 0 ]; then
-                    add_periodic_script "${main_dir}/script_wrapper.sh" "${ffb_period}" "${work_dir}" "${ffb_outname}" glidein_config "${ffb_id}" "${ffb_cc_prefix}"
-                fi
-            fi
-        fi
-    elif [ "${ffb_file_type}" = "wrapper" ]; then
+    
+    # handle wrapper or untar files
+    if [ "${ffb_file_type}" = "wrapper" ]; then
         echo "${ffb_outname}" >> "${wrapper_list}"
     elif [ "${ffb_file_type}" = "untar" ]; then
         ffb_short_untar_dir="$(get_untar_subdir "${ffb_id}" "${ffb_target_fname}")"
         ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
-        local START
         START=$(date +%s)
         (mkdir "${ffb_untar_dir}" && cd "${ffb_untar_dir}" && tar -xmzf "${ffb_outname}") 1>&2
         ret=$?
@@ -433,10 +415,11 @@ fetch_file_base() {
             "${main_dir}"/error_gen.sh -error "tar" "Corruption" "Error untarring '${ffb_outname}'" "file" "${ffb_outname}" "source_type" "${cfs_id}"
             "${main_dir}"/error_augment.sh  -process ${cfs_rc} "tar" "${PWD}" "mkdir ${ffb_untar_dir} && cd ${ffb_untar_dir} && tar -xmzf ${ffb_outname}" "${START}" "$(date +%s)"
             "${main_dir}"/error_augment.sh -concat
-            log_warn "Error untarring '${ffb_outname}'"
+            warn "Error untarring '${ffb_outname}'"
             return 1
         fi
     fi
+    #TODO: modify untar
 
     if [ "${ffb_config_out}" != "FALSE" ]; then
         ffb_prefix="$(get_prefix "${ffb_id}")"
@@ -451,7 +434,7 @@ fetch_file_base() {
             fi
         fi
     fi
-
+    
     if [ "${have_dummy_otrx}" -eq 1 ]; then
         # no one should really look at this file, but just to avoid confusion
         local date
@@ -462,6 +445,7 @@ fetch_file_base() {
 
    return 0
 }
+
 
 ################################
 # Perform a wget request
