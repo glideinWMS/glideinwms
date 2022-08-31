@@ -879,13 +879,20 @@ class glideinFrontendElement:
                     gp_encrypt[entry_token_name] = ctkn
 
                 # now try to generate a credential using a generator plugin
-                stkn = self.generate_credential(self.elementDescript, glidein_el, self.group_name, trust_domain)
+                generator_name, stkn = self.generate_credential(
+                    self.elementDescript, glidein_el, self.group_name, trust_domain
+                )
 
                 # look for a local scitoken if no credential was generated
                 if not stkn:
                     stkn = self.get_scitoken(self.elementDescript, trust_domain)
 
                 if stkn:
+                    if generator_name:
+                        for cred_el in advertizer.descript_obj.x509_proxies_plugin.cred_list:
+                            if cred_el.filename == generator_name:
+                                cred_el.generated_data = stkn
+                                break
                     if token_util.token_str_expired(stkn):
                         logSupport.log.warning("SciToken is expired, not forwarding.")
                     else:
@@ -1065,13 +1072,13 @@ class glideinFrontendElement:
                             "factory": glidein_el["attrs"].get("AuthenticatedIdentity"),
                         }
                         stkn, _ = plugins[generator].get_credential(logSupport, group_name, entry, trust_domain)
-                        return stkn
+                        return cfname, stkn
                     except ModuleNotFoundError:
                         logSupport.log.warning(f"Failed to load credential generator plugin {generator}")
                     except Exception as e:  # catch any exception from the plugin to prevent the frontend from crashing
                         logSupport.log.warning(f"Failed to generate credential: {e}.")
 
-        return None
+        return None, None
 
     def refresh_entry_token(self, glidein_el):
         """
