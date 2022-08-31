@@ -863,7 +863,10 @@ class MultiAdvertizeWork:
             cred_el.loaded_data = []
             for cred_file in (cred_el.filename, cred_el.key_fname, cred_el.pilot_fname):
                 if cred_file:
-                    cred_data = cred_el.getString(cred_file)
+                    try:
+                        cred_data = cred_el.generated_data
+                    except AttributeError:
+                        cred_data = cred_el.getString(cred_file)
                     if cred_data:
                         cred_el.loaded_data.append((cred_file, cred_data))
                     else:
@@ -1199,7 +1202,11 @@ class MultiAdvertizeWork:
                     credential_el = credentials_with_requests[i]
                     logSupport.log.debug("Checking Credential file %s ..." % (credential_el.filename))
                     if credential_el.supports_auth_method("scitoken"):
-                        if token_util.token_file_expired(credential_el.filename):
+                        try:
+                            token_expired = token_util.token_str_expired(credential_el.generated_data)
+                        except AttributeError:
+                            token_expired = token_util.token_file_expired(credential_el.filename)
+                        if token_expired:
                             logSupport.log.warning("Credential file %s is expired, skipping" % credential_el.filename)
                             continue
                     if credential_el.advertize == False:
