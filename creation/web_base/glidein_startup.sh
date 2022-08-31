@@ -505,7 +505,7 @@ _main(){
 
         # fetch list file
         fetch_file_regular "${gs_id}" "${gs_file_list}"
-
+        
         # Fetch files contained in list
         # TODO: $file is actually a list, so it cannot be doublequoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
         # shellcheck disable=2086
@@ -513,8 +513,15 @@ _main(){
         do
             if [ "${file:0:1}" != "#" ]; then
                 fetch_file "${gs_id}" $file
+                if [ "${ffb_file_type}" != "wrapper" ] && [ "${ffb_file_type}" != "untar" ]; then
+                    add_entry "$ffb_outname" "$ffb_file_type" "$ffb_time" "$ffb_coordination"  "$ffb_period" "$ffb_cc_prefix" "$gs_id" "$fft_tar_source"
+                fi
             fi
         done < "${gs_id_work_dir}/${gs_file_list}"
+        
+        ####################################
+        #TODO: or where
+        custom_scripts "startup"
 
         # Files to go into the GWMS_PATH
         if [ "$gs_file_id" = "main at_file_list" ]; then
@@ -538,6 +545,9 @@ _main(){
 
     #############################
     fixup_condor_dir
+    
+    ##############################
+    custom_scripts "before_job"
 
     ##############################
     # Start the glidein main script
@@ -582,6 +592,9 @@ _main(){
         echo "No message left" 1>&2
     fi
     echo 1>&2
+    
+    ############################
+    custom_scripts "after_job"
 
     #########################
     # clean up after I finish
