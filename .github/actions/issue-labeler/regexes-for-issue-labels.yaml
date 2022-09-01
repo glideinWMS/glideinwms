@@ -1,4 +1,7 @@
-# Add <issue_type> label if issue body contains certain words (when based on the issue template)
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+# Adds <issue_type> label if issue body contains certain words (when based on the issue template)
 
 # regular expressions for labeling priority of the issue is listed in this block
 Critical:
