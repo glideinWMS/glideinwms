@@ -25,5 +25,9 @@ If applicable, add screenshots and/or console outputs to help explain your probl
 -   OS version:
 -   HTCondor version:
 
+**Priority:**
+
+**Stakeholders:**
+
 **Additional context**
 Add any other context or supporting files about the problem here.
