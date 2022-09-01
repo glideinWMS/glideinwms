@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+name: Issue labeler
+on:
+  issues: 
+    types: opened
+
+jobs:
+  label_issues_using_regex:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: RegEx-based Issue Labeler
+        uses: github/issue-labeler@v2.5
+        with:
+          repo-token: "${{ secrets.REGEX_LABELER }}"
+          configuration-path: .github/actions/issue-labeler/regexes-for-issue-labels.yaml
+          # from the third-party documentation:
+          # not-before attribute is optional and will result in any issues prior to this timestamp to be ignored.
+          not-before: 2022-08-31T11:59:59Z
+          # from the third-party documentation:
+          # issue template gets updated, this can have an impact on existing issues. The below allows 
+          # you to version your regular expression definitions and pair them with issue templates.
+          # enable-versioned-regex: 0
