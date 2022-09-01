@@ -5,19 +5,19 @@
 
 # regular expressions for labeling priority of the issue is listed in this block
 Critical:
-    - '\*{2}Priority:\*{2} ?([Cc]ritical|[Uu]rgent)'
+  - '\*{2}Priority:\*{2} ?([Cc]ritical|[Uu]rgent)'
 High:
-    - '\*{2}Priority:\*{2} ?[Hh]igh'
+  - '\*{2}Priority:\*{2} ?[Hh]igh'
 Medium:
-    - '\*{2}Priority:\*{2} ?[Mm]edium'
+  - '\*{2}Priority:\*{2} ?[Mm]edium'
 Low:
-    - '\*{2}Priority:\*{2} ?[Ll]ow'
+  - '\*{2}Priority:\*{2} ?[Ll]ow'
 
 # regular expressions for labeling issue type is listed in this block
 BUG:
-    - 'bug'
+  - "bug"
 FEATURE:
-    - 'feature( request)?'
+  - "feature( request)?"
 # ENHANCEMENT:
 # IDEA:
 # QUESTION:
@@ -25,18 +25,17 @@ FEATURE:
 
 # regular expressions for labeling stakeholders for an issue is listed in this block
 cms:
-    - '\*{2}Stakeholders:\*{2} ?(CMS|Cms|cms)'
+  - '\*{2}Stakeholders:\*{2} ?(CMS|Cms|cms)'
 factoryops:
-    - '\*{2}Stakeholders:\*{2} ?([Ff]actory[Oo]ps)'
+  - '\*{2}Stakeholders:\*{2} ?([Ff]actory[Oo]ps)'
 fermilab:
-    - '\*{2}Stakeholders:\*{2} ?([Ff]ermilab)'
+  - '\*{2}Stakeholders:\*{2} ?([Ff]ermilab)'
 fife:
-    - '\*{2}Stakeholders:\*{2} ?(FIFE|Fife|fife)'
+  - '\*{2}Stakeholders:\*{2} ?(FIFE|Fife|fife)'
 igwn:
-    - '\*{2}Stakeholders:\*{2} ?(IGWN|Igwn|igwn)'
+  - '\*{2}Stakeholders:\*{2} ?(IGWN|Igwn|igwn)'
 osg:
-    - '\*{2}Stakeholders:\*{2} ?(OSG|Osg|osg)'
-
+  - '\*{2}Stakeholders:\*{2} ?(OSG|Osg|osg)'
 # regular expressions for labeling release info for an issue is listed in this block
 # 3.7.5:
 # 3.9.5:
