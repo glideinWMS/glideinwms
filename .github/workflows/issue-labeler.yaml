@@ -3,7 +3,7 @@
 
 name: Issue labeler
 on:
-  issues: 
+  issues:
     types: opened
 
 jobs:
@@ -21,6 +21,6 @@ jobs:
           # not-before attribute is optional and will result in any issues prior to this timestamp to be ignored.
           not-before: 2022-08-31T11:59:59Z
           # from the third-party documentation:
-          # issue template gets updated, this can have an impact on existing issues. The below allows 
+          # issue template gets updated, this can have an impact on existing issues. The below allows
           # you to version your regular expression definitions and pair them with issue templates.
-          # enable-versioned-regex: 0
+          enable-versioned-regex: 0
