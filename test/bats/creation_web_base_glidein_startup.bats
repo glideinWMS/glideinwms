@@ -114,19 +114,20 @@ early_glidein_failure() {
 
 @test "create_glidein_config" {
     glidein_config="glidein_config"
+    touch ${glidein_config}
     # if not a root user
     if [ "$EUID" -ne 0 ]; then
         echo "Testing the glidein_config file with no write permissions..." >& 3
-        touch ${glidein_config}
         chmod 000 ${glidein_config}
         run create_glidein_config
         [ "$status" -eq 1 ]
+        assert_output --partial "${PWD}/${glidein_config}: Permission denied"
+        assert_output --partial "Could not create '${PWD}/${glidein_config}'"
     fi
     echo "Testing the glidein_config file with write permissions..." >& 3
-    assert_output --partial "${PWD}/${glidein_config}: Permission denied"
-    assert_output --partial "Could not create '${PWD}/${glidein_config}'"
     chmod 777 ${glidein_config}
     run create_glidein_config
+    echo "$output" >& 3
     [ "$status" -eq 0 ]
     grep -Fxq "# --- glidein_startup vals ---" ${glidein_config}
     grep -Fxq "# --- User Parameters ---" ${glidein_config}
