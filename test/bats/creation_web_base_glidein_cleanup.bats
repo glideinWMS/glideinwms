@@ -17,6 +17,11 @@ setup () {
     source "$GWMS_SOURCEDIR"/creation/web_base/get_id_selectors.source
 }
 
+#mockup
+custom_scripts(){
+        return 0
+}
+
 @test "glidien_cleanup" {
     echo "Checking the case of not existing start_dir..." >& 3
     start_dir="random/stuff/"
