@@ -516,7 +516,7 @@ _main(){
         do
             if [ "${file:0:1}" != "#" ]; then
                 fetch_file "${gs_id}" $file
-                if [ "${ffb_file_type}" != "wrapper" ] && [ "${ffb_file_type}" != "untar" ]; then
+                if [ "${ffb_file_type}" != "wrapper" ] && [ "${ffb_file_type}" != "untar" ] && [ "${ffb_file_type}" != "regular" ]; then
                     add_entry "$ffb_outname" "$ffb_file_type" "$ffb_time" "$ffb_coordination"  "$ffb_period" "$ffb_cc_prefix" "$gs_id" "$fft_tar_source"
                 fi
             fi

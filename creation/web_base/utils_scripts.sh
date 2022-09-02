@@ -91,7 +91,7 @@ custom_scripts(){
         ffb_cc_prefix=${arr[5]}
         ffb_id=${arr[6]}
         # if executable, execute
-        if [[ "${ffb_file_type}" = "exec" || "${ffb_file_type}" = "exec:"* ]]; then
+        if [[ "${ffb_file_type}" = "exec"* ]]; then
             if ! chmod u+x "${ffb_target_fname}"; then
                 warn "Error making '${ffb_target_fname}' executable"
                 return 1
