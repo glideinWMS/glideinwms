@@ -401,7 +401,54 @@ fetch_file_base() {
         fi
     fi
     
-    # handle wrapper or untar files
+    # if startup and executable, execute
+    if [[ "${ffb_time}" = "startup" ]]; then
+        if [[ "${ffb_file_type}" = "exec" || "${ffb_file_type}" = "exec:"* ]]; then
+            if ! chmod u+x "${ffb_outname}"; then
+                warn "Error making '${ffb_outname}' executable"
+                return 1
+            fi
+            if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then  # last_script global for simplicity
+                echo "Skipping last script ${last_script}" 1>&2
+            elif [[ "${ffb_target_fname}" = "cvmfs_umount.sh" ]] || [[ -n "${cleanup_script}" && "${ffb_target_fname}" = "${cleanup_script}" ]]; then  # cleanup_script global for simplicity
+                # TODO: temporary OR checking for cvmfs_umount.sh; to be removed after Bruno's ticket on cleanup [#25073]
+                echo "Skipping cleanup script ${ffb_outname} (${cleanup_script})" 1>&2
+                cp "${ffb_outname}" "$gwms_exec_dir/cleanup/${ffb_target_fname}"
+                chmod a+x "${gwms_exec_dir}/cleanup/${ffb_target_fname}"
+            else
+                echo "Executing (flags:${ffb_file_type#exec}) ${ffb_outname}"
+                # have to do it here, as this will be run before any other script
+                chmod u+rx "${main_dir}"/error_augment.sh
+    
+                # the XML file will be overwritten now, and hopefully not an error situation
+                have_dummy_otrx=0
+                "${main_dir}"/error_augment.sh -init
+                START=$(date +%s)
+                if [[ "${ffb_file_type}" = "exec:s" ]]; then
+                    "${main_dir}/singularity_wrapper.sh" "${ffb_outname}" glidein_config "${ffb_id}"
+                else
+                    "${ffb_outname}" glidein_config "${ffb_id}"
+                fi
+                ret=$?
+                END=$(date +%s)
+                "${main_dir}"/error_augment.sh -process ${ret} "${ffb_id}/${ffb_target_fname}" "${PWD}" "${ffb_outname} glidein_config" "${START}" "${END}" #generating test result document
+                "${main_dir}"/error_augment.sh -concat
+                if [ ${ret} -ne 0 ]; then
+                    echo "=== Validation error in ${ffb_outname} ===" 1>&2
+                    warn "Error running '${ffb_outname}'"
+                    < otrx_output.xml awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2
+                    return 1
+                else
+                    # If ran successfully and periodic, schedule to execute with schedd_cron
+                    echo "=== validation OK in ${ffb_outname} (${ffb_period}) ===" 1>&2
+                    if [ "${ffb_period}" -gt 0 ]; then
+                        add_periodic_script "${main_dir}/script_wrapper.sh" "${ffb_period}" "${work_dir}" "${ffb_outname}" glidein_config "${ffb_id}" "${ffb_cc_prefix}"
+                    fi
+                fi
+            fi
+        fi
+    fi
+    # handle wrapper or untar files regardless of the moment
     if [ "${ffb_file_type}" = "wrapper" ]; then
         echo "${ffb_outname}" >> "${wrapper_list}"
     elif [ "${ffb_file_type}" = "untar" ]; then

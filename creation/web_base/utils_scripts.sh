@@ -45,6 +45,7 @@ add_entry(){
             ffb_short_untar_dir="$(get_untar_subdir "${e_id}" "${e_tar_source}")"
             ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
             e_complete_fname="${ffb_untar_dir}/$e_real_fname"
+            #TODO: check if filename is a path what happens 
         else  
             e_complete_fname="$e_real_fname"
         fi
@@ -83,7 +84,7 @@ custom_scripts(){
         if [ "${file:0:1}" == "#" ]; then
             continue
         fi
-        read -ra arr -d '' <<<"$line"
+        read -ra arr -d '   ' <<< "$line"
         ffb_target_fname=${arr[2]}
         ffb_file_type=${arr[3]}
         ffb_period=${arr[4]}
@@ -95,7 +96,6 @@ custom_scripts(){
                 warn "Error making '${ffb_target_fname}' executable"
                 return 1
             fi
-            #TODO:save main
             if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then  # last_script global for simplicity
                 echo "Skipping last script ${last_script}" 1>&2
             elif [[ "${ffb_target_fname}" = "cvmfs_umount.sh" ]] || [[ -n "${cleanup_script}" && "${ffb_target_fname}" = "${cleanup_script}" ]]; then  # cleanup_script global for simplicity
@@ -134,7 +134,6 @@ custom_scripts(){
                     fi
                 fi
             fi 
-            #TODO: Handle executables in tarballs
         elif [[ "${ffb_file_type}" = "source"  || "${ffb_file_type}" = "library:shell" ]]; then
             source "${ffb_target_fname}"
             # TODO: what about other library types?
@@ -143,12 +142,27 @@ custom_scripts(){
     rm -f ${target_time}_descriptor_file
 }
 
+################################
+# Ask for the execution of scripts related to a milestone
+# Arguments:
+#   1: code
+# Returns:
+#   1 in case of a failure (code including space)
 milestone_call(){
     local code
     code=$1
+    # no spaces are allowed in the code
+    if [[ "$code" == *"   "* ]]; then
+      return 1
+    fi
     custom_scripts "milestone:"$code
+    return 0
 }
 
+################################
+# Ask for the execution of scripts related to a failure code
+# Arguments:
+#   1: exit code
 failure_call(){
     local exit_code
     exit_code=$1

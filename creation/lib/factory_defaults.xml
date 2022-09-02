@@ -115,9 +115,7 @@ SPDX-License-Identifier: Apache-2.0
          </attrs>
          <files>
             <!-- required: absfname; optional: relfname -->
-            <file const="True" executable="False" period="0" prefix="GLIDEIN_PS_" wrapper="False" untar="False">
-               <!-- optional: dir, absdir_outattr -->
-               <untar_options cond_attr="TRUE"/>
+            <file const="True" executable="False" prefix="GLIDEIN_PS_" wrapper="False" untar="False" time="startup" priority="0" cond_attr="TRUE">
             </file>
          </files>
          <!-- infosys_refs are optional -->
@@ -145,9 +143,7 @@ SPDX-License-Identifier: Apache-2.0
    <files>
       <!-- required: absfname; optional: relfname -->
       <!-- global file has additional after_entry field -->
-      <file after_entry="False" const="True" executable="False" period="0" prefix="GLIDEIN_PS_" wrapper="False" untar="False">
-         <!-- optional: dir, absdir_outattr -->
-         <untar_options cond_attr="TRUE"/>
+      <file after_entry="False" const="True" executable="False" prefix="GLIDEIN_PS_" wrapper="False" untar="False" time="startup" priority="0" cond_attr="TRUE">
       </file>
    </files>
    <!-- monitoring collectors are optional -->

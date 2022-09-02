@@ -448,7 +448,7 @@ class CommonSubParams(SubParams):
     def extract_attr_val(self, attr_obj):
         return extract_attr_val(attr_obj)
 
-
+#TODO(F)
 class CommonParams(Params):
     # populate self.defaults
     def init_support_defaults(self):
@@ -498,38 +498,39 @@ class CommonParams(Params):
             None,
         )
         self.file_defaults["untar"] = ("False", "Bool", "Do I need to untar it? ", None)
-        self.file_defaults["period"] = (0, "int", 'Re-run the executable every "period" seconds if > 0.', None)
         self.file_defaults["prefix"] = ("GLIDEIN_PS_", "string", "Prefix used for periodic jobs (STARTD_CRON).", None)
         self.file_defaults["type"] = (
             None,
             "string",
-            'File type (regular,run,source). Allows modifiers like ":singularity" to run in singularity.',
+            'File type (regular,run,source,untar,library,wrapper). Allows modifiers like ":singularity" to run in singularity.',
             None,
         )
-        # TODO: consider adding "time" setup, prejob, postjob, cleanup, periodic. setup & cleanup w/ qualifier :bebg-aeag before/after entry + before/after group og na (group positioning does not apply to factory files)
-        # to add check scripts around jobs: self.file_defaults["job_wrap"]=("no","pre|post|no",'Run the executable before (pre) or after (post) each job.',None)
-
-        untar_defaults = CommentedOrderedDict()
-        untar_defaults["cond_attr"] = (
+        self.file_defaults["priority"] = (
+            0,
+            "integer [0,99]",
+            "Priority value to alter the order of execution inside a lifecycle phase."",
+            None,
+        )
+        
+        #TODO(F): ok specificare qualifier come secondo argomento?
+        self.file_defaults["time"] = (
+            "no_time", "startup|before_job|after_job|cleanup|periodic:period|milestone:code|failure:code|no", 'Run the executable at startup, before (pre) or after (post) each job, at cleanup, at a milestone or in front of a failure.', None
+        )
+        self.file_defaults["tar_source"] = (
+            NULL, "tarball", 'Specify the tar source where the file is contained.', None
+        )        
+        self.file_defaults["cond_attr"] = (
             "TRUE",
             "attrname",
-            "If not the special value TRUE, the attribute name used at runtime to determine if the file should be untarred or not.",
-            None,
+             "If not the special value TRUE, the attribute name used at runtime to determine if the file should be untarred or not.",
+             None,            
         )
-        untar_defaults["dir"] = (
-            None,
-            "dirname",
-            "Subdirectory in which to untar. (defaults to relname up to first .)",
-            None,
-        )
-        untar_defaults["absdir_outattr"] = (
+        self.file_defaults["absdir_outattr"] = (
             None,
             "attrname",
             "Attribute to be set to the abs dir name where the tarball was unpacked. Will be defined only if untar effectively done. (Not defined if None)",
             None,
-        )
-        self.file_defaults["untar_options"] = untar_defaults
-
+        )        
         self.monitor_defaults = CommentedOrderedDict()
         self.monitor_defaults["javascriptRRD_dir"] = (
             os.path.join(self.src_dir, "../../externals/flot"),

@@ -203,7 +203,8 @@ fi
 info_dbg "GWMS singularity wrapper, final setup."
 
 # Removed local code in favor of gwms_process_scripts from singularity_lib.sh and setup_prejob.sh (CodeRM1)
-gwms_process_scripts "$GWMS_DIR" prejob "$glidein_config"
+#gwms_process_scripts "$GWMS_DIR" prejob "$glidein_config"
+custom_scripts "before_job"
 
 # TODO: This is OSG specific. Should there be something similar in GWMS?
 ###############################

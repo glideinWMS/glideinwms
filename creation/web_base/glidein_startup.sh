@@ -522,9 +522,6 @@ _main(){
             fi
         done < "${gs_id_work_dir}/${gs_file_list}"
         
-        ####################################
-        #TODO: or where
-        custom_scripts "startup"
 
         # Files to go into the GWMS_PATH
         if [ "$gs_file_id" = "main at_file_list" ]; then
@@ -548,9 +545,6 @@ _main(){
 
     #############################
     fixup_condor_dir
-    
-    ##############################
-    custom_scripts "before_job"
 
     ##############################
     # Start the glidein main script
