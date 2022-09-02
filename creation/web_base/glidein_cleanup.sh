@@ -42,7 +42,7 @@ glidein_cleanup() {
             fi
         fi
     fi
-    
+
     custom_scripts "cleanup"
 }
 
@@ -105,10 +105,10 @@ glidein_exit() {
   local exit_code factory_collector dlf condor_vars_file main_work_dir
   exit_code=$1
   # Removed lines about $lock_file (lock file for whole machine) not present elsewhere
-  
+
   ##############################
   failure_scripts $exit_code
-  
+
   gwms_process_scripts "$GWMS_DIR" cleanup "${glidein_config}"
   global_result=""
   if [ -f otr_outlist.list ]; then

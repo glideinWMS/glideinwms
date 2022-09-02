@@ -65,29 +65,29 @@ def add_file_unparsed(user_file, dicts, is_factory):
         raise RuntimeError("Found a file element with an empty relfname: %s" % user_file)
     time = user_file.time
     is_const = is_true(user_file.const)
-    is_executable = is_true(user_file.executable) | (user_file.type.startswith("exec"))
-    is_wrapper = is_true(user_file.wrapper) | (user_file.type=="wrapper")
-    is_source = (user_file.type=="source")
-    is_library = (user_file.type.startswith("library"))
-    is_periodic = (user_file.type.startswith("periodic"))
-    do_untar = is_true(user_file.untar) | (user_file.type.startswith("untar"))
+    is_executable = is_true(user_file.executable) or (user_file.type.startswith("exec"))
+    is_wrapper = is_true(user_file.wrapper) or (user_file.type == "wrapper")
+    is_source = user_file.type == "source"
+    is_library = user_file.type.startswith("library")
+    is_periodic = user_file.type.startswith("periodic")
+    do_untar = is_true(user_file.untar) or (user_file.type.startswith("untar"))
     try:
         if user_file.is_periodic:
             period_value = int(user_file.type.split(":")[1])
     except (AttributeError, KeyError, ValueError, TypeError):
         period_value = 0
-    #TODO(F): what to do with period and after list
-    
-    priority=user_file.priority
-    if priority < 0 | priority > 99:
+    # TODO(F): what to do with period and after list
+
+    priority = user_file.priority
+    if priority < 0 or priority > 99:
         raise RuntimeError("Priority value out of the range [0,99]: %s" % user_file)
-        
+
     # Extended for all categories
     config_out = user_file.absdir_outattr
     if config_out is None:
-         config_out = "FALSE"
+        config_out = "FALSE"
     cond_attr = user_file.cond_attr
-    
+
     if is_factory:
         # Factory (file_list, after_file_list)
         file_list_idx = "file_list"
@@ -110,10 +110,18 @@ def add_file_unparsed(user_file, dicts, is_factory):
         if not is_executable:
             raise RuntimeError("A file cannot have an execution period if it is not executable: %s" % user_file)
 
-    if is_executable | is_source | is_library:
-        if !(time.startswith("startup")) & !(time.startswith("cleanup")) & !(time.startswith("after_job")) & !(time.startswith("before_job")) & !(time.startswith("periodic:")) & !(time.startswith("milestone:")) & !(time.startswith("failure:"): 
+    if is_executable or is_source or is_library:
+        if (
+            not time.startswith("startup")
+            and not time.startswith("cleanup")
+            and not time.startswith("after_job")
+            and not time.startswith("before_job")
+            and not time.startswith("periodic:")
+            and not time.startswith("milestone:")
+            and not time.startswith("failure:")
+        ):
             # we use startswith since we may have combination of time phases (e.g. startup, cleanup)
-             raise RuntimeError("The file does not have a valid time phase value: %s" % user_file)
+            raise RuntimeError("The file does not have a valid time phase value: %s" % user_file)
     if is_executable:  # a script
         if not is_const:
             raise RuntimeError("A file cannot be executable if it is not constant: %s" % user_file)
@@ -152,7 +160,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
 
         wnsubdir = user_file.type.split(":")[1]
         if wnsubdir is None:
-            wnsubdir = absfname  # default is relfname up to the first 
+            wnsubdir = absfname  # default is relfname up to the first
 
         dicts[file_list_idx].add_from_file(
             relfname,
@@ -163,11 +171,11 @@ def add_file_unparsed(user_file, dicts, is_factory):
         )
         dicts["untar_cfg"].add(relfname, wnsubdir)
     elif is_source:
-         if not is_const:
+        if not is_const:
             raise RuntimeError("A file cannot be sourced if it is not constant: %s" % user_file)
-         if do_untar:
+        if do_untar:
             raise RuntimeError("A tar file cannot be sourced: %s" % user_file)
-         if is_wrapper:
+        if is_wrapper:
             raise RuntimeError("A wrapper file cannot be an sourced: %s" % user_file)
     elif is_library:
         if not is_const:
@@ -176,9 +184,8 @@ def add_file_unparsed(user_file, dicts, is_factory):
             raise RuntimeError("A tar file cannot be a library: %s" % user_file)
         if is_wrapper:
             raise RuntimeError("A wrapper file cannot be an a library: %s" % user_file)
-        if inside_tar:
-            #TODO(F): ?
-    else:  # not executable nor tarball => simple file
+    else:
+        # not executable nor tarball => simple file
         if is_const:
             val = "regular"
             dicts[file_list_idx].add_from_file(
