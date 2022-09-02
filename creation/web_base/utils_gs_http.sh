@@ -106,7 +106,7 @@ EOF
 #   2: target fname
 #   3: real fname
 fetch_file_regular() {
-    fetch_file "$1" "$2" "$3" "regular" 0 "GLIDEIN_PS_" "TRUE" "FALSE" "no_time" "no_code" "NULL"
+    fetch_file "$1" "$2" "$3" "regular" "GLIDEIN_PS_" "no_time" 0 0  "TRUE" "NULL" "FALSE" "NULL" "NULL"
 }
 
 ############################################
@@ -118,13 +118,15 @@ fetch_file_regular() {
 #   2: target fname
 #   3: real fname
 #   4: file type (regular, exec, exec:s, untar, nocache)
-#   5: period (0 if not a periodic file)
-#   6: periodic scripts prefix
-#   7: config check TRUE,FALSE
-#   8: config out TRUE,FALSE
-#   9: time (startup, cleanup, before_job, after_job, periodic, specific_code, failure:exit_code, or a comma-separated combination of them)
-#   10: integer_code (internal representation of the coordination number of the scripts)
-#   11: tar_source
+#   5: periodic scripts prefix
+#   6: time (startup, cleanup, before_job, after_job, periodic, specific_code, failure:exit_code, or a comma-separated combination of them)
+#   7: period (0 if not a periodic file)
+#   8: priority/integer_code [0,99] (internal representation of the coordination number of the scripts)
+#   9: config check TRUE,FALSE
+#   10: tar_source
+#   11: config out TRUE,FALSE
+#   12: cond_attr
+#   13: absdir_outattr
 # The above is the most recent list, below some adaptations for different versions
 # Used:
 #   ifs_str
@@ -133,32 +135,32 @@ fetch_file_regular() {
 #   0 in case of success
 #   otherwise glidein_exit with 1
 fetch_file() {
-    if [ $# -gt 11 ]; then
+    if [ $# -gt 13 ]; then
         # For compatibility w/ future versions (add new parameters at the end)
         echo "More then 11 arguments, considering the first 11 ($#/${ifs_str}): $*" 1>&2
-    elif [ $# -ne 11 ]; then
-        if [ $# -eq 10 ]; then
+    elif [ $# -ne 13 ]; then
+        if [ $# -eq 12 ]; then
             #TODO: remove in version 3.3
             # For compatibility with past versions (old file list formats)
             # 3.2.13 and older: prefix (par 6) added in #12705, 3.2.14?
-            # 3.2.10 and older: period (par 5) added:  fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6"
-            if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "GLIDEIN_PS_" "$6" "$7" "$8" "$9" "${10}"; then
+            # 3.2.10 and older: period (par 5) added
+            if ! fetch_file_try "$1" "$2" "$3" "$4" "GLIDEIN_PS_" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"; then
                 glidein_exit 1
             fi
             return 0
         fi
-        if [ $# -eq 9 ]; then
+        if [ $# -eq 11 ]; then
             # added to maintain compatibility with older (3.2.10) file list format
             #TODO: remove in version 3.3
-            if ! fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6" "$7" "$8" "$9"; then
+            if ! fetch_file_try "$1" "$2" "$3" "$4" "GLIDEIN_PS_" "$5" 0 "$6" "$7" "$8" "$9" "${10}" "${11}"; then
                 glidein_exit 1
             fi
             return 0
         fi
-        if [ $# -eq 8 ]; then
+        if [ $# -eq 10 ]; then
             # added to maintain compatibility with older (3.2.10) file list format
             #TODO: remove in version 3.3
-            if ! fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6" "$7" "$8" "NULL"; then
+            if ! fetch_file_try "$1" "$2" "$3" "$4" "GLIDEIN_PS_" "$5" 0 "$6" "$7" "NULL" "$8" "$9" "${10}"; then
                 glidein_exit 1
             fi
             return 0
@@ -168,7 +170,7 @@ fetch_file() {
         log_warn "Not enough arguments in fetch_file, 11 expected ($#/${ifs_str}): $*"
         glidein_exit 1
     fi
-    if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}"; then
+    if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"; then
         glidein_exit 1
     fi
     return 0
@@ -188,12 +190,15 @@ fetch_file() {
 #   2: target fname
 #   3: real fname
 #   4: file type (regular, exec, exec:s, untar, nocache)
-#   5: period (0 if not a periodic file)
-#   6: periodic scripts prefix
-#   7: config check TRUE,FALSE
-#   8: config out TRUE,FALSE
-#   9: time (startup, cleanup, before_job, after_job, periodic, specific_code, failure:exit_code, or a comma-separated combination of them)
-#   10: integer_code (internal representation of the coordination number of the scripts)
+#   5: periodic scripts prefix
+#   6: time (startup, cleanup, before_job, after_job, periodic, specific_code, failure:exit_code, or a comma-separated combination of them)
+#   7: period (0 if not a periodic file)
+#   8: priority/integer_code [0,99] (internal representation of the coordination number of the scripts)
+#   9: config check TRUE,FALSE
+#   10: tar_source
+#   11: config out TRUE,FALSE
+#   12: cond_attr
+#   13: absdir_outattr
 # Globals (r/w):
 #   fft_id
 #   fft_target_fname
@@ -218,14 +223,20 @@ fetch_file_try() {
     fft_target_fname="$2"
     fft_real_fname="$3"
     fft_file_type="$4"
-    fft_period="$5"
-    fft_cc_prefix="$6"
-    fft_config_check="$7"
-    fft_config_out="$8"
-    fft_time="$9"
-    fft_coordination="${10}"
-    fft_tar_source="${11}"
-
+    fft_cc_prefix="$5"
+    fft_time="$6"
+    fft_period="$7" 
+    fft_coordination="$8"
+    fft_config_check="$9"
+    fft_tar_source="${10}"
+    fft_config_out="${11}"
+    fft_cond_attr="${12}"
+    fft_cond_attr="${13}"
+    
+    if [[ "${fft_tar_source}" != "NULL" ]]; then
+        return 0
+    fi
+    
     if [[ "${fft_config_check}" != "TRUE" ]]; then
         # TRUE is a special case, always be downloaded and processed
         fft_get_ss=$(grep -i "^${fft_config_check} " glidein_config | cut -d ' ' -f 2-)
@@ -241,10 +252,6 @@ fetch_file_try() {
         fft_condition_attr_val=$(grep -i "^${fft_condition_attr} " glidein_config | cut -d ' ' -f 2-)
         # if the variable fft_condition_attr is not defined or empty, do not download
         [[ -z "${fft_condition_attr_val}" ]] && return 0
-    fi
-
-    if [[ "${fft_tar_source}" != NULL ]]; then
-        return 0
     fi
 
     fetch_file_base "${fft_id}" "${fft_target_fname}" "${fft_real_fname}" "${fft_file_type}" "${fft_config_out}" "${fft_period}" "${fft_cc_prefix}" "${fft_time}" "${fft_coordination}" "${fft_tar_source}"
@@ -466,7 +473,6 @@ fetch_file_base() {
             return 1
         fi
     fi
-    #TODO: modify untar
 
     if [ "${ffb_config_out}" != "FALSE" ]; then
         ffb_prefix="$(get_prefix "${ffb_id}")"

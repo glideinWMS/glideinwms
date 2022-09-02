@@ -283,6 +283,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             os.path.join(params.src_dir, file_name),
         )
 
+        #TODO(F): what to do here?
+        
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ("cat_consts.sh", "check_blacklist.sh"):

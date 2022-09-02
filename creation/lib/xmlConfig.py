@@ -285,24 +285,47 @@ class FileElement(DictElement):
         self.check_boolean("executable")
         self.check_boolean("wrapper")
         self.check_boolean("untar")
+        self.check_boolean("source")
+        self.check_boolean("library")
 
         is_exec = eval(self["executable"])
         is_wrapper = eval(self["wrapper"])
         is_tar = eval(self["untar"])
-
+        is_source = eval(self["source"])
+        is_library = eval(self["library"])
+        
         try:
             period = int(self["period"])
         except ValueError:
             raise RuntimeError(self.err_str("period must be an int"))
 
-        if is_exec + is_wrapper + is_tar > 1:
-            raise RuntimeError(self.err_str('must be exactly one of type "executable", "wrapper", or "untar"'))
+        time = self["time"]
+        if is_executable or is_source or is_library:
+                if (
+                    not time.startswith("startup")
+                    and not time.startswith("cleanup")
+                    and not time.startswith("after_job")
+                    and not time.startswith("before_job")
+                    and not time.startswith("periodic:")
+                    and not time.startswith("milestone:")
+                    and not time.startswith("failure:")
+                    and not time.startswith("no_time:")
+                ):
+                # we use startswith since we may have combination of time phases (e.g. startup, cleanup)
+                raise RuntimeError(self.err_str('The file does not have a valid time phase value: %s'% user_file))
+            
+        self.check_boolean("cond_download")
+        self.check_boolean("config_out")         
+           
+        if is_exec + is_wrapper + is_tar + is_source + is_library> 1:
+            raise RuntimeError(self.err_str('must be exactly one of type "executable", "wrapper", "untar", "library" or "source"'))
 
         if (is_exec or is_wrapper or is_tar) and not eval(self["const"]):
             raise RuntimeError(self.err_str('type "executable", "wrapper", or "untar" requires const="True"'))
         if not is_exec and period > 0:
             raise RuntimeError(self.err_str('cannot have execution period if type is not "executable"'))
-
+            
+      
 
 TAG_CLASS_MAPPING.update({"file": FileElement})
 

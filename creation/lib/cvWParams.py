@@ -61,6 +61,7 @@ class VOFrontendParams(cWParams.CommonParams):
             "Should this file be loaded after the factory entry ones?",
             None,
         )
+        # TODO(F): remove this one?
 
         # Publishing attr specific to frontend
         self.attr_defaults["type"] = [
