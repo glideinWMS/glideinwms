@@ -27,6 +27,7 @@ glide_local_tmp_dir_created=0
 #   glide_local_tmp_dir_created
 #   glide_local_tmp_dir
 glidein_cleanup() {
+    custom_scripts "cleanup"
     if ! cd "${start_dir}"; then
         log_warn "Cannot find ${start_dir} anymore, will remove my current directory"
     fi
@@ -44,7 +45,6 @@ glidein_cleanup() {
         fi
     fi
 
-    custom_scripts "cleanup"
 }
 
 ################################

@@ -106,7 +106,7 @@ EOF
 #   2: target fname
 #   3: real fname
 fetch_file_regular() {
-    fetch_file "$1" "$2" "$2" "regular" 0 "GLIDEIN_PS_" "TRUE" "FALSE" "no_time" "no_code"
+    fetch_file "$1" "$2" "$3" "regular" 0 "GLIDEIN_PS_" "TRUE" "FALSE" "no_time" "no_code" "NULL"
 }
 
 ############################################
