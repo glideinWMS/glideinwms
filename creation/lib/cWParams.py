@@ -448,7 +448,8 @@ class CommonSubParams(SubParams):
     def extract_attr_val(self, attr_obj):
         return extract_attr_val(attr_obj)
 
-#TODO(F)
+
+# TODO(F)
 class CommonParams(Params):
     # populate self.defaults
     def init_support_defaults(self):
@@ -508,29 +509,35 @@ class CommonParams(Params):
         self.file_defaults["priority"] = (
             0,
             "integer [0,99]",
-            "Priority value to alter the order of execution inside a lifecycle phase."",
+            "Priority value to alter the order of execution inside a lifecycle phase.",
             None,
         )
-        
-        #TODO(F): ok specificare qualifier come secondo argomento?
+
+        # TODO(F): ok specificare qualifier come secondo argomento?
         self.file_defaults["time"] = (
-            "no_time", "startup|before_job|after_job|cleanup|periodic:period|milestone:code|failure:code|no", 'Run the executable at startup, before (pre) or after (post) each job, at cleanup, at a milestone or in front of a failure.', None
+            "no_time",
+            "startup|before_job|after_job|cleanup|periodic:period|milestone:code|failure:code|no",
+            "Run the executable at startup, before (pre) or after (post) each job, at cleanup, at a milestone or in front of a failure.",
+            None,
         )
         self.file_defaults["tar_source"] = (
-            NULL, "tarball", 'Specify the tar source where the file is contained.', None
-        )        
+            NULL,
+            "tarball",
+            "Specify the tar source where the file is contained.",
+            None,
+        )
         self.file_defaults["cond_attr"] = (
             "TRUE",
             "attrname",
-             "If not the special value TRUE, the attribute name used at runtime to determine if the file should be untarred or not.",
-             None,            
+            "If not the special value TRUE, the attribute name used at runtime to determine if the file should be untarred or not.",
+            None,
         )
         self.file_defaults["absdir_outattr"] = (
             None,
             "attrname",
             "Attribute to be set to the abs dir name where the tarball was unpacked. Will be defined only if untar effectively done. (Not defined if None)",
             None,
-        )        
+        )
         self.monitor_defaults = CommentedOrderedDict()
         self.monitor_defaults["javascriptRRD_dir"] = (
             os.path.join(self.src_dir, "../../externals/flot"),

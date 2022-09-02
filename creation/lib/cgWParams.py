@@ -474,7 +474,7 @@ class GlideinParams(cWParams.CommonParams):
             "Should this file be loaded after the entry ones?",
             None,
         )
-        #TODO(F): what to do?
+        # TODO(F): what to do?
 
         self.defaults["entries"] = (OrderedDict(), "Dictionary of entries", "Each entry contains", self.entry_defaults)
 

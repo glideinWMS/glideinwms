@@ -30,7 +30,7 @@ add_entry(){
     e_id="$7"
     e_tar_source="$8"
     descriptor_file="testfile"
-    
+
     if [ ! -f "$descriptor_file" ]; then
         echo "# File: $descriptor_file" > "$descriptor_file"
         echo "#" >> "$descriptor_file"
@@ -41,12 +41,12 @@ add_entry(){
     IFS=', ' read -r -a array <<< $e_time
     for time_entry in "${array[@]}"
     do
-        if [[ $e_tar_source != NULL ]]; then 
+        if [[ $e_tar_source != NULL ]]; then
             ffb_short_untar_dir="$(get_untar_subdir "${e_id}" "${e_tar_source}")"
             ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
             e_complete_fname="${ffb_untar_dir}/$e_real_fname"
-            #TODO: check if filename is a path what happens 
-        else  
+            #TODO: check if filename is a path what happens
+        else
             e_complete_fname="$e_real_fname"
         fi
         echo "${time_entry}    ${e_coordination}_${e_real_fname}    ${e_complete_fname}    ${e_type}    ${e_period}    ${e_prefix}    ${e_id}" >> "$descriptor_file"
@@ -107,7 +107,7 @@ custom_scripts(){
                 echo "Executing (flags:${ffb_file_type#exec}) ${ffb_target_fname}"
                 # have to do it here, as this will be run before any other script
                 chmod u+rx "${main_dir}"/error_augment.sh
-    
+
                 # the XML file will be overwritten now, and hopefully not an error situation
                 have_dummy_otrx=0
                 "${main_dir}"/error_augment.sh -init
@@ -133,7 +133,7 @@ custom_scripts(){
                         add_periodic_script "${main_dir}/script_wrapper.sh" "${ffb_period}" "${work_dir}" "${ffb_target_fname}" glidein_config "${ffb_id}" "${ffb_cc_prefix}"
                     fi
                 fi
-            fi 
+            fi
         elif [[ "${ffb_file_type}" = "source"  || "${ffb_file_type}" = "library:shell" ]]; then
             source "${ffb_target_fname}"
             # TODO: what about other library types?

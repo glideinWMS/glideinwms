@@ -242,11 +242,11 @@ fetch_file_try() {
         # if the variable fft_condition_attr is not defined or empty, do not download
         [[ -z "${fft_condition_attr_val}" ]] && return 0
     fi
-    
+
     if [[ "${fft_tar_source}" != NULL ]]; then
         return 0
     fi
-    
+
     fetch_file_base "${fft_id}" "${fft_target_fname}" "${fft_real_fname}" "${fft_file_type}" "${fft_config_out}" "${fft_period}" "${fft_cc_prefix}" "${fft_time}" "${fft_coordination}" "${fft_tar_source}"
     return $?
     # returning the exit code of fetch_file_base
@@ -400,7 +400,7 @@ fetch_file_base() {
             return 1
         fi
     fi
-    
+
     # if startup and executable, execute
     if [[ "${ffb_time}" = "startup" ]]; then
         if [[ "${ffb_file_type}" = "exec" || "${ffb_file_type}" = "exec:"* ]]; then
@@ -419,7 +419,7 @@ fetch_file_base() {
                 echo "Executing (flags:${ffb_file_type#exec}) ${ffb_outname}"
                 # have to do it here, as this will be run before any other script
                 chmod u+rx "${main_dir}"/error_augment.sh
-    
+
                 # the XML file will be overwritten now, and hopefully not an error situation
                 have_dummy_otrx=0
                 "${main_dir}"/error_augment.sh -init
@@ -481,7 +481,7 @@ fetch_file_base() {
             fi
         fi
     fi
-    
+
     if [ "${have_dummy_otrx}" -eq 1 ]; then
         # no one should really look at this file, but just to avoid confusion
         local date

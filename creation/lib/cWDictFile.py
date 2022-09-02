@@ -986,7 +986,8 @@ class SimpleFileDictFile(DictFile):
             except OSError as e:
                 raise DictFileError("Error writing into file %s" % filepath)
 
-#TODO(F)
+
+# TODO(F)
 class FileDictFile(SimpleFileDictFile):
     """Dictionary file for files (file list). Used for list of transferred files.
 
@@ -997,9 +998,9 @@ class FileDictFile(SimpleFileDictFile):
     the key is used as key for the dictionary and the data (file content) is added reading the file.
     Here the attributes stored as tuple in the dictionary value:
     1. real_fname, i.e file name
-    2. cache/exec/... keyword identifying the file type: 
-        -   regular 
-        -   nocache 
+    2. cache/exec/... keyword identifying the file type:
+        -   regular
+        -   nocache
         -   exec (:s modifier to run in singularity)
         -   untar (if a modifier is present, it will be the name of the directory where the tarball will be unpacked, the name of the tarball will be used otherwise)
         -   wrapper
@@ -1016,7 +1017,7 @@ class FileDictFile(SimpleFileDictFile):
         -   failure (:exit_code will specify the failure code)
        Time will be ignored for files when type is different than exec or source.
        A combination of time phases can be used.
-    5. priority - priority in the order of execution inside a time phase [0-99]. 
+    5. priority - priority in the order of execution inside a time phase [0-99].
        Relevant only for executable, source and library files.
         Order                       String code representation  Associated integer code (internal representation)
         Factory pre_entry                   e-[g-]                          10
@@ -1031,23 +1032,36 @@ class FileDictFile(SimpleFileDictFile):
        A custom value inside the range [0-99] can be specified in order to alter the order of execution.
     6. cond_download has a special value of TRUE
     7. tar_source - Name of the tarball containing the file, if the file is contained in a tarball
-    8. config_out - has a special value of FALSE 
+    8. config_out - has a special value of FALSE
     9. cond_attr - Name of a configuration switch. (like "ENABLE_KRB5")
-                   The operation requested on the file will be performed only if that parameter will be set to 1. 
+                   The operation requested on the file will be performed only if that parameter will be set to 1.
                    This parameter is going to influence the config_out element.
     10. absdir_outattr - Name of a variable name. (like "KRB5_SUBSYS_DIR")
                    The variable will be set to the absolute path of the file if not a tarball
-                   or the directory where the tarball was unpacked in case it is a tarball,  
-                   this last thing if and only if the unpacking actually happened (else it will not be defined.) 
+                   or the directory where the tarball was unpacked in case it is a tarball,
+                   this last thing if and only if the unpacking actually happened (else it will not be defined.)
                    ENTRY_ will be prepended if the <file> directive occurs in an entry.
     11. data - String containing the data extracted from the file (real_fname) (not in the serialized dictionary)
-    
+
     For placeholders, the real_name is empty (and the tuple starts w/ an empty string). Placeholders cannot be
     serialized (saved into file). Empty strings would cause error when parsed back.
     """
 
     DATA_LENGTH = 11  # Length of value (attributes + data)
-    PLACEHOLDER_VALUE = ("", "", "", "", "", 0, "NULL", "", "", "", "", "")  # The tuple should be DATA_LENGTH long and have the correct values
+    PLACEHOLDER_VALUE = (
+        "",
+        "",
+        "",
+        "",
+        "",
+        0,
+        "NULL",
+        "",
+        "",
+        "",
+        "",
+        "",
+    )  # The tuple should be DATA_LENGTH long and have the correct values
 
     def add_placeholder(self, key, allow_overwrite=True):
         # using DictFile, no file content (FileDictFile or SimpleFileDictFile)
@@ -1057,7 +1071,18 @@ class FileDictFile(SimpleFileDictFile):
         return self[key][0] == ""  # empty real_fname can only be a placeholder
 
     @staticmethod
-    def make_val_tuple(file_name, file_type, prefix="GLIDEIN_PS_", time, priority=0, cond_download="TRUE", tar_source="NULL",config_out="FALSE", cond_attr, absdir_outattr):
+    def make_val_tuple(
+        file_name,
+        file_type,
+        prefix="GLIDEIN_PS_",
+        time="startup",
+        priority=0,
+        cond_download="TRUE",
+        tar_source="NULL",
+        config_out="FALSE",
+        cond_attr="NULL",
+        absdir_outattr="NULL",
+    ):
         """Make a tuple with the DATA_LENGTH-1 attributes in the correct order using the defaults
 
         :param file_name: name of the file (aka real_fname)
@@ -1074,7 +1099,18 @@ class FileDictFile(SimpleFileDictFile):
         See class definition for more information about the attributes
         """
         # TODO: should it do some value checking? valid constant, int, ...
-        return file_name, file_type, prefix, time, priority, cond_download, tar_source, config_out, cond_attr, absdir_outattr  # python constructs the tuple
+        return (
+            file_name,
+            file_type,
+            prefix,
+            time,
+            priority,
+            cond_download,
+            tar_source,
+            config_out,
+            cond_attr,
+            absdir_outattr,
+        )  # python constructs the tuple
 
     @staticmethod
     def val_to_file_name(val):
@@ -1160,7 +1196,10 @@ class FileDictFile(SimpleFileDictFile):
         try:
             int(val[2])  # to check if is integer. Period must be int or convertible to int
         except (ValueError, IndexError):
-            raise DictFileError("Values '%s' not (real_fname,cache/exec,prefix,time,priority,cond_download,tar_source,config_out,cond_attr,absdir_outattr)" % val)
+            raise DictFileError(
+                "Values '%s' not (real_fname,cache/exec,prefix,time,priority,cond_download,tar_source,config_out,cond_attr,absdir_outattr)"
+                % val
+            )
 
         if len(val) == self.DATA_LENGTH:
             # Alt: return self.add_from_str(key, val[:self.DATA_LENGTH-1], val[self.DATA_LENGTH-1], allow_overwrite)
@@ -1170,11 +1209,15 @@ class FileDictFile(SimpleFileDictFile):
             # Maybe check also string length or possible values?
             if "\n" in val[-1]:
                 raise DictFileError(
-                    "Values '%s' not (real_fname,cache/exec,prefix,time,priority,cond_download,tar_source,config_out,cond_attr,absdir_outattr)" % val
+                    "Values '%s' not (real_fname,cache/exec,prefix,time,priority,cond_download,tar_source,config_out,cond_attr,absdir_outattr)"
+                    % val
                 )
             return self.add_from_file(key, val, os.path.join(self.dir, self.val_to_file_name(val)), allow_overwrite)
         else:
-            raise DictFileError("Values '%s' not (real_fname,cache/exec,prefix,time,priority,cond_download,tar_source,config_out,cond_attr,absdir_outattr)" % val)
+            raise DictFileError(
+                "Values '%s' not (real_fname,cache/exec,prefix,time,priority,cond_download,tar_source,config_out,cond_attr,absdir_outattr)"
+                % val
+            )
 
     def format_val(self, key, want_comments):
         return "{} \t{} \t{} \t{} \t{} \t{} \t{} \t{} \t{} \t{} \t{}".format(
@@ -1188,7 +1231,7 @@ class FileDictFile(SimpleFileDictFile):
             self.vals[key][6],
             self.vals[key][7],
             self.vals[key][8],
-            self.vals[key][9]
+            self.vals[key][9],
         )
 
     def file_header(self, want_comments):
@@ -1198,7 +1241,19 @@ class FileDictFile(SimpleFileDictFile):
                 + "\n"
                 + (
                     "# %s \t%s \t%s \t%s \t%s \t%s \t%s\n"
-                    % ("Outfile", "InFile        ", "Cache/exec", "Prefix", "Time", "Priority","Condition", "TarSource", "ConfigOut", "CondAttr","AbsdirOutattr")
+                    % (
+                        "Outfile",
+                        "InFile        ",
+                        "Cache/exec",
+                        "Prefix",
+                        "Time",
+                        "Priority",
+                        "Condition",
+                        "TarSource",
+                        "ConfigOut",
+                        "CondAttr",
+                        "AbsdirOutattr",
+                    )
                 )
                 + ("#" * 89)
             )
@@ -1226,7 +1281,9 @@ class FileDictFile(SimpleFileDictFile):
             # TODO: remove in 3.3 or after a few version (will break upgrade)
             if len(arr) == self.DATA_LENGTH - 1:
                 # For upgrade from 3.2.13 to 3.2.11
-                return self.add(arr[0], [arr[1], arr[2], "GLIDEIN_PS_", arr[3], arr[4], arr[5], arr[6], arr[7], arr[8], arr[9]])
+                return self.add(
+                    arr[0], [arr[1], arr[2], "GLIDEIN_PS_", arr[3], arr[4], arr[5], arr[6], arr[7], arr[8], arr[9]]
+                )
             raise RuntimeError(
                 "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
             )

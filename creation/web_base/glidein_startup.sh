@@ -505,7 +505,7 @@ _main(){
 
         # fetch list file
         fetch_file_regular "${gs_id}" "${gs_file_list}"
-        
+
         # Fetch files contained in list
         # TODO: $file is actually a list, so it cannot be doublequoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
         # shellcheck disable=2086
@@ -518,7 +518,7 @@ _main(){
                 fi
             fi
         done < "${gs_id_work_dir}/${gs_file_list}"
-        
+
 
         # Files to go into the GWMS_PATH
         if [ "$gs_file_id" = "main at_file_list" ]; then
@@ -586,7 +586,7 @@ _main(){
         echo "No message left" 1>&2
     fi
     echo 1>&2
-    
+
     ############################
     custom_scripts "after_job"
 
