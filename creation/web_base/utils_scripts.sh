@@ -172,5 +172,3 @@ failure_call(){
     custom_scripts "failure:"$exit_code
     return 0
 }
-
-#TODO: Bats tests for custom_scripts, extract_entry_files and add_entry not defined since they work on the descriptor_file statically defined

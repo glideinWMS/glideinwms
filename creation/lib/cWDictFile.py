@@ -993,8 +993,8 @@ class FileDictFile(SimpleFileDictFile):
 
     It is using a dictionary (key, value) from DictFile, serialized to file.
     The key is the file ID
-    The value (line) on file has DATA_LENGTH (7) components: the key and the first DATA_LENGTH-1 attributes below.
-    The value in memory has DATA_LENGTH components (real_fname,cache/exec,period,prefix,cond_download,config_out, data),
+    The value (line) on file has DATA_LENGTH (11) components: the key and the first DATA_LENGTH-1 attributes below.
+    The value in memory has DATA_LENGTH components (real_fname, cache/exec, prefix, time, priority, cond_download, tar_source, config_out, cond_attr, absdir_outattr, data),
     the key is used as key for the dictionary and the data (file content) is added reading the file.
     Here the attributes stored as tuple in the dictionary value:
     1. real_fname, i.e file name
@@ -1053,14 +1053,13 @@ class FileDictFile(SimpleFileDictFile):
         "",
         "",
         "",
-        "",
         0,
+        "",
         "NULL",
         "",
         "",
         "",
-        "",
-        "",
+        ""
     )  # The tuple should be DATA_LENGTH long and have the correct values
 
     def add_placeholder(self, key, allow_overwrite=True):
@@ -1240,7 +1239,7 @@ class FileDictFile(SimpleFileDictFile):
                 DictFile.file_header(self, want_comments)
                 + "\n"
                 + (
-                    "# %s \t%s \t%s \t%s \t%s \t%s \t%s\n"
+                    "# %s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \n"
                     % (
                         "Outfile",
                         "InFile        ",
@@ -1284,6 +1283,11 @@ class FileDictFile(SimpleFileDictFile):
                 return self.add(
                     arr[0], [arr[1], arr[2], "GLIDEIN_PS_", arr[3], arr[4], arr[5], arr[6], arr[7], arr[8], arr[9]]
                 )
+            if len(arr) == self.DATA_LENGTH - 2:
+                # (no prefix and tar_source): key, fname, type, time, priority, cond_download, tar_source, config_out, cond_attr, absdir_outattr
+                return self.add(
+                    arr[0], [arr[1], arr[2], "GLIDEIN_PS_", arr[3], arr[4], arr[5], arr[6], "NULL", arr[7], arr[8]]
+                )    
             raise RuntimeError(
                 "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
             )
