@@ -36,7 +36,6 @@ igwn:
   - '\*{2}Stakeholders:\*{2} ?(IGWN|Igwn|igwn)'
 osg:
   - '\*{2}Stakeholders:\*{2} ?(OSG|Osg|osg)'
-
 # TODO: regular expressions for labeling release info for an issue is listed in this block
 # 3.7.5:
 # 3.9.5:
