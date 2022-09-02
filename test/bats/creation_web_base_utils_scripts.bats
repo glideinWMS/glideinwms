@@ -33,3 +33,5 @@ setup () {
     [ "$output" == "failure:code" ]
     [ "$status" -eq 0 ]
 }
+
+#TODO: Bats tests for custom_scripts, extract_entry_files and add_entry not defined since they work on the descriptor_file statically defined
