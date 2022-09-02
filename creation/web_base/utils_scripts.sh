@@ -62,7 +62,6 @@ add_entry(){
 #   list
 extract_entry_files(){
     local target_time descriptor_file
-    list=""
     target_time="$1"
     descriptor_file="testfile"
     grep ^$target_time $descriptor_file | sort > ${target_time}_descriptor_file
@@ -152,7 +151,7 @@ milestone_call(){
     local code
     code=$1
     # no spaces are allowed in the code
-    if [[ "$code" == *"   "* ]]; then
+    if [[ "$code" == *"\t"* ]]; then
       return 1
     fi
     custom_scripts "milestone:"$code
@@ -166,5 +165,12 @@ milestone_call(){
 failure_call(){
     local exit_code
     exit_code=$1
+    # no spaces are allowed in the code
+    if [[ "$exit_code" == *"\t"* ]]; then
+      return 1
+    fi
     custom_scripts "failure:"$exit_code
+    return 0
 }
+
+#TODO: Bats tests for custom_scripts, extract_entry_files and add_entry not defined since they work on the descriptor_file statically defined
