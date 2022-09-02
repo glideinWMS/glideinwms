@@ -54,6 +54,7 @@ class VOFrontendParams(cWParams.CommonParams):
         # VO scripts should start after the factory has been set completely
         # but there could be exceptions
 
+        #TODO(F): remove this one?
         # Files/Validation/Custom scripts settings for frontend
         self.file_defaults["after_entry"] = (
             "True",
@@ -559,7 +560,7 @@ class VOFrontendParams(cWParams.CommonParams):
             "Should this file be loaded after the group ones?",
             None,
         )
-
+        #TODO(F):what to do here?
         global_config_defaults = cWParams.CommentedOrderedDict()
         global_config_defaults["ignore_down_entries"] = [
             "False",
