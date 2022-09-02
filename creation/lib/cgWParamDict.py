@@ -902,7 +902,8 @@ class glideinDicts(cgWDictFile.glideinDicts):
 #
 ############################################################
 
-# TODO(F): what to do,source, library
+# TODO(F): what to do differently from the general one?
+
 #############################################
 # Add a user file residing in the stage area
 # file as described by Params.file_defaults

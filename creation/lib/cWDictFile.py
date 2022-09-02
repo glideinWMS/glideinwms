@@ -1017,7 +1017,8 @@ class FileDictFile(SimpleFileDictFile):
         -   failure (:exit_code will specify the failure code)
        Time will be ignored for files when type is different than exec or source.
        A combination of time phases can be used.
-    5. priority - priority in the order of execution inside a time phase [0-99].
+    5. period, 0 if not a periodic script
+    6. priority - priority in the order of execution inside a time phase [0-99].
        Relevant only for executable, source and library files.
         Order                       String code representation  Associated integer code (internal representation)
         Factory pre_entry                   e-[g-]                          10
@@ -1030,35 +1031,35 @@ class FileDictFile(SimpleFileDictFile):
         Frontend after_entry after_group    e+g+                            80
         Factory after_entry                 e+[g+]                          90
        A custom value inside the range [0-99] can be specified in order to alter the order of execution.
-    6. cond_download has a special value of TRUE
-    7. tar_source - Name of the tarball containing the file, if the file is contained in a tarball
-    8. config_out - has a special value of FALSE
-    9. cond_attr - Name of a configuration switch. (like "ENABLE_KRB5")
+    7. cond_download has a special value of TRUE
+    8. tar_source - Name of the tarball containing the file, if the file is contained in a tarball
+    9. config_out - has a special value of FALSE
+    10. cond_attr - Name of a configuration switch. (like "ENABLE_KRB5")
                    The operation requested on the file will be performed only if that parameter will be set to 1.
-                   This parameter is going to influence the config_out element.
-    10. absdir_outattr - Name of a variable name. (like "KRB5_SUBSYS_DIR")
+    11. absdir_outattr - Name of a variable name. (like "KRB5_SUBSYS_DIR")
                    The variable will be set to the absolute path of the file if not a tarball
                    or the directory where the tarball was unpacked in case it is a tarball,
                    this last thing if and only if the unpacking actually happened (else it will not be defined.)
                    ENTRY_ will be prepended if the <file> directive occurs in an entry.
-    11. data - String containing the data extracted from the file (real_fname) (not in the serialized dictionary)
+    12. data - String containing the data extracted from the file (real_fname) (not in the serialized dictionary)
 
     For placeholders, the real_name is empty (and the tuple starts w/ an empty string). Placeholders cannot be
     serialized (saved into file). Empty strings would cause error when parsed back.
     """
 
-    DATA_LENGTH = 11  # Length of value (attributes + data)
+    DATA_LENGTH = 12  # Length of value (attributes + data)
     PLACEHOLDER_VALUE = (
         "",
         "",
         "",
-        "",
+        "no_time",
         0,
-        "",
+        0,
+        "TRUE",
         "NULL",
-        "",
-        "",
-        "",
+        "FALSE",
+        "NULL",
+        "NULL",
         ""
     )  # The tuple should be DATA_LENGTH long and have the correct values
 
@@ -1074,7 +1075,8 @@ class FileDictFile(SimpleFileDictFile):
         file_name,
         file_type,
         prefix="GLIDEIN_PS_",
-        time="startup",
+        time="no_time",
+        period=0,
         priority=0,
         cond_download="TRUE",
         tar_source="NULL",
@@ -1088,6 +1090,7 @@ class FileDictFile(SimpleFileDictFile):
         :param file_type: type of the file (regular, nocache, exec, untar, wrapper, source, library). 'exec allows modifiers like ':s'
         :param prefix: prefix for periodic executables (ignored otherwise, default: GLIDEIN_PS_)
         :param time: specific phase of the lifecycle where to execute/source the script (startup, pre_job, after_job, cleanup, periodic, milestone, failure)
+        :param period: period of the periodic execution, 0 if the executable is not periodic
         :param priority: priority of execution inside the phase [0-99]
         :param cond_download: conditional download (default: 'TRUE')
         :param tar_source: name of the tarball containing the file
@@ -1103,6 +1106,7 @@ class FileDictFile(SimpleFileDictFile):
             file_type,
             prefix,
             time,
+            period,
             priority,
             cond_download,
             tar_source,
@@ -1219,7 +1223,7 @@ class FileDictFile(SimpleFileDictFile):
             )
 
     def format_val(self, key, want_comments):
-        return "{} \t{} \t{} \t{} \t{} \t{} \t{} \t{} \t{} \t{} \t{}".format(
+        return "{} \t{} \t{} \t{} \t{} \t{} \t{} \t{} \t{} \t{} \t{} \t{}".format(
             key,
             self.vals[key][0],
             self.vals[key][1],
@@ -1231,6 +1235,7 @@ class FileDictFile(SimpleFileDictFile):
             self.vals[key][7],
             self.vals[key][8],
             self.vals[key][9],
+            self.vals[key][10]
         )
 
     def file_header(self, want_comments):
@@ -1246,6 +1251,7 @@ class FileDictFile(SimpleFileDictFile):
                         "Cache/exec",
                         "Prefix",
                         "Time",
+                        "Period"
                         "Priority",
                         "Condition",
                         "TarSource",
@@ -1276,17 +1282,22 @@ class FileDictFile(SimpleFileDictFile):
 
         if len(arr) != self.DATA_LENGTH:
             # compatibility w/ old formats
-            # 3.2.13 (no prefix): key, fname, type, time, priority, cond_download, tar_source, config_out, cond_attr, absdir_outattr
+            # 3.2.13 (no prefix): key, fname, type, time, period, priority, cond_download, tar_source, config_out, cond_attr, absdir_outattr
             # TODO: remove in 3.3 or after a few version (will break upgrade)
             if len(arr) == self.DATA_LENGTH - 1:
                 # For upgrade from 3.2.13 to 3.2.11
                 return self.add(
-                    arr[0], [arr[1], arr[2], "GLIDEIN_PS_", arr[3], arr[4], arr[5], arr[6], arr[7], arr[8], arr[9]]
+                    arr[0], [arr[1], arr[2], "GLIDEIN_PS_", arr[3], arr[4], arr[5], arr[6], arr[7], arr[8], arr[9], arr[10], arr[11]]
                 )
-            if len(arr) == self.DATA_LENGTH - 2:
-                # (no prefix and tar_source): key, fname, type, time, priority, cond_download, tar_source, config_out, cond_attr, absdir_outattr
+            elif len(arr) == self.DATA_LENGTH - 2:
+                # (no prefix, and period ): key, fname, type, time, priority, cond_download, config_out, cond_attr, absdir_outattr
                 return self.add(
-                    arr[0], [arr[1], arr[2], "GLIDEIN_PS_", arr[3], arr[4], arr[5], arr[6], "NULL", arr[7], arr[8]]
+                    arr[0], [arr[1], arr[2], "GLIDEIN_PS_", arr[3], 0, arr[4], arr[5], arr[6], arr[7], arr[8], arr[9], arr[10]]
+                )       
+            elif len(arr) == self.DATA_LENGTH - 3:
+                # (no prefix, period and  tar_source): key, fname, type, time, priority, cond_download, config_out, cond_attr, absdir_outattr
+                return self.add(
+                    arr[0], [arr[1], arr[2], "GLIDEIN_PS_", arr[3], 0, arr[4], arr[5], arr[6], "NULL", arr[7], arr[8], arr[9]]
                 )    
             raise RuntimeError(
                 "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
