@@ -62,6 +62,7 @@ class VOFrontendParams(cWParams.CommonParams):
             None,
         )
         # TODO(F): remove this one?
+        # Gestisci anche lista, e porta a time con compatibilità in bash, qui no need
 
         # Publishing attr specific to frontend
         self.attr_defaults["type"] = [

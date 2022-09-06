@@ -438,6 +438,7 @@ class DictFile:
         """
         if want_comments:
             return "# File: %s\n#" % self.fname
+            # TODO(F) versione
         else:
             return None
 
@@ -1060,7 +1061,7 @@ class FileDictFile(SimpleFileDictFile):
         "FALSE",
         "NULL",
         "NULL",
-        ""
+        "",
     )  # The tuple should be DATA_LENGTH long and have the correct values
 
     def add_placeholder(self, key, allow_overwrite=True):
@@ -1235,7 +1236,7 @@ class FileDictFile(SimpleFileDictFile):
             self.vals[key][7],
             self.vals[key][8],
             self.vals[key][9],
-            self.vals[key][10]
+            self.vals[key][10],
         )
 
     def file_header(self, want_comments):
@@ -1251,8 +1252,7 @@ class FileDictFile(SimpleFileDictFile):
                         "Cache/exec",
                         "Prefix",
                         "Time",
-                        "Period"
-                        "Priority",
+                        "Period" "Priority",
                         "Condition",
                         "TarSource",
                         "ConfigOut",
@@ -1284,21 +1284,39 @@ class FileDictFile(SimpleFileDictFile):
             # compatibility w/ old formats
             # 3.2.13 (no prefix): key, fname, type, time, period, priority, cond_download, tar_source, config_out, cond_attr, absdir_outattr
             # TODO: remove in 3.3 or after a few version (will break upgrade)
+
+            # TODO(F): parse versione
             if len(arr) == self.DATA_LENGTH - 1:
                 # For upgrade from 3.2.13 to 3.2.11
                 return self.add(
-                    arr[0], [arr[1], arr[2], "GLIDEIN_PS_", arr[3], arr[4], arr[5], arr[6], arr[7], arr[8], arr[9], arr[10], arr[11]]
+                    arr[0],
+                    [
+                        arr[1],
+                        arr[2],
+                        "GLIDEIN_PS_",
+                        arr[3],
+                        arr[4],
+                        arr[5],
+                        arr[6],
+                        arr[7],
+                        arr[8],
+                        arr[9],
+                        arr[10],
+                        arr[11],
+                    ],
                 )
             elif len(arr) == self.DATA_LENGTH - 2:
                 # (no prefix, and period ): key, fname, type, time, priority, cond_download, config_out, cond_attr, absdir_outattr
                 return self.add(
-                    arr[0], [arr[1], arr[2], "GLIDEIN_PS_", arr[3], 0, arr[4], arr[5], arr[6], arr[7], arr[8], arr[9], arr[10]]
-                )       
+                    arr[0],
+                    [arr[1], arr[2], "GLIDEIN_PS_", arr[3], 0, arr[4], arr[5], arr[6], arr[7], arr[8], arr[9], arr[10]],
+                )
             elif len(arr) == self.DATA_LENGTH - 3:
                 # (no prefix, period and  tar_source): key, fname, type, time, priority, cond_download, config_out, cond_attr, absdir_outattr
                 return self.add(
-                    arr[0], [arr[1], arr[2], "GLIDEIN_PS_", arr[3], 0, arr[4], arr[5], arr[6], "NULL", arr[7], arr[8], arr[9]]
-                )    
+                    arr[0],
+                    [arr[1], arr[2], "GLIDEIN_PS_", arr[3], 0, arr[4], arr[5], arr[6], "NULL", arr[7], arr[8], arr[9]],
+                )
             raise RuntimeError(
                 "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
             )

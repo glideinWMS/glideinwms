@@ -521,7 +521,7 @@ class CommonParams(Params):
             None,
         )
         self.file_defaults["tar_source"] = (
-            NULL,
+            "NULL",
             "tarball",
             "Specify the tar source where the file is contained.",
             None,
