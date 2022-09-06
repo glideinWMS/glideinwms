@@ -225,18 +225,18 @@ fetch_file_try() {
     fft_file_type="$4"
     fft_cc_prefix="$5"
     fft_time="$6"
-    fft_period="$7" 
+    fft_period="$7"
     fft_coordination="$8"
     fft_config_check="$9"
     fft_tar_source="${10}"
     fft_config_out="${11}"
     fft_cond_attr="${12}"
     fft_cond_attr="${13}"
-    
+
     if [[ "${fft_tar_source}" != "NULL" ]]; then
         return 0
     fi
-    
+
     if [[ "${fft_config_check}" != "TRUE" ]]; then
         # TRUE is a special case, always be downloaded and processed
         fft_get_ss=$(grep -i "^${fft_config_check} " glidein_config | cut -d ' ' -f 2-)
