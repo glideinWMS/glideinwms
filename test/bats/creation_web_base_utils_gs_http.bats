@@ -86,14 +86,15 @@ glidein_exit(){
 
 @test "fetch_file" {
     echo "Testing different possible numbers of arguments..." >& 3
-    run fetch_file 1 2 3 4 5 6 7 8 9 10 11 12
-    assert_output --partial "More then 11 arguments, considering the first 11"
+    run fetch_file 1 2 3 4 5 6 7 8 9 10 11 12 13 "NULL"
+    assert_output --partial "More then 13 arguments, considering the first 13"
+    version="031100"
     run fetch_file 1
-    assert_output --partial "Not enough arguments in fetch_file, 11 expected"
+    assert_output --partial "Not enough arguments in fetch_file, 13 expected"
     run fetch_file 1 2
-    assert_output --partial "Not enough arguments in fetch_file, 11 expected"
+    assert_output --partial "Not enough arguments in fetch_file, 13 expected"
     run fetch_file 1 2 3
-    assert_output --partial "Not enough arguments in fetch_file, 11 expected"
+    assert_output --partial "Not enough arguments in fetch_file, 13 expected"
     run fetch_file 1 2 3 4
 }
 

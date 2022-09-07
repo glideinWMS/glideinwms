@@ -192,7 +192,6 @@ fetch_file() {
     fi
     # TODO: consider to remove considering the current versions
     if [[ $version < "031100" ]]; then
-        if [ $# -lt 8 ]; then
             if [ $# -eq 7 ]; then
                 #TODO: remove in version 3.3
                 # For compatibility with past versions (old file list formats)
@@ -213,8 +212,11 @@ fetch_file() {
             fi
             local ifs_str
             printf -v ifs_str '%q' "${IFS}"
-            log_warn "Not enough arguments in fetch_file, 8 or 13 expected ($#/${ifs_str}): $*"
+            log_warn "Not enough arguments in fetch_file, at least 8 expected ($#/${ifs_str}): $*"
             glidein_exit 1
+    else
+        if [ $# -lt 13 ]; then
+            log_warn "Not enough arguments in fetch_file, 13 expected ($#/${ifs_str}): $*"
         fi
     fi
     if ! fetch_file_try "$ff_id" "$ff_target_fname" "$ff_real_fname" "$ff_file_type" "$ff_cc_prefix" "$ff_time" "$ff_period" "$ff_coordination" "$ff_config_check" "$ff_tar_source" "$ff_config_out" "$ff_cond_attr" "$ff_absdir"; then
