@@ -128,49 +128,96 @@ fetch_file_regular() {
 #   12: cond_attr
 #   13: absdir_outattr
 # The above is the most recent list, below some adaptations for different versions
+# Globals (r/w):
+#   ff_id
+#   ff_target_fname
+#   ff_real_fname
+#   ff_file_type
+#   ff_time
+#   ff_period
+#   ff_cc_prefix
+#   ff_coordination
+#   ff_config_check
+#   ff_config_out
+#   ff_tar_source
+#   ff_cond_attr
+#   ff_absdir
 # Used:
 #   ifs_str
 #   IFS
+#   version
 # Returns:
 #   0 in case of success
 #   otherwise glidein_exit with 1
 fetch_file() {
+    ff_id="$1"
+    ff_target_fname="$2"
+    ff_real_fname="$3"
+    ff_file_type="$4"
+    # for compatibility reasons, check the version and act opportunately
+    if [[ $version < "031100" ]]; then
+        # Different list of arguments in case of old format
+        # 1. ID
+        # 2. target fname
+        # 3. real fname
+        # 4. file type (regular, exec, exec:s, untar, nocache)
+        # 5. period (0 if not a periodic file)
+        # 6. periodic scripts prefix
+        # 7. config check TRUE,FALSE
+        # 8. config out TRUE,FALSE
+        ff_time="startup"
+        ff_period="$5"
+        ff_cc_prefix="$6"
+        ff_coordination=0
+        ff_config_check="$7"
+        ff_config_out="$8"
+        ff_tar_source="NULL"
+        ff_cond_attr="NULL"
+        ff_absdir="NULL"
+    else
+        ff_cc_prefix="$5"
+        ff_time="$6"
+        ff_period="$7"
+        ff_coordination="$8"
+        ff_config_check="$9"
+        ff_tar_source="${10}"
+        ff_config_out="${11}"
+        ff_cond_attr="${12}"
+        ff_absdir="${13}"
+    fi
+    # From version 3.11.0 we need 13 arguments
     if [ $# -gt 13 ]; then
         # For compatibility w/ future versions (add new parameters at the end)
-        echo "More then 11 arguments, considering the first 11 ($#/${ifs_str}): $*" 1>&2
-    elif [ $# -ne 13 ]; then
-        if [ $# -eq 12 ]; then
-            #TODO: remove in version 3.3
-            # For compatibility with past versions (old file list formats)
-            # 3.2.13 and older: prefix (par 6) added in #12705, 3.2.14?
-            # 3.2.10 and older: period (par 5) added
-            if ! fetch_file_try "$1" "$2" "$3" "$4" "GLIDEIN_PS_" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"; then
-                glidein_exit 1
-            fi
-            return 0
-        fi
-        if [ $# -eq 11 ]; then
-            # added to maintain compatibility with older (3.2.10) file list format
-            #TODO: remove in version 3.3
-            if ! fetch_file_try "$1" "$2" "$3" "$4" "GLIDEIN_PS_" "$5" 0 "$6" "$7" "$8" "$9" "${10}" "${11}"; then
-                glidein_exit 1
-            fi
-            return 0
-        fi
-        if [ $# -eq 10 ]; then
-            # added to maintain compatibility with older (3.2.10) file list format
-            #TODO: remove in version 3.3
-            if ! fetch_file_try "$1" "$2" "$3" "$4" "GLIDEIN_PS_" "$5" 0 "$6" "$7" "NULL" "$8" "$9" "${10}"; then
-                glidein_exit 1
-            fi
-            return 0
-        fi
-        local ifs_str
-        printf -v ifs_str '%q' "${IFS}"
-        log_warn "Not enough arguments in fetch_file, 11 expected ($#/${ifs_str}): $*"
-        glidein_exit 1
+         echo "More then 13 arguments, considering the first 13 ($#/${ifs_str}): $*" 1>&2
     fi
-    if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"; then
+    # TODO: consider to remove considering the current versions
+    if [[ $version < "031100" ]]; then
+        if [ $# -lt 8 ]; then
+            if [ $# -eq 7 ]; then
+                #TODO: remove in version 3.3
+                # For compatibility with past versions (old file list formats)
+                # 3.2.13 and older: prefix (par 6) added in #12705, 3.2.14?
+                # 3.2.10 and older: period (par 5) added
+                if ! fetch_file_try "$ff_id" "$ff_target_fname" "$ff_real_fname" "$ff_file_type" "GLIDEIN_PS_" "$ff_time" "$ff_period" "$ff_coordination" "$ff_config_check" "$ff_tar_source" "$ff_config_out" "$ff_cond_attr" "$ff_absdir"; then
+                    glidein_exit 1
+                fi
+                return 0
+            fi
+            if [ $# -eq 6 ]; then
+                # added to maintain compatibility with older (3.2.10) file list format
+                #TODO: remove in version 3.3
+                if ! fetch_file_try "$ff_id" "$ff_target_fname" "$ff_real_fname" "$ff_file_type" "GLIDEIN_PS_" "$ff_time" 0 "$ff_coordination" "$ff_config_check" "$ff_tar_source" "$ff_config_out" "$ff_cond_attr" "$ff_absdir"; then
+                    glidein_exit 1
+                fi
+                return 0
+            fi
+            local ifs_str
+            printf -v ifs_str '%q' "${IFS}"
+            log_warn "Not enough arguments in fetch_file, 8 or 13 expected ($#/${ifs_str}): $*"
+            glidein_exit 1
+        fi
+    fi
+    if ! fetch_file_try "$ff_id" "$ff_target_fname" "$ff_real_fname" "$ff_file_type" "$ff_cc_prefix" "$ff_time" "$ff_period" "$ff_coordination" "$ff_config_check" "$ff_tar_source" "$ff_config_out" "$ff_cond_attr" "$ff_absdir"; then
         glidein_exit 1
     fi
     return 0
@@ -231,13 +278,24 @@ fetch_file_try() {
     fft_tar_source="${10}"
     fft_config_out="${11}"
     fft_cond_attr="${12}"
-    fft_cond_attr="${13}"
+    fft_absdir="${13}"
 
+    # absdir_outattr - Name of a variable name. (like "KRB5_SUBSYS_DIR")
+    # The variable will be set to the absolute path of the file if the file is not a tarball
+    # or the directory where the tarball was unpacked in case it is a tarball,
+    # this last thing if and only if the unpacking actually happened (else it will not be defined.)
+
+    if [[ "${fft_absdir}" != "NULL" ]]; then
+        eval ${fft_absdir}="fft_real_fname"
+    fi
+
+    # if contained in a tarball, do not download
     if [[ "${fft_tar_source}" != "NULL" ]]; then
         return 0
     fi
 
-    if [[ "${fft_config_check}" != "TRUE" ]]; then
+    # if fft_config_check is not TRUE or the variable pointed by fft_cond_attr (if any) is not TRUE, do not download (and operator between the two)
+    if [[ "${fft_config_check}" != "TRUE" || ("${fft_cond_attr}" != "NULL" && "${!fft_cond_attr}" != "TRUE") ]]; then
         # TRUE is a special case, always be downloaded and processed
         fft_get_ss=$(grep -i "^${fft_config_check} " glidein_config | cut -d ' ' -f 2-)
         # Stop download and processing if the cond_attr variable is not defined or has a value different from 1

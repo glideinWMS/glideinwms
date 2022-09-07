@@ -34,4 +34,36 @@ setup () {
     [ "$status" -eq 0 ]
 }
 
-#TODO: Bats tests for custom_scripts, extract_entry_files and add_entry not defined since they work on the descriptor_file statically defined
+@test "add_entry" {
+    gwms_exec_dir="/tmp"
+    get_untar_subdir(){
+        echo "tmp"
+    }
+    run add_entry name type time coordination period prefix id tar_source
+    cat $gwms_exec_dir/descriptor_file.txt >& 3
+    grep -q "Time    OrderedFilename    RealFilename   Type    Period    Prefix    Id" $gwms_exec_dir/descriptor_file.txt
+    grep -q "time    coordination_name    /tmp/name    type    period    prefix    id" $gwms_exec_dir/descriptor_file.txt
+    rm -f $gwms_exec_dir/descriptor_file.txt
+    run add_entry name type time,time2 coordination period prefix id tar_source
+    cat $gwms_exec_dir/descriptor_file.txt >& 3
+    grep -q "Time    OrderedFilename    RealFilename   Type    Period    Prefix    Id" $gwms_exec_dir/descriptor_file.txt
+    grep -q "time    coordination_name    /tmp/name    type    period    prefix    id" $gwms_exec_dir/descriptor_file.txt
+    grep -q "time2    coordination_name    /tmp/name    type    period    prefix    id" $gwms_exec_dir/descriptor_file.txt
+    rm -f $gwms_exec_dir/descriptor_file.txt
+}
+
+
+@test "extract_entry_files" {
+    gwms_exec_dir="/tmp"
+    get_untar_subdir(){
+        echo "tmp"
+    }
+    run add_entry name type time2 coordination period prefix id tar_source
+    run add_entry name type time3 coordination period prefix id tar_source
+    run add_entry name type time coordination period prefix id tar_source
+    cat $gwms_exec_dir/descriptor_file.txt >& 3
+    run extract_entry_files "time"
+    grep -q "time    coordination_name    /tmp/name    type    period    prefix    id" $gwms_exec_dir/time_descriptor_file.txt
+}
+
+#TODO: Bats tests for custom_scripts not defined due to complexity

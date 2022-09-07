@@ -17,6 +17,8 @@ import signal
 import sys
 import tempfile
 
+import conversion_xml
+
 from glideinwms.creation.lib import (
     check_config_frontend,
     check_python3_expr,
@@ -130,6 +132,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
 ############################################################
 
 if __name__ == "__main__":
+
     usage = "usage: reconfig_frontend { -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no [-xslt_plugin_dir xdir] | -help }"
     argv = sys.argv
 
@@ -141,6 +144,11 @@ if __name__ == "__main__":
         print2(
             "NOTE: Executing reconfig_frontend as user 'root' is not allowed. Use the frontend user instead. For rpm based installations, use the 'service gwms-frontend <start|stop|reconfig|...>' command to perform gwms-frontend operations"
         )
+
+    # TODO(F): read xml file and check if compatible
+    # if is_old_version("frontend.xml"):
+    #      print2("The xml file seems to be outdated. Consider to convert the structure to version 3.11.0")
+    #      sys.exit(1)
 
     force_name = None
     writeback = "no"

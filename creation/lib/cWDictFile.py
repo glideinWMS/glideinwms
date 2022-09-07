@@ -437,8 +437,7 @@ class DictFile:
             str: The file header, a comment containing the file name
         """
         if want_comments:
-            return "# File: %s\n#" % self.fname
-            # TODO(F) versione
+            return f"# File: {self.fname}\n# Version: {cWConsts.DICT_FILE_VERSION}\n#"
         else:
             return None
 
@@ -988,7 +987,6 @@ class SimpleFileDictFile(DictFile):
                 raise DictFileError("Error writing into file %s" % filepath)
 
 
-# TODO(F)
 class FileDictFile(SimpleFileDictFile):
     """Dictionary file for files (file list). Used for list of transferred files.
 
@@ -1037,8 +1035,10 @@ class FileDictFile(SimpleFileDictFile):
     9. config_out - has a special value of FALSE
     10. cond_attr - Name of a configuration switch. (like "ENABLE_KRB5")
                    The operation requested on the file will be performed only if that parameter will be set to 1.
+                   If not set (set to NULL), the result will be considered as TRUE (i.e. download)
+        As result, a file will be downloaded if cond_download & $cond_attr == TRUE
     11. absdir_outattr - Name of a variable name. (like "KRB5_SUBSYS_DIR")
-                   The variable will be set to the absolute path of the file if not a tarball
+                   The variable will be set to the absolute path of the file if the file is not a tarball
                    or the directory where the tarball was unpacked in case it is a tarball,
                    this last thing if and only if the unpacking actually happened (else it will not be defined.)
                    ENTRY_ will be prepended if the <file> directive occurs in an entry.
@@ -1272,6 +1272,8 @@ class FileDictFile(SimpleFileDictFile):
         :param line: string with the line content
         :return: tuple with DATA_LENGTH-1 values
         """
+        if line[0].startswith("# Version:"):
+            version = line[0].split(":")[1]
         if not line or line[0] == "#":
             return  # ignore empty lines and comments
         arr = line.split(None, self.DATA_LENGTH - 1)  # split already eliminates multiple spaces (no need for strip)
@@ -1280,47 +1282,63 @@ class FileDictFile(SimpleFileDictFile):
         if len(arr[0]) == 0:
             return  # empty key
 
-        if len(arr) != self.DATA_LENGTH:
-            # compatibility w/ old formats
-            # 3.2.13 (no prefix): key, fname, type, time, period, priority, cond_download, tar_source, config_out, cond_attr, absdir_outattr
-            # TODO: remove in 3.3 or after a few version (will break upgrade)
-
-            # TODO(F): parse versione
-            if len(arr) == self.DATA_LENGTH - 1:
-                # For upgrade from 3.2.13 to 3.2.11
-                return self.add(
-                    arr[0],
-                    [
-                        arr[1],
-                        arr[2],
-                        "GLIDEIN_PS_",
-                        arr[3],
-                        arr[4],
-                        arr[5],
-                        arr[6],
-                        arr[7],
-                        arr[8],
-                        arr[9],
-                        arr[10],
-                        arr[11],
-                    ],
+        # compatibility w/ old formats
+        # 3.2.13 (no prefix): key, fname, type, period, cond_download, config_out
+        if version <= "030213":
+            if len(arr) != self.DATA_LENGTH:
+                # TODO: remove in 3.3 or after a few version (will break upgrade)
+                if len(arr) == self.DATA_LENGTH - 1:
+                    # For upgrade from 3.2.13 to 3.2.11
+                    return self.add(
+                        arr[0],
+                        [
+                            arr[1],
+                            arr[2],
+                            "GLIDEIN_PS_",
+                            arr[3],
+                            arr[4],
+                            arr[5],
+                            arr[6],
+                            arr[7],
+                            arr[8],
+                            arr[9],
+                            arr[10],
+                            arr[11],
+                        ],
+                    )
+                raise RuntimeError(
+                    "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
                 )
-            elif len(arr) == self.DATA_LENGTH - 2:
-                # (no prefix, and period ): key, fname, type, time, priority, cond_download, config_out, cond_attr, absdir_outattr
-                return self.add(
-                    arr[0],
-                    [arr[1], arr[2], "GLIDEIN_PS_", arr[3], 0, arr[4], arr[5], arr[6], arr[7], arr[8], arr[9], arr[10]],
+        # 3.2.10 (no period, prefix): key, fname, type, cond_download, config_out
+        elif version <= "030210":
+            if len(arr) != self.DATA_LENGTH:
+                if len(arr) == self.DATA_LENGTH - 2:
+                    # For upgrade from 3.2.10 or earlier
+                    return self.add(
+                        arr[0],
+                        [
+                            arr[1],
+                            arr[2],
+                            "GLIDEIN_PS_",
+                            arr[3],
+                            0,
+                            arr[4],
+                            arr[5],
+                            arr[6],
+                            arr[7],
+                            arr[8],
+                            arr[9],
+                            arr[10],
+                        ],
+                    )
+                raise RuntimeError(
+                    "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
                 )
-            elif len(arr) == self.DATA_LENGTH - 3:
-                # (no prefix, period and  tar_source): key, fname, type, time, priority, cond_download, config_out, cond_attr, absdir_outattr
-                return self.add(
-                    arr[0],
-                    [arr[1], arr[2], "GLIDEIN_PS_", arr[3], 0, arr[4], arr[5], arr[6], "NULL", arr[7], arr[8], arr[9]],
+        else:
+            if len(arr) != self.DATA_LENGTH:
+                raise RuntimeError(
+                    "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
                 )
-            raise RuntimeError(
-                "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
-            )
-
         return self.add(arr[0], arr[1:])
 
     def get_immutable_files(self):

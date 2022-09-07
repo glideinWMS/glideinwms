@@ -449,7 +449,6 @@ class CommonSubParams(SubParams):
         return extract_attr_val(attr_obj)
 
 
-# TODO(F)
 class CommonParams(Params):
     # populate self.defaults
     def init_support_defaults(self):
@@ -513,7 +512,6 @@ class CommonParams(Params):
             None,
         )
 
-        # TODO(F): ok specificare qualifier come secondo argomento?
         self.file_defaults["time"] = (
             "no_time",
             "startup|before_job|after_job|cleanup|periodic:period|milestone:code|failure:code|no",
