@@ -24,6 +24,8 @@ from glideinwms.lib import hashCrypto
 from glideinwms.lib.defaults import BINARY_ENCODING
 from glideinwms.lib.util import chmod
 
+from . import cWConsts
+
 ########################################
 #
 # File dictionary classes
@@ -1272,8 +1274,6 @@ class FileDictFile(SimpleFileDictFile):
         :param line: string with the line content
         :return: tuple with DATA_LENGTH-1 values
         """
-        if line[0].startswith("# Version:"):
-            version = line[0].split(":")[1]
         if not line or line[0] == "#":
             return  # ignore empty lines and comments
         arr = line.split(None, self.DATA_LENGTH - 1)  # split already eliminates multiple spaces (no need for strip)
@@ -1284,61 +1284,50 @@ class FileDictFile(SimpleFileDictFile):
 
         # compatibility w/ old formats
         # 3.2.13 (no prefix): key, fname, type, period, cond_download, config_out
-        if version <= "030213":
-            if len(arr) != self.DATA_LENGTH:
-                # TODO: remove in 3.3 or after a few version (will break upgrade)
-                if len(arr) == self.DATA_LENGTH - 1:
-                    # For upgrade from 3.2.13 to 3.2.11
-                    return self.add(
-                        arr[0],
-                        [
-                            arr[1],
-                            arr[2],
-                            "GLIDEIN_PS_",
-                            arr[3],
-                            arr[4],
-                            arr[5],
-                            arr[6],
-                            arr[7],
-                            arr[8],
-                            arr[9],
-                            arr[10],
-                            arr[11],
-                        ],
-                    )
-                raise RuntimeError(
-                    "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
+        if len(arr) != self.DATA_LENGTH:
+            # TODO: remove in 3.3 or after a few version (will break upgrade)
+            if len(arr) == self.DATA_LENGTH - 1:
+                # For upgrade from 3.2.13 to 3.2.11
+                return self.add(
+                    arr[0],
+                    [
+                        arr[1],
+                        arr[2],
+                        "GLIDEIN_PS_",
+                        arr[3],
+                        arr[4],
+                        arr[5],
+                        arr[6],
+                        arr[7],
+                        arr[8],
+                        arr[9],
+                        arr[10],
+                        arr[11],
+                    ],
                 )
-        # 3.2.10 (no period, prefix): key, fname, type, cond_download, config_out
-        elif version <= "030210":
-            if len(arr) != self.DATA_LENGTH:
-                if len(arr) == self.DATA_LENGTH - 2:
-                    # For upgrade from 3.2.10 or earlier
-                    return self.add(
-                        arr[0],
-                        [
-                            arr[1],
-                            arr[2],
-                            "GLIDEIN_PS_",
-                            arr[3],
-                            0,
-                            arr[4],
-                            arr[5],
-                            arr[6],
-                            arr[7],
-                            arr[8],
-                            arr[9],
-                            arr[10],
-                        ],
-                    )
-                raise RuntimeError(
-                    "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
+            # 3.2.10 (no period, prefix): key, fname, type, cond_download, config_out
+            elif len(arr) == self.DATA_LENGTH - 2:
+                # For upgrade from 3.2.10 or earlier
+                return self.add(
+                    arr[0],
+                    [
+                        arr[1],
+                        arr[2],
+                        "GLIDEIN_PS_",
+                        arr[3],
+                        0,
+                        arr[4],
+                        arr[5],
+                        arr[6],
+                        arr[7],
+                        arr[8],
+                        arr[9],
+                        arr[10],
+                    ],
                 )
-        else:
-            if len(arr) != self.DATA_LENGTH:
-                raise RuntimeError(
-                    "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
-                )
+            raise RuntimeError(
+                "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
+            )
         return self.add(arr[0], arr[1:])
 
     def get_immutable_files(self):
