@@ -23,14 +23,14 @@
 #   version
 add_entry(){
     local e_real_fname e_type e_time e_coordination e_period e_prefix e_id e_tar_source descriptor_file
-    e_real_fname="$2"
-    e_type="$3"
-    e_time="$4"
-    e_coordination="$5"
-    e_period="$6"
-    e_prefix="$7"
-    e_id="$8"
-    e_tar_source="$9"
+    e_real_fname="$1"
+    e_type="$2"
+    e_time="$3"
+    e_coordination="$4"
+    e_period="$5"
+    e_prefix="$6"
+    e_id="$7"
+    e_tar_source="$8"
     descriptor_file=$gwms_exec_dir/"descriptor_file.txt"
 
     if [ ! -f "$descriptor_file" ]; then
