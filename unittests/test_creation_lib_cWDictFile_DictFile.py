@@ -25,6 +25,7 @@ from glideinwms.unittests.unittest_utils import create_temp_file, TestImportErro
 
 try:
     from glideinwms.creation.lib.cWDictFile import DictFile
+    import * from  glideinwms.creation.lib.cWConsts
 except ImportError as err:
     raise TestImportError(str(err))
 
@@ -79,7 +80,7 @@ class TestDictFile(unittest.TestCase):
 
     def test_file_header(self):
         self.assertEqual(None, self.dict_file.file_header(want_comments=False))
-        self.assertEqual("# File: %s\n#" % self.dict_file.fname, self.dict_file.file_header(want_comments=True))
+        self.assertEqual("# File: %s\n# Version: %s\n#" % self.dict_file.fname, cWConsts.DICT_FILE_VERSION, self.dict_file.file_header(want_comments=True))
 
     def test_format_val(self):
         key = "GLIDEIN_Expose_Grid_Env"
