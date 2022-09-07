@@ -902,8 +902,6 @@ class glideinDicts(cgWDictFile.glideinDicts):
 #
 ############################################################
 
-# TODO(F): what to do differently from the general one?
-
 #############################################
 # Add a user file residing in the stage area
 # file as described by Params.file_defaults
@@ -913,6 +911,8 @@ class glideinDicts(cgWDictFile.glideinDicts):
 # the common cWParamDict version
 #
 # is_factory is just a dummy placeholder to make the transition easier later
+
+
 def add_file_unparsed(user_file, dicts, is_factory):
     absfname = user_file["absfname"]
 
@@ -922,13 +922,61 @@ def add_file_unparsed(user_file, dicts, is_factory):
         relfname = user_file["relfname"]
 
     is_const = eval(user_file["const"])
-    is_executable = eval(user_file["executable"])
-    is_wrapper = eval(user_file["wrapper"])
-    do_untar = eval(user_file["untar"])
+    is_executable = eval(user_file["executable"]) or (user_file.type.startswith("exec"))
+    is_wrapper = eval(user_file["wrapper"]) or (user_file.type == "wrapper")
+    do_untar = eval(user_file["untar"]) or (user_file.type.startswith("untar"))
+    is_const = is_true(user_file.const)
+    is_source = eval(user_file["source"]) or user_file.type.startswith("source")
+    is_library = eval(user_file["library"]) or user_file.type.startswith("library")
+    is_periodic = user_file.type.startswith("periodic")
 
-    prefix = user_file["prefix"]
+    time = user_file.time
+    if is_executable or is_source or is_library:
+        if (
+            not time.startswith("startup")
+            and not time.startswith("cleanup")
+            and not time.startswith("after_job")
+            and not time.startswith("before_job")
+            and not time.startswith("periodic:")
+            and not time.startswith("milestone:")
+            and not time.startswith("failure:")
+            and not time.startswith("no_time:")
+        ):
+            # we use startswith since we may have combination of time phases (e.g. startup, cleanup)
+            raise RuntimeError("The file does not have a valid time phase value: %s" % user_file)
 
-    period_value = int(user_file["period"])
+    try:
+        if user_file.is_periodic:
+            period_value = int(user_file.type.split(":")[1])
+        else:
+            period_value = 0
+    except (AttributeError, KeyError, ValueError, TypeError):
+        period_value = 1000  # default 1000ms
+
+    if (
+        period_value > 0
+    ):  # period has 0 as default (in dictionary definition). Should I still protect against it not being defined?
+        if not is_executable:
+            raise RuntimeError("A file cannot have an execution period if it is not executable: %s" % user_file)
+
+    priority = user_file.priority
+    if priority < 0 or priority > 99:
+        raise RuntimeError("Priority value out of the range [0,99]: %s" % user_file)
+
+    prefix = user_file.prefix
+
+    cond_download = user_file.cond_download
+
+    tar_source = user_file.tar_source
+    if tar_source is None:
+        tar_source = "NULL"
+
+    config_out = user_file.config_out
+    if config_out is None:
+        config_out = "FALSE"
+    cond_attr = user_file.cond_attr
+
+    absdir_outattr = user_file.absdir_outattr
 
     file_list_idx = "file_list"
     if "after_entry" in user_file:
@@ -936,36 +984,121 @@ def add_file_unparsed(user_file, dicts, is_factory):
             file_list_idx = "after_file_list"
 
     if is_executable:  # a script
+        if not is_const:
+            raise RuntimeError("A file cannot be executable if it is not constant: %s" % user_file)
+        if do_untar:
+            raise RuntimeError("A tar file cannot be executable: %s" % user_file)
+        if is_wrapper:
+            raise RuntimeError("A wrapper file cannot be an executable: %s" % user_file)
+        file_type = "exec"
+        if user_file.type:
+            if user_file.type == "run:s" or user_file.type == "run:singularity":
+                if file_list_idx.endswith("preentry_file_list"):
+                    raise RuntimeError("An executable cannot use singularity before the entry setup: %s" % user_file)
+                file_type = "exec:s"
+            else:
+                if not user_file.type.startswith("run"):
+                    raise RuntimeError("An executable file type must start with 'run': $s" % user_file)
         dicts[file_list_idx].add_from_file(
             relfname,
-            cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), "exec", period_value, prefix),
+            cWDictFile.FileDictFile.make_val_tuple(
+                cWConsts.insert_timestr(relfname),
+                file_type,
+                prefix,
+                time,
+                period,
+                priority,
+                cond_download,
+                tar_source,
+                config_out,
+                cond_attr,
+            ),
             absfname,
         )
     elif is_wrapper:  # a source-able script for the wrapper
-        dicts[file_list_idx].add_from_file(
-            relfname, cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), "wrapper"), absfname
-        )
-    elif do_untar:  # a tarball
-        untar_opts = user_file.get_child("untar_options")
-        if "dir" in untar_opts:
-            wnsubdir = untar_opts["dir"]
-        else:
-            wnsubdir = relfname.split(".", 1)[0]  # default is relfname up to the first .
-
-        if "absdir_outattr" in untar_opts:
-            config_out = untar_opts["absdir_outattr"]
-        else:
-            config_out = "FALSE"
-        cond_attr = untar_opts["cond_attr"]
+        if not is_const:
+            raise RuntimeError("A file cannot be a wrapper if it is not constant: %s" % user_file)
+        if do_untar:
+            raise RuntimeError("A tar file cannot be a wrapper: %s" % user_file)
+        if is_source:
+            raise RuntimeError("A source file cannot be a wrapper: %s" % user_file)
+        if is_library:
+            raise RuntimeError("A library file cannot be a wrapper: %s" % user_file)
+        if is_periodic:
+            raise RuntimeError("A wrapper file cannot be periodic: %s" % user_file)
 
         dicts[file_list_idx].add_from_file(
             relfname,
             cWDictFile.FileDictFile.make_val_tuple(
-                cWConsts.insert_timestr(relfname), "untar", cond_download=cond_attr, config_out=config_out
+                cWConsts.insert_timestr(relfname), "wrapper", tar_source=user_file.tar_source
             ),
             absfname,
         )
-        dicts["untar_cfg"].add(relfname, wnsubdir)
+    elif do_untar:  # a tarball
+        if not is_const:
+            raise RuntimeError("A file cannot be untarred if it is not constant: %s" % user_file)
+        if is_periodic:
+            raise RuntimeError("A tar file cannot be periodic: %s" % user_file)
+        if is_library:
+            raise RuntimeError("A tar file cannot be a library: %s" % user_file)
+        if is_executable:
+            raise RuntimeError("A tar file cannot be executable: %s" % user_file)
+        if is_wrapper:
+            raise RuntimeError("A tar file cannot be a wrapper: %s" % user_file)
+
+        wnsubdir = user_file.type.split(":")[1]
+        if wnsubdir is None:
+            wnsubdir = relfname  # default is relfname up to the first
+
+        dicts[file_list_idx].add_from_file(
+            relfname,
+            cWDictFile.FileDictFile.make_val_tuple(
+                cWConsts.insert_timestr(relfname),
+                "untar",
+                cond_download=cond_download,
+                config_out=config_out,
+                cond_attr=cond_attr,
+                absdir_outattr=wnsubdir,
+            ),
+            absfname,
+        )
+        # dicts["untar_cfg"].add(relfname, wnsubdir)
+    elif is_source:
+        if not is_const:
+            raise RuntimeError("A file cannot be sourced if it is not constant: %s" % user_file)
+        if do_untar:
+            raise RuntimeError("A tar file cannot be sourced: %s" % user_file)
+        if is_wrapper:
+            raise RuntimeError("A wrapper file cannot be an sourced: %s" % user_file)
+        if is_periodic:
+            raise RuntimeError("A source file cannot be periodic: %s" % user_file)
+        if is_library:
+            raise RuntimeError("A source file cannot be a library: %s" % user_file)
+        dicts[file_list_idx].add_from_file(
+            relfname,
+            cWDictFile.FileDictFile.make_val_tuple(
+                cWConsts.insert_timestr(relfname), "source", tar_source=tar_source, time=time, priority=priority
+            ),
+            absfname,
+        )
+    elif is_library:
+        if not is_const:
+            raise RuntimeError("A file cannot be a library if it is not constant: %s" % user_file)
+        if do_untar:
+            raise RuntimeError("A tar file cannot be a library: %s" % user_file)
+        if is_wrapper:
+            raise RuntimeError("A wrapper file cannot be an a library: %s" % user_file)
+        if is_periodic:
+            raise RuntimeError("A library file cannot be periodic: %s" % user_file)
+        dicts[file_list_idx].add_from_file(
+            relfname,
+            cWDictFile.FileDictFile.make_val_tuple(
+                cWConsts.insert_timestr(relfname), user_file.type, tar_source=tar_source, time=time, priority=priority
+            ),
+            absfname,
+        )
+        # user_file.type can be library:x
+
     else:  # not executable nor tarball => simple file
         if is_const:
             val = "regular"

@@ -53,6 +53,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
     :param is_factory: True if invoked for the factory (cgWParamDict.py), false for the frontend (cvWParamDict.py)
     :return: None (dictionaries are modified)
     """
+
     absfname = user_file.absfname
     if absfname is None:
         raise RuntimeError("Found a file element without an absname: %s" % user_file)
@@ -118,13 +119,11 @@ def add_file_unparsed(user_file, dicts, is_factory):
 
     absdir_outattr = user_file.absdir_outattr
 
-    # TODO(F):  after list
-
     if is_factory:
         # Factory (file_list, after_file_list)
         file_list_idx = "file_list"
-        if "after_entry" in user_file:
-            if is_true(user_file.after_entry):  # eval(user_file.after_entry,{},{}):
+        if "priority" in user_file:
+            if user_file.priority >= 60:  # eval(user_file.after_entry,{},{}):
                 file_list_idx = "after_file_list"
     else:
         # Frontend (preentry_file_list, file_list, aftergroup_preentry_file_list, aftergroup_file_list)
@@ -204,7 +203,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
 
         wnsubdir = user_file.type.split(":")[1]
         if wnsubdir is None:
-            wnsubdir = absfname  # default is relfname up to the first
+            wnsubdir = relfname  # default is relfname up to the first
 
         dicts[file_list_idx].add_from_file(
             relfname,
@@ -270,5 +269,3 @@ def add_file_unparsed(user_file, dicts, is_factory):
             dicts[file_list_idx].add_from_file(
                 relfname, cWDictFile.FileDictFile.make_val_tuple(relfname, val), absfname
             )  # no timestamp in the name if it can be modified
-
-    # TODO(F): config_out?

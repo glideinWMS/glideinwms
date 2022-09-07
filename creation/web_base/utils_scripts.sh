@@ -19,17 +19,19 @@
 #   6: prefix
 #   7: id
 #   8: tar_source
+# Used:
+#   version
 add_entry(){
-    local e_real_fname e_type e_time e_coordination descriptor_file
-    e_real_fname="$1"
-    e_type="$2"
-    e_time="$3"
-    e_coordination="$4"
-    e_period="$5"
-    e_prefix="$6"
-    e_id="$7"
-    e_tar_source="$8"
-    descriptor_file="testfile"
+    local e_real_fname e_type e_time e_coordination e_period e_prefix e_id e_tar_source descriptor_file
+    e_real_fname="$2"
+    e_type="$3"
+    e_time="$4"
+    e_coordination="$5"
+    e_period="$6"
+    e_prefix="$7"
+    e_id="$8"
+    e_tar_source="$9"
+    descriptor_file=$gwms_exec_dir/"descriptor_file.txt"
 
     if [ ! -f "$descriptor_file" ]; then
         echo "# File: $descriptor_file" > "$descriptor_file"
@@ -37,6 +39,7 @@ add_entry(){
         echo "# Time    OrderedFilename    RealFilename   Type    Period    Prefix    Id" >> "$descriptor_file"
         echo "################################################################################################" >> "$descriptor_file"
     fi
+    # From version 3.11.0
     OLD_IFS=$IFS
     IFS=', ' read -r -a array <<< $e_time
     for time_entry in "${array[@]}"
@@ -50,7 +53,7 @@ add_entry(){
             e_complete_fname="$e_real_fname"
         fi
         echo "${time_entry}    ${e_coordination}_${e_real_fname}    ${e_complete_fname}    ${e_type}    ${e_period}    ${e_prefix}    ${e_id}" >> "$descriptor_file"
-   done
+    done
     IFS=$OLD_IFS
 }
 
@@ -63,8 +66,8 @@ add_entry(){
 extract_entry_files(){
     local target_time descriptor_file
     target_time="$1"
-    descriptor_file="testfile"
-    grep ^$target_time $descriptor_file | sort > ${target_time}_descriptor_file
+    descriptor_file=$gwms_exec_dir/"descriptor_file.txt"
+    grep ^$target_time $descriptor_file | sort > $gwms_exec_dir/${target_time}_descriptor_file.txt
 }
 
 ################################
@@ -137,8 +140,8 @@ custom_scripts(){
             source "${ffb_target_fname}"
             # TODO: what about other library types?
         fi
-    done < ${target_time}_descriptor_file
-    rm -f ${target_time}_descriptor_file
+    done < $gwms_exec_dir/${target_time}_descriptor_file.txt
+    rm -f $gwms_exec_dir/${target_time}_descriptor_file.txt
 }
 
 ################################

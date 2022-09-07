@@ -55,14 +55,6 @@ class VOFrontendParams(cWParams.CommonParams):
         # but there could be exceptions
 
         # Files/Validation/Custom scripts settings for frontend
-        self.file_defaults["after_entry"] = (
-            "True",
-            "Bool",
-            "Should this file be loaded after the factory entry ones?",
-            None,
-        )
-        # TODO(F): remove this one?
-        # Gestisci anche lista, e porta a time con compatibilità in bash, qui no need
 
         # Publishing attr specific to frontend
         self.attr_defaults["type"] = [

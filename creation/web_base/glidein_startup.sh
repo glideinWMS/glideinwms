@@ -511,14 +511,22 @@ _main(){
         # shellcheck disable=2086
         while read -r file
         do
+            # read version number
+            if [ "${file:0:10}" == "# Version:" ]; then
+                OLD_IFS=$IFS
+                IFS=':' read -ra ARR <<< "${file}"
+                version="${ARR[1]}"
+                IFS=$OLD_IFS
+            fi
+            # for each non-comment/non-header line
             if [ "${file:0:1}" != "#" ]; then
                 fetch_file "${gs_id}" $file
-                if [ "${ffb_file_type}" != "wrapper" ] && [ "${ffb_file_type}" != "untar" ] && [ "${ffb_file_type}" != "regular" ]; then
-                    add_entry "$ffb_outname" "$ffb_file_type" "$ffb_time" "$ffb_coordination"  "$ffb_period" "$ffb_cc_prefix" "$gs_id" "$fft_tar_source"
+                # wrappers, tarballs and regular files just need to be downloaded
+                if [ "${ff_file_type}" != "wrapper" ] && [ "${ff_file_type}" != "untar" ] && [ "${ff_file_type}" != "regular" ]; then
+                    add_entry "$ff_real_fname" "$ff_file_type" "$ff_time" "$ff_coordination"  "$ff_period" "$ff_cc_prefix" "$gs_id" "$ff_tar_source"
                 fi
             fi
         done < "${gs_id_work_dir}/${gs_file_list}"
-
 
         # Files to go into the GWMS_PATH
         if [ "$gs_file_id" = "main at_file_list" ]; then
