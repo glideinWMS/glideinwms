@@ -81,8 +81,7 @@ class TestDictFile(unittest.TestCase):
     def test_file_header(self):
         self.assertEqual(None, self.dict_file.file_header(want_comments=False))
         self.assertEqual(
-            "# File: %s\n# Version: %s\n#" % self.dict_file.fname,
-            cWConsts.DICT_FILE_VERSION,
+            f"# File: {self.dict_file.fname}\n# Version: {cWConsts.DICT_FILE_VERSION}\n#",
             self.dict_file.file_header(want_comments=True),
         )
 
