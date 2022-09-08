@@ -31,7 +31,7 @@ add_entry(){
     e_prefix="$6"
     e_id="$7"
     e_tar_source="$8"
-    descriptor_file=$gwms_exec_dir/"descriptor_file.txt"
+    descriptor_file=${gwms_exec_dir}/"descriptor_file.txt"
 
     if [ ! -f "$descriptor_file" ]; then
         echo "# File: $descriptor_file" > "$descriptor_file"
@@ -39,7 +39,6 @@ add_entry(){
         echo "# Time    OrderedFilename    RealFilename   Type    Period    Prefix    Id" >> "$descriptor_file"
         echo "################################################################################################" >> "$descriptor_file"
     fi
-    # From version 3.11.0
     OLD_IFS=$IFS
     IFS=', ' read -r -a array <<< $e_time
     for time_entry in "${array[@]}"
@@ -66,8 +65,8 @@ add_entry(){
 extract_entry_files(){
     local target_time descriptor_file
     target_time="$1"
-    descriptor_file=$gwms_exec_dir/"descriptor_file.txt"
-    grep ^$target_time $descriptor_file | sort > $gwms_exec_dir/${target_time}_descriptor_file.txt
+    descriptor_file=${gwms_exec_dir}/"descriptor_file.txt"
+    grep ^$target_time $descriptor_file | sort > "${gwms_exec_dir}/${target_time}_descriptor_file.txt"
 }
 
 ################################
@@ -140,8 +139,8 @@ custom_scripts(){
             source "${ffb_target_fname}"
             # TODO: what about other library types?
         fi
-    done < $gwms_exec_dir/${target_time}_descriptor_file.txt
-    rm -f $gwms_exec_dir/${target_time}_descriptor_file.txt
+    done < "${gwms_exec_dir}/${target_time}_descriptor_file.txt"
+    rm -f "${gwms_exec_dir}/${target_time}_descriptor_file.txt"
 }
 
 ################################

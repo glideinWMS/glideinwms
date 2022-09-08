@@ -288,11 +288,11 @@ class FileElement(DictElement):
         self.check_boolean("source")
         self.check_boolean("library")
 
-        is_exec = eval(self["executable"])
-        is_wrapper = eval(self["wrapper"])
-        is_tar = eval(self["untar"])
-        is_source = eval(self["source"])
-        is_library = eval(self["library"])
+        is_exec = eval(self["executable"]) or self["type"] == "exec"
+        is_wrapper = eval(self["wrapper"]) or self["type"] == "wrapper"
+        is_tar = eval(self["untar"]) or self["type"] == "untar"
+        is_source = eval(self["source"]) or self["type"] == "source"
+        is_library = eval(self["library"]) or self["type"] == "library"
 
         try:
             period = int(self["period"])

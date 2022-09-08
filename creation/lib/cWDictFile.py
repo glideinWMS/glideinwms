@@ -1080,7 +1080,7 @@ class FileDictFile(SimpleFileDictFile):
         prefix="GLIDEIN_PS_",
         time="no_time",
         period=0,
-        priority=0,
+        priority=0,  # executed first
         cond_download="TRUE",
         tar_source="NULL",
         config_out="FALSE",
@@ -1290,40 +1290,14 @@ class FileDictFile(SimpleFileDictFile):
                 # For upgrade from 3.2.13 to 3.2.11
                 return self.add(
                     arr[0],
-                    [
-                        arr[1],
-                        arr[2],
-                        "GLIDEIN_PS_",
-                        arr[3],
-                        arr[4],
-                        arr[5],
-                        arr[6],
-                        arr[7],
-                        arr[8],
-                        arr[9],
-                        arr[10],
-                        arr[11],
-                    ],
+                    [arr[1], arr[2], "GLIDEIN_PS_", arr[3], arr[4], arr[5], arr[6], arr[7], arr[8], arr[9], arr[10]],
                 )
             # 3.2.10 (no period, prefix): key, fname, type, cond_download, config_out
             elif len(arr) == self.DATA_LENGTH - 2:
                 # For upgrade from 3.2.10 or earlier
                 return self.add(
                     arr[0],
-                    [
-                        arr[1],
-                        arr[2],
-                        "GLIDEIN_PS_",
-                        arr[3],
-                        0,
-                        arr[4],
-                        arr[5],
-                        arr[6],
-                        arr[7],
-                        arr[8],
-                        arr[9],
-                        arr[10],
-                    ],
+                    [arr[1], arr[2], "GLIDEIN_PS_", arr[3], 0, arr[4], arr[5], arr[6], arr[7], arr[8], arr[9]],
                 )
             raise RuntimeError(
                 "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)

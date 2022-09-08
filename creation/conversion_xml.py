@@ -14,7 +14,6 @@ def convert(xml_file):
     with open(xml_file, encoding="latin-1") as f:
         tree = ET.parse(f)
         for elem in tree.findall("file"):
-            print(elem)
             try:
                 if "after_entry" in elem.attrib or "after_group" in elem.attrib:
                     if elem.attrib.get("after_entry") == "True":
@@ -64,9 +63,7 @@ def convert(xml_file):
 
                 if elem.attrib.get("type") == "untar":
                     for child in elem:
-                        print(child)
                         if child.tag == "untar_options":
-                            print("yes")
                             elem.attrib["cond_attr"] = child.attrib["cond_attr"]
                             elem.attrib["absdir_outattr"] = child.attrib["absdir_outattr"]
                             elem.attrib["type"] = "untar:" + child.attrib["dir"]
