@@ -190,7 +190,6 @@ fetch_file() {
         # For compatibility w/ future versions (add new parameters at the end)
          echo "More then 13 arguments, considering the first 13 ($#/${ifs_str}): $*" 1>&2
     fi
-    # TODO: consider to remove considering the current versions
     if [[ $version < "031100" ]]; then
             if [ $# -eq 7 ]; then
                 #TODO: remove in version 3.3
@@ -285,10 +284,8 @@ fetch_file_try() {
     # absdir_outattr - Name of a variable name. (like "KRB5_SUBSYS_DIR")
     # The variable will be set to the absolute path of the file if the file is not a tarball
     # or the directory where the tarball was unpacked in case it is a tarball,
-    # this last thing if and only if the unpacking actually happened (else it will not be defined.)
-
     if [[ "${fft_absdir}" != "NULL" ]]; then
-        eval ${fft_absdir}="fft_real_fname"
+        eval ${fft_absdir}="$fft_real_fname"
     fi
 
     # if contained in a tarball, do not download
@@ -296,8 +293,10 @@ fetch_file_try() {
         return 0
     fi
 
-    # if fft_config_check is not TRUE or the variable pointed by fft_cond_attr (if any) is not TRUE, do not download (and operator between the two)
-    if [[ "${fft_config_check}" != "TRUE" || ("${fft_cond_attr}" != "NULL" && "${!fft_cond_attr}" != "TRUE") ]]; then
+    # if fft_config_check is not TRUE and the variable pointed by fft_cond_attr (if any) is not TRUE, do not download (AND operator between the two)
+    # this operator has been chosen instead of the OR one, since most of the times fft_cond_attr may not be set (default NULL)
+    # so the file would not be downloaded if the OR operator would have been chosen
+    if [[ "${fft_config_check}" != "TRUE" && ("${fft_cond_attr}" != "NULL" && "${!fft_cond_attr}" != "TRUE") ]]; then
         # TRUE is a special case, always be downloaded and processed
         fft_get_ss=$(grep -i "^${fft_config_check} " glidein_config | cut -d ' ' -f 2-)
         # Stop download and processing if the cond_attr variable is not defined or has a value different from 1
@@ -407,7 +406,6 @@ fetch_file_base() {
     #with env http_proxy=$proxy_url set if proxy_url != "None"
     #
     #construct curl equivalent so we can try either
-
     wget_args=("${ffb_url}" "--user-agent" "wget/${user_agent}"  "--quiet"  "--output-document" "${ffb_tmp_outname}" )
     curl_args=("${ffb_url}" "--user-agent" "curl/${user_agent}" "--silent"  "--show-error" "--output" "${ffb_tmp_outname}")
 
@@ -468,7 +466,8 @@ fetch_file_base() {
         fi
     fi
 
-    # if startup and executable, execute
+    # if time = startup and executable or source or library file, execute/source the file
+    # we perform this operation here since it may alter the need to download another file, so we execute before downloading other files
     if [[ "${ffb_time}" = "startup" ]]; then
         if [[ "${ffb_file_type}" = "exec" || "${ffb_file_type}" = "exec:"* ]]; then
             if ! chmod u+x "${ffb_outname}"; then
@@ -513,6 +512,9 @@ fetch_file_base() {
                     fi
                 fi
             fi
+        elif [[ "${ffb_file_type}" = "source"  || "${ffb_file_type}" = "library:shell" ]]; then
+            source "${ffb_target_fname}"
+            # TODO: what about other library types?
         fi
     fi
     # handle wrapper or untar files regardless of the moment
@@ -707,7 +709,6 @@ perform_curl() {
         xmlResult+=$result
         echo -e "$xmlResult" > otrb_output.xml
         log_warn "Failed to load file '${ffb_real_fname}' from '${ffb_repository}'."
-
         if [ -f otr_outlist.list ]; then
             chmod u+w otr_outlist.list
         else

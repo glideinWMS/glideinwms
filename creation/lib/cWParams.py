@@ -497,6 +497,18 @@ class CommonParams(Params):
             "Is this a wrapper script that needs to be sourced in the glidein job wrapper?",
             None,
         )
+        self.file_defaults["source"] = (
+            "False",
+            "Bool",
+            "Is this a source script that needs to be sourced in the glidein?",
+            None,
+        )
+        self.file_defaults["library"] = (
+            "False",
+            "Bool",
+            "Is this a library script that needs to be sourced in the glidein?",
+            None,
+        )
         self.file_defaults["untar"] = ("False", "Bool", "Do I need to untar it? ", None)
         self.file_defaults["prefix"] = ("GLIDEIN_PS_", "string", "Prefix used for periodic jobs (STARTD_CRON).", None)
         self.file_defaults["type"] = (
@@ -524,8 +536,14 @@ class CommonParams(Params):
             "Specify the tar source where the file is contained.",
             None,
         )
-        self.file_defaults["cond_attr"] = (
+        self.file_defaults["cond_download"] = (
             "TRUE",
+            "boolean",
+            "Download the file if set to true",
+            None,
+        )
+        self.file_defaults["cond_attr"] = (
+            "NULL",
             "attrname",
             "If not the special value TRUE, the attribute name used at runtime to determine if the file should be untarred or not.",
             None,

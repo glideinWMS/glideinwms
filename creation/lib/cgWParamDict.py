@@ -979,8 +979,8 @@ def add_file_unparsed(user_file, dicts, is_factory):
     absdir_outattr = user_file.absdir_outattr
 
     file_list_idx = "file_list"
-    if "after_entry" in user_file:
-        if eval(user_file["after_entry"]):
+    if "priority" in user_file:
+        if user_file.priority >= 60:
             file_list_idx = "after_file_list"
 
     if is_executable:  # a script
@@ -992,13 +992,18 @@ def add_file_unparsed(user_file, dicts, is_factory):
             raise RuntimeError("A wrapper file cannot be an executable: %s" % user_file)
         file_type = "exec"
         if user_file.type:
-            if user_file.type == "run:s" or user_file.type == "run:singularity":
+            if (
+                user_file.type == "exec:s"
+                or user_file.type == "exec:singularity"
+                or user_file.type == "run:s"
+                or user_file.type == "run:singularity"
+            ):
                 if file_list_idx.endswith("preentry_file_list"):
                     raise RuntimeError("An executable cannot use singularity before the entry setup: %s" % user_file)
                 file_type = "exec:s"
             else:
-                if not user_file.type.startswith("run"):
-                    raise RuntimeError("An executable file type must start with 'run': $s" % user_file)
+                if not user_file.type.startswith("run") and not user_file.type.startswith("exec"):
+                    raise RuntimeError("An executable file type must start with 'run' or 'exec': $s" % user_file)
         dicts[file_list_idx].add_from_file(
             relfname,
             cWDictFile.FileDictFile.make_val_tuple(
@@ -1012,6 +1017,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
                 tar_source,
                 config_out,
                 cond_attr,
+                absdir_outattr,
             ),
             absfname,
         )
@@ -1030,7 +1036,13 @@ def add_file_unparsed(user_file, dicts, is_factory):
         dicts[file_list_idx].add_from_file(
             relfname,
             cWDictFile.FileDictFile.make_val_tuple(
-                cWConsts.insert_timestr(relfname), "wrapper", tar_source=user_file.tar_source
+                cWConsts.insert_timestr(relfname),
+                "wrapper",
+                tar_source=user_file.tar_source,
+                cond_download=cond_download,
+                config_out=config_out,
+                cond_attr=cond_attr,
+                absdir_outattr=absdir_outattr,
             ),
             absfname,
         )
@@ -1049,6 +1061,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
         wnsubdir = user_file.type.split(":")[1]
         if wnsubdir is None:
             wnsubdir = relfname  # default is relfname up to the first
+        # TODO(F): should it be absfname instead?
 
         dicts[file_list_idx].add_from_file(
             relfname,
@@ -1058,7 +1071,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
                 cond_download=cond_download,
                 config_out=config_out,
                 cond_attr=cond_attr,
-                absdir_outattr=wnsubdir,
+                absdir_outattr=absdir_outattr,
             ),
             absfname,
         )
@@ -1074,10 +1087,19 @@ def add_file_unparsed(user_file, dicts, is_factory):
             raise RuntimeError("A source file cannot be periodic: %s" % user_file)
         if is_library:
             raise RuntimeError("A source file cannot be a library: %s" % user_file)
+
         dicts[file_list_idx].add_from_file(
             relfname,
             cWDictFile.FileDictFile.make_val_tuple(
-                cWConsts.insert_timestr(relfname), "source", tar_source=tar_source, time=time, priority=priority
+                cWConsts.insert_timestr(relfname),
+                "source",
+                tar_source=tar_source,
+                time=time,
+                priority=priority,
+                cond_download=cond_download,
+                config_out=config_out,
+                cond_attr=cond_attr,
+                absdir_outattr=absdir_outattr,
             ),
             absfname,
         )
@@ -1093,13 +1115,21 @@ def add_file_unparsed(user_file, dicts, is_factory):
         dicts[file_list_idx].add_from_file(
             relfname,
             cWDictFile.FileDictFile.make_val_tuple(
-                cWConsts.insert_timestr(relfname), user_file.type, tar_source=tar_source, time=time, priority=priority
+                cWConsts.insert_timestr(relfname),
+                user_file.type,
+                tar_source=tar_source,
+                time=time,
+                priority=priority,
+                cond_download=cond_download,
+                config_out=config_out,
+                cond_attr=cond_attr,
+                absdir_outattr=absdir_outattr,
             ),
             absfname,
         )
         # user_file.type can be library:x
 
-    else:  # not executable nor tarball => simple file
+    else:  # simple file
         if is_const:
             val = "regular"
             dicts[file_list_idx].add_from_file(

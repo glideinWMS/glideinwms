@@ -509,9 +509,13 @@ _main(){
         # Fetch files contained in list
         # TODO: $file is actually a list, so it cannot be doublequoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
         # shellcheck disable=2086
+
+        # by default, old version
+        version="030900"
+
         while read -r file
         do
-            # read version number
+            # read version number if present
             if [ "${file:0:10}" == "# Version:" ]; then
                 OLD_IFS=$IFS
                 IFS=':' read -ra ARR <<< "${file}"
@@ -522,6 +526,7 @@ _main(){
             if [ "${file:0:1}" != "#" ]; then
                 fetch_file "${gs_id}" $file
                 # wrappers, tarballs and regular files just need to be downloaded
+                # tar files are unpacked but not used after, wrapper files are added to wrapper_list
                 if [ "${ff_file_type}" != "wrapper" ] && [ "${ff_file_type}" != "untar" ] && [ "${ff_file_type}" != "regular" ]; then
                     add_entry "$ff_real_fname" "$ff_file_type" "$ff_time" "$ff_coordination"  "$ff_period" "$ff_cc_prefix" "$gs_id" "$ff_tar_source"
                 fi
