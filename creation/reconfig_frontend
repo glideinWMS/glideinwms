@@ -197,11 +197,14 @@ if __name__ == "__main__":
     if p3_compatible:
         print2("The configuration is compatible with Python 3")
     else:
-        print2("The configuration is not compatible with Python 3")
-        for element in report:
-            if not element["valid"]:
-                print2(f"...{element['type']} at {element['location']}:")
-                print2(f"\t{element['error']}")
+        if isinstance(report, list):
+            print2("The configuration is not compatible with Python 3")
+            for element in report:
+                if not element["valid"]:
+                    print2(f"...{element['type']} at {element['location']}:")
+                    print2(f"\t{element['error']}")
+        else:
+            print2(f"Bad configuration file: {report}")
         sys.exit(1)
 
     try:

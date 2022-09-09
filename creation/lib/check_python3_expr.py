@@ -3,16 +3,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
 # Description:
 #   Validate expressions in frontend.xml for compatibility with Python 3
-#
-# Author:
-#   Bruno Coimbra
-#
 
 import argparse
 import ast
@@ -58,7 +50,9 @@ def check_types(expression, factory_attrs, job_attrs):
     """Validates the types of match_attrs in a match_expr.
 
     Args:
-        code (str): Code to validate.
+        expression (str): Code to validate.
+        factory_attrs:
+        job_attrs:
 
     Returns:
         str: None if code is valid. Error message if the code is invalid.
@@ -68,8 +62,8 @@ def check_types(expression, factory_attrs, job_attrs):
     default_value = {"string": "", "int": 0, "real": 0.0, "bool": False, "Expr": ""}
 
     try:
-        job = {attr: default_value[type] for (attr, type) in job_attrs}
-        glidein = {"attrs": {attr: default_value[type] for (attr, type) in factory_attrs}}
+        job = {attr: default_value[a_type] for (attr, a_type) in job_attrs}
+        glidein = {"attrs": {attr: default_value[a_type] for (attr, a_type) in factory_attrs}}
     except KeyError as e:
         return f"Invalid match_attr type: {e.args[0]}"
 
@@ -87,8 +81,8 @@ def check_2to3(code, patch=False, refactoring_tool=rt):
     """Evaluates an expression using 2to3 and returns refactoring suggestions.
 
     Args:
-        expr (str): Expression to evaluate.
-        diff (bool): If True, returns a patch with the suggested changes.
+        code (str): Code to evaluate.
+        patch (bool): If True, returns a patch with the suggested changes.
         refactoring_tool (RefactoringTool): Used to by 2to3 to evaluate the expression.
 
     Returns:
@@ -188,6 +182,8 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
     Args:
         config_file (str): Path to the frontend configuration file.
         enforce_2to3 (bool, optional): Treats 2to3 suggestions as errors. Defaults to False.
+        silent (bool, optional):
+        refactoring_tool (RefactoringTool): Used to by 2to3 to evaluate the expression
 
     Returns:
         bool: True if the file is valid and False otherwise.
@@ -208,9 +204,9 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
     try:
         tree = ET.parse(config_file)
     except OSError:
-        return "Config file not readable: %s" % config_file
+        return False, "Config file not readable: %s" % config_file
     except:
-        return "Error parsing config file: %s" % config_file
+        return False, "Error parsing config file: %s" % config_file
 
     # Recursively finds all <match> elements in the XML
     for element in findall_path(tree.getroot(), "match"):
@@ -258,6 +254,7 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
             location = f"{element.parent.data.tag} {element_name(element.parent.data)}"
             _log(f'\n\nEvaluating policy file "{path}"\n', silent)
             _log(f"at {location}\n", silent)
+            result = {}
             try:
                 text = open(path).read()
             except FileNotFoundError as e:
@@ -267,7 +264,6 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
                 result["error"] = error
                 passed = False
                 continue
-            result = {}
             result["type"] = "policy_file"
             result["value"] = path
             result["location"] = location
@@ -313,10 +309,13 @@ if __name__ == "__main__":
     else:
         config_file = CONFIG_FILE
 
-    passed, _ = main(config_file, args.enforce_2to3, args.silent)
-    if passed:
+    main_passed, res = main(config_file, args.enforce_2to3, args.silent)
+    if main_passed:
         _log("\n\nPassed (configuration compatible with python3)\n", args.silent)
         exit(0)
     else:
-        _log("\n\nFailed (invalid python3 in configuration)\n", args.silent)
+        if isinstance(res, list):
+            _log("\n\nFailed (invalid python3 in configuration)\n", args.silent)
+        else:
+            _log("\n\nFailed (invalid configuration: %s)\n" % res, args.silent)
         exit(1)
