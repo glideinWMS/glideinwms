@@ -92,8 +92,8 @@
       <collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=fermicloud312.fnal.gov" group="default" node="fermicloud312.fnal.gov:9620-9630" secondary="True"/>
    </collectors>
    <files>
-    <file absfname="fixtures/frontend/web-base/frontend/default_singularity_wrapper.sh" priority="60"  const="True" type="wrapper" prefix="GLIDEIN_PS_" />
-    <file absfname="fixtures/frontend/web-base/file1.sh" priority="60" const="True" type="executable" prefix="GLIDEIN_PS_" />
-    <file absfname="fixtures/frontend/web-base/short_singularity.sh" priority="60" const="True" type="executable=" prefix="GLIDEIN_PS_"  />
+    <file absfname="fixtures/frontend/web-base/frontend/default_singularity_wrapper.sh" after_entry="True" after_group="False" const="True" executable="False" period="0" prefix="GLIDEIN_PS_" untar="False" wrapper="True" />
+    <file absfname="fixtures/frontend/web-base/file1.sh" after_entry="True" after_group="False" const="True" executable="True" period="0" prefix="GLIDEIN_PS_" untar="False" wrapper="False" />
+    <file absfname="fixtures/frontend/web-base/short_singularity.sh" after_entry="True" after_group="False" const="True" executable="True" period="0" prefix="GLIDEIN_PS_"  untar="False" wrapper="False" />
    </files>
 </frontend>

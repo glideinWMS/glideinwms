@@ -20,7 +20,7 @@ import tempfile
 # from glideinwms.creation.lib import cWConsts
 # from glideinwms.creation.lib import cgWParams
 # from glideinwms.creation.lib import cgWDictFile
-from glideinwms.creation.lib import cgWConsts, cgWCreate, cgWParamDict, factoryXmlConfig, xslt
+from glideinwms.creation.lib import cgWConsts, cgWCreate, cgWParamDict, conversion_xml, factoryXmlConfig, xslt
 from glideinwms.factory import glideFactoryConfig, glideFactoryLib, glideFactoryMonitorAggregator
 from glideinwms.lib import logSupport
 from glideinwms.lib.util import handle_hooks, HOOK_POST_RECONFIG_DIRNAME, HOOK_PRE_RECONFIG_DIRNAME
@@ -225,10 +225,6 @@ if __name__ == "__main__":
             "NOTE: Executing reconfig_glidein as user 'root' is not allowed. Use the factory user instead. For rpm based installations, use the 'service gwms-factory <start|stop|reconfig|...>' command to perform gwms-factory operations"
         )
 
-    # if is_old_version("glideinWMS.xml"):
-    #    print2("The xml file seems to be outdated. Consider to convert the structure to version 3.11.0")
-    #    sys.exit(1)
-
     force_name = None
     writeback = "no"
     update_scripts = "no"
@@ -312,6 +308,11 @@ if __name__ == "__main__":
     except RuntimeError as e:
         print2(e)
         exit_code = 1
+
+    # check the version of the xml file
+    if conversion_xml.is_old_version(xml):
+        print2("The xml file seems to be outdated. Consider to convert the structure to version 3.11.0")
+        sys.exit(1)
 
     handle_hooks(os.path.dirname(os.path.abspath(xml)), HOOK_POST_RECONFIG_DIRNAME)
 

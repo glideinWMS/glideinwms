@@ -922,13 +922,13 @@ def add_file_unparsed(user_file, dicts, is_factory):
         relfname = user_file["relfname"]
 
     is_const = eval(user_file["const"])
-    is_executable = eval(user_file["executable"]) or (user_file.type.startswith("exec"))
-    is_wrapper = eval(user_file["wrapper"]) or (user_file.type == "wrapper")
-    do_untar = eval(user_file["untar"]) or (user_file.type.startswith("untar"))
+    is_executable = user_file.type.startswith("exec") or user_file.type.startswith("run")
+    is_wrapper = user_file.type == "wrapper"
+    do_untar = user_file.type.startswith("untar")
     is_const = is_true(user_file.const)
-    is_source = eval(user_file["source"]) or user_file.type.startswith("source")
-    is_library = eval(user_file["library"]) or user_file.type.startswith("library")
-    is_periodic = user_file.type.startswith("periodic")
+    is_source = user_file.type.startswith("source")
+    is_library = user_file.type.startswith("library")
+    is_periodic = user_file.time.startswith("periodic")
 
     time = user_file.time
     if is_executable or is_source or is_library:

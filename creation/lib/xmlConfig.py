@@ -282,20 +282,17 @@ class FileElement(DictElement):
             raise RuntimeError(self.err_str("relfname cannot be empty"))
 
         self.check_boolean("const")
-        self.check_boolean("executable")
-        self.check_boolean("wrapper")
-        self.check_boolean("untar")
-        self.check_boolean("source")
-        self.check_boolean("library")
 
-        is_exec = eval(self["executable"]) or self["type"] == "exec"
-        is_wrapper = eval(self["wrapper"]) or self["type"] == "wrapper"
-        is_tar = eval(self["untar"]) or self["type"] == "untar"
-        is_source = eval(self["source"]) or self["type"] == "source"
-        is_library = eval(self["library"]) or self["type"] == "library"
+        is_exec = self["type"].startswith("exec") or self["type"].startswith("run")
+        is_wrapper = self["type"] == "wrapper"
+        is_tar = self["type"] == "untar"
+        is_source = self["type"].startswith("source")
+        is_library = self["type"] == "library"
+        is_periodic = self["time"].startswith("periodic")
 
         try:
-            period = int(self["period"])
+            if is_periodic:
+                period = int(self["time"].split(":")[1])
         except ValueError:
             raise RuntimeError(self.err_str("period must be an int"))
 
@@ -324,7 +321,7 @@ class FileElement(DictElement):
 
         if (is_exec or is_wrapper or is_tar) and not eval(self["const"]):
             raise RuntimeError(self.err_str('type "executable", "wrapper", or "untar" requires const="True"'))
-        if not is_exec and period > 0:
+        if not is_exec and is_periodic:
             raise RuntimeError(self.err_str('cannot have execution period if type is not "executable"'))
 
 
