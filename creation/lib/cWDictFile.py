@@ -1198,16 +1198,6 @@ class FileDictFile(SimpleFileDictFile):
                 # since the other functions from base class know nothing about placeholders, need to force overwrite
                 allow_overwrite = True
 
-        # This will help identify calls not migrated to the new format
-        # TODO: check parameters!!
-        try:
-            int(val[2])  # to check if is integer. Period must be int or convertible to int
-        except (ValueError, IndexError):
-            raise DictFileError(
-                "Values '%s' not (real_fname,cache/exec,prefix,time,priority,cond_download,tar_source,config_out,cond_attr,absdir_outattr)"
-                % val
-            )
-
         if len(val) == self.DATA_LENGTH:
             # Alt: return self.add_from_str(key, val[:self.DATA_LENGTH-1], val[self.DATA_LENGTH-1], allow_overwrite)
             return DictFile.add(self, key, tuple(val), allow_overwrite)

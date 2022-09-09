@@ -40,7 +40,7 @@ def has_file_wrapper_params(file_params):
     # file_params is the list in a files section (global o group): each one is a file specification
     # If there is one wrapper return true
     for user_file in file_params:
-        if is_true(user_file.wrapper):
+        if user_file.type == "wrapper":
             return True
     return False
 
@@ -81,23 +81,23 @@ def add_file_unparsed(user_file, dicts, is_factory):
             and not time.startswith("periodic:")
             and not time.startswith("milestone:")
             and not time.startswith("failure:")
-            and not time.startswith("no_time:")
+            and not time.startswith("no_time")
         ):
             # we use startswith since we may have combination of time phases (e.g. startup, cleanup)
             raise RuntimeError("The file does not have a valid time phase value: %s" % user_file)
 
     try:
         if user_file.is_periodic:
-            period_value = int(user_file.time.split(":")[1])
+            period = int(user_file.time.split(":")[1])
         else:
-            period_value = 0
+            period = 0
     except (AttributeError, KeyError, ValueError, TypeError):
-        period_value = 1000  # default 1000ms
+        period = 1000  # default 1000ms
 
     if is_periodic and not is_executable:
         raise RuntimeError("A file cannot have an execution period if it is not executable: %s" % user_file)
 
-    priority = user_file.priority
+    priority = int(user_file.priority)
     if priority < 0 or priority > 99:
         raise RuntimeError("Priority value out of the range [0,99]: %s" % user_file)
 
@@ -109,9 +109,13 @@ def add_file_unparsed(user_file, dicts, is_factory):
     if tar_source is None:
         tar_source = "NULL"
 
-    config_out = user_file.config_out
-    if config_out is None:
+    try:
+        config_out = user_file.config_out
+        if config_out is None:
+            config_out = "FALSE"     
+    except (AttributeError, KeyError, ValueError, TypeError):
         config_out = "FALSE"
+
     cond_attr = user_file.cond_attr
 
     absdir_outattr = user_file.absdir_outattr
@@ -120,15 +124,15 @@ def add_file_unparsed(user_file, dicts, is_factory):
         # Factory (file_list, after_file_list)
         file_list_idx = "file_list"
         if "priority" in user_file:
-            if user_file.priority >= 60:
+            if priority >= 60:
                 file_list_idx = "after_file_list"
     else:
         # Frontend (preentry_file_list, file_list, aftergroup_preentry_file_list, aftergroup_file_list)
         file_list_idx = "preentry_file_list"
         if "priority" in user_file:
-            if user_file.priority >= 80:
+            if priority >= 80:
                 file_list_idx = "aftergroup_%s" % file_list_idx
-            elif user_file.priority >= 60:
+            elif priority >= 60:
                 file_list_idx = "file_list"
 
     if is_executable:  # a script
