@@ -26,9 +26,11 @@ from . import cgWConsts, cgWCreate, cgWDictFile, cWConsts, cWDictFile, cWExpand,
 # why this is commented out for now
 #
 # from cWParamDict import is_true, add_file_unparsed
-from cWParamDict import is_true
 # from factoryXmlConfig import EntrySetElement
 
+def is_true(s):
+    """Case insensitive string parsing helper. Return True for true (case insensitive matching), False otherwise."""
+    return type(s) == str and s.lower() == "true"
 
 class UnconfiguredScheddError(Exception):
     def __init__(self, schedd):
