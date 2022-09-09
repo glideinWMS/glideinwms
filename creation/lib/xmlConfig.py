@@ -314,14 +314,14 @@ class FileElement(DictElement):
         self.check_boolean("cond_download")
         self.check_boolean("config_out")
 
-        if is_exec + is_wrapper + is_tar + is_source + is_library > 1:
+        if is_executable + is_wrapper + is_tar + is_source + is_library > 1:
             raise RuntimeError(
                 self.err_str('must be exactly one of type "executable", "wrapper", "untar", "library" or "source"')
             )
 
-        if (is_exec or is_wrapper or is_tar) and not eval(self["const"]):
+        if (is_executable or is_wrapper or is_tar) and not eval(self["const"]):
             raise RuntimeError(self.err_str('type "executable", "wrapper", or "untar" requires const="True"'))
-        if not is_exec and is_periodic:
+        if not is_executable and is_periodic:
             raise RuntimeError(self.err_str('cannot have execution period if type is not "executable"'))
 
 
