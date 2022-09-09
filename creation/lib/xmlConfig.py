@@ -327,7 +327,6 @@ class FileElement(DictElement):
 
 TAG_CLASS_MAPPING.update({"file": FileElement})
 
-
 #######################
 #
 # Module functions

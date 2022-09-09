@@ -142,7 +142,7 @@ SPDX-License-Identifier: Apache-2.0
           configuration file as being executable (see the
           <a href="configuration.html#custom_code">attributes description</a>):
         </p>
-        <blockquote>executable=&quot;True&quot;</blockquote>
+        <blockquote>type="executable"</blockquote>
         <p>
           By default the files listed are non executable, so an administrator
           needs explicitly list the executable ones.
@@ -152,7 +152,7 @@ SPDX-License-Identifier: Apache-2.0
           Periodic scripts are invoked also later, repeatedly according to the
           period specified (in seconds):
         </p>
-        <blockquote>period=&quot;3600&quot;</blockquote>
+        <blockquote>time="periodic:period"</blockquote>
         <p>
           Periodic script can know if they are run at setup or later by looking
           at the GLIDEIN_PERIODIC_SCRIPT environment variable, which is set only
@@ -533,7 +533,10 @@ MAX_STARTD_LOG          I       10000000        +                               
           user scripts are the ones listed in the Factory and Frontend
           configuration files. First all files are downloaded, then the scripts
           are executed. Both the download and the first invocation follow the
-          same order in six distinct stages:
+          same order in distinct stages according to the priority value (ranging
+          in [0,99]). Priority integer values are associated to each phase.
+          Intermediate values among multiples of 10 can be used if needed to
+          have a more flexible choice on the moment of execution.
         </p>
         <!--
 main (Factory main):
@@ -569,45 +572,38 @@ Order:
           </li>
           <li>
             <p>
-              The user provided global files are loaded and user scripts are
-              executed. First the Factory ones, then the Frontend ones (i.e. all
-              the ones that have <tt>after_entry=&quot;False&quot;</tt>. False
-              is the default for the Factory scripts, True for the Frontend
-              ones). The (pre-entry) Frontend scripts are executed in the
-              following order: pre-group scripts (in global config with
-              <tt>after_group=&quot;False&quot;</tt>, which is the default),
-              group scripts and after-group (i.e.
-              <tt>after_group=&quot;True&quot;</tt>).
+              Factory pre-entry: e-[g-] OR 10. The pre-entry factory user
+              provided global files are loaded and user scripts are executed.
             </p>
           </li>
-
           <li>
             <p>
-              The entry specific attributes are loaded and entry specific system
-              scripts executed.
+              The frontend pre_entry user provided global files are loaded and
+              user scripts are executed. The (pre-entry) Frontend scripts are
+              executed in the following order: pre-group scripts (e-g- OR 20),
+              group scripts (e-g= OR 30) and after-group scripts (e-g+ OR 40).
             </p>
           </li>
-
           <li>
             <p>
-              The user provided entry specific files are loaded and entry
-              specific user scripts are executed.
+              Entry: e=[g-,g+,g=] OR 50. The user provided entry specific files
+              are loaded and entry specific user scripts are executed.
             </p>
           </li>
-
           <li>
             <p>
-              The after_entry user provided global files are loaded and
-              after_entry user scripts are executed. First the Frontend ones,
-              then the Factory ones (i.e. all the ones that have set
-              <tt>after_entry=&quot;True&quot;</tt>). The (after-entry) Frontend
-              scripts are executed in the following order: pre-group scripts (in
-              global config with <tt>after_group=&quot;False&quot;</tt>, which
-              is the default), group scripts and after-group (i.e.
-              <tt>after_group=&quot;True&quot;</tt>).
+              The frontend after_entry user provided global files are loaded and
+              user scripts are executed. The (after-entry) Frontend scripts are
+              executed in the following order: pre-group scripts (e+g- OR 60),
+              group scripts (e+g= OR 70) and after-group scripts (e+g+ OR 80).
             </p>
           </li>
-
+          <li>
+            <p>
+              Factory after-entry: e+[g+] OR 90. The factory after_entry user
+              provided global files are loaded and user scripts are executed.
+            </p>
+          </li>
           <li>
             <p>
               Final global system scripts are executed and the HTCondor daemons
@@ -618,11 +614,9 @@ Order:
 
         <p>
           The Glidein Factory configuration allows an administrator to specify
-          the files/scripts mentioned in points 2, 4 and 5. <br />
-          <tt>after_entry</tt> and <tt>after_group</tt> allow to set the
-          belonging to one group or the other.<br />
-          Within a group the files/scripts are loaded/executed in the order in
-          which they are specified in the configuration file.
+          the files/scripts mentioned in points 2, 4 and 6. <br />
+          Within a time phase the files/scripts are loaded/executed in the order
+          of priority, and in case of parity the lexicographic order is used.
         </p>
 
         <p>
