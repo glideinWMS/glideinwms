@@ -64,7 +64,9 @@ def add_file_unparsed(user_file, dicts, is_factory):
         raise RuntimeError("Found a file element with an empty relfname: %s" % user_file)
 
     is_const = is_true(user_file.const)
-    is_executable = user_file.type.startswith("exec") or user_file.type.startswith("run")
+    is_executable = (
+        user_file.type.startswith("exec") or user_file.type.startswith("run") or user_file.type.startswith("executable")
+    )
     is_wrapper = user_file.type == "wrapper"
     is_source = user_file.type.startswith("source")
     is_library = user_file.type.startswith("library")
@@ -92,7 +94,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
         else:
             period = 0
     except (AttributeError, KeyError, ValueError, TypeError):
-        period = 1000  # default 1000ms
+        period = 60  # default 60s
 
     if is_periodic and not is_executable:
         raise RuntimeError("A file cannot have an execution period if it is not executable: %s" % user_file)
@@ -112,7 +114,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
     try:
         config_out = user_file.config_out
         if config_out is None:
-            config_out = "FALSE"     
+            config_out = "FALSE"
     except (AttributeError, KeyError, ValueError, TypeError):
         config_out = "FALSE"
 
@@ -150,12 +152,18 @@ def add_file_unparsed(user_file, dicts, is_factory):
                 or user_file.type == "exec:singularity"
                 or user_file.type == "run:s"
                 or user_file.type == "run:singularity"
+                or user_file.type == "executable:s"
+                or user_file.type == "executable:singularity"
             ):
                 if file_list_idx.endswith("preentry_file_list"):
                     raise RuntimeError("An executable cannot use singularity before the entry setup: %s" % user_file)
                 file_type = "exec:s"
             else:
-                if not user_file.type.startswith("run") and not user_file.type.startswith("exec"):
+                if (
+                    not user_file.type.startswith("run")
+                    and not user_file.type.startswith("exec")
+                    and not user_file.type.startswith("executable")
+                ):
                     raise RuntimeError("An executable file type must start with 'run' or 'exec': $s" % user_file)
         dicts[file_list_idx].add_from_file(
             relfname,

@@ -1002,18 +1002,18 @@ class FileDictFile(SimpleFileDictFile):
     2. cache/exec/... keyword identifying the file type:
         -   regular
         -   nocache
-        -   exec (:s modifier to run in singularity)
+        -   executable (:s modifier to run in singularity)
         -   untar (if a modifier is present, it will be the name of the directory where the tarball will be unpacked, the name of the tarball will be used otherwise)
         -   wrapper
         -   source
         -   library (:shell in case of a shell library)
     3. prefix startd_cron variables prefix (default is GLIDEIN_PS_)
-    4. time - phase of the lifecycle where to execute/source the script:
+    4. time - phase of the lifecycle when to execute/source the scripts:
         -   startup
         -   pre_job
         -   after_job
         -   cleanup
-        -   periodic (:period will specify the period in ms, 1000 by default)
+        -   periodic (:period will specify the period in seconds, 60 by default)
         -   milestone (:code will specify the milestone code)
         -   failure (:exit_code will specify the failure code)
        Time will be ignored for files when type is different than exec or source.
@@ -1033,12 +1033,12 @@ class FileDictFile(SimpleFileDictFile):
         Factory after_entry                 e+[g+]                          90
        A custom value inside the range [0-99] can be specified in order to alter the order of execution.
     7. cond_download has a special value of TRUE
-    8. tar_source - Name of the tarball containing the file, if the file is contained in a tarball
+    8. tar_source - Name of the tarball containing the file, if the file is contained in a tarball, NULL otherwise (default)
     9. config_out - has a special value of FALSE
     10. cond_attr - Name of a configuration switch. (like "ENABLE_KRB5")
                    The operation requested on the file will be performed only if that parameter will be set to 1.
                    If not set (set to NULL), the result will be considered as TRUE (i.e. download)
-        As result, a file will be downloaded if cond_download & $cond_attr == TRUE
+        As result, a file will be downloaded if cond_download == TRUE || $cond_attr == TRUE
     11. absdir_outattr - Name of a variable name. (like "KRB5_SUBSYS_DIR")
                    The variable will be set to the absolute path of the file if the file is not a tarball
                    or the directory where the tarball was unpacked in case it is a tarball,

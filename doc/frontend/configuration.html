@@ -383,14 +383,12 @@ SPDX-License-Identifier: Apache-2.0
             <a href="#files">&lt;files&gt;</a><br />
             <blockquote>
               <a href="#files"
-                >&lt;file absfname="/opt/script/testSW.sh" after_entry="True"
-                after_group="False" const="True" executable="True" untar="False"
-                wrapper="False" /&gt;</a
+                >&lt;file absfname="/opt/script/testSW.sh" const="True"
+                type="executable" priority="value" time="phase"/&gt;</a
               ><br />
               <a href="#files"
-                >&lt;file absfname="/opt/script/testP.sh" after_entry="True"
-                after_group="False" const="True" executable="True" period="1800"
-                untar="False" wrapper="False" /&gt;</a
+                >&lt;file absfname="/opt/script/testP.sh" const="True"
+                type="executable" priority="value" time="phase"/&gt;</a
               ><br />
             </blockquote>
             <a href="#files">&lt;/files&gt;</a><br />
@@ -853,9 +851,8 @@ SPDX-License-Identifier: Apache-2.0
               absfname=&quot;<i>filepath</i>&quot;
               relfname=&quot;<i>filename</i>&quot;
               prefix=&quot;<i>cron_prefix</i>&quot;
-              executable=&quot;<i>boolean</i>&quot;
-              after_group=&quot;<i>boolean</i>&quot;
-              period=&quot;<i>seconds(int)</i>&quot; /&gt;
+              type=&quot;<i>executable</i>&quot; priority="value"
+              time="phase"/&gt;
             </div>
             <p>
               The file parameters are used to specify the location, the
@@ -1796,16 +1793,16 @@ SPDX-License-Identifier: Apache-2.0
           &nbsp;[&lt;groups&gt;&lt;group&gt;]<br />
 
           &nbsp;&lt;files&gt;<br />
-          &nbsp;&nbsp;&lt;file absfname="<i>script name</i>" executable="True"
-          after_group="True" comment="<i>comment</i>"/&gt;
+          &nbsp;&nbsp;&lt;file absfname="<i>script name</i>" type="executable"
+          comment="<i>comment</i>" priority="value" time="phase" /&gt;
         </div>
         <p>
           The script/file will be copied to the Web-accessible area and added to
           one of the glidein's file lists, and when a glidein starts, the
           glidein startup script will pull it, validate it and execute i any
           action requested (execute, untar, just keep it, ...).
-          <tt>after_entry</tt> and <tt>after_group</tt> can be used to affect
-          the execution order (see
+          <tt>time</tt> and <tt>priority</tt> can be used to affect the
+          execution order (see
           <a href="../factory/custom_scripts.html">writing custom scripts</a>.
           If any parameters are needed, they can be specified using
           <b>&lt;attr /&gt;</b>.
@@ -2266,7 +2263,7 @@ def get_credential(log: logger, group: str, entry: dict, trust_domain: str):
             <blockquote>
               &lt;file
               absfname="/var/lib/gwms-frontend/web-base/frontend/default_singularity_wrapper.sh"
-              wrapper="True"/>
+              type="wrapper"/>
             </blockquote>
             must be added in the &lt;files> section of the general or group
             parts of the Frontend configuration. NOTE: Remember to remove your
@@ -2289,8 +2286,7 @@ def get_credential(log: logger, group: str, entry: dict, trust_domain: str):
                 <blockquote>
                   &lt;file
                   absfname="/var/lib/gwms-frontend/web-base/frontend/generic_pre_singularity_setup.sh"
-                  after_entry="False" executable="True" period="0" untar="False"
-                  wrapper="False"/>
+                  type="executable"/>
                 </blockquote>
                 in the &lt;files> section as before. This script sets a
                 SINGULARITY_IMAGES_DICT with the OSG images in CVMFS for "rhel7"
