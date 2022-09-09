@@ -26,7 +26,7 @@ from . import cgWConsts, cgWCreate, cgWDictFile, cWConsts, cWDictFile, cWExpand,
 # why this is commented out for now
 #
 # from cWParamDict import is_true, add_file_unparsed
-
+from cWParamDict import is_true
 # from factoryXmlConfig import EntrySetElement
 
 
@@ -947,14 +947,14 @@ def add_file_unparsed(user_file, dicts, is_factory):
 
     try:
         if user_file.is_periodic:
-            period_value = int(user_file.type.split(":")[1])
+            period = int(user_file.type.split(":")[1])
         else:
-            period_value = 0
+            period = 0
     except (AttributeError, KeyError, ValueError, TypeError):
-        period_value = 1000  # default 1000ms
+        period = 1000  # default 1000ms
 
     if (
-        period_value > 0
+        is_periodic
     ):  # period has 0 as default (in dictionary definition). Should I still protect against it not being defined?
         if not is_executable:
             raise RuntimeError("A file cannot have an execution period if it is not executable: %s" % user_file)

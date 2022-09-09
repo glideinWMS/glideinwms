@@ -283,7 +283,7 @@ class FileElement(DictElement):
 
         self.check_boolean("const")
 
-        is_exec = self["type"].startswith("exec") or self["type"].startswith("run")
+        is_executable = self["type"].startswith("exec") or self["type"].startswith("run")
         is_wrapper = self["type"] == "wrapper"
         is_tar = self["type"] == "untar"
         is_source = self["type"].startswith("source")
@@ -309,7 +309,7 @@ class FileElement(DictElement):
                 and not time.startswith("no_time:")
             ):
                 # we use startswith since we may have combination of time phases (e.g. startup, cleanup)
-                raise RuntimeError(self.err_str("The file does not have a valid time phase value: %s" % user_file))
+                raise RuntimeError(self.err_str("The file does not have a valid time phase value."))
 
         self.check_boolean("cond_download")
         self.check_boolean("config_out")
