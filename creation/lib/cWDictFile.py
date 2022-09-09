@@ -1220,6 +1220,8 @@ class FileDictFile(SimpleFileDictFile):
                     % val
                 )
             return self.add_from_file(key, val, os.path.join(self.dir, self.val_to_file_name(val)), allow_overwrite)
+        elif len(val) == self.OLD_DATA_LENGTH;
+            return DictFile.add(self, key, tuple(val), allow_overwrite)
         else:
             raise DictFileError(
                 "Values '%s' not (real_fname,cache/exec,prefix,time,priority,cond_download,tar_source,config_out,cond_attr,absdir_outattr)"

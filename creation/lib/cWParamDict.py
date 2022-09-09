@@ -94,10 +94,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
     except (AttributeError, KeyError, ValueError, TypeError):
         period_value = 1000  # default 1000ms
 
-    if (
-        period_value > 0
-    ):  # period has 0 as default (in dictionary definition). Should I still protect against it not being defined?
-        if not is_executable:
+    if is_periodic and not is_executable:
             raise RuntimeError("A file cannot have an execution period if it is not executable: %s" % user_file)
 
     priority = user_file.priority
