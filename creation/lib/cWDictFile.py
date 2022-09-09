@@ -994,7 +994,7 @@ class FileDictFile(SimpleFileDictFile):
 
     It is using a dictionary (key, value) from DictFile, serialized to file.
     The key is the file ID
-    The value (line) on file has DATA_LENGTH (11) components: the key and the first DATA_LENGTH-1 attributes below.
+    The value (line) on file has DATA_LENGTH (12) components: the key and the first DATA_LENGTH-1 attributes below.
     The value in memory has DATA_LENGTH components (real_fname, cache/exec, prefix, time, priority, cond_download, tar_source, config_out, cond_attr, absdir_outattr, data),
     the key is used as key for the dictionary and the data (file content) is added reading the file.
     Here the attributes stored as tuple in the dictionary value:
@@ -1051,6 +1051,7 @@ class FileDictFile(SimpleFileDictFile):
     """
 
     DATA_LENGTH = 12  # Length of value (attributes + data)
+    OLD_DATA_LENGTH = 7
     PLACEHOLDER_VALUE = (
         "",
         "",
@@ -1247,14 +1248,15 @@ class FileDictFile(SimpleFileDictFile):
                 DictFile.file_header(self, want_comments)
                 + "\n"
                 + (
-                    "# %s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \n"
+                    "# %s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \n"
                     % (
                         "Outfile",
                         "InFile        ",
                         "Cache/exec",
                         "Prefix",
                         "Time",
-                        "Period" "Priority",
+                        "Period",
+                        "Priority",
                         "Condition",
                         "TarSource",
                         "ConfigOut",
@@ -1282,27 +1284,22 @@ class FileDictFile(SimpleFileDictFile):
         if len(arr[0]) == 0:
             return  # empty key
 
-        # compatibility w/ old formats
-        # 3.2.13 (no prefix): key, fname, type, period, cond_download, config_out
-        if len(arr) != self.DATA_LENGTH:
-            # TODO: remove in 3.3 or after a few version (will break upgrade)
-            if len(arr) == self.DATA_LENGTH - 1:
-                # For upgrade from 3.2.13 to 3.2.11
-                return self.add(
-                    arr[0],
-                    [arr[1], arr[2], "GLIDEIN_PS_", arr[3], arr[4], arr[5], arr[6], arr[7], arr[8], arr[9], arr[10]],
-                )
-            # 3.2.10 (no period, prefix): key, fname, type, cond_download, config_out
-            elif len(arr) == self.DATA_LENGTH - 2:
-                # For upgrade from 3.2.10 or earlier
-                return self.add(
-                    arr[0],
-                    [arr[1], arr[2], "GLIDEIN_PS_", arr[3], 0, arr[4], arr[5], arr[6], arr[7], arr[8], arr[9]],
-                )
-            raise RuntimeError(
-                "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
+        if len(arr) == self.DATA_LENGTH:
+            return self.add(arr[0], arr[1:])
+
+        # for compatibility with old format
+        if len(arr) == self.OLD_DATA_LENGTH:
+            # old format: file, type, period, prefix, condition, configout
+            return self.add(
+                arr[0],
+                [arr[1], arr[2], arr[4], "startup", arr[3], 0, arr[5], "NULL", arr[6], "NULL", "NULL", "NULL"],
             )
-        return self.add(arr[0], arr[1:])
+
+        # length error
+        raise RuntimeError(
+            "Not a valid file line (expected %i or %i, found %i elements): '%s'"
+            % (self.DATA_LENGTH, self.OLD_DATA_LENGTH, len(arr), line)
+        )
 
     def get_immutable_files(self):
         mkeys = []

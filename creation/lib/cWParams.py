@@ -485,31 +485,6 @@ class CommonParams(Params):
             "Will the file be constant? If True, the file will be signed. If False, it can be modified at any time and will not be cached.",
             None,
         )
-        self.file_defaults["executable"] = (
-            "False",
-            "Bool",
-            "Is this an executable that needs to be run in the glidein?",
-            None,
-        )
-        self.file_defaults["wrapper"] = (
-            "False",
-            "Bool",
-            "Is this a wrapper script that needs to be sourced in the glidein job wrapper?",
-            None,
-        )
-        self.file_defaults["source"] = (
-            "False",
-            "Bool",
-            "Is this a source script that needs to be sourced in the glidein?",
-            None,
-        )
-        self.file_defaults["library"] = (
-            "False",
-            "Bool",
-            "Is this a library script that needs to be sourced in the glidein?",
-            None,
-        )
-        self.file_defaults["untar"] = ("False", "Bool", "Do I need to untar it? ", None)
         self.file_defaults["prefix"] = ("GLIDEIN_PS_", "string", "Prefix used for periodic jobs (STARTD_CRON).", None)
         self.file_defaults["type"] = (
             None,

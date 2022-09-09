@@ -64,12 +64,12 @@ def add_file_unparsed(user_file, dicts, is_factory):
         raise RuntimeError("Found a file element with an empty relfname: %s" % user_file)
 
     is_const = is_true(user_file.const)
-    is_executable = is_true(user_file.executable) or (user_file.type.startswith("exec"))
-    is_wrapper = is_true(user_file.wrapper) or (user_file.type == "wrapper")
-    is_source = is_true(user_file.source) or user_file.type.startswith("source")
-    is_library = is_true(user_file.library) or user_file.type.startswith("library")
-    is_periodic = user_file.type.startswith("periodic")
-    do_untar = is_true(user_file.untar) or (user_file.type.startswith("untar"))
+    is_executable = user_file.type.startswith("exec") or user_file.type.startswith("run")
+    is_wrapper = user_file.type == "wrapper"
+    is_source = user_file.type.startswith("source")
+    is_library = user_file.type.startswith("library")
+    is_periodic = user_file.time.startswith("periodic")
+    do_untar = user_file.type.startswith("untar")
 
     time = user_file.time
     if is_executable or is_source or is_library:
@@ -88,7 +88,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
 
     try:
         if user_file.is_periodic:
-            period_value = int(user_file.type.split(":")[1])
+            period_value = int(user_file.time.split(":")[1])
         else:
             period_value = 0
     except (AttributeError, KeyError, ValueError, TypeError):
