@@ -946,9 +946,9 @@ SPDX-License-Identifier: Apache-2.0
             <div class="xml">
               &lt;glidein&gt;&lt;files&gt;&lt;file absfname=&quot;<i
                 >script name</i
-              >&quot; type=&quot;<i>executable</i>&quot; time=&quot;phase&quot;
-              prefix=&quot;cron prefix&quot; priority="value"
-              comment=&quot;<i>comment</i>&quot; /&gt;
+              >&quot; type=&quot;<i>executable</i>&quot;
+              time=&quot;<i>phase</i>&quot; prefix=&quot;cron prefix&quot;
+              priority="<i>value</i>" comment=&quot;<i>comment</i>&quot; /&gt;
             </div>
 
             <p>
@@ -2700,14 +2700,22 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
               <p><b>time</b></p>
             </td>
             <td>
+              <p>Phase of the lifecycle when to execute/source the scripts:</p>
+              <ul>
+                <li>startup</li>
+                <li>pre_job</li>
+                <li>after_job</li>
+                <li>cleanup</li>
+                <li>
+                  periodic (:period will specify the period in seconds, 60 by
+                  default)
+                </li>
+                <li>milestone (:code will specify the milestone code)</li>
+                <li>failure (:exit_code will specify the failure code)</li>
+              </ul>
               <p>
-                Phase of the lifecycle when to execute/source the scripts: -
-                startup - pre_job - after_job - cleanup - periodic (:period will
-                specify the period in seconds, 60 by default) - milestone (:code
-                will specify the milestone code) - failure (:exit_code will
-                specify the failure code) Time will be ignored for files when
-                type is different than exec or source. A combination of time
-                phases can be used.
+                Time will be ignored for files when type is different than exec
+                or source. A combination of time phases can be used.
               </p>
             </td>
           </tr>
@@ -2734,16 +2742,64 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
             </td>
             <td>
               <p>
-                priority - priority in the order of execution inside a time
-                phase [0-99]. Relevant only for executable, source and library
-                files. Order String code representation Associated integer code
-                (internal representation) Factory pre_entry e-[g-] 10 Frontend
-                pre_entry pre_group e-g- 20 Frontend pre_entry group e-g= 30
-                Frontend pre_entry after_group e-g+ 40 entry e=[g-,g+,g=] 50
-                Frontend after_entry pre_group e+g- 60 Frontend after_entry
-                group e+g= 70 Frontend after_entry after_group e+g+ 80 Factory
-                after_entry e+[g+] 90 A custom value inside the range [0-99] can
-                be specified in order to alter the order of execution. (see
+                priority in the order of execution inside a time phase [0-99].
+                Relevant only for executable, source and library files.
+              </p>
+              <table>
+                <tr>
+                  <th>Order</th>
+                  <th>String code representation</th>
+                  <th>Associated integer code (internal representation)</th>
+                </tr>
+                <tr>
+                  <td>Factory pre_entry</td>
+                  <td>e-[g-]</td>
+                  <td>10</td>
+                </tr>
+                <tr>
+                  <td>Frontend pre_entry pre_group</td>
+                  <td>e-g-</td>
+                  <td>20</td>
+                </tr>
+                <tr>
+                  <td>Frontend pre_entry group</td>
+                  <td>e-g=</td>
+                  <td>30</td>
+                </tr>
+                <tr>
+                  <td>Frontend pre_entry after_group</td>
+                  <td>e-g+</td>
+                  <td>40</td>
+                </tr>
+                <tr>
+                  <td>entry</td>
+                  <td>e=[g-,g+,g=]</td>
+                  <td>50</td>
+                </tr>
+                <tr>
+                  <td>Frontend after_entry pre_group</td>
+                  <td>e+g-</td>
+                  <td>60</td>
+                </tr>
+                <tr>
+                  <td>Frontend after_entry group</td>
+                  <td>e+g=</td>
+                  <td>70</td>
+                </tr>
+                <tr>
+                  <td>Frontend after_entry after_group</td>
+                  <td>e+g+</td>
+                  <td>80</td>
+                </tr>
+                <tr>
+                  <td>Factory after_entry</td>
+                  <td>e+[g+]</td>
+                  <td>90</td>
+                </tr>
+              </table>
+              <p>
+                A custom value inside the range [0-99] can be specified in order
+                to alter the order of execution. (see
                 <a href="custom_scripts.html">the custom scripts document</a>
                 for more details).
               </p>
@@ -2754,30 +2810,6 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
               <p><b>comment</b></p>
             </td>
             <td><p>Arbitrary comment string</p></td>
-          </tr>
-          <tr>
-            <td>
-              <p><b>after_entry</b></p>
-            </td>
-            <td>
-              <p>
-                If True, the script is executed after the entry scripts. Default
-                is False for the Factory, default is True for the Frontend. (see
-                <a href="custom_scripts.html">the custom scripts document</a>
-                for more)
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <p><b>cond_download</b></p>
-            </td>
-            <td>
-              <p>
-                Conditional boolean variable conditioning the download of the
-                file (True if file has to be downloaded).
-              </p>
-            </td>
           </tr>
           <tr>
             <td>
@@ -2795,7 +2827,18 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
               <p><b>config_out</b></p>
             </td>
             <td>
-              <p>has a special value of FALSE</p>
+              <p>Configuration output, FALSE by default.</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p><b>cond_download</b></p>
+            </td>
+            <td>
+              <p>
+                Conditional boolean variable conditioning the download of the
+                file (True if file has to be downloaded).
+              </p>
             </td>
           </tr>
           <tr>
@@ -2804,12 +2847,12 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
             </td>
             <td>
               <p>
-                cond_attr - Name of a configuration switch. (like "ENABLE_KRB5")
-                The operation requested on the file will be performed only if
-                that parameter will be set to 1. If not set (set to NULL), the
-                result will be considered as TRUE (i.e. download) As result, a
-                file will be downloaded if cond_download == TRUE OR $cond_attr
-                == TRUE
+                Name of a configuration switch. The operation requested on the
+                file will be performed only if that parameter will be set to 1.
+                If not set (set to NULL), the result will be considered as TRUE
+                (i.e. download) As result, a file will be downloaded only if
+                cond_download is TRUE OR the variable pointed by cond_attr is
+                TRUE.
               </p>
             </td>
           </tr>
@@ -2819,16 +2862,15 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
             </td>
             <td>
               <p>
-                Name of a variable name. (like "KRB5_SUBSYS_DIR") The variable
-                will be set to the absolute path of the file if the file is not
-                a tarball or the directory where the tarball was unpacked in
-                case it is a tarball, this last thing if and only if the
-                unpacking actually happened (else it will not be defined.)
+                Name of a variable name. The variable will be set to the
+                absolute path of the file, if the file is not a tarball, or the
+                directory where the tarball was unpacked in case it is a
+                tarball, this last thing if and only if the unpacking actually
+                happened (else it will not be defined.)
               </p>
             </td>
           </tr>
         </table>
-
         <ul>
           <li>
             <div class="xml">
@@ -2837,7 +2879,8 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
               &nbsp;[&lt;entries&gt;&lt;entry&gt;]<br />
               &nbsp;&lt;files&gt;<br />
               &nbsp;&nbsp;&lt;file absfname=&quot;<i>script name</i>&quot;
-              type=&quot;executable&quot; prefix=&quot;<i>cron_prefix</i>&quot;
+              type=&quot;<i>executable</i>&quot;
+              prefix=&quot;<i>cron_prefix</i>&quot;
               comment=&quot;<i>comment</i>&quot;/&gt;
             </div>
             <p>
@@ -2855,7 +2898,8 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
               &nbsp;[&lt;entries&gt;&lt;entry&gt;]<br />
               &nbsp;&lt;files&gt;<br />
               &nbsp; &nbsp;&lt;file absfname=&quot;<i>script name</i>&quot;
-              type=&quot;wrapper&quot; comment=&quot;<i>comment</i>&quot;/&gt;
+              type=&quot;<i>wrapper</i>&quot;
+              comment=&quot;<i>comment</i>&quot;/&gt;
             </div>
             <p>
               Path to the wrapper custom script. The script will be copied in
@@ -2893,10 +2937,10 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
             <div class="xml">
               &lt;glidein&gt;<br />
               &nbsp;[&lt;entries&gt;&lt;entry&gt;]<br />
-
               &nbsp;&lt;files&gt;<br />
               &nbsp;&nbsp;&lt;file absfname=&quot;<i>local file name</i>&quot;
-              type=&quot;untar:dir_name&quot; comment=&quot;<i>comment</i>&quot;
+              type=&quot;<i>untar:dir_name</i>&quot;
+              comment=&quot;<i>comment</i>&quot;
               cond_attr=&quot;<i>conf_sw</i>&quot; absdir_outattr=&quot;<i
                 >attr name</i
               >&quot; &gt;
