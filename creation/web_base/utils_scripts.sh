@@ -32,13 +32,20 @@ add_entry(){
     e_id="$7"
     e_tar_source="$8"
     descriptor_file=${gwms_exec_dir}/"descriptor_file.txt"
-
+    
+    # bring one-digit priority value if present into two-digits priority value
+    if [[ ${#e_coordination} -lt 2 ]] ; then
+        e_coordination="00${e_coordination}"
+        e_coordination="${e_coordination: -2}"
+    fi
+    
     if [ ! -f "$descriptor_file" ]; then
         echo "# File: $descriptor_file" > "$descriptor_file"
         echo "#" >> "$descriptor_file"
         echo "# Time    OrderedFilename    RealFilename   Type    Period    Prefix    Id" >> "$descriptor_file"
         echo "################################################################################################" >> "$descriptor_file"
     fi
+    
     OLD_IFS=$IFS
     IFS=', ' read -r -a array <<< $e_time
     for time_entry in "${array[@]}"
