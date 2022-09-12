@@ -851,8 +851,8 @@ SPDX-License-Identifier: Apache-2.0
               absfname=&quot;<i>filepath</i>&quot;
               relfname=&quot;<i>filename</i>&quot;
               prefix=&quot;<i>cron_prefix</i>&quot;
-              type=&quot;<i>executable</i>&quot; priority="value"
-              time="phase"/&gt;
+              type=&quot;<i>executable</i>&quot; priority="<i>value</i>"
+              time="<i>phase</i>"/&gt;
             </div>
             <p>
               The file parameters are used to specify the location, the
@@ -1793,8 +1793,9 @@ SPDX-License-Identifier: Apache-2.0
           &nbsp;[&lt;groups&gt;&lt;group&gt;]<br />
 
           &nbsp;&lt;files&gt;<br />
-          &nbsp;&nbsp;&lt;file absfname="<i>script name</i>" type="executable"
-          comment="<i>comment</i>" priority="value" time="phase" /&gt;
+          &nbsp;&nbsp;&lt;file absfname="<i>script name</i>"
+          type="<i>executable</i>" comment="<i>comment</i>"
+          priority="<i>value</i>" time="<i>phase</i>" /&gt;
         </div>
         <p>
           The script/file will be copied to the Web-accessible area and added to
@@ -1803,7 +1804,7 @@ SPDX-License-Identifier: Apache-2.0
           action requested (execute, untar, just keep it, ...).
           <tt>time</tt> and <tt>priority</tt> can be used to affect the
           execution order (see
-          <a href="../factory/custom_scripts.html">writing custom scripts</a>.
+          <a href="../factory/custom_scripts.html">writing custom scripts)</a>.
           If any parameters are needed, they can be specified using
           <b>&lt;attr /&gt;</b>.
         </p>
