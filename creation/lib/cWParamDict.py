@@ -99,6 +99,8 @@ def add_file_unparsed(user_file, dicts, is_factory):
     if is_periodic and not is_executable:
         raise RuntimeError("A file cannot have an execution period if it is not executable: %s" % user_file)
 
+    # check if the priority value is in the range [0,99]
+    # the conversion to the two-digits format will be made bash side
     priority = int(user_file.priority)
     if priority < 0 or priority > 99:
         raise RuntimeError("Priority value out of the range [0,99]: %s" % user_file)
