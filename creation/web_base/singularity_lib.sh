@@ -295,7 +295,8 @@ list_get_intersection() {
     #   2: comma separated list of values
     # Out:
     #   intersection returned on stdout, 'any' is returned if both lists are 'any'
-    #   Return 1 if the intersection is empty, 0 otherwise
+    #   Return 1 if the intersection is empty (or the calculation fails), 0 otherwise
+    # Requires python2 or python3
     # This can be used to evaluate the desired OS (platform) that works for both Entry and VO,
     # intersection of GLIDEIN_REQUIRED_OS and REQUIRED_OS
     # Valid values: rhelNN, default
@@ -307,8 +308,17 @@ list_get_intersection() {
         if [[ "x$2" = "xany" ]]; then
             intersection="$1"
         else
+            local cmd
             # desired_os="$(python -c "print sorted(list(set('$2'.split(',')).intersection('$1'.split(','))))[0]" 2>/dev/null)"
-            intersection="$(python -c "print ','.join(sorted(list(set('$2'.split(',')).intersection('$1'.split(',')))))" 2>/dev/null)"
+            if cmd=$(command -v python2 2>/dev/null); then
+                intersection="$($cmd -c "print ','.join(sorted(list(set('$2'.split(',')).intersection('$1'.split(',')))))" 2>/dev/null)"
+            elif cmd=$(command -v python3 2>/dev/null); then
+                intersection="$($cmd -c "print(','.join(sorted(list(set('$2'.split(',')).intersection('$1'.split(','))))))" 2>/dev/null)"
+            else
+                # no valid python found
+                warn "Python (python2/python3) not found. Returning empty intersection"
+                return 1
+            fi
         fi
     fi
     [[ -z "$intersection" ]] && return 1
