@@ -1168,10 +1168,9 @@ log_dir='log'
 
 echo "Total jobs/goodZ jobs/goodNZ jobs/badSignal jobs/badOther jobs below are normalized to 1 Core"
 echo "=== Stats of main ==="
-if [ -f "${main_starter_log}" ]; then
+if slotlogs=$(ls -1 ${main_starter_log} ${main_starter_log}.slot* 2>/dev/null); then
     echo "===NewFile===" > separator_log.txt
     listtoparse="separator_log.txt"
-    slotlogs="`ls -1 ${main_starter_log} ${main_starter_log}.slot* 2>/dev/null`"
     for slotlog in $slotlogs
     do
         listtoparse="$listtoparse $slotlog separator_log.txt"
