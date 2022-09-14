@@ -3,6 +3,15 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+# IMPORTANT
+# These functions use the variable $glidein_config
+# gconfig_add() (and gconfig_add_unsafe and gconfig_add_safe) all require $glidein_config, otherwise they exit
+# gconfig_get() takes an optional file name as second parameter.  $glidein_config is used if that is not provided.
+#  The function exits if neither are provided/defined
+# gconfig_trim() is quitting (return 1) if $glidein_config is not defined
+# gconfig_log_add() and gconfig_log_name() will give a warning and use '.history' as log name
+# add_condor_vars_line() is quitting (return 1) if $condor_vars_file is not defined
+
 # Constants
 # glidein_config is a key-value file
 # each line is a key (case sensitive ID name), a space, and a value (rest of the line)
@@ -30,16 +39,19 @@ PSPID="$(command -v ps) -q"
 # Counting on $glidein_config if $2 not provided
 # compatible w/: grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-
 # different form previous: grep "^$1 " "$glidein_config" | awk '{print $2}' (was trimming and returning 1st word, not rest of line)
+# and previous: grep "^$var_name " $config_file | awk '{if (NF>1) ind=length($1)+1; v=substr($0, ind); print substr(v, index(v, $2))}' (left-trimming)
 gconfig_get() {
     local config_file=${2:-$glidein_config}
-    [[ -z "${config_file}" ]] && { warn "Error: glidein_config not provided and not defined"; exit 1; }
+    [[ -z "${config_file}" ]] && { warn "Error: glidein_config not provided and glidein_config variable not defined. Forcing exit."; exit 1; }
     [[ -r "$config_file" ]] || { true; return; }
     # Leave the extra space in the grep, to parse correctly strings w/ the same beginning
     $TAC "$config_file" | grep -m1 "^$1 " | cut -d ' ' -f 2-
 }
 
 gconfig_log_name() {
-    echo "${1:-$glidein_config}.history"
+    local res="${1:-$glidein_config}"
+    [[ -z "$res" ]] && { warn "Warning: glidein_config not provided and glidein_config variable not defined. Using '.history' as log file"; } || true
+    echo "${res}.history"
 }
 
 gconfig_log_add() {
@@ -60,7 +72,7 @@ gconfig_log_add() {
 # 2. use a DB or some gatekeeping process
 # 3. use a separate file per entry (see https://github.com/damphat/kv-bash/blob/master/kv-bash)
 gconfig_add() {
-    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config not defined"; exit 1; }
+    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfog_add. Forcing exit."; exit 1; }
     # Add the value also to a log that will help troubleshoot problems
     echo "REG$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${glidein_config}.history"
     if ! grep -q "^${*}$" "${glidein_config}"; then
@@ -100,7 +112,7 @@ add_config_line(){ gconfig_add "$@"; }
 # only one call at the time happen
 # read may
 gconfig_add_unsafe() {
-    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config not defined"; exit 1; }
+    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfog_add. Forcing exit."; exit 1; }
     # Add the value also to a log that will help troubleshoot problems
     echo "UNS$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${glidein_config}.history"
     if ! grep -q "^${*}$" "${glidein_config}"; then
@@ -126,7 +138,7 @@ gconfig_add_unsafe() {
 # It's OK to be NOOP, so returning 1 instead of exiting 1 when glidein_config is not found
 gconfig_trim() {
     local config_file=${1:-$glidein_config}
-    [[ -z "${config_file}" ]] && { warn "Warning: glidein_config not provided and not defined. Skipping gconfig_trim"; return 1; }
+    [[ -z "${config_file}" ]] && { warn "Warning: glidein_config not provided and glidein_config variable not defined. Skipping gconfig_trim"; return 1; }
     local config_tmp1="$config_file.$$.1.tmp"
     local config_tmp2="$config_file.$$.2.tmp"
     cp "$config_file" "$config_tmp1"
@@ -202,7 +214,7 @@ lock_file() {
 #        ) 200>"${glidein_config}".lock
 
 gconfig_add_safe() {
-    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config not defined"; exit 1; }
+    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfog_add. Forcing exit."; exit 1; }
     # Add the value also to a log that will help troubleshoot problems (calling add_config_line, duplicate)
     echo "DUPSAF$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${glidein_config}.history"
     if ! grep -q "^${*}$" "${glidein_config}"; then
@@ -245,7 +257,7 @@ gconfig_trim_safe() {
 # Uses global variable condor_vars_file
 add_condor_vars_line() {
     local id=$1
-
+    [[ -z "${condor_vars_file}" ]] && { warn "Error: condor_vars_file variable not defined. Required by add_condor_vars_line. Skipping to add."; return 1; }
     rm -f "${condor_vars_file}.old"   #just in case one was there
     if ! mv "${condor_vars_file}" "${condor_vars_file}.old"; then
         warn "Error renaming ${condor_vars_file} into ${condor_vars_file}.old"
