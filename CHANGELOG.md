@@ -19,6 +19,7 @@ Changes since the last release
 
 -   Frontend configuration valid (reconfig/upgrade successful) even if some HTCSS schedds are not in DNS. Failing only if all schedds are unknown to DNS.
 -   Working and local tmp directories are removed during Glidein cleanup also when the start directory is missing. This result in a loss of Glidein final status information but avoids sandbox leaks on the Worker Node. (issue #189)
+-   HTCSS DC_DAEMON_LIST equal to DAEMON_LIST only in the Factory, in all other GlideinWMS components only selected HTCSS daemons are added explicitly to it (issue #205)
 
 ### Deprecated / removed options and commands
 
