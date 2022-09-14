@@ -42,17 +42,17 @@ setup_nameprint() {
     unset glidein_config
     files_number=$(ls -f | wc -l)
     run gconfig_add KEY1 val1
-    assert_output --partial "Error: glidein_config not defined"
+    assert_output --partial "Error: glidein_config variable not defined."
     [ "$status" -eq 1 ]
     run gconfig_add_safe KEY1 val1
-    assert_output --partial "Error: glidein_config not defined"
+    assert_output --partial "Error: glidein_config variable not defined."
     [ "$status" -eq 1 ]
     run gconfig_get KEY1
-    assert_output --partial "Error: glidein_config not provided and not defined"
+    assert_output --partial "Error: glidein_config not provided and glidein_config variable not defined."
     [ "$status" -eq 1 ]
     # the next one returns 1 no exit
     run gconfig_trim
-    assert_output --partial "Warning: glidein_config not provided and not defined. Skipping gconfig_trim"
+    assert_output --partial "Warning: glidein_config not provided and glidein_config variable not defined. Skipping gconfig_trim"
     [ "$status" -eq 1 ]
     # there should be no new files
     [ $files_number -eq $(ls -f | wc -l) ]
@@ -62,7 +62,7 @@ setup_nameprint() {
     # Without variable
     run gconfig_get ATTR
     [ "$status" -eq 1 ]
-    assert_output --partial "glidein_config not provided and not defined"
+    assert_output --partial "glidein_config not provided and glidein_config variable not defined."
     tmp_config_file="glidein_config_test.tmp"
     echo "ATTR first" > "$tmp_config_file"
     run gconfig_get ATTR "$tmp_config_file"
