@@ -122,6 +122,7 @@ dir_id() {
 #   client_repository_url
 #   client_repository_group_url
 prepare_workdir(){
+    tmp="${work_dir}"
     if [ -z "${work_dir}" ]; then
         work_dir="$(pwd)"
     else
@@ -135,22 +136,23 @@ prepare_workdir(){
     fi
 
     if [ -z "${work_dir}" ]; then
-        early_glidein_failure "Unable to identify Startup dir for the glidein."
+        early_glidein_failure "Unable to identify Startup dir for the glidein ($tmp)."
+    fi
+    
+    if [ ! -e "${work_dir}" ]; then
+        early_glidein_failure "Startup dir '${work_dir}' ($tmp) does not exist."
     fi
 
-    if [ ! -e "${work_dir}" ]; then
-        early_glidein_failure "Startup dir ${work_dir} does not exist."
-    fi
 
     start_dir="$(pwd)"
-    echo "Started in ${start_dir}"
+    echo "Started in '${start_dir}' ($tmp)"
 
-    def_work_dir="${work_dir}/glide_$(dir_id)XXXXXX"
-    if ! work_dir="$(mktemp -d "${def_work_dir}")"; then
-        early_glidein_failure "Cannot create temp '${def_work_dir}'"
+    work_dir_template="${work_dir}/glide_$(dir_id)XXXXXX"
+    if ! work_dir="$(mktemp -d "${work_dir_template}")"; then
+        early_glidein_failure "Cannot create word_dir '${work_dir_template}'"
     else
         if ! cd "${work_dir}"; then
-            early_glidein_failure "Dir '${work_dir}' was created but cannot cd into it."
+            early_glidein_failure "Work dir '${work_dir}' was created but cannot cd into it."
         else
             echo "Running in ${work_dir}"
         fi
@@ -187,9 +189,9 @@ prepare_workdir(){
         fi
     fi
 
-    def_glide_local_tmp_dir="/tmp/glide_$(dir_id)$(id -u -n)_XXXXXX"
-    if ! glide_local_tmp_dir="$(mktemp -d "${def_glide_local_tmp_dir}")"; then
-        early_glidein_failure "Cannot create temp '${def_glide_local_tmp_dir}'"
+    glide_local_tmp_dir_template="/tmp/glide_$(dir_id)$(id -u -n)_XXXXXX"
+    if ! glide_local_tmp_dir="$(mktemp -d "${glide_local_tmp_dir_template}")"; then
+        early_glidein_failure "Cannot create temp '${glide_local_tmp_dir_template}'"
     fi
     glide_local_tmp_dir_created=1
 
@@ -241,15 +243,18 @@ prepare_workdir(){
     fi
 
     # Move the token files from condor to glidein workspace
+    # TODO: compare this w/ setup_x509.sh
+    # monitoring tokens, Should be using same credentials directory?
     mv "${start_dir}/tokens.tgz" .
     mv "${start_dir}/url_dirs.desc" .
-    for idtk in ${start_dir}/*.idtoken; do
-       if cp "${idtk}" . ; then
-           echo "copied idtoken ${idtk} to $(pwd)"
-       else
-           echo "failed to copy idtoken  ${idtk} to $(pwd)" 1>&2
-       fi
-    done
+    # idtokens are handled in setup_x509.sh - TODO: remove once verified
+    #for idtk in ${start_dir}/*.idtoken; do
+    #   if cp "${idtk}" . ; then
+    #       echo "copied idtoken ${idtk} to $(pwd)"
+    #   else
+    #       echo "failed to copy idtoken  ${idtk} to $(pwd)" 1>&2
+    #   fi
+    #done
     #if [ -e "${GLIDEIN_CONDOR_TOKEN}" ]; then
     #    mkdir -p ticket
     #    tname="$(basename ${GLIDEIN_CONDOR_TOKEN})"
