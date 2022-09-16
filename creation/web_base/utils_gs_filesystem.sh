@@ -162,19 +162,19 @@ prepare_workdir(){
     # GWMS_SUBDIR defined on top
     GWMS_DIR="${work_dir}/$GWMS_SUBDIR"
     if ! mkdir "$GWMS_DIR" ; then
-        early_glidein_failure "Cannot create '$GWMS_DIR'"
+        early_glidein_failure "Cannot create GWMS_DIR '$GWMS_DIR'"
     fi
     gwms_lib_dir="${GWMS_DIR}/lib"
     if ! mkdir -p "$gwms_lib_dir" ; then
-        early_glidein_failure "Cannot create '$gwms_lib_dir'"
+        early_glidein_failure "Cannot create lib dir '$gwms_lib_dir'"
     fi
     gwms_bin_dir="${GWMS_DIR}/bin"
     if ! mkdir -p "$gwms_bin_dir" ; then
-        early_glidein_failure "Cannot create '$gwms_bin_dir'"
+        early_glidein_failure "Cannot create bin dir '$gwms_bin_dir'"
     fi
     gwms_exec_dir="${GWMS_DIR}/exec"
     if ! mkdir -p "$gwms_exec_dir" ; then
-        early_glidein_failure "Cannot create '$gwms_exec_dir'"
+        early_glidein_failure "Cannot create exec dir '$gwms_exec_dir'"
     else
         for i in setup prejob postjob cleanup setup_singularity ; do
             mkdir -p "$gwms_exec_dir"/$i

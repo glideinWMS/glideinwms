@@ -16,7 +16,9 @@ glide_local_tmp_dir_created=0
 
 ################################
 # Clean-up the glidein, print out messages, and exit
-# Remove glidein directories: work_dir, glide_local_tmp_dir
+# Remove Glidein directories (work_dir, glide_local_tmp_dir)
+# If the start directory has been removed (e.g. HTCSS bug Aug 2022),
+# may remove its current directory leaving the process in a non existing directory
 # Used:
 #   start_dir
 #   GLIDEIN_DEBUG_OPTIONS
@@ -26,20 +28,19 @@ glide_local_tmp_dir_created=0
 #   glide_local_tmp_dir
 glidein_cleanup() {
     if ! cd "${start_dir}"; then
-        log_warn "Cannot find ${start_dir} anymore, exiting but without cleanup"
+        log_warn "Cannot find ${start_dir} anymore, will remove my current directory"
+    fi
+    if [[ ",${GLIDEIN_DEBUG_OPTIONS}," = *,nocleanup,* ]]; then
+        log_warn "Skipping cleanup, disabled via GLIDEIN_DEBUG_OPTIONS"
     else
-        if [[ ",${GLIDEIN_DEBUG_OPTIONS}," = *,nocleanup,* ]]; then
-            log_warn "Skipping cleanup, disabled via GLIDEIN_DEBUG_OPTIONS"
-        else
-            if [ "${work_dir_created}" -eq "1" ]; then
-                # rm -fR does not remove directories read only for the user
-                find "${work_dir}" -type d -exec chmod u+w {} \;
-                rm -fR "${work_dir}"
-            fi
-            if [ "${glide_local_tmp_dir_created}" -eq "1" ]; then
-                find "${glide_local_tmp_dir}" -type d -exec chmod u+w {} \;
-                rm -fR "${glide_local_tmp_dir}"
-            fi
+        if [ "${work_dir_created}" -eq "1" ]; then
+            # rm -fR does not remove directories read only for the user
+            find "${work_dir}" -type d -exec chmod u+w {} \;
+            rm -fR "${work_dir}"
+        fi
+        if [ "${glide_local_tmp_dir_created}" -eq "1" ]; then
+            find "${glide_local_tmp_dir}" -type d -exec chmod u+w {} \;
+            rm -fR "${glide_local_tmp_dir}"
         fi
     fi
 }

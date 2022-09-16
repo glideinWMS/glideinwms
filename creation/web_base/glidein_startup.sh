@@ -185,8 +185,8 @@ create_glidein_config(){
         echo "CONDORG_SCHEDD ${condorg_schedd}"
         echo "DEBUG_MODE ${set_debug}"
         echo "GLIDEIN_STARTUP_PID $$"
-        echo "GLIDEIN_START_DIR_ORIG  ${start_dir}"
-        echo "GLIDEIN_WORKSPACE_ORIG  $(pwd)"
+        echo "GLIDEIN_START_DIR_ORIG ${start_dir}"
+        echo "GLIDEIN_WORKSPACE_ORIG $(pwd)"
         echo "GLIDEIN_WORK_DIR ${main_dir}"
         echo "GLIDEIN_ENTRY_WORK_DIR ${entry_dir}"
         echo "TMP_DIR ${glide_tmp_dir}"
@@ -322,30 +322,31 @@ _main(){
     [ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
     num_gct=0
 
-    for tk in "$(pwd)/credential_"*".idtoken"; do
-        echo "Setting GLIDEIN_CONDOR_TOKEN to ${tk} " 1>&2
-        num_gct=$(( num_gct + 1 ))
-        export GLIDEIN_CONDOR_TOKEN="${tk}"
-        fullpath="$(readlink -f "${tk}" )"
-        if [ $? -eq 0 ]; then
-            echo "Setting GLIDEIN_CONDOR_TOKEN ${tk} to canonical path ${fullpath}" 1>&2
-            export GLIDEIN_CONDOR_TOKEN="${fullpath}"
-        else
-            echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN ${tk}" 1>&2
-        fi
-    done
-    if [ ! -f "${GLIDEIN_CONDOR_TOKEN}" ] ; then
-        token_err_msg="problem setting GLIDEIN_CONDOR_TOKEN"
-        token_err_msg="${token_err_msg} will attempt to recover, but condor IDTOKEN auth may fail"
-        echo "${token_err_msg}"
-        echo "${token_err_msg}" 1>&2
-    fi
-    if [ ! "${num_gct}" -eq  1 ] ; then
-        token_err_msg="WARNING  GLIDEIN_CONDOR_TOKEN set ${num_gct} times, should be 1 !"
-        token_err_msg="${token_err_msg} condor IDTOKEN auth may fail"
-        echo "${token_err_msg}"
-        echo "${token_err_msg}" 1>&2
-    fi
+    # TODO: this is covered in setup_x590,sh - remove once verified
+    #for tk in "$(pwd)/credential_"*".idtoken"; do
+    #    echo "Setting GLIDEIN_CONDOR_TOKEN to ${tk} " 1>&2
+    #    num_gct=$(( num_gct + 1 ))
+    #    export GLIDEIN_CONDOR_TOKEN="${tk}"
+    #    fullpath="$(readlink -f "${tk}" )"
+    #    if [ $? -eq 0 ]; then
+    #        echo "Setting GLIDEIN_CONDOR_TOKEN ${tk} to canonical path ${fullpath}" 1>&2
+    #        export GLIDEIN_CONDOR_TOKEN="${fullpath}"
+    #    else
+    #        echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN ${tk}" 1>&2
+    #    fi
+    #done
+    #if [ ! -f "${GLIDEIN_CONDOR_TOKEN}" ] ; then
+    #    token_err_msg="problem setting GLIDEIN_CONDOR_TOKEN"
+    #    token_err_msg="${token_err_msg} will attempt to recover, but condor IDTOKEN auth may fail"
+    #    echo "${token_err_msg}"
+    #    echo "${token_err_msg}" 1>&2
+    #fi
+    #if [ ! "${num_gct}" -eq  1 ] ; then
+    #    token_err_msg="WARNING  GLIDEIN_CONDOR_TOKEN set ${num_gct} times, should be 1 !"
+    #    token_err_msg="${token_err_msg} condor IDTOKEN auth may fail"
+    #    echo "${token_err_msg}"
+    #    echo "${token_err_msg}" 1>&2
+    #fi
 
     ########################################
     prepare_workdir
