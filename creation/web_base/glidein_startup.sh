@@ -129,11 +129,11 @@ setup_OSG_Globus(){
             elif  [ -r "/osgroot/osgcore/globus/etc/globus-user-env.sh" ]; then
                 GLOBUS_LOCATION=/osgroot/osgcore/globus
             else
-               log_warn "GLOBUS_LOCATION not defined and could not guess it."
-               log_warn "Looked in:"
-               log_warn ' /opt/globus/etc/globus-user-env.sh'
-               log_warn ' /osgroot/osgcore/globus/etc/globus-user-env.sh'
-               log_warn 'Continuing like nothing happened'
+                log_warn "GLOBUS_LOCATION not defined and could not guess it."
+                log_warn "Looked in:"
+                log_warn ' /opt/globus/etc/globus-user-env.sh'
+                log_warn ' /osgroot/osgcore/globus/etc/globus-user-env.sh'
+                log_warn 'Continuing like nothing happened'
             fi
         fi
 
