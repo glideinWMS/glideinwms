@@ -30,9 +30,9 @@ print_tail() {
   echo  "${final_result_simple}" | grep -v "<cmd>"
   print_header_line "End XML description of glidein activity"
   echo "" 1>&2
-  print_header_line "Encoded XML description of glidein activity" 2
+  print_header_line "Encoded XML description of glidein activity" >& 2
   echo "${final_result_long}" | gzip --stdout - | b64uuencode 1>&2
-  print_header_line "End encoded XML description of glidein activity" 2
+  print_header_line "End encoded XML description of glidein activity" >& 2
 }
 
 ################################

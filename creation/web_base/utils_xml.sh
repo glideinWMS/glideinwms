@@ -142,66 +142,47 @@ simplexml2longxml() {
 }
 
 ################################
-# Add spaces, support to create_xml
-# Globals (r/w):
-#   xml
-# Used:
-#   spaces
-add_spaces(){
-  local c
-  for (( c=1; c<=spaces; c++ ))
-      do
-        xml+=" "
-      done
-}
-
-################################
 # Create an xml file structure:
 # create_xml TAG --option option_value .... tag_value TAG2 .....
 # use '{' to specify the start if an inner tag and use '}' to specify the end
 # use create_xml -s SPACES ... in case you want to create a subpart of an xml file not starting from the beginning specifying
 # the number of spaces needed at the beginning in order to have a good indentation
-# use create_xml -t to require as output only the tail tag of the xml file, i.e. </OSGTestResult>
-# use create_xml -h to require as output only the header tag of the xml file, i.e. <?xml version=\"1.0\"?>"
+# use create_xml -t to output only the tail tag of the xml file, i.e. </OSGTestResult>
+# use create_xml -h to output only the header tag of the xml file, i.e. <?xml version=\"1.0\"?>"
 # Arguments:
 #   @: tags, options, values
 # Globals (r/w):
 #   spaces
-#   xml
 #   end_xml
 #   result
 create_xml(){
+    local xml
     xml=""
     end_xml=""
     declare -i spaces=0;
-    if [[ $1 == "-h" ]]
-        then
+    if [[ $1 == "-h" ]]; then
             result="<?xml version=\"1.0\"?>"
-            echo -e "$result"
+            echo "$result"
             return 0
     fi
-    if [[ $1 == "-t" ]]
-        then
+    if [[ $1 == "-t" ]]; then
             result="</OSGTestResult>"
-            echo -e "$result"
+            echo "$result"
             return 0
     fi
-    if [[ $1 == "-s" ]]
-    then
+    if [[ $1 == "-s" ]]; then
         spaces+=$2
         shift 2
     else
       xml="<?xml version=\"1.0\"?>"
       xml+="\n"
     fi
-    until [ $# -lt 1 ]
-    do
+    until [ $# -lt 1 ]; do
         case "$1" in
             OSG|O)
-                    add_spaces
+                    xml+=$(printf ' %.0s' $(seq 1 $spaces))
                     xml+="<OSGTestResult"
-                    while [[ "$2" = "-"* ]]
-                    do
+                    while [[ "$2" = "-"* ]]; do
                        if [ $2 == "--id" ]; then
                           xml+=" id=\"$3\""
                        fi
@@ -216,7 +197,7 @@ create_xml(){
                         xml+="</OSGTestResult>"
                     fi;;
             OSGShort|OS)
-                    add_spaces
+                    xml+=$(printf ' %.0s' $(seq 1 $spaces))
                     xml+="<OSGTestResult>"
                     if [ "$2" == "{" ]; then
                         spaces+=1
@@ -226,7 +207,7 @@ create_xml(){
                         xml+="</OSGTestResult>"
                     fi;;
             operatingenvironment|oe)
-                    add_spaces
+                    xml+=$(printf ' %.0s' $(seq 1 $spaces))
                     xml+="<operatingenvironment>"
                     if [ "$2" == "{" ]; then
                         spaces+=1
@@ -236,7 +217,7 @@ create_xml(){
                         xml+="</operatingenvironment>"
                     fi;;
             env|e)
-                    add_spaces
+                    xml+=$(printf ' %.0s' $(seq 1 $spaces))
                     xml+="<env"
                     while [[ "$2" = "-"* ]]
                     do
@@ -248,7 +229,7 @@ create_xml(){
                     xml+=">$2</env>"
                     shift 1;;
             test|t)
-                    add_spaces
+                    xml+=$(printf ' %.0s' $(seq 1 $spaces))
                     xml+="<test>"
                     if [ "$2" == "{" ]; then
                         spaces+=1
@@ -258,19 +239,19 @@ create_xml(){
                         xml+="</test>"
                     fi;;
             cmd|c)
-                    add_spaces
+                    xml+=$(printf ' %.0s' $(seq 1 $spaces))
                     xml+="<cmd>$2</cmd>"
                     shift 1;;
             tStart|tS)
-                    add_spaces
+                    xml+=$(printf ' %.0s' $(seq 1 $spaces))
                     xml+="<tStart>$2</tStart>"
                     shift 1;;
             tEnd|tE)
-                    add_spaces
+                    xml+=$(printf ' %.0s' $(seq 1 $spaces))
                     xml+="<tEnd>$2</tEnd>"
                     shift 1;;
             result|r)
-                    add_spaces
+                    xml+=$(printf ' %.0s' $(seq 1 $spaces))
                     xml+="<result>"
                     if [ "$2" == "{" ]; then
                         spaces+=1
@@ -279,10 +260,10 @@ create_xml(){
                     else
                         xml+="</result>"
                     fi;;
-            status|s)   add_spaces
+            status|s)   xml+=$(printf ' %.0s' $(seq 1 $spaces))
                         xml+="<status>$2</status>"
                         shift 1;;
-            metric|m)     add_spaces
+            metric|m)   xml+=$(printf ' %.0s' $(seq 1 $spaces))
                         xml+="<metric"
                         while [[ "$2" = "-"* ]]
                         do
@@ -297,12 +278,12 @@ create_xml(){
                         done
                         xml+=">$2</metric>"
                         shift 1;;
-            detail|d)     add_spaces
+            detail|d)   xml+=$(printf ' %.0s' $(seq 1 $spaces))
                         xml+="<detail>$2</detail>"
                         shift 1;;
-            "}")        output=$(echo $end_xml | cut -d'>' -f 1 | awk '{print $1">"}')
+            "}")        output="${end_xml%%>}>" 
                         spaces=spaces-1
-                        add_spaces
+                        xml+=$(printf ' %.0s' $(seq 1 $spaces))
                         xml+=$output
                         end_xml=${end_xml#"$output"};;
             *)  xml+=$1;;
