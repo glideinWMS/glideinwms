@@ -27,16 +27,16 @@ GWMS_SUBDIR=".gwms.d"
 
 ################################
 # General options
+GWMS_MULTIUSER_GLIDEIN=
 # Set GWMS_MULTIUSER_GLIDEIN if the Glidein may spawn processes (for jobs) as a different user.
 # This will prepare the glidein, e.g. setting to 777 the permission of TEMP directories
 # This should never happen only when using GlExec. Not in Singularity, not w/o sudo mechanisms.
-# Comment the following line if GlExec or similar will not be used
-GWMS_MULTIUSER_GLIDEIN=
-#GWMS_MULTIUSER_GLIDEIN=true
+# Uncomment the following line if GlExec or similar will be used
+GWMS_MULTIUSER_GLIDEIN=true
 
 # Default GWMS log server
 GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
-GWMS_MULTIGLIDEIN_CHILDS=
+SIGNAL_CHILDREN_LIST=
 
 export LANG=C
 
@@ -45,14 +45,13 @@ export LANG=C
 # Arguments:
 #   1: number of glideins
 # Globals (r/w):
-#   GWMS_MULTIGLIDEIN_CHILDS
+#   SIGNAL_CHILDREN_LIST
 # Used:
 #   params
 #   GLOBAL_ARG
 # Important variables:
 #   GLIDEIN_MULTIGLIDEIN_LAUNCHALL - if set in attrs, command to start all Glideins at once (multirestart 0)
 #   GLIDEIN_MULTIGLIDEIN_LAUNCHER - if set in attrs, command to start the individual Glideins
-
 do_start_all() {
     local num_glideins initial_dir multiglidein_launchall multiglidein_launcher g_dir startup_script
     num_glideins=$1
@@ -64,7 +63,7 @@ do_start_all() {
         echo "Starting multi-glidein using launcher: ${multiglidein_launchall}"
         # shellcheck disable=SC2086
         ${multiglidein_launchall} "${startup_script}" -multirestart 0 ${GLOBAL_ARGS} &
-        GWMS_MULTIGLIDEIN_CHILDS="${GWMS_MULTIGLIDEIN_CHILDS} $!"
+        SIGNAL_CHILDREN_LIST="${SIGNAL_CHILDREN_LIST} $!"
     else
         if [[ "${initial_dir}" = "$(dirname "${startup_script}")" ]]; then
             startup_script="./$(basename "${startup_script}")"
@@ -77,13 +76,12 @@ do_start_all() {
             chmod +x "${startup_script}"
             # shellcheck disable=SC2086
             ${multiglidein_launcher} "${startup_script}" -multirestart "${i}" ${GLOBAL_ARGS} &
-            GWMS_MULTIGLIDEIN_CHILDS="${GWMS_MULTIGLIDEIN_CHILDS} $!"
+            SIGNAL_CHILDREN_LIST="${SIGNAL_CHILDREN_LIST} $!"
             popd || true
         done
-        echo "Started multiple glideins: ${GWMS_MULTIGLIDEIN_CHILDS}"
+        echo "Started multiple glideins: ${SIGNAL_CHILDREN_LIST}"
     fi
 }
-
 
 ################################
 # Spawn multiple glideins and wait, if needed
@@ -101,7 +99,7 @@ spawn_multiple_glideins(){
         do_start_all "${multi_glidein}"
         # Wait for all glideins and exit 0
         # TODO: Summarize exit codes and status from all child glideins
-        echo "------ Multi-glidein parent waiting for child processes (${GWMS_MULTIGLIDEIN_CHILDS}) ----------" 1>&2
+        echo "------ Multi-glidein parent waiting for child processes (${SIGNAL_CHILDREN_LIST}) ----------" 1>&2
         wait
         echo "------ Exiting multi-glidein parent ----------" 1>&2
         exit 0
@@ -119,34 +117,32 @@ spawn_multiple_glideins(){
 setup_OSG_Globus(){
     if [ -r "${OSG_GRID}/setup.sh" ]; then
         . "${OSG_GRID}/setup.sh"
-    else
-      if [ -r "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh" ]; then
+    elif [ -r "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh" ]; then
         . "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh"
-      fi
     fi
 
     if [ -z "${GLOBUS_PATH}" ]; then
-      if [ -z "${GLOBUS_LOCATION}" ]; then
-        # if GLOBUS_LOCATION not defined, try to guess it
-        if [ -r "/opt/globus/etc/globus-user-env.sh" ]; then
-           GLOBUS_LOCATION=/opt/globus
-        elif  [ -r "/osgroot/osgcore/globus/etc/globus-user-env.sh" ]; then
-           GLOBUS_LOCATION=/osgroot/osgcore/globus
-        else
-           log_warn "GLOBUS_LOCATION not defined and could not guess it."
-           log_warn "Looked in:"
-           log_warn ' /opt/globus/etc/globus-user-env.sh'
-           log_warn ' /osgroot/osgcore/globus/etc/globus-user-env.sh'
-           log_warn 'Continuing like nothing happened'
+        if [ -z "${GLOBUS_LOCATION}" ]; then
+            # if GLOBUS_LOCATION not defined, try to guess it
+            if [ -r "/opt/globus/etc/globus-user-env.sh" ]; then
+                GLOBUS_LOCATION=/opt/globus
+            elif  [ -r "/osgroot/osgcore/globus/etc/globus-user-env.sh" ]; then
+                GLOBUS_LOCATION=/osgroot/osgcore/globus
+            else
+               log_warn "GLOBUS_LOCATION not defined and could not guess it."
+               log_warn "Looked in:"
+               log_warn ' /opt/globus/etc/globus-user-env.sh'
+               log_warn ' /osgroot/osgcore/globus/etc/globus-user-env.sh'
+               log_warn 'Continuing like nothing happened'
+            fi
         fi
-      fi
 
-      if [ -r "${GLOBUS_LOCATION}/etc/globus-user-env.sh" ]; then
-        . "${GLOBUS_LOCATION}/etc/globus-user-env.sh"
-      else
-        log_warn "GLOBUS_PATH not defined and ${GLOBUS_LOCATION}/etc/globus-user-env.sh does not exist."
-        log_warn 'Continuing like nothing happened'
-      fi
+        if [ -r "${GLOBUS_LOCATION}/etc/globus-user-env.sh" ]; then
+            . "${GLOBUS_LOCATION}/etc/globus-user-env.sh"
+        else
+            log_warn "GLOBUS_PATH not defined and ${GLOBUS_LOCATION}/etc/globus-user-env.sh does not exist."
+            log_warn 'Continuing like nothing happened'
+        fi
     fi
 }
 
@@ -265,7 +261,7 @@ list_data() {
 # Extract and source all the tarball files
 # Global:
 #   IFS
-extract_all_data() {
+extract_and_source_all_data() {
     local -a files
     # change separator to split the output file list from 'tar tz' command
     local IFS_OLD
@@ -356,7 +352,7 @@ _main(){
 
     ######################################
     # extract and source all the data contained at the end of this script as tarball
-    extract_all_data
+    extract_and_source_all_data
 
     #####################################
     wrapper_list="${PWD}/wrapper_list.lst"
@@ -592,17 +588,5 @@ _main(){
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    # Include all source scripts
-    source "$GWMS_SOURCEDIR"/utils_gs_http.sh
-    source "$GWMS_SOURCEDIR"/utils_gs_filesystem.sh
-    source "$GWMS_SOURCEDIR"/utils_gs_log.sh
-    source "$GWMS_SOURCEDIR"/utils_gs_signals.sh
-    source "$GWMS_SOURCEDIR"/utils_gs_tarballs.sh
-    source "$GWMS_SOURCEDIR"/utils_log.sh
-    source "$GWMS_SOURCEDIR"/utils_params.sh
-    source "$GWMS_SOURCEDIR"/utils_signals.sh
-    source "$GWMS_SOURCEDIR"/utils_xml.sh
-    source "$GWMS_SOURCEDIR"/utils_crypto.sh
-    source "$GWMS_SOURCEDIR"/glidein_cleanup.sh
 	_main "$@"
 fi
