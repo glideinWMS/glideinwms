@@ -36,7 +36,7 @@ setup () {
     touch "/tmp/trial/x509up_u"
     X509_USER_PROXY="/tmp/trial/x509up_u"
     run set_proxy_fullpath
-    assert_output --partial "Setting X509_USER_PROXY ${X509_USER_PROXY} to canonical path ${X509_USER_PROXY}"
+    assert_output --partial "Setting X509_USER_PROXY ${X509_USER_PROXY} to canonical path ${X509_USER_PROXY}" || assert_output --partial "Setting X509_USER_PROXY ${X509_USER_PROXY} to canonical path /private${X509_USER_PROXY}"
     [ "$status" -eq 0 ]
 }
 

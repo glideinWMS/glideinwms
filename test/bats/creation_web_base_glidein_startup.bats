@@ -6,8 +6,7 @@ load 'lib/bats-assert/load'
 
 [[ -z "$GWMS_SOURCEDIR" ]] && GWMS_SOURCEDIR="../../creation/web_base"
 
-setup () {
-    source "$GWMS_SOURCEDIR"/utils_gs_signals.sh
+setup(){
     source "$GWMS_SOURCEDIR"/utils_gs_tarballs.sh
     source "$GWMS_SOURCEDIR"/utils_log.sh
     source "$GWMS_SOURCEDIR"/utils_params.sh
