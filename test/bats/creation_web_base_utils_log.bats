@@ -26,10 +26,7 @@ setup () {
     run print_header_line "trial"
     [ "$output" == "===  trial  ===" ]
     [ "$status" -eq 0 ]
-    run print_header_line "trial" 1
-    [ "$output" == "===  trial  ===" ]
-    [ "$status" -eq 0 ]
-    run print_header_line "trial" 2
-    [ "$output" == "===  trial  ===" ]
+    run print_header_line "trial" "trial2"
+    [ "$output" == "===  trial trial2  ===" ]
     [ "$status" -eq 0 ]
 }
