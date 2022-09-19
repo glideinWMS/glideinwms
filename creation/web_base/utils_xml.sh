@@ -278,7 +278,7 @@ create_xml(){
             detail|d)   xml+=$(printf ' %.0s' $(seq 1 $spaces))
                         xml+="<detail>$2</detail>"
                         shift 1;;
-            "}")        output=$(echo $end_xml | cut -d'>' -f 1 | awk '{print $1">"}')
+            "}")        output="${end_xml%%>}>"
                         spaces=spaces-1
                         xml+=$(printf ' %.0s' $(seq 1 $spaces))
                         xml+=$output
