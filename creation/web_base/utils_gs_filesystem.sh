@@ -121,6 +121,7 @@ dir_id() {
 #   GWMS_MULTIUSER_GLIDEIN
 #   client_repository_url
 #   client_repository_group_url
+#TODO: find a way to define bats test altering global variables and testing the work directory creation
 prepare_workdir(){
     tmp="${work_dir}"
     if [ -z "${work_dir}" ]; then
@@ -142,7 +143,6 @@ prepare_workdir(){
     if [ ! -e "${work_dir}" ]; then
         early_glidein_failure "Startup dir '${work_dir}' ($tmp) does not exist."
     fi
-
 
     start_dir="$(pwd)"
     echo "Started in '${start_dir}' ($tmp)"
