@@ -351,10 +351,10 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # self.add("+gce_availability_zone", "$ENV(AVAILABILITY_ZONE)")
         self.add("gce_auth_file", "$ENV(GCE_AUTH_FILE)")
         self.add(
-            "gce_metadata", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####"
+            "gce_metadata",
+            "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####$ENV(IDTOKEN_DATA:)####",
         )
-        # change from proxy to idtoken
-        self.add("gce_metadata_file", "$ENV(IDTOKENS_FILE)")
+        self.add("gce_metadata_file", "$ENV(GLIDEIN_PROXY_FNAME)")
 
     def populate_ec2_grid(self):
         self.add("ec2_ami_id", "$ENV(IMAGE_ID)")
@@ -368,10 +368,10 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # This way only the submit_glideins function has to change
         # (and of course glidein_startup.sh)
         self.add(
-            "ec2_user_data", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####"
+            "ec2_user_data",
+            "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####$ENV(IDTOKEN_DATA:)####",
         )
-        # also the idtoken instead of a proxy
-        self.add("ec2_user_data_file", "$ENV(IDTOKENS_FILE)")
+        self.add("ec2_user_data_file", "$ENV(GLIDEIN_PROXY_FNAME)")
 
     def populate_glidein_classad(self, proxy_url):
         # add in the classad attributes for the WMS collector
