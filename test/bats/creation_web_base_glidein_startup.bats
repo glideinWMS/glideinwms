@@ -39,6 +39,17 @@ setup(){
     # TODO: Missing case of starting multi-glidein using launcher launchall
 }
 
+@test "print_header" {
+    echo "Testing the printing in case of debug set..." >& 3
+    set_debug=1
+    run print_header ""
+    assert_output --partial "Initial environment"
+    echo "Testing the printing in case of debug not set..." >& 3
+    set_debug=0
+    run print_header ""
+    ! assert_output --partial "Initial environment"
+}
+
 @test "spawn_multiple_glideins" {
     echo "Testing the spawning of multiple glideins..." >& 3
     GWMS_SOURCEDIR="../../../creation/web_base"

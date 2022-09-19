@@ -146,6 +146,482 @@ setup_OSG_Globus(){
     fi
 }
 
+###########################################
+# Checks the file signature
+# Arguments:
+#   1: id
+#   2: file name
+# Globals (r/w):
+#   cfs_id
+#   cfs_fname
+#   cfs_work_dir
+#   cfs_desc_fname
+#   cfs_signature
+# Used:
+#   check_signature
+#   tmp_signname
+#   main_dir
+#   cfs_rc
+#   PWD
+# Returns:
+#   1 in case of corrupted file
+check_file_signature() {
+    cfs_id="$1"
+    cfs_fname="$2"
+    cfs_work_dir="$(get_work_dir "${cfs_id}")"
+    cfs_desc_fname="${cfs_work_dir}/${cfs_fname}"
+    cfs_signature="${cfs_work_dir}/signature.sha1"
+    if [ "${check_signature}" -gt 0 ]; then # check_signature is global for simplicity
+        tmp_signname="${cfs_signature}_$$_$(date +%s)_${RANDOM}"
+        if ! grep " ${cfs_fname}$" "${cfs_signature}" > "${tmp_signname}"; then
+            rm -f "${tmp_signname}"
+            echo "No signature for ${cfs_desc_fname}." 1>&2
+        else
+            (cd "${cfs_work_dir}" && sha1sum -c "${tmp_signname}") 1>&2
+            cfs_rc=$?
+            if [ ${cfs_rc} -ne 0 ]; then
+                "${main_dir}"/error_augment.sh -init
+                "${main_dir}"/error_gen.sh -error "check_file_signature" "Corruption" "File $cfs_desc_fname is corrupted." "file" "${cfs_desc_fname}" "source_type" "${cfs_id}"
+                "${main_dir}"/error_augment.sh  -process ${cfs_rc} "check_file_signature" "${PWD}" "sha1sum -c ${tmp_signname}" "$(date +%s)" "(date +%s)"
+                "${main_dir}"/error_augment.sh -concat
+                log_warn "File ${cfs_desc_fname} is corrupted."
+                rm -f "${tmp_signname}"
+                return 1
+            f
+            rm -f "${tmp_signname}"
+            echo "Signature OK for ${cfs_id}:${cfs_fname}." 1>&2
+            fi
+        fi
+    fi
+    return 0
+}
+
+################################
+# Print initial information header
+# Parameters:
+#   @: shell parameters
+# Globals(r/w):
+#   startup_time
+#   retVal
+# Used:
+#   operation_mode
+#   condorg_cluster
+#   condorg_subcluster
+#   condorg_schedd
+#   glidein_uuid
+#   glidein_cred_id
+#   glidein_factory
+#   glidein_name
+#   glidein_entry
+#   client_name
+#   client_group
+#   client_descript_file
+#   client_descript_group_file
+#   client_repository_url
+#   client_sign_type
+#   client_sign_id
+#   client_sign_group_id
+#   client_repository_group_url
+#   multi_glidein
+#   multi_glidein_restart
+#   work_dir
+#   repository_url
+#   sign_type
+#   descript_file
+#   proxy_url
+#   descript_entry_file
+#   sign_id
+#   sign_entry_id
+#   set_debug
+print_header(){
+    startup_time="$(date +%s)"
+    echo "Starting glidein_startup.sh at $(date) (${startup_time})"
+    local md5wrapped
+    md5wrapped="$(md5wrapper "$0")"
+    retVal=$?
+    if [ $retVal -ne 0 ]; then
+        echo "Error on the md5wrapper"
+        glidein_exit 1 #TODO(F): o solo exit?
+    fi
+    echo "script_checksum   = '${md5wrapped}'"
+    echo "debug_mode        = '${operation_mode}'"
+    echo "condorg_cluster   = '${condorg_cluster}'"
+    echo "condorg_subcluster= '${condorg_subcluster}'"
+    echo "condorg_schedd    = '${condorg_schedd}'"
+    echo "glidein_uuid      = '${glidein_uuid}'"
+    echo "glidein_credential_id = '${glidein_cred_id}'"
+    echo "glidein_factory   = '${glidein_factory}'"
+    echo "glidein_name      = '${glidein_name}'"
+    echo "glidein_entry     = '${glidein_entry}'"
+    if [ -n "${client_name}" ]; then
+        # client name not required as it is not used for anything but debug info
+        echo "client_name       = '${client_name}'"
+    fi
+    if [ -n "${client_group}" ]; then
+        echo "client_group      = '${client_group}'"
+    fi
+    echo "multi_glidein/restart = '${multi_glidein}'/'${multi_glidein_restart}'"
+    echo "work_dir          = '${work_dir}'"
+    echo "web_dir           = '${repository_url}'"
+    echo "sign_type         = '${sign_type}'"
+    echo "proxy_url         = '${proxy_url}'"
+    echo "descript_fname    = '${descript_file}'"
+    echo "descript_entry_fname = '${descript_entry_file}'"
+    echo "sign_id           = '${sign_id}'"
+    echo "sign_entry_id     = '${sign_entry_id}'"
+    if [ -n "${client_repository_url}" ]; then
+        echo "client_web_dir              = '${client_repository_url}'"
+        echo "client_descript_fname       = '${client_descript_file}'"
+        echo "client_sign_type            = '${client_sign_type}'"
+        echo "client_sign_id              = '${client_sign_id}'"
+        if [ -n "${client_repository_group_url}" ]; then
+            echo "client_web_group_dir        = '${client_repository_group_url}'"
+            echo "client_descript_group_fname = '${client_descript_group_file}'"
+            echo "client_sign_group_id        = '${client_sign_group_id}'"
+        fi
+    fi
+    echo
+    echo "Running on $(uname -n)"
+    echo "System: $(uname -a)"
+    if [ -e '/etc/redhat-release' ]; then
+     echo "Release: $(cat /etc/redhat-release 2>&1)"
+    fi
+    echo "As: $(id)"
+    echo "PID: $$"
+    echo
+
+    if [ ${set_debug} -ne 0 ]; then
+      echo "------- Initial environment ---------------"  1>&2
+      env 1>&2
+      echo "------- =================== ---------------" 1>&2
+    fi
+}
+
+################################
+# Parse and verify arguments
+# It allows some parameters to change arguments
+# Globals (r/w):
+#   tmp_par
+#   multi_glidein
+#   sleep_time
+#   set_debug
+#   repository_entry_url
+#   proxy_url
+#   client_sign_type
+#   sign_type
+# Used:
+#   params
+#   operation_mode
+#   descript_file
+#   descript_entry_file
+#   glidein_name
+#   glidein_entry
+#   repository_url
+#   client_descript_group_file, client_repository_group_url, client_descript_file, client_repository_url
+#   sign_entry_id
+#   sign_id
+#   OSG_SQUID_LOCATION
+parse_arguments(){
+    # multiglidein GLIDEIN_MULTIGLIDEIN -> multi_glidein
+    tmp_par=$(params_get_simple GLIDEIN_MULTIGLIDEIN "${params}")
+    [ -n "${tmp_par}" ] && multi_glidein=${tmp_par}
+
+    case "${operation_mode}" in
+        nodebug)
+            sleep_time=1199
+            set_debug=0;;
+        fast)
+            sleep_time=150
+            set_debug=1;;
+        check)
+            sleep_time=150
+            set -x
+            set_debug=2;;
+        *)
+            sleep_time=1199
+            set_debug=1;;
+    esac
+
+    if [ -z "${descript_file}" ]; then
+        log_warn "Missing descript fname."
+        usage
+        exit 1
+    fi
+
+    if [ -z "${descript_entry_file}" ]; then
+        log_warn "Missing descript fname for entry."
+        usage
+        exit 1
+    fi
+
+    if [ -z "${glidein_name}" ]; then
+        log_warn "Missing gliden name."
+        usage
+        exit 1
+    fi
+
+    if [ -z "${glidein_entry}" ]; then
+        log_warn "Missing glidein entry name."
+        usage
+        exit 1
+    fi
+
+
+    if [ -z "${repository_url}" ]; then
+        log_warn "Missing Web URL."
+        usage
+        exit 1
+    fi
+
+    repository_entry_url="${repository_url}/entry_${glidein_entry}"
+
+    if [ -z "${proxy_url}" ]; then
+      proxy_url="None"
+    fi
+
+    if [ "${proxy_url}" = "OSG" ]; then
+      if [ -z "${OSG_SQUID_LOCATION}" ]; then
+         # if OSG does not define a Squid, then don't use any
+         proxy_url="None"
+         log_warn "OSG_SQUID_LOCATION undefined, not using any Squid URL" 1>&2
+      else
+         proxy_url="$(echo "${OSG_SQUID_LOCATION}" | awk -F ':' '{if ($2 =="") {print $1 ":3128"} else {print $0}}')"
+      fi
+    fi
+
+    if [ -z "${sign_id}" ]; then
+        log_warn "Missing signature."
+        usage
+        exit 1
+    fi
+
+    if [ -z "${sign_entry_id}" ]; then
+        log_warn "Missing entry signature."
+        usage
+        exit 1
+    fi
+
+    if [ -z "${sign_type}" ]; then
+        sign_type="sha1"
+    fi
+
+    if [ "${sign_type}" != "sha1" ]; then
+        log_warn "Unsupported signtype ${sign_type} found."
+        usage
+        exit 1
+    fi
+
+    if [ -n "${client_repository_url}" ]; then
+      # client data is optional, user url as a switch
+      if [ -z "${client_sign_type}" ]; then
+          client_sign_type="sha1"
+      fi
+
+      if [ "${client_sign_type}" != "sha1" ]; then
+        log_warn "Unsupported clientsigntype ${client_sign_type} found."
+        usage
+        exit 1
+      fi
+
+      if [ -z "${client_descript_file}" ]; then
+        log_warn "Missing client descript fname."
+        usage
+        exit 1
+      fi
+
+      if [ -n "${client_repository_group_url}" ]; then
+          # client group data is optional, user url as a switch
+          if [ -z "${client_group}" ]; then
+              log_warn "Missing client group name."
+              usage
+              exit 1
+          fi
+
+          if [ -z "${client_descript_group_file}" ]; then
+              log_warn "Missing client descript fname for group."
+              usage
+              exit 1
+          fi
+      fi
+    fi
+}
+
+###########################################
+# Prepare and move to the work directory
+# Replace known keywords: Condor, CONDOR, OSG, TMPDIR, AUTO, .
+# Empty $work_dir means PWD (same as ".")
+# A custom path could be provided (no "*)" in case)
+# Globals (r/w):
+#   work_dir
+#   start_dir
+#   def_work_dir
+#   work_dir_created
+#   GWMS_DIR
+#   gwms_lib_dir
+#   gwms_bin_dir
+#   gwms_exec_dir
+#   def_glide_local_tmp_dir
+#   glide_local_tmp_dir_created
+#   glide_tmp_dir
+#   short_main_dir
+#   main_dir
+#   short_entry_dir
+#   entry_dir
+#   short_client_dir
+#   client_dir
+#   short_client_group_dir
+#   client_group_dir
+# Used:
+#   _CONDOR_SCRATCH_DIR
+#   OSG_WN_TMP
+#   TMPDIR
+#   GWMS_SUBDIR
+#   dir_id
+#   GWMS_MULTIUSER_GLIDEIN
+#   client_repository_url
+#   client_repository_group_url
+#TODO: find a way to define bats test altering global variables and testing the work directory creation
+prepare_workdir(){
+    tmp="${work_dir}"
+    if [ -z "${work_dir}" ]; then
+        work_dir="$(pwd)"
+    else
+        case "${work_dir}" in
+            Condor|CONDOR) work_dir="${_CONDOR_SCRATCH_DIR}";;
+            OSG) work_dir="${OSG_WN_TMP}";;
+            TMPDIR) work_dir="${TMPDIR}";;
+            AUTO) automatic_work_dir;;
+            .) work_dir="$(pwd)";;
+        esac
+    fi
+
+    if [ -z "${work_dir}" ]; then
+        early_glidein_failure "Unable to identify Startup dir for the glidein ($tmp)."
+    fi
+
+    if [ ! -e "${work_dir}" ]; then
+        early_glidein_failure "Startup dir '${work_dir}' ($tmp) does not exist."
+    fi
+
+    start_dir="$(pwd)"
+    echo "Started in '${start_dir}' ($tmp)"
+
+    work_dir_template="${work_dir}/glide_$(dir_id)XXXXXX"
+    if ! work_dir="$(mktemp -d "${work_dir_template}")"; then
+        early_glidein_failure "Cannot create word_dir '${work_dir_template}'"
+    else
+        if ! cd "${work_dir}"; then
+            early_glidein_failure "Work dir '${work_dir}' was created but cannot cd into it."
+        else
+            echo "Running in ${work_dir}"
+        fi
+    fi
+    work_dir_created=1
+
+    # GWMS_SUBDIR defined on top
+    GWMS_DIR="${work_dir}/$GWMS_SUBDIR"
+    if ! mkdir "$GWMS_DIR" ; then
+        early_glidein_failure "Cannot create GWMS_DIR '$GWMS_DIR'"
+    fi
+    gwms_lib_dir="${GWMS_DIR}/lib"
+    if ! mkdir -p "$gwms_lib_dir" ; then
+        early_glidein_failure "Cannot create lib dir '$gwms_lib_dir'"
+    fi
+    gwms_bin_dir="${GWMS_DIR}/bin"
+    if ! mkdir -p "$gwms_bin_dir" ; then
+        early_glidein_failure "Cannot create bin dir '$gwms_bin_dir'"
+    fi
+    gwms_exec_dir="${GWMS_DIR}/exec"
+    if ! mkdir -p "$gwms_exec_dir" ; then
+        early_glidein_failure "Cannot create exec dir '$gwms_exec_dir'"
+    else
+        for i in setup prejob postjob cleanup setup_singularity ; do
+            mkdir -p "$gwms_exec_dir"/$i
+        done
+    fi
+
+    # mktemp makes it user readable by definition (ignores umask)
+    # TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
+    if [ -n "${GWMS_MULTIUSER_GLIDEIN}" ]; then
+        if ! chmod a+rx "${work_dir}"; then
+            early_glidein_failure "Failed chmod '${work_dir}'"
+        fi
+    fi
+
+    glide_local_tmp_dir_template="/tmp/glide_$(dir_id)$(id -u -n)_XXXXXX"
+    if ! glide_local_tmp_dir="$(mktemp -d "${glide_local_tmp_dir_template}")"; then
+        early_glidein_failure "Cannot create temp '${glide_local_tmp_dir_template}'"
+    fi
+    glide_local_tmp_dir_created=1
+
+    glide_tmp_dir="${work_dir}/tmp"
+    if ! mkdir "${glide_tmp_dir}"; then
+        early_glidein_failure "Cannot create '${glide_tmp_dir}'"
+    fi
+
+    if [ -n "${GWMS_MULTIUSER_GLIDEIN}" ]; then
+        # TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
+        # the tmpdirs should be world writable
+        # This way it will work even if the user spawned by the glidein is different than the glidein user
+        # This happened in GlExec, outside user stays the same in Singularity
+        if ! chmod 1777 "${glide_local_tmp_dir}"; then
+            early_glidein_failure "Failed chmod '${glide_local_tmp_dir}'"
+        fi
+
+        if ! chmod 1777 "${glide_tmp_dir}"; then
+            early_glidein_failure "Failed chmod '${glide_tmp_dir}'"
+        fi
+    fi
+
+    short_main_dir=main
+    main_dir="${work_dir}/${short_main_dir}"
+    if ! mkdir "${main_dir}"; then
+        early_glidein_failure "Cannot create '${main_dir}'"
+    fi
+
+    short_entry_dir=entry_${glidein_entry}
+    entry_dir="${work_dir}/${short_entry_dir}"
+    if ! mkdir "${entry_dir}"; then
+        early_glidein_failure "Cannot create '${entry_dir}'"
+    fi
+
+    if [ -n "${client_repository_url}" ]; then
+        short_client_dir=client
+        client_dir="${work_dir}/${short_client_dir}"
+        if ! mkdir "$client_dir"; then
+            early_glidein_failure "Cannot create '${client_dir}'"
+        fi
+
+        if [ -n "${client_repository_group_url}" ]; then
+            short_client_group_dir=client_group_${client_group}
+            client_group_dir="${work_dir}/${short_client_group_dir}"
+            if ! mkdir "${client_group_dir}"; then
+                early_glidein_failure "Cannot create '${client_group_dir}'"
+            fi
+        fi
+    fi
+
+    # Move the token files from condor to glidein workspace
+    # TODO: compare this w/ setup_x509.sh
+    # monitoring tokens, Should be using same credentials directory?
+    mv "${start_dir}/tokens.tgz" .
+    mv "${start_dir}/url_dirs.desc" .
+    # idtokens are handled in setup_x509.sh - TODO: remove once verified
+    #for idtk in ${start_dir}/*.idtoken; do
+    #   if cp "${idtk}" . ; then
+    #       echo "copied idtoken ${idtk} to $(pwd)"
+    #   else
+    #       echo "failed to copy idtoken  ${idtk} to $(pwd)" 1>&2
+    #   fi
+    #done
+    #if [ -e "${GLIDEIN_CONDOR_TOKEN}" ]; then
+    #    mkdir -p ticket
+    #    tname="$(basename ${GLIDEIN_CONDOR_TOKEN})"
+    #    cp "${GLIDEIN_CONDOR_TOKEN}" "ticket/${tname}"
+    #    export GLIDEIN_CONDOR_TOKEN="$(pwd)/ticket/${tname}"
+    #fi
+}
+
 ########################################
 # Creates the glidein configuration
 # Globals (r/w):

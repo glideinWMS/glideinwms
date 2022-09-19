@@ -45,56 +45,6 @@ md5wrapper() {
     echo "${res}" # result returned on stdout
 }
 
-###########################################
-# Checks the file signature
-# Arguments:
-#   1: id
-#   2: file name
-# Globals (r/w):
-#   cfs_id
-#   cfs_fname
-#   cfs_work_dir
-#   cfs_desc_fname
-#   cfs_signature
-# Used:
-#   check_signature
-#   tmp_signname
-#   main_dir
-#   cfs_rc
-#   PWD
-# Returns:
-#   1 in case of corrupted file
-check_file_signature() {
-    cfs_id="$1"
-    cfs_fname="$2"
-    cfs_work_dir="$(get_work_dir "${cfs_id}")"
-    cfs_desc_fname="${cfs_work_dir}/${cfs_fname}"
-    cfs_signature="${cfs_work_dir}/signature.sha1"
-    if [ "${check_signature}" -gt 0 ]; then # check_signature is global for simplicity
-        tmp_signname="${cfs_signature}_$$_$(date +%s)_${RANDOM}"
-        if ! grep " ${cfs_fname}$" "${cfs_signature}" > "${tmp_signname}"; then
-            rm -f "${tmp_signname}"
-            echo "No signature for ${cfs_desc_fname}." 1>&2
-        else
-            (cd "${cfs_work_dir}" && sha1sum -c "${tmp_signname}") 1>&2
-            cfs_rc=$?
-            if [ ${cfs_rc} -ne 0 ]; then
-                "${main_dir}"/error_augment.sh -init
-                "${main_dir}"/error_gen.sh -error "check_file_signature" "Corruption" "File $cfs_desc_fname is corrupted." "file" "${cfs_desc_fname}" "source_type" "${cfs_id}"
-                "${main_dir}"/error_augment.sh  -process ${cfs_rc} "check_file_signature" "${PWD}" "sha1sum -c ${tmp_signname}" "$(date +%s)" "(date +%s)"
-                "${main_dir}"/error_augment.sh -concat
-                log_warn "File ${cfs_desc_fname} is corrupted."
-                rm -f "${tmp_signname}"
-                return 1
-            f
-            rm -f "${tmp_signname}"
-            echo "Signature OK for ${cfs_id}:${cfs_fname}." 1>&2
-            fi
-        fi
-    fi
-    return 0
-}
-
 ########################################
 # Set the X509_USER_PROXY path to full path to the file
 # Environment variables exported:

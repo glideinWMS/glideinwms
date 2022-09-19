@@ -12,17 +12,6 @@ setup () {
     source "$GWMS_SOURCEDIR"/utils_crypto.sh
 }
 
-@test "print_header" {
-    echo "Testing the printing in case of debug set..." >& 3
-    set_debug=1
-    run print_header ""
-    assert_output --partial "Initial environment"
-    echo "Testing the printing in case of debug not set..." >& 3
-    set_debug=0
-    run print_header ""
-    ! assert_output --partial "Initial environment"
-}
-
 @test "parse_options" {
     echo "Testing the option parsing in case of consequent options with no value..." >& 3
     run parse_options -name -factory
