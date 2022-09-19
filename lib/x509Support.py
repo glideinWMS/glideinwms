@@ -8,7 +8,7 @@ import M2Crypto
 from . import defaults
 
 
-def extract_DN(fname):
+def extract_DN(fname, exit_if_bad=True):
     """Extract a Distinguished Name from an X.509 proxy.
 
     Get the proxy subject: the subject of the first certificate
@@ -19,9 +19,17 @@ def extract_DN(fname):
 
     Args:
         fname(str): Filename containing the X.509 proxy
+        exit_if_bad(Boolean): selectively turn of program exit when fname is
+                              an invalid proxy
+
+                              if true and fname has no DN: sys.exit(3)
+                              if false and fname has no DN: return ""
+                              default should eventually be "False"
+
 
     Returns:
         bytes: Proxy subject in oneline format
+               "" if invalid proxy file
     """
 
     with open(fname) as fd:
@@ -34,7 +42,10 @@ def extract_DN(fname):
             data = data[data_idx:]
         except ValueError:
             print("%s not a valid certificate file" % fname)
-            sys.exit(3)
+            if exit_if_bad:
+                sys.exit(3)
+            else:
+                return ""
 
         # load certificate from AnyStr. Default format=FORMAT_PEM
         m = M2Crypto.X509.load_cert_string(data)
