@@ -138,7 +138,7 @@ prepare_workdir(){
     if [ -z "${work_dir}" ]; then
         early_glidein_failure "Unable to identify Startup dir for the glidein ($tmp)."
     fi
-    
+
     if [ ! -e "${work_dir}" ]; then
         early_glidein_failure "Startup dir '${work_dir}' ($tmp) does not exist."
     fi

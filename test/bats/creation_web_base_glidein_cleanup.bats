@@ -21,7 +21,7 @@ setup () {
     echo "Checking the case of not existing start_dir..." >& 3
     start_dir="random/stuff/"
     run glidein_cleanup 0
-    assert_output --partial "Cannot find ${start_dir} anymore, exiting but without cleanup"
+    assert_output --partial "Cannot find ${start_dir} anymore, will remove my current directory"
     [ "$status" -eq 0 ]
     echo "Checking the case of disabled cleanup..." >& 3
     start_dir="/tmp/start_dir/"
