@@ -129,7 +129,7 @@ get_x509_certs_dir() {
 #      error message if returning 1
 get_x509_proxy() {
     local cert_fname=${1:-"$X509_USER_PROXY"}
-    if [[ -n "$cert_fname" || ! -e "$cert_fname" ]]; then
+    if [[ -z "$cert_fname" || ! -e "$cert_fname" ]]; then
         echo "Proxy certificate '$cert_fname' does not exist."
         return 1
     fi
