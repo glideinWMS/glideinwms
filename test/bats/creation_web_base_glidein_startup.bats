@@ -126,7 +126,6 @@ early_glidein_failure() {
     echo "Testing the glidein_config file with write permissions..." >& 3
     chmod 777 ${glidein_config}
     run create_glidein_config
-    echo "$output" >& 3
     [ "$status" -eq 0 ]
     grep -Fxq "# --- glidein_startup vals ---" ${glidein_config}
     grep -Fxq "# --- User Parameters ---" ${glidein_config}
