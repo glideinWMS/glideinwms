@@ -1089,48 +1089,37 @@ class glideinFrontendElement:
         """
         tkn_file = ""
         tkn_str = ""
-        tmpnm = ""
+
+        tmpnm = ""  # TODO: This variable is not used. Should we remove it?
+
         # does condor version of entry point support condor token auth
         condor_version = glidein_el["params"].get("CONDOR_VERSION")
         if condor_version:
             try:
                 # create a condor token named for entry point site name
+
                 glidein_site = glidein_el["attrs"]["GLIDEIN_Site"]
-                # tkn_file = "/var/lib/gwms-frontend/.condor/tokens.d/"
-                # tkn_file += glidein_site
-                # tkn_file += ".token"
-                # cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
-                # tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
-                # chmod(tmpnm, 0o600)
-                # os.write(fd, tkn_str)
-                # os.close(fd)
-                # shutil.move(tmpnm, tkn_file)
-                # file_tmp2final(tkn_file, tmpnm)
-                # chmod(tkn_file, 0o600)
-                # logSupport.log.debug("created token %s" % tkn_file)
                 tkn_dir = "/var/lib/gwms-frontend/tokens.d"
                 pwd_dir = "/var/lib/gwms-frontend/passwords.d"
-                req_dir = "/var/lib/gwms-frontend/passwords.d/requests"
+                tkn_file = os.path.join(tkn_dir, f"{self.group_name}.{glidein_site}.idtoken")
+                pwd_file = os.path.join(pwd_dir, glidein_site)
+                pwd_default = os.path.join(pwd_dir, "FRONTEND")
+                one_hr = 3600
+                tkn_age = sys.maxsize
+
                 if not os.path.exists(tkn_dir):
                     os.mkdir(tkn_dir, 0o700)
                 if not os.path.exists(pwd_dir):
                     os.mkdir(pwd_dir, 0o700)
-                if not os.path.exists(req_dir):
-                    os.mkdir(req_dir, 0o700)
-                tkn_file = tkn_dir + "/" + self.group_name + "." + glidein_site + ".idtoken"
-                pwd_file = pwd_dir + "/" + glidein_site
-                pwd_default = pwd_dir + "/" + "FRONTEND"
-                req_file = req_dir + "/" + glidein_site
-                one_hr = 3600
-                tkn_age = sys.maxsize
+
                 if not os.path.exists(pwd_file):
                     if os.path.exists(pwd_default):
                         pwd_file = pwd_default
+
                 if os.path.exists(tkn_file):
                     tkn_age = time.time() - os.stat(tkn_file).st_mtime
                 if tkn_age > one_hr and os.path.exists(pwd_file):
                     # TODO: scope, duration, identity  should be configurable from frontend.xml
-                    (fd, tmpnm) = tempfile.mkstemp()
                     scope = "condor:/READ condor:/ADVERTISE_STARTD condor:/ADVERTISE_MASTER"
                     duration = self.idtoken_lifetime * one_hr
                     identity = f"{glidein_site}@{socket.gethostname()}"
@@ -1142,13 +1131,14 @@ class glideinFrontendElement:
                     tkn_str = token_util.create_and_sign_token(
                         pwd_file, scope=scope, duration=duration, identity=identity
                     )
+                    # NOTE: Sensitive information. Uncomment only in development machines.
                     # cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
                     # tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
-                    logSupport.log.debug("tkn_str= %s" % tkn_str)
-                    os.write(fd, tkn_str)
-                    os.close(fd)
-                    shutil.move(tmpnm, tkn_file)
-                    chmod(tkn_file, 0o600)
+                    # logSupport.log.debug("tkn_str= %s" % tkn_str)
+                    with tempfile.NamedTemporaryFile(mode="wb", delete=False, dir=tkn_dir) as fd:
+                        os.chmod(fd.name, 0o600)
+                        fd.write(tkn_str)
+                        os.replace(fd.name, tkn_file)
                     logSupport.log.debug("created token %s" % tkn_file)
                 elif os.path.exists(tkn_file):
                     with open(tkn_file) as fbuf:
@@ -1158,9 +1148,7 @@ class glideinFrontendElement:
                 logSupport.log.warning("failed to create %s" % tkn_file)
                 for i in sys.exc_info():
                     logSupport.log.warning("%s" % i)
-            finally:
-                if os.path.exists(tmpnm):
-                    os.remove(tmpnm)
+
         return tkn_str
 
     def populate_pubkey(self):
