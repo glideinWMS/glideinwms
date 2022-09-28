@@ -18,16 +18,15 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots and/or console outputs to help explain your problem.
 
-**Desktop (please complete the following information):**
+**Info (please complete the following information):**
 
 -   GlideinWMS version
 -   Python version:
 -   OS version:
 -   HTCondor version:
-
-**Priority:** Priority level of this bug [critical, high, medium, low]
-
-**Stakeholders:** Concerned stakeholder(s) of this bug [CMS, FactoryOps, Fermilab, FIFE, IGWN, OSG]
+-   Priority: Priority level of this bug [critical, high, medium, low]
+-   Stakeholder: Concerned stakeholder(s) [CMS, FactoryOps, Fermilab, FIFE, IGWN, OSG]. Repeat this line if you need multiple stakeholders.
+-   Component: The affected component due to this bug [frontend, factory, glidein, documentation, CI, testing, release, factory monitoring, frontend monitoring, ...]. . Repeat this line if you need multiple components.
 
 **Additional context**
 Add any other context or supporting files about the problem here.
