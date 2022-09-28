@@ -1,0 +1,66 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+# Adds <issue_type> label if issue body contains certain words (when based on the issue template)
+
+# regular expressions for labeling priority of the issue is listed in this block
+Critical:
+  - "Priority: *([Cc]ritical|[Uu]rgent)"
+High:
+  - "Priority: *[Hh]igh"
+Medium:
+  - "Priority: *[Mm]edium"
+Low:
+  - "Priority: *[Ll]ow"
+
+# regular expressions for labeling issue type is listed in this block
+BUG:
+  - "bug"
+FEATURE:
+  - "feature( request)?"
+# ENHANCEMENT:
+# IDEA:
+# QUESTION:
+# SUPPORT:
+
+# regular expressions for labeling stakeholders for an issue is listed in this block
+cms:
+  - "Stakeholder: *(CMS|Cms|cms)"
+factoryops:
+  - "Stakeholder: *([Ff]actory[Oo]ps)"
+fermilab:
+  - "Stakeholder: *([Ff]ermilab)"
+fife:
+  - "Stakeholder: *(FIFE|Fife|fife)"
+# Historically IGWN had the LIGO name
+igwn:
+  - "Stakeholder: *(IGWN|Igwn|igwn|LIGO|Ligo|ligo)"
+osg:
+  - "Stakeholder: ?(OSG|Osg|osg)"
+
+# regular expressions for labeling affected components for an issue is listed in this block
+frontend:
+  - "Component: *([Ff]rontend)"
+factory:
+  - "Component: *([Ff]actory)"
+glidein:
+  - "Component: *([Gg]lidein)"
+documentation:
+  - "Component: *([Dd]ocumentation)"
+ci-testing:
+  - "Component: *(CI|ci|[Tt]esting)"
+release:
+  - "Component: *([Rr]elease)"
+factory-mon:
+  - "Component: *([Ff]actory [Mm]onitoring)"
+frontend-mon:
+  - "Component: *([Ff]rontend [Mm]onitoring)"
+other:
+  - "Component: *.*"
+# TODO: discuss if there are any other possible components that need to be listed above
+
+# TODO: regular expressions for labeling release info for an issue is listed in this block
+# 3.7.5:
+# 3.9.5:
+# 3.9.6:
+# 3.11:
