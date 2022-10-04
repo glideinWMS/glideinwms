@@ -18,6 +18,7 @@ import re
 import shutil
 
 from glideinwms.lib import condorMonitor, logSupport
+from glideinwms.lib.defaults import force_bytes
 
 from . import glideFactoryInterface, glideFactoryLib
 
@@ -115,14 +116,21 @@ def update_credential_file(username, client_id, credential_data, request_clientn
     fname_short = f"credential_{request_clientname}_{glideFactoryLib.escapeParam(client_id)}"
     fname = os.path.join(proxy_dir, fname_short)
     fname_compressed = "%s_compressed" % fname
+    fname_mapped_idtoken = "%s_idtoken" % fname
 
     msg = "updating credential file %s" % fname
     logSupport.log.debug(msg)
 
     safe_update(fname, credential_data)
     compressed_credential = compress_credential(credential_data)
-    # Compressed+encoded credentials are used for GCE and AWS and have a key=value format (glidein_credentials= ...)
-    safe_update(fname_compressed, b"glidein_credentials=%s" % compressed_credential)
+    if os.path.exists(fname_mapped_idtoken):
+        idtoken_data = ""
+        with open(fname_mapped_idtoken,"r")  as idtf:
+            for line in idtf.readlines():
+                idtoken_data += line
+        safe_update(fname_compressed, b"%s####glidein_credentials=%s" % (force_bytes(idtoken_data), compressed_credential))
+    else:
+        safe_update(fname_compressed, b"glidein_credentials=%s" % (compressed_credential))
 
     return fname, fname_compressed
 
@@ -164,7 +172,6 @@ def process_global(classad, glidein_descript, frontend_descript):
         for key in mkeys:
             prefix_len = len("GlideinEncParamSecurityClass")
             cred_id = key[prefix_len:]
-
             cred_data = sym_key_obj.decrypt_hex(classad["GlideinEncParam%s" % cred_id])
             security_class = sym_key_obj.decrypt_hex(classad[key]).decode("utf-8")
             username = frontend_descript.get_username(frontend_sec_name, security_class)
@@ -181,7 +188,6 @@ def process_global(classad, glidein_descript, frontend_descript):
 
             msg = "updating credential for %s" % username
             logSupport.log.debug(msg)
-
             update_credential_file(username, cred_id, cred_data, request_clientname)
     except:
         logSupport.log.debug(f"\nclassad {classad}\nfrontend_descript {frontend_descript}\npub_key_obj {pub_key_obj})")
@@ -431,6 +437,7 @@ def compress_credential(credential_data):
 
 # TODO: py2.7 , v3.7, add with for the 2 os.open calls
 def safe_update(fname, credential_data):
+    logSupport.log.debug(msg)
     if not os.path.isfile(fname):
         # new file, create
         fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
