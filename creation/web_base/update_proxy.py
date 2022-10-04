@@ -122,13 +122,13 @@ def main():
         credential_data, fname, fname_compressed, idtokens_file = get_env()
         update_credential(fname, credential_data)
         if fname_compressed:
-            idtoken_data=""
+            idtoken_data = ""
             if idtokens_file:
-                with open(idtokens_file, 'r') as idtf:
+                with open(idtokens_file) as idtf:
                     for line in idtf.readlines():
                         idtoken_data += line
             compressed_credential = compress_credential(credential_data)
-            update_credential(fname_compressed, "%s####glidein_credentials=%s" % (idtoken_data, compressed_credential))
+            update_credential(fname_compressed, f"{idtoken_data}####glidein_credentials={compressed_credential}")
             # in branch_v3_2 after migration_3_1 WAS: update_credential(fname_compressed, compressed_credential)
     except ProxyEnvironmentError as ex:
         sys.stderr.write(str(ex))

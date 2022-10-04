@@ -125,10 +125,12 @@ def update_credential_file(username, client_id, credential_data, request_clientn
     compressed_credential = compress_credential(credential_data)
     if os.path.exists(fname_mapped_idtoken):
         idtoken_data = ""
-        with open(fname_mapped_idtoken,"r")  as idtf:
+        with open(fname_mapped_idtoken) as idtf:
             for line in idtf.readlines():
                 idtoken_data += line
-        safe_update(fname_compressed, b"%s####glidein_credentials=%s" % (force_bytes(idtoken_data), compressed_credential))
+        safe_update(
+            fname_compressed, b"%s####glidein_credentials=%s" % (force_bytes(idtoken_data), compressed_credential)
+        )
     else:
         safe_update(fname_compressed, b"glidein_credentials=%s" % (compressed_credential))
 
