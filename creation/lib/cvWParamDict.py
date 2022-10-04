@@ -1363,10 +1363,13 @@ def populate_group_security(client_security, params, sub_params, group_name):
                     proxy_fname = pel["pilotabsfname"]
 
                 if (pel["pool_idx_len"] is None) and (pel["pool_idx_list"] is None):
-                    # only one
-                    dn = x509Support.extract_DN(proxy_fname, exit_if_bad=False)
-                    # don't worry about conflict... there is nothing wrong if the DN is listed twice
-                    pilot_dns.append(dn)
+                    try:
+                        # only one
+                        dn = x509Support.extract_DN(proxy_fname)
+                        # don't worry about conflict... there is nothing wrong if the DN is listed twice
+                        pilot_dns.append(dn)
+                    except SystemExit:
+                        print("...Failed to extract DN from %s, but continuing" % proxy_fname)
                 else:
                     # pool
                     pool_idx_list_expanded_strings = get_pool_list(pel)
