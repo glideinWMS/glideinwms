@@ -27,7 +27,7 @@ import traceback
 from glideinwms.factory import glideFactoryConfig, glideFactoryCredentials, glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryInterface as gfi
 from glideinwms.factory import glideFactoryLib, glideFactoryLogParser, glideFactoryMonitoring, glideFactoryPidLib
-from glideinwms.lib import classadSupport, cleanupSupport, glideinWMSVersion, logSupport, token_util, util, defaults
+from glideinwms.lib import classadSupport, cleanupSupport, defaults, glideinWMSVersion, logSupport, token_util, util
 from glideinwms.lib.util import chmod
 
 
@@ -1366,9 +1366,11 @@ def unit_work_v3(
                 credential_name = f"{client_int_name}_{proxy_id}_compressed"
                 if condortoken_data:
                     # create an idtoken file that process_global can find and add to compressed credential
-                    _fname_idtoken  = f"credential_{client_int_name}_{proxy_id}_idtoken"
+                    _fname_idtoken = f"credential_{client_int_name}_{proxy_id}_idtoken"
                     credential_idtoken_fname = os.path.join(submit_credentials.cred_dir, _fname_idtoken)
-                    glideFactoryCredentials.safe_update(credential_idtoken_fname, defaults.force_bytes(condortoken_data))
+                    glideFactoryCredentials.safe_update(
+                        credential_idtoken_fname, defaults.force_bytes(condortoken_data)
+                    )
             else:
                 # BOSCO is using regular proxy, not compressed
                 credential_name = f"{client_int_name}_{proxy_id}"
