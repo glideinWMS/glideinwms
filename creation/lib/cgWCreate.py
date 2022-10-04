@@ -169,6 +169,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         enc_input_files = []
 
         enc_input_files.append("$ENV(IDTOKENS_FILE:)")
+        self.add_environment("IDTOKENS_FILE=$ENV(IDTOKENS_FILE:)")
 
         if gridtype not in ["ec2", "gce"]:
             self.add("+SciTokensFile", '"$ENV(SCITOKENS_FILE:)"')
@@ -351,8 +352,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # self.add("+gce_availability_zone", "$ENV(AVAILABILITY_ZONE)")
         self.add("gce_auth_file", "$ENV(GCE_AUTH_FILE)")
         self.add(
-            "gce_metadata",
-            "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####$ENV(IDTOKEN_DATA:)####",
+            "gce_metadata", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####"
         )
         self.add("gce_metadata_file", "$ENV(GLIDEIN_PROXY_FNAME)")
 
@@ -368,8 +368,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # This way only the submit_glideins function has to change
         # (and of course glidein_startup.sh)
         self.add(
-            "ec2_user_data",
-            "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####$ENV(IDTOKEN_DATA:)####",
+            "ec2_user_data", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####"
         )
         self.add("ec2_user_data_file", "$ENV(GLIDEIN_PROXY_FNAME)")
 
