@@ -108,17 +108,27 @@ def get_env():
     else:
         fname_compressed = None
 
-    return credential_data, fname, fname_compressed
+    if "IDTOKENS_FILE" in os.environ:
+        idtokens_file = os.environ["IDTOKENS_FILE"]
+    else:
+        idtokens_file = None
+
+    return credential_data, fname, fname_compressed, idtokens_file
 
 
 def main():
     update_code = 0
     try:
-        credential_data, fname, fname_compressed = get_env()
+        credential_data, fname, fname_compressed, idtokens_file = get_env()
         update_credential(fname, credential_data)
         if fname_compressed:
+            idtoken_data=""
+            if idtokens_file:
+                with open(idtokens_file, 'r') as idtf:
+                    for line in idtf.readlines():
+                        idtoken_data += line
             compressed_credential = compress_credential(credential_data)
-            update_credential(fname_compressed, "glidein_credentials=%s" % compressed_credential)
+            update_credential(fname_compressed, "%s####glidein_credentials=%s" % (idtoken_data, compressed_credential))
             # in branch_v3_2 after migration_3_1 WAS: update_credential(fname_compressed, compressed_credential)
     except ProxyEnvironmentError as ex:
         sys.stderr.write(str(ex))
