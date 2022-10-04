@@ -1940,6 +1940,8 @@ def get_submit_environment(
             # Hence, use " for now.
             exe_env.append("GLIDEIN_ARGUMENTS=%s" % glidein_arguments)
         elif grid_type in ("ec2", "gce"):
+            # do not uncomment these in production, it exposes secrets that
+            # should not be logged
             # log.debug("params: %s" % str(params))
             # log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
             # log.debug("submit_credentials.identity_credentials: %s" % str(submit_credentials.identity_credentials))
@@ -2008,15 +2010,6 @@ email_logs = False
                 # get the proxy
                 full_path_to_proxy = submit_credentials.security_credentials["GlideinProxy"]
                 exe_env.append("GLIDEIN_PROXY_FNAME=%s" % full_path_to_proxy)
-
-                # get the IDTOKEN
-                token_data = ""
-                with open(submit_credentials.identity_credentials["frontend_condortoken"]) as fc:
-                    tok = fc.readlines()
-                    for tln in tok:
-                        token_data = f"{token_data}{tln}"
-
-                exe_env.append("IDTOKEN_DATA=%s" % token_data)
 
             except KeyError:
                 msg = "Error setting up submission environment (bad key)"
