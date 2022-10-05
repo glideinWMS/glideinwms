@@ -439,7 +439,7 @@ def compress_credential(credential_data):
 
 # TODO: py2.7 , v3.7, add with for the 2 os.open calls
 def safe_update(fname, credential_data):
-    logSupport.log.debug(msg)
+    logSupport.log.debug(f"Creating/updating credential file {fname}")
     if not os.path.isfile(fname):
         # new file, create
         fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
