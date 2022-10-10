@@ -359,11 +359,14 @@ copy_idtokens() {
 # TODO: should domain come from the token instead?
 # TODO (Dennis): why removing after dash? what about host name including "-"?
 get_trust_domain() {
+        local head_node
+        head_node=$(gconfig_get TRUST_DOMAIN "${glidein_config}")
+        [[ -n "${head_node}" ]] && { echo "${head_node}"; return 0; } || true
         head_node=$(gconfig_get GLIDEIN_Collector "${glidein_config}")
         [[ -z "${head_node}" ]] && head_node=$(gconfig_get CCB_ADDRESS "${glidein_config}") || true
         if [[ -z "${head_node}" ]]; then
             # TODO error message and return 1 - no DOMAIN, Q should domain come from the token instead?
-            echo "Unable to retrieve trust domain from GLIDEIN_Collector and CCB_ADDRESS"
+            echo "Unable to retrieve trust domain from TRUST_DOMAIN, GLIDEIN_Collector and CCB_ADDRESS"
             return 1
         fi
         echo "${head_node}" | sed -e 's/?.*//' -e 's/-.*//'
