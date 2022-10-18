@@ -1081,11 +1081,15 @@ class glideinFrontendElement:
         return None, None
 
     def refresh_entry_token(self, glidein_el):
-        """
-        create or update a condor token for an entry point
-        params:  glidein_el: a glidein element data structure
-        returns:  jwt encoded condor token on success
-                  None on failure
+        """Create or update a condor token for an entry point
+
+        Args:
+            glidein_el: a glidein element data structure
+
+        Returns:
+            jwt encoded condor token on success
+            None on failure
+
         """
         tkn_file = ""
         tkn_str = ""
@@ -1128,6 +1132,7 @@ class glideinFrontendElement:
                     logSupport.log.debug("scope= %s" % scope)
                     logSupport.log.debug("duration= %s" % duration)
                     logSupport.log.debug("identity= %s" % identity)
+                    # issuer (TRUST_DOMAIN) not passed, token generation will use the collector host name
                     tkn_str = token_util.create_and_sign_token(
                         pwd_file, scope=scope, duration=duration, identity=identity
                     )
