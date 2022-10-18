@@ -433,7 +433,7 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
                         factory_pool_node,
                         master_frontend_name,
                     )
-                    logSupport.log.warn(msg)
+                    logSupport.log.warning(msg)
                     msg = "Exception talking to the factory_pool {} to get the status of Master frontend {}: ".format(
                         factory_pool_node,
                         master_frontend_name,

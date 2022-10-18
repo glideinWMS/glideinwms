@@ -2262,7 +2262,7 @@ class GlideinTotals:
                     try:
                         self.frontend_limits[el_list[0]][max_glideinstatus_key] = int(el_list[1])
                     except:
-                        log.warn(
+                        log.warning(
                             "Invalid FrontendName:SecurityClassName combo '%s' encountered while finding '%s' from max_job_frontend"
                             % (el_list[0], max_glideinstatus_key)
                         )
