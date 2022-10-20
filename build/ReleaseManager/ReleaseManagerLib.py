@@ -42,6 +42,8 @@ class Release:
                 % (self.rpmVersion, self.rpmRelease, self.rpmOSVersion[0], self.rpmOSVersion[1]),
             )
             self.buildRPMs = bool(which("rpmbuild"))
+            if not self.buildRPMs:
+                print("'rpmbuild' not found, skipping RPM build")
         except:
             print("RPMs will not be build for this platform")
 
@@ -58,9 +60,14 @@ class Release:
         return ver
 
     def createRPMReleaseNVR(self, rpmRel, rc):
-        nvr = "%s" % rpmRel
         if rc:
-            nvr = f"0.{rpmRel}.rc{rc}"
+            nvr = f"0.{rc}.rc{rc}"
+            if rpmRel:
+                nvr = f"{nvr}.{rpmRel}"
+        else:
+            nvr = "1"
+            if rpmRel:
+                nvr = f"{rpmRel}"
         return nvr
 
     def getElVersion(self):
@@ -248,11 +255,11 @@ class TaskVersionFile(TaskRelease):
 
 
 class TaskRPM(TaskTar):
-    def __init__(self, rel, use_mock=True):
+    def __init__(self, rel, python_version, use_mock=True):
         TaskTar.__init__(self, rel)
         self.name = "GlideinwmsRPM"
         self.use_mock = use_mock
-        self.python_version = "python36"
+        self.python_version = python_version
         self.releaseFile = os.path.join(self.release.releaseDir, self.releaseFilename)
         self.rpmPkgDir = os.path.join(self.release.sourceDir, "build/packaging/rpm")
         self.specFileTemplate = os.path.join(self.rpmPkgDir, "glideinwms.spec")
