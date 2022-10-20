@@ -51,13 +51,17 @@ def usage():
         "  and 'bigfiles -R' after, to ripristinate the symlinks before a commit"
         "Example: Release Candidate rc3 for v3.2.11 (ie version v3_2_11_rc3)",
         "         Generate tarball: glideinWMS_v3_2_11_rc3*.tgz",
-        "         Generate rpms   : glideinWMS-*-v3.2.11-0.4.rc3-*.rpm",
-        "release.py --release-version=3_2_11 --rc=4 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=4 --rpm-version=3.2.11",
+        "         Generate rpms   : glideinWMS-*-v3.2.11-0.3.rc3.*.rpm",
+        "release.py --release-version=3_2_11 --rc=3 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release",
+        "Example: Development post Release Candidate rc3 for v3.2.11 (ie version v3_2_11_rc3)",
+        "         Generate tarball: glideinWMS_v3_2_11_rc3*.tgz (same as regular v3_2_11 RC3)",
+        "         Generate rpms   : glideinWMS-*-v3.2.11-0.3.rc3.2.*.rpm (should be between RC3 and RC4)",
+        "release.py --release-version=3_2_11 --rc=3 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=2",
         "",
         "Example: Final Release v3.2.11",
         "         Generate tarball: glideinWMS_v3_2_11*.tgz",
-        "         Generate rpms   : glideinWMS-*-v3.2.11-3-*.rpm",
-        "release.py --release-version=3_2_11 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=3 --rpm-version=3.2.11",
+        "         Generate rpms   : glideinwms-*-v3.2.11-3.*.rpm",
+        "release.py --release-version=3_2_11 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=3",
         "",
     ]
     return "\n".join(help)
@@ -70,7 +74,7 @@ def parse_opts(argv):
         dest="relVersion",
         action="store",
         metavar="<release version>",
-        help="glideinwms version to release",
+        help="GlideinWMS version to release (format w/ underscores, for tarball, RPM version derived from it)",
     )
     parser.add_option(
         "--source-dir",
@@ -93,20 +97,21 @@ def parse_opts(argv):
     parser.add_option(
         "--rpm-release",
         dest="rpmRel",
-        default=1,
+        default=None,
         action="store",
         metavar="<RPM Release Number>",
         help="RPM Release Number",
     )
     parser.add_option(
-        "--rpm-version",
-        dest="rpmVer",
-        action="store",
-        metavar="<Product Version in RPM filename>",
-        help="Product Version in RPM filename",
+        "--no-mock", dest="use_mock", action="store_false", help="Set to use rpmbuild instead of mock to build the RPM"
     )
     parser.add_option(
-        "--no-mock", dest="use_mock", action="store_false", help="Set to use rpmbuild instead of mock to build the RPM"
+        "--python-version",
+        dest="py_ver",
+        default="python36",
+        action="store",
+        metavar="<Python version>",
+        help="Python version (default: python36)",
     )
 
     if len(argv) == 2 and argv[1] in ["-v", "--version"]:
@@ -147,13 +152,14 @@ def main(argv):
     relDir = options.relDir
     rc = options.rc
     rpmRel = options.rpmRel
+    python_version = options.python_version
     use_mock = options.use_mock
 
     print("___________________________________________________________________")
-    print("Creating following glideinwms release")
+    print("Creating following GlideinWMS release")
     print(
-        "Version=%s\nSourceDir=%s\nReleaseDir=%s\nReleaseCandidate=%s\nRPMRelease=%s"
-        % (ver, srcDir, relDir, rc, rpmRel)
+        "Version=%s\nSourceDir=%s\nReleaseDir=%s\nReleaseCandidate=%s\nRPMRelease=%s\nPython=%s"
+        % (ver, srcDir, relDir, rc, rpmRel, python_version)
     )
     print("___________________________________________________________________")
     print()
@@ -163,7 +169,7 @@ def main(argv):
     rel.addTask(ReleaseManagerLib.TaskSetupReleaseDir(rel))
     rel.addTask(ReleaseManagerLib.TaskVersionFile(rel))
     rel.addTask(ReleaseManagerLib.TaskTar(rel))
-    rel.addTask(ReleaseManagerLib.TaskRPM(rel, use_mock))
+    rel.addTask(ReleaseManagerLib.TaskRPM(rel, python_version, use_mock))
 
     rel.executeTasks()
     rel.printReport()
