@@ -107,7 +107,7 @@ def parse_opts(argv):
     )
     parser.add_option(
         "--python-version",
-        dest="py_ver",
+        dest="python_version",
         default="python36",
         action="store",
         metavar="<Python version>",
