@@ -372,6 +372,7 @@ v3_9_6:
   Series: Development
   Tarball: false
   Feature:
+    - Added token authentication to Glideins running in the Cloud (AWS and GCE). Now Glideins on all supported resources can authenticate back using IDTOKENS when using recent HTCSS versions.
     - Added `GLIDEIN_PERIODIC_SCRIPT` env variable to notify periodic custom scripts
     - Added the possibility to set the Glidein HTCSS TRUST_DOMAIN as attribute in the Frontend configuration
     - The Frontend configuration is now valid (reconfig/upgrade successful) even if some HTCSS schedds are not in DNS. Failing only if all schedds are unknown to DNS

@@ -13,6 +13,7 @@ Changes since the last release
 
 ### New features / functionalities
 
+-   Added token authentication to Glideins running in the Cloud (AWS and GCE). Now Glideins on all supported resources can authenticate back using IDTOKENS when using recent HTCSS versions.
 -   Added `GLIDEIN_PERIODIC_SCRIPT` env variable: when set custom scripts run periodically, started by HTCSS startd cron
 -   Added the possibility to set the Glidein HTCSS TRUST_DOMAIN as attribute in the Frontend configuration
 
