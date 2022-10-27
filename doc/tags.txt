@@ -1,5 +1,7 @@
 v3_9_6
 	Added `GLIDEIN_PERIODIC_SCRIPT` env variable to notify periodic custom scripts
+	Added the possibility to set the Glidein HTCSS TRUST_DOMAIN as attribute in the Frontend configuration
+	The Frontend configuration is now valid (reconfig/upgrade successful) even if some HTCSS schedds are not in DNS. Failing only if all schedds are unknown to DNS
 	Bug fix: Fixed `glidien_config` corrupted by concurrent custom scripts run via HTCSS startd cron (#163)
 	Bug fix: Fixed `setup_x509.sh` not to write to stdout when running as periodic script in HTCSS start cron (issues
 	Bug fix: Fixed setup_x509.sh creates proxy file in directory used for tokens (issue
@@ -7,10 +9,16 @@ v3_9_6
 	Bug fix: Fixed unnecessary proxy/hostcert.pem workaround in frontend config (issue
 	Bug fix: Fixed analyze_entries and python3 readiness (issue
 	Bug fix: Fixed gwms-renew-proxies service should check if local VOMS cert is expired (issue
+	Bug fix: Fixed python3 check return value in case of exception (PR
+	Bug fix: Fixed list_get_intersection in singularity_lib.sh that was requiring python2 (PR
+	Bug fix: Unset SEC_PASSWORD_DIRECTORY in the Glidein HTCSS configuration, was causing warnings for unknown files (PR
+	Bug fix: HTCSS DC_DAEMON_LIST now is equal to DAEMON_LIST only in the Factory, in all other GlideinWMS components only selected HTCSS daemons are added explicitly to it (issue
+	Bug fix: Working and local tmp directories are removed during Glidein cleanup also when the start directory is missing. This result in a loss of Glidein final status information but avoids sandbox leaks on the Worker Node. (issue
 	NOTE: custom scripts should always read values via gconfig_get(). The only exception is the parsing or the line to get the add_config_line source file
 	NOTE: add_config_line is deprecated in favor of gconfig_add. Will be removed from future versions
 	NOTE: add_config_line_safe is deprecated in favor of gconfig_add_safe. gconfig_add is the recommended method to use also in concurrent scripts
 	NOTE: gconfig_add_unsafe, with a similar behavior to the former add_config_line, has been added. Its use is not recommended, unless absolutely sure that no script will be run in parallel
+	NOTE: Only the first collector in TRUST_DOMAIN is kept, following collectors are removed. This happens both in the Frontend token issuer and in the setting of the Glidein TRUST_DOMAIN (setup_x509.sh).
 
 v3_9_5
 	Support for credential generator plugins
