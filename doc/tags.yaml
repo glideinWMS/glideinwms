@@ -395,4 +395,3 @@ v3_9_6:
     - add_config_line_safe is deprecated in favor of gconfig_add_safe. gconfig_add is the recommended method to use also in concurrent scripts
     - gconfig_add_unsafe, with a similar behavior to the former add_config_line, has been added. Its use is not recommended, unless absolutely sure that no script will be run in parallel
     - Only the first collector in TRUST_DOMAIN is kept, following collectors are removed. This happens both in the Frontend token issuer and in the setting of the Glidein TRUST_DOMAIN (setup_x509.sh).
-
