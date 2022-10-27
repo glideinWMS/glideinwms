@@ -65,13 +65,17 @@ archive_gwms() {
 archive_gwms
 
 echo "Tarball Created for $gwms_tag (sha1sum, file): $(sha1sum "$gwms_tar")"
+echo "Use the following to update the upstream file:"
+echo "echo 'glideinwms/$gwms_tag/glideinwms.tar.gz sha1sum=$(sha1sum "$gwms_tar" | cut -f 1 -d ' ')' > upstream/developer.tarball.source"
 
-ssh $username@$osg_buildmachine "mkdir -p $osg_uploaddir"
-
-if [ $? -eq 0 ]; then
-    scp $gwms_tar $username@$osg_buildmachine:$osg_uploaddir
-    [ $? -eq 0 ] && echo "Tarball Uploaded to $osg_buildmachine: $osg_uploaddir" || { echo "ERROR: failed to upload the tarball to $osg_buildmachine: $osg_uploaddir"; exit 1; }
+if ssh $username@$osg_buildmachine "mkdir -p $osg_uploaddir"; then
+    if scp "$gwms_tar" "$username@$osg_buildmachine:$osg_uploaddir"; then
+        echo "Tarball Uploaded to $osg_buildmachine: $osg_uploaddir"
+    else
+        echo "ERROR: failed to upload the tarball to $osg_buildmachine: $osg_uploaddir"
+        exit 1
+    fi
 else
-    echo "ERROR: Failed to create directory $osg_uploaddir on the OSG build machine"
+    echo "ERROR: Failed to create directory '$osg_uploaddir' on the OSG build machine"
     exit 1
 fi

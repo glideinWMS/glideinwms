@@ -191,6 +191,21 @@ class TaskPylint(TaskRelease):
         self.status = "COMPLETE"
 
 
+class TaskDocumentation(TaskRelease):
+    def __init__(self, rel):
+        TaskRelease.__init__(self, "GlideinWMSDocumentation", rel)
+        self.doc_filename = f"glideinwms-doc.{self.release.version}.tar"
+        self.gitExe = which("git")
+
+    def execute(self):
+        src_dir = f"{self.release.releaseDir}/../src/{self.release.version}/glideinwms"
+        # The final directory does not matter. Each command execution starts form the same place
+        cmd = f"cd {src_dir} && {self.gitExe} archive HEAD doc > {self.release.releaseDir}/{self.doc_filename}"
+        print("%s" % cmd)
+        execute_cmd(cmd)
+        self.status = "COMPLETE"
+
+
 class TaskTar(TaskRelease):
     def __init__(self, rel):
         TaskRelease.__init__(self, "GlideinWMSTar", rel)
@@ -391,6 +406,9 @@ class PackageExcludes:
             ".gitmodules",
             ".mailmap",
             ".pep8speaks.yml",
+            ".pre-commit-config.yaml",
+            ".prettierignore",
+            ".reuse",
             ".travis.yml",
             ".DS_Store",
             "build",
@@ -465,6 +483,19 @@ def create_dir(dirname, mode=0o755, error_if_exists=False):
 
 # can throw ExeError
 def execute_cmd(cmd, stdin_data=None):
+    """Execute a command in a shell using subprocess.Popen
+    The initial directory is the one of the Pithon script
+    (the final direcotry at the end of the subprocess does not matter)
+
+    Args:
+        cmd (str): string containing the command to execute
+        stdin_data (str): optional text written to stdin
+
+    Returns:
+        str: stdout of the command
+    Raises:
+        ExeError: when the command fails. The message is the command stderr
+    """
     child = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if stdin_data != None:
         child.stdin.write(stdin_data)

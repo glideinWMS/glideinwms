@@ -169,6 +169,7 @@ def main(argv):
     rel.addTask(ReleaseManagerLib.TaskSetupReleaseDir(rel))
     rel.addTask(ReleaseManagerLib.TaskVersionFile(rel))
     rel.addTask(ReleaseManagerLib.TaskTar(rel))
+    rel.addTask(ReleaseManagerLib.TaskDocumentation(rel))
     rel.addTask(ReleaseManagerLib.TaskRPM(rel, python_version, use_mock))
 
     rel.executeTasks()
