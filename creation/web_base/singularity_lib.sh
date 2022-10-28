@@ -1151,7 +1151,9 @@ singularity_exec() {
     local singularity_binds="$3"
     # Keeping --contain. Should not interfere w/ GPUs
     local singularity_opts="--ipc --contain $4"  # extra options added at the end (still before binds)
-    [[ $DISABLE_SINGULARITY_PID_NAMESPACES = 1 ]] || singularity_opts+=" --pid"
+    # add --pid if not disabled in config
+    no_pid_ns=$(get_glidein_config_value DISABLE_SINGULARITY_PID_NAMESPACES)
+    [[ $no_pid_ns = 1 ]] || singularity_opts+=" --pid"
     local singularity_global_opts="$5"
     local execution_opt="$6"
     [[ -z "$singularity_image"  ||  -z "$singularity_bin" ]] && { warn "Singularity image or binary empty. Failing to run Singularity "; false; return; }
