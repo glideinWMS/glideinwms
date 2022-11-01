@@ -107,6 +107,8 @@ GWMS_SCRIPT_LOG="$(dirname "$GWMS_THIS_SCRIPT")/.LOG_$(basename "$GWMS_THIS_SCRI
 SCRIPT_LOG=
 [[ -n "$GLIDEIN_DEBUG_OUTPUT" ]] && SCRIPT_LOG="$GWMS_SCRIPT_LOG"
 
+_DEFAULT_PATH=/usr/bin:/bin
+
 info_stdout() {
     [[ -z "$GLIDEIN_QUIET" ]] && echo "$@"
     true  # Needed not to return false if the test if the test above is false
@@ -659,7 +661,10 @@ env_clear_one() {
     if [[ -n "${!1}" ]]; then
         info "GWMS Singularity wrapper: $1 is set to ${!1} outside Singularity. This will not be propagated to inside the container instance."
         export "${varname}"="${!1}"
-        unset "$1"
+        case $1 in
+            PATH) PATH=$_DEFAULT_PATH ;;
+               *) unset "$1" ;;
+        esac
     fi
 }
 
@@ -1975,7 +1980,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     if [[ -n "$PATH" ]]; then
         old_path=$PATH
         info "GWMS Singularity wrapper: PATH is set to $PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
-        unset PATH
+        PATH=$_DEFAULT_PATH
     fi
     local old_pythonpath=
     if [[ -n "$PYTHONPATH" ]]; then
@@ -2015,7 +2020,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     # Restoring paths that are always cleared before invoking Singularity,
     # may contain something used for error communication
     [[ -n "$old_path" ]] && PATH=$old_path
-    [[ -n "$old_ld_library_path" ]] && PATH=$old_ld_library_path
+    [[ -n "$old_ld_library_path" ]] && LD_LIBRARY_PATH=$old_ld_library_path
     [[ -n "$old_pythonpath" ]] && PYTHONPATH=$old_pythonpath
     [[ -n "$old_ld_preload" ]] && LD_PRELOAD=$old_ld_preload
     # Exit or return to run w/o Singularity
