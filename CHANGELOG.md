@@ -7,7 +7,30 @@ SPDX-License-Identifier: Apache-2.0
 
 Developers updated changelog. For curated release notes see doc/tags.yaml or https://glideinwms.fnal.gov/doc.prd/history.html
 
-## v3.9.6 \[2022-07-dd\]
+## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+
+Changes since the last release
+
+### New features / functionalities
+
+-   Use `SINGULARITY_DISABLE_PID_NAMESPACES` to conditionally include `--pid` in Singularity/Apptainer (OSG SOFTWARE-5340, PR #232)
+-   item N
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Set PATH to default value instead of emptying it (PR #233)
+
+### Testing / Development
+
+### Known Issues
+
+## v3.9.6 \[2022-10-27\]
 
 Changes since the last release
 
