@@ -21,14 +21,22 @@ check_os_mac() {
 
 if check_os_mac ; then
     echo "Mac OS X: replacing env and xargs for compatibility"
-    if [[ -x /usr/local/bin/genv ]]; then
-        env () {
+    cmd=$(command -v genv)
+    if [[ -x "$cmd" ]]; then
+        env() {
             /usr/local/bin/genv "$@"
         }
     fi
-    if [[ -x /usr/local/bin/gxargs ]]; then
-        xargs () {
+    cmd=$(command -v gxargs)
+    if [[ -x "$cmd" ]]; then
+        xargs() {
             /usr/local/bin/gxargs "$@"
+        }
+    fi
+    cmd=$(command -v tac)
+    if [[ ! -x "$cmd" ]]; then
+        tac() {
+            tail -r "$@"
         }
     fi
 fi
