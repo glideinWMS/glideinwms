@@ -6,13 +6,13 @@
 #
 glidein_config="$1"
 
-function advertise {
+advertise() {
     key="$1"
     value="$2"
     atype="$3"
 
     if [ "$glidein_config" != "NONE" ]; then
-        add_config_line $key "$value"
+        gconfig_add $key "$value"
         add_condor_vars_line $key "$atype" "-" "+" "Y" "Y" "+"
     fi
 
@@ -23,13 +23,13 @@ function advertise {
     fi
 }
 
-if [ "$glidein_config" != "NONE" ]; then
+if [[ "$glidein_config" != "NONE" ]]; then
     # import advertise and add_condor_vars_line functions
-    if [ "x$add_config_line_source" = "x" ]; then
-        export add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
-        export       condor_vars_file="`grep -i "^CONDOR_VARS_FILE "    "$glidein_config" | cut -d ' ' -f 2-`"
+    if [[ -z "$add_config_line_source" ]]; then
+        export add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
+        export       condor_vars_file=$(grep -m1 -i "^CONDOR_VARS_FILE "    "$glidein_config" | cut -d ' ' -f 2-)
     fi
-    source "$add_config_line_source"
+    . "$add_config_line_source"
 fi
 
 # Important: each VO must replace the following variable with the paths to singularity images that they want to use.

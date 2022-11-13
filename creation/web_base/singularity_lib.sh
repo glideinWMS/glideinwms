@@ -396,22 +396,29 @@ gwms_process_scripts() {
 }
 
 gwms_from_config() {
-    # Retrieve a parameter from glidien_config ($glidien_config)
+    # Retrieve a parameter from glidien_config ($glidien_config) and echo it to stdout
     #  If the $glidein_config variable is not defined assume the parameter is not defined
     # 1. - parameter to parse from glidein_config
-    # 2. - default
-    # 3. - function to validate or process (get_prop_bool or same interface)
+    # 2. - default (when the value is not defined)
+    # 3. - function to validate or process the parameter (get_prop_bool or same interface)
+    #      The default, when used, is not processed by this function
+    local ret=
     if [[ -n "$glidein_config" ]]; then
-        ret=$(grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-)
+        #ret=$(grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-)
+        #ret=$(tac "$glidein_config" | grep -m1 "^$1 " | cut -d ' ' -f 2-)
+        if ! ret=$(gconfig_get "$1" "$glidein_config" 2>/dev/null); then
+            ret=$(tac "$glidein_config" | grep -m1 "^$1 " | cut -d ' ' -f 2-)
+        fi
     fi
     if [[ -n "$ret" ]]; then
         if [[ -n "$3" ]]; then
             "$3" VALUE_PROVIDED "$ret" "$2"
-        else
-            [[ -z "$ret" ]] && ret=$2
-            echo "$ret"
+            return
         fi
+    else
+        ret=$2
     fi
+    echo "$ret"
 }
 
 
@@ -494,7 +501,7 @@ get_prop_str() {
     #  $3 default value (optional)
     # Out:
     #  echo the value (or the default if UNDEFINED) and return 0
-    #  For no ClassAd file, echo the default and return 1
+    #  For no ClassAd file or file not readable, echo the default and return 1
     #  For bad invocation, return 1
     if [[ $# -lt 2  ||  $# -gt 3 ]]; then
         return 1
@@ -504,9 +511,15 @@ get_prop_str() {
     elif [[ "$1" = "VALUE_PROVIDED" ]]; then
         val=$2
     else
+        if [[ ! -r "$1" ]]; then
+            echo "$3"
+            return 1
+        fi
         val=$( (grep -i "^$2 " "$1" | cut -d= -f2 | sed -e "s/^[\"' \t\n\r]//g" -e "s/[\"' \t\n\r]$//g" | sed -e "s/^[\"' \t\n\r]//g" ) 2>/dev/null )
     fi
-    [[ -z "$val" ]] && val="$3"
+    if [[ -z "$val" || "$val" =~ [Uu][Nn][Dd][Ee][Ff][Ii][Nn][Ee][Dd] ]]; then
+        val="$3"
+    fi
     echo "$val"
     return 0
 }
@@ -514,16 +527,12 @@ get_prop_str() {
 # $glidein_config from the file importing this
 # add_config_line and add_condor_vars_line are in add_config_line.source (ADD_CONFIG_LINE_SOURCE in $glidein_config)
 if [[ -e "$glidein_config" ]]; then    # was: [ -n "$glidein_config" ] && [ "$glidein_config" != "NONE" ]
-    error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)
     if [[ -z "$SOURCED_ADD_CONFIG_LINE" ]]; then
         # import add_config_line and add_condor_vars_line functions used in advertise
         if [[ -z "$add_config_line_source" ]]; then
-            add_config_line_source=$(grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | cut -d ' ' -f 2-)
+            add_config_line_source=$(grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
             export add_config_line_source
-            condor_vars_file=$(grep -i "^CONDOR_VARS_FILE "    $glidein_config | cut -d ' ' -f 2-)
-            export condor_vars_file
         fi
-
         if [[ -e "$add_config_line_source" ]]; then
             info "Sourcing add config line: $add_config_line_source"
             # shellcheck source=./add_config_line.source
@@ -534,6 +543,15 @@ if [[ -e "$glidein_config" ]]; then    # was: [ -n "$glidein_config" ] && [ "$gl
             warn "glidein_config defined but add_config_line ($add_config_line_source) not available. Some functions like advertise will be limited." || true
         fi
     fi
+    export condor_vars_file
+    if [[ $(type -t gconfig_get) = function ]]; then
+        condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
+        error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
+    else
+        # Trying to get these defined even if add_config_line is unavailable (using grep instead ot tac, OK if no duplicate)
+        condor_vars_file=$(grep -m1 '^CONDOR_VARS_FILE ' "$glidein_config" | cut -d ' ' -f 2-)
+        error_gen=$(grep -m1 '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)
+    fi
 else
     # glidein_config not available
     warn_muted "glidein_config not defined ($glidein_config) in singularity_lib.sh. Some functions like advertise and error_gen will be limited." || true
@@ -542,7 +560,8 @@ else
 fi
 
 
-# TODO: should always use add_config_line_safe to avoid 2 functions?
+# TODO: gconfig_add is safe also for periodic scripts. advertise_safe seems not used.
+#  Should it be removed leaving only advertise?
 advertise() {
     # Add the attribute to glidein_config (if not NONE) and return the string for the HTC ClassAd
     # In:
@@ -560,7 +579,7 @@ advertise() {
     atype="$3"
 
     if [[ "$glidein_config" != "NONE" ]]; then
-        add_config_line "$key" "$value"
+        gconfig_add "$key" "$value"
         add_condor_vars_line "$key" "$atype" "-" "+" "Y" "Y" "+"
     fi
 
@@ -589,7 +608,7 @@ advertise_safe() {
     local atype="$3"
 
     if [[ "$glidein_config" != "NONE" ]]; then
-        add_config_line_safe "$key" "$value"
+        gconfig_add_safe "$key" "$value"
         add_condor_vars_line "$key" "$atype" "-" "+" "Y" "Y" "+"
     fi
 
@@ -1229,8 +1248,15 @@ singularity_exec_simple() {
     local singularity_bin="$1"
     local singularity_image="$2"
     shift 2
-    singularity_exec "$singularity_bin" "$singularity_image" "$singularity_binds" "$GLIDEIN_SINGULARITY_OPTS" \
-                     "$GLIDEIN_SINGULARITY_GLOBAL_OPTS" "" "${@}"
+    local error exit_code
+    { error=$(singularity_exec "$singularity_bin" "$singularity_image" "$singularity_binds" \
+            "$GLIDEIN_SINGULARITY_OPTS" "$GLIDEIN_SINGULARITY_GLOBAL_OPTS" "" "${@}" 2>&1 >&3 3>&-); } 3>&1
+    exit_code=$1
+    echo "$error" >&2
+    if [[ $exit_code -eq 0 ]] && echo "$error" | grep -q "^FATAL:"; then
+        warn "singularity/apptainer exited w/ 0 but seems to have a FATAL error reported in stderr"
+    fi
+    return $exit_code
 }
 
 
@@ -1265,15 +1291,21 @@ singularity_test_exec() {
     # if n1 is not 0, the it runs unprivileged as that user
     # if n1 is 0 but n2 not then it runs in fake-root mode (a special unprivileged mode in v3.3)
     local map_format_regex="^,[0-9]+,[0-9]+,"
-    local check_singularity
+    local check_singularity singularity_ec
     if [[ -e /proc/self/uid_map ]]; then
         check_singularity="$(singularity_exec_simple "$singularity_bin" "$singularity_image" cat /proc/self/uid_map |
-                sed -r -e 's/\x1b\[[0-9;]*m?//g' -e 's/\x1b[()][A-Z0-9]//g' | head -n1 | tr -s '[:blank:]' ','),"
+                sed -r -e 's/\x1b\[[0-9;]*m?//g' -e 's/\x1b[()][A-Z0-9]//g' | head -n1 | tr -s '[:blank:]' ',';
+                echo "sing_ec:${PIPESTATUS[0]}")"
     else
+        # On older kernels there is no /proc/self/uid_map, only privileged singularity can run
         check_singularity="$(singularity_exec_simple "$singularity_bin" "$singularity_image" env | grep SINGULARITY_CONTAINER |
-                sed -r -e 's/\x1b\[[0-9;]*m?//g' -e 's/\x1b[()][A-Z0-9]//g')"
+                sed -r -e 's/\x1b\[[0-9;]*m?//g' -e 's/\x1b[()][A-Z0-9]//g'; echo "sing_ec:${PIPESTATUS[0]}")"
     fi
-    if [[ "$check_singularity" =~ $map_format_regex ]]; then
+    singularity_ec=${check_singularity##*sing_ec:}
+    check_singularity="${check_singularity%sing_ec:*}"
+    # Removing newline (not there if no output). Extra comma needed for if branch output, not disturbing for else
+    check_singularity="${check_singularity%$'\n'},"
+    if [[ $singularity_ec -eq 0  && "$check_singularity" =~ $map_format_regex ]]; then
         # singularity ran correctly
         local singularity_mode=unprivileged
         # same test used also in singularity_check()
@@ -1283,15 +1315,15 @@ singularity_test_exec() {
         info "Singularity at '$singularity_bin' appears to work ($singularity_mode mode)"
         echo "$singularity_mode"
         # true - not needed echo returns true
-    elif [[ "$check_singularity" = "SINGULARITY_CONTAINER="* ]]; then
+    elif [[ $singularity_ec -eq 0  && "$check_singularity" = "SINGULARITY_CONTAINER="* ]]; then
         singularity_mode=privileged
         info "Singularity at '$singularity_bin' appears to work ($singularity_mode mode), user namespaces not available"
         echo "$singularity_mode"
         # true - not needed echo returns true
     else
         # test failed
-        [[ "$check_singularity" = ',' ]] && info "Singularity at $singularity_bin failed " ||
-            info "Singularity at '$singularity_bin' failed w/ unexpected output"
+        [[ "$check_singularity" = ',' ]] && info "Singularity at $singularity_bin failed (ec:$singularity_ec)" ||
+            info "Singularity at '$singularity_bin' failed (ec:$singularity_ec) w/ unexpected output"
         false
     fi
 }

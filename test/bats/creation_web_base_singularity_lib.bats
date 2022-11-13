@@ -305,6 +305,28 @@ preset_env() {
 }
 
 
+test_aux_gwms_from_config() {
+    ret=${2:-$3}
+    echo "Proc<$ret>"
+}
+
+@test "Verify gwms_from_config" {
+    # glidein_config
+    glidein_config=fixtures/glidein_config
+    # default when the key is missing or the file is not readable
+    [ "$(gwms_from_config missing_key4 def4)" = "def4" ]
+    [ "$(gwms_from_config missing_key4)" = "" ]
+    # values and processed values
+    [ "$(gwms_from_config VAR1 def1)" = "test" ]
+    [ "$(gwms_from_config VAR1 def1 test_aux_gwms_from_config)" = "Proc<test>" ]
+    [ "$(gwms_from_config ERROR_GEN_PATH def1)" = "/bin/echo" ]
+    glidein_config=fixtures/missing_file_glidein_config
+    [ "$(gwms_from_config VAR1 def1)" = "def1" ]
+    # defaults are not processed
+    [ "$(gwms_from_config VAR1 def1 test_aux_gwms_from_config)" = "def1" ]
+}
+
+
 @test "Verify cvmfs_path_in_cvmfs_literal" {
     cvmfs_path_in_cvmfs_literal /cvmfs
     cvmfs_path_in_cvmfs_literal /cvmfs/dir/file

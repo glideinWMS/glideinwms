@@ -1,0 +1,104 @@
+# This file is similar to creation/web_base/add_config_line.source
+# except the warnings are printed to &3 to comply with BATS
+cvf_warn() {
+ echo \`date\` "$@" 1>&3
+}
+
+# Mac compatibility
+TAC=$(command -v tac)
+[[ -z "$TAC" && "$OSTYPE" =~ darwin* ]] && TAC="tail -r"
+PSPID="$(command -v ps) -q"
+[[ "$OSTYPE" =~ darwin* ]] && PSPID="$(command -v ps) -p"  # Quick-pid option not available on Mac/BSD
+
+# Return the value stored in glidein_config
+#  1: id (key) of the value to retrieve;
+#  2(opt): path of the config file ("$glidein_config" by default)
+# Counting on $glidein_config if $2 not provided
+# compatible w/: grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-
+# different form previous: grep "^$1 " "$glidein_config" | awk '{print $2}' (was trimming and returning 1st word, not rest of line)
+# and previous: grep "^$var_name " $config_file | awk '{if (NF>1) ind=length($1)+1; v=substr($0, ind); print substr(v, index(v, $2))}' (left-trimming)
+gconfig_get() {
+    local config_file=${2:-$glidein_config}
+    [[ -z "${config_file}" ]] && { warn "Error: glidein_config not provided and glidein_config variable not defined. Forcing exit."; exit 1; }
+    [[ -r "$config_file" ]] || { true; return; }
+    # Leave the extra space in the grep, to parse correctly strings w/ the same beginning
+    $TAC "$config_file" | grep -m1 "^$1 " | cut -d ' ' -f 2-
+}
+
+gconfig_log_name() {
+    local res="${1:-$glidein_config}"
+    [[ -z "$res" ]] && { warn "Warning: glidein_config not provided and glidein_config variable not defined. Using '.history' as log file"; } || true
+    echo "${res}.history"
+}
+
+gconfig_log_add() {
+    local log_name=$(gconfig_log_name "$1")
+    shift
+    echo "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${log_name}"
+}
+
+###################################
+# Add a line to the config file
+# Arg: line to add, first element is the id
+# Uses global variable glidein_config
+# Uses temporary files to make sure multiple add_config_line() calls don't clobber the glidein_config.
+# There could be race conditions resulting in values being ignored (intermixed processing)
+# but glidein_config will never be inconsistent
+# Safe implementations could either:
+# 1. use flock, see add_config_line_safe(), may have problems on NFS
+# 2. use a DB or some gatekeeping process
+# 3. use a separate file per entry (see https://github.com/damphat/kv-bash/blob/master/kv-bash)
+gconfig_add() {
+    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfog_add. Forcing exit."; exit 1; }
+    # Add the value also to a log that will help troubleshoot problems
+    echo "REG$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${glidein_config}.history"
+    if ! grep -q "^${*}$" "${glidein_config}"; then
+        # Copy the glidein config so it doesn't get modified while we grep out the old value
+        local tmp_config1="${glidein_config}.$$.1.tmp"
+        local tmp_config2="${glidein_config}.$$.2.tmp"
+        local ec=0
+        if ! cp -p "${glidein_config}" "${tmp_config1}"; then
+            warn "Error writing ${tmp_config1}"
+            rm -f "${tmp_config1}"
+            exit 1
+        fi
+        # OR needed to avoid set -e problems when the file is empty
+        grep -v "^$1 " "${tmp_config1}" > "${tmp_config2}" || ec=$?
+        if [[ "$ec" -gt 1 ]]; then
+            # 1 only lines to remove (0 matches), >1 error
+            warn "Error writing ${tmp_config2} with grep"
+            rm -f "${tmp_config1}"
+            rm -f "${tmp_config2}"
+            exit 1
+        fi
+        rm -f "${tmp_config1}"
+        # NOTE that parameters are flattened if not quoted, if there are blanks they are separated by single space
+        echo "$@" >> "${tmp_config2}"
+        if ! mv "${tmp_config2}" "${glidein_config}"; then
+            warn "Error renaming processed ${tmp_config1} into ${glidein_config}"
+            exit 1
+        fi
+    fi
+}
+
+# alias add_config_line=gconfig_add  # This is not working w/ bats
+add_config_line(){ gconfig_add "$@"; }
+add_config_line_safe(){ gconfig_add "$@"; }
+
+
+####################################
+# Add a line to the condor_vars file
+# Arg: line to add, first element is the id
+# Uses global variable condor_vars_file
+add_condor_vars_line() {
+    local id=$1
+
+    rm -f "${condor_vars_file}.old"   #just in case one was there
+    if ! mv "${condor_vars_file}" "${condor_vars_file}.old"; then
+        cvf_warn "Error renaming ${condor_vars_file} into ${condor_vars_file}.old"
+        exit 1
+    fi
+    grep -v "^$id\b" "${condor_vars_file}.old" > "${condor_vars_file}"
+    echo "$@" >> "${condor_vars_file}"
+    rm -f "${condor_vars_file}.old"
+}
