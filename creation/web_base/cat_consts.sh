@@ -20,20 +20,20 @@ function warn {
 }
 
 # import add_config_line function
-add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
 source "$add_config_line_source"
 
 # import get_prefix function
-get_id_selectors_source="`grep '^GET_ID_SELECTORS_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
+get_id_selectors_source=$(grep -m1 '^GET_ID_SELECTORS_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
 source "$get_id_selectors_source"
 
-error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
+error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
 id_prefix=`get_prefix $dir_id`
 
 ###################################
 # Find file names
-consts_file="`grep "^${id_prefix}CONSTS_FILE " "$glidein_config" | cut -d ' ' -f 2-`"
+consts_file=$(gconfig_get ${id_prefix}CONSTS_FILE "$glidein_config")
 if [ -z "$consts_file" ]; then
     #warn "Cannot find ${id_prefix}CONSTS_FILE in $glidein_config!"
     STR="Cannot find ${id_prefix}CONSTS_FILE in $glidein_config!"
@@ -55,7 +55,7 @@ if [ -n "$consts_file" ]; then
 	# var_name keeps lines w/ no separator
 	var_name="`echo "$line" | cut -f 1 | sed -e 's/[[:space:]]*$//'`"
 	var_value="`echo "$line" | cut -s -f 2- | sed -e 's/[[:space:]]*$//'`"
-        ( set -f; add_config_line $var_name "$var_value" )
+        ( set -f; gconfig_add $var_name "$var_value" )
         let ++nr_lines
     done < "$consts_file"
     echo "# --- End $dir_id constants       ---" >> "$glidein_config"

@@ -13,7 +13,7 @@
 glidein_config="$1"
 
 # import add_config_line function
-add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | cut -d ' ' -f 2-`"
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | cut -d ' ' -f 2-)
 source "$add_config_line_source"
 
 error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
