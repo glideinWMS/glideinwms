@@ -87,7 +87,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts["file_list"].add_placeholder(
             cWConsts.GRIDMAP_FILE, allow_overwrite=True
         )  # this one must be loaded before setup_x509.sh is run
-        # TODO: remove. these files are in the lists below, non need for defaults
+        # TODO: remove. these files are in the lists below, no need for defaults
         # self.dicts['file_list'].add_placeholder('singularity_lib.sh', allow_overwrite=True)  # this one must be loaded before singularity_setup.sh and any singularity wrapper are run
         # self.dicts['file_list'].add_placeholder('singularity_wrapper.sh', allow_overwrite=True)  # this one must be loaded after singularity_setup.sh and before any script running in singularity
 
@@ -232,7 +232,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             cgWConsts.CONDOR_STARTUP_FILE,
         ]
         # These are right after the entry, before some VO scripts. The order in the following list is important
-        at_file_list_scripts = ["singularity_setup.sh", "condor_chirp"]
+        at_file_list_scripts = ["singularity_setup.sh", "condor_chirp", "gconfig.py"]
         # The order in the following list is important
         after_file_list_scripts = [
             "check_proxy.sh",
