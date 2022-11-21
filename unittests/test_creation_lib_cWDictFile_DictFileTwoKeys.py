@@ -25,6 +25,7 @@ import xmlrunner
 from glideinwms.unittests.unittest_utils import create_temp_file, TestImportError
 
 try:
+    from glideinwms.creation.lib.cWConsts import DICT_FILE_VERSION
     from glideinwms.creation.lib.cWDictFile import DictFileTwoKeys
 except ImportError as err:
     raise TestImportError(str(err))
@@ -77,7 +78,10 @@ class TestDictFileTwoKeys(unittest.TestCase):
 
     def test_file_header(self):
         self.assertEqual(None, self.dict_file.file_header(want_comments=False))
-        self.assertEqual("# File: %s\n#" % self.dict_file.fname, self.dict_file.file_header(want_comments=True))
+        self.assertEqual(
+            f"# File: {self.dict_file.fname}\n# Version: {DICT_FILE_VERSION}\n#",
+            self.dict_file.file_header(want_comments=True),
+        )
 
     def test_format_val(self):
         key = "GLIDECLIENT_Group_Start"

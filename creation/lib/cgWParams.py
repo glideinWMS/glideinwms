@@ -467,16 +467,7 @@ class GlideinParams(cWParams.CommonParams):
 
         self.defaults["attrs"] = sub_defaults["attrs"]
         self.defaults["files"] = copy.deepcopy(sub_defaults["files"])
-        # ordering is specific to global section of factory
-        self.defaults["files"][3]["after_entry"] = (
-            "False",
-            "Bool",
-            "Should this file be loaded after the entry ones?",
-            None,
-        )
-
         self.defaults["entries"] = (OrderedDict(), "Dictionary of entries", "Each entry contains", self.entry_defaults)
-
         return
 
     # return name of top element

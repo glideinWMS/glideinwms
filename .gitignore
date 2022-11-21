@@ -20,3 +20,8 @@ bigfiles/*
 !bigfiles/push-bigfiles.sh
 
 .idea/*
+node_modules/*
+output/*
+package-lock.json
+package.json
+test/bats/logs/

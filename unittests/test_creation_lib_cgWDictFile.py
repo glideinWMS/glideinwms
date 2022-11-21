@@ -416,6 +416,7 @@ class TestGlideinMainDicts(unittest.TestCase):
             assert False
 
     def test_load(self):
+        # TODO: Change it
         self.gmdicts.load()
 
     def test_reuse(self):

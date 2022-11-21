@@ -24,6 +24,8 @@ from glideinwms.lib import hashCrypto
 from glideinwms.lib.defaults import BINARY_ENCODING
 from glideinwms.lib.util import chmod
 
+from . import cWConsts
+
 ########################################
 #
 # File dictionary classes
@@ -437,7 +439,7 @@ class DictFile:
             str: The file header, a comment containing the file name
         """
         if want_comments:
-            return "# File: %s\n#" % self.fname
+            return f"# File: {self.fname}\n# Version: {cWConsts.DICT_FILE_VERSION}\n#"
         else:
             return None
 
@@ -992,23 +994,78 @@ class FileDictFile(SimpleFileDictFile):
 
     It is using a dictionary (key, value) from DictFile, serialized to file.
     The key is the file ID
-    The value (line) on file has DATA_LENGTH (7) components: the key and the first DATA_LENGTH-1 attributes below.
-    The value in memory has DATA_LENGTH components (real_fname,cache/exec,period,prefix,cond_download,config_out, data),
+    The value (line) on file has DATA_LENGTH (12) components: the key and the first DATA_LENGTH-1 attributes below.
+    The value in memory has DATA_LENGTH components (real_fname, cache/exec, prefix, time, priority, cond_download, tar_source, config_out, cond_attr, absdir_outattr, data),
     the key is used as key for the dictionary and the data (file content) is added reading the file.
     Here the attributes stored as tuple in the dictionary value:
     1. real_fname, i.e file name
-    2. cache/exec/... keyword identifying the file type: regular, nocache, exec (:s modifier to run in singularity), untar, wrapper
-    3. period period in seconds at which an executable is re-invoked (only for periodic executables, 0 otherwise)
-    4. prefix startd_cron variables prefix (default is GLIDEIN_PS_)
-    5. cond_download has a special value of TRUE
-    6. config_out has a special value of FALSE
-    7. data - String containing the data extracted from the file (real_fname) (not in the serialized dictionary)
+    2. cache/exec/... keyword identifying the file type:
+        -   regular
+        -   nocache
+        -   executable (:s modifier to run in singularity)
+        -   untar (if a modifier is present, it will be the name of the directory where the tarball will be unpacked, the name of the tarball will be used otherwise)
+        -   wrapper
+        -   source
+        -   library (:shell in case of a shell library)
+    3. prefix startd_cron variables prefix (default is GLIDEIN_PS_)
+    4. time - phase of the lifecycle when to execute/source the scripts:
+        -   startup
+        -   pre_job
+        -   after_job
+        -   cleanup
+        -   periodic (:period will specify the period in seconds, 60 by default)
+        -   milestone (:code will specify the milestone code)
+        -   failure (:exit_code will specify the failure code)
+       Time will be ignored for files when type is different than exec or source.
+       A combination of time phases can be used.
+    5. period, 0 if not a periodic script
+    6. priority - priority in the order of execution inside a time phase [0-99].
+       Relevant only for executable, source and library files.
+        Order                       String code representation  Associated integer code (internal representation)
+        Factory pre_entry                   e-[g-]                          10
+        Frontend pre_entry pre_group        e-g-                            20
+        Frontend pre_entry group            e-g=                            30
+        Frontend pre_entry after_group      e-g+                            40
+        entry                               e=[g-,g+,g=]                    50
+        Frontend after_entry pre_group      e+g-                            60
+        Frontend after_entry group          e+g=                            70
+        Frontend after_entry after_group    e+g+                            80
+        Factory after_entry                 e+[g+]                          90
+       A custom value inside the range [0-99] can be specified in order to alter the order of execution.
+    7. cond_download has a special value of TRUE
+    8. tar_source - Name of the tarball containing the file, if the file is contained in a tarball, NULL otherwise (default)
+    9. config_out - has a special value of FALSE
+    10. cond_attr - Name of a configuration switch. (like "ENABLE_KRB5")
+                   The operation requested on the file will be performed only if that parameter will be set to 1.
+                   If not set (set to NULL), the result will be considered as TRUE (i.e. download)
+        As result, a file will be downloaded if cond_download == TRUE || $cond_attr == TRUE
+    11. absdir_outattr - Name of a variable name. (like "KRB5_SUBSYS_DIR")
+                   The variable will be set to the absolute path of the file if the file is not a tarball
+                   or the directory where the tarball was unpacked in case it is a tarball,
+                   this last thing if and only if the unpacking actually happened (else it will not be defined.)
+                   ENTRY_ will be prepended if the <file> directive occurs in an entry.
+    12. data - String containing the data extracted from the file (real_fname) (not in the serialized dictionary)
+
     For placeholders, the real_name is empty (and the tuple starts w/ an empty string). Placeholders cannot be
     serialized (saved into file). Empty strings would cause error when parsed back.
     """
 
-    DATA_LENGTH = 7  # Length of value (attributes + data)
-    PLACEHOLDER_VALUE = ("", "", 0, "", "", "", "")  # The tuple should be DATA_LENGTH long and have the correct values
+    DATA_LENGTH = 12  # Length of value (attributes + data)
+    OLD_DATA_LENGTH = 7
+    PLACEHOLDER_VALUE = (
+        "",
+        "",
+        "",
+        "no_time",
+        0,
+        0,
+        "TRUE",
+        "NULL",
+        "FALSE",
+        "NULL",
+        "NULL",
+        "",
+    )  # The tuple should be DATA_LENGTH long and have the correct values
 
     def add_placeholder(self, key, allow_overwrite=True):
         # using DictFile, no file content (FileDictFile or SimpleFileDictFile)
@@ -1018,20 +1075,49 @@ class FileDictFile(SimpleFileDictFile):
         return self[key][0] == ""  # empty real_fname can only be a placeholder
 
     @staticmethod
-    def make_val_tuple(file_name, file_type, period=0, prefix="GLIDEIN_PS_", cond_download="TRUE", config_out="FALSE"):
+    def make_val_tuple(
+        file_name,
+        file_type,
+        prefix="GLIDEIN_PS_",
+        time="no_time",
+        period=0,
+        priority=0,  # executed first
+        cond_download="TRUE",
+        tar_source="NULL",
+        config_out="FALSE",
+        cond_attr="NULL",
+        absdir_outattr="NULL",
+    ):
         """Make a tuple with the DATA_LENGTH-1 attributes in the correct order using the defaults
 
         :param file_name: name of the file (aka real_fname)
-        :param file_type: type of the file (regular, nocache, exec, untar, wrapper). 'exec allows modifiers like ':s'
-        :param period: period for periodic executables (ignored otherwise, default: 0)
+        :param file_type: type of the file (regular, nocache, exec, untar, wrapper, source, library). 'exec allows modifiers like ':s'
         :param prefix: prefix for periodic executables (ignored otherwise, default: GLIDEIN_PS_)
+        :param time: specific phase of the lifecycle where to execute/source the script (startup, pre_job, after_job, cleanup, periodic, milestone, failure)
+        :param period: period of the periodic execution, 0 if the executable is not periodic
+        :param priority: priority of execution inside the phase [0-99]
         :param cond_download: conditional download (default: 'TRUE')
+        :param tar_source: name of the tarball containing the file
         :param config_out: config out (default: 'FALSE')
+        :param cond_attr: conditional attribute
+        :param absdir_outattr: absolute path variable
         :return: tuple with the DATA_LENGTH-1 attributes
         See class definition for more information about the attributes
         """
         # TODO: should it do some value checking? valid constant, int, ...
-        return file_name, file_type, period, prefix, cond_download, config_out  # python constructs the tuple
+        return (
+            file_name,
+            file_type,
+            prefix,
+            time,
+            period,
+            priority,
+            cond_download,
+            tar_source,
+            config_out,
+            cond_attr,
+            absdir_outattr,
+        )  # python constructs the tuple
 
     @staticmethod
     def val_to_file_name(val):
@@ -1066,7 +1152,7 @@ class FileDictFile(SimpleFileDictFile):
 
         Args:
             key (str): file ID
-            val (tuple): lists of 6 or 7 components (see class definition)
+            val (tuple): lists of 7 or 8 components (see class definition)
             data (str): string w/ data to add
             allow_overwrite (bool): if True the existing files can be replaced (default: False)
             allow_overwrite_placeholder (bool): if True, placeholder files can be replaced even if allow_overwrite
@@ -1095,7 +1181,7 @@ class FileDictFile(SimpleFileDictFile):
 
         Args:
             key (str): file ID
-            val (tuple): lists of 6 or 7 components (see class definition)
+            val (tuple): lists of 7 or 8 components (see class definition)
             allow_overwrite (bool): if True the existing files can be replaced (default: False)
             allow_overwrite_placeholder (bool): if True, placeholder files can be replaced even if allow_overwrite
                 is False (default: True)
@@ -1112,13 +1198,6 @@ class FileDictFile(SimpleFileDictFile):
                 # since the other functions from base class know nothing about placeholders, need to force overwrite
                 allow_overwrite = True
 
-        # This will help identify calls not migrated to the new format
-        # TODO: check parameters!!
-        try:
-            int(val[2])  # to check if is integer. Period must be int or convertible to int
-        except (ValueError, IndexError):
-            raise DictFileError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
-
         if len(val) == self.DATA_LENGTH:
             # Alt: return self.add_from_str(key, val[:self.DATA_LENGTH-1], val[self.DATA_LENGTH-1], allow_overwrite)
             return DictFile.add(self, key, tuple(val), allow_overwrite)
@@ -1127,14 +1206,20 @@ class FileDictFile(SimpleFileDictFile):
             # Maybe check also string length or possible values?
             if "\n" in val[-1]:
                 raise DictFileError(
-                    "Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val
+                    "Values '%s' not (real_fname,cache/exec,prefix,time,priority,cond_download,tar_source,config_out,cond_attr,absdir_outattr)"
+                    % val
                 )
             return self.add_from_file(key, val, os.path.join(self.dir, self.val_to_file_name(val)), allow_overwrite)
+        elif len(val) == self.OLD_DATA_LENGTH:
+            return DictFile.add(self, key, tuple(val), allow_overwrite)
         else:
-            raise DictFileError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
+            raise DictFileError(
+                "Values '%s' not (real_fname,cache/exec,prefix,time,priority,cond_download,tar_source,config_out,cond_attr,absdir_outattr)"
+                % val
+            )
 
     def format_val(self, key, want_comments):
-        return "{} \t{} \t{} \t{} \t{} \t{} \t{}".format(
+        return "{} \t{} \t{} \t{} \t{} \t{} \t{} \t{} \t{} \t{} \t{} \t{}".format(
             key,
             self.vals[key][0],
             self.vals[key][1],
@@ -1142,6 +1227,11 @@ class FileDictFile(SimpleFileDictFile):
             self.vals[key][3],
             self.vals[key][4],
             self.vals[key][5],
+            self.vals[key][6],
+            self.vals[key][7],
+            self.vals[key][8],
+            self.vals[key][9],
+            self.vals[key][10],
         )
 
     def file_header(self, want_comments):
@@ -1150,8 +1240,21 @@ class FileDictFile(SimpleFileDictFile):
                 DictFile.file_header(self, want_comments)
                 + "\n"
                 + (
-                    "# %s \t%s \t%s \t%s \t%s \t%s \t%s\n"
-                    % ("Outfile", "InFile        ", "Cache/exec", "Period", "Prefix", "Condition", "ConfigOut")
+                    "# %s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s \n"
+                    % (
+                        "Outfile",
+                        "InFile        ",
+                        "Cache/exec",
+                        "Prefix",
+                        "Time",
+                        "Period",
+                        "Priority",
+                        "Condition",
+                        "TarSource",
+                        "ConfigOut",
+                        "CondAttr",
+                        "AbsdirOutattr",
+                    )
                 )
                 + ("#" * 89)
             )
@@ -1173,22 +1276,22 @@ class FileDictFile(SimpleFileDictFile):
         if len(arr[0]) == 0:
             return  # empty key
 
-        if len(arr) != self.DATA_LENGTH:
-            # compatibility w/ old formats
-            # 3.2.13 (no prefix): key, fname, type, period, cond_download, config_out
-            # 3.2.10 (no period, prefix): key, fname, type, cond_download, config_out
-            # TODO: remove in 3.3 or after a few version (will break upgrade)
-            if len(arr) == self.DATA_LENGTH - 1:
-                # For upgrade from 3.2.13 to 3.2.11
-                return self.add(arr[0], [arr[1], arr[2], arr[3], "GLIDEIN_PS_", arr[4], arr[5]])
-            elif len(arr) == self.DATA_LENGTH - 2:
-                # For upgrade from 3.2.10 or earlier
-                return self.add(arr[0], [arr[1], arr[2], 0, "GLIDEIN_PS_", arr[3], arr[4]])
-            raise RuntimeError(
-                "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
+        if len(arr) == self.DATA_LENGTH:
+            return self.add(arr[0], arr[1:])
+
+        # for compatibility with old format
+        if len(arr) == self.OLD_DATA_LENGTH:
+            # old format: file, type, period, prefix, condition, configout
+            return self.add(
+                arr[0],
+                [arr[1], arr[2], arr[4], "startup", arr[3], 0, arr[5], "NULL", arr[6], "NULL", "NULL", "NULL"],
             )
 
-        return self.add(arr[0], arr[1:])
+        # length error
+        raise RuntimeError(
+            "Not a valid file line (expected %i or %i, found %i elements): '%s'"
+            % (self.DATA_LENGTH, self.OLD_DATA_LENGTH, len(arr), line)
+        )
 
     def get_immutable_files(self):
         mkeys = []

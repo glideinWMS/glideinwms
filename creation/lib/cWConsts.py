@@ -77,3 +77,8 @@ SIGNATURE_FILE = "signature.sha1"
 BLACKLIST_FILE = "nodes.blacklist"
 
 GRIDMAP_FILE = "grid-mapfile"
+
+# Using two digits for major/minor/patch version
+# This is the first version (3.11.0) with this new format
+# Change this number only if the DictFile format changes
+DICT_FILE_VERSION = "031100"

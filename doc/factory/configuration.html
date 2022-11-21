@@ -1,6 +1,7 @@
 <!--
 SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
+#TODO(F):
 -->
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
@@ -363,9 +364,8 @@ SPDX-License-Identifier: Apache-2.0
             <a href="#files">&lt;files&gt;</a><br />
             <blockquote>
               <a href="#files"
-                >&lt;file absfname="/usr/conf/sethome.source"
-                after_entry="False" const="True" executable="False"
-                untar="False" wrapper="True" /&gt;</a
+                >&lt;file absfname="/usr/conf/sethome.source" const="True"
+                type="wrapper" priority="value" time="phase" /&gt;</a
               ><br />
             </blockquote>
             <a href="#files">&lt;/files&gt;</a><br />
@@ -946,10 +946,9 @@ SPDX-License-Identifier: Apache-2.0
             <div class="xml">
               &lt;glidein&gt;&lt;files&gt;&lt;file absfname=&quot;<i
                 >script name</i
-              >&quot; executable=&quot;<i>True</i>&quot; period=&quot;period in
-              seconds&quot; prefix=&quot;cron prefix&quot;
-              after_entry=&quot;True&quot; type="file type"
-              comment=&quot;<i>comment</i>&quot; /&gt;
+              >&quot; type=&quot;<i>executable</i>&quot;
+              time=&quot;<i>phase</i>&quot; prefix=&quot;cron prefix&quot;
+              priority="<i>value</i>" comment=&quot;<i>comment</i>&quot; /&gt;
             </div>
 
             <p>
@@ -2277,7 +2276,7 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
           multiple collectors. (You should now see a line like:
           <i
             >"&lt;file absfname=&quot;web_base/collector_setup.sh&quot;
-            executable=&quot;True&quot;/&gt;"</i
+            type=&quot;executable&quot;/&gt;"</i
           >
           after reconfiguring).
         </p>
@@ -2619,8 +2618,9 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
           additional files. Both , Factory and Frontend configuration allow to
           specify lists of files either for all their glideins, for a specific
           entry (Factory), or job group (Frontend). These files can be scripts
-          (executables), regular files or tarballs and depending on the options
-          can be downloaded at different times (see
+          (executables), source files, libraries, wrapper, regular files or
+          tarballs and depending on the options can be downloaded at different
+          times (see
           <a href="custom_scripts.html">the custom scripts document</a> for more
           detils).
         </p>
@@ -2659,49 +2659,17 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
           </tr>
           <tr>
             <td>
-              <p><b>executable</b></p>
-            </td>
-            <td>
-              <p>
-                True if the file is a script (executable, see example below),
-                default is False
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <p><b>wrapper</b></p>
-            </td>
-            <td>
-              <p>
-                True if the file is a user wrapper (see example below), default
-                is False
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <p><b>untar</b></p>
-            </td>
-            <td>
-              <p>
-                True if the file is a tarball that needs to be expanded (see
-                example below), default is False
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td>
               <p><b>type</b></p>
             </td>
             <td>
               <p>
-                File type, must be one of the valid types (regular, run, source,
-                wrapper, untar). Can have qualifiers depending on the type after
-                a colon (":"). Valid qualifier for <i>run</i> is "singularity"
-                causes setup scripts to run in Singularity. Currently
-                <i>type</i> is ignored for non executables and the only values
-                used are "run" or "run:singularity". Default is empty
+                Keyword identifying the file type. Can have qualifiers depending
+                on the type after a colon (":"). - regular - nocache -
+                executable/exec/run (:s/:singularity modifier to run in
+                singularity) - untar (if a qualifier is present, it will be the
+                name of the directory where the tarball will be unpacked, the
+                name of the tarball will be used otherwise) - wrapper - source -
+                library (:shell in case of a shell library)
               </p>
             </td>
           </tr>
@@ -2729,15 +2697,25 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
           </tr>
           <tr>
             <td>
-              <p><b>period</b></p>
+              <p><b>time</b></p>
             </td>
             <td>
+              <p>Phase of the lifecycle when to execute/source the scripts:</p>
+              <ul>
+                <li>startup</li>
+                <li>pre_job</li>
+                <li>after_job</li>
+                <li>cleanup</li>
+                <li>
+                  periodic (:period will specify the period in seconds, 60 by
+                  default)
+                </li>
+                <li>milestone (:code will specify the milestone code)</li>
+                <li>failure (:exit_code will specify the failure code)</li>
+              </ul>
               <p>
-                If period>0 is the period (in seconds) of the executable .
-                Default is 0 (non periodic script). This is ignored for non
-                executable scripts. (see
-                <a href="custom_scripts.html">the custom scripts document</a>
-                for more)
+                Time will be ignored for files when type is different than exec
+                or source. A combination of time phases can be used.
               </p>
             </td>
           </tr>
@@ -2760,38 +2738,139 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
           </tr>
           <tr>
             <td>
+              <p><b>priority</b></p>
+            </td>
+            <td>
+              <p>
+                priority in the order of execution inside a time phase [0-99].
+                Relevant only for executable, source and library files.
+              </p>
+              <table>
+                <tr>
+                  <th>Order</th>
+                  <th>String code representation</th>
+                  <th>Associated integer code (internal representation)</th>
+                </tr>
+                <tr>
+                  <td>Factory pre_entry</td>
+                  <td>e-[g-]</td>
+                  <td>10</td>
+                </tr>
+                <tr>
+                  <td>Frontend pre_entry pre_group</td>
+                  <td>e-g-</td>
+                  <td>20</td>
+                </tr>
+                <tr>
+                  <td>Frontend pre_entry group</td>
+                  <td>e-g=</td>
+                  <td>30</td>
+                </tr>
+                <tr>
+                  <td>Frontend pre_entry after_group</td>
+                  <td>e-g+</td>
+                  <td>40</td>
+                </tr>
+                <tr>
+                  <td>entry</td>
+                  <td>e=[g-,g+,g=]</td>
+                  <td>50</td>
+                </tr>
+                <tr>
+                  <td>Frontend after_entry pre_group</td>
+                  <td>e+g-</td>
+                  <td>60</td>
+                </tr>
+                <tr>
+                  <td>Frontend after_entry group</td>
+                  <td>e+g=</td>
+                  <td>70</td>
+                </tr>
+                <tr>
+                  <td>Frontend after_entry after_group</td>
+                  <td>e+g+</td>
+                  <td>80</td>
+                </tr>
+                <tr>
+                  <td>Factory after_entry</td>
+                  <td>e+[g+]</td>
+                  <td>90</td>
+                </tr>
+              </table>
+              <p>
+                A custom value inside the range [0-99] can be specified in order
+                to alter the order of execution. (see
+                <a href="custom_scripts.html">the custom scripts document</a>
+                for more details).
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td>
               <p><b>comment</b></p>
             </td>
             <td><p>Arbitrary comment string</p></td>
           </tr>
           <tr>
             <td>
-              <p><b>after_entry</b></p>
+              <p><b>tar_source</b></p>
             </td>
             <td>
               <p>
-                If True, the script is executed after the entry scripts. Default
-                is False for the Factory, default is True for the Frontend. (see
-                <a href="custom_scripts.html">the custom scripts document</a>
-                for more)
+                Name of the tarball containing the file, if the file is
+                contained in a tarball, NULL otherwise (default)
               </p>
             </td>
           </tr>
           <tr>
             <td>
-              <p><b>after_group</b></p>
+              <p><b>config_out</b></p>
+            </td>
+            <td>
+              <p>Configuration output, FALSE by default.</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p><b>cond_download</b></p>
             </td>
             <td>
               <p>
-                If True, the Frontend script is executed after the group
-                scripts. Default is False. Not considered in the Factory. (see
-                <a href="custom_scripts.html">the custom scripts document</a>
-                for more)
+                Conditional boolean variable conditioning the download of the
+                file (True if file has to be downloaded).
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p><b>cond_attr</b></p>
+            </td>
+            <td>
+              <p>
+                Name of a configuration switch. The operation requested on the
+                file will be performed only if that parameter will be set to 1.
+                If not set (set to NULL), the result will be considered as TRUE
+                (i.e. download) As result, a file will be downloaded only if
+                cond_download is TRUE OR the variable pointed by cond_attr is
+                TRUE.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p><b>absdir_outattr</b></p>
+            </td>
+            <td>
+              <p>
+                Name of a variable name. The variable will be set to the
+                absolute path of the file, if the file is not a tarball, or the
+                directory where the tarball was unpacked in case it is a
+                tarball, this last thing if and only if the unpacking actually
+                happened (else it will not be defined.)
               </p>
             </td>
           </tr>
         </table>
-
         <ul>
           <li>
             <div class="xml">
@@ -2800,7 +2879,8 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
               &nbsp;[&lt;entries&gt;&lt;entry&gt;]<br />
               &nbsp;&lt;files&gt;<br />
               &nbsp;&nbsp;&lt;file absfname=&quot;<i>script name</i>&quot;
-              executable=&quot;True&quot; prefix=&quot;<i>cron_prefix</i>&quot;
+              type=&quot;<i>executable</i>&quot;
+              prefix=&quot;<i>cron_prefix</i>&quot;
               comment=&quot;<i>comment</i>&quot;/&gt;
             </div>
             <p>
@@ -2818,7 +2898,8 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
               &nbsp;[&lt;entries&gt;&lt;entry&gt;]<br />
               &nbsp;&lt;files&gt;<br />
               &nbsp; &nbsp;&lt;file absfname=&quot;<i>script name</i>&quot;
-              wrapper=&quot;True&quot; comment=&quot;<i>comment</i>&quot;/&gt;
+              type=&quot;<i>wrapper</i>&quot;
+              comment=&quot;<i>comment</i>&quot;/&gt;
             </div>
             <p>
               Path to the wrapper custom script. The script will be copied in
@@ -2836,7 +2917,7 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
               &nbsp;&lt;files&gt;<br />
               &nbsp; &nbsp;&lt;file absfname=&quot;<i>local file name</i>&quot;
               relfname=&quot;<i>target file name</i>&quot;
-              const=&quot;<i>Bool</i>&quot; executable=&quot;False&quot;
+              const=&quot;<i>Bool</i>&quot;
               comment=&quot;<i>comment</i>&quot;/&gt;
             </div>
             <p>
@@ -2856,13 +2937,13 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
             <div class="xml">
               &lt;glidein&gt;<br />
               &nbsp;[&lt;entries&gt;&lt;entry&gt;]<br />
-
               &nbsp;&lt;files&gt;<br />
               &nbsp;&nbsp;&lt;file absfname=&quot;<i>local file name</i>&quot;
-              untar=&quot;True&quot; comment=&quot;<i>comment</i>&quot;&gt;<br />
-              &nbsp; &nbsp; &lt;untar_options
-              cond_attr=&quot;<i>conf_sw</i>&quot; dir=&quot;<i>dir name</i
-              >&quot; absdir_outattr=&quot;<i>attr name</i>&quot;/&gt;
+              type=&quot;<i>untar:dir_name</i>&quot;
+              comment=&quot;<i>comment</i>&quot;
+              cond_attr=&quot;<i>conf_sw</i>&quot; absdir_outattr=&quot;<i
+                >attr name</i
+              >&quot; &gt;
             </div>
             <p>
               Sometimes it is useful to transfer a whole set of files, or even
@@ -2885,8 +2966,9 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
                 <b>TRUE</b> can be used to always untar it.
               </li>
               <li>
-                <b>dir</b>: Name of the subdirectory to untar it in. (like
-                &quot;krb5&quot;)
+                <b>dir_name</b>: Name of the subdirectory to untar it in. (like
+                &quot;krb5&quot;, if not specified it will have the tarball
+                name)
               </li>
               <li>
                 <b>absdir_outattr</b>: Name of a variable name. (like

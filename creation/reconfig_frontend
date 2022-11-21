@@ -20,6 +20,7 @@ import tempfile
 from glideinwms.creation.lib import (
     check_config_frontend,
     check_python3_expr,
+    conversion_xml,
     cvWConsts,
     cvWCreate,
     cvWDictFile,
@@ -130,6 +131,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
 ############################################################
 
 if __name__ == "__main__":
+
     usage = "usage: reconfig_frontend { -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no [-xslt_plugin_dir xdir] | -help }"
     argv = sys.argv
 
@@ -221,6 +223,11 @@ if __name__ == "__main__":
 
     except RuntimeError as e:
         print2(e)
+        sys.exit(1)
+
+    # check the version of the xml file
+    if conversion_xml.is_old_version(xml):
+        print2("The xml file seems to be outdated. Consider to convert the structure to version 3.11.0")
         sys.exit(1)
 
     if force_name is not None:

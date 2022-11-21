@@ -61,6 +61,7 @@ class TestGlideinParams(unittest.TestCase):
     def test_get_xml(self):
         self.assertTrue(len(self.glidein_params.get_xml().__repr__()) > 0)
 
+    # TODO(F): what?
     def test_get_description(self):
         self.assertTrue(len(self.glidein_params.get_description().__repr__()) > 0)
 
