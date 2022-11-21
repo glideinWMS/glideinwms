@@ -21,25 +21,25 @@ function warn {
     echo "$(date)" "$@" 1>&2
 }
 
-error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)
-
-condor_vars_file=$(grep -i "^CONDOR_VARS_FILE " "$glidein_config" | cut -d ' ' -f 2-)
-
 # import add_config_line and add_condor_vars_line functions
-add_config_line_source=$(grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
 source "$add_config_line_source"
+
+error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
+
+condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
 
 ##########################################################
 # check if it should use CCB
 ##########################################################
 out_ccb_str="False"
-use_ccb=$(grep '^USE_CCB ' $glidein_config | cut -d ' ' -f 2-)
+use_ccb=$(gconfig_get USE_CCB "$glidein_config")
 if [[ "$use_ccb" == "True" || "$use_ccb" == "TRUE" || "$use_ccb" == "T" || "$use_ccb" == "Yes" || "$use_ccb" == "Y" || "$use_ccb" == "1" ]]; then
     # ok, we need to define CCB variable
 
-    ccb_host=$(grep '^GLIDEIN_CCB ' $glidein_config | cut -d ' ' -f 2-)
+    ccb_host=$(gconfig_get GLIDEIN_CCB "$glidein_config")
     if [ -z "$ccb_host" ]; then
-        ccb_host=$(grep '^GLIDEIN_Collector ' $glidein_config | cut -d ' ' -f 2-)
+        ccb_host=$(gconfig_get GLIDEIN_Collector "$glidein_config")
         if [ -z "$ccb_host" ]; then
             #echo "No GLIDEIN_Collector found!" 1>&2
             STR="No GLIDEIN_CCB or GLIDEIN_Collector found!"
@@ -48,7 +48,7 @@ if [[ "$use_ccb" == "True" || "$use_ccb" == "TRUE" || "$use_ccb" == "T" || "$use
         fi
     fi
 
-    add_config_line CCB_ADDRESS "$ccb_host"
+    gconfig_add CCB_ADDRESS "$ccb_host"
     # and export it to Condor
     add_condor_vars_line CCB_ADDRESS C "-" "+" Y N "-"
     out_ccb_str="True"
@@ -59,18 +59,18 @@ fi
 # check if it should use the shared_port_daemon
 ##########################################################
 out_sharedp_str="False"
-use_sharedp=$(grep '^USE_SHARED_PORT ' $glidein_config | cut -d ' ' -f 2-)
+use_sharedp=$(gconfig_get USE_SHARED_PORT "$glidein_config")
 if [[ "$use_sharedp" == "True" || "$use_sharedp" == "TRUE" || "$use_sharedp" == "T" || "$use_sharedp" == "Yes" || "$use_sharedp" == "Y" || "$use_sharedp" == "1" ]]; then
     # ok, we need to enable the shared port
-    daemon_list=$(grep '^DAEMON_LIST ' $glidein_config | cut -d ' ' -f 2-)
+    daemon_list=$(gconfig_get DAEMON_LIST "$glidein_config")
     if [ -z "$daemon_list" ]; then
         # this is the default
         daemon_list="MASTER,STARTD"
     fi
     new_daemon_list="${daemon_list},SHARED_PORT"
-    add_config_line DAEMON_LIST "${new_daemon_list}"
+    gconfig_add DAEMON_LIST "${new_daemon_list}"
 
-    add_config_line USE_SHARED_PORT True
+    gconfig_add USE_SHARED_PORT True
     out_sharedp_str="True"
 fi
 

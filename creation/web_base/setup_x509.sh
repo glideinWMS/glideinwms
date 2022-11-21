@@ -391,7 +391,7 @@ get_trust_domain() {
 
 _main() {
     # Aux scripts: import gconfig functions and define error_gen
-    add_config_line_source="$(grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)"
+    add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
     # shellcheck source=add_config_line.source
     . "$add_config_line_source"
     error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")

@@ -10,7 +10,7 @@
 glidein_config="$1"  # Must define $glidein_config to use gconfig_add()
 
 # Aux scripts: import gconfig functions and define error_gen
-add_config_line_source=$(grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
 # shellcheck source=add_config_line.source
 . "$add_config_line_source"
 error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
@@ -210,8 +210,8 @@ if ! create_condormapfile; then
     exit 1
 fi
 
-gconfig_add X509_CONDORMAP           "$X509_CONDORMAP"
-gconfig_add X509_GRIDMAP_DNS         "$X509_GRIDMAP_DNS"
+gconfig_add X509_CONDORMAP "$X509_CONDORMAP"
+gconfig_add X509_GRIDMAP_DNS "$X509_GRIDMAP_DNS"
 gconfig_add X509_GRIDMAP_TRUSTED_DNS "$X509_GRIDMAP_DNS"
 
 "$error_gen" -ok "create_mapfile.sh" "DNs" "$X509_GRIDMAP_DNS" "TrustedDNs" "$X509_GRIDMAP_DNS"

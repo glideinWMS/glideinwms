@@ -18,16 +18,16 @@ glidein_config="$1"
 # is tmp_fname used? to remove?
 tmp_fname="${glidein_config}.$$.tmp"
 
-error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
-
-condor_vars_file="`grep -i "^CONDOR_VARS_FILE " "$glidein_config" | cut -d ' ' -f 2-`"
-
 # import add_config_line and add_condor_vars_line functions
-add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
 source "$add_config_line_source"
 
+error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
+
+condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
+
 # Use GLIDEIN_CPUS if configured by the factory
-GLIDEIN_CPUS=`grep -i "^GLIDEIN_CPUS " "$glidein_config" | cut -d ' ' -f 2-`
+GLIDEIN_CPUS=$(gconfig_get GLIDEIN_CPUS "$glidein_config")
 
 # 3.2.16 Meaning of "auto" chenged from "node" to "slot"
 # node and 0 mean the same thing - detect the hardware resources
@@ -194,7 +194,7 @@ fi
 # export the GLIDEIN_CPUS
 echo "`date` Setting GLIDEIN_CPUS=$GLIDEIN_CPUS $glidein_cpus_how"
 
-add_config_line GLIDEIN_CPUS "${GLIDEIN_CPUS}"
+gconfig_add GLIDEIN_CPUS "${GLIDEIN_CPUS}"
 add_condor_vars_line GLIDEIN_CPUS "C" "-" "+" "N" "N" "-"
 
 "$error_gen" -ok "glidein_cpu_setup.sh" "GLIDEIN_CPUS" "${GLIDEIN_CPUS}"

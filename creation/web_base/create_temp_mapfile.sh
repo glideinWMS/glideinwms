@@ -15,10 +15,10 @@
 glidein_config="$1"
 
 # import add_config_line function
-add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
 source "$add_config_line_source"
 
-error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
+error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
 # create a condor_mapfile starting from a grid-mapfile
 function create_condormapfile {
@@ -52,11 +52,11 @@ X509_CONDORMAP="$PWD/condor_mapfile"
 
 create_condormapfile
 
-add_config_line X509_CONDORMAP "$X509_CONDORMAP"
+gconfig_add X509_CONDORMAP "$X509_CONDORMAP"
 
 # this is required by the condor_startup script
 # A star will allow everyone, which is OK for condor_advertize of the error classad
-add_config_line X509_GRIDMAP_TRUSTED_DNS "*"
+gconfig_add X509_GRIDMAP_TRUSTED_DNS "*"
 
 "$error_gen" -ok "create_temp_mapfile.sh"
 

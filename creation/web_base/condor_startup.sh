@@ -66,7 +66,7 @@ config_file="$1"
 
 # Aux scripts: import gconfig functions and define error_gen
 # most grep here are case insensitive (grep -i ... )
-add_config_line_source="$(grep '^ADD_CONFIG_LINE_SOURCE ' "$config_file" | cut -d ' ' -f 2-)"
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$config_file" | cut -d ' ' -f 2-)
 # shellcheck source=add_config_line.source
 . "$add_config_line_source"
 error_gen=$(gconfig_get ERROR_GEN_PATH "$config_file")

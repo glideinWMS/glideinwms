@@ -27,14 +27,16 @@ echo "Unmounting CVMFS as part of glidein cleanup..."
 
 glidein_config=$1
 
-# Set and import error_gen and add_config_line
-error_gen=$(grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}')
-add_config_line_source=$(grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}')
+# import add_config_line to use gconfig_ utilities
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}')
 # shellcheck source=./add_config_line.source
 . $add_config_line_source
 
+# import error_gen
+error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
+
 # get the cvmfsexec attribute switch value from the config file
-use_cvmfsexec=$(grep '^GLIDEIN_USE_CVMFSEXEC ' $glidein_config | awk '{print $2}')
+use_cvmfsexec=$(gconfig_get GLIDEIN_USE_CVMFSEXEC "$glidein_config")
 # TODO: int or string? if string, make the attribute value case insensitive
 #use_cvmfsexec=${use_cvmfsexec,,}
 
@@ -44,7 +46,7 @@ if [[ $use_cvmfsexec -ne 1 ]]; then
 fi
 
 # get the glidein work directory location from glidein_config file
-work_dir=$(grep '^GLIDEIN_WORK_DIR ' $glidein_config | awk '{print $2}')
+work_dir=$(gconfig_get GLIDEIN_WORK_DIR "$glidein_config")
 # $PWD=/tmp/glide_xxx and every path is referenced with respect to $PWD
 
 # source the helper script
@@ -52,7 +54,7 @@ work_dir=$(grep '^GLIDEIN_WORK_DIR ' $glidein_config | awk '{print $2}')
 . $work_dir/cvmfs_helper_funcs.sh
 
 # get the cvmfsexec directory location
-glidein_cvmfsexec_dir=$(grep '^CVMFSEXEC_DIR ' $glidein_config | awk '{print $2}')
+glidein_cvmfsexec_dir=$(gconfig_get CVMFSEXEC_DIR "$glidein_config")
 
 ########################################################################################################
 # Start: main program
@@ -77,7 +79,7 @@ $glidein_cvmfsexec_dir/.cvmfsexec/umountrepo -a
 if [[ -n "$CVMFS_MOUNT_DIR" ]]; then
     CVMFS_MOUNT_DIR=
     export CVMFS_MOUNT_DIR
-    add_config_line CVMFS_MOUNT_DIR ""
+    gconfig_add CVMFS_MOUNT_DIR ""
 fi
 
 # check again to ensure all CVMFS repositories were unmounted by umountrepo

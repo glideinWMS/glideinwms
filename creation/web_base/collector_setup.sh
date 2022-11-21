@@ -68,7 +68,7 @@ parse_and_select_collectors() {
     # Used for both User collectors and CCBs
     local inattr="$1"
 
-    local inlist="$(gconfig_get $inattr "$glidein_config")"
+    local inlist=$(gconfig_get $inattr "$glidein_config")
     [ -z "$inlist" ] && return 0
 
     # Split the groups
@@ -119,12 +119,12 @@ done | sort -n | cut -c8- | tr -d "\n" | sed -r 's/,+/,/g'`"
 
 _main() {
     # import add_config_line function
-    add_config_line_source="$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)"
+    add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
     source "$add_config_line_source"
 
-    error_gen="$(gconfig_get ERROR_GEN_PATH "$glidein_config")"
+    error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
-    condor_vars_file="$(gconfig_get CONDOR_VARS_FILE "$glidein_config")"
+    condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
 
     collector_host="$(parse_and_select_collectors GLIDEIN_Collector)"
     if [ -z "$collector_host" ]; then
