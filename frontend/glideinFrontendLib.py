@@ -1,20 +1,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This module implements the functions needed to keep the
 #   required number of idle glideins
 #   plus other miscelaneous functions
-#
-# Author:
-#   Igor Sfiligoi (Sept 19th 2006)
-#
 
 import math
 import os
@@ -923,23 +913,38 @@ def getIdleCoresCondorStatus(status_dict):
     return getIdleCondorStatus(status_dict)
 
 
-#
-# Return a dictionary of collectors containing running(claimed) cores
-# Each element is a condorStatus
-#
-# Use the output of getCondorStatus
-#
 def getRunningCoresCondorStatus(status_dict):
+    """Return a dictionary of collectors containing running(claimed) cores
+    Each element is a condorStatus
+
+    Use the output of getCondorStatus
+
+    Args:
+        status_dict (dict): output of `getCondorStatus()`
+
+    Returns:
+        dict: dictionary of collectors containing running(claimed) cores
+
+    """
     return getRunningCondorStatus(status_dict)
 
 
-#
-# Return a dictionary of collectors containing idle(unclaimed) vms
-# Each element is a condorStatus
-#
-# Use the output of getCondorStatus
-#
 def getClientCondorStatus(status_dict, frontend_name, group_name, request_name):
+    """Return a dictionary of collectors containing all slots for a request (idle, running, ...)
+    Each element is a condorStatus
+
+    Use the output of getCondorStatus
+
+    Args:
+        status_dict (dict): output of getCondorStatus
+        frontend_name (str): frontend name
+        group_name (str): group name
+        request_name (str): request name
+
+    Returns:
+        dict: dictionary of collectors containing all slots for a request
+    """
+    # TODO: verify that is no more used and remove old name compatibility
     client_name_old = f"{request_name}@{frontend_name}.{group_name}"
     client_name_new = f"{frontend_name}.{group_name}"
     out = {}
@@ -965,14 +970,21 @@ def getClientCondorStatus(status_dict, frontend_name, group_name, request_name):
     return out
 
 
-#
-# Return a dictionary of collectors containing vms of a specific cred
-#  Input should be the output of getClientCondorStatus or equivalent
-# Each element is a condorStatus
-#
-# Use the output of getCondorStatus
-#
 def getClientCondorStatusCredIdOnly(status_dict, cred_id):
+    """Return a dictionary of collectors containing slots of a specific credential
+
+    Input should be the output of getClientCondorStatus or equivalent
+    Each element is a condorStatus
+
+    Use the output of getCondorStatus
+
+    Args:
+        status_dict (dict):  output of `getCondorStatus()`
+        cred_id (str): credential ID
+
+    Returns:
+        dict: dictionary of collectors containing slots of a specific credential
+    """
     out = {}
     for collector_name, collector_status in status_dict.items():
         sq = condorMonitor.SubQuery(
@@ -984,34 +996,54 @@ def getClientCondorStatusCredIdOnly(status_dict, cred_id):
     return out
 
 
-#
-# Return a dictionary of collectors containing vms at a client split by creds
-# Each element is a condorStatus
-#
-# Use the output of getCondorStatus
-#
 def getClientCondorStatusPerCredId(status_dict, frontend_name, group_name, request_name, cred_id):
+    """Return a dictionary of collectors containing slots at a client split for a specific credential
+    Each element is a condorStatus
+
+    Use the output of getCondorStatus
+
+    Args:
+        status_dict (dict): output of getCondorStatus
+        frontend_name (str): frontend name
+        group_name (str): group name
+        request_name (str): request name
+        cred_id (str): credential ID
+
+    Returns:
+        dict: dictionary of collectors containing slots of a specific request and credential
+    """
     step1 = getClientCondorStatus(status_dict, frontend_name, group_name, request_name)
     out = getClientCondorStatusCredIdOnly(step1, cred_id)
     return out
 
 
-#
-# Return the number of vms in the dictionary
-# Use the output of getCondorStatus
-#
 def countCondorStatus(status_dict):
+    """Return the number of items (slots) in the dictionary
+    Use the output of getCondorStatus
+
+    Args:
+        status_dict (dict): output of getCondorStatus
+
+    Returns:
+        int: number of slots in the dictionary
+    """
     count = 0
     for collector_name in list(status_dict.keys()):
         count += len(status_dict[collector_name].fetchStored())
     return count
 
 
-#
-# Return the number of running slots in the dictionary
-# Use the output of getCondorStatus
-#
 def countRunningCondorStatus(status_dict):
+    """Return the number of running slots in the dictionary
+    Use the output of getCondorStatus for running slots
+    The counting loop skips partitionable slots
+
+    Args:
+        status_dict (dict): output of getCondorStatus for running slots
+
+    Returns:
+        int: number of slots in the dictionary (dynamic + statis)
+    """
     count = 0
     # Running sstatus dict has p-slot corresponding to the dynamic slots
     # The loop will skip elements where slot is p-slot
@@ -1022,20 +1054,20 @@ def countRunningCondorStatus(status_dict):
     return count
 
 
-#
-# Return the number of glideins in the dictionary
-#
 def countGlideinsCondorStatus(status_dict):
-    """Return the number of glideins in the dictionary
-
-    :param status_dict: the output of getCondorStatus
-    :return: number of glideins in the dictionary (integer)
+    """Return the number of Glideins in the dictionary
 
     A Glidein is an execution of the glidein_startup.sh script
      - may be different from job submitted by the factory (for multinode jobs - future)
      - is different from a slot (or schedd or vm)
     It defines GLIDEIN_MASTER_NAME which is the part after '@' in the slot name
     Sets from different collectors are assumed disjunct
+
+    Args:
+        status_dict (dict): output of getCondorStatus
+
+    Returns:
+        int: number of glideins in the dictionary
     """
     count = 0
     for collector_name in status_dict:
@@ -1044,11 +1076,17 @@ def countGlideinsCondorStatus(status_dict):
     return count
 
 
-#
-# Return the number of cores in the dictionary based on the status_type
-# Use the output of getCondorStatus
-#
 def countCoresCondorStatus(status_dict, state="TotalCores"):
+    """Return the number of cores in the dictionary based on the status_type
+    Use the output of getCondorStatus
+
+    Args:
+        status_dict (dict): output of getCondorStatus
+        state (str): status to count (TotalCores, IdleCores, RunningCores)
+
+    Returns:
+        int: number of cores counted
+    """
     count = 0
     if state == "TotalCores":
         count = countTotalCoresCondorStatus(status_dict)
@@ -1059,18 +1097,20 @@ def countCoresCondorStatus(status_dict, state="TotalCores"):
     return count
 
 
-#
-# Return the number of cores in the dictionary
-# Use the output of getCondorStatus
-#
 def countTotalCoresCondorStatus(status_dict):
-    """
+    """Return the number of cores in the dictionary
+    Use the output of getCondorStatus
+
     Counts the cores in the status dictionary
     The status is redundant in part but necessary to handle
     correctly partitionable slots which are
     1 glidein but may have some running cores and some idle cores
-    @param status_dict: a dictionary with the Machines to count
-    @type status_dict: str
+
+    Args:
+        status_dict (dict): output of getCondorStatus, dictionary with the Machines to count
+
+    Returns:
+        int: number of cores in the Machine classads
     """
     count = 0
     # The loop will skip elements where Cpus or TotalSlotCpus are not defined
@@ -1086,13 +1126,16 @@ def countTotalCoresCondorStatus(status_dict):
 
 
 def countIdleCoresCondorStatus(status_dict):
-    """
-    Counts the cores in the status dictionary
+    """Counts the Idle cores in the status dictionary
     The status is redundant in part but necessary to handle
     correctly partitionable slots which are
     1 glidein but may have some running cores and some idle cores
-    @param status_dict: a dictionary with the Machines to count
-    @type status_dict: str
+
+    Args:
+        status_dict (dict): a dictionary with the Machines to count
+
+    Returns:
+        int: number of cores for Idle slots in the Machine classads
     """
     count = 0
     # The loop will skip elements where Cpus or TotalSlotCpus are not defined
@@ -1103,13 +1146,16 @@ def countIdleCoresCondorStatus(status_dict):
 
 
 def countRunningCoresCondorStatus(status_dict):
-    """
-    Counts the cores in the status dictionary
+    """Counts the running cores in the status dictionary
     The status is redundant in part but necessary to handle
     correctly partitionable slots which are
     1 glidein but may have some running cores and some idle cores
-    @param status_dict: a dictionary with the Machines to count
-    @type status_dict: str
+
+    Args:
+        status_dict (dict): a dictionary with the Machines to count
+
+    Returns:
+        int: number of cores for Running slots in the Machine classads
     """
     count = 0
     # The loop will skip elements where Cpus or TotalSlotCpus are not defined
@@ -1120,11 +1166,16 @@ def countRunningCoresCondorStatus(status_dict):
     return count
 
 
-#
-# Given startd classads, return the list of all the factory entries
-# Each element in the list is (req_name, node_name)
-#
 def getFactoryEntryList(status_dict):
+    """Given startd classads, return the list of all the factory entries
+    Each element in the list is (req_name, node_name)
+
+    Args:
+        status_dict (dict): a dictionary with the Machines to count from condorStatus
+
+    Returns:
+        list: list of tuples with all the factory entries (req_name, node_name)
+    """
     out = set()
     for c in list(status_dict.keys()):
         coll_status_dict = status_dict[c].fetchStored()
@@ -1144,13 +1195,21 @@ def getFactoryEntryList(status_dict):
     return list(out)
 
 
-#
-# Return a dictionary of collectors containing interesting classads
-# Each element is a condorStatus
-#
-# Return the schedd classads
-#
 def getCondorStatusSchedds(collector_names, constraint=None, format_list=None, want_format_completion=True):
+    """Return a dictionary of collectors containing interesting classads
+    Each element is a condorStatus
+
+    Return the schedd classads
+
+    Args:
+        collector_names:
+        constraint (str, None):
+        format_list (list, None):
+        want_format_completion (bool): add default elements to the format_list if True (default)
+
+    Returns:
+
+    """
     if format_list is not None:
         if want_format_completion:
             format_list = condorMonitor.complete_format_list(

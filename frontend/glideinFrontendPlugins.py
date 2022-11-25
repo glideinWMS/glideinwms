@@ -1,18 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #  This module implements plugins for the VO frontend
-#
-# Author:
-#  Igor Sfiligoi  (since Mar 31st 2009)
-#
 
 import copy
 import math
@@ -98,19 +88,36 @@ class ProxyAll:
     def __init__(self, config_dir, proxy_list):
         self.cred_list = proxy_list
 
-    # what job attributes are used by this plugin
     def get_required_job_attributes(self):
+        """what job attributes are used by this plugin
+
+        Returns:
+            list: used job attributes, none
+        """
         return []
 
-    # what glidein attributes are used by this plugin
     def get_required_classad_attributes(self):
+        """what glidein attributes are used by this plugin
+
+        Returns:
+            list: used glidein attributes, none
+        """
         return []
 
     def update_usermap(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
         return
 
-    # get the proxies, given the condor_q and condor_status data
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
+        """get the credentials, given the condor_q and condor_status data
+
+        Args:
+            params_obj: optional parameters to be used in job splitting
+            credential_type (str): optional credential type to match with a supported auth_metod
+            trust_domain (str): optional trust domain
+
+        Returns:
+            list: list of credentials
+        """
         rtnlist = []
         for cred in self.cred_list:
             if (trust_domain is not None) and (hasattr(cred, "trust_domain")) and (cred.trust_domain != trust_domain):
