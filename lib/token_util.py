@@ -89,8 +89,10 @@ def token_str_expired(token_str):
             options={"verify_signature": False, "verify_aud": False, "verify_exp": True, "verify_nbf": True},
         )
         expired = False
+    except jwt.exceptions.ExpiredSignatureError as e:
+        logSupport.log.error("Expired token: %s" % e)
     except Exception as e:
-        logSupport.log.exception("%s" % e)
+        logSupport.log.exception("Unknown exception decoding token: %s" % e)
     return expired
 
 
