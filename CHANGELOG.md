@@ -25,6 +25,7 @@ Changes since the last release
 ### Bug Fixes
 
 -   Set PATH to default value instead of emptying it (PR #233)
+-   Fixed credential ID in Glideins not set for scitokens and causing incorrect monitoring values (PR #242)
 
 ### Testing / Development
 
