@@ -16,6 +16,8 @@ import os
 import os.path
 import shutil
 
+from collections import Counter
+
 from glideinwms.lib import pubCrypto
 from glideinwms.lib.util import str2bool
 
@@ -225,14 +227,21 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts["params"].add("GLIDEIN_Factory_Collector", str(factory_monitoring_collector))
         populate_gridmap(self.conf, self.dicts["gridmap"])
 
+        # the following list will be a megalist containing all the scripts; used for duplication check logic subsequently
+        all_scripts = list()
+
         file_list_scripts = [
             "collector_setup.sh",
             "create_temp_mapfile.sh",
             "gwms-python",
             cgWConsts.CONDOR_STARTUP_FILE,
         ]
+        # add the above list to the megalist created before
+        all_scripts.extend(file_list_scripts)
+
         # These are right after the entry, before some VO scripts. The order in the following list is important
         at_file_list_scripts = ["singularity_setup.sh", "condor_chirp"]
+        all_scripts.extend(at_file_list_scripts)  # adding the above list to the megalist as before
         # The order in the following list is important
         after_file_list_scripts = [
             "check_proxy.sh",
@@ -248,12 +257,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             "cvmfs_setup.sh",
             "cvmfs_umount.sh",
         ]
-        # Only execute scripts once
-        duplicate_scripts = list(set(file_list_scripts).intersection(after_file_list_scripts))
-        duplicate_scripts += list(set(file_list_scripts).intersection(at_file_list_scripts))
-        duplicate_scripts += list(set(at_file_list_scripts).intersection(after_file_list_scripts))
+        all_scripts.extend(after_file_list_scripts)  # adding the above list to the megalist as before
+        # Scripts need to be only executed once, so check for duplicates
+        count_duplicates = Counter(all_scripts)
+        duplicate_scripts = [scr for scr, cnt in count_duplicates.items() if cnt > 1]
         if duplicate_scripts:
-            raise RuntimeError("Duplicates found in the list of files to execute '%s'" % ",".join(duplicate_scripts))
+            raise RuntimeError(f"Duplicates found in the list of files to execute: {', '.join(duplicate_scripts)}")
 
         # Load more system scripts
         for script_name in file_list_scripts:
