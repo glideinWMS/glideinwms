@@ -239,6 +239,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # add the above list to the megalist created before
         all_scripts.extend(file_list_scripts)
 
+        # singularity_setup should be performed after cvmfs_setup; condor_chirp's order does not matter
+        precvmfs_file_list_scripts = ["cvmfs_setup_new.sh"]
+        all_scripts.extend(precvmfs_file_list_scripts)  # add this list to the megalist
+
         # These are right after the entry, before some VO scripts. The order in the following list is important
         at_file_list_scripts = ["singularity_setup.sh", "condor_chirp"]
         all_scripts.extend(at_file_list_scripts)  # adding the above list to the megalist as before
@@ -388,6 +392,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 add_attr_unparsed(attr, self.dicts, "main")
 
         # add additional system scripts
+        for script_name in precvmfs_file_list_scripts:
+            self.dicts["precvmfs_file_list"].add_from_file(
+                script_name,
+                cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), "exec"),
+                os.path.join(cgWConsts.WEB_BASE_DIR, script_name),
+            )
         for script_name in at_file_list_scripts:
             self.dicts["at_file_list"].add_from_file(
                 script_name,
