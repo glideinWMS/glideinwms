@@ -5,13 +5,13 @@
 
 # regular expressions for labeling priority of the issue is listed in this block
 Critical:
-  - "Priority: *([Cc]ritical|[Uu]rgent)"
+  - 'Priority: *(Priority level (of|for) this (bug|feature) *)?\[?([Cc]ritical|[Uu]rgent)\]?'
 High:
-  - "Priority: *[Hh]igh"
+  - 'Priority: *(Priority level (of|for) this (bug|feature) *)?\[?[Hh]igh\]?'
 Medium:
-  - "Priority: *[Mm]edium"
+  - 'Priority: *(Priority level (of|for) this (bug|feature) *)?\[?[Mm]edium\]?'
 Low:
-  - "Priority: *[Ll]ow"
+  - 'Priority: *(Priority level (of|for) this (bug|feature) *)?\[?[Ll]ow\]?'
 
 # regular expressions for labeling issue type is listed in this block
 BUG:
@@ -25,42 +25,40 @@ FEATURE:
 
 # regular expressions for labeling stakeholders for an issue is listed in this block
 cms:
-  - "Stakeholder: *(CMS|Cms|cms)"
+  - 'Stakeholder: *(Concerned stakeholder\(s\) *)?\[?(CMS|Cms|cms)\]?'
 factoryops:
-  - "Stakeholder: *([Ff]actory[Oo]ps)"
+  - 'Stakeholder: *(Concerned stakeholder\(s\) *)?\[?([Ff]actory[Oo]ps)\]?'
 fermilab:
-  - "Stakeholder: *([Ff]ermilab)"
+  - 'Stakeholder: *(Concerned stakeholder\(s\) *)?\[?([Ff]ermilab)\]?'
 fife:
-  - "Stakeholder: *(FIFE|Fife|fife)"
+  - 'Stakeholder: *(Concerned stakeholder\(s\) *)?\[?(FIFE|Fife|fife)\]?'
 # Historically IGWN had the LIGO name
 igwn:
-  - "Stakeholder: *(IGWN|Igwn|igwn|LIGO|Ligo|ligo)"
+  - 'Stakeholder: *(Concerned stakeholder\(s\) *)?\[?(IGWN|Igwn|igwn|LIGO|Ligo|ligo)\]?'
 osg:
-  - "Stakeholder: ?(OSG|Osg|osg)"
+  - 'Stakeholder: *(Concerned stakeholder\(s\) *)?\[?(OSG|Osg|osg)\]?'
+# if new stakeholders need to be included, add them here
 
 # regular expressions for labeling affected components for an issue is listed in this block
 frontend:
-  - "Component: *([Ff]rontend)"
+  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?[Ff]rontend(?! [Mm]onitoring)\]?'
 factory:
-  - "Component: *([Ff]actory)"
+  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?[Ff]actory(?! [Mm]onitoring)\]?'
 glidein:
-  - "Component: *([Gg]lidein)"
+  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?[Gg]lidein\]?'
 documentation:
-  - "Component: *([Dd]ocumentation)"
+  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?([Dd]ocumentation)\]?'
 ci-testing:
-  - "Component: *(CI|ci|[Tt]esting)"
+  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?(CI|ci|[Tt]esting)\]?'
 release:
-  - "Component: *([Rr]elease)"
+  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?[Rr]elease\]?'
 factory-mon:
-  - "Component: *([Ff]actory [Mm]onitoring)"
+  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?[Ff]actory(?= [Mm]onitoring)\]?'
 frontend-mon:
-  - "Component: *([Ff]rontend [Mm]onitoring)"
-other:
-  - "Component: *.*"
-# TODO: discuss if there are any other possible components that need to be listed above
+  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?[Ff]rontend(?= [Mm]onitoring)\]?'
+# TODO: discuss if there are any other possible components that need to be listed above; add them here when needed
 
 # TODO: regular expressions for labeling release info for an issue is listed in this block
-# 3.7.5:
 # 3.9.5:
 # 3.9.6:
 # 3.11:
