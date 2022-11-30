@@ -56,7 +56,9 @@ factory-mon:
   - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?[Ff]actory(?= [Mm]onitoring)\]?'
 frontend-mon:
   - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?[Ff]rontend(?= [Mm]onitoring)\]?'
-# TODO: discuss if there are any other possible components that need to be listed above; add them here when needed
+other:
+  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?(?![Ff]rontend(?= [Mm]onitoring)|[Ff]actory(?! [Mm]onitoring)|[Gg]lidein|[Dd]ocumentation|(CI|ci|[Tt]esting)|[Rr]elease|[Ff]actory(?= [Mm]onitoring)|[Ff]rontend(?= [Mm]onitoring))\]?'
+# if there are any other possible components that need to be added to the list above, add them here when needed
 
 # TODO: regular expressions for labeling release info for an issue is listed in this block
 # 3.9.5:
