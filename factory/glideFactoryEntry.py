@@ -843,13 +843,11 @@ class Entry:
         return state
 
     def setState_old(self, state):
-        """
-        Load the post work state from the pickled info
+        """Load the post work state from the pickled info
 
-        @type post_work_info: dict
-        @param post_work_info: Picked state after doing work
+        Args:
+            state (dict): Picked state after doing work
         """
-
         self.gflFactoryConfig.client_stats = state.get("client_stats")
         self.gflFactoryConfig.qc_stats = state.get("qc_stats")
         self.gflFactoryConfig.rrd_stats = state.get("rrd_stats")
@@ -858,13 +856,11 @@ class Entry:
         self.gflFactoryConfig.log_stats = state["log_stats"]
 
     def setState(self, state):
-        """
-        Load the post work state from the pickled info
+        """Load the post work state from the pickled info
 
-        @type post_work_info: dict
-        @param post_work_info: Pickled state after doing work
+        Args:
+            state (dict): Pickled state after doing work
         """
-
         self.gflFactoryConfig.client_stats = state.get("client_stats")
         if self.gflFactoryConfig.client_stats:
             self.gflFactoryConfig.client_stats.log = self.log
@@ -1229,7 +1225,7 @@ def unit_work_v3(
             entry.log.info(f"Security test passed for : {entry.name} {credential_security_class} ")
         else:
             entry.log.warning(
-                "Security class not in whitelist, skipping request (%s %s). "
+                "Security class not in whitelist, skipping request (%s %s)."
                 % (client_security_name, credential_security_class)
             )
             return return_dict
@@ -1248,21 +1244,21 @@ def unit_work_v3(
     submit_credentials = glideFactoryCredentials.SubmitCredentials(credential_username, credential_security_class)
     submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username)
 
-    condortoken = "%s.idtoken" % entry.name
+    condortoken = f"{entry.name}.idtoken"
     condortokenbase = f"credential_{client_int_name}_{entry.name}.idtoken"
     condortoken_file = os.path.join(submit_credentials.cred_dir, condortokenbase)
     condortoken_data = decrypted_params.get(condortoken)
     if condortoken_data:
         (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
         try:
-            entry.log.info("frontend_token supplied, writing to %s" % condortoken_file)
+            entry.log.info(f"frontend_token supplied, writing to {condortoken_file}")
             chmod(tmpnm, 0o600)
             os.write(fd, condortoken_data.encode("utf-8"))
             os.close(fd)
             util.file_tmp2final(condortoken_file, tmpnm)
 
         except Exception as err:
-            entry.log.exception("failed to create token: %s" % err)
+            entry.log.exception(f"failed to create token: {err}")
             for i in sys.exc_info():
                 entry.log.exception("%s" % i)
         finally:
@@ -1281,23 +1277,23 @@ def unit_work_v3(
     scitoken_data = decrypted_params.get("frontend_scitoken")
     if scitoken_data:
         if token_util.token_str_expired(scitoken_data):
-            entry.log.warning(
-                "frontend_scitoken supplied by frontend, but expired. Renaming to %s.expired" % scitoken_file
-            )
+            entry.log.warning(f"Continuing, but the frontend_scitoken supplied is expired: {scitoken_file}")
+        tmpnm = ""
         try:
-            entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
+            entry.log.info(f"frontend_scitoken supplied, writing to {scitoken_file}")
             (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 f.write(f"{scitoken_data.strip()}\n")
             chmod(tmpnm, 0o600)
             util.file_tmp2final(scitoken_file, tmpnm)
         except Exception as err:
-            entry.log.exception("failed to create scitoken: %s" % err)
+            entry.log.exception(f"failed to create scitoken: {err}")
         finally:
             if os.path.exists(tmpnm):
                 os.remove(tmpnm)
 
     if os.path.exists(scitoken_file):
+        # TODO: why identity_credential and not submit_credential? Consider moving when refactoring
         if not submit_credentials.add_identity_credential("frontend_scitoken", scitoken_file):
             entry.log.warning(
                 "failed to add frontend_scitoken %s to identity credentials %s"
@@ -1307,9 +1303,17 @@ def unit_work_v3(
     if "scitoken" in auth_method:
         if os.path.exists(scitoken_file):
             if token_util.token_file_expired(scitoken_file):
-                entry.log.warning("frontend_scitoken %s is expired" % (scitoken_file))
+                entry.log.warning(f"Found frontend_scitoken '{scitoken_file}', but is expired. Continuing")
+            if "ScitokenId" in decrypted_params:
+                scitoken_id = decrypted_params.get("ScitokenId")
+                submit_credentials.id = scitoken_id
+            else:
+                entry.log.warning(
+                    "SciToken present but ScitokenId not found, "
+                    f"continuing but monitoring will be incorrect for client {client_int_name}."
+                )
         else:
-            entry.log.warning("auth method is scitoken, but file %s not found. skipping request" % scitoken_file)
+            entry.log.warning(f"auth method is scitoken, but file '{scitoken_file}' not found. skipping request")
             return return_dict
 
     elif "grid_proxy" in auth_method:
@@ -1345,6 +1349,15 @@ def unit_work_v3(
                     % (proxy_id, client_int_name)
                 )
                 return return_dict
+            else:
+                # Using token, set appropriate credential ID
+                if "ScitokenId" in decrypted_params:
+                    proxy_id = decrypted_params.get("ScitokenId")
+                else:
+                    entry.log.warning(
+                        "SciToken present but ScitokenId not found, continuing but monitoring will be incorrect for client %s."
+                        % client_int_name
+                    )
 
         # Set the id used for tracking what is in the factory queue
         submit_credentials.id = proxy_id
@@ -1431,7 +1444,7 @@ def unit_work_v3(
                     vm_type = entry.jobDescript.data["EntryVMType"]
                 else:
                     entry.log.warning(
-                        "Entry does not specify a VM Type, this is required by entry %s, skipping request." % entry.name
+                        f"Entry does not specify a VM Type, this is required by entry {entry.name}, skipping request."
                     )
                     return return_dict
 
@@ -1486,8 +1499,8 @@ def unit_work_v3(
                 if not remote_username:
                     if "username" in auth_method:
                         entry.log.warning(
-                            "Client '%s' did not specify a remote username in the request, this is required by entry %s, skipping request."
-                            % (client_int_name, entry.name)
+                            f"Client '{client_int_name}' did not specify a remote username in the request, "
+                            f"this is required by entry {entry.name}, skipping request."
                         )
                         return return_dict
                     # default remote_username from entry (if present)
@@ -1553,6 +1566,11 @@ def unit_work_v3(
             return return_dict
 
         submit_credentials.add_identity_credential("RemoteUsername", remote_username)
+        if submit_credentials.id is None:
+            entry.log.warning(
+                "Credentials for entry %s and client %s have no ID, continuing but monitoring will be incorrect."
+                % (entry.name, client_int_name)
+            )
 
     # Set the downtime status so the frontend-specific
     # downtime is advertised in glidefactoryclient ads

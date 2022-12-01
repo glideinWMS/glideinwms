@@ -167,9 +167,11 @@ if [[ "$condor_arch" == "auto" ]]; then
         condor_arch="ppc64le"
     elif [[ "$condor_arch" == "ppc64" ]]; then
         condor_arch="ppc64"
+    elif [[ "$condor_arch" == "aarch64" ]]; then
+        condor_arch="aarch64"
     else
         #echo "Not a x86 or PPC compatible system. Autodetect not supported"  1>&2
-        STR="Not a x86 or PPC compatible system. Autodetect not supported"
+        STR="Not a x86, ARM or PPC compatible system. Autodetect not supported"
         "$error_gen" -error "condor_platform_select.sh" "Config" "$STR" "SupportAutodetect" "False" "ArchType" "Unknown"
         exit 1
     fi

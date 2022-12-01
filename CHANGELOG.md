@@ -28,6 +28,7 @@ Changes since the last release
 -   Set PATH to default value instead of emptying it (PR #233)
 -   Return correctly the default value in gwms_from_config when it should (PR #235)
 -   `get_prop_str` returns the default value when the attribute is "undefined" (PR #235)
+-   Fixed credential ID in Glideins not set for scitokens and causing incorrect monitoring values (PR #242)
 
 ### Testing / Development
 
