@@ -49,6 +49,8 @@ repos:
     # lock to v2.31.0 (must specify the git hash), v2.32.0 requires python >= 3.7
     hooks:
       - id: pyupgrade
+        exclude: "^creation/web_base/gconfig.py$"
+        # needs to be py2.7 compatible
         args:
           - "--py36-plus"
   - repo: "https://github.com/fsfe/reuse-tool"

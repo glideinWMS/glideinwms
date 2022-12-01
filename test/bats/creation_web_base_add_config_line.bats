@@ -76,7 +76,7 @@ ATTR value
 ATTRAFTER after
 EOF
     [ $(gconfig_get ATTR "$glidein_config") = value ]
-    # Chck config name override: not existing file, same as no attribute
+    # Check config name override: not existing file, same as no attribute
     run gconfig_get ATTR not_existing_file
     [ "$status" -eq 0 ]
     [ "$output" = "" ]

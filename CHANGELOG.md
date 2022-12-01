@@ -14,7 +14,8 @@ Changes since the last release
 ### New features / functionalities
 
 -   Use `SINGULARITY_DISABLE_PID_NAMESPACES` to conditionally include `--pid` in Singularity/Apptainer (OSG SOFTWARE-5340, PR #232)
--   item N
+-   When invoking singularity, inspect stderr and raising a warning if there are "FATAL" errors and the exit code is 0 (PR #235)
+-   Added `gconfig.py` Python utilities to read and write glidein_config
 
 ### Changed defaults / behaviours
 
@@ -25,6 +26,8 @@ Changes since the last release
 ### Bug Fixes
 
 -   Set PATH to default value instead of emptying it (PR #233)
+-   Return correctly the default value in gwms_from_config when it should (PR #235)
+-   `get_prop_str` returns the default value when the attribute is "undefined" (PR #235)
 -   Fixed credential ID in Glideins not set for scitokens and causing incorrect monitoring values (PR #242)
 
 ### Testing / Development

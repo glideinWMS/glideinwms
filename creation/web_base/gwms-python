@@ -5,11 +5,13 @@
 
 # Description:
 #   This script will determine the Python version and work as a wrapper for it
+#   It will choose in order: python, python3, python2
 
 my_path=$(cd "$(dirname "$0")"; pwd)
 
 if [ -f "$1" ]; then
     glidein_config="$1"
+    # TODO: find a better way to recognize that is invoked in configuration w/ glidein_config as parameter (e.g header)
     error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
     work_dir=$(grep '^GLIDEIN_WORK_DIR ' "$glidein_config" | awk '{print $2}')
 fi

@@ -2026,6 +2026,7 @@ do
             cp "${gs_id_work_dir}/$file" "$gwms_bin_dir"/
         done
         cp -r "${gs_id_work_dir}/lib"/* "$gwms_lib_dir"/
+        cp "${gs_id_work_dir}/gconfig.py" "$gwms_lib_dir"/python/
     elif [ "$gs_file_id" = "main after_file_list" ]; then
         # in case some library has been added/updated
         rsync -ar "${gs_id_work_dir}/lib"/ "$gwms_lib_dir"/
