@@ -396,3 +396,19 @@ v3_9_6:
     - add_config_line_safe is deprecated in favor of gconfig_add_safe. gconfig_add is the recommended method to use also in concurrent scripts
     - gconfig_add_unsafe, with a similar behavior to the former add_config_line, has been added. Its use is not recommended, unless absolutely sure that no script will be run in parallel
     - Only the first collector in TRUST_DOMAIN is kept, following collectors are removed. This happens both in the Frontend token issuer and in the setting of the Glidein TRUST_DOMAIN (setup_x509.sh).
+
+v3_10_0:
+  Date: December 1, 2022
+  Series: Production
+  Tarball: false
+  Feature:
+    - All the features and fixes in v3_9_6
+    - Use `SINGULARITY_DISABLE_PID_NAMESPACES` disable `--pid` in Singularity/Apptainer  (OSG SOFTWARE-5340, PR #232)
+    - Raise a warning if there are "FATAL" errors in Singularity/Apptainer stdlog and the exit code is 0 (PR #235)
+    - Added `gconfig.py`. Python utilities to read and write glidein_config (PR #237)
+  Bug fix:
+    - Set PATH to default value instead of emptying it (PR #233)
+    - '`get_prop_str` returns the default value when the attribute is "undefined" and `gwms_from_config` returns the default when set instead of an empty string (PR #235)'
+    - Fixed credential ID in Glideins. It was not set for scitokens causing incorrect monitoring values (PR #242)
+  NOTE:
+    - This follows v3_9_6. Please see all the notes about the custom script changes
