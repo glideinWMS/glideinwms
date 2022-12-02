@@ -7,15 +7,36 @@ SPDX-License-Identifier: Apache-2.0
 
 Developers updated changelog. For curated release notes see doc/tags.yaml or https://glideinwms.fnal.gov/doc.prd/history.html
 
-## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+## Changes Since Last Release \[yyyy-mm-dd\]
 
 Changes since the last release
 
 ### New features / functionalities
 
+-   item one of the list
+-   item N
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+### Testing / Development
+
+### Known Issues
+
+## v3.10.0 \[2022-12-1\]
+
+This is a production release following v3.9.6 with mostly bug fixes. Changes since the last release
+
+### New features / functionalities
+
 -   Use `SINGULARITY_DISABLE_PID_NAMESPACES` to conditionally include `--pid` in Singularity/Apptainer (OSG SOFTWARE-5340, PR #232)
 -   When invoking singularity, inspect stderr and raising a warning if there are "FATAL" errors and the exit code is 0 (PR #235)
--   Added `gconfig.py` Python utilities to read and write glidein_config
+-   Added `gconfig.py` Python utilities to read and write glidein_config (PR #237)
 
 ### Changed defaults / behaviours
 
@@ -26,8 +47,8 @@ Changes since the last release
 ### Bug Fixes
 
 -   Set PATH to default value instead of emptying it (PR #233)
--   Return correctly the default value in gwms_from_config when it should (PR #235)
--   `get_prop_str` returns the default value when the attribute is "undefined" (PR #235)
+-   Return correctly the default value in `gwms_from_config` instead of an empty string (PR #235)
+-   Function `get_prop_str` returns the default value when the attribute is "undefined" (PR #235)
 -   Fixed credential ID in Glideins not set for scitokens and causing incorrect monitoring values (PR #242)
 
 ### Testing / Development

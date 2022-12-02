@@ -365,12 +365,12 @@ print_files_list() {
 }
 
 is_python3_branch() {
-    [[ "$1" == *p3* || "$1" == v39* || "$1" == branch_v3_9 ]] && { true; return; }
-    if grep '#!' factory/glideFactory.py | grep python3 > /dev/null; then
-        true
+    [[ "$1" == py2* || "$1" == v35* || "$1" == v36* || "$1" == v37* || "$1" == branch_v3_5 || "$1" == branch_v3_6 || "$1" == branch_v3_7 ]] && { false; return; }
+    if grep '#!' factory/glideFactory.py | grep python2 > /dev/null; then
+        false
         return
     fi
-    false
+    true
 }
 
 transpose_table() {

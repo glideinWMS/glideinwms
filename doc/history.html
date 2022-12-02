@@ -2707,6 +2707,46 @@ SPDX-License-Identifier: Apache-2.0
               </li>
             </ul>
           </li>
+          <li>
+            <a id="v3_10_0"><b>v3_10_0</b></a> released on December 1, 2022 (<a
+              href="http://glideinwms.fnal.gov/doc.v3_10_0/index.html"
+              >Manual</a
+            >,
+            <a href="http://glideinwms.fnal.gov/doc.v3_10_0/install.html"
+              >Installation instructions</a
+            >)<br />
+            <ul>
+              <li>All the features and fixes in v3_9_6</li>
+              <li>
+                Use `SINGULARITY_DISABLE_PID_NAMESPACES` disable `--pid` in
+                Singularity/Apptainer (OSG SOFTWARE-5340, PR
+              </li>
+              <li>
+                Raise a warning if there are "FATAL" errors in
+                Singularity/Apptainer stdlog and the exit code is 0 (PR
+              </li>
+              <li>
+                Added `gconfig.py`. Python utilities to read and write
+                glidein_config (PR
+              </li>
+              <li>
+                Bug fix: Set PATH to default value instead of emptying it (PR
+              </li>
+              <li>
+                Bug fix: `get_prop_str` returns the default value when the
+                attribute is "undefined" and `gwms_from_config` returns the
+                default when set instead of an empty string (PR #235)
+              </li>
+              <li>
+                Bug fix: Fixed credential ID in Glideins. It was not set for
+                scitokens causing incorrect monitoring values (PR
+              </li>
+              <li>
+                NOTE: This follows v3_9_6. Please see all the notes about the
+                custom script changes
+              </li>
+            </ul>
+          </li>
           <!-- end development -->
           <li>
             <b>v3_5</b> released on June 7, 2019 (<a
