@@ -378,17 +378,17 @@ v3_9_6:
     - The Frontend configuration is now valid (reconfig/upgrade successful) even if some HTCSS schedds are not in DNS. Failing only if all schedds are unknown to DNS
   Bug fix:
     - Fixed `glidien_config` corrupted by concurrent custom scripts run via HTCSS startd cron (#163)
-    - Fixed `setup_x509.sh` not to write to stdout when running as periodic script in HTCSS start cron (issues #162, #164 )
-    - Fixed setup_x509.sh creates proxy file in directory used for tokens (issue #201)
+    - Fixed `setup_x509.sh` not to write to stdout when running as periodic script in HTCSS start cron (issues#162,#164)
+    - Fixed setup_x509.sh creates proxy file in directory used for tokens (issue#201)
     - Fixed GLIDEIN_START_DIR_ORIG and GLIDEIN_WORKSPACE_ORIG values in glidein_config
-    - Fixed unnecessary proxy/hostcert.pem workaround in frontend config (issue #66)
-    - Fixed analyze_entries and python3 readiness (issue #194)
-    - Fixed gwms-renew-proxies service should check if local VOMS cert is expired (issue #21)
-    - Fixed python3 check return value in case of exception (PR #211)
-    - Fixed list_get_intersection in singularity_lib.sh that was requiring python2 (PR #212)
-    - Unset SEC_PASSWORD_DIRECTORY in the Glidein HTCSS configuration, was causing warnings for unknown files (PR #226)
-    - HTCSS DC_DAEMON_LIST now is equal to DAEMON_LIST only in the Factory, in all other GlideinWMS components only selected HTCSS daemons are added explicitly to it (issue #205)
-    - Working and local tmp directories are removed during Glidein cleanup also when the start directory is missing. This result in a loss of Glidein final status information but avoids sandbox leaks on the Worker Node. (issue #189)
+    - Fixed unnecessary proxy/hostcert.pem workaround in frontend config (issue#66)
+    - Fixed analyze_entries and python3 readiness (issue#194)
+    - Fixed gwms-renew-proxies service should check if local VOMS cert is expired (issue#21)
+    - Fixed python3 check return value in case of exception (PR#211)
+    - Fixed list_get_intersection in singularity_lib.sh that was requiring python2 (PR#212)
+    - Unset SEC_PASSWORD_DIRECTORY in the Glidein HTCSS configuration, was causing warnings for unknown files (PR#226)
+    - HTCSS DC_DAEMON_LIST now is equal to DAEMON_LIST only in the Factory, in all other GlideinWMS components only selected HTCSS daemons are added explicitly to it (issue#205)
+    - Working and local tmp directories are removed during Glidein cleanup also when the start directory is missing. This result in a loss of Glidein final status information but avoids sandbox leaks on the Worker Node. (issue#189)
   NOTE:
     - custom scripts should always read values via gconfig_get(). The only exception is
       the parsing or the line to get the add_config_line source file
@@ -403,12 +403,12 @@ v3_10_0:
   Tarball: false
   Feature:
     - All the features and fixes in v3_9_6
-    - Use `SINGULARITY_DISABLE_PID_NAMESPACES` disable `--pid` in Singularity/Apptainer  (OSG SOFTWARE-5340, PR #232)
-    - Raise a warning if there are "FATAL" errors in Singularity/Apptainer stdlog and the exit code is 0 (PR #235)
-    - Added `gconfig.py`. Python utilities to read and write glidein_config (PR #237)
+    - Use `SINGULARITY_DISABLE_PID_NAMESPACES` disable `--pid` in Singularity/Apptainer  (OSG SOFTWARE-5340, PR#232)
+    - Raise a warning if there are "FATAL" errors in Singularity/Apptainer stdlog and the exit code is 0 (PR#235)
+    - Added `gconfig.py`. Python utilities to read and write glidein_config (PR#237)
   Bug fix:
-    - Set PATH to default value instead of emptying it (PR #233)
-    - '`get_prop_str` returns the default value when the attribute is "undefined" and `gwms_from_config` returns the default when set instead of an empty string (PR #235)'
-    - Fixed credential ID in Glideins. It was not set for scitokens causing incorrect monitoring values (PR #242)
+    - Set PATH to default value instead of emptying it (PR#233)
+    - Have `get_prop_str` return the default value when the attribute is "undefined" and `gwms_from_config` return the default when set instead of an empty string (PR#235)
+    - Fixed credential ID in Glideins. It was not set for scitokens causing incorrect monitoring values (PR#242)
   NOTE:
     - This follows v3_9_6. Please see all the notes about the custom script changes

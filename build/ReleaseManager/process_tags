@@ -67,22 +67,6 @@ class ParameterException(Exception):
             self.message = message
 
 
-# Not used in python3
-def add_default(dest, default):
-    """Add default values to dest. default must have simple values (no deepcopy)
-
-    Args:
-        dest: dictionary to complete
-        default: dictionary w/ default values
-
-    Returns:
-        dest with added default values from default
-    """
-    res = default.copy()
-    res.update(dest)
-    return dest
-
-
 def dump_txt(release_tags, fname=None, versions=None):
     """Write to a file (stdout by default) the release tags, separated by a blank line
 
@@ -267,8 +251,6 @@ def load_yaml(fname):
     to_delete = [v for v in release_tags if v.startswith("template")]
     for v in to_delete:
         del release_tags[v]
-    versions = list(release_tags)
-    # py2.7:  release_tags = {v: add_default(release_tags[v], default) for v in release_tags}
     release_tags = {v: {**default, NAME: v, **release_tags[v]} for v in release_tags}
     return release_tags
 
@@ -297,14 +279,14 @@ def load_yaml(fname):
 
 
 def release2html(v, tags):
-    """
+    """Transform a release dictionary in HTML
 
     Args:
-        v:
-        tags:
+        v (str): version tag (not used by the function)
+        tags (dict): sub-dictionary with the tags of one version
 
     Returns:
-
+        str: multiline string with the release tags in HTML
     """
     tar_string = ""
     if tags["Tarball"]:
@@ -325,9 +307,10 @@ def release2html(v, tags):
         lines.append(f"    <li>{BUGFIX}: {i}</li>")
     for i in tags.get(NOTE, []):
         lines.append(f"    <li>{NOTE}: {i}</li>")
-    for k in [k for k in tags if k not in PROCESSED_TAGS]:
-        for i in release_tags[v][k]:
-            lines.append(f"    <li>{k}: {i}</li>")
+    for k in tags:
+        if k not in PROCESSED_TAGS:
+            for i in tags[k]:
+                lines.append(f"    <li>{k}: {i}</li>")
     lines.append(
         """    </ul>
 </li>
@@ -337,22 +320,22 @@ def release2html(v, tags):
 
 
 def dump_html(release_tags, outfile, versions=None, append=False):
-    """
+    """Dump the release tags dictionary in HTML format
 
     Args:
-        release_tags:
-        outfile:
-        versions:
-
-    Returns:
+        release_tags (dict): release tags dictionary
+        outfile (str): output file path
+        versions (list, None): list of versions for a selective output
+        append (bool): append to the output file if true
 
     """
-
     if not versions:
         versions = list(release_tags)
         versions.sort(reverse=True)
     if outfile is None:
-        raise Exception("html to stdout is not supported")
+        for v in versions:
+            sys.stdout.write(release2html(v, release_tags[v]))
+        return
     if append:
         file_flag = "a"
     else:
@@ -428,6 +411,7 @@ def test(release_tags):
     dump_txt(release_tags, versions)
 
 
+# TODO: remove. Old example from yaml to text, now unused
 def main(fname="tags.yml"):
     """
 
@@ -450,7 +434,6 @@ def main(fname="tags.yml"):
         del release_tags[v]
     versions = list(release_tags)
     versions.sort(reverse=True)
-    # py2.7:  release_tags = {v: add_default(release_tags[v], default) for v in release_tags}
     release_tags = {v: {**default, NAME: v, **release_tags[v]} for v in release_tags}
     stable = []
     development = []
@@ -465,46 +448,46 @@ def main(fname="tags.yml"):
 
 if __name__ == "__main__":
     action = "yaml2txt"
-    infile = "tags."
-    outfile = "tags."
+    main_infile = "tags."
+    main_outfile = "tags."
     arg_len = len(sys.argv)
     try:
         try:
             action = sys.argv[1]
-            infile = sys.argv[2]
-            outfile = sys.argv[3]
+            main_infile = sys.argv[2]
+            main_outfile = sys.argv[3]
         except IndexError:
             try:
                 action_in, action_out = action.split("2")
             except:
                 raise ParameterException("Invalid argument %s" % action)
-            outfile += action_out
+            main_outfile += action_out
             if arg_len < 3:
-                infile += action_in
+                main_infile += action_in
         else:
             action_in, action_out = action.split("2")
         if action_in == "txt":
-            release_tags = load_txt(infile)
+            main_release_tags = load_txt(main_infile)
         elif action_in == "yaml":
-            release_tags = load_yaml(infile)
+            main_release_tags = load_yaml(main_infile)
         else:
             raise ParameterException("Unsupported input format: %s" % action_in)
-        if outfile == "-" or outfile == "stdout":
-            outfile = None
-        elif outfile == "tags.history":
-            outfile = "doc/history.html"
+        if main_outfile == "-" or main_outfile == "stdout":
+            main_outfile = None
+        elif main_outfile == "tags.history":
+            main_outfile = "doc/history.html"
         if action_out == "txt":
-            dump_txt(release_tags, outfile)
+            dump_txt(main_release_tags, main_outfile)
         elif action_out == "print":
-            dump_txt(release_tags)
+            dump_txt(main_release_tags)
         elif action_out == "dict":
-            print_dicts(release_tags)
+            print_dicts(main_release_tags)
         elif action_out == "yaml":
-            dump_yaml(release_tags, outfile)
+            dump_yaml(main_release_tags, main_outfile)
         elif action_out == "html":
-            dump_html(release_tags, outfile)
+            dump_html(main_release_tags, main_outfile)
         elif action_out == "history":
-            dump_history(release_tags, outfile)
+            dump_history(main_release_tags, main_outfile)
         else:
             raise ParameterException("Unsupported output format: %s" % action_out)
     except ParameterException as e:
