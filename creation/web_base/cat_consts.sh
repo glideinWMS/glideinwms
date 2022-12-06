@@ -21,19 +21,20 @@ function warn {
 
 # import add_config_line function
 add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
-source "$add_config_line_source"
+# shellcheck source=./add_config_line.source
+. "$add_config_line_source"
 
 # import get_prefix function
-get_id_selectors_source=$(grep -m1 '^GET_ID_SELECTORS_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
-source "$get_id_selectors_source"
+get_id_selectors_source=$(gconfig_get GET_ID_SELECTORS_SOURCE "$glidein_config")
+. "$get_id_selectors_source"
 
 error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
-id_prefix=`get_prefix $dir_id`
+id_prefix=$(get_prefix $dir_id)
 
 ###################################
 # Find file names
-consts_file=$(gconfig_get ${id_prefix}CONSTS_FILE "$glidein_config")
+consts_file=$(gconfig_get "${id_prefix}CONSTS_FILE" "$glidein_config")
 if [ -z "$consts_file" ]; then
     #warn "Cannot find ${id_prefix}CONSTS_FILE in $glidein_config!"
     STR="Cannot find ${id_prefix}CONSTS_FILE in $glidein_config!"

@@ -12,6 +12,7 @@ my_path=$(cd "$(dirname "$0")"; pwd)
 if [ -f "$1" ]; then
     glidein_config="$1"
     # TODO: find a better way to recognize that is invoked in configuration w/ glidein_config as parameter (e.g header)
+    # retained the use of grep since these are the only occurrences where variables values are being fetched and both these variables are immutable by scripts
     error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
     work_dir=$(grep '^GLIDEIN_WORK_DIR ' "$glidein_config" | awk '{print $2}')
 fi

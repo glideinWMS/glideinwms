@@ -28,9 +28,9 @@ echo "Unmounting CVMFS as part of glidein cleanup..."
 glidein_config=$1
 
 # import add_config_line to use gconfig_ utilities
-add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}')
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | awk '{print $2}')
 # shellcheck source=./add_config_line.source
-. $add_config_line_source
+. "$add_config_line_source"
 
 # import error_gen
 error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")

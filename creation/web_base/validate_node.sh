@@ -74,7 +74,8 @@ config_file="$1"
 
 # import add_config_line and add_condor_vars_line functions
 add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
-source "$add_config_line_source"
+# shellcheck source=./add_config_line.source
+. "$add_config_line_source"
 
 error_gen=$(gconfig_get ERROR_GEN_PATH "$config_file")
 

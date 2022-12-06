@@ -29,8 +29,9 @@ GWMS_THIS_SCRIPT="$0"
 GWMS_THIS_SCRIPT_DIR=$(dirname "$0")
 
 # import add_config_line function
-add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}')
-source $add_config_line_source
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | awk '{print $2}')
+# shellcheck source=./add_config_line.source
+. $add_config_line_source
 
 echo "`date` Starting singularity_setup.sh. Importing singularity_lib.sh."
 

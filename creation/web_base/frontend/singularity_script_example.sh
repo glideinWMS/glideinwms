@@ -55,8 +55,9 @@ warn_raw() {
     glidein_config="$GWMS_THIS_SCRIPT_DIR/../glidein_config"
 
 # import add_config_line function
-add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}')
-source $add_config_line_source
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | awk '{print $2}')
+# shellcheck source=./add_config_line.source
+. "$add_config_line_source"
 
 # error_gen defined in singularity_lib.sh
 [[ -e "$glidein_config" ]] && error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")

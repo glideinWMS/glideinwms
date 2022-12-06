@@ -9,12 +9,8 @@
 
 if [ -f "$1" ]; then
     glidein_config="$1"
-
-    # import add_config_line function
-    add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
-    source "$add_config_line_source"
-
-    error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
+    # retained grep here since (1) it is being used to get the value of EEROR_GEN_PATH only, i.e. single occurrence, and (2) the variable is safe meaning not modified by the scripts
+    error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
 fi
 
 [ -n "$error_gen" ] && CONFIG=TRUE

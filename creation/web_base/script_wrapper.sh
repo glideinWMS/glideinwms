@@ -171,7 +171,8 @@ for i in  "$main_dir/error_augment.sh" "$s_fname"; do
     [ -x "$i" ] || failed "Missing essential executable: $i" wrapper
 done
 
-source ./add_config_line.source
+# shellcheck source=./add_config_line.source
+. ./add_config_line.source
 
 # find error reporting helper script
 error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")

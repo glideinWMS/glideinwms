@@ -59,17 +59,18 @@ dir_id=$2
 
 # import add_config_line function
 add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$config_file" | cut -d ' ' -f 2-)
-source "$add_config_line_source"
+# shellcheck source=./add_config_line.source
+. "$add_config_line_source"
 
 error_gen=$(gconfig_get ERROR_GEN_PATH "$config_file")
 
 # import get_prefix function
-get_id_selectors_source=$(grep -m1 '^GET_ID_SELECTORS_SOURCE ' "$config_file" | cut -d ' ' -f 2-)
-source "$get_id_selectors_source"
+get_id_selectors_source=$(gconfig_get GET_ID_SELECTORS_SOURCE "$config_file")
+. "$get_id_selectors_source"
 
-id_prefix=`get_prefix $dir_id`
+id_prefix=$(get_prefix $dir_id)
 
-blacklist_file=$(gconfig_get ${id_prefix}BLACKLIST_FILE "$config_file")
+blacklist_file=$(gconfig_get "${id_prefix}"BLACKLIST_FILE "$config_file")
 if [ -n "$blacklist_file" ]; then
   check_blacklist
 fi

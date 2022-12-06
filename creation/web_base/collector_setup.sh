@@ -120,7 +120,8 @@ done | sort -n | cut -c8- | tr -d "\n" | sed -r 's/,+/,/g'`"
 _main() {
     # import add_config_line function
     add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
-    source "$add_config_line_source"
+    # shellcheck source=./add_config_line.source
+    . "$add_config_line_source"
 
     error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
