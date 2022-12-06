@@ -10,6 +10,29 @@
 # File Version:
 #
 
+# default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
+IFS=$' \t\n'
+
+global_args="$*"
+# GWMS_STARTUP_SCRIPT=$0
+GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+GWMS_PATH=""
+# Relative to the work directory (GWMS_DIR, gwms_lib_dir, gwms_bin_dir and gwms_exec_dir will be the absolute paths)
+# bin (utilities), lib (libraries), exec (aux scripts to be executed/sourced, e.g. pre-job)
+GWMS_SUBDIR=".gwms.d"
+
+export LANG=C
+
+# General options
+GWMS_MULTIUSER_GLIDEIN=
+# Set GWMS_MULTIUSER_GLIDEIN if the Glidein may spawn processes (for jobs) as a different user.
+# This will prepare the glidein, e.g. setting to 777 the permission of TEMP directories
+# This should never happen only when using GlExec. Not in Singularity, not w/o sudo mechanisms.
+# Comment the following line if GlExec or similar will not be used
+#GWMS_MULTIUSER_GLIDEIN=true
+# Default GWMS log server
+GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
+
 ##############################
 # Utility functions to allow the script to source functions and retrieve data stored as tarball at the end of the script itself
 
@@ -67,6 +90,7 @@ on_die() {
     kill -s "$1" %1
 }
 
+GWMS_MULTIGLIDEIN_CHILDS=
 on_die_multi() {
     echo "Multi-Glidein received signal... shutting down child glideins (forwarding $1 signal to ${GWMS_MULTIGLIDEIN_CHILDS})" 1>&2
     ON_DIE=1
@@ -171,156 +195,211 @@ usage() {
     exit 1
 }
 
+
+# params will contain the full list of parameters
+# -param_XXX YYY will become "XXX YYY"
+# TODO: can use an array instead?
+params=""
+
+while [ $# -gt 0 ]
+do case "$1" in
+    -factory)    glidein_factory="$2";;
+    -name)       glidein_name="$2";;
+    -entry)      glidein_entry="$2";;
+    -clientname) client_name="$2";;
+    -clientgroup) client_group="$2";;
+    -web)        repository_url="$2";;
+    -proxy)      proxy_url="$2";;
+    -dir)        work_dir="$2";;
+    -sign)       sign_id="$2";;
+    -signtype)   sign_type="$2";;
+    -signentry)  sign_entry_id="$2";;
+    -cluster)    condorg_cluster="$2";;
+    -subcluster) condorg_subcluster="$2";;
+    -submitcredid) glidein_cred_id="$2";;
+    -schedd)     condorg_schedd="$2";;
+    -descript)   descript_file="$2";;
+    -descriptentry)   descript_entry_file="$2";;
+    -clientweb)             client_repository_url="$2";;
+    -clientwebgroup)        client_repository_group_url="$2";;
+    -clientsign)            client_sign_id="$2";;
+    -clientsigntype)        client_sign_type="$2";;
+    -clientsigngroup)       client_sign_group_id="$2";;
+    -clientdescript)        client_descript_file="$2";;
+    -clientdescriptgroup)   client_descript_group_file="$2";;
+    -slotslayout)           slots_layout="$2";;
+    -v)          operation_mode="$2";;
+    -multiglidein)  multi_glidein="$2";;
+    -multirestart)  multi_glidein_restart="$2";;
+    -param_*)    params="$params $(echo "$1" | awk '{print substr($0,8)}') $2";;
+    *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
+esac
+shift 2
+done
+
+# make sure we have a valid slots_layout
+if (echo "x${slots_layout}" | grep -i fixed) >/dev/null 2>&1 ; then
+    slots_layout="fixed"
+else
+    slots_layout="partitionable"
+fi
+
 construct_xml() {
   result="$1"
 
   glidein_end_time="$(date +%s)"
 
   echo "<?xml version=\"1.0\"?>
-        <OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">
-        <operatingenvironment>
-        <env name=\"cwd\">${start_dir}</env>
-        </operatingenvironment>
-        <test>
-        <cmd>$0 ${global_args}</cmd>
-        <tStart>$(date --date=@"${startup_time}" +%Y-%m-%dT%H:%M:%S%:z)</tStart>
-        <tEnd>$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
-        </test>
-        ${result}
-        </OSGTestResult>"
+<OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">${start_dir}</env>
+  </operatingenvironment>
+  <test>
+    <cmd>$0 ${global_args}</cmd>
+    <tStart>$(date --date=@"${startup_time}" +%Y-%m-%dT%H:%M:%S%:z)</tStart>
+    <tEnd>$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
+  </test>
+${result}
+</OSGTestResult>"
 }
 
+
 extract_parent_fname() {
-    exitcode=$1
+  exitcode=$1
 
-    if [ -s otrx_output.xml ]; then
-        # file exists and is not 0 size
-        last_result=$(cat otrx_output.xml)
+  if [ -s otrx_output.xml ]; then
+      # file exists and is not 0 size
+      last_result=$(cat otrx_output.xml)
 
-        if [ "${exitcode}" -eq 0 ]; then
-            echo "SUCCESS"
-        else
-            last_script_name=$(echo "${last_result}" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}')
-            echo "${last_script_name}"
-        fi
-    else
-        echo "Unknown"
-    fi
+      if [ "${exitcode}" -eq 0 ]; then
+          echo "SUCCESS"
+      else
+          last_script_name=$(echo "${last_result}" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}')
+          echo "${last_script_name}"
+      fi
+  else
+      echo "Unknown"
+  fi
 }
 
 extract_parent_xml_detail() {
-    exitcode=$1
-    glidein_end_time="$(date +%s)"
+  exitcode=$1
+  glidein_end_time="$(date +%s)"
 
-    if [ -s otrx_output.xml ]; then
-        # file exists and is not 0 size
-        last_result="$(cat otrx_output.xml)"
+  if [ -s otrx_output.xml ]; then
+      # file exists and is not 0 size
+      last_result="$(cat otrx_output.xml)"
 
-        if [ "${exitcode}" -eq 0 ]; then
-            echo "  <result>"
-            echo "    <status>OK</status>"
-            # propagate metrics as well
-            echo "${last_result}" | grep '<metric '
-            echo "  </result>"
-        else
-            last_script_name=$(echo "${last_result}" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}')
+      if [ "${exitcode}" -eq 0 ]; then
+          echo "  <result>"
+          echo "    <status>OK</status>"
+          # propagate metrics as well
+          echo "${last_result}" | grep '<metric '
+          echo "  </result>"
+      else
+          last_script_name=$(echo "${last_result}" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}')
 
-            last_script_reason=$(echo "${last_result}" | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}')
-            my_reason="     Validation failed in ${last_script_name}.
+          last_script_reason=$(echo "${last_result}" | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}')
+          my_reason="     Validation failed in ${last_script_name}.
 
-            ${last_script_reason}"
+${last_script_reason}"
 
-            echo "  <result>"
-            echo "    <status>ERROR</status>
-            <metric name=\"TestID\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${last_script_name}</metric>"
-            # propagate metrics as well (will include the failure metric)
-            echo "${last_result}" | grep '<metric '
-            echo "  </result>"
-            echo "  <detail>
-            ${my_reason}
-            </detail>"
-        fi
-    else
-        # create a minimal XML file, else
-        echo "  <result>"
-        if [ "${exitcode}" -eq 0 ]; then
-            echo "    <status>OK</status>"
-        else
-            echo "    <status>ERROR</status>"
-            echo "    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Unknown</metric>"
-        fi
-    echo "  </result>
-    <detail>
+          echo "  <result>"
+          echo "    <status>ERROR</status>
+    <metric name=\"TestID\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${last_script_name}</metric>"
+          # propagate metrics as well (will include the failure metric)
+          echo "${last_result}" | grep '<metric '
+          echo "  </result>"
+          echo "  <detail>
+${my_reason}
+  </detail>"
+      fi
+  else
+      # create a minimal XML file, else
+      echo "  <result>"
+      if [ "${exitcode}" -eq 0 ]; then
+          echo "    <status>OK</status>"
+      else
+          echo "    <status>ERROR</status>"
+          echo "    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Unknown</metric>"
+      fi
+      echo "  </result>
+  <detail>
     No detail. Could not find source XML file.
-    </detail>"
-    fi
+  </detail>"
+  fi
 }
 
 basexml2simplexml() {
-    final_result="$1"
+  final_result="$1"
 
-    # augment with node info
-    echo "${final_result}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<operatingenvironment>/{fr=0;}'
+  # augment with node info
+  echo "${final_result}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<operatingenvironment>/{fr=0;}'
 
-    echo "    <env name=\"client_name\">${client_name}</env>"
-    echo "    <env name=\"client_group\">${client_group}</env>"
+  echo "    <env name=\"client_name\">${client_name}</env>"
+  echo "    <env name=\"client_group\">${client_group}</env>"
 
-    echo "    <env name=\"user\">$(id -un)</env>"
-    echo "    <env name=\"arch\">$(uname -m)</env>"
-    if [ -e '/etc/redhat-release' ]; then
-        echo "    <env name=\"os\">$(cat /etc/redhat-release)</env>"
-    fi
-    echo "    <env name=\"hostname\">$(uname -n)</env>"
+  echo "    <env name=\"user\">$(id -un)</env>"
+  echo "    <env name=\"arch\">$(uname -m)</env>"
+  if [ -e '/etc/redhat-release' ]; then
+      echo "    <env name=\"os\">$(cat /etc/redhat-release)</env>"
+  fi
+  echo "    <env name=\"hostname\">$(uname -n)</env>"
 
-    echo "${final_result}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'
+  echo "${final_result}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'
 }
 
 simplexml2longxml() {
-    final_result_simple="$1"
-    global_result="$2"
+  final_result_simple="$1"
+  global_result="$2"
 
-    echo "${final_result_simple}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<OSGTestResult /{fr=0;}'
+  echo "${final_result_simple}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<OSGTestResult /{fr=0;}'
 
-    if [ "${global_result}" != "" ]; then
-        # subtests first, so it is more readable, when tailing
-        echo '  <subtestlist>'
-        echo '    <OSGTestResults>'
-        echo "${global_result}" | awk '{print "      " $0}'
-        echo '    </OSGTestResults>'
-        echo '  </subtestlist>'
-    fi
+  if [ "${global_result}" != "" ]; then
+      # subtests first, so it is more readable, when tailing
+      echo '  <subtestlist>'
+      echo '    <OSGTestResults>'
+      echo "${global_result}" | awk '{print "      " $0}'
+      echo '    </OSGTestResults>'
+      echo '  </subtestlist>'
+  fi
 
-    echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<OSGTestResult /{fr=1;}/<operatingenvironment>/{fr=0;}'
+  echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<OSGTestResult /{fr=1;}/<operatingenvironment>/{fr=0;}'
 
-    echo "    <env name=\"glidein_factory\">${glidein_factory}</env>"
-    echo "    <env name=\"glidein_name\">${glidein_name}</env>"
-    echo "    <env name=\"glidein_entry\">${glidein_entry}</env>"
-    echo "    <env name=\"condorg_cluster\">${condorg_cluster}</env>"
-    echo "    <env name=\"condorg_subcluster\">${condorg_subcluster}</env>"
-    echo "    <env name=\"glidein_credential_id\">${glidein_cred_id}</env>"
-    echo "    <env name=\"condorg_schedd\">${condorg_schedd}</env>"
+  echo "    <env name=\"glidein_factory\">${glidein_factory}</env>"
+  echo "    <env name=\"glidein_name\">${glidein_name}</env>"
+  echo "    <env name=\"glidein_entry\">${glidein_entry}</env>"
+  echo "    <env name=\"condorg_cluster\">${condorg_cluster}</env>"
+  echo "    <env name=\"condorg_subcluster\">${condorg_subcluster}</env>"
+  echo "    <env name=\"glidein_credential_id\">${glidein_cred_id}</env>"
+  echo "    <env name=\"condorg_schedd\">${condorg_schedd}</env>"
 
-    echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'
+  echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'
 }
 
 print_tail() {
-    exit_code=$1
-    final_result_simple="$2"
-    final_result_long="$3"
+  exit_code=$1
+  final_result_simple="$2"
+  final_result_long="$3"
 
-    glidein_end_time=$(date +%s)
-    let total_time=${glidein_end_time}-${startup_time}
-    echo "=== Glidein ending $(date) (${glidein_end_time}) with code ${exit_code} after ${total_time} ==="
-    echo ""
-    echo "=== XML description of glidein activity ==="
-    echo  "${final_result_simple}" | grep -v "<cmd>"
-    echo "=== End XML description of glidein activity ==="
+  glidein_end_time=$(date +%s)
+  let total_time=${glidein_end_time}-${startup_time}
+  echo "=== Glidein ending $(date) (${glidein_end_time}) with code ${exit_code} after ${total_time} ==="
+  echo ""
+  echo "=== XML description of glidein activity ==="
+  echo  "${final_result_simple}" | grep -v "<cmd>"
+  echo "=== End XML description of glidein activity ==="
 
-    echo "" 1>&2
-    echo "=== Encoded XML description of glidein activity ===" 1>&2
-    echo "${final_result_long}" | gzip --stdout - | b64uuencode 1>&2
-    echo "=== End encoded XML description of glidein activity ===" 1>&2
+  echo "" 1>&2
+  echo "=== Encoded XML description of glidein activity ===" 1>&2
+  echo "${final_result_long}" | gzip --stdout - | b64uuencode 1>&2
+  echo "=== End encoded XML description of glidein activity ===" 1>&2
 }
+
+####################################
+# Cleaup, print out message and exit
+work_dir_created=0
+glide_local_tmp_dir_created=0
 
 # Remove Glidein directories (work_dir, glide_local_tmp_dir)
 # 1 - exit code
@@ -350,167 +429,169 @@ glidien_cleanup() {
 # use this for early failures, when we cannot assume we can write to disk at all
 # too bad we end up with some repeated code, but difficult to do better
 early_glidein_failure() {
-    error_msg="$1"
+  error_msg="$1"
 
-    warn "${error_msg}"
+  warn "${error_msg}"
 
-    sleep "${sleep_time}"
-    # wait a bit in case of error, to reduce lost glideins
+  sleep "${sleep_time}"
+  # wait a bit in case of error, to reduce lost glideins
 
-    glidein_end_time="$(date +%s)"
-    result="    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">WN_RESOURCE</metric>
+  glidein_end_time="$(date +%s)"
+  result="    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">WN_RESOURCE</metric>
     <status>ERROR</status>
     <detail>
-    ${error_msg}
+     ${error_msg}
     </detail>"
 
-    final_result="$(construct_xml "${result}")"
-    final_result_simple="$(basexml2simplexml "${final_result}")"
-    # have no global section
-    final_result_long="$(simplexml2longxml "${final_result_simple}" "")"
+  final_result="$(construct_xml "${result}")"
+  final_result_simple="$(basexml2simplexml "${final_result}")"
+  # have no global section
+  final_result_long="$(simplexml2longxml "${final_result_simple}" "")"
 
-    glidien_cleanup
+  glidien_cleanup
 
-    print_tail 1 "${final_result_simple}" "${final_result_long}"
+  print_tail 1 "${final_result_simple}" "${final_result_long}"
 
-    exit 1
+  exit 1
 }
+
 
 # use this one once the most basic ops have been done
 glidein_exit() {
-    # Removed lines about $lock_file (lock file for whole machine) not present elsewhere
+  # Removed lines about $lock_file (lock file for whole machine) not present elsewhere
 
-    gwms_process_scripts "$GWMS_DIR" cleanup "${glidein_config}"
+  gwms_process_scripts "$GWMS_DIR" cleanup "${glidein_config}"
 
-    global_result=""
-    if [ -f otr_outlist.list ]; then
-        global_result=$(cat otr_outlist.list)
-        chmod u+w otr_outlist.list
-    fi
+  global_result=""
+  if [ -f otr_outlist.list ]; then
+      global_result=$(cat otr_outlist.list)
+      chmod u+w otr_outlist.list
+  fi
 
-    ge_last_script_name=$(extract_parent_fname "$1")
-    result=$(extract_parent_xml_detail "$1")
-    final_result=$(construct_xml "${result}")
+  ge_last_script_name=$(extract_parent_fname "$1")
+  result=$(extract_parent_xml_detail "$1")
+  final_result=$(construct_xml "${result}")
 
-    # augment with node info
-    final_result_simple=$(basexml2simplexml "${final_result}")
+  # augment with node info
+  final_result_simple=$(basexml2simplexml "${final_result}")
 
-    # Create a richer version, too
-    final_result_long=$(simplexml2longxml "${final_result_simple}" "${global_result}")
+  # Create a richer version, too
+  final_result_long=$(simplexml2longxml "${final_result_simple}" "${global_result}")
 
-    if [ "$1" -ne 0 ]; then
-        report_failed=$(gconfig_get GLIDEIN_Report_Failed "${glidein_config}")
+  if [ "$1" -ne 0 ]; then
+      report_failed=$(grep -i "^GLIDEIN_Report_Failed " "${glidein_config}" | cut -d ' ' -f 2-)
 
-        if [ -z "${report_failed}" ]; then
-            report_failed="NEVER"
-        fi
+      if [ -z "${report_failed}" ]; then
+          report_failed="NEVER"
+      fi
 
-        factory_report_failed=$(gconfig_get GLIDEIN_Factory_Report_Failed "${glidein_config}")
+      factory_report_failed=$(grep -i "^GLIDEIN_Factory_Report_Failed " "${glidein_config}" | cut -d ' ' -f 2-)
 
-        if [ -z "${factory_report_failed}" ]; then
-            factory_collector=$(gconfig_get GLIDEIN_Factory_Collector "${glidein_config}")
-            if [ -z "${factory_collector}" ]; then
-                # no point in enabling it if there are no collectors
-                factory_report_failed="NEVER"
-            else
-                factory_report_failed="ALIVEONLY"
-            fi
-        fi
+      if [ -z "${factory_report_failed}" ]; then
+          factory_collector=$(grep -i "^GLIDEIN_Factory_Collector " "${glidein_config}" | cut -d ' ' -f 2-)
+          if [ -z "${factory_collector}" ]; then
+              # no point in enabling it if there are no collectors
+              factory_report_failed="NEVER"
+          else
+              factory_report_failed="ALIVEONLY"
+          fi
+      fi
 
-        do_report=0
-        if [ "${report_failed}" != "NEVER" ] || [ "${factory_report_failed}" != "NEVER" ]; then
-            do_report=1
-        fi
+      do_report=0
+      if [ "${report_failed}" != "NEVER" ] || [ "${factory_report_failed}" != "NEVER" ]; then
+          do_report=1
+      fi
 
-        # wait a bit in case of error, to reduce lost glideins
-        let "dl=$(date +%s) + ${sleep_time}"
-        dlf=$(date --date="@${dl}")
-        gconfig_add "GLIDEIN_ADVERTISE_ONLY" "1"
-        gconfig_add "GLIDEIN_Failed" "True"
-        gconfig_add "GLIDEIN_EXIT_CODE" "$1"
-        gconfig_add "GLIDEIN_ToDie" "${dl}"
-        gconfig_add "GLIDEIN_Expire" "${dl}"
-        gconfig_add "GLIDEIN_LAST_SCRIPT" "${ge_last_script_name}"
-        gconfig_add "GLIDEIN_ADVERTISE_TYPE" "Retiring"
 
-        gconfig_add "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Keeping node busy until ${dl} (${dlf})."
+      # wait a bit in case of error, to reduce lost glideins
+      let "dl=$(date +%s) + ${sleep_time}"
+      dlf=$(date --date="@${dl}")
+      add_config_line "GLIDEIN_ADVERTISE_ONLY" "1"
+      add_config_line "GLIDEIN_Failed" "True"
+      add_config_line "GLIDEIN_EXIT_CODE" "$1"
+      add_config_line "GLIDEIN_ToDie" "${dl}"
+      add_config_line "GLIDEIN_Expire" "${dl}"
+      add_config_line "GLIDEIN_LAST_SCRIPT" "${ge_last_script_name}"
+      add_config_line "GLIDEIN_ADVERTISE_TYPE" "Retiring"
 
-        condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "${glidein_config}")
-        if [ -n "${condor_vars_file}" ]; then
-            # if we are to advertise, this should be available... else, it does not matter anyhow
-            add_condor_vars_line "GLIDEIN_ADVERTISE_ONLY" "C" "True" "+" "Y" "Y" "-"
-            add_condor_vars_line "GLIDEIN_Failed" "C" "True" "+" "Y" "Y" "-"
-            add_condor_vars_line "GLIDEIN_EXIT_CODE" "I" "-" "+" "Y" "Y" "-"
-            add_condor_vars_line "GLIDEIN_ToDie" "I" "-" "+" "Y" "Y" "-"
-            add_condor_vars_line "GLIDEIN_Expire" "I" "-" "+" "Y" "Y" "-"
-            add_condor_vars_line "GLIDEIN_LAST_SCRIPT" "S" "-" "+" "Y" "Y" "-"
-            add_condor_vars_line "GLIDEIN_FAILURE_REASON" "S" "-" "+" "Y" "Y" "-"
-        fi
-        main_work_dir="$(get_work_dir main)"
+      add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Keeping node busy until ${dl} (${dlf})."
 
-        for ((t=$(date +%s); t < dl; t=$(date +%s)))
-        do
-            if [ -e "${main_work_dir}/${last_script}" ] && [ "${do_report}" = "1" ] ; then
-                # if the file exists, we should be able to talk to the collectors
-                # notify that things went badly and we are waiting
-                if [ "${factory_report_failed}" != "NEVER" ]; then
-                    gconfig_add "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
-                    warn "Notifying Factory of error"
-                    "${main_work_dir}/${last_script}" glidein_config
-                fi
-                if [ "${report_failed}" != "NEVER" ]; then
-                    gconfig_add "GLIDEIN_ADVERTISE_DESTINATION" "VO"
-                    warn "Notifying VO of error"
-                    "${main_work_dir}/${last_script}" glidein_config
-                fi
-            fi
+      condor_vars_file="$(grep -i "^CONDOR_VARS_FILE " "${glidein_config}" | cut -d ' ' -f 2-)"
+      if [ -n "${condor_vars_file}" ]; then
+         # if we are to advertise, this should be available... else, it does not matter anyhow
+         add_condor_vars_line "GLIDEIN_ADVERTISE_ONLY" "C" "True" "+" "Y" "Y" "-"
+         add_condor_vars_line "GLIDEIN_Failed" "C" "True" "+" "Y" "Y" "-"
+         add_condor_vars_line "GLIDEIN_EXIT_CODE" "I" "-" "+" "Y" "Y" "-"
+         add_condor_vars_line "GLIDEIN_ToDie" "I" "-" "+" "Y" "Y" "-"
+         add_condor_vars_line "GLIDEIN_Expire" "I" "-" "+" "Y" "Y" "-"
+         add_condor_vars_line "GLIDEIN_LAST_SCRIPT" "S" "-" "+" "Y" "Y" "-"
+         add_condor_vars_line "GLIDEIN_FAILURE_REASON" "S" "-" "+" "Y" "Y" "-"
+      fi
+      main_work_dir="$(get_work_dir main)"
 
-            # sleep for about 5 mins... but randomize a bit
-            let "ds=250+${RANDOM}%100"
-            let "as=$(date +%s) + ${ds}"
-            if [ ${as} -gt ${dl} ]; then
-                # too long, shorten to the deadline
-                let "ds=${dl} - $(date +%s)"
-            fi
-            warn "Sleeping ${ds}"
-            sleep ${ds}
-        done
-
-        if [ -e "${main_work_dir}/${last_script}" ] && [ "${do_report}" = "1" ]; then
-            # notify that things went badly and we are going away
+      for ((t=$(date +%s); t < dl; t=$(date +%s)))
+      do
+        if [ -e "${main_work_dir}/${last_script}" ] && [ "${do_report}" = "1" ] ; then
+            # if the file exists, we should be able to talk to the collectors
+            # notify that things went badly and we are waiting
             if [ "${factory_report_failed}" != "NEVER" ]; then
-                gconfig_add "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
-                if [ "${factory_report_failed}" = "ALIVEONLY" ]; then
-                    gconfig_add "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
-                else
-                    gconfig_add "GLIDEIN_ADVERTISE_TYPE" "Killing"
-                    gconfig_add "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. (${dl}) (${dlf})"
-                fi
+                add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
+                warn "Notifying Factory of error"
                 "${main_work_dir}/${last_script}" glidein_config
-                warn "Last notification sent to Factory"
             fi
             if [ "${report_failed}" != "NEVER" ]; then
-                gconfig_add "GLIDEIN_ADVERTISE_DESTINATION" "VO"
-                if [ "${report_failed}" = "ALIVEONLY" ]; then
-                    gconfig_add "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
-                else
-                    gconfig_add "GLIDEIN_ADVERTISE_TYPE" "Killing"
-                    gconfig_add "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. (${dl}) (${dlf})"
-                fi
+                add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "VO"
+                warn "Notifying VO of error"
                 "${main_work_dir}/${last_script}" glidein_config
-                warn "Last notification sent to VO"
             fi
         fi
-    fi
 
-    log_write "glidein_startup.sh" "text" "glidein is about to exit with retcode $1" "info"
-    send_logs_to_remote
+        # sleep for about 5 mins... but randomize a bit
+        let "ds=250+${RANDOM}%100"
+        let "as=$(date +%s) + ${ds}"
+        if [ ${as} -gt ${dl} ]; then
+            # too long, shorten to the deadline
+            let "ds=${dl} - $(date +%s)"
+        fi
+        warn "Sleeping ${ds}"
+        sleep ${ds}
+      done
 
-    glidien_cleanup
+      if [ -e "${main_work_dir}/${last_script}" ] && [ "${do_report}" = "1" ]; then
+          # notify that things went badly and we are going away
+          if [ "${factory_report_failed}" != "NEVER" ]; then
+              add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
+              if [ "${factory_report_failed}" = "ALIVEONLY" ]; then
+                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
+              else
+                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
+                  add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. (${dl}) (${dlf})"
+              fi
+              "${main_work_dir}/${last_script}" glidein_config
+              warn "Last notification sent to Factory"
+          fi
+          if [ "${report_failed}" != "NEVER" ]; then
+              add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "VO"
+              if [ "${report_failed}" = "ALIVEONLY" ]; then
+                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
+              else
+                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
+                  add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. (${dl}) (${dlf})"
+              fi
+              "${main_work_dir}/${last_script}" glidein_config
+              warn "Last notification sent to VO"
+          fi
+      fi
+  fi
 
-    print_tail "$1" "${final_result_simple}" "${final_result_long}"
+  log_write "glidein_startup.sh" "text" "glidein is about to exit with retcode $1" "info"
+  send_logs_to_remote
 
-    exit "$1"
+  glidien_cleanup
+
+  print_tail "$1" "${final_result_simple}" "${final_result_long}"
+
+  exit "$1"
 }
 
 ####################################################
@@ -571,34 +652,34 @@ params_get_simple() {
 
 params_decode() {
     echo "$1" | sed \
-    -e 's/\.nbsp,/ /g' \
-    -e 's/\.semicolon,/;/g' \
-    -e 's/\.colon,/:/g' \
-    -e 's/\.tilde,/~/g' \
-    -e 's/\.not,/!/g' \
-    -e 's/\.question,/?/g' \
-    -e 's/\.star,/*/g' \
-    -e 's/\.dollar,/$/g' \
-    -e 's/\.comment,/#/g' \
-    -e 's/\.sclose,/]/g' \
-    -e 's/\.sopen,/[/g' \
-    -e 's/\.gclose,/}/g' \
-    -e 's/\.gopen,/{/g' \
-    -e 's/\.close,/)/g' \
-    -e 's/\.open,/(/g' \
-    -e 's/\.gt,/>/g' \
-    -e 's/\.lt,/</g' \
-    -e 's/\.minus,/-/g' \
-    -e 's/\.plus,/+/g' \
-    -e 's/\.eq,/=/g' \
-    -e "s/\.singquot,/'/g" \
-    -e 's/\.quot,/"/g' \
-    -e 's/\.fork,/\`/g' \
-    -e 's/\.pipe,/|/g' \
-    -e 's/\.backslash,/\\/g' \
-    -e 's/\.amp,/\&/g' \
-    -e 's/\.comma,/,/g' \
-    -e 's/\.dot,/./g'
+ -e 's/\.nbsp,/ /g' \
+ -e 's/\.semicolon,/;/g' \
+ -e 's/\.colon,/:/g' \
+ -e 's/\.tilde,/~/g' \
+ -e 's/\.not,/!/g' \
+ -e 's/\.question,/?/g' \
+ -e 's/\.star,/*/g' \
+ -e 's/\.dollar,/$/g' \
+ -e 's/\.comment,/#/g' \
+ -e 's/\.sclose,/]/g' \
+ -e 's/\.sopen,/[/g' \
+ -e 's/\.gclose,/}/g' \
+ -e 's/\.gopen,/{/g' \
+ -e 's/\.close,/)/g' \
+ -e 's/\.open,/(/g' \
+ -e 's/\.gt,/>/g' \
+ -e 's/\.lt,/</g' \
+ -e 's/\.minus,/-/g' \
+ -e 's/\.plus,/+/g' \
+ -e 's/\.eq,/=/g' \
+ -e "s/\.singquot,/'/g" \
+ -e 's/\.quot,/"/g' \
+ -e 's/\.fork,/\`/g' \
+ -e 's/\.pipe,/|/g' \
+ -e 's/\.backslash,/\\/g' \
+ -e 's/\.amp,/\&/g' \
+ -e 's/\.comma,/,/g' \
+ -e 's/\.dot,/./g'
 }
 
 # Put parameters into the config file
@@ -610,35 +691,35 @@ params2file() {
         # TODO: Use params_decode. For 3.4.8, not to introduce many changes now. Use params_converter
         # Note: using $() we escape blackslash with \\ like above. Using backticks would require \\\
         pfval=$(echo "$2" | sed \
-        -e 's/\.nbsp,/ /g' \
-        -e 's/\.semicolon,/;/g' \
-        -e 's/\.colon,/:/g' \
-        -e 's/\.tilde,/~/g' \
-        -e 's/\.not,/!/g' \
-        -e 's/\.question,/?/g' \
-        -e 's/\.star,/*/g' \
-        -e 's/\.dollar,/$/g' \
-        -e 's/\.comment,/#/g' \
-        -e 's/\.sclose,/]/g' \
-        -e 's/\.sopen,/[/g' \
-        -e 's/\.gclose,/}/g' \
-        -e 's/\.gopen,/{/g' \
-        -e 's/\.close,/)/g' \
-        -e 's/\.open,/(/g' \
-        -e 's/\.gt,/>/g' \
-        -e 's/\.lt,/</g' \
-        -e 's/\.minus,/-/g' \
-        -e 's/\.plus,/+/g' \
-        -e 's/\.eq,/=/g' \
-        -e "s/\.singquot,/'/g" \
-        -e 's/\.quot,/"/g' \
-        -e 's/\.fork,/\`/g' \
-        -e 's/\.pipe,/|/g' \
-        -e 's/\.backslash,/\\/g' \
-        -e 's/\.amp,/\&/g' \
-        -e 's/\.comma,/,/g' \
-        -e 's/\.dot,/./g')
-        if ! gconfig_add "$1 ${pfval}"; then
+ -e 's/\.nbsp,/ /g' \
+ -e 's/\.semicolon,/;/g' \
+ -e 's/\.colon,/:/g' \
+ -e 's/\.tilde,/~/g' \
+ -e 's/\.not,/!/g' \
+ -e 's/\.question,/?/g' \
+ -e 's/\.star,/*/g' \
+ -e 's/\.dollar,/$/g' \
+ -e 's/\.comment,/#/g' \
+ -e 's/\.sclose,/]/g' \
+ -e 's/\.sopen,/[/g' \
+ -e 's/\.gclose,/}/g' \
+ -e 's/\.gopen,/{/g' \
+ -e 's/\.close,/)/g' \
+ -e 's/\.open,/(/g' \
+ -e 's/\.gt,/>/g' \
+ -e 's/\.lt,/</g' \
+ -e 's/\.minus,/-/g' \
+ -e 's/\.plus,/+/g' \
+ -e 's/\.eq,/=/g' \
+ -e "s/\.singquot,/'/g" \
+ -e 's/\.quot,/"/g' \
+ -e 's/\.fork,/\`/g' \
+ -e 's/\.pipe,/|/g' \
+ -e 's/\.backslash,/\\/g' \
+ -e 's/\.amp,/\&/g' \
+ -e 's/\.comma,/,/g' \
+ -e 's/\.dot,/./g')
+        if ! add_config_line "$1 ${pfval}"; then
             glidein_exit 1
         fi
         if [ -z "${param_list}" ]; then
@@ -651,734 +732,6 @@ params2file() {
     echo "PARAM_LIST ${param_list}"
     return 0
 }
-
-md5wrapper() {
-    # $1 - file name
-    # $2 - option (quiet)
-    # Result returned on stdout
-    local ERROR_RESULT="???"
-    local ONLY_SUM
-    if [ "x$2" = "xquiet" ]; then
-        ONLY_SUM=yes
-    fi
-    local executable=md5sum
-    if which ${executable} 1>/dev/null 2>&1; then
-        [ -n "${ONLY_SUM}" ] && executable="md5sum \"$1\" | cut -d ' ' -f 1" ||  executable="md5sum \"$1\""
-    else
-        executable=md5
-        if ! which ${executable} 1>/dev/null 2>&1; then
-            echo "${ERROR_RESULT}"
-            warn "md5wrapper error: can't neither find md5sum nor md5"
-            return 1
-        fi
-        [ -n "${ONLY_SUM}" ] && executable="md5 -q \"$1\"" || executable="md5 \"$1\""
-    fi
-    local res
-    # Flagged by some checkers but OK
-    if ! res="$(eval "${executable}" 2>/dev/null)"; then
-        echo "${ERROR_RESULT}"
-        warn "md5wrapper error: can't calculate md5sum using ${executable}"
-        return 1
-    fi
-    echo "${res}"
-}
-
-# Generate directory ID
-dir_id() {
-    # create an id to distinguish the directories when preserved
-    [[ ! ",${GLIDEIN_DEBUG_OPTIONS}," = *,nocleanup,* ]] && return
-    local dir_id=""
-    local tmp="${repository_url%%.*}"
-    tmp="${tmp#*//}"
-    dir_id="${tmp: -4}"
-    tmp="${client_repository_url%%.*}"
-    tmp="${tmp#*//}"
-    dir_id="${dir_id}${tmp: -4}"
-    [[ -z "${dir_id}" ]] && dir_id='debug'
-    echo "${dir_id}_"
-}
-
-set_proxy_fullpath() {
-    # Set the X509_USER_PROXY path to full path to the file
-    if fullpath="$(readlink -f "${X509_USER_PROXY}")"; then
-        echo "Setting X509_USER_PROXY ${X509_USER_PROXY} to canonical path ${fullpath}" 1>&2
-        export X509_USER_PROXY="${fullpath}"
-    else
-        echo "Unable to get canonical path for X509_USER_PROXY, using ${X509_USER_PROXY}" 1>&2
-    fi
-}
-
-############################################
-# get the proper descript file based on id
-# Arg: type (main/entry/client/client_group)
-get_repository_url() {
-    case "$1" in
-        main) echo "${repository_url}";;
-        entry) echo "${repository_entry_url}";;
-        client) echo "${client_repository_url}";;
-        client_group) echo "${client_repository_group_url}";;
-        *) echo "[get_repository_url] Invalid id: $1" 1>&2
-           return 1
-           ;;
-    esac
-}
-
-#####################
-# Check signature
-check_file_signature() {
-    cfs_id="$1"
-    cfs_fname="$2"
-
-    cfs_work_dir="$(get_work_dir "${cfs_id}")"
-
-    cfs_desc_fname="${cfs_work_dir}/${cfs_fname}"
-    cfs_signature="${cfs_work_dir}/signature.sha1"
-
-    if [ "${check_signature}" -gt 0 ]; then # check_signature is global for simplicity
-        tmp_signname="${cfs_signature}_$$_$(date +%s)_${RANDOM}"
-        if ! grep " ${cfs_fname}$" "${cfs_signature}" > "${tmp_signname}"; then
-            rm -f "${tmp_signname}"
-            echo "No signature for ${cfs_desc_fname}." 1>&2
-        else
-            (cd "${cfs_work_dir}" && sha1sum -c "${tmp_signname}") 1>&2
-            cfs_rc=$?
-            if [ ${cfs_rc} -ne 0 ]; then
-                "${main_dir}"/error_augment.sh -init
-                "${main_dir}"/error_gen.sh -error "check_file_signature" "Corruption" "File $cfs_desc_fname is corrupted." "file" "${cfs_desc_fname}" "source_type" "${cfs_id}"
-                "${main_dir}"/error_augment.sh  -process ${cfs_rc} "check_file_signature" "${PWD}" "sha1sum -c ${tmp_signname}" "$(date +%s)" "(date +%s)"
-                "${main_dir}"/error_augment.sh -concat
-                warn "File ${cfs_desc_fname} is corrupted."
-                rm -f "${tmp_signname}"
-                return 1
-            fi
-            rm -f "${tmp_signname}"
-            echo "Signature OK for ${cfs_id}:${cfs_fname}." 1>&2
-        fi
-    fi
-    return 0
-}
-
-#####################
-# Untar support func
-
-get_untar_subdir() {
-    gus_id="$1"
-    gus_fname="$2"
-
-    gus_prefix="$(get_prefix "${gus_id}")"
-    gus_config_cfg="${gus_prefix}UNTAR_CFG_FILE"
-
-    gus_config_file=$(gconfig_get "${gus_config_cfg}" "${glidein_config}")
-    if [ -z "${gus_config_file}" ]; then
-        warn "Error, cannot find '${gus_config_cfg}' in glidein_config."
-        glidein_exit 1
-    fi
-
-    gus_dir="$(grep -i "^${gus_fname} " "${gus_config_file}" | cut -s -f 2-)"
-    if [ -z "${gus_dir}" ]; then
-        warn "Error, untar dir for '${gus_fname}' cannot be empty."
-        glidein_exit 1
-    fi
-
-    echo "${gus_dir}"
-    return 0
-}
-
-#####################
-# periodic execution support function
-add_periodic_script() {
-    # schedules a script for periodic execution using startd_cron
-    # parameters: wrapper full path, period, cwd, executable path (from cwd),
-    # config file path (from cwd), ID
-    # global variable: add_startd_cron_counter
-    #TODO: should it allow for variable number of parameters?
-    local include_fname=condor_config_startd_cron_include
-    local s_wrapper="$1"
-    local s_period_sec="${2}s"
-    local s_cwd="$3"
-    local s_fname="$4"
-    local s_config="$5"
-    local s_ffb_id="$6"
-    local s_cc_prefix="$7"
-    if [ "${add_startd_cron_counter}" -eq 0 ]; then
-        # Make sure that no undesired file is there when called for first cron
-        rm -f ${include_fname}
-    fi
-
-    let add_startd_cron_counter=add_startd_cron_counter+1
-    local name_prefix=GLIDEIN_PS_
-    local s_name="${name_prefix}${add_startd_cron_counter}"
-
-    # Append the following to the startd configuration
-    # Instead of Periodic and Kill wait for completion:
-    # STARTD_CRON_DATE_MODE = WaitForExit
-    cat >> ${include_fname} << EOF
-    STARTD_CRON_JOBLIST = \$(STARTD_CRON_JOBLIST) ${s_name}
-    STARTD_CRON_${s_name}_MODE = Periodic
-    STARTD_CRON_${s_name}_KILL = True
-    STARTD_CRON_${s_name}_PERIOD = ${s_period_sec}
-    STARTD_CRON_${s_name}_EXECUTABLE = ${s_wrapper}
-    STARTD_CRON_${s_name}_ARGS = ${s_config} ${s_ffb_id} ${s_name} ${s_fname} ${s_cc_prefix}
-    STARTD_CRON_${s_name}_CWD = ${s_cwd}
-    STARTD_CRON_${s_name}_SLOTS = 1
-    STARTD_CRON_${s_name}_JOB_LOAD = 0.01
-EOF
-    # NOPREFIX is a keyword for not setting the prefix for all condor attributes
-    [ "xNOPREFIX" != "x${s_cc_prefix}" ] && echo "STARTD_CRON_${s_name}_PREFIX = ${s_cc_prefix}" >> ${include_fname}
-    gconfig_add "GLIDEIN_condor_config_startd_cron_include" "${include_fname}"
-    gconfig_add "# --- Lines starting with ${s_cc_prefix} are from periodic scripts ---"
-}
-
-#####################
-# Fetch a single file
-#
-# Check cWDictFile/FileDictFile for the number and type of parameters (has to be consistent)
-fetch_file_regular() {
-    fetch_file "$1" "$2" "$2" "regular" 0 "GLIDEIN_PS_" "TRUE" "FALSE"
-}
-
-fetch_file() {
-    # custom_scripts parameters format is set in the GWMS configuration (creation/lib)
-    # 1. ID
-    # 2. target fname
-    # 3. real fname
-    # 4. file type (regular, exec, exec:s, untar, nocache)
-    # 5. period (0 if not a periodic file)
-    # 6. periodic scripts prefix
-    # 7. config check TRUE,FALSE
-    # 8. config out TRUE,FALSE
-    # The above is the most recent list, below some adaptations for different versions
-    if [ $# -gt 8 ]; then
-        # For compatibility w/ future versions (add new parameters at the end)
-        echo "More then 8 arguments, considering the first 8 ($#/${ifs_str}): $*" 1>&2
-    elif [ $# -ne 8 ]; then
-        if [ $# -eq 7 ]; then
-            #TODO: remove in version 3.3
-            # For compatibility with past versions (old file list formats)
-            # 3.2.13 and older: prefix (par 6) added in #12705, 3.2.14?
-            # 3.2.10 and older: period (par 5) added:  fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6"
-            if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "GLIDEIN_PS_" "$6" "$7"; then
-                glidein_exit 1
-            fi
-            return 0
-        fi
-        if [ $# -eq 6 ]; then
-            # added to maintain compatibility with older (3.2.10) file list format
-            #TODO: remove in version 3.3
-            if ! fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6"; then
-                glidein_exit 1
-            fi
-            return 0
-        fi
-        local ifs_str
-        printf -v ifs_str '%q' "${IFS}"
-        warn "Not enough arguments in fetch_file, 8 expected ($#/${ifs_str}): $*"
-        glidein_exit 1
-    fi
-
-    if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8"; then
-        glidein_exit 1
-    fi
-    return 0
-}
-
-fetch_file_try() {
-    # Verifies if the file should be downloaded and acted upon (extracted, executed, ...) or not
-    # There are 2 mechanisms to control the download
-    # 1. tar files have the attribute "cond_attr" that is a name of a variable in glidein_config.
-    #    if the named variable has value 1, then the file is downloaded. TRUE (default) means always download
-    #    even if the mechanism is generic, there is no way to specify "cond_attr" for regular files in the configuration
-    # 2. if the file name starts with "gconditional_AAA_", the file is downloaded only if a variable GLIDEIN_USE_AAA
-    #    exists in glidein_config and the value is not empty
-    # Both conditions are checked. If either one fails the file is not downloaded
-    fft_id="$1"
-    fft_target_fname="$2"
-    fft_real_fname="$3"
-    fft_file_type="$4"
-    fft_period="$5"
-    fft_cc_prefix="$6"
-    fft_config_check="$7"
-    fft_config_out="$8"
-
-    if [[ "${fft_config_check}" != "TRUE" ]]; then
-        # TRUE is a special case, always downloaded and processed
-        local fft_get_ss
-        fft_get_ss=$(grep -i "^${fft_config_check} " glidein_config | cut -d ' ' -f 2-)
-        # Stop download and processing if the cond_attr variable is not defined or has a value different from 1
-        [[ "${fft_get_ss}" != "1" ]] && return 0
-        # TODO: what if fft_get_ss is not 1? nothing, still skip the file?
-    fi
-
-    local fft_base_name fft_condition_attr fft_condition_attr_val
-    fft_base_name=$(basename "${fft_real_fname}")
-    if [[ "${fft_base_name}" = gconditional_* ]]; then
-        fft_condition_attr="${fft_base_name#gconditional_}"
-        fft_condition_attr="GLIDEIN_USE_${fft_condition_attr%%_*}"
-        fft_condition_attr_val=$(grep -i "^${fft_condition_attr} " glidein_config | cut -d ' ' -f 2-)
-        # if the variable fft_condition_attr is not defined or empty, do not download
-        [[ -z "${fft_condition_attr_val}" ]] && return 0
-    fi
-
-    fetch_file_base "${fft_id}" "${fft_target_fname}" "${fft_real_fname}" "${fft_file_type}" "${fft_config_out}" "${fft_period}" "${fft_cc_prefix}"
-    # returning the exit code of fetch_file_base
-}
-
-perform_wget() {
-    wget_args=("$@")
-    arg_len="${#wget_args[@]}"
-    ffb_url="${wget_args[0]}"
-    ffb_repository=$(dirname "${ffb_url}")
-    ffb_real_fname=$(basename "${ffb_url}")
-    proxy_url="None"
-    for ((i=0; i<arg_len; i++));
-    do
-        if [ "${wget_args[${i}]}" = "--output-document" ]; then
-            ffb_tmp_outname=${wget_args[${i}+1]}
-        fi
-        if [ "${wget_args[${i}]}" = "--proxy" ]; then
-            proxy_url=${wget_args[${i}+1]}
-        fi
-    done
-    START=$(date +%s)
-    if [ "${proxy_url}" != "None" ]; then
-        wget_args=(${wget_args[@]:0:${arg_len}-2})
-        wget_cmd=$(echo "env http_proxy=${proxy_url} wget" "${wget_args[@]}"| sed 's/"/\\\"/g')
-        wget_resp=$(env http_proxy="${proxy_url}" wget "${wget_args[@]}" 2>&1)
-        wget_retval=$?
-    else
-        wget_cmd=$(echo "wget" "${wget_args[@]}"| sed 's/"/\\\"/g')
-        wget_resp=$(wget "${wget_args[@]}" 2>&1)
-        wget_retval=$?
-    fi
-
-    if [ ${wget_retval} -ne 0 ]; then
-        wget_version=$(wget --version 2>&1 | head -1)
-        warn "${wget_cmd} failed. version:${wget_version}  exit code ${wget_retval} stderr: ${wget_resp}"
-        # cannot use error_*.sh helper functions
-        # may not have been loaded yet, and wget fails often
-        echo "<OSGTestResult id=\"perform_wget\" version=\"4.3.1\">
-        <operatingenvironment>
-        <env name=\"cwd\">${PWD}</env>
-        <env name=\"uname\">$(uname -a)</env>
-        <env name=\"release\">$(cat /etc/system-release)</env>
-        <env name=\"wget_version\">${wget_version}</env>
-        </operatingenvironment>
-        <test>
-        <cmd>${wget_cmd}</cmd>
-        <tStart>$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)</tStart>
-        <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
-        </test>
-        <result>
-        <status>ERROR</status>
-        <metric name=\"failure\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Network</metric>
-        <metric name=\"URL\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_url}</metric>
-        <metric name=\"http_proxy\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${proxy_url}</metric>
-        <metric name=\"source_type\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
-        </result>
-        <detail>
-        Failed to load file '${ffb_real_fname}' from '${ffb_repository}' using proxy '${proxy_url}'.  ${wget_resp}
-        </detail>
-        </OSGTestResult>" > otrb_output.xml
-        warn "Failed to load file '${ffb_real_fname}' from '${ffb_repository}'."
-
-        if [ -f otr_outlist.list ]; then
-            chmod u+w otr_outlist.list
-        else
-            touch otr_outlist.list
-        fi
-        cat otrb_output.xml >> otr_outlist.list
-        echo "<?xml version=\"1.0\"?>" > otrx_output.xml
-        cat otrb_output.xml >> otrx_output.xml
-        rm -f otrb_output.xml
-        chmod a-w otr_outlist.list
-    fi
-    return ${wget_retval}
-}
-
-perform_curl() {
-    curl_args=("$@")
-    arg_len="${#curl_args[@]}"
-    ffb_url="${curl_args[0]}"
-    ffb_repository="$(dirname "${ffb_url}")"
-    ffb_real_fname="$(basename "${ffb_url}")"
-    for ((i=0; i<arg_len; i++));
-    do
-        if [ "${curl_args[${i}]}" = "--output" ]; then
-            ffb_tmp_outname="${curl_args[${i}+1]}"
-        fi
-        if [ "${curl_args[${i}]}" = "--proxy" ]; then
-            proxy_url="${curl_args[${i}+1]}"
-        fi
-    done
-
-    START="$(date +%s)"
-    curl_cmd="$(echo "curl" "${curl_args[@]}" | sed 's/"/\\\"/g')"
-    curl_resp="$(curl "${curl_args[@]}" 2>&1)"
-    curl_retval=$?
-    if [ ${curl_retval} -eq 0 ] && [ ! -e "${ffb_tmp_outname}" ] ; then
-        touch "${ffb_tmp_outname}"
-    fi
-
-
-    if [ "${curl_retval}" -ne 0 ]; then
-        curl_version="$(curl --version 2>&1 | head -1)"
-        warn "${curl_cmd} failed. version:${curl_version}  exit code ${curl_retval} stderr: ${curl_resp} "
-        # cannot use error_*.sh helper functions
-        # may not have been loaded yet, and wget fails often
-        echo "<OSGTestResult id=\"perform_curl\" version=\"4.3.1\">
-        <operatingenvironment>
-        <env name=\"cwd\">${PWD}</env>
-        <env name=\"uname\">$(uname -a)</env>
-        <env name=\"release\">$(cat /etc/system-release)</env>
-        <env name=\"curl_version\">${curl_version}</env>
-        </operatingenvironment>
-        <test>
-        <cmd>${curl_cmd}</cmd>
-        <tStart>$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)</tStart>
-        <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
-        </test>
-        <result>
-        <status>ERROR</status>
-        <metric name=\"failure\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Network</metric>
-        <metric name=\"URL\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_url}</metric>
-        <metric name=\"http_proxy\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${proxy_url}</metric>
-        <metric name=\"source_type\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
-        </result>
-        <detail>
-        Failed to load file '${ffb_real_fname}' from '${ffb_repository}' using proxy '${proxy_url}'.  ${curl_resp}
-        </detail>
-        </OSGTestResult>" > otrb_output.xml
-        warn "Failed to load file '${ffb_real_fname}' from '${ffb_repository}'."
-
-        if [ -f otr_outlist.list ]; then
-            chmod u+w otr_outlist.list
-        else
-            touch otr_outlist.list
-        fi
-        cat otrb_output.xml >> otr_outlist.list
-        echo "<?xml version=\"1.0\"?>" > otrx_output.xml
-        cat otrb_output.xml >> otrx_output.xml
-        rm -f otrb_output.xml
-        chmod a-w otr_outlist.list
-    fi
-    return ${curl_retval}
-}
-
-fetch_file_base() {
-    # Perform the file download and corresponding action (untar, execute, ...)
-    ffb_id="$1"
-    ffb_target_fname="$2"
-    ffb_real_fname="$3"
-    ffb_file_type="$4"
-    ffb_config_out="$5"
-    ffb_period=$6
-    # condor cron prefix, used only for periodic executables
-    ffb_cc_prefix="$7"
-
-    ffb_work_dir="$(get_work_dir "${ffb_id}")"
-
-    ffb_repository="$(get_repository_url "${ffb_id}")"
-
-    ffb_tmp_outname="${ffb_work_dir}/${ffb_real_fname}"
-    ffb_outname="${ffb_work_dir}/${ffb_target_fname}"
-
-    # Create a dummy default in case something goes wrong
-    # cannot use error_*.sh helper functions
-    # may not have been loaded yet
-    have_dummy_otrx=1
-    echo "<?xml version=\"1.0\"?>
-    <OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
-    <operatingenvironment>
-    <env name=\"cwd\">${PWD}</env>
-    </operatingenvironment>
-    <test>
-    <cmd>Unknown</cmd>
-    <tStart>$(date +%Y-%m-%dT%H:%M:%S%:z)</tStart>
-    <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
-    </test>
-    <result>
-    <status>ERROR</status>
-    <metric name=\"failure\" ts=\"$(date +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Unknown</metric>
-    <metric name=\"source_type\" ts=\"$(date +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
-    </result>
-    <detail>
-    An unknown error occurred.
-    </detail>
-    </OSGTestResult>" > otrx_output.xml
-    user_agent="glidein/${glidein_entry}/${condorg_schedd}/${condorg_cluster}.${condorg_subcluster}/${client_name}"
-    ffb_url="${ffb_repository}/${ffb_real_fname}"
-    curl_version=$(curl --version | head -1 )
-    wget_version=$(wget --version | head -1 )
-    #old wget command:
-    #wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" "$ffb_nocache_str" -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname"
-    #equivalent to:
-    #wget ${ffb_url} --user-agent=${user_agent} -q  -O "${ffb_tmp_outname}" "${ffb_nocache_str}"
-    #with env http_proxy=$proxy_url set if proxy_url != "None"
-    #
-    #construct curl equivalent so we can try either
-
-    wget_args=("${ffb_url}" "--user-agent" "wget/${user_agent}"  "--quiet"  "--output-document" "${ffb_tmp_outname}" )
-    curl_args=("${ffb_url}" "--user-agent" "curl/${user_agent}" "--silent"  "--show-error" "--output" "${ffb_tmp_outname}")
-
-    if [ "${ffb_file_type}" = "nocache" ]; then
-        if [ "${curl_version}" != "" ]; then
-            curl_args+=("--header")
-            curl_args+=("'Cache-Control: no-cache'")
-        fi
-        if [ "${wget_version}" != "" ]; then
-            if wget --help | grep -q "\-\-no-cache "; then
-                wget_args+=("--no-cache")
-            elif wget --help |grep -q "\-\-cache="; then
-                wget_args+=("--cache=off")
-            else
-                warn "wget ${wget_version} cannot disable caching"
-            fi
-         fi
-    fi
-
-    if [ "${proxy_url}" != "None" ];then
-        if [ "${curl_version}" != "" ]; then
-            curl_args+=("--proxy")
-            curl_args+=("${proxy_url}")
-        fi
-        if [ "${wget_version}" != "" ]; then
-            #these two arguments have to be last as coded, put any future
-            #wget args earlier in wget_args array
-            wget_args+=("--proxy")
-            wget_args+=("${proxy_url}")
-        fi
-    fi
-
-    fetch_completed=1
-    if [ ${fetch_completed} -ne 0 ] && [ "${wget_version}" != "" ]; then
-        perform_wget "${wget_args[@]}"
-        fetch_completed=$?
-    fi
-    if [ ${fetch_completed} -ne 0 ] && [ "${curl_version}" != "" ]; then
-        perform_curl "${curl_args[@]}"
-        fetch_completed=$?
-    fi
-
-    if [ ${fetch_completed} -ne 0 ]; then
-        return ${fetch_completed}
-    fi
-
-    # check signature
-    if ! check_file_signature "${ffb_id}" "${ffb_real_fname}"; then
-        # error already displayed inside the function
-        return 1
-    fi
-
-    # rename it to the correct final name, if needed
-    if [ "${ffb_tmp_outname}" != "${ffb_outname}" ]; then
-        if ! mv "${ffb_tmp_outname}" "${ffb_outname}"; then
-            warn "Failed to rename ${ffb_tmp_outname} into ${ffb_outname}"
-            return 1
-        fi
-    fi
-
-    # if executable, execute
-    if [[ "${ffb_file_type}" = "exec" || "${ffb_file_type}" = "exec:"* ]]; then
-        if ! chmod u+x "${ffb_outname}"; then
-            warn "Error making '${ffb_outname}' executable"
-            return 1
-        fi
-        if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then  # last_script global for simplicity
-            echo "Skipping last script ${last_script}" 1>&2
-        elif [[ "${ffb_target_fname}" = "cvmfs_umount.sh" ]] || [[ -n "${cleanup_script}" && "${ffb_target_fname}" = "${cleanup_script}" ]]; then  # cleanup_script global for simplicity
-            # TODO: temporary OR checking for cvmfs_umount.sh; to be removed after Bruno's ticket on cleanup [#25073]
-            echo "Skipping cleanup script ${ffb_outname} (${cleanup_script})" 1>&2
-            cp "${ffb_outname}" "$gwms_exec_dir/cleanup/${ffb_target_fname}"
-            chmod a+x "${gwms_exec_dir}/cleanup/${ffb_target_fname}"
-        else
-            echo "Executing (flags:${ffb_file_type#exec}) ${ffb_outname}"
-            # have to do it here, as this will be run before any other script
-            chmod u+rx "${main_dir}"/error_augment.sh
-
-            # the XML file will be overwritten now, and hopefully not an error situation
-            have_dummy_otrx=0
-            "${main_dir}"/error_augment.sh -init
-            START=$(date +%s)
-            if [[ "${ffb_file_type}" = "exec:s" ]]; then
-                "${main_dir}/singularity_wrapper.sh" "${ffb_outname}" glidein_config "${ffb_id}"
-            else
-                "${ffb_outname}" glidein_config "${ffb_id}"
-            fi
-            ret=$?
-            END=$(date +%s)
-            "${main_dir}"/error_augment.sh -process ${ret} "${ffb_id}/${ffb_target_fname}" "${PWD}" "${ffb_outname} glidein_config" "${START}" "${END}" #generating test result document
-            "${main_dir}"/error_augment.sh -concat
-            if [ ${ret} -ne 0 ]; then
-                echo "=== Validation error in ${ffb_outname} ===" 1>&2
-                warn "Error running '${ffb_outname}'"
-                < otrx_output.xml awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2
-                return 1
-            else
-                # If ran successfully and periodic, schedule to execute with schedd_cron
-                echo "=== validation OK in ${ffb_outname} (${ffb_period}) ===" 1>&2
-                if [ "${ffb_period}" -gt 0 ]; then
-                    add_periodic_script "${main_dir}/script_wrapper.sh" "${ffb_period}" "${work_dir}" "${ffb_outname}" glidein_config "${ffb_id}" "${ffb_cc_prefix}"
-                fi
-            fi
-        fi
-    elif [ "${ffb_file_type}" = "wrapper" ]; then
-        echo "${ffb_outname}" >> "${wrapper_list}"
-    elif [ "${ffb_file_type}" = "untar" ]; then
-        ffb_short_untar_dir="$(get_untar_subdir "${ffb_id}" "${ffb_target_fname}")"
-        ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
-        START=$(date +%s)
-        (mkdir "${ffb_untar_dir}" && cd "${ffb_untar_dir}" && tar -xmzf "${ffb_outname}") 1>&2
-        ret=$?
-        if [ ${ret} -ne 0 ]; then
-            "${main_dir}"/error_augment.sh -init
-            "${main_dir}"/error_gen.sh -error "tar" "Corruption" "Error untarring '${ffb_outname}'" "file" "${ffb_outname}" "source_type" "${cfs_id}"
-            "${main_dir}"/error_augment.sh  -process ${cfs_rc} "tar" "${PWD}" "mkdir ${ffb_untar_dir} && cd ${ffb_untar_dir} && tar -xmzf ${ffb_outname}" "${START}" "$(date +%s)"
-            "${main_dir}"/error_augment.sh -concat
-            warn "Error untarring '${ffb_outname}'"
-            return 1
-        fi
-    fi
-
-    if [ "${ffb_config_out}" != "FALSE" ]; then
-        ffb_prefix="$(get_prefix "${ffb_id}")"
-        if [ "${ffb_file_type}" = "untar" ]; then
-            # when untaring the original file is less interesting than the untar dir
-            if ! gconfig_add "${ffb_prefix}${ffb_config_out}" "${ffb_untar_dir}"; then
-                glidein_exit 1
-            fi
-        else
-            if ! gconfig_add "${ffb_prefix}${ffb_config_out}" "${ffb_outname}"; then
-                glidein_exit 1
-            fi
-        fi
-    fi
-
-    if [ "${have_dummy_otrx}" -eq 1 ]; then
-        # no one should really look at this file, but just to avoid confusion
-        echo "<?xml version=\"1.0\"?>
-        <OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
-        <operatingenvironment>
-        <env name=\"cwd\">${PWD}</env>
-        </operatingenvironment>
-        <test>
-        <cmd>Unknown</cmd>
-        <tStart>$(date +%Y-%m-%dT%H:%M:%S%:z)</tStart>
-        <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
-        </test>
-        <result>
-        <status>OK</status>
-        </result>
-        </OSGTestResult>" > otrx_output.xml
-    fi
-
-   return 0
-}
-
-# Adds $1 to GWMS_PATH and update PATH
-add_to_path() {
-    logdebug "Adding to GWMS_PATH: $1"
-    local old_path=":${PATH%:}:"
-    old_path="${old_path//:$GWMS_PATH:/}"
-    local old_gwms_path=":${GWMS_PATH%:}:"
-    old_gwms_path="${old_gwms_path//:$1:/}"
-    old_gwms_path="${1%:}:${old_gwms_path#:}"
-    export GWMS_PATH="${old_gwms_path%:}"
-    old_path="${GWMS_PATH}:${old_path#:}"
-    export PATH="${old_path%:}"
-}
-
-fixup_condor_dir() {
-    # All files in the native condor tarballs have a directory like condor-9.0.11-1-x86_64_CentOS7-stripped
-    # However the (not used anymore) gwms create_condor_tarball removes that dir
-    # Here we remove that dir as well to allow factory ops to use native condor tarballs
-
-    # Check if the condor dir has only one subdir, the one like "condor-9.0.11-1-x86_64_CentOS7-stripped"
-    # See https://stackoverflow.com/questions/32429333/how-to-test-if-a-linux-directory-contain-only-one-subdirectory-and-no-other-file
-    if [ $(find "${gs_id_work_dir}/condor" -maxdepth 1 -type d -printf 1 | wc -m) -eq 2 ]; then
-        echo "Fixing directory structure of condor tarball"
-        mv "${gs_id_work_dir}"/condor/condor*/* "${gs_id_work_dir}"/condor > /dev/null
-    else
-        echo "Condor tarball does not need to be fixed"
-    fi
-}
-
-# default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
-IFS=$' \t\n'
-
-global_args="$*"
-# GWMS_STARTUP_SCRIPT=$0
-GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
-GWMS_PATH=""
-# Relative to the work directory (GWMS_DIR, gwms_lib_dir, gwms_bin_dir and gwms_exec_dir will be the absolute paths)
-# bin (utilities), lib (libraries), exec (aux scripts to be executed/sourced, e.g. pre-job)
-GWMS_SUBDIR=".gwms.d"
-
-export LANG=C
-
-# General options
-GWMS_MULTIUSER_GLIDEIN=
-# Set GWMS_MULTIUSER_GLIDEIN if the Glidein may spawn processes (for jobs) as a different user.
-# This will prepare the glidein, e.g. setting to 777 the permission of TEMP directories
-# This should never happen only when using GlExec. Not in Singularity, not w/o sudo mechanisms.
-# Comment the following line if GlExec or similar will not be used
-#GWMS_MULTIUSER_GLIDEIN=true
-# Default GWMS log server
-GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
-
-GWMS_MULTIGLIDEIN_CHILDS=
-
-# params will contain the full list of parameters
-# -param_XXX YYY will become "XXX YYY"
-# TODO: can use an array instead?
-params=""
-
-while [ $# -gt 0 ]
-do case "$1" in
-    -factory)    glidein_factory="$2";;
-    -name)       glidein_name="$2";;
-    -entry)      glidein_entry="$2";;
-    -clientname) client_name="$2";;
-    -clientgroup) client_group="$2";;
-    -web)        repository_url="$2";;
-    -proxy)      proxy_url="$2";;
-    -dir)        work_dir="$2";;
-    -sign)       sign_id="$2";;
-    -signtype)   sign_type="$2";;
-    -signentry)  sign_entry_id="$2";;
-    -cluster)    condorg_cluster="$2";;
-    -subcluster) condorg_subcluster="$2";;
-    -submitcredid) glidein_cred_id="$2";;
-    -schedd)     condorg_schedd="$2";;
-    -descript)   descript_file="$2";;
-    -descriptentry)   descript_entry_file="$2";;
-    -clientweb)             client_repository_url="$2";;
-    -clientwebgroup)        client_repository_group_url="$2";;
-    -clientsign)            client_sign_id="$2";;
-    -clientsigntype)        client_sign_type="$2";;
-    -clientsigngroup)       client_sign_group_id="$2";;
-    -clientdescript)        client_descript_file="$2";;
-    -clientdescriptgroup)   client_descript_group_file="$2";;
-    -slotslayout)           slots_layout="$2";;
-    -v)          operation_mode="$2";;
-    -multiglidein)  multi_glidein="$2";;
-    -multirestart)  multi_glidein_restart="$2";;
-    -param_*)    params="$params $(echo "$1" | awk '{print substr($0,8)}') $2";;
-    *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
-esac
-shift 2
-done
-
-# make sure we have a valid slots_layout
-if (echo "x${slots_layout}" | grep -i fixed) >/dev/null 2>&1 ; then
-    slots_layout="fixed"
-else
-    slots_layout="partitionable"
-fi
-
-####################################
-# Cleaup, print out message and exit
-work_dir_created=0
-glide_local_tmp_dir_created=0
 
 ################
 # Parse and verify arguments
@@ -1433,17 +786,17 @@ fi
 repository_entry_url="${repository_url}/entry_${glidein_entry}"
 
 if [ -z "${proxy_url}" ]; then
-    proxy_url="None"
+  proxy_url="None"
 fi
 
 if [ "${proxy_url}" = "OSG" ]; then
-    if [ -z "${OSG_SQUID_LOCATION}" ]; then
-        # if OSG does not define a Squid, then don't use any
-        proxy_url="None"
-        warn "OSG_SQUID_LOCATION undefined, not using any Squid URL" 1>&2
-    else
-        proxy_url="$(echo "${OSG_SQUID_LOCATION}" | awk -F ':' '{if ($2 =="") {print $1 ":3128"} else {print $0}}')"
-    fi
+  if [ -z "${OSG_SQUID_LOCATION}" ]; then
+     # if OSG does not define a Squid, then don't use any
+     proxy_url="None"
+     warn "OSG_SQUID_LOCATION undefined, not using any Squid URL" 1>&2
+  else
+     proxy_url="$(echo "${OSG_SQUID_LOCATION}" | awk -F ':' '{if ($2 =="") {print $1 ":3128"} else {print $0}}')"
+  fi
 fi
 
 if [ -z "${sign_id}" ]; then
@@ -1466,34 +819,80 @@ if [ "${sign_type}" != "sha1" ]; then
 fi
 
 if [ -n "${client_repository_url}" ]; then
-    # client data is optional, user url as a switch
-    if [ -z "${client_sign_type}" ]; then
-        client_sign_type="sha1"
-    fi
+  # client data is optional, user url as a switch
+  if [ -z "${client_sign_type}" ]; then
+      client_sign_type="sha1"
+  fi
 
-    if [ "${client_sign_type}" != "sha1" ]; then
-        warn "Unsupported clientsigntype ${client_sign_type} found."
-        usage
-    fi
+  if [ "${client_sign_type}" != "sha1" ]; then
+    warn "Unsupported clientsigntype ${client_sign_type} found."
+    usage
+  fi
 
-    if [ -z "${client_descript_file}" ]; then
-        warn "Missing client descript fname."
-        usage
-    fi
+  if [ -z "${client_descript_file}" ]; then
+    warn "Missing client descript fname."
+    usage
+  fi
 
-    if [ -n "${client_repository_group_url}" ]; then
-        # client group data is optional, user url as a switch
-        if [ -z "${client_group}" ]; then
-            warn "Missing client group name."
-            usage
-        fi
+  if [ -n "${client_repository_group_url}" ]; then
+      # client group data is optional, user url as a switch
+      if [ -z "${client_group}" ]; then
+          warn "Missing client group name."
+          usage
+      fi
 
-        if [ -z "${client_descript_group_file}" ]; then
-            warn "Missing client descript fname for group."
-            usage
-        fi
-    fi
+      if [ -z "${client_descript_group_file}" ]; then
+          warn "Missing client descript fname for group."
+          usage
+      fi
+  fi
 fi
+
+md5wrapper() {
+    # $1 - file name
+    # $2 - option (quiet)
+    # Result returned on stdout
+    local ERROR_RESULT="???"
+    local ONLY_SUM
+    if [ "x$2" = "xquiet" ]; then
+        ONLY_SUM=yes
+    fi
+    local executable=md5sum
+    if which ${executable} 1>/dev/null 2>&1; then
+        [ -n "${ONLY_SUM}" ] && executable="md5sum \"$1\" | cut -d ' ' -f 1" ||  executable="md5sum \"$1\""
+    else
+        executable=md5
+        if ! which ${executable} 1>/dev/null 2>&1; then
+            echo "${ERROR_RESULT}"
+            warn "md5wrapper error: can't neither find md5sum nor md5"
+            return 1
+        fi
+        [ -n "${ONLY_SUM}" ] && executable="md5 -q \"$1\"" || executable="md5 \"$1\""
+    fi
+    local res
+    # Flagged by some checkers but OK
+    if ! res="$(eval "${executable}" 2>/dev/null)"; then
+        echo "${ERROR_RESULT}"
+        warn "md5wrapper error: can't calculate md5sum using ${executable}"
+        return 1
+    fi
+    echo "${res}"
+}
+
+# Generate directory ID
+dir_id() {
+    # create an id to distinguish the directories when preserved
+    [[ ! ",${GLIDEIN_DEBUG_OPTIONS}," = *,nocleanup,* ]] && return
+    local dir_id=""
+    local tmp="${repository_url%%.*}"
+    tmp="${tmp#*//}"
+    dir_id="${tmp: -4}"
+    tmp="${client_repository_url%%.*}"
+    tmp="${tmp#*//}"
+    dir_id="${dir_id}${tmp: -4}"
+    [[ -z "${dir_id}" ]] && dir_id='debug'
+    echo "${dir_id}_"
+}
 
 # Generate glidein UUID
 if command -v uuidgen >/dev/null 2>&1; then
@@ -1546,16 +945,16 @@ echo
 echo "Running on $(uname -n)"
 echo "System: $(uname -a)"
 if [ -e '/etc/redhat-release' ]; then
-    echo "Release: $(cat /etc/redhat-release 2>&1)"
+ echo "Release: $(cat /etc/redhat-release 2>&1)"
 fi
 echo "As: $(id)"
 echo "PID: $$"
 echo
 
 if [ ${set_debug} -ne 0 ]; then
-    echo "------- Initial environment ---------------"  1>&2
-    env 1>&2
-    echo "------- =================== ---------------" 1>&2
+  echo "------- Initial environment ---------------"  1>&2
+  env 1>&2
+  echo "------- =================== ---------------" 1>&2
 fi
 
 # Before anything else, spawn multiple glideins and wait, if asked to do so
@@ -1585,34 +984,45 @@ fi
 if [ -r "${OSG_GRID}/setup.sh" ]; then
     . "${OSG_GRID}/setup.sh"
 else
-    if [ -r "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh" ]; then
-        . "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh"
-    fi
+  if [ -r "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh" ]; then
+    . "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh"
+  fi
 fi
 
 if [ -z "${GLOBUS_PATH}" ]; then
-    if [ -z "${GLOBUS_LOCATION}" ]; then
-        # if GLOBUS_LOCATION not defined, try to guess it
-        if [ -r "/opt/globus/etc/globus-user-env.sh" ]; then
-            GLOBUS_LOCATION=/opt/globus
-        elif  [ -r "/osgroot/osgcore/globus/etc/globus-user-env.sh" ]; then
-            GLOBUS_LOCATION=/osgroot/osgcore/globus
-        else
-            warn "GLOBUS_LOCATION not defined and could not guess it."
-            warn "Looked in:"
-            warn ' /opt/globus/etc/globus-user-env.sh'
-            warn ' /osgroot/osgcore/globus/etc/globus-user-env.sh'
-            warn 'Continuing like nothing happened'
-        fi
-    fi
-
-    if [ -r "${GLOBUS_LOCATION}/etc/globus-user-env.sh" ]; then
-        . "${GLOBUS_LOCATION}/etc/globus-user-env.sh"
+  if [ -z "${GLOBUS_LOCATION}" ]; then
+    # if GLOBUS_LOCATION not defined, try to guess it
+    if [ -r "/opt/globus/etc/globus-user-env.sh" ]; then
+       GLOBUS_LOCATION=/opt/globus
+    elif  [ -r "/osgroot/osgcore/globus/etc/globus-user-env.sh" ]; then
+       GLOBUS_LOCATION=/osgroot/osgcore/globus
     else
-        warn "GLOBUS_PATH not defined and ${GLOBUS_LOCATION}/etc/globus-user-env.sh does not exist."
-        warn 'Continuing like nothing happened'
+       warn "GLOBUS_LOCATION not defined and could not guess it."
+       warn "Looked in:"
+       warn ' /opt/globus/etc/globus-user-env.sh'
+       warn ' /osgroot/osgcore/globus/etc/globus-user-env.sh'
+       warn 'Continuing like nothing happened'
     fi
+  fi
+
+  if [ -r "${GLOBUS_LOCATION}/etc/globus-user-env.sh" ]; then
+    . "${GLOBUS_LOCATION}/etc/globus-user-env.sh"
+  else
+    warn "GLOBUS_PATH not defined and ${GLOBUS_LOCATION}/etc/globus-user-env.sh does not exist."
+    warn 'Continuing like nothing happened'
+  fi
 fi
+
+set_proxy_fullpath() {
+    # Set the X509_USER_PROXY path to full path to the file
+    if fullpath="$(readlink -f "${X509_USER_PROXY}")"; then
+        echo "Setting X509_USER_PROXY ${X509_USER_PROXY} to canonical path ${fullpath}" 1>&2
+        export X509_USER_PROXY="${fullpath}"
+    else
+        echo "Unable to get canonical path for X509_USER_PROXY, using ${X509_USER_PROXY}" 1>&2
+    fi
+}
+
 
 [ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
 
@@ -1790,7 +1200,6 @@ mv "${start_dir}/url_dirs.desc" .
 #fi
 
 # Extract and source all the data contained at the end of this script as tarball
-# the below function also sources add_config_line.source; make sure that gconfig_xxx are invoked after this line
 extract_all_data
 
 wrapper_list="${PWD}/wrapper_list.lst"
@@ -1870,8 +1279,600 @@ log_init "${glidein_uuid}" "${work_dir}"
 rm -rf tokens.tgz url_dirs.desc tokens
 log_setup "${glidein_config}"
 
-# global variable for periodic execution support
+############################################
+# get the proper descript file based on id
+# Arg: type (main/entry/client/client_group)
+get_repository_url() {
+    case "$1" in
+        main) echo "${repository_url}";;
+        entry) echo "${repository_entry_url}";;
+        client) echo "${client_repository_url}";;
+        client_group) echo "${client_repository_group_url}";;
+        *) echo "[get_repository_url] Invalid id: $1" 1>&2
+           return 1
+           ;;
+    esac
+}
+
+#####################
+# Check signature
+check_file_signature() {
+    cfs_id="$1"
+    cfs_fname="$2"
+
+    cfs_work_dir="$(get_work_dir "${cfs_id}")"
+
+    cfs_desc_fname="${cfs_work_dir}/${cfs_fname}"
+    cfs_signature="${cfs_work_dir}/signature.sha1"
+
+    if [ "${check_signature}" -gt 0 ]; then # check_signature is global for simplicity
+        tmp_signname="${cfs_signature}_$$_$(date +%s)_${RANDOM}"
+        if ! grep " ${cfs_fname}$" "${cfs_signature}" > "${tmp_signname}"; then
+            rm -f "${tmp_signname}"
+            echo "No signature for ${cfs_desc_fname}." 1>&2
+        else
+            (cd "${cfs_work_dir}" && sha1sum -c "${tmp_signname}") 1>&2
+            cfs_rc=$?
+            if [ ${cfs_rc} -ne 0 ]; then
+                "${main_dir}"/error_augment.sh -init
+                "${main_dir}"/error_gen.sh -error "check_file_signature" "Corruption" "File $cfs_desc_fname is corrupted." "file" "${cfs_desc_fname}" "source_type" "${cfs_id}"
+                "${main_dir}"/error_augment.sh  -process ${cfs_rc} "check_file_signature" "${PWD}" "sha1sum -c ${tmp_signname}" "$(date +%s)" "(date +%s)"
+                "${main_dir}"/error_augment.sh -concat
+                warn "File ${cfs_desc_fname} is corrupted."
+                rm -f "${tmp_signname}"
+                return 1
+            fi
+            rm -f "${tmp_signname}"
+            echo "Signature OK for ${cfs_id}:${cfs_fname}." 1>&2
+        fi
+    fi
+    return 0
+}
+
+#####################
+# Untar support func
+
+get_untar_subdir() {
+    gus_id="$1"
+    gus_fname="$2"
+
+    gus_prefix="$(get_prefix "${gus_id}")"
+    gus_config_cfg="${gus_prefix}UNTAR_CFG_FILE"
+
+    gus_config_file="$(grep "^${gus_config_cfg} " glidein_config | cut -d ' ' -f 2-)"
+    if [ -z "${gus_config_file}" ]; then
+        warn "Error, cannot find '${gus_config_cfg}' in glidein_config."
+        glidein_exit 1
+    fi
+
+    gus_dir="$(grep -i "^${gus_fname} " "${gus_config_file}" | cut -s -f 2-)"
+    if [ -z "${gus_dir}" ]; then
+        warn "Error, untar dir for '${gus_fname}' cannot be empty."
+        glidein_exit 1
+    fi
+
+    echo "${gus_dir}"
+    return 0
+}
+
+#####################
+# Periodic execution support function and global variable
 add_startd_cron_counter=0
+add_periodic_script() {
+    # schedules a script for periodic execution using startd_cron
+    # parameters: wrapper full path, period, cwd, executable path (from cwd),
+    # config file path (from cwd), ID
+    # global variable: add_startd_cron_counter
+    #TODO: should it allow for variable number of parameters?
+    local include_fname=condor_config_startd_cron_include
+    local s_wrapper="$1"
+    local s_period_sec="${2}s"
+    local s_cwd="$3"
+    local s_fname="$4"
+    local s_config="$5"
+    local s_ffb_id="$6"
+    local s_cc_prefix="$7"
+    if [ ${add_startd_cron_counter} -eq 0 ]; then
+        # Make sure that no undesired file is there when called for first cron
+        rm -f ${include_fname}
+    fi
+
+    let add_startd_cron_counter=add_startd_cron_counter+1
+    local name_prefix=GLIDEIN_PS_
+    local s_name="${name_prefix}${add_startd_cron_counter}"
+
+    # Append the following to the startd configuration
+    # Instead of Periodic and Kill wait for completion:
+    # STARTD_CRON_DATE_MODE = WaitForExit
+    cat >> ${include_fname} << EOF
+STARTD_CRON_JOBLIST = \$(STARTD_CRON_JOBLIST) ${s_name}
+STARTD_CRON_${s_name}_MODE = Periodic
+STARTD_CRON_${s_name}_KILL = True
+STARTD_CRON_${s_name}_PERIOD = ${s_period_sec}
+STARTD_CRON_${s_name}_EXECUTABLE = ${s_wrapper}
+STARTD_CRON_${s_name}_ARGS = ${s_config} ${s_ffb_id} ${s_name} ${s_fname} ${s_cc_prefix}
+STARTD_CRON_${s_name}_CWD = ${s_cwd}
+STARTD_CRON_${s_name}_SLOTS = 1
+STARTD_CRON_${s_name}_JOB_LOAD = 0.01
+EOF
+    # NOPREFIX is a keyword for not setting the prefix for all condor attributes
+    [ "xNOPREFIX" != "x${s_cc_prefix}" ] && echo "STARTD_CRON_${s_name}_PREFIX = ${s_cc_prefix}" >> ${include_fname}
+    add_config_line "GLIDEIN_condor_config_startd_cron_include" "${include_fname}"
+    add_config_line "# --- Lines starting with ${s_cc_prefix} are from periodic scripts ---"
+}
+
+#####################
+# Fetch a single file
+#
+# Check cWDictFile/FileDictFile for the number and type of parameters (has to be consistent)
+fetch_file_regular() {
+    fetch_file "$1" "$2" "$2" "regular" 0 "GLIDEIN_PS_" "TRUE" "FALSE"
+}
+
+fetch_file() {
+    # custom_scripts parameters format is set in the GWMS configuration (creation/lib)
+    # 1. ID
+    # 2. target fname
+    # 3. real fname
+    # 4. file type (regular, exec, exec:s, untar, nocache)
+    # 5. period (0 if not a periodic file)
+    # 6. periodic scripts prefix
+    # 7. config check TRUE,FALSE
+    # 8. config out TRUE,FALSE
+    # The above is the most recent list, below some adaptations for different versions
+    if [ $# -gt 8 ]; then
+        # For compatibility w/ future versions (add new parameters at the end)
+        echo "More then 8 arguments, considering the first 8 ($#/${ifs_str}): $*" 1>&2
+    elif [ $# -ne 8 ]; then
+        if [ $# -eq 7 ]; then
+            #TODO: remove in version 3.3
+            # For compatibility with past versions (old file list formats)
+            # 3.2.13 and older: prefix (par 6) added in #12705, 3.2.14?
+            # 3.2.10 and older: period (par 5) added:  fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6"
+            if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "GLIDEIN_PS_" "$6" "$7"; then
+                glidein_exit 1
+            fi
+            return 0
+        fi
+        if [ $# -eq 6 ]; then
+            # added to maintain compatibility with older (3.2.10) file list format
+            #TODO: remove in version 3.3
+            if ! fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6"; then
+                glidein_exit 1
+            fi
+            return 0
+        fi
+        local ifs_str
+        printf -v ifs_str '%q' "${IFS}"
+        warn "Not enough arguments in fetch_file, 8 expected ($#/${ifs_str}): $*"
+        glidein_exit 1
+    fi
+
+    if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8"; then
+        glidein_exit 1
+    fi
+    return 0
+}
+
+fetch_file_try() {
+    # Verifies if the file should be downloaded and acted upon (extracted, executed, ...) or not
+    # There are 2 mechanisms to control the download
+    # 1. tar files have the attribute "cond_attr" that is a name of a variable in glidein_config.
+    #    if the named variable has value 1, then the file is downloaded. TRUE (default) means always download
+    #    even if the mechanism is generic, there is no way to specify "cond_attr" for regular files in the configuration
+    # 2. if the file name starts with "gconditional_AAA_", the file is downloaded only if a variable GLIDEIN_USE_AAA
+    #    exists in glidein_config and the value is not empty
+    # Both conditions are checked. If either one fails the file is not downloaded
+    fft_id="$1"
+    fft_target_fname="$2"
+    fft_real_fname="$3"
+    fft_file_type="$4"
+    fft_period="$5"
+    fft_cc_prefix="$6"
+    fft_config_check="$7"
+    fft_config_out="$8"
+
+    if [[ "${fft_config_check}" != "TRUE" ]]; then
+        # TRUE is a special case, always downloaded and processed
+        local fft_get_ss
+        fft_get_ss=$(grep -i "^${fft_config_check} " glidein_config | cut -d ' ' -f 2-)
+        # Stop download and processing if the cond_attr variable is not defined or has a value different from 1
+        [[ "${fft_get_ss}" != "1" ]] && return 0
+        # TODO: what if fft_get_ss is not 1? nothing, still skip the file?
+    fi
+
+    local fft_base_name fft_condition_attr fft_condition_attr_val
+    fft_base_name=$(basename "${fft_real_fname}")
+    if [[ "${fft_base_name}" = gconditional_* ]]; then
+        fft_condition_attr="${fft_base_name#gconditional_}"
+        fft_condition_attr="GLIDEIN_USE_${fft_condition_attr%%_*}"
+        fft_condition_attr_val=$(grep -i "^${fft_condition_attr} " glidein_config | cut -d ' ' -f 2-)
+        # if the variable fft_condition_attr is not defined or empty, do not download
+        [[ -z "${fft_condition_attr_val}" ]] && return 0
+    fi
+
+    fetch_file_base "${fft_id}" "${fft_target_fname}" "${fft_real_fname}" "${fft_file_type}" "${fft_config_out}" "${fft_period}" "${fft_cc_prefix}"
+    # returning the exit code of fetch_file_base
+}
+
+perform_wget() {
+    wget_args=("$@")
+    arg_len="${#wget_args[@]}"
+    ffb_url="${wget_args[0]}"
+    ffb_repository=$(dirname "${ffb_url}")
+    ffb_real_fname=$(basename "${ffb_url}")
+    proxy_url="None"
+    for ((i=0; i<arg_len; i++));
+    do
+        if [ "${wget_args[${i}]}" = "--output-document" ]; then
+            ffb_tmp_outname=${wget_args[${i}+1]}
+        fi
+        if [ "${wget_args[${i}]}" = "--proxy" ]; then
+            proxy_url=${wget_args[${i}+1]}
+        fi
+    done
+    START=$(date +%s)
+    if [ "${proxy_url}" != "None" ]; then
+        wget_args=(${wget_args[@]:0:${arg_len}-2})
+        wget_cmd=$(echo "env http_proxy=${proxy_url} wget" "${wget_args[@]}"| sed 's/"/\\\"/g')
+        wget_resp=$(env http_proxy="${proxy_url}" wget "${wget_args[@]}" 2>&1)
+        wget_retval=$?
+    else
+        wget_cmd=$(echo "wget" "${wget_args[@]}"| sed 's/"/\\\"/g')
+        wget_resp=$(wget "${wget_args[@]}" 2>&1)
+        wget_retval=$?
+    fi
+
+    if [ ${wget_retval} -ne 0 ]; then
+        wget_version=$(wget --version 2>&1 | head -1)
+        warn "${wget_cmd} failed. version:${wget_version}  exit code ${wget_retval} stderr: ${wget_resp}"
+        # cannot use error_*.sh helper functions
+        # may not have been loaded yet, and wget fails often
+        echo "<OSGTestResult id=\"perform_wget\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">${PWD}</env>
+    <env name=\"uname\">$(uname -a)</env>
+    <env name=\"release\">$(cat /etc/system-release)</env>
+    <env name=\"wget_version\">${wget_version}</env>
+  </operatingenvironment>
+  <test>
+    <cmd>${wget_cmd}</cmd>
+    <tStart>$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)</tStart>
+    <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
+  </test>
+  <result>
+    <status>ERROR</status>
+    <metric name=\"failure\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Network</metric>
+    <metric name=\"URL\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_url}</metric>
+    <metric name=\"http_proxy\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${proxy_url}</metric>
+    <metric name=\"source_type\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
+  </result>
+  <detail>
+  Failed to load file '${ffb_real_fname}' from '${ffb_repository}' using proxy '${proxy_url}'.  ${wget_resp}
+  </detail>
+</OSGTestResult>" > otrb_output.xml
+        warn "Failed to load file '${ffb_real_fname}' from '${ffb_repository}'."
+
+        if [ -f otr_outlist.list ]; then
+            chmod u+w otr_outlist.list
+        else
+            touch otr_outlist.list
+        fi
+        cat otrb_output.xml >> otr_outlist.list
+        echo "<?xml version=\"1.0\"?>" > otrx_output.xml
+        cat otrb_output.xml >> otrx_output.xml
+        rm -f otrb_output.xml
+        chmod a-w otr_outlist.list
+    fi
+    return ${wget_retval}
+}
+
+perform_curl() {
+    curl_args=("$@")
+    arg_len="${#curl_args[@]}"
+    ffb_url="${curl_args[0]}"
+    ffb_repository="$(dirname "${ffb_url}")"
+    ffb_real_fname="$(basename "${ffb_url}")"
+    for ((i=0; i<arg_len; i++));
+    do
+        if [ "${curl_args[${i}]}" = "--output" ]; then
+            ffb_tmp_outname="${curl_args[${i}+1]}"
+        fi
+        if [ "${curl_args[${i}]}" = "--proxy" ]; then
+            proxy_url="${curl_args[${i}+1]}"
+        fi
+    done
+
+    START="$(date +%s)"
+    curl_cmd="$(echo "curl" "${curl_args[@]}" | sed 's/"/\\\"/g')"
+    curl_resp="$(curl "${curl_args[@]}" 2>&1)"
+    curl_retval=$?
+    if [ ${curl_retval} -eq 0 ] && [ ! -e "${ffb_tmp_outname}" ] ; then
+        touch "${ffb_tmp_outname}"
+    fi
+
+
+    if [ "${curl_retval}" -ne 0 ]; then
+        curl_version="$(curl --version 2>&1 | head -1)"
+        warn "${curl_cmd} failed. version:${curl_version}  exit code ${curl_retval} stderr: ${curl_resp} "
+        # cannot use error_*.sh helper functions
+        # may not have been loaded yet, and wget fails often
+        echo "<OSGTestResult id=\"perform_curl\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">${PWD}</env>
+    <env name=\"uname\">$(uname -a)</env>
+    <env name=\"release\">$(cat /etc/system-release)</env>
+    <env name=\"curl_version\">${curl_version}</env>
+  </operatingenvironment>
+  <test>
+    <cmd>${curl_cmd}</cmd>
+    <tStart>$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)</tStart>
+    <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
+  </test>
+  <result>
+    <status>ERROR</status>
+    <metric name=\"failure\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Network</metric>
+    <metric name=\"URL\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_url}</metric>
+    <metric name=\"http_proxy\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${proxy_url}</metric>
+    <metric name=\"source_type\" ts=\"$(date --date=@"${START}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
+  </result>
+  <detail>
+  Failed to load file '${ffb_real_fname}' from '${ffb_repository}' using proxy '${proxy_url}'.  ${curl_resp}
+  </detail>
+</OSGTestResult>" > otrb_output.xml
+        warn "Failed to load file '${ffb_real_fname}' from '${ffb_repository}'."
+
+        if [ -f otr_outlist.list ]; then
+            chmod u+w otr_outlist.list
+        else
+            touch otr_outlist.list
+        fi
+        cat otrb_output.xml >> otr_outlist.list
+        echo "<?xml version=\"1.0\"?>" > otrx_output.xml
+        cat otrb_output.xml >> otrx_output.xml
+        rm -f otrb_output.xml
+        chmod a-w otr_outlist.list
+    fi
+    return ${curl_retval}
+}
+
+fetch_file_base() {
+    # Perform the file download and corresponding action (untar, execute, ...)
+    ffb_id="$1"
+    ffb_target_fname="$2"
+    ffb_real_fname="$3"
+    ffb_file_type="$4"
+    ffb_config_out="$5"
+    ffb_period=$6
+    # condor cron prefix, used only for periodic executables
+    ffb_cc_prefix="$7"
+
+    ffb_work_dir="$(get_work_dir "${ffb_id}")"
+
+    ffb_repository="$(get_repository_url "${ffb_id}")"
+
+    ffb_tmp_outname="${ffb_work_dir}/${ffb_real_fname}"
+    ffb_outname="${ffb_work_dir}/${ffb_target_fname}"
+
+    # Create a dummy default in case something goes wrong
+    # cannot use error_*.sh helper functions
+    # may not have been loaded yet
+    have_dummy_otrx=1
+    echo "<?xml version=\"1.0\"?>
+<OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">${PWD}</env>
+  </operatingenvironment>
+  <test>
+    <cmd>Unknown</cmd>
+    <tStart>$(date +%Y-%m-%dT%H:%M:%S%:z)</tStart>
+    <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
+  </test>
+  <result>
+    <status>ERROR</status>
+    <metric name=\"failure\" ts=\"$(date +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Unknown</metric>
+    <metric name=\"source_type\" ts=\"$(date +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
+  </result>
+  <detail>
+     An unknown error occurred.
+  </detail>
+</OSGTestResult>" > otrx_output.xml
+    user_agent="glidein/${glidein_entry}/${condorg_schedd}/${condorg_cluster}.${condorg_subcluster}/${client_name}"
+    ffb_url="${ffb_repository}/${ffb_real_fname}"
+    curl_version=$(curl --version | head -1 )
+    wget_version=$(wget --version | head -1 )
+    #old wget command:
+    #wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" "$ffb_nocache_str" -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname"
+    #equivalent to:
+    #wget ${ffb_url} --user-agent=${user_agent} -q  -O "${ffb_tmp_outname}" "${ffb_nocache_str}"
+    #with env http_proxy=$proxy_url set if proxy_url != "None"
+    #
+    #construct curl equivalent so we can try either
+
+    wget_args=("${ffb_url}" "--user-agent" "wget/${user_agent}"  "--quiet"  "--output-document" "${ffb_tmp_outname}" )
+    curl_args=("${ffb_url}" "--user-agent" "curl/${user_agent}" "--silent"  "--show-error" "--output" "${ffb_tmp_outname}")
+
+    if [ "${ffb_file_type}" = "nocache" ]; then
+        if [ "${curl_version}" != "" ]; then
+            curl_args+=("--header")
+            curl_args+=("'Cache-Control: no-cache'")
+        fi
+        if [ "${wget_version}" != "" ]; then
+            if wget --help | grep -q "\-\-no-cache "; then
+                wget_args+=("--no-cache")
+            elif wget --help |grep -q "\-\-cache="; then
+                wget_args+=("--cache=off")
+            else
+                warn "wget ${wget_version} cannot disable caching"
+            fi
+         fi
+    fi
+
+    if [ "${proxy_url}" != "None" ];then
+        if [ "${curl_version}" != "" ]; then
+            curl_args+=("--proxy")
+            curl_args+=("${proxy_url}")
+        fi
+        if [ "${wget_version}" != "" ]; then
+            #these two arguments have to be last as coded, put any future
+            #wget args earlier in wget_args array
+            wget_args+=("--proxy")
+            wget_args+=("${proxy_url}")
+        fi
+    fi
+
+    fetch_completed=1
+    if [ ${fetch_completed} -ne 0 ] && [ "${wget_version}" != "" ]; then
+        perform_wget "${wget_args[@]}"
+        fetch_completed=$?
+    fi
+    if [ ${fetch_completed} -ne 0 ] && [ "${curl_version}" != "" ]; then
+        perform_curl "${curl_args[@]}"
+        fetch_completed=$?
+    fi
+
+    if [ ${fetch_completed} -ne 0 ]; then
+        return ${fetch_completed}
+    fi
+
+    # check signature
+    if ! check_file_signature "${ffb_id}" "${ffb_real_fname}"; then
+        # error already displayed inside the function
+        return 1
+    fi
+
+    # rename it to the correct final name, if needed
+    if [ "${ffb_tmp_outname}" != "${ffb_outname}" ]; then
+        if ! mv "${ffb_tmp_outname}" "${ffb_outname}"; then
+            warn "Failed to rename ${ffb_tmp_outname} into ${ffb_outname}"
+            return 1
+        fi
+    fi
+
+    # if executable, execute
+    if [[ "${ffb_file_type}" = "exec" || "${ffb_file_type}" = "exec:"* ]]; then
+        if ! chmod u+x "${ffb_outname}"; then
+            warn "Error making '${ffb_outname}' executable"
+            return 1
+        fi
+        if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then  # last_script global for simplicity
+            echo "Skipping last script ${last_script}" 1>&2
+        elif [[ "${ffb_target_fname}" = "cvmfs_umount.sh" ]] || [[ -n "${cleanup_script}" && "${ffb_target_fname}" = "${cleanup_script}" ]]; then  # cleanup_script global for simplicity
+            # TODO: temporary OR checking for cvmfs_umount.sh; to be removed after Bruno's ticket on cleanup [#25073]
+            echo "Skipping cleanup script ${ffb_outname} (${cleanup_script})" 1>&2
+            cp "${ffb_outname}" "$gwms_exec_dir/cleanup/${ffb_target_fname}"
+            chmod a+x "${gwms_exec_dir}/cleanup/${ffb_target_fname}"
+        else
+            echo "Executing (flags:${ffb_file_type#exec}) ${ffb_outname}"
+            # have to do it here, as this will be run before any other script
+            chmod u+rx "${main_dir}"/error_augment.sh
+
+            # the XML file will be overwritten now, and hopefully not an error situation
+            have_dummy_otrx=0
+            "${main_dir}"/error_augment.sh -init
+            START=$(date +%s)
+            if [[ "${ffb_file_type}" = "exec:s" ]]; then
+                "${main_dir}/singularity_wrapper.sh" "${ffb_outname}" glidein_config "${ffb_id}"
+            else
+                "${ffb_outname}" glidein_config "${ffb_id}"
+            fi
+            ret=$?
+            END=$(date +%s)
+            "${main_dir}"/error_augment.sh -process ${ret} "${ffb_id}/${ffb_target_fname}" "${PWD}" "${ffb_outname} glidein_config" "${START}" "${END}" #generating test result document
+            "${main_dir}"/error_augment.sh -concat
+            if [ ${ret} -ne 0 ]; then
+                echo "=== Validation error in ${ffb_outname} ===" 1>&2
+                warn "Error running '${ffb_outname}'"
+                < otrx_output.xml awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2
+                return 1
+            else
+                # If ran successfully and periodic, schedule to execute with schedd_cron
+                echo "=== validation OK in ${ffb_outname} (${ffb_period}) ===" 1>&2
+                if [ "${ffb_period}" -gt 0 ]; then
+                    add_periodic_script "${main_dir}/script_wrapper.sh" "${ffb_period}" "${work_dir}" "${ffb_outname}" glidein_config "${ffb_id}" "${ffb_cc_prefix}"
+                fi
+            fi
+        fi
+    elif [ "${ffb_file_type}" = "wrapper" ]; then
+        echo "${ffb_outname}" >> "${wrapper_list}"
+    elif [ "${ffb_file_type}" = "untar" ]; then
+        ffb_short_untar_dir="$(get_untar_subdir "${ffb_id}" "${ffb_target_fname}")"
+        ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
+        START=$(date +%s)
+        (mkdir "${ffb_untar_dir}" && cd "${ffb_untar_dir}" && tar -xmzf "${ffb_outname}") 1>&2
+        ret=$?
+        if [ ${ret} -ne 0 ]; then
+            "${main_dir}"/error_augment.sh -init
+            "${main_dir}"/error_gen.sh -error "tar" "Corruption" "Error untarring '${ffb_outname}'" "file" "${ffb_outname}" "source_type" "${cfs_id}"
+            "${main_dir}"/error_augment.sh  -process ${cfs_rc} "tar" "${PWD}" "mkdir ${ffb_untar_dir} && cd ${ffb_untar_dir} && tar -xmzf ${ffb_outname}" "${START}" "$(date +%s)"
+            "${main_dir}"/error_augment.sh -concat
+            warn "Error untarring '${ffb_outname}'"
+            return 1
+        fi
+    fi
+
+    if [ "${ffb_config_out}" != "FALSE" ]; then
+        ffb_prefix="$(get_prefix "${ffb_id}")"
+        if [ "${ffb_file_type}" = "untar" ]; then
+            # when untaring the original file is less interesting than the untar dir
+            if ! add_config_line "${ffb_prefix}${ffb_config_out}" "${ffb_untar_dir}"; then
+                glidein_exit 1
+            fi
+        else
+            if ! add_config_line "${ffb_prefix}${ffb_config_out}" "${ffb_outname}"; then
+                glidein_exit 1
+            fi
+        fi
+    fi
+
+    if [ "${have_dummy_otrx}" -eq 1 ]; then
+        # no one should really look at this file, but just to avoid confusion
+        echo "<?xml version=\"1.0\"?>
+<OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">${PWD}</env>
+  </operatingenvironment>
+  <test>
+    <cmd>Unknown</cmd>
+    <tStart>$(date +%Y-%m-%dT%H:%M:%S%:z)</tStart>
+    <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
+  </test>
+  <result>
+    <status>OK</status>
+  </result>
+</OSGTestResult>" > otrx_output.xml
+    fi
+
+   return 0
+}
+
+# Adds $1 to GWMS_PATH and update PATH
+add_to_path() {
+    logdebug "Adding to GWMS_PATH: $1"
+    local old_path=":${PATH%:}:"
+    old_path="${old_path//:$GWMS_PATH:/}"
+    local old_gwms_path=":${GWMS_PATH%:}:"
+    old_gwms_path="${old_gwms_path//:$1:/}"
+    old_gwms_path="${1%:}:${old_gwms_path#:}"
+    export GWMS_PATH="${old_gwms_path%:}"
+    old_path="${GWMS_PATH}:${old_path#:}"
+    export PATH="${old_path%:}"
+}
+
+fixup_condor_dir() {
+    # All files in the native condor tarballs have a directory like condor-9.0.11-1-x86_64_CentOS7-stripped
+    # However the (not used anymore) gwms create_condor_tarball removes that dir
+    # Here we remove that dir as well to allow factory ops to use native condor tarballs
+
+    # Check if the condor dir has only one subdir, the one like "condor-9.0.11-1-x86_64_CentOS7-stripped"
+    # See https://stackoverflow.com/questions/32429333/how-to-test-if-a-linux-directory-contain-only-one-subdirectory-and-no-other-file
+    if [ $(find "${gs_id_work_dir}/condor" -maxdepth 1 -type d -printf 1 | wc -m) -eq 2 ]; then
+        echo "Fixing directory structure of condor tarball"
+        mv "${gs_id_work_dir}"/condor/condor*/* "${gs_id_work_dir}"/condor > /dev/null
+    else
+        echo "Condor tarball does not need to be fixed"
+    fi
+}
 
 echo "Downloading files from Factory and Frontend"
 log_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"
@@ -1885,40 +1886,40 @@ check_signature=0
 
 for gs_id in main entry client client_group
 do
-    if [ -z "${client_repository_url}" ]; then
-        if [ "${gs_id}" = "client" ]; then
-            # no client file when no cilent_repository
-            continue
-        fi
-    fi
-    if [ -z "${client_repository_group_url}" ]; then
-        if [ "${gs_id}" = "client_group" ]; then
-            # no client group file when no cilent_repository_group
-            continue
-        fi
-    fi
+  if [ -z "${client_repository_url}" ]; then
+      if [ "${gs_id}" = "client" ]; then
+          # no client file when no cilent_repository
+          continue
+      fi
+  fi
+  if [ -z "${client_repository_group_url}" ]; then
+      if [ "${gs_id}" = "client_group" ]; then
+          # no client group file when no cilent_repository_group
+          continue
+      fi
+  fi
 
-    gs_id_work_dir="$(get_work_dir ${gs_id})"
+  gs_id_work_dir="$(get_work_dir ${gs_id})"
 
-    # Fetch description file
-    gs_id_descript_file="$(get_descript_file ${gs_id})"
-    fetch_file_regular "${gs_id}" "${gs_id_descript_file}"
-    if ! signature_file_line="$(grep "^signature " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
-        warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file} (wc: $(wc < "${gs_id_work_dir}/${gs_id_descript_file}" 2>/dev/null))."
-        glidein_exit 1
-    fi
-    signature_file=$(echo "${signature_file_line}" | cut -s -f 2-)
+  # Fetch description file
+  gs_id_descript_file="$(get_descript_file ${gs_id})"
+  fetch_file_regular "${gs_id}" "${gs_id_descript_file}"
+  if ! signature_file_line="$(grep "^signature " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
+      warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file} (wc: $(wc < "${gs_id_work_dir}/${gs_id_descript_file}" 2>/dev/null))."
+      glidein_exit 1
+  fi
+  signature_file=$(echo "${signature_file_line}" | cut -s -f 2-)
 
-    # Fetch signature file
-    gs_id_signature="$(get_signature ${gs_id})"
-    fetch_file_regular "${gs_id}" "${signature_file}"
-    echo "${gs_id_signature}  ${signature_file}" > "${gs_id_work_dir}/signature.sha1.test"
-    if ! (cd "${gs_id_work_dir}" && sha1sum -c signature.sha1.test) 1>&2 ; then
-        warn "Corrupted signature file '${gs_id_work_dir}/${signature_file}'."
-        glidein_exit 1
-    fi
-    # for simplicity use a fixed name for signature file
-    mv "${gs_id_work_dir}/${signature_file}" "${gs_id_work_dir}/signature.sha1"
+  # Fetch signature file
+  gs_id_signature="$(get_signature ${gs_id})"
+  fetch_file_regular "${gs_id}" "${signature_file}"
+  echo "${gs_id_signature}  ${signature_file}" > "${gs_id_work_dir}/signature.sha1.test"
+  if ! (cd "${gs_id_work_dir}" && sha1sum -c signature.sha1.test) 1>&2 ; then
+      warn "Corrupted signature file '${gs_id_work_dir}/${signature_file}'."
+      glidein_exit 1
+  fi
+  # for simplicity use a fixed name for signature file
+  mv "${gs_id_work_dir}/${signature_file}" "${gs_id_work_dir}/signature.sha1"
 done
 
 # re-enable for everything else
@@ -1930,25 +1931,25 @@ check_signature=1
 # the description file
 for gs_id in main entry client client_group
 do
-    if [ -z "${client_repository_url}" ]; then
-        if [ "${gs_id}" = "client" ]; then
-            # no client file when no cilent_repository
-            continue
-        fi
-    fi
-    if [ -z "${client_repository_group_url}" ]; then
-        if [ "${gs_id}" = "client_group" ]; then
-            # no client group file when no cilent_repository_group
-            continue
-        fi
-    fi
+  if [ -z "${client_repository_url}" ]; then
+      if [ "${gs_id}" = "client" ]; then
+          # no client file when no cilent_repository
+          continue
+      fi
+  fi
+  if [ -z "${client_repository_group_url}" ]; then
+      if [ "${gs_id}" = "client_group" ]; then
+          # no client group file when no cilent_repository_group
+          continue
+      fi
+  fi
 
-    gs_id_descript_file="$(get_descript_file ${gs_id})"
-    if ! check_file_signature "${gs_id}" "${gs_id_descript_file}"; then
-        gs_id_work_dir="$(get_work_dir ${gs_id})"
-        warn "Corrupted description file ${gs_id_work_dir}/${gs_id_descript_file}."
-        glidein_exit 1
-    fi
+  gs_id_descript_file="$(get_descript_file ${gs_id})"
+  if ! check_file_signature "${gs_id}" "${gs_id_descript_file}"; then
+      gs_id_work_dir="$(get_work_dir ${gs_id})"
+      warn "Corrupted description file ${gs_id_work_dir}/${gs_id_descript_file}."
+      glidein_exit 1
+  fi
 done
 
 ###################################################
@@ -1961,7 +1962,8 @@ if [ -z "${last_script}" ]; then
     glidein_exit 1
 fi
 #cleanup_script="$(grep "^cleanup_script " "${gs_id_work_dir}/${gs_id_descript_file}" | cut -s -f 2-)"
-cleanup_script=$(gconfig_get GLIDEIN_CLEANUP_SCRIPT "${glidein_config}")
+cleanup_script=$(grep "^GLIDEIN_CLEANUP_SCRIPT " "${glidein_config}" | cut -d ' ' -f 2-)
+
 
 ##############################
 # Fetch all the other files
@@ -2039,7 +2041,7 @@ fixup_condor_dir
 
 ##############################
 # Start the glidein main script
-gconfig_add "GLIDEIN_INITIALIZED" "1"
+add_config_line "GLIDEIN_INITIALIZED" "1"
 
 log_write "glidein_startup.sh" "text" "Starting the glidein main script" "info"
 log_write "glidein_startup.sh" "file" "${glidein_config}" "debug"
