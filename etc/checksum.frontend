@@ -1,8 +1,8 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_0_rc1
+# GLIDEINWMS_VERSION v3_10_0
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-988e9157ed6caed9ffab82d9a344234d  ./CHANGELOG.md
+6481187bb1160c84ceb474ca5f0f32d8  ./CHANGELOG.md
 8e7d1957a094cc33c89f5b2c935666ff  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
@@ -123,7 +123,7 @@ a07332de53ae9fb905f7cc97e08ef37f  ./creation/web_base/nodes.blacklist
 9f7e7d5a88fa486d51fe58bd121f67e0  ./creation/web_base/setup_network.sh
 214d7ed29a9a5f92453191b9c4089f12  ./creation/web_base/setup_prejob.sh
 6e12b5fc4ed47c5eda3e2f2b4e20bb95  ./creation/web_base/setup_script.sh
-51e812ccbf8adcb81d950d62a1bbff95  ./creation/web_base/singularity_lib.sh
+3af540409262622372d187fdc195cd0a  ./creation/web_base/singularity_lib.sh
 e58561f20d39cd42df69ca487f25ee25  ./creation/web_base/singularity_wrapper.sh
 580238155cc06fb9c7cd17dcfd36cb82  ./creation/web_base/smart_partitionable.sh
 d9e26df8e25bbd357868ed02a0db52b5  ./creation/web_base/update_proxy.py

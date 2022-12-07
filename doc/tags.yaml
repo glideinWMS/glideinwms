@@ -410,5 +410,6 @@ v3_10_0:
     - Set PATH to default value instead of emptying it (PR#233)
     - Have `get_prop_str` return the default value when the attribute is "undefined" and `gwms_from_config` return the default when set instead of an empty string (PR#235)
     - Fixed credential ID in Glideins. It was not set for scitokens causing incorrect monitoring values (PR#242)
+    - Fixed typo in `singularity_lib.sh` (issue#249)
   NOTE:
     - This follows v3_9_6. Please see all the notes about the custom script changes

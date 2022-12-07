@@ -3,32 +3,7 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# GlideinWMS Changelog
-
-Developers updated changelog. For curated release notes see doc/tags.yaml or https://glideinwms.fnal.gov/doc.prd/history.html
-
-## Changes Since Last Release \[yyyy-mm-dd\]
-
-Changes since the last release
-
-### New features / functionalities
-
--   item one of the list
--   item N
-
-### Changed defaults / behaviours
-
-### Deprecated / removed options and commands
-
-### Security Related Fixes
-
-### Bug Fixes
-
-### Testing / Development
-
-### Known Issues
-
-## v3.10.0 \[2022-12-1\]
+## v3.10.0 \[2022-12-7\]
 
 This is a production release following v3.9.6 with mostly bug fixes. Changes since the last release
 
@@ -50,6 +25,7 @@ This is a production release following v3.9.6 with mostly bug fixes. Changes sin
 -   Return correctly the default value in `gwms_from_config` instead of an empty string (PR #235)
 -   Function `get_prop_str` returns the default value when the attribute is "undefined" (PR #235)
 -   Fixed credential ID in Glideins not set for scitokens and causing incorrect monitoring values (PR #242)
+-   Fixed typo in `singularity_lib.sh` (issue #249)
 
 ### Testing / Development
 
