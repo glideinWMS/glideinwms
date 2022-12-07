@@ -278,7 +278,7 @@ dict_get_first() {
             echo "$res"
             ;;
         value)
-            [[ "$res" = *\:* ]] && echo "${res#*:}"
+            [[ "$res" = *:* ]] && echo "${res#*:}"
             ;;
         key)
             echo "${res%%:*}"
@@ -1256,7 +1256,7 @@ singularity_exec_simple() {
     if [[ $exit_code -eq 0 ]] && echo "$error" | grep -q "^FATAL:"; then
         warn "singularity/apptainer exited w/ 0 but seems to have a FATAL error reported in stderr"
     fi
-    return $exit_code
+    return "$exit_code"
 }
 
 
@@ -1757,7 +1757,7 @@ singularity_exit_or_fallback () {
             # TODO: also this?: touch ../../.stop-glidein.stamp >/dev/null 2>&1
             [[ -n "$1" ]] && warn "exit_wrapper not defined, printing message and exiting: $1" ||
                 warn "exit_wrapper not defined, exiting"
-            eixt ${2:-1}
+            exit ${2:-1}
         fi
     fi
 }
