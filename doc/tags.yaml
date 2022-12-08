@@ -399,7 +399,7 @@ v3_9_6:
 
 v3_10_0:
   Date: December 1, 2022
-  Series: Production
+  Series: Stable
   Tarball: false
   Feature:
     - All the features and fixes in v3_9_6

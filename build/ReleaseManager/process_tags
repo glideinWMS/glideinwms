@@ -67,6 +67,20 @@ class ParameterException(Exception):
             self.message = message
 
 
+def sort_version(inlist, reverse=True):
+    """Sort a list of versions in the GlideinWMS format vX_Y_Z
+    with X, Y and Z, major, minor and patch version unteger numbers
+    The input array is changed in place
+
+    Args:
+        inlist: versions list
+
+    Returns:
+        list: the sorted array
+    """
+    inlist.sort(key=lambda s: list(map(int, s[1:].split("_"))), reverse=reverse)
+
+
 def dump_txt(release_tags, fname=None, versions=None):
     """Write to a file (stdout by default) the release tags, separated by a blank line
 
@@ -78,7 +92,7 @@ def dump_txt(release_tags, fname=None, versions=None):
     """
     if not versions:
         versions = list(release_tags)
-        versions.sort(reverse=True)
+        sort_version(versions)
     if fname:
         fd = open(fname, "w")
     else:
@@ -114,7 +128,7 @@ def print_dicts(release_tags, versions=None):
     """
     if not versions:
         versions = list(release_tags)
-        versions.sort(reverse=True)
+        sort_version(versions)
     for v in versions:
         print(v)
         print(release_tags[v])
@@ -218,7 +232,7 @@ def dump_yaml(release_tags, outfile, versions=None):
     """
     if not versions:
         versions = list(release_tags)
-        versions.sort(reverse=True)
+        sort_version(versions)
     if outfile is None:
         for v in versions:
             yaml.safe_dump({v: release_tags[v]}, sys.stdout)
@@ -331,7 +345,7 @@ def dump_html(release_tags, outfile, versions=None, append=False):
     """
     if not versions:
         versions = list(release_tags)
-        versions.sort(reverse=True)
+        sort_version(versions)
     if outfile is None:
         for v in versions:
             sys.stdout.write(release2html(v, release_tags[v]))
@@ -360,7 +374,7 @@ def dump_history(release_tags, h_file="doc/history.html"):
     """
     # copy first part
     release_all = list(release_tags)
-    release_all.sort(reverse=True)
+    sort_version(release_all)
     if not h_file:
         h_file = "doc/history.html"
     with open(h_file) as h_old:
@@ -371,12 +385,12 @@ def dump_history(release_tags, h_file="doc/history.html"):
                     if line.strip() == "<!-- start stable -->":
                         # stable series list
                         # From 3.4 on
-                        release = [r for r in release_all if r.startswith("v3_") and int(r[3]) % 2 == 0]
+                        release = [r for r in release_all if r.startswith("v3_") and int(r.split("_")[1]) % 2 == 0]
                         end_string = "<!-- end stable -->"
                     elif line.strip() == "<!-- start development -->":
                         # for development
                         # From 3.3 on
-                        release = [r for r in release_all if r.startswith("v3_") and int(r[3]) % 2 == 1]
+                        release = [r for r in release_all if r.startswith("v3_") and int(r.split("_")[1]) % 2 == 1]
                         end_string = "<!-- end development -->"
                     else:
                         # There are only 2 option
@@ -399,7 +413,7 @@ def dump_history(release_tags, h_file="doc/history.html"):
 
 def test(release_tags):
     versions = list(release_tags)
-    versions.sort(reverse=True)
+    sort_version(versions)
     stable = []
     development = []
     for version in versions:
@@ -433,7 +447,7 @@ def main(fname="tags.yml"):
     for v in delete:
         del release_tags[v]
     versions = list(release_tags)
-    versions.sort(reverse=True)
+    sort_version(versions)
     release_tags = {v: {**default, NAME: v, **release_tags[v]} for v in release_tags}
     stable = []
     development = []
