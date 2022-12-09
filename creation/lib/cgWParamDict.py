@@ -225,6 +225,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts["params"].add("GLIDEIN_Factory_Collector", str(factory_monitoring_collector))
         populate_gridmap(self.conf, self.dicts["gridmap"])
 
+        # NOTE that all the files in these _scripts lists are added as executables (i.e. must report with error_gen)
         file_list_scripts = [
             "collector_setup.sh",
             "create_temp_mapfile.sh",

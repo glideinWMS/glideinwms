@@ -2007,7 +2007,7 @@ do
     fetch_file_regular "${gs_id}" "${gs_file_list}"
 
     # Fetch files contained in list
-    # TODO: $file is actually a list, so it cannot be doublequoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
+    # TODO: $file is actually a list, so it cannot be double-quoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
     # shellcheck disable=2086
     while read -r file
     do
