@@ -1,8 +1,8 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_0
+# GLIDEINWMS_VERSION v3_10_1_rc1
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-6481187bb1160c84ceb474ca5f0f32d8  ./CHANGELOG.md
+2069fe2aa479bf2220778f31227e58ac  ./CHANGELOG.md
 8e7d1957a094cc33c89f5b2c935666ff  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt

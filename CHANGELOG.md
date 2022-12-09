@@ -3,6 +3,28 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## v3.10.1 \[2022-12-9\]
+
+This release fixes a bug introduced in 3.10.0. Changes since the last release
+
+### New features / functionalities
+
+-   Added utility function to replace error_gen in python scripts (PR #254)
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Fixed status reporting for `gconfig.py` (PR #254)
+
+### Testing / Development
+
+### Known Issues
+
 ## v3.10.0 \[2022-12-7\]
 
 This is a production release following v3.9.6 with mostly bug fixes. Changes since the last release

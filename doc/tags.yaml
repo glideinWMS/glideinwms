@@ -398,7 +398,7 @@ v3_9_6:
     - Only the first collector in TRUST_DOMAIN is kept, following collectors are removed. This happens both in the Frontend token issuer and in the setting of the Glidein TRUST_DOMAIN (setup_x509.sh).
 
 v3_10_0:
-  Date: December 1, 2022
+  Date: December 7, 2022
   Series: Stable
   Tarball: false
   Feature:
@@ -413,3 +413,14 @@ v3_10_0:
     - Fixed typo in `singularity_lib.sh` (issue#249)
   NOTE:
     - This follows v3_9_6. Please see all the notes about the custom script changes
+
+v3_10_1:
+  Date: December 9, 2022
+  Series: Stable
+  Tarball: false
+  Feature:
+    - Added utility function to replace error_gen in python scripts (PR#254)
+  Bug fix:
+    - Fixed status reporting for `gconfig.py`  (PR#254)
+  NOTE:
+    - Please see all the notes in 3.9.6 about the custom script changes
