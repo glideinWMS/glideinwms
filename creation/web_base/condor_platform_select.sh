@@ -197,7 +197,7 @@ for version_el in $(echo "$condor_version" | tr ',' ' '); do
             condor_platform="${version_el}-${os_el}-${arch_el}"
             condor_platform_id="CONDOR_PLATFORM_$condor_platform"
 
-            condor_platform_check=$(gconfig_get $condor_platform_id "$glidein_config")
+            condor_platform_check=$(gconfig_get "$condor_platform_id" "$glidein_config")
           fi
         done
       fi

@@ -68,7 +68,7 @@ parse_and_select_collectors() {
     # Used for both User collectors and CCBs
     local inattr="$1"
 
-    local inlist=$(gconfig_get $inattr "$glidein_config")
+    local inlist=$(gconfig_get "$inattr" "$glidein_config")
     [ -z "$inlist" ] && return 0
 
     # Split the groups

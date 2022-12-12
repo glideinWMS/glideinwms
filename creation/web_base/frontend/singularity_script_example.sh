@@ -60,7 +60,7 @@ add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" |
 . "$add_config_line_source"
 
 # error_gen defined in singularity_lib.sh
-[[ -e "$glidein_config" ]] && error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
+[[ -e "$glidein_config" ]] && error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)
 
 
 # Source utility files, outside and inside Singularity
