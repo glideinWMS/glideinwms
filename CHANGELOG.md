@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.10.1 \[2022-12-9\]
+## v3.10.1 \[2022-12-13\]
 
 This release fixes a bug introduced in 3.10.0. Changes since the last release
 
