@@ -415,7 +415,7 @@ v3_10_0:
     - This follows v3_9_6. Please see all the notes about the custom script changes
 
 v3_10_1:
-  Date: December 9, 2022
+  Date: December 13, 2022
   Series: Stable
   Tarball: false
   Feature:
