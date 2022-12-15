@@ -18,15 +18,16 @@
 glidein_config="$1"
 tmp_fname="${glidein_config}.$$.tmp"
 
-error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
+# import add_config_line function
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
+# shellcheck source=./add_config_line.source
+. "$add_config_line_source"
 
-condor_vars_file="`grep -i "^CONDOR_VARS_FILE " "$glidein_config" | cut -d ' ' -f 2-`"
+error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
-# import add_config_line and add_condor_vars_line functions
-add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
-source "$add_config_line_source"
+condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
 
-condor_os="`grep '^CONDOR_OS ' "$glidein_config" | cut -d ' ' -f 2-`"
+condor_os=$(gconfig_get CONDOR_OS "$glidein_config")
 if [ -z "$condor_os" ]; then
     condor_os="default"
 fi
@@ -152,7 +153,7 @@ if [[ "$condor_os" == "auto" ]]; then
     echo "###END RELEASE INFORMATION###"
 fi
 
-condor_arch="`grep '^CONDOR_ARCH ' "$glidein_config" | cut -d ' ' -f 2-`"
+condor_arch=$(gconfig_get CONDOR_ARCH "$glidein_config")
 if [ -z "$condor_arch" ]; then
     condor_arch="default"
 fi
@@ -177,7 +178,7 @@ if [[ "$condor_arch" == "auto" ]]; then
     fi
 fi
 
-condor_version="`grep '^CONDOR_VERSION ' "$glidein_config" | cut -d ' ' -f 2-`"
+condor_version=$(gconfig_get CONDOR_VERSION "$glidein_config")
 if [ -z "$condor_version" ]; then
     condor_version="default"
 fi
@@ -196,7 +197,7 @@ for version_el in $(echo "$condor_version" | tr ',' ' '); do
             condor_platform="${version_el}-${os_el}-${arch_el}"
             condor_platform_id="CONDOR_PLATFORM_$condor_platform"
 
-            condor_platform_check=`grep "^$condor_platform_id " "$glidein_config" | awk '{print $2}'`
+            condor_platform_check=$(gconfig_get "$condor_platform_id" "$glidein_config")
           fi
         done
       fi
@@ -217,7 +218,7 @@ if [ -z "$condor_platform_check" ]; then
 fi
 
 # this will enable this particular Condor version to be downloaded and unpacked
-add_config_line "$condor_platform_id" "1"
+gconfig_add "$condor_platform_id" "1"
 
 "$error_gen" -ok "condor_platform_select.sh" "Condor_platform" "${version_el}-${os_el}-${arch_el}"
 

@@ -15,11 +15,14 @@
 
 glidein_config="$1"
 tmp_fname="${glidein_config}.$$.tmp"
-error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
-condor_vars_file="`grep -i "^CONDOR_VARS_FILE " "$glidein_config" | cut -d ' ' -f 2-`"
+
 # import add_config_line and add_condor_vars_line functions
-add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
-source "$add_config_line_source"
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
+# shellcheck source=./add_config_line.source
+. "$add_config_line_source"
+
+error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
+condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
 
 UNKNOWN="Unknown"
 
@@ -81,10 +84,10 @@ case $sitewms in
 esac
 
 
-add_config_line GLIDEIN_SiteWMS "${sitewms}"
-add_config_line GLIDEIN_SiteWMS_Slot "${sitewms_slot}"
-add_config_line GLIDEIN_SiteWMS_JobId "${sitewms_jobid}"
-add_config_line GLIDEIN_SiteWMS_Queue "${sitewms_queue}"
+gconfig_add GLIDEIN_SiteWMS "${sitewms}"
+gconfig_add GLIDEIN_SiteWMS_Slot "${sitewms_slot}"
+gconfig_add GLIDEIN_SiteWMS_JobId "${sitewms_jobid}"
+gconfig_add GLIDEIN_SiteWMS_Queue "${sitewms_queue}"
 
 add_condor_vars_line GLIDEIN_SiteWMS "S" "$UNKNOWN" "+" "N" "Y" "-"
 add_condor_vars_line GLIDEIN_SiteWMS_Slot "S" "$UNKNOWN" "+" "N" "Y" "-"

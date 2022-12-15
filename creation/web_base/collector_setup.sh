@@ -68,7 +68,7 @@ parse_and_select_collectors() {
     # Used for both User collectors and CCBs
     local inattr="$1"
 
-    local inlist="$(grep "^$inattr " "$glidein_config" | cut -d ' ' -f 2-)"
+    local inlist=$(gconfig_get "$inattr" "$glidein_config")
     [ -z "$inlist" ] && return 0
 
     # Split the groups
@@ -119,12 +119,13 @@ done | sort -n | cut -c8- | tr -d "\n" | sed -r 's/,+/,/g'`"
 
 _main() {
     # import add_config_line function
-    add_config_line_source="$(grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)"
-    source "$add_config_line_source"
+    add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
+    # shellcheck source=./add_config_line.source
+    . "$add_config_line_source"
 
-    error_gen="$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)"
+    error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
-    condor_vars_file="$(grep -i "^CONDOR_VARS_FILE " "$glidein_config" | cut -d ' ' -f 2-)"
+    condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
 
     collector_host="$(parse_and_select_collectors GLIDEIN_Collector)"
     if [ -z "$collector_host" ]; then
@@ -133,12 +134,12 @@ _main() {
         "$error_gen" -error "collector_setup.sh" "Corruption" "$STR" "attribute" "GLIDEIN_Collector"
         exit 1
     fi
-    add_config_line GLIDEIN_Collector "$collector_host"
+    gconfig_add GLIDEIN_Collector "$collector_host"
 
     # If $CONDORCE_COLLECTOR_HOST is set in the glidein's environment, site
     # wants to have some visibility into the glidein. Add to COLLECTOR_HOST
     if [ -n "$CONDORCE_COLLECTOR_HOST" ]; then
-        add_config_line GLIDEIN_Site_Collector "$CONDORCE_COLLECTOR_HOST"
+        gconfig_add GLIDEIN_Site_Collector "$CONDORCE_COLLECTOR_HOST"
     fi
 
     ccb_host="$(parse_and_select_collectors GLIDEIN_CCB)"
@@ -151,7 +152,7 @@ _main() {
         # the CCB servers in ranmdom order until it gets a successful connection.
         # add a last shuffle to change the order between groups
         # add_config_line GLIDEIN_CCB "`csv_shuffle $ccb_host`"
-        add_config_line GLIDEIN_CCB "$ccb_host"
+        gconfig_add GLIDEIN_CCB "$ccb_host"
     fi
 
 
@@ -162,9 +163,9 @@ _main() {
     else
         # factory has a collector, add it to the master collector list
         master_collector_host="$collector_host,$factory_collector_host"
-        add_config_line GLIDEIN_Factory_Collector "$factory_collector_host"
+        gconfig_add GLIDEIN_Factory_Collector "$factory_collector_host"
     fi
-    add_config_line GLIDEIN_Master_Collector "$master_collector_host"
+    gconfig_add GLIDEIN_Master_Collector "$master_collector_host"
 
     "$error_gen" -ok "collector_setup.sh" "Collector" "$collector_host" "MasterCollector" "$master_collector_host"
 }

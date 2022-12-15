@@ -21,20 +21,20 @@ function warn {
 }
 
 # import add_config_line function
-add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
 # shellcheck source=./add_config_line.source
-source "$add_config_line_source"
+. "$add_config_line_source"
 
-error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
+error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
 # not used - to remove
-# condor_vars_file="`grep -i "^CONDOR_VARS_FILE " "$glidein_config" | cut -d ' ' -f 2-`"
+# condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
 
-slots_layout=`grep '^SLOTS_LAYOUT ' "$glidein_config" | cut -d ' ' -f 2-`
+slots_layout=$(gconfig_get SLOTS_LAYOUT "$glidein_config")
 # fixed slot layout with resources added to the main slot can cause the startd to fail
 # if the number of resources is insufficient for the available slots
 # mainextra adds extra virtual cpus for the resource, so it is sure to fail with fixed slots
-condor_config_resource_slots="`grep -i "^GLIDEIN_Resource_Slots " "$glidein_config" | cut -d ' ' -f 2-`"
+condor_config_resource_slots=$(gconfig_get GLIDEIN_Resource_Slots "$glidein_config")
 echo "$condor_config_resource_slots" | grep mainextra > /dev/null
 if [[ "$?" -eq 0 ]]; then
   # sure error with fixed: force partitionable
@@ -53,7 +53,7 @@ fi
 # 2. If mainextra ResourceSlot is defined then switch fixed to partitionable
 if [[ "X$slots_layout" = "Xpartitionable" ]]; then
   # only need to worry about the partitionable use case
-  num_cpus=`grep '^GLIDEIN_CPUS ' "$glidein_config" | cut -d ' ' -f 2-`
+  num_cpus=$(gconfig_get GLIDEIN_CPUS "$glidein_config")
   if [[ -z "$num_cpus" ]]; then
     # the default is single core
     # there could be virtual cpus (mainextra) or more real CPUs (due to RSL request) both not in GLIDEIN_CPUS
@@ -64,7 +64,7 @@ if [[ "X$slots_layout" = "Xpartitionable" ]]; then
     # matches 1, 01, ... no match for other numbers or string values (AUTO, ...)
     # do not want single core partitionable slots
 
-    force_part=`grep '^FORCE_PARTITIONABLE ' "$glidein_config" | cut -d ' ' -f 2-`
+    force_part=$(gconfig_get FORCE_PARTITIONABLE "$glidein_config")
     if [[ "X$force_part" = "XTrue" ]]; then
       # unless forced to
       "$error_gen" -ok "smart_partitionable.sh" "Action" "ForcedSinglePartitionable"
@@ -72,7 +72,7 @@ if [[ "X$slots_layout" = "Xpartitionable" ]]; then
       # unless resource slot have mainextra type
       "$error_gen" -ok "smart_partitionable.sh" "Action" "ResourceSlotKeptPartitionable"
     else
-      add_config_line SLOTS_LAYOUT fixed
+      gconfig_add SLOTS_LAYOUT fixed
       "$error_gen" -ok "smart_partitionable.sh" "Action" "SwitchSingleToFixed"
     fi
   else
@@ -83,7 +83,7 @@ else
     # shellcheck disable=SC2071   # mean to compare first non numeric values of num_cpus, numeric comparison follows
     if [[ "X$RES_SLOT" = "Xmainextra" ]]; then
       # do not want fixed with mainextra resource slots (sure problem)
-      add_config_line SLOTS_LAYOUT partitionable
+      gconfig_add SLOTS_LAYOUT partitionable
       "$error_gen" -ok "smart_partitionable.sh" "Action" "SwitchResourceSlotToPartitionable"
     elif [[ "X$RES_SLOT" = "Xmain" ]] && [[ "$num_cpus" > "1" ||  "$num_cpus" -gt "1" ]]; then
       # do not want fixed with main resource slots and more than one CPU (possible problem)
@@ -93,7 +93,7 @@ else
       # -  "$num_cpus" -gt "1" catches numbers with prefixed 0s, e.g. 03 -gt 1
       # conditions are separated to be safer and more clear:
       #  tests show precedence left to right, but documentation no: https://www.tldp.org/LDP/abs/html/opprecedence.html
-      add_config_line SLOTS_LAYOUT partitionable
+      gconfig_add SLOTS_LAYOUT partitionable
       "$error_gen" -ok "smart_partitionable.sh" "Action" "SwitchResourceSlotToPartitionable"
     else
       "$error_gen" -ok "smart_partitionable.sh" "Action" "None"

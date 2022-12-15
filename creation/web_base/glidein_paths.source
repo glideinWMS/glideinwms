@@ -11,7 +11,6 @@ GWMS_SUBDIR_EXEC_PREJOB="exec/prejob"
 GWMS_SUBDIR_EXEC_POSTJOB="exec/postjob"
 GWMS_SUBDIR_EXEC_CLEANUP="exec/cleanup"
 
-
 robust_realpath() {
     # Echo to stdout the real path even if realpath is not installed
     # 1. file path to find the real path of
@@ -26,7 +25,6 @@ robust_realpath() {
         echo "${first}${last}"
     fi
 }
-
 
 gwms_process_scripts() {
     # Process all the scripts in the directory, in lexicographic order
@@ -71,6 +69,9 @@ gwms_from_config() {
     # 1. - parameter to parse from glidein_config
     # 2. - default
     # 3. - function to validate or process (get_prop_bool or same interface)
+    # NOTE: If grep-based reading of glidein_config needs to be replaced with
+    # gconfig_xxx functions, make sure that the script that calls this function has
+    # imported add_config_line.source file
     if [[ -n "$glidein_config" ]]; then
         ret=$(grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-)
     fi

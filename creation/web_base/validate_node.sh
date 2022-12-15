@@ -72,7 +72,12 @@ function check_quotas {
 # Assume all functions exit on error
 config_file="$1"
 
-error_gen="`grep '^ERROR_GEN_PATH ' "$config_file" | cut -d ' ' -f 2-`"
+# import add_config_line and add_condor_vars_line functions
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
+# shellcheck source=./add_config_line.source
+. "$add_config_line_source"
+
+error_gen=$(gconfig_get ERROR_GEN_PATH "$config_file")
 
 #
 # Check space on current directory

@@ -530,7 +530,7 @@ if [[ -e "$glidein_config" ]]; then    # was: [ -n "$glidein_config" ] && [ "$gl
     if [[ -z "$SOURCED_ADD_CONFIG_LINE" ]]; then
         # import add_config_line and add_condor_vars_line functions used in advertise
         if [[ -z "$add_config_line_source" ]]; then
-            add_config_line_source=$(grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
+            add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
             export add_config_line_source
         fi
         if [[ -e "$add_config_line_source" ]]; then

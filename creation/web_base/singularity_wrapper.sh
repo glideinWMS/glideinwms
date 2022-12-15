@@ -95,7 +95,7 @@ fi
 # TODO: Should I quit if glidein_config is not available?
 
 # error_gen defined also in singularity_lib.sh
-[[ -e "$glidein_config" ]] && error_gen="$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)"
+[[ -e "$glidein_config" ]] && error_gen=$(grep -m1 '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)
 
 if [[ -z "$3" ]]; then
     # initial invocation w/o script

@@ -6,16 +6,16 @@
 # first parameter passed to this script will always be the glidein configuration file (glidein_config)
 glidein_config=$1
 
-# fetch the error reporting helper script
-error_gen=$(grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}')
-
 # import add_config_line function
-add_config_line_source=$(grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}')
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | awk '{print $2}')
 # shellcheck source=./add_config_line.source
-. $add_config_line_source
+. "$add_config_line_source"
+
+# fetch the error reporting helper script
+error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
 # get the cvmfsexec attribute switch value from the config file
-use_cvmfsexec=$(grep '^GLIDEIN_USE_CVMFSEXEC ' $glidein_config | awk '{print $2}')
+use_cvmfsexec=$(gconfig_get GLIDEIN_USE_CVMFSEXEC "$glidein_config")
 # TODO: int or string?? if string, make the attribute value case insensitive
 #use_cvmfsexec=${use_cvmfsexec,,}
 
@@ -27,7 +27,7 @@ fi
 # if GLIDEIN_USE_CVMFSEXEC is set to 1 - check if CVMFS is locally available in the node
 # validate CVMFS by examining the directories within CVMFS... checking just one directory should be sufficient?
 # get the glidein work directory location from glidein_config file
-work_dir=$(grep '^GLIDEIN_WORK_DIR ' $glidein_config | awk '{print $2}')
+work_dir=$(gconfig_get GLIDEIN_WORK_DIR "$glidein_config")
 # $PWD=/tmp/glide_xxx and every path is referenced with respect to $PWD
 
 # source the helper script
@@ -47,13 +47,13 @@ fi
 
 # if CVMFS is not found locally...
 # get the CVMFS source information from <attr> in the glidein configuration
-cvmfs_source=$(grep '^CVMFS_SRC ' $glidein_config | awk '{print $2}')
+cvmfs_source=$(gconfig_get CVMFS_SRC "$glidein_config")
 
 # get the directory where cvmfsexec is unpacked
-glidein_cvmfsexec_dir=$(grep '^CVMFSEXEC_DIR ' $glidein_config | awk '{print $2}')
+glidein_cvmfsexec_dir=$(gconfig_get CVMFSEXEC_DIR "$glidein_config")
 
 # get the CVMFS requirement setting passed as one of the factory attributes
-glidein_cvmfs=$(grep '^GLIDEIN_CVMFS ' $glidein_config | awk '{print $2}')
+glidein_cvmfs=$(gconfig_get GLIDEIN_CVMFS "$glidein_config")
 
 perform_system_check
 
@@ -81,7 +81,7 @@ if [[ -n "$mount_point" && "$mount_point" != TARGET* ]]; then
     if [[ -n "$mount_point" && "$mount_point" != /cvmfs ]]; then
         CVMFS_MOUNT_DIR="$mount_point"
         export CVMFS_MOUNT_DIR
-        add_config_line CVMFS_MOUNT_DIR "$mount_point"
+        gconfig_add CVMFS_MOUNT_DIR "$mount_point"
     fi
 fi
 

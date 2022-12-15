@@ -16,22 +16,23 @@
 glidein_config="$1"
 tmp_fname="${glidein_config}.$$.tmp"
 
-error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
-
-condor_vars_file="`grep -i "^CONDOR_VARS_FILE " "$glidein_config" | cut -d ' ' -f 2-`"
-
 # import add_config_line and add_condor_vars_line functions
-add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
-source "$add_config_line_source"
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
+# shellcheck source=./add_config_line.source
+. "$add_config_line_source"
+
+error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
+
+condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
 
 # Use GLIDEIN_MaxMemMBs if configured by the factory
-GLIDEIN_MaxMemMBs=`grep -i "^GLIDEIN_MaxMemMBs " "$glidein_config" | cut -d ' ' -f 2-`
+GLIDEIN_MaxMemMBs=$(gconfig_get GLIDEIN_MaxMemMBs "$glidein_config")
 
 if [ "${GLIDEIN_MaxMemMBs}" = "" ]; then
     echo "`date` GLIDEIN_MaxMemMBs not set in $glidein_config."
 
     # Calculate Mem/CPU if the VO prefers an approx value
-    estimate=`grep -i "^GLIDEIN_MaxMemMBs_Estimate " $glidein_config | awk '{print $2}' | tr [:lower:] [:upper:]`
+    estimate=$(gconfig_get GLIDEIN_MaxMemMBs_Estimate "$glidein_config" | tr [:lower:] [:upper:])
 
     if [ "$estimate" = "TRUE" ]; then
         echo "`date` Estimating Max memory based on the CPUs and total memory."
@@ -39,7 +40,7 @@ if [ "${GLIDEIN_MaxMemMBs}" = "" ]; then
         # Figure out how much free memory is available
         mem=`free -m | grep "^Mem:" | awk '{print $2}'`
 
-        glidein_cpus=`grep -i "^GLIDEIN_CPUS " "$glidein_config" | cut -d ' ' -f 2-`
+        glidein_cpus=$(gconfig_get GLIDEIN_CPUS "$glidein_config")
 
         if [ "$glidein_cpus" != "" ]; then
             # GLIDEIN_CPUS is set. Set Max to all the free. Let HTCondor handle the memory.
@@ -76,7 +77,7 @@ fi
 # Export the GLIDEIN_MaxMemMBs
 echo "`date` Setting GLIDEIN_MaxMemMBs=$GLIDEIN_MaxMemMBs"
 
-add_config_line MEMORY "${GLIDEIN_MaxMemMBs}"
+gconfig_add MEMORY "${GLIDEIN_MaxMemMBs}"
 add_condor_vars_line MEMORY "C" "-" "+" "N" "N" "-"
 
 "$error_gen" -ok "glidein_memory_setup.sh" "MaxMemMBs" "${GLIDEIN_MaxMemMBs}"

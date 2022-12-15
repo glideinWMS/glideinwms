@@ -3,22 +3,24 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+# NOTE: any script that imports this script to use the functions defined must also import add_config_line.source
+
 ############################################
 # Get entry/client/group work dir
 # Arg: type (main/entry/client/client_group)
 get_work_dir() {
     case "$1" in
         main)
-            grep "^GLIDEIN_WORK_DIR " "${glidein_config}" | cut -d ' ' -f 2-
+            gconfig_get GLIDEIN_WORK_DIR "${glidein_config}"
             return $?;;
         entry)
-            grep "^GLIDEIN_ENTRY_WORK_DIR " "${glidein_config}" | cut -d ' ' -f 2-
+            gconfig_get GLIDEIN_ENTRY_WORK_DIR "${glidein_config}"
             return $?;;
         client)
-            grep "^GLIDECLIENT_WORK_DIR " "${glidein_config}" | cut -d ' ' -f 2-
+            gconfig_get GLIDECLIENT_WORK_DIR "${glidein_config}"
             return $?;;
         client_group)
-            grep "^GLIDECLIENT_GROUP_WORK_DIR " "${glidein_config}" | cut -d ' ' -f 2-
+            gconfig_get GLIDECLIENT_GROUP_WORK_DIR "${glidein_config}"
             return $?;;
         *)
             echo "[get_work_dir] Invalid id: $1" 1>&2
@@ -32,16 +34,16 @@ get_work_dir() {
 get_descript_file() {
     case "$1" in
         main)
-            grep "^DESCRIPTION_FILE " "${glidein_config}" | cut -d ' ' -f 2-
+            gconfig_get DESCRIPTION_FILE "${glidein_config}"
             return $?;;
         entry)
-            grep "^DESCRIPTION_ENTRY_FILE " "${glidein_config}" | cut -d ' ' -f 2-
+            gconfig_get DESCRIPTION_ENTRY_FILE "${glidein_config}"
             return $?;;
         client)
-            grep "^GLIDECLIENT_DESCRIPTION_FILE " "${glidein_config}" | cut -d ' ' -f 2-
+            gconfig_get GLIDECLIENT_DESCRIPTION_FILE "${glidein_config}"
             return $?;;
         client_group)
-            grep "^GLIDECLIENT_DESCRIPTION_GROUP_FILE " "${glidein_config}" | cut -d ' ' -f 2-
+            gconfig_get GLIDECLIENT_DESCRIPTION_GROUP_FILE "${glidein_config}"
             return $?;;
         *)
             echo "[get_descript_file] Invalid id: $1" 1>&2
@@ -55,16 +57,16 @@ get_descript_file() {
 get_signature() {
     case "$1" in
         main)
-            grep "^GLIDEIN_Signature " "${glidein_config}" | cut -d ' ' -f 2-
+            gconfig_get GLIDEIN_Signature "${glidein_config}"
             return $?;;
         entry)
-            grep "^GLIDEIN_Entry_Signature " "${glidein_config}" | cut -d ' ' -f 2-
+            gconfig_get GLIDEIN_Entry_Signature "${glidein_config}"
             return $?;;
         client)
-            grep "^GLIDECLIENT_Signature " "${glidein_config}" | cut -d ' ' -f 2-
+            gconfig_get GLIDECLIENT_Signature "${glidein_config}"
             return $?;;
         client_group)
-            grep "^GLIDECLIENT_Group_Signature " "${glidein_config}" | cut -d ' ' -f 2-
+            gconfig_get GLIDECLIENT_Group_Signature "${glidein_config}"
             return $?;;
         *)
             echo "[get_signature] Invalid id: $1" 1>&2

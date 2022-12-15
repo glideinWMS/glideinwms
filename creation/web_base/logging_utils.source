@@ -139,8 +139,9 @@ log_init() {
         warn "log_init: glidein_config not defined in ${0}. Logging will not work here."
         return 2
     else
-        add_config_line_source="$(grep '^ADD_CONFIG_LINE_SOURCE ' "${glidein_config}" | cut -d ' ' -f 2-)"
-        source "${add_config_line_source}"
+        add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "${glidein_config}" | cut -d ' ' -f 2-)
+        # shellcheck source=./add_config_line.source
+        . "${add_config_line_source}"
     fi
 
     logdir="logs/${1}"
@@ -150,17 +151,17 @@ log_init() {
     log_relative_basepath="${2}"
 
     # Export configuration
-    add_config_line "GLIDEIN_LOGDIR" "${logdir}"
-    add_config_line "GLIDEIN_STDOUT_LOGFILE" "${stdout_logfile}"
-    add_config_line "GLIDEIN_STDERR_LOGFILE" "${stderr_logfile}"
-    add_config_line "GLIDEIN_LOG_LOGFILE" "${log_logfile}"
-    add_config_line "GLIDEIN_LOG_RELATIVE_BASEPATH" "${log_relative_basepath}"
+    gconfig_add "GLIDEIN_LOGDIR" "${logdir}"
+    gconfig_add "GLIDEIN_STDOUT_LOGFILE" "${stdout_logfile}"
+    gconfig_add "GLIDEIN_STDERR_LOGFILE" "${stderr_logfile}"
+    gconfig_add "GLIDEIN_LOG_LOGFILE" "${log_logfile}"
+    gconfig_add "GLIDEIN_LOG_RELATIVE_BASEPATH" "${log_relative_basepath}"
     if [ -n "${LOG_RECIPIENTS}" ]; then
-        add_config_line "GLIDEIN_LOG_RECIPIENTS" "${LOG_RECIPIENTS}"
+        gconfig_add "GLIDEIN_LOG_RECIPIENTS" "${LOG_RECIPIENTS}"
     fi
 
     # Setup tokens to authenticate with log servers
-    log_recipients=($(grep '^GLIDEIN_LOG_RECIPIENTS ' "${glidein_config}" | cut -d ' ' -f 2-))
+    log_recipients=($(gconfig_get GLIDEIN_LOG_RECIPIENTS "${glidein_config}"))
     local no_send=0
     if [ "${#log_recipients[@]}" -eq 0 ]; then
         warn "log_init: no recipients configured. Logs will still be produced, but not forwarded to remote servers."
@@ -179,8 +180,8 @@ log_init() {
         no_send=1
     fi
 
-    add_config_line "CURL_VERSION" "${curl_version}"
-    add_config_line "GLIDEIN_LOG_NO_SEND" "${no_send}"
+    gconfig_add "CURL_VERSION" "${curl_version}"
+    gconfig_add "GLIDEIN_LOG_NO_SEND" "${no_send}"
 
     # Create the necessary folders
     mkdir -p "${logdir}/shards/creating"
@@ -197,7 +198,7 @@ log_init() {
     echo "$(date): Started logging stdout on file too"
     echo "$(date): Started logging stderr on file too" >&2
 
-    add_config_line "GLIDEIN_LOG_INITIALIZED" "1"
+    gconfig_add "GLIDEIN_LOG_INITIALIZED" "1"
 }
 
 
@@ -218,20 +219,20 @@ log_setup() {
         return 1
     fi
 
-    log_initialized="$(grep '^GLIDEIN_LOG_INITIALIZED ' "${glidein_config}" | cut -d ' ' -f 2-)"
+    log_initialized=$(gconfig_get GLIDEIN_LOG_INITIALIZED "${glidein_config}")
     if [ "${log_initialized}" != 1 ]; then
         warn_ready "log_setup: apparently the logging configuration has not been initialiazed yet (${0}). Logging will not work here."
         return 1
     fi
 
-    logdir="$(grep '^GLIDEIN_LOGDIR ' "${glidein_config}" | cut -d ' ' -f 2-)"
-    stdout_logfile="$(grep '^GLIDEIN_STDOUT_LOGFILE ' "${glidein_config}" | cut -d ' ' -f 2-)"
-    stderr_logfile="$(grep '^GLIDEIN_STDERR_LOGFILE ' "${glidein_config}" | cut -d ' ' -f 2-)"
-    log_logfile="$(grep '^GLIDEIN_LOG_LOGFILE ' "${glidein_config}" | cut -d ' ' -f 2-)"
-    log_recipients=($(grep '^GLIDEIN_LOG_RECIPIENTS ' "${glidein_config}" | cut -d ' ' -f 2-))
-    log_no_send="$(grep '^GLIDEIN_LOG_NO_SEND ' "${glidein_config}" | cut -d ' ' -f 2-)"
-    log_relative_basepath="$(grep '^GLIDEIN_LOG_RELATIVE_BASEPATH ' "${glidein_config}" | cut -d ' ' -f 2-)"
-    curl_version="$(grep '^CURL_VERSION ' "${glidein_config}" | cut -d ' ' -f 2-)"
+    logdir=$(gconfig_get GLIDEIN_LOGDIR "${glidein_config}")
+    stdout_logfile=$(gconfig_get GLIDEIN_STDOUT_LOGFILE "${glidein_config}")
+    stderr_logfile=$(gconfig_get GLIDEIN_STDERR_LOGFILE "${glidein_config}")
+    log_logfile=$(gconfig_get GLIDEIN_LOG_LOGFILE "${glidein_config}")
+    log_recipients=($(gconfig_get GLIDEIN_LOG_RECIPIENTS "${glidein_config}"))
+    log_no_send=$(gconfig_get GLIDEIN_LOG_NO_SEND "${glidein_config}")
+    log_relative_basepath=$(gconfig_get GLIDEIN_LOG_RELATIVE_BASEPATH "${glidein_config}")
+    curl_version=$(gconfig_get CURL_VERSION "${glidein_config}")
 
     if [ "${log_no_send}" -ne 0 ]; then
         log_no_send=1
@@ -282,7 +283,7 @@ log_write() {
     cur_time_ns=$(date +%s%N)   # enough to ensure that shards have different timestamps
 
     # Source encoding utilities
-    b64uuencode_source="$(grep '^B64UUENCODE_SOURCE ' "${glidein_config}" | cut -d ' ' -f 2-)"
+    b64uuencode_source=$(gconfig_get B64UUENCODE_SOURCE "${glidein_config}")
     source "${b64uuencode_source}"
 
     # Argument $1 (invoker)
