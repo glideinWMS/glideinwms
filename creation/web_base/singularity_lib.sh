@@ -1251,7 +1251,7 @@ singularity_exec_simple() {
     local error exit_code
     { error=$(singularity_exec "$singularity_bin" "$singularity_image" "$singularity_binds" \
             "$GLIDEIN_SINGULARITY_OPTS" "$GLIDEIN_SINGULARITY_GLOBAL_OPTS" "" "${@}" 2>&1 >&3 3>&-); } 3>&1
-    exit_code=$1
+    exit_code=$?
     echo "$error" >&2
     if [[ $exit_code -eq 0 ]] && echo "$error" | grep -q "^FATAL:"; then
         warn "singularity/apptainer exited w/ 0 but seems to have a FATAL error reported in stderr"
