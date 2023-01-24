@@ -18,6 +18,24 @@ Alias /vofrontend /var/lib/gwms-frontend/web-area
     Options -Indexes
 </Directory>
 
+
+# TRACE and TRACK are not used in GlideinWMS and not recommended in production
+# Add the following line in httpd.conf to disable trace on the whole server
+# TraceEnable Off
+#
+# The lines below will disable unused methods using mod_rewrite
+# Use the following RewriteCondition to just disable trace/track and
+# allow more method beside get/post/head
+#     RewriteCondition %{REQUEST_METHOD} ^(TRACE|TRACK)
+# or comment completely if you need also track and trace or
+# mod_rewrite uses too much CPU
+<IfModule mod_rewrite.c>
+    RewriteEngine on
+    RewriteCond %{REQUEST_METHOD} !^(GET|POST|HEAD)
+    RewriteRule .* - [F]
+</IfModule>
+
+
 # Comment the following line to turn off https redirect
 RewriteEngine On
 #=========================
