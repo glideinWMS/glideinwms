@@ -362,7 +362,7 @@ class VOFrontendParams(cWParams.CommonParams):
             None,
         )
         security_defaults["idtoken_lifetime"] = (
-            "24",
+            None,
             "idtoken_lifetime",
             "The lifetime of the idtoken used connect WN startds to the VO collector (in hours)",
             None,
