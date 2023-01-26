@@ -1300,6 +1300,19 @@ def unit_work_v3(
                 % (scitoken_file, str(submit_credentials.identity_credentials))
             )
 
+    if ("grid_proxy" in auth_method) or ("scitoken" in auth_method):
+        # Check if project id is required
+        if "project_id" in auth_method:
+            if "ProjectId" in decrypted_params:
+                submit_credentials.add_identity_credential("ProjectId", decrypted_params["ProjectId"])
+            else:
+                # ProjectId is required, cannot service request
+                entry.log.warning(
+                    "Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping request."
+                    % (client_int_name, entry.name)
+                )
+                return return_dict
+
     if "scitoken" in auth_method:
         if os.path.exists(scitoken_file):
             if token_util.token_file_expired(scitoken_file):
@@ -1320,18 +1333,6 @@ def unit_work_v3(
         ########################
         # ENTRY TYPE: Grid Sites
         ########################
-
-        # Check if project id is required
-        if "project_id" in auth_method:
-            if "ProjectId" in decrypted_params:
-                submit_credentials.add_identity_credential("ProjectId", decrypted_params["ProjectId"])
-            else:
-                # ProjectId is required, cannot service request
-                entry.log.warning(
-                    "Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping request."
-                    % (client_int_name, entry.name)
-                )
-                return return_dict
 
         # Check if voms_attr required
         if "voms_attr" in auth_method:
