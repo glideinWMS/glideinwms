@@ -104,8 +104,6 @@ def validate_match(loc_str, match_str, factory_attrs, job_attrs, attr_dict, poli
     # Now that we have validated the match_attrs, compile match_obj
     try:
         match_obj = compile(match_str, "<string>", "exec")
-        #        if 'GLIDEIN_Site' not in env['glidein']['attrs']:
-        #            import pdb;pdb.set_trace()
         eval(match_obj, env)
     except KeyError as e:
         raise RuntimeError(f"Invalid {loc_str} match_expr '{match_str}': Missing attribute {e}")
@@ -1120,6 +1118,8 @@ def populate_common_descript(descript_dict, params):
         descript_dict.add("ProxySelectionPlugin", params.security.proxy_selection_plugin)
     if params.security.idtoken_lifetime is not None:
         descript_dict.add("IDTokenLifetime", params.security.idtoken_lifetime)
+    if params.security.idtoken_keyname is not None:
+        descript_dict.add("IDTokenKeyname", params.security.idtoken_keyname)
 
     if len(params.security.credentials) > 0:
         proxies = []

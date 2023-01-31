@@ -367,6 +367,12 @@ class VOFrontendParams(cWParams.CommonParams):
             "The lifetime of the idtoken used connect WN startds to the VO collector (in hours)",
             None,
         )
+        security_defaults["idtoken_keyname"] = (
+            None,
+            "idtoken_keyname",
+            "The keyname used to generate the idtoken used by the startd to connect to the collector. also used for the filename.",
+            None,
+        )
 
         self.group_defaults = cWParams.CommentedOrderedDict()
         self.group_defaults["match"] = match_defaults

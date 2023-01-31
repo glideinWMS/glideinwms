@@ -252,6 +252,7 @@ class glideinFrontendElement:
                 group_dir, glideinFrontendPlugins.createCredentialList(self.elementDescript)
             )
         self.idtoken_lifetime = int(self.elementDescript.merged_data.get("IDTokenLifetime", 24))
+        self.idtoken_keyname = self.elementDescript.merged_data.get("IDTokenKeyname", "FRONTEND")
 
         # set the condor configuration and GSI setup globally, so I don't need to worry about it later on
         os.environ["CONDOR_CONFIG"] = self.elementDescript.frontend_data["CondorConfig"]
@@ -1107,7 +1108,7 @@ class glideinFrontendElement:
                 pwd_dir = "/var/lib/gwms-frontend/passwords.d"
                 tkn_file = os.path.join(tkn_dir, f"{self.group_name}.{glidein_site}.idtoken")
                 pwd_file = os.path.join(pwd_dir, glidein_site)
-                pwd_default = os.path.join(pwd_dir, "FRONTEND")
+                pwd_default = os.path.join(pwd_dir, self.idtoken_keyname)
                 one_hr = 3600
                 tkn_age = sys.maxsize
 
