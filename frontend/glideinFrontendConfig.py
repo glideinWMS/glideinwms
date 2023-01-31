@@ -317,7 +317,7 @@ class ElementMergedDescript:
         # We use default ProxySelectionPlugin
         self.merged_data["ProxySelectionPlugin"] = "ProxyAll"
 
-        for t in ("ProxySelectionPlugin", "SecurityName", "IDTokenLifetime"):
+        for t in ("ProxySelectionPlugin", "SecurityName", "IDTokenLifetime", "IDTokenKeyname"):
             for data in (self.frontend_data, self.element_data):
                 if t in data:
                     self.merged_data[t] = data[t]
