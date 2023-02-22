@@ -630,8 +630,12 @@ class DictFileTwoKeys(DictFile):
         return True  # everything is compatible
 
 
-# descriptions
 class DescriptionDictFile(DictFileTwoKeys):
+    """Dictionary file used for descriptions.
+
+    These are file lists sent to the Glidein and parsed to download the listed files
+    """
+
     def format_val(self, key, want_comments):
         return f"{self.vals[key]} \t{key}"
 
@@ -647,8 +651,12 @@ class DescriptionDictFile(DictFileTwoKeys):
         return self.add(arr[1], arr[0])
 
 
-# gridmap file
 class GridMapDict(DictFileTwoKeys):
+    """Dictionary file (:class:DictFile) with the GrigMap file information
+
+    The dictionary is keyed both by DN and user
+    """
+
     def file_header(self, want_comments):
         return None
 
@@ -676,10 +684,10 @@ class GridMapDict(DictFileTwoKeys):
         return self.add(dn, user)
 
 
-##################################
-# signatures
 class SHA1DictFile(DictFile):
-    """Dictionary of SHA1 signatures
+    """Dictionary file (:class:DictFile) with SHA1 signatures of files
+
+    This is used to send to the Glidein files checksums.
     Saved as "SHA1   FNAME" lines
     """
 
@@ -731,10 +739,10 @@ class SHA1DictFile(DictFile):
         return self.add(arr[1], arr[0])
 
 
-# summary signatures
-# values are (sha1,fname2)
 class SummarySHA1DictFile(DictFile):
-    """Summary dictionary w/ SHA1 signatures, values are (sha1, fname2)
+    """Dictionary file (:class:DictFile) with a Summary w/ SHA1 signatures
+
+    Values are (sha1, fname2)
     Saved as "SHA1   FNAME2   FNAME" lines
     """
 
@@ -807,8 +815,9 @@ class SummarySHA1DictFile(DictFile):
 
 
 class SimpleFileDictFile(DictFile):
-    """Dictionary of files that holds also the content of the file as the last element in the values. Value is a tuple.
+    """Dictionary (:class:DictFile) of files that holds also the content of the file as the last element in the values.
 
+    Value is a tuple.
     The dictionary is serialized using a file (dictionary file), one item per line.
     Each item is a file, identified by a file name, with an optional attribute (value) and the file content.
     File names are key. All files are in the same directory of the dictionary (self.dir).
@@ -1162,8 +1171,12 @@ class FileDictFile(SimpleFileDictFile):
         """Parse a line of serialized FileDictFile files and add it to the dictionary
 
         Each line is a tab separated tuple w/ the key and the attributes describing the entry (see class description )
-        :param line: string with the line content
-        :return: tuple with DATA_LENGTH-1 values
+
+        Args:
+            line: string with the line content
+
+        Returns:
+            tuple: tuple with DATA_LENGTH-1 values
         """
         if not line or line[0] == "#":
             return  # ignore empty lines and comments
@@ -1202,11 +1215,11 @@ class FileDictFile(SimpleFileDictFile):
     def reuse(self, other, compare_dir=False, compare_fname=False, compare_files_fname=False):
         """Reuse the entry value (and file) if an item in the "other" dictionary shares the same attributes and content
 
-        :param other: other dictionary
-        :param compare_dir: reuse only if the serialized dictionary is in the same directory (Default: False)
-        :param compare_fname: reuse only if the serialized dictionary has the same name (Default: False)
-        :param compare_files_fname: reuse only if the item file name is the same (Default: False)
-        :return: None
+        Args:
+            other (FileDictFile): other dictionary
+            compare_dir (bool): reuse only if the serialized dictionary is in the same directory (Default: False)
+            compare_fname (bool): reuse only if the serialized dictionary has the same name (Default: False)
+            compare_files_fname (bool): reuse only if the item file name is the same (Default: False)
         """
         if compare_dir and (self.dir != other.dir):
             return  # nothing to do, different dirs
@@ -1231,9 +1244,13 @@ class FileDictFile(SimpleFileDictFile):
         return
 
 
-# will convert values into python format before writing them out
-#   given that it does not call any parent methods, implement an interface first
 class ReprDictFileInterface:
+    """Interface for a dictionary file (:class:DictFile) saving the Python representation
+
+    Will convert values into python format before writing them out
+    Given that it does not call any parent methods, implement an interface first
+    """
+
     def format_val(self, key, want_comments):
         return f"{key} \t{repr(self.vals[key])}"
 
@@ -1258,24 +1275,34 @@ class ReprDictFileInterface:
         raise NotImplementedError("This function must never be called")
 
 
-#   this one actually has the full semantics
 class ReprDictFile(ReprDictFileInterface, DictFile):
+    """Dictionary file (:class:DictFile) saving the Python representation of the items
+
+    Uses the :class:ReprDictFileInterface interface and inherits from the actual DictFile
+    """
+
     pass
 
 
-# will hold only strings
 class StrDictFile(DictFile):
+    """Dictionary file (:class:DictFile) holding only strings
+
+    All values are converted to strings when added to the dictionary.
+    And they are saved to the file and loaded from the file as string.
+    """
+
     def add(self, key, val, allow_overwrite=False):
         DictFile.add(self, key, str(val), allow_overwrite)
 
 
-# will save only strings
-# while populating, it may hold other types
-# not guaranteed to have typed values on (re-)load
 class StrWWorkTypeDictFile(StrDictFile):
-    """will save only strings
-    while populating, it may hold other types
-    not guaranteed to have typed values on (re-)load
+    """Dictionary file (:class:DictFile) saving only strings in the file
+
+    This extends the :class:StrDictFile  dictionary file.
+    The values are converted to strings when added,
+    but `typed_vals`, retrievable with :func:get_typed_val, contain the typed values.
+    Values are saved to the file and loaded from the file as string.
+    It is not guaranteed to have typed values on (re-)load.
     """
 
     def __init__(self, dir, fname, sort_keys=False, order_matters=False, fname_idx=None):  # if none, use fname
@@ -1300,7 +1327,16 @@ class StrWWorkTypeDictFile(StrDictFile):
 
 
 class VarsDictFile(DictFile):
-    """DictFile class, values are (Type,Default,CondorName,Required,Export,UserName)"""
+    """Dictionary file (:class:DictFile) to store variables' information.
+
+    This is used store or to transfer to the Glidein variables lists.
+    The key is the variable name.
+    Values are (Type,Default,CondorName,Required,Export,UserName).
+    The CondorName is the name to use in the HTCSS configuration
+     (special keyworks: `+` the same as the variable name)
+    The UserName is the name to use in the job environment
+     (special keyworks: `+` the same as the variable name, `@` the same as the HTCSS name, `-` do not export)
+    """
 
     def is_compatible(self, old_val, new_val):
         return (old_val[0] == new_val[0]) and (
@@ -1402,7 +1438,7 @@ class VarsDictFile(DictFile):
 
 
 class SimpleFile(DictFile):
-    """DictFile with the content of a file
+    """Dictionary file (:class:DictFile) with the content of a file
 
     This class holds the content of the whole file in the single bytes value with key 'content'.
     Any other key is invalid.
@@ -1468,7 +1504,7 @@ class SimpleFile(DictFile):
 
 
 class ExeFile(SimpleFile):
-    """DictFile with the content of an executable file
+    """Dictionary file (:class:DictFile) with the content of an executable file
 
     This class holds the content of the whole file in the single bytes value with key 'content'.
     Any other key is invalid.
@@ -1529,7 +1565,7 @@ class ExeFile(SimpleFile):
 
 
 class dirSupport:
-    """abstract class for a directory creation"""
+    """Abstract class for a directory creation"""
 
     def create_dir(self, fail_if_exists=True):
         """Create the directory
