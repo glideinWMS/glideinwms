@@ -12,25 +12,6 @@ from subprocess import CalledProcessError
 # __str__ of this class is not printing the stdout in the error message
 
 
-# TODO: remove once the import from subprocess is proven to work
-#    Helper functions below have been remoced as well since they are the same as in subprocess and seem not used
-# Exception classes used by this module.
-class CalledProcessError2(Exception):
-    """This exception is raised when a process run by check_call() or
-    check_output() returns a non-zero exit status.
-    The exit status will be stored in the returncode attribute;
-    check_output() will also store the output in the output attribute.
-    """
-
-    def __init__(self, returncode, cmd, output=None):
-        self.returncode = returncode
-        self.cmd = cmd
-        self.output = output
-
-    def __str__(self):
-        return f"Command '{self.cmd}' returned non-zero exit status {self.returncode}: {self.output}"
-
-
 def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True):
     """
     Fork a process and execute cmd - rewritten to use select to avoid filling
