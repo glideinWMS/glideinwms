@@ -1645,6 +1645,21 @@ MAX_STARTD_LOG          I       10000000        +                               
               </p>
             </td>
           </tr>
+          <tr>
+            <td id="CONTINUE_IF_NO_PROXY"><b>CONTINUE_IF_NO_PROXY</b></td>
+            <td>String (Bool)</td>
+
+            <td>
+              <p>
+                Variable to control the transition from x509 to tokens. Defaults
+                to false. When set to true, Factory entries with auth_method
+                "grid_proxy" are used also when there is only a scitoken
+                credential and no proxy. When False, the default, a proxy is
+                required to submit to those entries, but if there is also a
+                scitoken it is sent along together with the proxy.
+              </p>
+            </td>
+          </tr>
         </table>
       </div>
 

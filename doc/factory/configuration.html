@@ -1010,7 +1010,13 @@ SPDX-License-Identifier: Apache-2.0
                 It is advertised to the Frontends to show which credentials are
                 required for submission. Valid values: grid_proxy, voms_proxy,
                 key_pair, cert_pair, username_password, vm_type, vm_id,
-                project_id, scitoken<br />
+                project_id, scitoken.<br />
+                See
+                <a href="custom_vars.html#CONTINUE_IF_NO_PROXY"
+                  >CONTINUE_IF_NO_PROXY</a
+                >
+                to find out how the authentication method matching is altered to
+                ease the transition from grid_proxy to scitoken.<br />
                 Multiple authentication methods may be needed and there may be
                 reqirements on the authentication method depending on the type
                 of entry. E.g. ec2 requires a credential pair (key_pair,
