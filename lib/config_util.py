@@ -108,6 +108,7 @@ class ProgramError(Exception):
         1: "File not found",
         2: "Site not found",
         3: "CE not found",
+        4: "Do not use BEST_FIT",
     }
 
     def __init__(self, code):
