@@ -16,6 +16,7 @@ SPDX-License-Identifier: Apache-2.0
 ### Bug Fixes
 
 -   Make sure default value does not overwrite global one for idtoken_lifetime (PR #261)
+-   Add a parameter to control the name of the keyname for idtokens (PR ???)
 
 ### Testing / Development
 

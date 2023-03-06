@@ -873,11 +873,17 @@ class glideinFrontendElement:
                 gp_encrypt = {}
                 # see if site supports condor token
                 ctkn = self.refresh_entry_token(glidein_el)
-                if ctkn:
+                expired = token_util.token_str_expired(ctkn)
+                entry_token_name = "%s.idtoken" % glidein_el["attrs"].get("EntryName", "condor")
+                if ctkn and not expired:
                     # mark token for encrypted advertisement
-                    entry_token_name = "%s.idtoken" % glidein_el["attrs"].get("EntryName", "condor")
                     logSupport.log.debug("found condor token: %s" % entry_token_name)
                     gp_encrypt[entry_token_name] = ctkn
+                else:
+                    if expired:
+                        logSupport.log.debug("found EXPIRED condor token: %s" % entry_token_name)
+                    else:
+                        logSupport.log.debug("could NOT find condor token: %s" % entry_token_name)
 
                 # now try to generate a credential using a generator plugin
                 generator_name, stkn = self.generate_credential(
@@ -1120,6 +1126,8 @@ class glideinFrontendElement:
                 if not os.path.exists(pwd_file):
                     if os.path.exists(pwd_default):
                         pwd_file = pwd_default
+                    else:
+                        logSupport.log.warning("cannot find pwd file %s" % pwd_default)
 
                 if os.path.exists(tkn_file):
                     tkn_age = time.time() - os.stat(tkn_file).st_mtime
