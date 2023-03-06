@@ -171,8 +171,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         enc_input_files.append("$ENV(IDTOKENS_FILE:)")
         self.add_environment("IDTOKENS_FILE=$ENV(IDTOKENS_FILE:)")
 
-        if gridtype not in ["ec2", "gce"]:
+        if gridtype not in ["ec2", "gce"] and not (gridtype=="arc" and auth_method=="grid_proxy"):
             self.add("+SciTokensFile", '"$ENV(SCITOKENS_FILE:)"')
+        self.add("+x509UserProxy", '"$ENV(X509_USER_PROXY:)"')
 
         # Folders and files of tokens for glidein logging authentication
         # leos token stuff, left it in for now

@@ -28,6 +28,7 @@ This release fixes a bug introduced in 3.10.0. Changes since the last release
 ### New features / functionalities
 
 -   Added utility function to replace error_gen in python scripts (PR #254)
+-   Improve the generation of JDL file for ARC CE REST interface
 
 ### Changed defaults / behaviours
 
