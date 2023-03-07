@@ -16,7 +16,7 @@ import os
 import os.path
 import shutil
 
-from glideinwms.lib import pubCrypto
+from glideinwms.lib import pubCrypto, subprocessSupport
 from glideinwms.lib.util import str2bool
 
 from . import cgWConsts, cgWCreate, cgWDictFile, cWConsts, cWDictFile, cWExpand, factoryXmlConfig
@@ -297,7 +297,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         )
         self.dicts["untar_cfg"].add(pychirp_tarball, "lib/python/htchirp")
 
-        # Add cvmfsexec
+        # Add helper scripts for on-demand cvmfs provisioning, conditional upon the attribute GLIDEIN_USE_CVMFSEXEC
         # Add cvmfsexec helper script enabled by conditional download
         cvmfs_helper = "cvmfs_helper_funcs.sh"
         self.dicts["file_list"].add_from_file(
@@ -318,48 +318,71 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             os.path.join(cgWConsts.WEB_BASE_DIR, dist_select_script),
         )
 
-        # get the location of the tarballs created during reconfig/upgrade
-        distros_loc = os.path.join(self.work_dir, "cvmfsexec/tarballs")
-        try:
-            distros = [
-                d for d in os.listdir(distros_loc) if d.startswith("cvmfsexec")
-            ]  # added protection with try-except here
-        except FileNotFoundError:
-            print(f"{distros_loc} does not exist.")
-        except NotADirectoryError:
-            print(f"{distros_loc} is not a directory.")
-        if len(distros) == 0:
-            print("Distributions for cvmfsexec not found... Skipping tarball creation.")
-        else:
-            for cvmfsexec_idx in range(len(distros)):  # TODO: os.scandir() is more efficient with python 3.x
-                distro_info = distros[cvmfsexec_idx].split("_")
-                try:
-                    distro_arch_temp = (
-                        distro_info[3] + "_" + distro_info[4]
-                    )  # added protection with try-except and continue if fail
-                except:
-                    print(f"Wrong subdirectory cvmfsexec/tarballs/{distro_info}")
-                    continue
-                distro_arch = distro_arch_temp.split(".")[0]
-                # register the tarball, but make download conditional to cond_name
-                cvmfsexec_fname = cWConsts.insert_timestr(cgWConsts.CVMFSEXEC_DISTRO_FILE % cvmfsexec_idx)
+        # Check if cvmfsexec distributions need to be built/rebuilt
+        populate_cvmfsexec_build_config(self.dicts["build_cvmfsexec"], self.conf)
+        print(self.dicts["build_cvmfsexec"].vals)
+        cfgs = self.dicts["build_cvmfsexec"]["sources"]  # returns string type
+        mtypes = self.dicts["build_cvmfsexec"]["platforms"]  # returns string type
+        print(f"cfgs: {cfgs}")
+        print(f"mtypes: {mtypes}")
+        # validation checks already would have been done at the time of reading from the factory xml file; so variables cfgs and mtypes cannot be empty by this point in the execution
+        # if cfgs and mtypes:
+        #     print("(Re)Building of cvmfsexec distributions... DISABLED!")
+        #     # print("Ignoring the (re)building of cvmfsexec distributions...")
+        # else:
+        # framing the arguments to the subprocess wrapper as a string
+        # executing the cvmfsexec distribution building script can be done without explicitly specifying the location of the script since it is in the PATH variable (directory is /usr/bin/ which is set as the standard for the RPM installation)
+        args = "create_cvmfsexec_distros.sh " + cfgs + " " + mtypes
+        print(f"args: {args}")
+        cvmfsexec_distros_build_out = subprocessSupport.iexe_cmd(args)
+        print(cvmfsexec_distros_build_out)  # prints the output from the shell script executed in the previous line
 
-                platform = f"{distro_info[1]}-{distro_info[2]}-{distro_arch}"
-                cvmfsexec_cond_name = "CVMFSEXEC_PLATFORM_%s" % platform
-                cvmfsexec_platform_fname = cgWConsts.CVMFSEXEC_DISTRO_FILE % platform
+        if cfgs and mtypes:
+            # get the location of the tarballs created during reconfig/upgrade
+            distros_loc = os.path.join(self.work_dir, "cvmfsexec/tarballs")
+            try:
+                distros = [
+                    d for d in os.listdir(distros_loc) if d.startswith("cvmfsexec")
+                ]  # added protection with try-except here
+            except FileNotFoundError:
+                print(f"{distros_loc} does not exist.")
+            except NotADirectoryError:
+                print(f"{distros_loc} is not a directory.")
+            if len(distros) == 0:
+                print("Distributions for cvmfsexec not found... Skipping tarball creation.")
+            else:
+                for cvmfsexec_idx in range(len(distros)):  # TODO: os.scandir() is more efficient with python 3.x
+                    distro_info = distros[cvmfsexec_idx].split("_")
+                    try:
+                        distro_arch_temp = (
+                            distro_info[3] + "_" + distro_info[4]
+                        )  # added protection with try-except and continue if fail
+                    except:
+                        print(f"Wrong subdirectory cvmfsexec/tarballs/{distro_info}")
+                        continue
+                    distro_arch = distro_arch_temp.split(".")[0]
+                    # register the tarball, but make download conditional to cond_name
+                    cvmfsexec_fname = cWConsts.insert_timestr(cgWConsts.CVMFSEXEC_DISTRO_FILE % cvmfsexec_idx)
 
-                self.dicts["file_list"].add_from_file(
-                    cvmfsexec_platform_fname,
-                    cWDictFile.FileDictFile.make_val_tuple(
-                        cvmfsexec_fname, "untar", cond_download=cvmfsexec_cond_name, config_out=cgWConsts.CVMFSEXEC_ATTR
-                    ),
-                    os.path.join(distros_loc, distros[cvmfsexec_idx]),
-                )
+                    platform = f"{distro_info[1]}-{distro_info[2]}-{distro_arch}"
+                    cvmfsexec_cond_name = "CVMFSEXEC_PLATFORM_%s" % platform
+                    cvmfsexec_platform_fname = cgWConsts.CVMFSEXEC_DISTRO_FILE % platform
 
-                self.dicts["untar_cfg"].add(cvmfsexec_platform_fname, cgWConsts.CVMFSEXEC_DIR)
-                # Add cond_name in the config, so that it is known
-                # But leave it disabled by default
-                self.dicts["consts"].add(cvmfsexec_cond_name, "0", allow_overwrite=False)
+                    self.dicts["file_list"].add_from_file(
+                        cvmfsexec_platform_fname,
+                        cWDictFile.FileDictFile.make_val_tuple(
+                            cvmfsexec_fname,
+                            "untar",
+                            cond_download=cvmfsexec_cond_name,
+                            config_out=cgWConsts.CVMFSEXEC_ATTR,
+                        ),
+                        os.path.join(distros_loc, distros[cvmfsexec_idx]),
+                    )
+
+                    self.dicts["untar_cfg"].add(cvmfsexec_platform_fname, cgWConsts.CVMFSEXEC_DIR)
+                    # Add cond_name in the config, so that it is known
+                    # But leave it disabled by default
+                    self.dicts["consts"].add(cvmfsexec_cond_name, "0", allow_overwrite=False)
         ### for dynamic selection of cvmfsexec distribution -- block end
 
         # make sure condor_startup does not get executed ahead of time under normal circumstances
@@ -1277,6 +1300,16 @@ def populate_frontend_descript(frontend_dict, conf):  # will be modified
             maps[sc_name] = username
 
         frontend_dict.add(fe_name, {"ident": ident, "usermap": maps})
+
+
+#####################################################
+# Create the cvmfsexec knob config file
+def populate_cvmfsexec_build_config(cvmfsexec_dict, conf):
+    cvmfsexec_distro = conf.get_child("cvmfsexec_distro")
+    configurations = cvmfsexec_distro["sources"]
+    system_architectures = cvmfsexec_distro["platforms"]
+    cvmfsexec_dict.add("sources", configurations)
+    cvmfsexec_dict.add("platforms", system_architectures)
 
 
 #####################################################

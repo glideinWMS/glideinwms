@@ -150,6 +150,9 @@ SPDX-License-Identifier: Apache-2.0
          <untar_options cond_attr="TRUE"/>
       </file>
    </files>
+   <!-- required to control rebuilding of cvmfsexec distributions; by default, sources and types attributes are empty -->
+   <!-- empty attributes indicate that the building of cvmfsexec distributions are not performed every time factory reconfig/upgrade is performed-->
+   <cvmfsexec_distro sources="" platforms="" />
    <!-- monitoring collectors are optional -->
    <monitoring_collectors>
       <!-- required: DN, node -->
