@@ -1127,7 +1127,7 @@ class glideinFrontendElement:
                     if os.path.exists(pwd_default):
                         pwd_file = pwd_default
                     else:
-                        logSupport.log.warning("cannot find pwd file %s" % pwd_default)
+                        logSupport.log.warning(f"cannot find pwd HTCSS key file '{pwd_default}'.")
 
                 if os.path.exists(tkn_file):
                     tkn_age = time.time() - os.stat(tkn_file).st_mtime
