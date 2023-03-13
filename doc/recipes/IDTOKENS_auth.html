@@ -339,12 +339,21 @@ glideclientglobal gfactory_instance@gfactory_service@Frontend-master-v1_0.main v
           <p>
             Starting with version 3.7.3, when the VOFrontend requests glideins
             from a Factory Entry, it sends a self-generated IDTOKEN to be
-            included in the glidein payload. The newly generated IDTOKEN is
-            encrypted and passed to the Factory, then on to the CE. When the
-            glidein starts, it attempts to use the payload IDTOKEN to
+            included in the glidein payload. By default, the Frontend generates
+            IDTOKENS lasting 24 hours using the key file
+            <tt>/var/lib/gwms-frontend/passwords.d/FRONTEND</tt>. Since v3.10.2
+            the duration, <tt>idtoken_lifetime</tt>, and key file,
+            <tt>idtoken_keyname</tt>, are configurable. The newly generated
+            IDTOKEN is encrypted and passed to the Factory, then on to the CE.
+            When the glidein starts, it attempts to use the payload IDTOKEN to
             authenticate back to the VOFrontend collector. If IDTOKENS
             authentication fails for some reason, GSI authentication to the
             VOFrontend is attempted.
+          </p>
+          <p>
+            NOTE that HTCSS is not renewing this IDTOKEN after the Glidein
+            starts (for HTCondor batch systems) or after the Glidein is queued
+            (all others)
           </p>
 
           <div class="subsection">
@@ -458,6 +467,28 @@ glideclientglobal gfactory_instance@gfactory_service@Frontend-master-v1_0.main v
             GlideinWMS are addressed <a href="SciToken_auth.html">here</a>.
           </li>
         </ul>
+      </div>
+      <div class="section">
+        <h2 id="FrontendCollector" class="western">
+          VOFrontend, VOCollector and Schedds
+        </h2>
+        <p>
+          The Frontend needs to query both the Users Collector and Schedds and
+          to publish ClassAds to the former. If they are on the same host, the y
+          will use the FS authentication already in the default configuration.
+          Otherwise, you have to configure a valid authentication method. If GSI
+          is no more supported you can create a Frontend token:
+        </p>
+        <pre>
+        condor_token_create -key GPGRID_IDTOKENS_SIGNING_KEY -token FR_NAME.token -lifetime 31556952 -authz READ -authz WRITE -authz DAEMON -identity FR_NAME@FR_HOST@DOMAIN
+      </pre
+        >
+        <p>
+          NOTE The required write and deamon authorizations. The key can be any
+          file in the User Collector key directory, even the FRONTEND key. The
+          token has to be placed in the Frontend token directory,
+          <tt>~FRONTEND_USER/.condor/tokens.d</tt>
+        </p>
       </div>
       <div class="section">
         <h2 id="Useful" class="western">Useful Links</h2>
