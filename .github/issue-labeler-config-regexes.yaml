@@ -25,39 +25,44 @@ FEATURE:
 
 # regular expressions for labeling stakeholders for an issue is listed in this block
 cms:
-  - 'Stakeholder: *(Concerned stakeholder\(s\) *)?\[?(CMS|Cms|cms)\]?'
+  - 'Stakeholders: *(?:Concerned stakeholder\(s\) *)?\[?.*(\b(?:CMS|Cms|cms)\b)'
 factoryops:
-  - 'Stakeholder: *(Concerned stakeholder\(s\) *)?\[?([Ff]actory[Oo]ps)\]?'
+  - 'Stakeholders: *(?:Concerned stakeholder\(s\) *)?\[?.*(\b[Ff]actory[Oo]ps\b)'
 fermilab:
-  - 'Stakeholder: *(Concerned stakeholder\(s\) *)?\[?([Ff]ermilab)\]?'
+  - 'Stakeholders: *(?:Concerned stakeholder\(s\) *)?\[?.*(\b[Ff]ermilab\b)'
 fife:
-  - 'Stakeholder: *(Concerned stakeholder\(s\) *)?\[?(FIFE|Fife|fife)\]?'
+  - 'Stakeholders: *(?:Concerned stakeholder\(s\) *)?\[?.*(\b(?:FIFE|Fife|fife)\b)'
+hepcloud:
+  - 'Stakeholders: *(?:Concerned stakeholder\(s\) *)?\[?.*(\b[Hh][Ee][Pp][Cc][Ll][Oo][Uu][Dd]\b)'
 # Historically IGWN had the LIGO name
 igwn:
-  - 'Stakeholder: *(Concerned stakeholder\(s\) *)?\[?(IGWN|Igwn|igwn|LIGO|Ligo|ligo)\]?'
+  - 'Stakeholders: *(?:Concerned stakeholder\(s\) *)?\[?.*(\b(?:IGWN|Igwn|igwn|LIGO|Ligo|ligo)\b)'
 osg:
-  - 'Stakeholder: *(Concerned stakeholder\(s\) *)?\[?(OSG|Osg|osg)\]?'
+  - 'Stakeholders: *(?:Concerned stakeholder\(s\) *)?\[?.*(\b(?:OSG|[Oo]sg)\b)'
 # if new stakeholders need to be included, add them here
+other-sh:
+  - 'Stakeholders: *(?:Concerned stakeholder\(s\) *)?\[?((?:\b(?!Concerned stakeholder|CMS|Cms|cms|[Ff]actory[Oo]ps|[Ff]ermilab|FIFE|Fife|fife|[Hh][Ee][Pp][Cc][Ll][Oo][Uu][Dd]|IGWN|Igwn|igwn|LIGO|Ligo|ligo|OSG|[Oo]sg)\b)[^, \n\]]+)\]?'
 
 # regular expressions for labeling affected components for an issue is listed in this block
 frontend:
-  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?[Ff]rontend(?! [Mm]onitoring)\]?'
+  - 'Components: *(?:The affected component,? (?:due to this bug|if any, from this feature) *)?\[?.*(\b[Ff]rontend(?! [Mm]onitoring)\b)'
 factory:
-  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?[Ff]actory(?! [Mm]onitoring)\]?'
+  - 'Components: *(?:The affected component,? (?:due to this bug|if any, from this feature) *)?\[?.*(\b[Ff]actory(?! [Mm]onitoring)\b)'
 glidein:
-  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?[Gg]lidein\]?'
+  - 'Components: *(?:The affected component,? (?:due to this bug|if any, from this feature) *)?\[?.*(\b[Gg]lidein\b)'
 documentation:
-  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?([Dd]ocumentation)\]?'
+  - 'Components: *(?:The affected component,? (?:due to this bug|if any, from this feature) *)?\[?.*(\b[Dd]ocumentation\b)'
 ci-testing:
-  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?(CI|ci|[Tt]esting)\]?'
+  - 'Components: *(?:The affected component,? (?:due to this bug|if any, from this feature) *)?\[?.*(\b(CI|ci|[Tt]esting)\b)'
 release:
-  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?[Rr]elease\]?'
+  - 'Components: *(?:The affected component,? (?:due to this bug|if any, from this feature) *)?\[?.*(\b[Rr]elease\b)'
 factory-mon:
-  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?[Ff]actory(?= [Mm]onitoring)\]?'
+  - 'Components: *(?:The affected component,? (?:due to this bug|if any, from this feature) *)?\[?.*(\b[Ff]actory(?= [Mm]onitoring)\b)'
 frontend-mon:
-  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?[Ff]rontend(?= [Mm]onitoring)\]?'
-other:
-  - 'Component: *(The affected component,? (due to this bug|if any, from this feature) *)?\[?(?![Ff]rontend(?= [Mm]onitoring)|[Ff]actory(?! [Mm]onitoring)|[Gg]lidein|[Dd]ocumentation|(CI|ci|[Tt]esting)|[Rr]elease|[Ff]actory(?= [Mm]onitoring)|[Ff]rontend(?= [Mm]onitoring))\]?'
+  - 'Components: *(?:The affected component,? (?:due to this bug|if any, from this feature) *)?\[?.*(\b[Ff]rontend(?= [Mm]onitoring)\b)'
+other-comp:
+  - 'Components: *(?:The affected component,? (?:due to this bug|if any, from this feature) *)?\[?((?:\b(?!The affected|[Ff]rontend [Mm]onitoring|[Ff]actory|[Gg]lidein|[Dd]ocumentation|(CI|ci|[Tt]esting)|[Rr]elease|[Ff]actory [Mm]onitoring|[Ff]rontend)\b)[^, \n\]]+)\]?'
+# This line flags other names, but will not work if they are in the list after known ones
 # if there are any other possible components that need to be added to the list above, add them here when needed
 
 # TODO: regular expressions for labeling release info for an issue is listed in this block
