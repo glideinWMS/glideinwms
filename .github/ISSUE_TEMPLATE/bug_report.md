@@ -19,14 +19,16 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots and/or console outputs to help explain your problem.
 
 **Info (please complete the following information):**
+Stakeholders and components can be a comma separated list or on multiple lines.
+If you add a new stakeholder or component, not on the sample list, add it on a line by its own. 
 
--   GlideinWMS version
+-   GlideinWMS version:
 -   Python version:
 -   OS version:
 -   HTCondor version:
 -   Priority: Priority level of this bug [critical, high, medium, low]
--   Stakeholder: Concerned stakeholder(s) [CMS, FactoryOps, Fermilab, FIFE, IGWN, OSG]. Repeat this line if you need multiple stakeholders.
--   Component: The affected component due to this bug [frontend, factory, glidein, documentation, CI, testing, release, factory monitoring, frontend monitoring, ...]. . Repeat this line if you need multiple components.
+-   Stakeholders: Concerned stakeholder(s) [CMS, FactoryOps, Fermilab, FIFE, HEPCloud, IGWN, OSG]
+-   Components: The affected component due to this bug [frontend, factory, glidein, documentation, CI, testing, release, factory monitoring, frontend monitoring, ...]
 
 **Additional context**
 Add any other context or supporting files about the problem here.
