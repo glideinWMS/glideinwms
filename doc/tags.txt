@@ -1,3 +1,8 @@
+v3_10_2
+	RC, TO ADD
+	Bug fix: TO_ADD
+	NOTE: Please see all the notes in 3.9.6 about the custom script changes
+
 v3_10_1
 	Added utility function to replace error_gen in python scripts (PR#254)
 	Bug fix: Fixed status reporting for `gconfig.py`  (PR#254)
