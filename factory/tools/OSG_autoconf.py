@@ -32,15 +32,21 @@ from glideinwms.lib.config_util import (
 )
 
 
-def load_config():
+def parse_opts():
     """Load few parameters from the configuration file"""
     parser = argparse.ArgumentParser(prog="OSG_autoconf")
+
     parser.add_argument("config", nargs=1, help="The configuration file")
+
+    parser.add_argument(
+        "--cache-fallback",
+        action='store_true',
+        help="Apply changes in the whitelist yaml files even if the collector is not responding. Uses the OSG_YAML cached data"
+    )
+
     args = parser.parse_args()
 
-    config = get_yaml_file_info(args.config[0])
-
-    return config
+    return args
 
 
 def get_vos(allowed_vos):
@@ -600,15 +606,22 @@ def create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_col
     return new_missing
 
 
-def main():
+def main(args):
     """The main"""
-    config = load_config()
-    # Queries the OSG collector
-    result = get_information(config["OSG_COLLECTOR"])
-    # Create the file for the missing CEs
-    create_missing_file(config, result)
-    # Write the received information to the OSG.yml file
-    write_to_yaml_file(config["OSG_YAML"], result)
+    config = get_yaml_file_info(args.config[0])
+    try:
+        # Queries the OSG collector
+        result = get_information(config["OSG_COLLECTOR"])
+        # Create the file for the missing CEs
+        create_missing_file(config, result)
+        # Write the received information to the OSG.yml file
+        write_to_yaml_file(config["OSG_YAML"], result)
+    except htcondor.HTCondorIOError as e:
+        print("\033[91mWARNING!\033[0m The query to the collector %s returned the following error '%s'." % (config["OSG_COLLECTOR"], str(e)))
+        if args.cache_fallback is True:
+            print("Will continue and merge the yaml file using the old cached data in %s." % config["OSG_YAML"])
+        else:
+            raise ProgramError(5)
     # Merges different yaml files: the defaults, the generated one, and the factory overrides
     for white_list in sorted(config["OSG_WHITELISTS"]):
         result = merge_yaml(config, white_list)
@@ -619,8 +632,10 @@ def main():
 
 
 if __name__ == "__main__":
+    # Argument parsing out of the try/except because it has its own error handling/exception throwing 
+    args = parse_opts()
     try:
-        main()
+        main(args)
     except ProgramError as merr:
         print("\033[91mError! \033[0m" + ProgramError.codes_map[merr.code])
         sys.exit(merr.code)
