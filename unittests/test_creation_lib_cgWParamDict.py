@@ -14,6 +14,7 @@ Author:
 """
 
 import os
+import sys
 import unittest
 
 from unittest import mock
@@ -46,6 +47,15 @@ except ImportError as err:
     raise TestImportError(str(err))
 
 XML = "fixtures/factory/glideinWMS.xml"
+
+# We assume that this module is in the unittest directory
+module_globals = globals()
+unittest_dir = os.path.dirname(os.path.realpath(module_globals["__file__"]))
+
+if "GLIDEINWMS_LOCATION" in os.environ:
+    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "creation"))
+else:
+    sys.path.append(os.path.join(unittest_dir, "../creation"))
 
 
 class TestGlideinDicts(unittest.TestCase):
@@ -221,4 +231,5 @@ class TestCalcPrimaryMonitoringCollectors(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    print("Now running the unittest for cgWParamDict.py")
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))
