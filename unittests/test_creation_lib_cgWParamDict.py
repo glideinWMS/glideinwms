@@ -231,5 +231,4 @@ class TestCalcPrimaryMonitoringCollectors(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    print("Now running the unittest for cgWParamDict.py")
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))

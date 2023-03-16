@@ -15,6 +15,7 @@
 import os
 import os.path
 import shutil
+import sys
 
 from glideinwms.lib import pubCrypto, subprocessSupport
 from glideinwms.lib.util import str2bool
@@ -320,23 +321,21 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # Check if cvmfsexec distributions need to be built/rebuilt
         populate_cvmfsexec_build_config(self.dicts["build_cvmfsexec"], self.conf)
-        print(self.dicts["build_cvmfsexec"].vals)
         cfgs = self.dicts["build_cvmfsexec"]["sources"]  # returns string type
         mtypes = self.dicts["build_cvmfsexec"]["platforms"]  # returns string type
-        print(f"cfgs: {cfgs}")
-        print(f"mtypes: {mtypes}")
         # validation checks already would have been done at the time of reading from the factory xml file; so variables cfgs and mtypes cannot be empty by this point in the execution
-        # if cfgs and mtypes:
-        #     print("(Re)Building of cvmfsexec distributions... DISABLED!")
-        #     # print("Ignoring the (re)building of cvmfsexec distributions...")
-        # else:
         # framing the arguments to the subprocess wrapper as a string
         # executing the cvmfsexec distribution building script can be done without explicitly specifying the location of the script since it is in the PATH variable (directory is /usr/bin/ which is set as the standard for the RPM installation)
+        # for debugging
+        print(f"Current working directory: {os.getcwd()}", file=sys.stderr)
+        print(f"{os.environ.get('srcdir')}")
         args = "create_cvmfsexec_distros.sh " + cfgs + " " + mtypes
-        print(f"args: {args}")
+        # for debugging
+        print(f"cfgs: '{cfgs}'", file=sys.stderr)
+        print(f"mtypes: '{mtypes}'", file=sys.stderr)
+        print(f"Debug command sent: '{args}'", file=sys.stderr)
         cvmfsexec_distros_build_out = subprocessSupport.iexe_cmd(args)
         print(cvmfsexec_distros_build_out)  # prints the output from the shell script executed in the previous line
-
         if cfgs and mtypes:
             # get the location of the tarballs created during reconfig/upgrade
             distros_loc = os.path.join(self.work_dir, "cvmfsexec/tarballs")
@@ -383,8 +382,16 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                     # Add cond_name in the config, so that it is known
                     # But leave it disabled by default
                     self.dicts["consts"].add(cvmfsexec_cond_name, "0", allow_overwrite=False)
-        ### for dynamic selection of cvmfsexec distribution -- block end
-
+            ### for dynamic selection of cvmfsexec distribution -- block end
+        else:
+            print("=======================!!WARNING!!========================")
+            print(
+                "There might be existing cvmfsexec distributions, from a \nprevious factory reconfig that might be obsolete in case \n"
+                "a newer version of cvmfsexec exists. If using the on-demand \nCVMFS provisioning feature, it is recommended to build \n"
+                "the cvmfsexec distributions from scratch so that the latest \nversion of distributions are shipped with the glideins."
+            )
+            print("==========================================================")
+            print("...Ignoring building/rebuilding of cvmfsexec distributions.")
         # make sure condor_startup does not get executed ahead of time under normal circumstances
         # but must be loaded early, as it also works as a reporting script in case of error
         self.dicts["description"].add(cgWConsts.CONDOR_STARTUP_FILE, "last_script")
