@@ -45,7 +45,7 @@ mach_type=${os_distro}${os_ver}-${krnl_arch}
 cvmfsexec_platform="${cvmfs_src}-${mach_type}"
 cvmfsexec_platform_id="CVMFSEXEC_PLATFORM_$cvmfsexec_platform"
 
-# add the attribute to enable the appropriate distro file
+# add the attribute to enable the appropriate distro file to be downloaded and unpacked
 gconfig_add "$cvmfsexec_platform_id" "1"
 
 # if everything goes well, report the good part too!

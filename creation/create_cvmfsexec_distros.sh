@@ -125,15 +125,13 @@ build_cvmfsexec_distros() {
 ####################### MAIN SCRIPT STARTS FROM HERE #######################
 
 if [[ $# -eq 0 ]]; then
-	echo "(re)Building of cvmfsexec distributions disabled!"
+	echo "Building/Rebuilding of cvmfsexec distributions disabled!"
 	exit 0
 else
 	configurations=$1
 	machine_types=$2
 fi
 
-echo "configurations set to $configurations"
-echo "machine_types set to $machine_types"
-echo "(re)Building of cvmfsexec distributions enabled!"
+echo "Building/Rebuilding of cvmfsexec distributions enabled!"
 
 build_cvmfsexec_distros "$configurations" "$machine_types"

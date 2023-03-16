@@ -183,11 +183,11 @@ class CvmfsexecDistroElement(xmlConfig.DictElement):
             if self.getPlatforms():
                 raise RuntimeError(
                     self.err_str(
-                        "'sources' attribute cannot be empty. \n'sources' is a required attribute; must at least be a single value or a comma-separated list of values from the following options: {osg, egi, default}."
+                        "'platforms' attribute cannot have a value when 'sources' attribute is empty. \nTo add a cvmfsexec distribution, 'sources' must be a single value or a comma-separated list of values from the following options: {osg, egi, default}."
                     )
                 )
             else:
-                return self["sources"], self["platforms"]
+                return self.getSources(), self.getPlatforms()
         else:
             if not self.getPlatforms():
                 self.setPlatforms()
