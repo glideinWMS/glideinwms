@@ -261,6 +261,7 @@ Requires: python36-requests
 Requires: python36-jwt
 %endif
 Requires: python3-rrdtool
+Requires: PyYAML
 Requires(post): /sbin/service
 Requires(post): /usr/sbin/useradd
 Requires(post): /sbin/chkconfig
