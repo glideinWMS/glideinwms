@@ -117,7 +117,7 @@ copy_all() {
    # should it copy also hidden files?
    mkdir -p "$2"
    for f in *; do
-       [[ -e "${f}" ]] || break    # TODO: should this be a continue?
+       [[ -e "${f}" ]] || break    # protect for nullglob TODO: should this be a continue?
        if [[ "${f}" = ${1}* ]]; then
            continue
        fi
@@ -1028,31 +1028,6 @@ set_proxy_fullpath() {
 
 num_gct=0
 
-# TODO: this is covered in setup_x590,sh - remove once verified
-#for tk in "$(pwd)/credential_"*".idtoken"; do
-#  echo "Setting GLIDEIN_CONDOR_TOKEN to ${tk} " 1>&2
-#  num_gct=$(( num_gct + 1 ))
-#  export GLIDEIN_CONDOR_TOKEN="${tk}"
-#  fullpath="$(readlink -f "${tk}" )"
-#  if [ $? -eq 0 ]; then
-#     echo "Setting GLIDEIN_CONDOR_TOKEN ${tk} to canonical path ${fullpath}" 1>&2
-#     export GLIDEIN_CONDOR_TOKEN="${fullpath}"
-#  else
-#     echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN ${tk}" 1>&2
-#  fi
-#done
-#if [ ! -f "${GLIDEIN_CONDOR_TOKEN}" ] ; then
-#    token_err_msg="problem setting GLIDEIN_CONDOR_TOKEN"
-#    token_err_msg="${token_err_msg} will attempt to recover, but condor IDTOKEN auth may fail"
-#    echo "${token_err_msg}"
-#    echo "${token_err_msg}" 1>&2
-#fi
-#if [ ! "${num_gct}" -eq  1 ] ; then
-#    token_err_msg="WARNING  GLIDEIN_CONDOR_TOKEN set ${num_gct} times, should be 1 !"
-#    token_err_msg="${token_err_msg} condor IDTOKEN auth may fail"
-#    echo "${token_err_msg}"
-#    echo "${token_err_msg}" 1>&2
-#fi
 
 ########################################
 # prepare and move to the work directory

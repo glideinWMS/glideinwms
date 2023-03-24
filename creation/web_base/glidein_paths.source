@@ -50,7 +50,8 @@ gwms_process_scripts() {
         return
     fi
     for i in * ; do
-        [[ "$i" = *.ignore ]] && continue
+        [[ -e "$i" ]] || continue  # protect against nullglob (no match)
+        [[ "$i" != *.ignore ]] || continue
         if [[ -x "$i" ]]; then
             # run w/ some protection?
             "./$i" "$cfg_file"

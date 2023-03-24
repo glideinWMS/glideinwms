@@ -69,6 +69,7 @@ refresh_credentials() {
         to_dir=$(dirname "${token_to}")
         if [[ -d "${from_dir}" && -d "${to_dir}" ]]; then
             for tok in "${from_dir}"/*.idtoken; do
+                [[ -e "$tok" ]] || continue  # protect against nullglob (no match)
                 cp "${tok}" "${to_dir}" && refreshed="True"
             done
         else
@@ -313,6 +314,7 @@ copy_idtokens() {
         return 1
     fi
     for i in *.idtoken; do
+        [[ -e "$i" ]] || continue  # protect against nullglob (no match)
         if cp "$i" "$to_dir/$i"; then
             if [[ "$i" == ce_*.idtoken ]]; then
                 warn "Copied CE collector token '${i}' to '${to_dir}/'"
@@ -468,7 +470,7 @@ _main() {
                     export X509_USER_PROXY_ORIG="$X509_USER_PROXY"
                     export X509_USER_PROXY="$out"
                     if out=$(get_x509_expiration "$X509_USER_PROXY"); then
-                        # Copy succesfull and proxy valid, set values in glidein_config
+                        # Copy successful and proxy valid, set values in glidein_config
                         gconfig_add X509_CERT_DIR   "$X509_CERT_DIR"
                         gconfig_add X509_USER_PROXY "$X509_USER_PROXY"
                         gconfig_add X509_USER_PROXY_ORIG "$X509_USER_PROXY_ORIG"

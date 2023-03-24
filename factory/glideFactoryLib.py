@@ -1809,6 +1809,7 @@ def get_submit_environment(
         if "frontend_condortoken" in submit_credentials.identity_credentials:
             exe_env.append("IDTOKENS_FILE=%s" % submit_credentials.identity_credentials["frontend_condortoken"])
         else:
+            # TODO: this ends up transferring an empty file called 'null' in the Glidein start dir. Find a better way
             exe_env.append("IDTOKENS_FILE=/dev/null")
 
         # The parameter list to be added to the arguments for glidein_startup.sh
