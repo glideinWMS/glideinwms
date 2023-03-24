@@ -18,7 +18,7 @@ SPDX-License-Identifier: Apache-2.0
 ### Bug Fixes
 
 -   Make sure default value does not overwrite global one for idtoken_lifetime (PR #261)
--   Protect OSG_autoconf from OSG collector unavailability (PR #276) 
+-   Protect OSG_autoconf from OSG collector unavailability (PR #276)
 
 ### Testing / Development
 
