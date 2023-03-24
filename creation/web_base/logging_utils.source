@@ -373,6 +373,7 @@ log_coalesce_shards() {
             pushd shards/coalescing > /dev/null
             sed -i '$ {s/]$/,/}' "${log_logfile}"   # replace last square bracket with comma
             for shd in *.shard; do                  # concatenate separating with comma
+                [[ -e "$shd" ]] || continue  # protect against nullglob (no match)
                 cat "${shd}"
                 echo ","
             done >> "${log_logfile}"
