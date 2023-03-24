@@ -239,7 +239,8 @@ SPDX-License-Identifier: Apache-2.0
             <a href="#security"
               >&lt;security classad_proxy="/etc/grid-security/hostcert.pem"
               comment="use hostcert here if not doing GSI authentication through
-              GWMS versions 3.6.5" idtoken_lifetime="24" idtoken_keyname="FRONTEND"
+              GWMS versions 3.6.5" idtoken_lifetime="24"
+              idtoken_keyname="FRONTEND"
               proxy_DN="/DC=org/DC=doegrids/OU=Services/CN=frontend-server.fnal.gov"
               proxy_selection_plugin="ProxyAll" security_name="frontenduser"
               sym_key="aes_256_cbc"&gt;</a
@@ -713,8 +714,9 @@ SPDX-License-Identifier: Apache-2.0
               factory. <br />
               The idtoken_lifetime is used to indicate the number of hours the
               idtoken is valid. The idtoken is used on the worker node to
-              connect back to the VO collector. It is possible to set the
-              key used to generate these token by using the idtoken_keyname parameter.
+              connect back to the VO collector. It is possible to set the key
+              used to generate these token by using the idtoken_keyname
+              parameter.
               <br />For A GSI free configuration, set the classad_proxy to
               "/etc/grid-security/hostcert.pem" and set up a scitoken in the
               &lt;credentials&gt; section below.

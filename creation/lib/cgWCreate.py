@@ -171,7 +171,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         enc_input_files.append("$ENV(IDTOKENS_FILE:)")
         self.add_environment("IDTOKENS_FILE=$ENV(IDTOKENS_FILE:)")
 
-        if gridtype not in ["ec2", "gce"] and not (gridtype=="arc" and auth_method=="grid_proxy"):
+        if gridtype not in ["ec2", "gce"] and not (gridtype == "arc" and auth_method == "grid_proxy"):
             self.add("+SciTokensFile", '"$ENV(SCITOKENS_FILE:)"')
 
         # Folders and files of tokens for glidein logging authentication
@@ -243,7 +243,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.populate_condorc_grid()
         elif gridtype == "arc":
             # not adding a function for one line for the moment
-            self.add("x509UserProxy", '$ENV(X509_USER_PROXY:)')
+            self.add("x509UserProxy", "$ENV(X509_USER_PROXY:)")
         else:
             self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
 

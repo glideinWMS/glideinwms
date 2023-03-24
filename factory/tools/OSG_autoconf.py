@@ -40,8 +40,8 @@ def parse_opts():
 
     parser.add_argument(
         "--cache-fallback",
-        action='store_true',
-        help="Apply changes in the whitelist yaml files even if the collector is not responding. Uses the OSG_YAML cached data"
+        action="store_true",
+        help="Apply changes in the whitelist yaml files even if the collector is not responding. Uses the OSG_YAML cached data",
     )
 
     args = parser.parse_args()
@@ -617,7 +617,10 @@ def main(args):
         # Write the received information to the OSG.yml file
         write_to_yaml_file(config["OSG_YAML"], result)
     except htcondor.HTCondorIOError as e:
-        print("\033[91mWARNING!\033[0m The query to the collector %s returned the following error '%s'." % (config["OSG_COLLECTOR"], str(e)))
+        print(
+            "\033[91mWARNING!\033[0m The query to the collector %s returned the following error '%s'."
+            % (config["OSG_COLLECTOR"], str(e))
+        )
         if args.cache_fallback is True:
             print("Will continue and merge the yaml file using the old cached data in %s." % config["OSG_YAML"])
         else:
@@ -632,7 +635,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    # Argument parsing out of the try/except because it has its own error handling/exception throwing 
+    # Argument parsing out of the try/except because it has its own error handling/exception throwing
     args = parse_opts()
     try:
         main(args)
