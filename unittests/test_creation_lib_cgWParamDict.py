@@ -52,10 +52,23 @@ XML = "fixtures/factory/glideinWMS.xml"
 module_globals = globals()
 unittest_dir = os.path.dirname(os.path.realpath(module_globals["__file__"]))
 
+# Prepending to the PATH to be first in the search
 if "GLIDEINWMS_LOCATION" in os.environ:
-    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "creation"))
+    os.environ["PATH"] = (
+        os.path.join(os.environ["GLIDEINWMS_LOCATION"], "unittests", "fixtures", "bin")
+        + os.pathsep
+        + os.path.join(os.environ["GLIDEINWMS_LOCATION"], "creation")
+        + os.pathsep
+        + os.environ["PATH"]
+    )
 else:
-    sys.path.append(os.path.join(unittest_dir, "../creation"))
+    os.environ["PATH"] = (
+        os.path.join(unittest_dir, "fixtures", "bin")
+        + os.pathsep
+        + os.path.join(unittest_dir, "../creation")
+        + os.pathsep
+        + os.environ["PATH"]
+    )
 
 
 class TestGlideinDicts(unittest.TestCase):
