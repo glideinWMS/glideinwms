@@ -15,7 +15,6 @@
 import os
 import os.path
 import shutil
-import sys
 
 from glideinwms.lib import pubCrypto, subprocessSupport
 from glideinwms.lib.util import str2bool
@@ -326,14 +325,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # validation checks already would have been done at the time of reading from the factory xml file; so variables cfgs and mtypes cannot be empty by this point in the execution
         # framing the arguments to the subprocess wrapper as a string
         # executing the cvmfsexec distribution building script can be done without explicitly specifying the location of the script since it is in the PATH variable (directory is /usr/bin/ which is set as the standard for the RPM installation)
-        if not (cfgs and mtypes):
-            # when configurations and mtypes are missing, rebuilding should be disabled; not necessary to pass --work-dir option
-            args = " ".join(["create_cvmfsexec_distros.sh", cfgs, mtypes])
-        else:
-            args = " ".join(["create_cvmfsexec_distros.sh", "--work-dir", self.work_dir, cfgs, mtypes])
+        args = " ".join(["create_cvmfsexec_distros.sh", "--work-dir", self.work_dir, cfgs, mtypes])
         cvmfsexec_distros_build_out = subprocessSupport.iexe_cmd(args)
         print(cvmfsexec_distros_build_out)  # prints the output from the shell script executed in the previous line
-        if cfgs and mtypes:
+        if cfgs:  # since 'sources' is a required attribute and therefore used as a control knob
             # get the location of the tarballs created during reconfig/upgrade
             distros_loc = os.path.join(self.work_dir, "cvmfsexec/tarballs")
             try:

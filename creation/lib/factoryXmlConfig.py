@@ -186,8 +186,6 @@ class CvmfsexecDistroElement(xmlConfig.DictElement):
                         "'platforms' attribute cannot have a value when 'sources' attribute is empty. \nTo add a cvmfsexec distribution, 'sources' must be a single value or a comma-separated list of values from the following options: {osg, egi, default}."
                     )
                 )
-            else:
-                return self.getSources(), self.getPlatforms()
         else:
             if not self.getPlatforms():
                 self.setPlatforms()
@@ -199,6 +197,7 @@ class CvmfsexecDistroElement(xmlConfig.DictElement):
         return self["platforms"]
 
     def setPlatforms(self):
+        # TODO: add rhel9, other rhel derivatives and other suse derivatives supported by cvmfsexec eventually
         self["platforms"] = "rhel7-x86_64,rhel8-x86_64,suse15-x86_64"
 
 

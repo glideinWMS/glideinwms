@@ -3,27 +3,32 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+# This script generates cvmfsexec distributions for various cvmfs configurations
+# and supported machine types, as supported by the open-source cvmfsexec utility.
+
 # Hardcoded variables
 CVMFSEXEC_REPO="https://www.github.com/cvmfs/cvmfsexec.git"
 DEFAULT_WORK_DIR="/var/lib/gwms-factory/work-dir"
+# TODO: add rhel9, other rhel derivatives and opensuse derivatives to the default list below eventually
+DEFAULT_MACHINE_TYPES="rhel7-x86_64,rhel8-x86_64,suse15-x86_64"
 
 usage() {
-	echo "This script generates cvmfsexec distributions for various cvmfs configurations and supported machine types."
-	echo "Usage: $0 [--work-dir DIR] SOURCES_LIST PLATFORMS_LIST"
-	echo ""
-	echo "DIR: full, absolute path to the factory work directory"
-	echo ""
-	echo "SOURCES_LIST: specifies the source(s) to download the latest cvmfs "
-	echo "configuration and repositories from. Must be at least one value or "
-	echo "a comma-separated list of values from the options {osg|egi|default}."
-	echo ""
-	echo "PLATFORMS_LIST: indicates the machine types (platform- and architecture-based) "
-	echo "for which distributions is to be built. Must be at least one value or "
-	echo "a comma-separated list of values from the options {rhel7-x86_64|rhel8-x86_64|suse15-x86_64}."
-	exit
+cat << EOF
+Usage: $0 [--work-dir DIR] SOURCES_LIST [PLATFORMS_LIST]
+
+DIR: full, absolute path to the factory work directory
+
+SOURCES_LIST (required): specifies the source(s) to download the latest
+cvmfs configuration and repositories from. Must be at least one value
+or a comma-separated list of values from the options {osg|egi|default}.
+
+PLATFORMS_LIST (optional): indicates machine types (platform- and architecture-based)
+for which distributions is to be built. Can be empty, a single value or a
+comma-separated list of values from the options {rhel7-x86_64|rhel8-x86_64|suse15-x86_64}.
+EOF
 }
 
-check_directory_exists() {
+ensure_directory_exists() {
 	# if the directory does not exist (create one) or exists (proceed to reuse)
 	if ! mkdir -p "$1" || ! chmod 755 "$1" ; then
 		# if the directory creation or permission change fails, print a message and exit from the script
@@ -40,7 +45,6 @@ build_cvmfsexec_distros() {
 	local cvmfsexec_temp="$work_dir"/cvmfsexec/cvmfsexec.tmp
 	local cvmfsexec_latest="$cvmfsexec_temp"/latest
 	local cvmfsexec_distros="$cvmfsexec_temp"/distros
-
 	start=$(date +%s)
 
 	# rhel6-x86_64 is not included; currently not supported due to EOL
@@ -57,12 +61,12 @@ build_cvmfsexec_distros() {
 		# if the cvmfsexec directory does not exist, create one
 		# also, create a directory named tarballs under cvmfsexec directory
 		# check if tarballs directory exists; if not, create one; else proceed as usual
-		check_directory_exists "$cvmfsexec_tarballs"
+		ensure_directory_exists "$cvmfsexec_tarballs"
 	fi
 
 	# otherwise, .cvmfsexec_version file does not exist from a previous upgrade or it's a first-time factory upgrade
 	# check if the temp directory for cvmfsexec exists
-	check_directory_exists "$cvmfsexec_temp"
+	ensure_directory_exists "$cvmfsexec_temp"
 
 	git clone $CVMFSEXEC_REPO "$cvmfsexec_latest" &> /dev/null
 	# cvmfsexec exits with 0, so the output should be checked as well
@@ -93,7 +97,7 @@ build_cvmfsexec_distros() {
 		fi
 
 		# build the distributions for cvmfsexec based on the source, os and platform combination
-		check_directory_exists "$cvmfsexec_distros"
+		ensure_directory_exists "$cvmfsexec_distros"
 
 		cvmfs_configurations=($(echo "$cvmfs_configurations_list" | tr "," "\n"))
 		supported_machine_types=($(echo "$supported_machine_types_list" | tr "," "\n"))
@@ -136,33 +140,58 @@ build_cvmfsexec_distros() {
 		echo "$latest_ver" > "$cvmfsexec_tarballs"/.cvmfsexec_version
 	fi
 
-	end=$(date +%s)
+	echo "Took $(($(date +%s)-start)) seconds to create $successful_builds cvmfsexec distribution(s)"
+}
 
-	runtime=$((end-start))
-	echo "Took $runtime seconds to create $successful_builds cvmfsexec distribution(s)"
+error_handler() {
+	echo "ERROR: $1"
+	usage
+	exit 1
 }
 
 
 ####################### MAIN SCRIPT STARTS FROM HERE #######################
 
-if [[ $# -eq 0 ]]; then
-	echo "Building/Rebuilding of cvmfsexec distributions disabled!"
-	exit 0
+# parsing the command-line arguments
+# check whether the first argument passed is the option '--work-dir'
+if [[ $1 == "--work-dir" && ! -d "$2" ]]; then
+	# if value after this option is not a path (it is empty/unspecified), invoke the error handler
+	error_handler "The value of --work-dir option must be an existing directory."
+fi
+# otherwise, continue parsing the arguments
+if [[ $1 == "--work-dir" ]]; then
+	work_dir="$2"
+	shift 2
 else
-	if [[ $1 == "--work-dir" ]]; then
-		# if no value is passed to/after the --work-dir option, return usage documentation and exit
-		[[ $# -eq 0 || $# -ne 4 ]] && usage || true
-		# otherwise, continue parsing the arguments
-		work_dir="$2"
-		shift 2
-	else
-		# if --work-dir is not passed, assume default work-dir (RPM install)
-    	work_dir="$DEFAULT_WORK_DIR"
-	fi
-	[[ $# -eq 0 || $# -eq 1 ]] && usage || true
-	configurations=$1
-	machine_types=$2
+	# if --work-dir is not passed, assume default work-dir (RPM install)
+	work_dir="$DEFAULT_WORK_DIR"
 fi
 
-echo "Building/Rebuilding of cvmfsexec distributions enabled!"
+# check whether there are any remaining arguments passed to the script after the option
+if [[ $# -eq 0 ]]; then
+	echo "No sources specified. Building/Rebuilding of cvmfsexec distributions disabled!"
+	exit 0
+elif [[ $# -gt 2 ]]; then
+	error_handler "Invalid number of arguments passed!"
+fi
+
+# after confirming that the remaining number of arguments to be either 1 or 2
+re_sources="^((osg|egi|default),)*(osg|egi|default),?$"
+# TODO: update the regex for machine types upon checking with `makedist -h` periodically
+re_mtypes="^((rhel(7|8)|suse15)(-x86_64),?)+$"
+# check whether the first argument is sources (strict ordering followed)
+if ! [[ "$1" =~ $re_sources ]]; then
+	error_handler "Invalid source(s) provided (comma-separated list with osg|egi|default), not '$1'"
+fi
+configurations=$1
+if [[ -z "$2" ]]; then
+	machine_types=$DEFAULT_MACHINE_TYPES
+elif [[ "$2" =~ $re_mtypes ]]; then
+	machine_types=$2
+else
+	# handle if there were typos in the arguments passed
+	error_handler "Invalid platform provided. Must be empty or comma-separated list with (rhel7-x86_64|rhel8-x86_64|suse15-x86_64), not '$2'"
+fi
+
+echo "(Re)Building of cvmfsexec distributions enabled!"
 build_cvmfsexec_distros "$configurations" "$machine_types" "$work_dir"
