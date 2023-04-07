@@ -17,7 +17,7 @@ A clear and concise description of any alternative solutions or features you've 
 
 **Info (please complete the following information):**
 Stakeholders and components can be a comma separated list or on multiple lines.
-If you add a new stakeholder or component, not on the sample list, add it on a line by its own. 
+If you add a new stakeholder or component, not on the sample list, add it on a line by its own.
 
 -   Priority: Priority level for this feature [critical, high, medium, low]
 -   Stakeholders: Concerned stakeholder(s) [CMS, FactoryOps, Fermilab, FIFE, HEPCloud, IGWN, OSG]

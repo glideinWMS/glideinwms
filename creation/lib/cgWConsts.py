@@ -36,6 +36,7 @@ CVMFSEXEC_ATTR = "CVMFSEXEC_DIR"
 # these are in the submit dir, so they can be changed
 PARAMS_FILE = "params.cfg"
 ATTRS_FILE = "attributes.cfg"
+CVMFSEXEC_BUILD_FILE = "cvmfsexec.cfg"
 
 STARTUP_FILE = "glidein_startup.sh"
 GLIDEIN_FILE = "glidein.descript"

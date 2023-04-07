@@ -176,6 +176,34 @@ class EntrySetElement(EntryElement):
 xmlConfig.register_tag_classes({"entry_set": EntrySetElement})
 
 
+class CvmfsexecDistroElement(xmlConfig.DictElement):
+    def validate(self):
+        # Using 'sources' attribute in the <cvmfsexec_distro> tag to control the enable/disable of building/rebuilding cvmfsexec distributions
+        if not self.getSources():
+            if self.getPlatforms():
+                raise RuntimeError(
+                    self.err_str(
+                        "'platforms' attribute cannot have a value when 'sources' attribute is empty. \nTo add a cvmfsexec distribution, 'sources' must be a single value or a comma-separated list of values from the following options: {osg, egi, default}."
+                    )
+                )
+        else:
+            if not self.getPlatforms():
+                self.setPlatforms()
+
+    def getSources(self):
+        return self["sources"]
+
+    def getPlatforms(self):
+        return self["platforms"]
+
+    def setPlatforms(self):
+        # TODO: add rhel9, other rhel derivatives and other suse derivatives supported by cvmfsexec eventually
+        self["platforms"] = "rhel7-x86_64,rhel8-x86_64,suse15-x86_64"
+
+
+xmlConfig.register_tag_classes({"cvmfsexec_distro": CvmfsexecDistroElement})
+
+
 class Config(xmlConfig.DictElement):
     def __init__(self, tag, *args, **kwargs):
         super().__init__(tag, *args, **kwargs)

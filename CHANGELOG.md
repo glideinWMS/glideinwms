@@ -8,8 +8,12 @@ SPDX-License-Identifier: Apache-2.0
 ### New features / functionalities
 
 -   Add a parameter to control the name of the keyname for idtokens (PR #268)
+-   Added a factory knob to allow control over rebuilding of cvmfsexec distributions (PR #272)
 
 ### Changed defaults / behaviours
+
+-   Removed pre-reconfigure hook used for rebuilding cvmfsexec distributions whenever a factory reconfig/upgrade was run (Issue #262).
+    -   Rebuilding of cvmfsexec distributions is disabled by default, unless enabled via the new factory knob.
 
 ### Deprecated / removed options and commands
 

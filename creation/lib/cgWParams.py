@@ -463,6 +463,11 @@ class GlideinParams(cWParams.CommonParams):
             None,
         )
 
+        cvmfsexec_distro_defaults = cWParams.CommentedOrderedDict()
+        cvmfsexec_distro_defaults["sources"] = ("", "sources", "CVMFS Sources (like osg)", None)
+        cvmfsexec_distro_defaults["platforms"] = ("", "platforms", "Supported Machine Types (like rhel7-x86_64", None)
+        self.defaults["cvmfsexec_distro"] = cvmfsexec_distro_defaults
+
         self.defaults["condor_tarballs"] = ([], "List of condor tarballs", "Each entry contains", condor_defaults)
 
         self.defaults["attrs"] = sub_defaults["attrs"]

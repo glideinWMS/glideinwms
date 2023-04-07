@@ -369,6 +369,9 @@ SPDX-License-Identifier: Apache-2.0
               ><br />
             </blockquote>
             <a href="#files">&lt;/files&gt;</a><br />
+            <a href="#cvmfsexec_distro"
+              >&lt;cvmfsexec_distro sources="" platforms="" /&gt;</a
+            ><br />
             <a href="#condor_tarball">&lt;condor_tarballs&gt;</a><br />
             <blockquote>
               <a href="#condor_tarball"
@@ -963,6 +966,57 @@ SPDX-License-Identifier: Apache-2.0
               Custom files (how to write and use them), are discussed in the
               <a href="custom_scripts.html">custom scripts page</a>.
             </p>
+          </li>
+          <li>
+            <a name="cvmfsexec_distro" />
+            <div class="xml">
+              &lt;glidein&gt;&lt;cvmfsexec_distro
+              sources=&quot;<i>sources_list</i>&quot;
+              platforms=&quot;<i>platforms_list</i>&quot; /&gt;
+            </div>
+
+            <p>
+              This knob provides control over the building and/or rebuilding of
+              cvmfsexec distributions when CVMFS is to be provisioned on demand.
+              Distributions (in .tar.gz format) built via this knob will be
+              located in factory work directory location (by default, for an
+              RPM-based install of GlideinWMS, this would typically be
+              <i>/var/lib/gwms-factory/work-dir/cvmfsexec/tarballs</i>). Two
+              attributes are available to control the behavior of this knob and
+              are described below. If both the attributes are empty, then
+              (re)building of cvmfsexec distributions will be disabled (the
+              default behavior).
+            </p>
+            <p>
+              The <b><i>sources</i></b> attribute specifies the source(s) to
+              download the latest cvmfs configuration and repositories from.
+              Must be at least one value or a comma-separated list of values
+              from the options { <i>osg</i> | <i>egi</i> | <i>default</i> }.
+            </p>
+            <p>
+              The <b><i>platforms</i></b> attribute indicates machine types
+              (platform- and architecture-based) for which distributions is to
+              be built. Can be empty, a single value or a comma-separated list
+              of values from the options { <i>rhel7-x86_64</i> |
+              <i>rhel8-x86_64</i> | <i>suse15-x86_64</i> }.
+            </p>
+            <p>
+              Note that, <b><i>sources</i></b> is a <b>required</b> attribute
+              and <b><i>platforms</i></b> is an <b>optional</b> attribute.
+            </p>
+            <ul>
+              <li>
+                if <b><i>platforms</i></b> is empty and <b><i>sources</i></b> is
+                non-empty, the distribution will be built for all available
+                platforms (<i>rhel7-x86_64,rhel8-x86_64,suse15-x86_64</i>).
+              </li>
+              <li>
+                if <b><i>sources</i></b> is empty and <b><i>platforms</i></b> is
+                non-empty, an error will be thrown during factory
+                reconfiguration and/or upgrade, since <b><i>sources</i></b> is a
+                required attribute.
+              </li>
+            </ul>
           </li>
         </ul>
         <p>

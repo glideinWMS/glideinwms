@@ -14,6 +14,7 @@ Author:
 """
 
 import os
+import sys
 import unittest
 
 from unittest import mock
@@ -46,6 +47,28 @@ except ImportError as err:
     raise TestImportError(str(err))
 
 XML = "fixtures/factory/glideinWMS.xml"
+
+# We assume that this module is in the unittest directory
+module_globals = globals()
+unittest_dir = os.path.dirname(os.path.realpath(module_globals["__file__"]))
+
+# Prepending to the PATH to be first in the search
+if "GLIDEINWMS_LOCATION" in os.environ:
+    os.environ["PATH"] = (
+        os.path.join(os.environ["GLIDEINWMS_LOCATION"], "unittests", "fixtures", "bin")
+        + os.pathsep
+        + os.path.join(os.environ["GLIDEINWMS_LOCATION"], "creation")
+        + os.pathsep
+        + os.environ["PATH"]
+    )
+else:
+    os.environ["PATH"] = (
+        os.path.join(unittest_dir, "fixtures", "bin")
+        + os.pathsep
+        + os.path.join(unittest_dir, "../creation")
+        + os.pathsep
+        + os.environ["PATH"]
+    )
 
 
 class TestGlideinDicts(unittest.TestCase):
