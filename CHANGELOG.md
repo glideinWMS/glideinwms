@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 
 ### New features / functionalities
 
--   Add a parameter to control the name of the keyname for idtokens (PR #268)
+-   Added a parameter to control the name of the keyfile for idtokens (PR #268)
 -   Added a factory knob to allow control over rebuilding of cvmfsexec distributions (PR #272)
 
 ### Changed defaults / behaviours
