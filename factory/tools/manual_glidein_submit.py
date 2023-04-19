@@ -209,6 +209,16 @@ def main():
                 % (scitoken_file, str(credentials.identity_credentials))
             )
 
+        condortoken = "credential_{}_{}.idtoken".format(ad_gc["ClientName"], entry_name)
+        condortoken_file = os.path.join(credentials.cred_dir, condortoken)
+        if not os.path.exists(condortoken_file):
+            logging.warning("Cannot find idtoken file %s" % condortoken_file)
+        elif not credentials.add_identity_credential("frontend_condortoken", condortoken_file):
+            entry.log.warning(
+                "failed to add frontend_condortoken %s to the identity credentials %s"
+                % (condortoken_file, str(credentials.identity_credentials))
+            )
+
         # Set the arguments
         # I was using escapeParam for GLIDECLIENT_ReqNode and GLIDECLIENT_Collector but turned out it's not necessary
         params["CONDOR_VERSION"] = "default"
