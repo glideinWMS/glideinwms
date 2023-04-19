@@ -183,6 +183,7 @@ Changes since the last release
 ### Security Related Fixes
 
 ### Bug Fixes
+-   manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (PR #280)
 
 ### Testing / Development
 
