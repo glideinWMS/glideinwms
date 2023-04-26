@@ -9,6 +9,7 @@ SPDX-License-Identifier: Apache-2.0
 
 -   Add a parameter to control the name of the keyname for idtokens (PR #268)
 -   Added a factory knob to allow control over rebuilding of cvmfsexec distributions (PR #272)
+-   rhel9 worker node are now recognized by condor_platform_select automatic OS detection
 
 ### Changed defaults / behaviours
 
