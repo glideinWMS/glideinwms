@@ -1231,6 +1231,7 @@ def hash_status(el):
                 "SUSPENDED",
                 "REGISTERED",
                 "INLRMS:Q",
+                "QUEUING",
             ):
                 return 1002
             elif grid_status in ("STAGE_IN", "PREPARING", "ACCEPTING", "ACCEPTED"):

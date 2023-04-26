@@ -23,6 +23,7 @@ SPDX-License-Identifier: Apache-2.0
 
 -   Make sure default value does not overwrite global one for idtoken_lifetime (PR #261)
 -   Protect OSG_autoconf from OSG collector unavailability (PR #276)
+-   Fixed jobs going in unknown state in factory monitoring. added QUEUING state for new ARC-CEs REST
 
 ### Testing / Development
 
