@@ -43,6 +43,7 @@ findversion_redhat() {
   #
   # should I check that it is SL/RHEL/CentOS ?
   # no
+  grep -q 'release 9.' /etc/redhat-release && condor_os='linux-rhel9,rhel9' && return
   grep -q 'CentOS Stream release 8' /etc/redhat-release && condor_os='linux-rhel8,rhel8' && return
   grep -q 'release 8.' /etc/redhat-release && condor_os='linux-rhel8,rhel8' && return
   grep -q 'release 7.' /etc/redhat-release && condor_os='linux-rhel7,rhel7' && return
