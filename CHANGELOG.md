@@ -19,12 +19,15 @@ Changes since the last release
 
 ### Security Related Fixes
 
+-   manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (PR #280)
+
 ### Bug Fixes
 
 -   Removed `classad` from requirements.txt. The HTCSS team distributes only the `htcondor` library in PyPI which includes a different version of classad (PR #301)
 -   Fixing Python 3.9 deprecations (`imp`, `getchildren()` in `xml.etree.ElementTree`) (PR #302, PR #303)
 -   Populate missing Entry parameters for ARC CEs submissions (PR #304)
 -   Modified the usage of subprocess module, for building/rebuilding cvmfsexec distributions, only when necessary (PR #309)
+-   manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (issue #283, PR#284)
 
 ### Testing / Development
 
@@ -183,7 +186,6 @@ Changes since the last release
 ### Security Related Fixes
 
 ### Bug Fixes
--   manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (PR #280)
 
 ### Testing / Development
 
