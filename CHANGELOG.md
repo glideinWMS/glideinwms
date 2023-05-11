@@ -3,13 +3,13 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.10.2
+## v3.10.2 \[2023-5-10\]
 
 ### New features / functionalities
 
 -   Add a parameter to control the name of the keyname for idtokens (PR #268)
 -   Added a factory knob to allow control over rebuilding of cvmfsexec distributions (PR #272)
--   rhel9 worker node are now recognized by condor_platform_select automatic OS detection (PR #285)
+-   RHEL9 worker node are now recognized by condor_platform_select automatic OS detection (PR #285)
 
 ### Changed defaults / behaviours
 
@@ -22,13 +22,18 @@ SPDX-License-Identifier: Apache-2.0
 
 ### Bug Fixes
 
--   Make sure default value does not overwrite global one for idtoken_lifetime (PR #261)
+-   Make sure default value does not overwrite the global one for idtoken_lifetime (PR #261)
 -   Protect OSG_autoconf from OSG collector unavailability (PR #276)
 -   Fixed jobs going in unknown state in factory monitoring. added QUEUING state for new ARC-CEs REST (PR #286)
 
 ### Testing / Development
 
 ### Known Issues
+
+-   When using on-demand CVMFS, all Glideins after the first one on a node are failing (Issue #287)
+-   This happens because mountrepo and umountrepo work at the node level and subsequent Glideins see the mounts done by the first one and abort.
+-   To avoid problems use only whole-node Glideins when using on-demand CVMFS.
+-   All versions with on-demand CVMFS are affected.
 
 ## v3.10.1 \[2022-12-13\]
 
