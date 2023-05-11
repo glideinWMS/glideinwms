@@ -337,7 +337,7 @@ v3_9_5:
     - Support for credential generator plugins
     - Support for Apptainer
     - Support for python3-rrdtool added in OSG 3.6 also for RHEL7
-    - Support for CVMFS on-demand
+    - Support for CVMFS on-demand via cvmfsexec (mount/umountrepo)
     - Configurable idtokens lifetime
     - Improved frontend logging
     - Improved default SHARED_PORT configuration
@@ -360,6 +360,7 @@ v3_7_7:
   Tarball: False
   Feature:
     - Authenticate w/ tokens w/ the HTCondor-CE collector
+    - Added CONTINUE_IF_NO_PROXY attribute to control GSI to token transition
   Bug fix:
     - Fixes an issue causing SciTokens transfered to the factory to be corrupted
     - Fixes condor_config -dump is not safe if the pool config has multiline entries
@@ -424,3 +425,22 @@ v3_10_1:
     - Fixed status reporting for `gconfig.py`  (PR#254)
   NOTE:
     - Please see all the notes in 3.9.6 about the custom script changes
+
+v3_10_2:
+  Date: May 10, 2023
+  Series: Stable
+  Tarball: false
+  Feature:
+    - Add a parameter to control the name of the keyname for idtokens (PR#268)
+    - Added a factory knob to allow control over rebuilding of cvmfsexec distributions (PR#272)
+    - RHEL9 worker node are now recognized by condor_platform_select automatic OS detection (PR#285)
+    - Removed pre-reconfigure hook used for rebuilding cvmfsexec distributions whenever a factory reconfig/upgrade was run (issue#262)
+  Bug fix:
+    - Make sure default value does not overwrite the global one for idtoken_lifetime (PR#261)
+    - Protect OSG_autoconf from OSG collector unavailability (PR#276)
+    - Fixed jobs going in unknown state in factory monitoring. added QUEUING state for new ARC-CEs REST (PR#286)
+  NOTE:
+    - When using on-demand CVMFS, all Glideins after the first one on a node are failing (issue#287)
+  NOTE-FACTORY:
+    - The rebuilding of cvmfsexec distributions is now disabled by default, it must be enabled via the new factory knob.\
+      If you are upgrading from v3.9.5 or later, check that the cvmfsexec script is no more in the pre-reconfigure hooks directory.
