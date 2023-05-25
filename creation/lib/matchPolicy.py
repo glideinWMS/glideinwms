@@ -14,7 +14,7 @@
 #   Parag Mhashilkar
 #
 
-import imp
+import importlib
 import os
 
 # import imp
@@ -83,9 +83,10 @@ class MatchPolicy:
             self.searchPath = search_path
             try:
                 # First find the module
-                f, path, desc = imp.find_module(self.name, self.searchPath)
+                f, path, desc = importlib.util.find_spec(self.name, self.searchPath)
                 # Load the module
-                self.pyObject = imp.load_module(self.name, f, path, desc)
+                spec = importlib.util.spec_from_file_location(self.name, path)
+                self.pyObject = importlib.util.module_from_spec(spec)
             except:
                 raise MatchPolicyLoadError(file=file, search_path=self.searchPath)
         else:
