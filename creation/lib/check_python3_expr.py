@@ -123,7 +123,7 @@ def findall_path(root, tag, elements=[]):
     else:
         element = root
 
-    for child in element.data.getchildren():
+    for child in list(element.data):
         newElement = SimpleNamespace()
         newElement.data = child
         newElement.parent = element
@@ -165,7 +165,7 @@ def match_attrs_to_tuples(match_attrs):
     """
 
     tuples = []
-    for attr in match_attrs.getchildren():
+    for attr in list(match_attrs):
         tuples.append((attr.attrib["name"], attr.attrib["type"]))
     return tuples
 
