@@ -85,7 +85,8 @@ class MatchPolicy:
                 # First find the module
                 f, path, desc = importlib.util.find_spec(self.name, self.searchPath)
                 # Load the module
-                self.pyObject = importlib.util.module_from_spec(self.name, f, path, desc)
+                spec = importlib.util.spec_from_file_location(self.name, path)
+                self.pyObject = importlib.util.module_from_spec(spec)
             except:
                 raise MatchPolicyLoadError(file=file, search_path=self.searchPath)
         else:
