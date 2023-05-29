@@ -3,6 +3,26 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## Changes Since Last Release
+
+Changes since the last release
+
+### New features / functionalities
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Removed `classad` from requirements.txt. The HTCSS team distributes only the `htcondor` library in PyPI which includes a different version of classad
+
+### Testing / Development
+
+### Known Issues
+
 ## v3.10.2 \[2023-5-10\]
 
 ### New features / functionalities
