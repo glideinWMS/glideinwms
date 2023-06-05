@@ -66,20 +66,31 @@ loginfo  "Start log for unmounting CVMFS"
 # check if CVMFS is locally mounted on the worker node
 detect_local_cvmfs
 
-if [[ $GWMS_IS_CVMFS_MNT -eq 0 ]]; then
+if [[ $GWMS_IS_CVMFS_LOCAL_MNT -eq 0 ]]; then
     # CVMFS is mounted locally in the filesystem; DO NOT UNMOUNT!
     loginfo "Skipping unmounting of CVMFS as it already is locally provisioned in the node!"
     "$error_gen" -ok "$(basename $0)" "umnt_msg2" "CVMFS is locally mounted on the node; skipping cleanup."
     exit 0
 fi
 
-loginfo "Unmounting CVMFS mounted by the glidein..."
-$glidein_cvmfsexec_dir/.cvmfsexec/umountrepo -a
+gwms_cvmfsexec_mode=$(grep '^GWMS_CVMFSEXEC_MODE ' "$glidein_config" | awk '{print $2}')
+gwms_cvmfs_reexec=$(grep '^GWMS_CVMFS_REEXEC ' "$glidein_config" | awk '{print $2}')
+echo "gwms_cvmfsexec_mode set to $gwms_cvmfsexec_mode"
+echo "gwms_cvmfs_reexec set to $gwms_cvmfs_reexec"
+gwms_cvmfsexec_mode=2
 
-if [[ -n "$CVMFS_MOUNT_DIR" ]]; then
-    CVMFS_MOUNT_DIR=
-    export CVMFS_MOUNT_DIR
-    gconfig_add CVMFS_MOUNT_DIR ""
+if [[ "$gwms_cvmfsexec_mode" -eq 2 ]]; then
+    loginfo "Unmounting CVMFS mounted by the glidein..."
+    $glidein_cvmfsexec_dir/.cvmfsexec/umountrepo -a
+
+    if [[ -n "$CVMFS_MOUNT_DIR" ]]; then
+        CVMFS_MOUNT_DIR=
+        export CVMFS_MOUNT_DIR
+        add_config_line CVMFS_MOUNT_DIR ""
+    fi
+elif [[ "$gwms_cvmfsexec_mode" -eq 3 ]]; then
+    echo "CVMFS_MOUNT_DIR set to $CVMFS_MOUNT_DIR"
+    echo "CVMFSUMOUNT set to $CVMFSUMOUNT"
 fi
 
 # check again to ensure all CVMFS repositories were unmounted by umountrepo
