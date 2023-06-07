@@ -23,7 +23,7 @@
 #       2.0
 #
 
-echo "Unmounting CVMFS as part of glidein cleanup..."
+echo "Starting to unmount CVMFS as part of glidein cleanup..."
 
 glidein_config=$1
 
@@ -50,7 +50,7 @@ work_dir=$(gconfig_get GLIDEIN_WORK_DIR "$glidein_config")
 
 if [[ $use_cvmfsexec -ne 1 ]]; then
     "$error_gen" -ok "$(basename $0)" "umnt_msg1" "On-demand CVMFS not requested or not used; skipping cleanup."
-    loginfo "On-demand CVMFS not requested or not used; skipping cleanup."
+    loginfo "On-demand CVMFS provisioning not requested or not used; skipping cleanup."
     exit 0
 fi
 
@@ -75,8 +75,8 @@ if [[ $GWMS_IS_CVMFS_LOCAL_MNT -eq 0 ]]; then
 fi
 
 gwms_cvmfsexec_mode=$(grep '^GWMS_CVMFSEXEC_MODE ' "$glidein_config" | awk '{print $2}')
+loginfo "Unmounting CVMFS provisioned by the glidein..."
 if [[ "$gwms_cvmfsexec_mode" -eq 1 ]]; then
-    loginfo "Unmounting CVMFS mounted by the glidein..."
     "$glidein_cvmfsexec_dir"/.cvmfsexec/umountrepo -a
 
     if [[ -n "$CVMFS_MOUNT_DIR" ]]; then
@@ -85,8 +85,8 @@ if [[ "$gwms_cvmfsexec_mode" -eq 1 ]]; then
         gconfig_add CVMFS_MOUNT_DIR ""
     fi
 elif [[ "$gwms_cvmfsexec_mode" -eq 3 ]]; then
-    echo "CVMFS_MOUNT_DIR set to $CVMFS_MOUNT_DIR"
-    echo "CVMFSUMOUNT set to $CVMFSUMOUNT"
+    loginfo "CVMFS_MOUNT_DIR set to $CVMFS_MOUNT_DIR"
+    loginfo "CVMFSUMOUNT set to $CVMFSUMOUNT"
 fi
 
 # check again to ensure all CVMFS repositories were unmounted by umountrepo

@@ -277,7 +277,7 @@ mount_cvmfs_repos () {
 
     GWMS_IS_CVMFS=$?
     # export this info to the glidein environment after CVMFS is provisioned on demand
-    export GWMS_IS_CVMFS=$GWMS_IS_CVMFS
+    gconfig_add GWMS_IS_CVMFS $(check_exit_status $GWMS_IS_CVMFS)
 
     get_mount_point
 }

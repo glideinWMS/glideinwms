@@ -70,7 +70,6 @@ is_cvmfs_locally_mounted() {
     # check if CVMFS is already locally mounted...
     if [[ $GWMS_IS_CVMFS_LOCAL_MNT -eq 0 ]]; then
         # if it is so...
-        echo "in here..."
         "$error_gen" -ok "$(basename $0)" "msg" "CVMFS is locally mounted on the node; skipping setup using cvmfsexec utilities."
         loginfo "CVMFS is found locally; skipping on-demand CVMFS setup."
         exit 0
@@ -126,8 +125,7 @@ if is_cvmfs_needed "$glidein_config" ; then
         # two, export required variables before reinvoking the glidein...
         original_workspace=$(grep -m1 '^GLIDEIN_WORKSPACE_ORIG ' "$glidein_config" | cut -d ' ' -f 2-)
         export GLIDEIN_WORKSPACE=$original_workspace
-        # export glidein_config file for use inside cvmfsexec
-        export GLIDEIN_CONFIG=$glidein_config
+        # export some necessary information for use inside cvmfsexec
         export GWMS_CVMFS_REEXEC=$gwms_cvmfs_reexec
         export GWMS_CVMFSEXEC_MODE=$gwms_cvmfsexec_mode
         export GLIDEIN_WORK_DIR="$work_dir"

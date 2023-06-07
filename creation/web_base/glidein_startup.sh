@@ -227,35 +227,35 @@ extract_parent_xml_detail() {
         else
             last_script_name=$(echo "${last_result}" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}')
 
-            last_script_reason=$(echo "${last_result}" | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}')
-            my_reason="     Validation failed in ${last_script_name}.
+          last_script_reason=$(echo "${last_result}" | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}')
+          my_reason="     Validation failed in ${last_script_name}.
 
-            ${last_script_reason}"
+${last_script_reason}"
 
-            echo "  <result>"
-            echo "    <status>ERROR</status>
-            <metric name=\"TestID\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${last_script_name}</metric>"
-            # propagate metrics as well (will include the failure metric)
-            echo "${last_result}" | grep '<metric '
-            echo "  </result>"
-            echo "  <detail>
-            ${my_reason}
-            </detail>"
-        fi
+          echo "  <result>"
+          echo "    <status>ERROR</status>
+    <metric name=\"TestID\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${last_script_name}</metric>"
+          # propagate metrics as well (will include the failure metric)
+          echo "${last_result}" | grep '<metric '
+          echo "  </result>"
+          echo "  <detail>
+${my_reason}
+  </detail>"
+      fi
     else
         # create a minimal XML file, else
         echo "  <result>"
-        if [ "${exitcode}" -eq 0 ]; then
-            echo "    <status>OK</status>"
-        else
-            echo "    <status>ERROR</status>"
-            echo "    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Unknown</metric>"
-        fi
-        echo "  </result>
-        <detail>
-            No detail. Could not find source XML file.
-        </detail>"
-    fi
+      if [ "${exitcode}" -eq 0 ]; then
+          echo "    <status>OK</status>"
+      else
+          echo "    <status>ERROR</status>"
+          echo "    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Unknown</metric>"
+      fi
+      echo "  </result>
+  <detail>
+    No detail. Could not find source XML file.
+  </detail>"
+  fi
 }
 
 basexml2simplexml() {
@@ -363,7 +363,7 @@ early_glidein_failure() {
     result="    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">WN_RESOURCE</metric>
     <status>ERROR</status>
     <detail>
-        ${error_msg}
+     ${error_msg}
     </detail>"
 
     final_result="$(construct_xml "${result}")"
@@ -1322,6 +1322,7 @@ printenv GWMS_CVMFS_REEXEC > /dev/null
 status=$?
 if [[ "$status" -eq 0 ]]; then
     # glidein_startup being reinvoked (not the first time!)
+    echo "Glidein reinvocation initiated..."
     gwms_cvmfs_reexec=$(printenv GWMS_CVMFS_REEXEC | sed s"/ //g")
 else
     # first time glidein_startup is being invoked/executed
@@ -1336,7 +1337,7 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
     global_args="$*"
     # GWMS_STARTUP_SCRIPT=$0
     GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
-    export GWMS_STARTUP_SCRIPT=${GWMS_STARTUP_SCRIPT}       # !!CRITICAL!!
+    export GWMS_STARTUP_SCRIPT=${GWMS_STARTUP_SCRIPT}       # in case glidein reinvocation occurs
 
     GWMS_PATH=""
     # Relative to the work directory (GWMS_DIR, gwms_lib_dir, gwms_bin_dir and gwms_exec_dir will be the absolute paths)
@@ -1460,7 +1461,7 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
         usage
     fi
 
-    export REPOSITORY_URL=$repository_url       # !!CRITICAL!!
+    export REPOSITORY_URL=$repository_url       # in case glidein reinvocation occurs
     repository_entry_url="${repository_url}/entry_${glidein_entry}"
 
     if [ -z "${proxy_url}" ]; then
@@ -1524,10 +1525,10 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
                 usage
             fi
 
-            export CLIENT_REPOSITORY_GROUP_URL=$client_repository_group_url       # !!CRITICAL!!
+            export CLIENT_REPOSITORY_GROUP_URL=$client_repository_group_url       # in case glidein reinvocation occurs
         fi
 
-        export CLIENT_REPOSITORY_URL=$client_repository_url       # !!CRITICAL!!
+        export CLIENT_REPOSITORY_URL=$client_repository_url       # in case glidein reinvocation occurs
     fi
 
     # Generate glidein UUID
@@ -1539,7 +1540,7 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
 
     startup_time="$(date +%s)"
     echo "Starting glidein_startup.sh at $(date) (${startup_time})"
-    export STARTUP_TIME=$startup_time          # !!CRITICAL!!
+    export STARTUP_TIME=$startup_time          # in case glidein reinvocation occurs
 
     echo "script_checksum   = '$(md5wrapper "$0")'"
     echo "debug_mode        = '${operation_mode}'"
@@ -1695,23 +1696,25 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
         fi
     fi
     work_dir_created=1
-    export GLIDEIN_WORK_DIR=${GLIDEIN_WORK_DIR}     # in case glidein reinvocation occurs
+    export GLIDEIN_WORK_DIR=${work_dir}     # in case glidein reinvocation occurs
 
     # GWMS_SUBDIR defined on top
     GWMS_DIR="${work_dir}/$GWMS_SUBDIR"
     if ! mkdir "$GWMS_DIR" ; then
         early_glidein_failure "Cannot create GWMS_DIR '$GWMS_DIR'"
     fi
+    export GWMS_DIR=${GWMS_DIR}         # in case glidein reinvocation occurs
+    # export GWMS_SUBDIR=${GWMS_SUBDIR}       # in case glidein reinvocation occurs
     gwms_lib_dir="${GWMS_DIR}/lib"
     if ! mkdir -p "$gwms_lib_dir" ; then
         early_glidein_failure "Cannot create lib dir '$gwms_lib_dir'"
     fi
-    export GWMS_LIB_DIR=${gwms_lib_dir}       # in case glidein reinvocation occurs
+    # export GWMS_LIB_DIR=${gwms_lib_dir}       # in case glidein reinvocation occurs
     gwms_bin_dir="${GWMS_DIR}/bin"
     if ! mkdir -p "$gwms_bin_dir" ; then
         early_glidein_failure "Cannot create bin dir '$gwms_bin_dir'"
     fi
-    export GWMS_BIN_DIR=${gwms_bin_dir}        # in case glidein reinvocation occurs
+    # export GWMS_BIN_DIR=${gwms_bin_dir}        # in case glidein reinvocation occurs
     gwms_exec_dir="${GWMS_DIR}/exec"
     if ! mkdir -p "$gwms_exec_dir" ; then
         early_glidein_failure "Cannot create exec dir '$gwms_exec_dir'"
@@ -1721,8 +1724,6 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
         done
         export GWMS_EXEC_DIR=${gwms_exec_dir}       # in case glidein reinvocation occurs
     fi
-    export GWMS_SUBDIR=${GWMS_SUBDIR}       # in case glidein reinvocation occurs
-    export GWMS_DIR=${GWMS_DIR}         # in case glidein reinvocation occurs
 
     # mktemp makes it user readable by definition (ignores umask)
     # TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
@@ -1769,7 +1770,7 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
     if ! mkdir "${entry_dir}"; then
         early_glidein_failure "Cannot create '${entry_dir}'"
     fi
-    export GWMS_ENTRY_DIR=${entry_dir}      # in case glidein reinvocation occurs
+    # export GWMS_ENTRY_DIR=${entry_dir}      # in case glidein reinvocation occurs
 
     if [ -n "${client_repository_url}" ]; then
         short_client_dir=client
@@ -1777,7 +1778,7 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
         if ! mkdir "$client_dir"; then
             early_glidein_failure "Cannot create '${client_dir}'"
         fi
-        export GWMS_CLIENT_DIR=${client_dir}        # in case glidein reinvocation occurs
+        # export GWMS_CLIENT_DIR=${client_dir}        # in case glidein reinvocation occurs
 
         if [ -n "${client_repository_group_url}" ]; then
             short_client_group_dir=client_group_${client_group}
@@ -1786,7 +1787,7 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
                 early_glidein_failure "Cannot create '${client_group_dir}'"
             fi
         fi
-        export GWMS_CLIENTGROUP_DIR=${client_group_dir}     # in case glidein reinvocation occurs
+        # export GWMS_CLIENTGROUP_DIR=${client_group_dir}     # in case glidein reinvocation occurs
     fi
 
     # Move the token files from condor to glidein workspace
@@ -2069,30 +2070,32 @@ if [[ -n "$gwms_cvmfs_reexec" && "$gwms_cvmfs_reexec" == "yes" ]]; then
     printenv GLIDEIN_CONFIG > /dev/null
     status=$?
     if [[ ${status} -eq 0 ]]; then
-        work_dir=$(printenv GLIDEIN_WORK_DIR | sed "s/ //g")
+        # bringing in essential information in the reinvocation environment...
         glidein_config=$(printenv GLIDEIN_CONFIG | sed "s/ //g")
-        repository_url=$(printenv REPOSITORY_URL | sed "s/ //g")
-        main_dir=$(printenv GWMS_MAIN_DIR | sed "s/ //g")
-        last_script=$(printenv LAST_SCRIPT | sed "s/ //g")
-        check_signature=$(printenv CHECK_SIGNATURE | sed "s/ //g")
-        startup_time=$(printenv STARTUP_TIME | sed "s/ //g")
+        work_dir=$(printenv GLIDEIN_WORK_DIR | sed "s/ //g")
+        gwms_cvmfsexec_mode=$(printenv GWMS_CVMFSEXEC_MODE | sed "s/ //g")
         cvmfs_config_repo=$(printenv GLIDEIN_CVMFS_CONFIG_REPO | sed "s/ //g")
         cvmfs_add_repos=$(printenv GLIDEIN_CVMFS_REPOS | sed "s/ //g")
-        gwms_cvmfsexec_mode=$(printenv GWMS_CVMFSEXEC_MODE | sed "s/ //g")
+        startup_time=$(printenv STARTUP_TIME | sed "s/ //g")
+        main_dir=$(printenv GWMS_MAIN_DIR | sed "s/ //g")
+        repository_url=$(printenv REPOSITORY_URL | sed "s/ //g")
+        check_signature=$(printenv CHECK_SIGNATURE | sed "s/ //g")
         client_repository_url=$(printenv CLIENT_REPOSITORY_URL | sed "s/ //g")
         client_repository_group_url=$(printenv CLIENT_REPOSITORY_GROUP_URL | sed "s/ //g")
         wrapper_list=$(printenv WRAPPER_LIST | sed "s/ //g")
         gwms_exec_dir=$(printenv GWMS_EXEC_DIR | sed "s/ //g")
+        last_script=$(printenv LAST_SCRIPT | sed "s/ //g")
     fi
 
-    # re-sourcing the helper script inside of cvmfsexec environment
+    # re-source all the scripts as it'd have been done during the first invocation of this script
+    extract_all_data
+    # re-enable the logging configuration
+    log_setup "${glidein_config}"
+
+    # re-sourcing the helper script inside of cvmfsexec environment before mounting
     . "$work_dir"/cvmfs_helper_funcs.sh
     # mounting cvmfs repositories next
     mount_cvmfs_repos $gwms_cvmfsexec_mode $cvmfs_config_repo $cvmfs_add_repos
-    # re-source all the scripts as it'd have been done during the first invocation of this script
-    extract_all_data
-
-    log_setup "${glidein_config}"
 fi
 
 glidein_debug_options=$(gconfig_get GLIDEIN_DEBUG_OPTIONS "$glidein_config")
