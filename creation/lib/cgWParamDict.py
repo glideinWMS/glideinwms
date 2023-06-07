@@ -259,7 +259,6 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             "glidein_sitewms_setup.sh",
             "script_wrapper.sh",
             "smart_partitionable.sh",
-            "cvmfs_setup.sh",
             "cvmfs_umount.sh",
         ]
         all_scripts.extend(after_file_list_scripts)  # adding the above list to the megalist as before

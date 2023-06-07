@@ -20,7 +20,7 @@
 #       Namratha Urs
 #
 # Version:
-#       1.0
+#       2.0
 #
 
 echo "Unmounting CVMFS as part of glidein cleanup..."
@@ -40,18 +40,19 @@ use_cvmfsexec=$(gconfig_get GLIDEIN_USE_CVMFSEXEC "$glidein_config")
 # TODO: int or string? if string, make the attribute value case insensitive
 #use_cvmfsexec=${use_cvmfsexec,,}
 
-if [[ $use_cvmfsexec -ne 1 ]]; then
-    "$error_gen" -ok "$(basename $0)" "umnt_msg1" "Not using cvmfsexec; skipping cleanup."
-    exit 0
-fi
-
 # get the glidein work directory location from glidein_config file
 work_dir=$(gconfig_get GLIDEIN_WORK_DIR "$glidein_config")
 # $PWD=/tmp/glide_xxx and every path is referenced with respect to $PWD
 
 # source the helper script
-# TODO: Is this file somewhere in the source tree? use: # shellcheck source=./cvmfs_helper_funcs.sh
-. $work_dir/cvmfs_helper_funcs.sh
+# shellcheck source=./cvmfs_helper_funcs.sh
+. "$work_dir"/cvmfs_helper_funcs.sh
+
+if [[ $use_cvmfsexec -ne 1 ]]; then
+    "$error_gen" -ok "$(basename $0)" "umnt_msg1" "On-demand CVMFS not requested or not used; skipping cleanup."
+    loginfo "On-demand CVMFS not requested or not used; skipping cleanup."
+    exit 0
+fi
 
 # get the cvmfsexec directory location
 glidein_cvmfsexec_dir=$(gconfig_get CVMFSEXEC_DIR "$glidein_config")
@@ -74,19 +75,14 @@ if [[ $GWMS_IS_CVMFS_LOCAL_MNT -eq 0 ]]; then
 fi
 
 gwms_cvmfsexec_mode=$(grep '^GWMS_CVMFSEXEC_MODE ' "$glidein_config" | awk '{print $2}')
-gwms_cvmfs_reexec=$(grep '^GWMS_CVMFS_REEXEC ' "$glidein_config" | awk '{print $2}')
-echo "gwms_cvmfsexec_mode set to $gwms_cvmfsexec_mode"
-echo "gwms_cvmfs_reexec set to $gwms_cvmfs_reexec"
-gwms_cvmfsexec_mode=2
-
-if [[ "$gwms_cvmfsexec_mode" -eq 2 ]]; then
+if [[ "$gwms_cvmfsexec_mode" -eq 1 ]]; then
     loginfo "Unmounting CVMFS mounted by the glidein..."
-    $glidein_cvmfsexec_dir/.cvmfsexec/umountrepo -a
+    "$glidein_cvmfsexec_dir"/.cvmfsexec/umountrepo -a
 
     if [[ -n "$CVMFS_MOUNT_DIR" ]]; then
         CVMFS_MOUNT_DIR=
         export CVMFS_MOUNT_DIR
-        add_config_line CVMFS_MOUNT_DIR ""
+        gconfig_add CVMFS_MOUNT_DIR ""
     fi
 elif [[ "$gwms_cvmfsexec_mode" -eq 3 ]]; then
     echo "CVMFS_MOUNT_DIR set to $CVMFS_MOUNT_DIR"

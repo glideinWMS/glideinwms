@@ -19,19 +19,19 @@ determine_cvmfsexec_mode_usage() {
             # cvmfsexec mode 3 can be used
             echo 3     # true
         else
-            # cvmfsexec mode 3 unavailable; use mode 2 of cvmfsexec instead
-            echo 2     # false
+            # cvmfsexec mode 3 unavailable; use mode 1 of cvmfsexec instead
+            echo 1     # false
         fi
     else
         # User namespaces and/or fuse mounts not available in unprivileged mode
-        # Defaulting to mode 2 of cvmfsexec
-        echo 2         # false
+        # Defaulting to mode 1 of cvmfsexec
+        echo 1         # false
     fi
 }
 
 is_cvmfs_needed() {
     # get the cvmfsexec attribute switch value from the config file
-    [[ -e "$1" ]] && use_cvmfsexec=$(gconfig_get GLIDEIN_USE_CVMFSEXEC "$glidein_config")
+    [[ -e "$1" ]] && use_cvmfsexec=$(gconfig_get GLIDEIN_USE_CVMFSEXEC "$1")
     # TODO: change this variable to 'GLIDEIN_CVMFS' [convention for external variables]
     # TODO: when changed, the GLIDEIN_CVMFS variable takes on possible values from {required, preferred, optional, never}
     # TODO: int or string?? if string, make the attribute value case insensitive
@@ -46,15 +46,15 @@ is_cvmfs_needed() {
         false
         # exit 0
     elif [[ $use_cvmfsexec -ne 1 ]]; then
-        "$error_gen" -ok "$(basename $0)" "msg" "On-demand CVMFS provisioning not used. Skipping related setup."
+        "$error_gen" -ok "$(basename $0)" "msg" "On-demand CVMFS provisioning requested and not used. Skipping related setup."
         # printinfo used instead of loginfo (from cvmfs_helper_funcs.sh) because
         # helper functions are designed to be downloaded based on conditional download logic; GLIDEIN_USE_CVMFSEXEC should be set to 1
-        printinfo "Not using on-demand CVMFS; skipping related setup."
+        printinfo "Not using on-demand CVMFS provisioning; skipping related setup."
         false
         # exit 0
     else
         # $use_cvmfsexec -eq 1
-        [[ -e "$glidein_config" ]] && work_dir=$(gconfig_get GLIDEIN_WORK_DIR "$glidein_config")
+        [[ -e "$1" ]] && work_dir=$(gconfig_get GLIDEIN_WORK_DIR "$1")
 
         # shellcheck source=./cvmfs_helper_funcs.sh
         . "$work_dir"/cvmfs_helper_funcs.sh
@@ -84,8 +84,8 @@ setup_cvmfsexec_use() {
     gwms_cvmfsexec_mode=$(determine_cvmfsexec_mode_usage)
     if [[ $gwms_cvmfsexec_mode -eq 3 ]]; then
         loginfo "cvmfsexec can be used in mode 3"
-    elif [[ $gwms_cvmfsexec_mode -eq 2 ]]; then
-        loginfo "cvmfsexec will be used in mode 2 only"
+    elif [[ $gwms_cvmfsexec_mode -eq 1 ]]; then
+        loginfo "cvmfsexec will be used in mode 1 only"
     else
         logerror "invalid value for GWMS_CVMFSEXEC_MODE"
         exit 1
@@ -118,7 +118,6 @@ if is_cvmfs_needed "$glidein_config" ; then
 
     printinfo "cvmfsexec mode $gwms_cvmfsexec_mode is being used..."
     if [[ $gwms_cvmfsexec_mode -eq 3 ]]; then
-        echo "======================== glidein_startup.sh reinvoked as part of cvmfsexec mode 3 ========================"
         # before exiting out of this block, do two things...
         # one, set a variable indicating this script has been executed once
         gwms_cvmfs_reexec="yes"
@@ -137,7 +136,7 @@ if is_cvmfs_needed "$glidein_config" ; then
         exec "$glidein_cvmfsexec_dir"/"$dist_file" -- "$GWMS_STARTUP_SCRIPT"
         echo "!!WARNING!! Outside of reinvocation of glidein_startup"       # this should not run; here as a safety check for debugging incorrect behavior of exec from previous line
 
-    elif [[ $gwms_cvmfsexec_mode -eq 2 ]]; then
+    elif [[ $gwms_cvmfsexec_mode -eq 1 ]]; then
         perform_cvmfs_mount $gwms_cvmfsexec_mode
 
         if [[ $GWMS_IS_CVMFS -ne 0 ]]; then
@@ -154,9 +153,8 @@ if is_cvmfs_needed "$glidein_config" ; then
         export GWMS_CVMFSEXEC_MODE=$gwms_cvmfsexec_mode
 
         # CVMFS is now available on the worker node"
-        loginfo "Proceeding to execute the rest of the glidein setup..."
-        echo "Proceeding to execute the rest of the glidein setup..."
         "$error_gen" -ok "$(basename $0)" "WN_Resource" "CVMFS mounted successfully and is now available."
+        loginfo "Proceeding to execute the rest of the glidein setup..."
     else
         logerror "Invalid value of gwms_cvmfsexec_mode!"
         exit 1
