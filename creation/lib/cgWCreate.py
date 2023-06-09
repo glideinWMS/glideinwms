@@ -243,6 +243,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.populate_condorc_grid()
         elif gridtype == "arc":
             # not adding a function for one line for the moment
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
             self.add("x509UserProxy", "$ENV(X509_USER_PROXY:)")
         else:
             self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
