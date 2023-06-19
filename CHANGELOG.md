@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release
+## v3.10.3 \[2023-6-15\]
 
 Changes since the last release
 
@@ -17,7 +17,9 @@ Changes since the last release
 
 ### Bug Fixes
 
--   Removed `classad` from requirements.txt. The HTCSS team distributes only the `htcondor` library in PyPI which includes a different version of classad
+-   Removed `classad` from requirements.txt. The HTCSS team distributes only the `htcondor` library in PyPI which includes a different version of classad (PR #301)
+-   Fixing Python 3.9 deprecations (`imp`, `getchildren()` in `xml.etree.ElementTree`) (PR #302, PR #303)
+-   Populate missing Entry parameters for ARC CEs submissions (PR #304)
 
 ### Testing / Development
 
