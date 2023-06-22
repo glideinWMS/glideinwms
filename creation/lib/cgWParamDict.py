@@ -326,8 +326,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # framing the arguments to the subprocess wrapper as a string
         # executing the cvmfsexec distribution building script can be done without explicitly specifying the location of the script since it is in the PATH variable (directory is /usr/bin/ which is set as the standard for the RPM installation)
         args = " ".join(["create_cvmfsexec_distros.sh", "--work-dir", self.work_dir, cfgs, mtypes])
-        cvmfsexec_distros_build_out = subprocessSupport.iexe_cmd(args)
-        print(cvmfsexec_distros_build_out)  # prints the output from the shell script executed in the previous line
+        if cfgs != "" and mtypes != "":
+            cvmfsexec_distros_build_out = subprocessSupport.iexe_cmd(args)
+            print(cvmfsexec_distros_build_out)  # prints the output from the shell script executed in the previous line
         if cfgs:  # since 'sources' is a required attribute and therefore used as a control knob
             # get the location of the tarballs created during reconfig/upgrade
             distros_loc = os.path.join(self.work_dir, "cvmfsexec/tarballs")

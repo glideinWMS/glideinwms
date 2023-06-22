@@ -20,6 +20,7 @@ Changes since the last release
 -   Removed `classad` from requirements.txt. The HTCSS team distributes only the `htcondor` library in PyPI which includes a different version of classad (PR #301)
 -   Fixing Python 3.9 deprecations (`imp`, `getchildren()` in `xml.etree.ElementTree`) (PR #302, PR #303)
 -   Populate missing Entry parameters for ARC CEs submissions (PR #304)
+-   Do not for call cvmfsexec script if not necessary (PR #309)
 
 ### Testing / Development
 
