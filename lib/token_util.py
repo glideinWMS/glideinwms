@@ -22,28 +22,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
-from glideinwms.lib import logSupport
+from glideinwms.lib import defaults, logSupport
 from glideinwms.lib.subprocessSupport import iexe_cmd
-
-# 2/3 compatibility helpers
-# Inspired by http://python3porting.com/problems.html#nicer-solutions
-
-if sys.version_info[0] < 3:
-
-    def byt(x):
-        return x
-
-else:
-    import codecs
-
-    def byt(x):
-        return codecs.latin_1_encode(x)[0]
-
-
-def un_byt(data):
-    if not isinstance(data, str):
-        data = data.decode()
-    return data.strip()
 
 
 def token_file_expired(token_file):
@@ -52,7 +32,7 @@ def token_file_expired(token_file):
     Do not check signature, audience, or other claims
 
     Args:
-        token_file: (str) a filename containing a jwt
+        token_file(Path or str): a filename containing a jwt (a text file w/ default encoding is expected)
 
     Returns:
         bool: True if exp in future or absent and nbf in past or absent,
@@ -75,7 +55,7 @@ def token_str_expired(token_str):
     Do not check signature, audience, or other claims
 
     Args:
-        token_str: (str) a string containing a jwt
+        token_str(str): string containing a jwt
 
     Returns:
         bool: True if exp in future or absent and nbf in past or absent,
@@ -93,22 +73,24 @@ def token_str_expired(token_str):
         logSupport.log.error("Expired token: %s" % e)
     except Exception as e:
         logSupport.log.exception("Unknown exception decoding token: %s" % e)
+        logSupport.log.debug(f"Faulty token: {token_str}")
     return expired
 
 
 def simple_scramble(data):
     """Undo the simple scramble of HTCondor
     simply XOR with 0xdeadbeef
+    Using defaults.BINARY_ENCODING (latin-1) to have a 1-to-1 characted-byte correspondence
 
     Source: https://github.com/CoffeaTeam/jhub/blob/master/charts/coffea-casa-jhub/files/hub/auth.py#L196-L235
 
     Args:
-        data: binary string to be unscrambled
+        data(bytearray): binary string to be unscrambled
 
     Returns:
-       str: an HTCondor scrambled binary string
+        bytearray: an HTCondor scrambled binary string
     """
-    outb = byt("")
+    outb = "".encode(defaults.BINARY_ENCODING)
     deadbeef = [0xDE, 0xAD, 0xBE, 0xEF]
     ldata = len(data)
     lbeef = len(deadbeef)
@@ -119,7 +101,7 @@ def simple_scramble(data):
             datum = data[i]
         rslt = datum ^ deadbeef[i % lbeef]
         b1 = struct.pack("H", rslt)[0]
-        outb += byt("%c" % b1)
+        outb += ("%c" % b1).encode(defaults.BINARY_ENCODING)
     return outb
 
 
@@ -129,7 +111,7 @@ def derive_master_key(password):
     Source: https://github.com/CoffeaTeam/jhub/blob/master/charts/coffea-casa-jhub/files/hub/auth.py#L196-L235
 
     Args:
-        password: (str) an unscrambled HTCondor password
+        password(bytes): an unscrambled HTCondor password (bytes-like: bytes, bytearray, memoryview)
 
     Returns:
        str: an HTCondor encryption/decryption key
@@ -137,21 +119,26 @@ def derive_master_key(password):
 
     # Key length, salt, and info fixed as part of protocol
     hkdf = HKDF(
-        algorithm=hashes.SHA256(), length=32, salt=byt("htcondor"), info=byt("master jwt"), backend=default_backend()
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt="htcondor".encode(defaults.BINARY_ENCODING),
+        info="master jwt".encode(defaults.BINARY_ENCODING),
+        backend=default_backend(),
     )
-    return hkdf.derive(password)
+    # HKDF.derive() requires bytes and returns bytes
+    return hkdf.derive(password).decode(defaults.BINARY_ENCODING)
 
 
 def sign_token(identity, issuer, kid, master_key, duration=None, scope=None):
     """Assemble and sign an idtoken
 
     Args:
-        identity: (str)  who the token was generated for
-        issuer: (str) idtoken issuer, typically HTCondor Collector
-        kid: (str) Key ID
-        master_key: (str) encryption key
-        duration: (int, optional) number of seconds IDTOKEN is valid. Default: infinity
-        scope: (str, optional) permissions IDTOKEN has. Default: everything
+        identity(str): who the token was generated for
+        issuer(str): idtoken issuer, typically HTCondor Collector
+        kid(str): Key ID
+        master_key(str): encryption key
+        duration(int, optional): number of seconds IDTOKEN is valid. Default: infinity
+        scope(str, optional): permissions IDTOKEN has. Default: everything
 
     Returns:
        str: a signed IDTOKEN
@@ -248,4 +235,5 @@ if __name__ == "__main__":
     master_key = derive_master_key(obfusicated)
     scope = "condor:/READ condor:/WRITE condor:/ADVERTISE_STARTD condor:/ADVERTISE_SCHEDD condor:/ADVERTISE_MASTER"
     idtoken = sign_token(identity, issuer, kid, master_key, scope=scope)
-    print(un_byt(idtoken))
+    # idtoken is str
+    print(idtoken)

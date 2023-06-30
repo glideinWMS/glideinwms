@@ -1146,12 +1146,13 @@ class glideinFrontendElement:
                         pwd_file, scope=scope, duration=duration, identity=identity
                     )
                     # NOTE: Sensitive information. Uncomment only in development machines.
-                    # cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
-                    # tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
-                    # logSupport.log.debug("tkn_str= %s" % tkn_str)
-                    with tempfile.NamedTemporaryFile(mode="wb", delete=False, dir=tkn_dir) as fd:
+                    #   # cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
+                    #   tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
+                    #   logSupport.log.debug("tkn_str= %s" % tkn_str)
+                    # The token file is read as text file below. Writing fixed to be consistent
+                    with tempfile.NamedTemporaryFile(mode="w", delete=False, dir=tkn_dir) as fd:
                         os.chmod(fd.name, 0o600)
-                        fd.write(tkn_str)
+                        fd.write(tkn_str.encode())
                         os.replace(fd.name, tkn_file)
                     logSupport.log.debug("created token %s" % tkn_file)
                 elif os.path.exists(tkn_file):
@@ -1160,8 +1161,7 @@ class glideinFrontendElement:
                             tkn_str += line
             except Exception as err:
                 logSupport.log.warning("failed to create %s" % tkn_file)
-                for i in sys.exc_info():
-                    logSupport.log.warning("%s" % i)
+                logSupport.log.warning("Error details: %s" % traceback.format_exc())
 
         return tkn_str
 

@@ -110,7 +110,7 @@ class GlideinHandler(BaseRotatingHandler):
                 self.compression = compression.lower()
         except AttributeError:
             pass
-        # bz2 compression can be implementes with encoding='bz2-codec' in BaseRotatingHandler
+        # bz2 compression can be implemented with encoding='bz2-codec' in BaseRotatingHandler
         mode = "a"
         BaseRotatingHandler.__init__(self, filename, mode, encoding=None)
         self.backupCount = backupCount
