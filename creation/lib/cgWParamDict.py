@@ -326,10 +326,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # framing the arguments to the subprocess wrapper as a string
         # executing the cvmfsexec distribution building script can be done without explicitly specifying the location of the script since it is in the PATH variable (directory is /usr/bin/ which is set as the standard for the RPM installation)
         args = " ".join(["create_cvmfsexec_distros.sh", "--work-dir", self.work_dir, cfgs, mtypes])
-        if cfgs != "" and mtypes != "":
+        if cfgs:  # since 'sources' is a required attribute and therefore used as a control knob
             cvmfsexec_distros_build_out = subprocessSupport.iexe_cmd(args)
             print(cvmfsexec_distros_build_out)  # prints the output from the shell script executed in the previous line
-        if cfgs:  # since 'sources' is a required attribute and therefore used as a control knob
             # get the location of the tarballs created during reconfig/upgrade
             distros_loc = os.path.join(self.work_dir, "cvmfsexec/tarballs")
             try:
@@ -377,6 +376,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                     self.dicts["consts"].add(cvmfsexec_cond_name, "0", allow_overwrite=False)
             ### for dynamic selection of cvmfsexec distribution -- block end
         else:
+            if not mtypes:
+                print("No sources specified. Building/Rebuilding of cvmfsexec distributions disabled!\n")
             print("=======================!!WARNING!!========================")
             print(
                 "There might be existing cvmfsexec distributions, from a \nprevious factory reconfig that might be obsolete in case \n"
