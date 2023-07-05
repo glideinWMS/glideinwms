@@ -1,8 +1,8 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_2
+# GLIDEINWMS_VERSION 3_10_3_rc1
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-1254cce733833813ff7d384c6732a264  ./CHANGELOG.md
+b87af4256b2c866aec2ad6912fbc24de  ./CHANGELOG.md
 8e7d1957a094cc33c89f5b2c935666ff  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
@@ -26,12 +26,12 @@ e7d735902931652720737f283d878cd5  ./creation/lib/cWDictFile.py
 68da6e4e091208e9952e42cbc9a5238a  ./creation/lib/cWParamDict.py
 09e0aec94b646db9d3822d04e3b81b45  ./creation/lib/cWParams.py
 331319e7e590d4be22f437c0fdeb8cd1  ./creation/lib/cgWConsts.py
-3e27660382161e7c79b18430b6a1d394  ./creation/lib/cgWCreate.py
+2e955f51a786159a66a5254ba366d438  ./creation/lib/cgWCreate.py
 a5de8f55610b9ec1b71f30ee977e74d8  ./creation/lib/cgWDictFile.py
 c5b2bfdde82ae88e2585f322c2b8162b  ./creation/lib/cgWParamDict.py
 ea23a574b8462ad3d73da100bd85a9e7  ./creation/lib/cgWParams.py
 0ea15d35700a91f8d7f6d800ad2703ae  ./creation/lib/check_config_frontend.py
-cb91b35b38640ee1ecad39fb9d9beb30  ./creation/lib/check_python3_expr.py
+b080e6fea149c710a24acde7f507974b  ./creation/lib/check_python3_expr.py
 2df1408de2ab12cd70612bd7bce3f5d4  ./creation/lib/cvWConsts.py
 5315278e4ff6f11e3fa44aefa08b0159  ./creation/lib/cvWCreate.py
 6511f1041262df136495db4c37748a8b  ./creation/lib/cvWDictFile.py
@@ -39,7 +39,7 @@ cb91b35b38640ee1ecad39fb9d9beb30  ./creation/lib/check_python3_expr.py
 908e8c3913a6b575c9add19299ff0433  ./creation/lib/cvWParams.py
 047a5989b31d1037d6ce6f7548f0918b  ./creation/lib/factoryXmlConfig.py
 2f93c7f30376ac7dbbc5d52a37517e02  ./creation/lib/factory_defaults.xml
-0bd832cb44d022867ca137c8d3350a17  ./creation/lib/matchPolicy.py
+a84997e112afdf115be5d4930033ae32  ./creation/lib/matchPolicy.py
 d39336813621567109e263b8c85d461f  ./creation/lib/xmlConfig.py
 685fa8cf99ece27f96064254692e0150  ./creation/lib/xslt.py
 aba0dc9ea5e680714e6725b55ddf8e11  ./creation/reconfig_frontend
@@ -261,7 +261,7 @@ f11c3fd71d04c7d7b6598c4e511cd40a  ./lib/xmlFormat.py
 411affecf420b3e2bcba1d4c7e3dc211  ./lib/xmlParse.py
 c57d556e9ef76658706999fc4a535bee  ./plugins/scitokens_callout.py
 5893d42abe7488418aa38218d579b850  ./pyproject.toml
-7e32a847480a9a248a19bc63a68f2434  ./requirements.txt
+aa76f69c3b8dd671b66435a204602592  ./requirements.txt
 d41d8cd98f00b204e9800998ecf8427e  ./tools/__init__.py
 67187fc6a26c82ec4176f5d69c13ed29  ./tools/glidein_cat.py
 154a33deefba5df1231fbd6cde547d60  ./tools/glidein_gdb.py
