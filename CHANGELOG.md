@@ -11,7 +11,7 @@ Changes since the last release
 
 ### Changed defaults / behaviours
 
--   Added `cvmfsexec_distro` tag as part of out-of-the-box factory configuration after a fresh installation; its behavior (on-demand cvmfsexec in disabled mode) remains unchanged (PR #312)
+-   Added `cvmfsexec_distro` tag to be included in the factory configuration out-of-the-box (fresh installation) as well as through an upgrade; its behavior (on-demand cvmfsexec in disabled mode) remains unchanged (PR #312)
 
 ### Deprecated / removed options and commands
 
