@@ -9,8 +9,9 @@
 # Hardcoded variables
 CVMFSEXEC_REPO="https://www.github.com/cvmfs/cvmfsexec.git"
 DEFAULT_WORK_DIR="/var/lib/gwms-factory/work-dir"
-# TODO: add rhel9, other rhel derivatives and opensuse derivatives to the default list below eventually
-DEFAULT_MACHINE_TYPES="rhel7-x86_64,rhel8-x86_64,suse15-x86_64"
+# TODO: periodically add rhel, suse and other derivatives as supported by cvmfsexec
+# NOTE: ignoring rhel9-x86_64 (although supported) since el7 tools cannot work with el9 files at the moment (as suggested by Dave Dykstra)
+DEFAULT_MACHINE_TYPES="rhel7-x86_64,rhel8-x86_64,suse15-x86_64,rhel8-aarch64,rhel8-ppc64le"
 
 usage() {
 cat << EOF
@@ -24,7 +25,7 @@ or a comma-separated list of values from the options {osg|egi|default}.
 
 PLATFORMS_LIST (optional): indicates machine types (platform- and architecture-based)
 for which distributions is to be built. Can be empty, a single value or a
-comma-separated list of values from the options {rhel7-x86_64|rhel8-x86_64|suse15-x86_64}.
+comma-separated list of values from the options {rhel7-x86_64|rhel8-x86_64|suse15-x86_64|rhel8-aarch64|rhel8-ppc64le}.
 EOF
 }
 
@@ -117,6 +118,9 @@ build_cvmfsexec_distros() {
 						if tar -cvzf "$cvmfsexec_tarballs"/cvmfsexec_"${cvmfs_src}"_"${os}"_"${arch}".tar.gz -C "$cvmfsexec_distros" cvmfsexec-"${cvmfs_src}"-"${os}"-"${arch}" &> /dev/null; then
 							((successful_builds+=1))
 						fi
+					else
+						echo "Something went wrong!"
+						exit 1
 					fi
 				else
 					echo " Failed! REASON: $cvmfs_src may not yet have a $mach_type build."
@@ -177,8 +181,8 @@ fi
 
 # after confirming that the remaining number of arguments to be either 1 or 2
 re_sources="^((osg|egi|default),)*(osg|egi|default),?$"
-# TODO: update the regex for machine types upon checking with `makedist -h` periodically
-re_mtypes="^((rhel(7|8)|suse15)(-x86_64),?)+$"
+# TODO: update the regex for rhel9 and other machine types upon checking with `makedist -h` periodically
+re_mtypes="^((rhel(7|8)|suse15)(-(x86_64|aarch64|ppc64le),?))+$"
 # check whether the first argument is sources (strict ordering followed)
 if ! [[ "$1" =~ $re_sources ]]; then
 	error_handler "Invalid source(s) provided (comma-separated list with osg|egi|default), not '$1'"
@@ -190,7 +194,7 @@ elif [[ "$2" =~ $re_mtypes ]]; then
 	machine_types=$2
 else
 	# handle if there were typos in the arguments passed
-	error_handler "Invalid platform provided. Must be empty or comma-separated list with (rhel7-x86_64|rhel8-x86_64|suse15-x86_64), not '$2'"
+	error_handler "Invalid platform provided. Must be empty or comma-separated list with (rhel7-x86_64|rhel8-x86_64|suse15-x86_64|rhel8-aarch64|rhel8-ppc64le), not '$2'"
 fi
 
 echo "(Re)Building of cvmfsexec distributions enabled!"
