@@ -11,6 +11,8 @@ Changes since the last release
 
 ### Changed defaults / behaviours
 
+-   Added `cvmfsexec_distro` tag as part of out-of-the-box factory configuration after a fresh installation; its behavior (on-demand cvmfsexec in disabled mode) remains unchanged (PR #312)
+
 ### Deprecated / removed options and commands
 
 ### Security Related Fixes
@@ -27,7 +29,7 @@ Changes since the last release
 ### Known Issues
 
 -   When generating cvmfsexec distribution for el9 machine type on an el7 machine, the factory reconfig and/or upgrade fails as a result of an error in `create_cvmfsexec_distros.sh`. This is possibly due to the tools for el7 being unable to handle el9 files (as per Dave Dykstra). Please exercise caution if using `rhel9-x86_64` in the `mtypes` list for the `cvmfsexec_distro` tag in factory configuration.
-    -   Our workaround: the el9 machine type has been removed from the default list of machine types supported by the custom distros creation script.
+    -   Our workaround: the el9 machine type has been removed from the default list of machine types supported by the custom distros creation script (PR #312)
 
 ## v3.10.2 \[2023-5-10\]
 
