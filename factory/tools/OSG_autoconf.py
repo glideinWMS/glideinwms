@@ -44,6 +44,12 @@ def parse_opts():
         help="Apply changes in the whitelist yaml files even if the collector is not responding. Uses the OSG_YAML cached data",
     )
 
+    parser.add_argument(
+        "--skip-broken",
+        action="store_true",
+        help="Do not exit with an error when a site in the whitelist is not found in the OSG_YAML or the MISSING_YAML files",
+    )
+
     args = parser.parse_args()
 
     return args
@@ -365,7 +371,7 @@ def manage_append_values(whitelist_info, osg_info):
                             )
 
 
-def merge_yaml(config, white_list):
+def merge_yaml(config, white_list, args):
     """Merges different yaml file and return the corresponding resource dictionary
 
     Three different yam files are merged. First we read the factory white list/override file that
@@ -390,6 +396,9 @@ def merge_yaml(config, white_list):
     default_information = get_yaml_file_info(config["OSG_DEFAULT"])
     additional_yaml_files = config.get("ADDITIONAL_YAML_FILES", [])
     additional_information = []
+    broken_sites = []
+    broken_ces = []
+
     for additional_yaml_file in additional_yaml_files:
         additional_information.append(get_yaml_file_info(additional_yaml_file))
     # TODO remove this if once factory ops trims the default file
@@ -406,18 +415,28 @@ def merge_yaml(config, white_list):
                 "You put %s in the whitelist file, but the site is not present in the collector or the missing %s file"
                 % (site, config["MISSING_YAML"])
             )
-            raise ProgramError(2)
+            if args.skip_broken:
+                print("Will skip %s and continue normally" % site)
+                broken_sites.append(site)
+                continue
+            else:
+                raise ProgramError(2)
         for ce_hostname, ce_information in site_information.items():
             if ce_information is None:
                 print("There is no CE information for %s CE in white list file. Skipping it." % ce_hostname)
-                del out[site][ce_hostname]
+                broken_ces.append((site, ce_hostname))
                 continue
             if ce_hostname not in osg_info[site]:
                 print(
                     "Working on whitelisted site %s: cant find ce %s in the generated %s or the missing %s files "
                     % (site, ce_hostname, config["OSG_YAML"], config["MISSING_YAML"])
                 )
-                raise ProgramError(3)
+                if args.skip_broken:
+                    print("Will skip %s and continue normally" % ce_hostname)
+                    broken_ces.append((site, ce_hostname))
+                    continue
+                else:
+                    raise ProgramError(3)
             for qelem, q_information in ce_information.items():
                 if qelem not in osg_info[site][ce_hostname]:
                     print(
@@ -458,6 +477,10 @@ def merge_yaml(config, white_list):
                             overwrite=False,
                         )
 
+    for site in broken_sites:
+        del out[site]
+    for site, ce in broken_ces:
+        del out[site][ce]
     return out
 
 
@@ -535,6 +558,9 @@ def update_submit_attrs(entry_information, attr, submit_attr):
 
 def create_missing_file(config, osg_collector_data):
     """Create the missing yaml file."""
+
+    print("Generating the missing file")
+
     new_missing = {}
     try:
         osg_info = get_yaml_file_info(config["OSG_YAML"])
@@ -627,7 +653,7 @@ def main(args):
             raise ProgramError(5)
     # Merges different yaml files: the defaults, the generated one, and the factory overrides
     for white_list in sorted(config["OSG_WHITELISTS"]):
-        result = merge_yaml(config, white_list)
+        result = merge_yaml(config, white_list, args)
         # Convert the resoruce dictionary obtained this way into a string (xml)
         entries_configuration = get_entries_configuration(result)
         # Write the factory configuration file on the disk
