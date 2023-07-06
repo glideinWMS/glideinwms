@@ -149,7 +149,7 @@ def get_entry_dictionary(resource, vos, cpus, walltime, memory):
     if resource:
         edict["attrs"]["GLIDEIN_ResourceName"] = {"value": resource}
     if len(vos) > 0:
-        edict["attrs"]["GLIDEIN_Supported_VOs"] = {"value": ",".join(vos)}
+        edict["attrs"]["GLIDEIN_Supported_VOs"] = {"value": ",".join(sorted(vos))}
     edict["submit_attrs"] = {}
     if cpus != None:
         edict["attrs"]["GLIDEIN_CPUS"] = {"value": cpus}
