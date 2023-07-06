@@ -635,6 +635,7 @@ def create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_col
 def main(args):
     """The main"""
     config = get_yaml_file_info(args.config[0])
+    xmloutdir = config.get('XML_OUTDIR', None)
     try:
         # Queries the OSG collector
         result = get_information(config["OSG_COLLECTOR"])
@@ -657,7 +658,9 @@ def main(args):
         # Convert the resoruce dictionary obtained this way into a string (xml)
         entries_configuration = get_entries_configuration(result)
         # Write the factory configuration file on the disk
-        write_to_xml_file(white_list.replace("yml", "xml"), entries_configuration)
+        xmloutdir = os.path.dirname(white_list) if xmloutdir==None else xmloutdir
+        filename = os.path.basename(white_list.replace("yml", "xml"))
+        write_to_xml_file(os.path.join(xmloutdir, filename), entries_configuration)
 
 
 if __name__ == "__main__":
