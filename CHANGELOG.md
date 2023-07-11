@@ -9,6 +9,8 @@ Changes since the last release
 
 ### New features / functionalities
 
+-   Added support for Debuan 11 and Ubuntu 22 worker nodes (PR #320)
+
 ### Changed defaults / behaviours
 
 -   Added `cvmfsexec_distro` tag to be included in the factory configuration out-of-the-box (fresh installation) as well as through an upgrade; its behavior (on-demand cvmfsexec in disabled mode) remains unchanged (PR #312)
