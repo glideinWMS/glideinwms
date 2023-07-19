@@ -23,6 +23,12 @@ GWMS_SUBDIR=".gwms.d"
 
 export LANG=C
 
+# Tracing Global Variable
+# Used to set the environment TRACE_START
+GWMS_TRACE_START=
+export JAEGER_ENDPOINT="http://fermicloud296.fnal.gov:14268/api/traces"
+export JAEGER_SERVICE_NAME="glidein"
+
 # General options
 GWMS_MULTIUSER_GLIDEIN=
 # Set GWMS_MULTIUSER_GLIDEIN if the Glidein may spawn processes (for jobs) as a different user.
@@ -191,6 +197,9 @@ usage() {
     echo "  -v <id>                     : operation mode (std, nodebug, fast, check supported)"
     echo "  -multiglidein <num>         : spawn multiple (<num>) glideins (unless also multirestart is set)"
     echo "  -multirestart <num>         : started as one of multiple glideins (glidein number <num>)"
+    echo "  -traceid <id>               : Jaeger trace ID"
+    echo "  -jaegerservicename <name>   : "
+    echo "  -jaegercollectorendpoint <URL>: "
     echo "  -param_* <arg>              : user specified parameters"
     exit 1
 }
@@ -231,11 +240,19 @@ do case "$1" in
     -v)          operation_mode="$2";;
     -multiglidein)  multi_glidein="$2";;
     -multirestart)  multi_glidein_restart="$2";;
+    -traceid)                   glidein_trace_id="$2";;
+    -jaegerservicename)         service_name="$2";;
+    -jaegercollectorendpoint)   collector_endpoint="$2";;
     -param_*)    params="$params $(echo "$1" | awk '{print substr($0,8)}') $2";;
     *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
 esac
 shift 2
 done
+
+if [[ -n "$glidein_trace_id" ]] ; then
+    export TRACE_ID="$glidein_trace_id"
+    GWMS_TRACE_START=$(date)
+fi
 
 # make sure we have a valid slots_layout
 if (echo "x${slots_layout}" | grep -i fixed) >/dev/null 2>&1 ; then
@@ -448,7 +465,7 @@ early_glidein_failure() {
   # have no global section
   final_result_long="$(simplexml2longxml "${final_result_simple}" "")"
 
-  glidien_cleanup
+  glidein_cleanup
 
   print_tail 1 "${final_result_simple}" "${final_result_long}"
 
@@ -588,6 +605,12 @@ glidein_exit() {
   send_logs_to_remote
 
   glidien_cleanup
+
+  if [[ -n "$glidein_trace_id" ]] ; then
+    export TRACE_START="$GWMS_TRACE_START" # These are the lines to close and send the current span
+    "${gwms_bin_dir}"/pfeil -v -t span=cleanup -t UUID=${glidein_uuid} cleanup
+    GWMS_TRACE_START=$(date)  # This is the line to start the next span
+  fi
 
   print_tail "$1" "${final_result_simple}" "${final_result_long}"
 
@@ -901,6 +924,7 @@ else
     glidein_uuid="$(od -x -w32 -N32 /dev/urandom | awk 'NR==1{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')"
 fi
 
+
 startup_time="$(date +%s)"
 echo "Starting glidein_startup.sh at $(date) (${startup_time})"
 
@@ -941,6 +965,7 @@ if [ -n "${client_repository_url}" ]; then
         echo "client_sign_group_id        = '${client_sign_group_id}'"
     fi
 fi
+# TODO: print tracing parameters
 echo
 echo "Running on $(uname -n)"
 echo "System: $(uname -a)"
@@ -956,6 +981,7 @@ if [ ${set_debug} -ne 0 ]; then
   env 1>&2
   echo "------- =================== ---------------" 1>&2
 fi
+
 
 # Before anything else, spawn multiple glideins and wait, if asked to do so
 if [[ -n "${multi_glidein}" ]] && [[ -z "${multi_glidein_restart}" ]] && [[ "${multi_glidein}" -gt 1 ]]; then
@@ -1246,6 +1272,26 @@ if ! {
 fi
 # shellcheck disable=SC2086
 params2file ${params}
+
+############################################
+# Setup tracing
+if [[ -n "$glidein_trace_id" ]] ; then
+    if ! cp "$start_dir"/pfeil "${gwms_bin_dir}"/ ; then
+        warn "Could not copy pfeil."
+        glidein_trace_id=
+    else
+        chmod +x "${gwms_bin_dir}"/pfeil
+        export TRACE_START="$GWMS_TRACE_START"
+        "${gwms_bin_dir}"/pfeil -v -t span=pretracing -t UUID=${glidein_uuid} pretracing
+        GWMS_TRACE_START=$(date)
+    fi
+fi
+
+if [[ -n "$glidein_trace_id" ]] ; then
+    export TRACE_START="$GWMS_TRACE_START" # These are the lines to close and send the current span
+    "${gwms_bin_dir}"/pfeil -v -t span=TAG_NAME -t UUID=${glidein_uuid} span_name
+    GWMS_TRACE_START=$(date)  # This is the line to start the next span
+fi
 
 ############################################
 # Setup logging
@@ -1852,6 +1898,12 @@ fixup_condor_dir() {
 echo "Downloading files from Factory and Frontend"
 log_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"
 
+if [[ -n "$glidein_trace_id" ]] ; then
+    export TRACE_START="$GWMS_TRACE_START" # These are the lines to close and send the current span
+    "${gwms_bin_dir}"/pfeil -v -t span=init -t UUID=${glidein_uuid} init
+    GWMS_TRACE_START=$(date)  # This is the line to start the next span
+fi
+
 #####################################
 # Fetch descript and signature files
 
@@ -1939,6 +1991,11 @@ fi
 #cleanup_script="$(grep "^cleanup_script " "${gs_id_work_dir}/${gs_id_descript_file}" | cut -s -f 2-)"
 cleanup_script=$(grep "^GLIDEIN_CLEANUP_SCRIPT " "${glidein_config}" | cut -d ' ' -f 2-)
 
+if [[ -n "$glidein_trace_id" ]] ; then
+    export TRACE_START="$GWMS_TRACE_START" # These are the lines to close and send the current span
+    "${gwms_bin_dir}"/pfeil -v -t span=pre_setup -t UUID=${glidein_uuid} pre_setup
+    GWMS_TRACE_START=$(date)  # This is the line to start the next span
+fi
 
 ##############################
 # Fetch all the other files
@@ -2014,6 +2071,12 @@ done
 
 fixup_condor_dir
 
+if [[ -n "$glidein_trace_id" ]] ; then
+    export TRACE_START="$GWMS_TRACE_START" # These are the lines to close and send the current span
+    "${gwms_bin_dir}"/pfeil -v -t span=setup -t UUID=${glidein_uuid} setup
+    GWMS_TRACE_START=$(date)  # This is the line to start the next span
+fi
+
 ##############################
 # Start the glidein main script
 add_config_line "GLIDEIN_INITIALIZED" "1"
@@ -2048,6 +2111,12 @@ echo "=== Last script ended $(date) (${last_startup_end_time}) with code ${ret} 
 echo
 if [ ${ret} -ne 0 ]; then
     warn "Error running '${last_script}'"
+fi
+
+if [[ -n "$glidein_trace_id" ]] ; then
+    export TRACE_START="$GWMS_TRACE_START" # These are the lines to close and send the current span
+    "${gwms_bin_dir}"/pfeil -v -t span=main -t UUID=${glidein_uuid} main
+    GWMS_TRACE_START=$(date)  # This is the line to start the next span
 fi
 
 #Things like periodic scripts might put messages here if they want them printed in the (stderr) logfile

@@ -167,6 +167,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         client_log_base_dir = conf.get_child("submit")["base_client_log_dir"]
         submit_attrs = entry.get_child("config").get_child("submit").get_child_list("submit_attrs")
         enc_input_files = []
+        input_files = []
+        input_files.append("/usr/bin/pfeil")
 
         enc_input_files.append("$ENV(IDTOKENS_FILE:)")
         self.add_environment("IDTOKENS_FILE=$ENV(IDTOKENS_FILE:)")
@@ -237,7 +239,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         elif gridtype == "condor":
             # Condor-C is the same as normal grid with a few additions
             # so we first do the normal population
-            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
+            self.populate_standard_grid(
+                rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files, input_files
+            )
             # self.populate_standard_grid(rsl, auth_method, gridtype, token_files)
             # next we add the Condor-C additions
             self.populate_condorc_grid()
@@ -246,7 +250,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
             self.add("x509UserProxy", "$ENV(X509_USER_PROXY:)")
         else:
-            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
+            self.populate_standard_grid(
+                rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files, input_files
+            )
 
         self.populate_submit_attrs(submit_attrs, gridtype)
         self.populate_glidein_classad(proxy_url)
@@ -288,7 +294,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         self.jobs_in_cluster = "$ENV(GLIDEIN_COUNT)"
 
-    def populate_standard_grid(self, rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files=None):
+    def populate_standard_grid(
+        self, rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files=None, input_files=None
+    ):
         """
         create a standard condor jdl file to submit to  OSG grid
         Args:
@@ -300,6 +308,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             entry_name (str): factory entry name
             enc_input_files (list): files to be appended to Transfer_input_files
                                     and encrypt_input_files in the jdl
+            input_files (list): files to be appended to transfer_input_files only
         Returns:
             None
         Raises:
@@ -323,10 +332,13 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         self.add("Arguments", "$ENV(GLIDEIN_ARGUMENTS)")
 
+        if input_files is None:
+            input_files = []
         if enc_input_files:
-            indata = ",".join(enc_input_files)
-            self.add("transfer_Input_files", indata)
-            self.add("encrypt_Input_files", indata)
+            self.add("encrypt_Input_files", ",".join(enc_input_files))
+            self.add("transfer_Input_files", ",".join(enc_input_files + input_files))
+        elif input_files:
+            self.add("transfer_Input_files", ",".join(input_files))
         # Logging is optional, no exception if empty
 
         self.add("Transfer_Executable", "True")

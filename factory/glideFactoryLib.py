@@ -34,6 +34,7 @@ from glideinwms.lib import (
     condorExe,
     condorManager,
     condorMonitor,
+    glideinTracer,
     logSupport,
     subprocessSupport,
     timeConversion,
@@ -42,6 +43,10 @@ from glideinwms.lib import (
 from glideinwms.lib.defaults import BINARY_ENCODING
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
+
+
+# TODO; these will come from the configuration
+jaeger_collector_endpoint = "http://fermicloud296.fnal.gov:14268/api/traces?format=jaeger.thrift"
 
 
 ############################################################
@@ -1635,6 +1640,8 @@ def submitGlideins(
     # List of job ids that have been submitted - initialize to empty array
     submitted_jids = []
 
+    trace_id = None
+
     try:
         entry_env = get_submit_environment(
             entry_name,
@@ -1685,6 +1692,21 @@ def submitGlideins(
                 nr_to_submit = nr_glideins_sf - nr_submitted
                 if nr_to_submit > factoryConfig.max_cluster_size:
                     nr_to_submit = factoryConfig.max_cluster_size
+
+                # Initialize GlideIn Trace
+                try:
+                    t_parent = glideinTracer.Tracer(jaeger_collector_endpoint)
+                    t_parent.initial_trace({"entry": entry_name, "client": client_name})
+                    trace_id = t_parent.GLIDEIN_TRACE_ID
+                    time.sleep(2)
+                    log.info(f"Generated parent traceID {trace_id} at collector_endpoint {jaeger_collector_endpoint}")
+                except:
+                    log.info(f"FAILED TO GENERATE TRACEID AND SEND TO COLLECTOR ENDPOINT AND SERVICE")
+                for i in range(len(entry_env)):
+                    if entry_env[i].startswith("GLIDEIN_ARGUMENTS="):
+                        entry_env[
+                            i
+                        ] += f" -traceid {trace_id} -jaegercollectorendpoint {jaeger_collector_endpoint} -jaegerservicename {t_parent.jaeger_service_name}"
 
                 sub_env.append("GLIDEIN_COUNT=%s" % nr_to_submit)
                 sub_env.append("GLIDEIN_FRONTEND_NAME=%s" % frontend_name)
