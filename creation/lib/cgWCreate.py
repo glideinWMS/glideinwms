@@ -328,10 +328,10 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("Arguments", "$ENV(GLIDEIN_ARGUMENTS)")
 
         if input_files is None:
-            input_files=[]
+            input_files = []
         if enc_input_files:
             self.add("encrypt_Input_files", ",".join(enc_input_files))
-            self.add("transfer_Input_files", ",".join(enc_input_files+input_files))
+            self.add("transfer_Input_files", ",".join(enc_input_files + input_files))
         elif input_files:
             self.add("transfer_Input_files", ",".join(input_files))
         # Logging is optional, no exception if empty

@@ -1695,7 +1695,7 @@ def submitGlideins(
                 # Initialize GlideIn Trace
                 try:
                     t_parent = glideinTracer.Tracer(jaeger_collector_endpoint)
-                    t_parent.initial_trace({"entry":entry_name, "client":client_name})
+                    t_parent.initial_trace({"entry": entry_name, "client": client_name})
                     trace_id = t_parent.GLIDEIN_TRACE_ID
                     time.sleep(2)
                     log.info(f"Generated parent traceID {trace_id} at collector_endpoint {jaeger_collector_endpoint}")
@@ -1703,7 +1703,9 @@ def submitGlideins(
                     log.info(f"FAILED TO GENERATE TRACEID AND SEND TO COLLECTOR ENDPOINT AND SERVICE")
                 for i in range(len(entry_env)):
                     if entry_env[i].startswith("GLIDEIN_ARGUMENTS="):
-                        entry_env[i] += f" -traceid {trace_id} -jaegercollectorendpoint {jaeger_collector_endpoint} -jaegerservicename {t_parent.jaeger_service_name}"
+                        entry_env[
+                            i
+                        ] += f" -traceid {trace_id} -jaegercollectorendpoint {jaeger_collector_endpoint} -jaegerservicename {t_parent.jaeger_service_name}"
 
                 sub_env.append("GLIDEIN_COUNT=%s" % nr_to_submit)
                 sub_env.append("GLIDEIN_FRONTEND_NAME=%s" % frontend_name)
@@ -1711,7 +1713,7 @@ def submitGlideins(
                 exe_env = entry_env + sub_env
 
                 submit_out = executeSubmit(log, factoryConfig, username, schedd, exe_env, submit_file)
- 
+
                 cluster, count = extractJobId(submit_out)
                 for j in range(count):
                     submitted_jids.append((cluster, j))

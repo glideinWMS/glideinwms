@@ -1,24 +1,26 @@
 #!/usr/bin/env python3
 
-import os
-import json
-import requests
 import argparse
+import json
+import os
+
+import requests
 
 # ----------------------------------------------------------------
 # Here is where you put the link to your JAEGER COLLECTOR ENDPOINT
 # (ex: "http://localhost:16686/api/traces?limit=20000&")
-# For each service at that collector endpoint, a directory will be 
+# For each service at that collector endpoint, a directory will be
 # made with all traces under it
 # ----------------------------------------------------------------
 
 parser = argparse.ArgumentParser()
-parser.add_argument("endpoint", help = "Manually input the jaeger host you would like to retrieve from (ex: localhost).")
+parser.add_argument("endpoint", help="Manually input the jaeger host you would like to retrieve from (ex: localhost).")
 args = parser.parse_args()
 endpoint = args.endpoint
 
 JAEGER_TRACES_ENDPOINT = f"http://{endpoint}:16686/api/traces?limit=20000&"
 JAEGER_TRACES_PARAMS = "service="
+
 
 def get_traces(service):
     """
@@ -35,7 +37,9 @@ def get_traces(service):
     traces = response["data"]
     return traces
 
+
 JAEGER_SERVICES_ENDPOINT = f"http://{endpoint}:16686/api/services"
+
 
 def get_services():
     """
@@ -46,10 +50,11 @@ def get_services():
         response.raise_for_status()
     except requests.exceptions.HTTPError as err:
         raise err
-        
+
     response = json.loads(response.text)
     services = response["data"]
     return services
+
 
 def write_traces(directory, traces):
     """
@@ -58,8 +63,9 @@ def write_traces(directory, traces):
     for trace in traces:
         traceid = trace["traceID"]
         path = directory + "/" + traceid + ".json"
-        with open(path, 'w') as fd:
+        with open(path, "w") as fd:
             fd.write(json.dumps(trace, indent=2))
+
 
 # Pull traces for all the services & store locally as json files
 for service in get_services():

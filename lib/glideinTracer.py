@@ -5,16 +5,19 @@
 # a Tracer and Trace class to give Glidein's unique TRACE_ID
 # and methods to send child spans or print the TRACE_ID of Glidein
 import os
-# fmt: off
-os.environ["OTEL_PROPAGATORS"] = "jaeger" 
+
 # fmt: on
 import time
+
 from opentelemetry import propagate, trace
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.sdk.resources import Resource, SERVICE_NAME
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+
+# fmt: off
+os.environ["OTEL_PROPAGATORS"] = "jaeger"
 
 
 
@@ -43,7 +46,7 @@ class Tracer:
 
     def initial_trace(self,tags={}):
         self.tags = tags
-        
+
         trace.set_tracer_provider(TracerProvider(resource=Resource.create({SERVICE_NAME:self.jaeger_service_name})))
 
         self.tracer = trace.get_tracer(__name__)
@@ -84,7 +87,7 @@ class Trace:
         self.GLIDEIN_SPAN_ID = []
         self.SpanContext = None
         self.ctx = None
-        
+
 
     def send_span(self):
         self.ctx = TraceContextTextMapPropagator().extract(carrier=self.carrier)
