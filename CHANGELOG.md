@@ -9,7 +9,7 @@ Changes since the last release
 
 ### New features / functionalities
 
--   Added support for Debuan 11 and Ubuntu 22 worker nodes (PR #320)
+-   Added support for Debian 11 and Ubuntu 22 worker nodes (PR #320)
 
 ### Changed defaults / behaviours
 
