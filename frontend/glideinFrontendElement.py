@@ -1152,7 +1152,7 @@ class glideinFrontendElement:
                     # The token file is read as text file below. Writing fixed to be consistent
                     with tempfile.NamedTemporaryFile(mode="w", delete=False, dir=tkn_dir) as fd:
                         os.chmod(fd.name, 0o600)
-                        fd.write(tkn_str.encode())
+                        fd.write(tkn_str)
                         os.replace(fd.name, tkn_file)
                     logSupport.log.debug("created token %s" % tkn_file)
                 elif os.path.exists(tkn_file):

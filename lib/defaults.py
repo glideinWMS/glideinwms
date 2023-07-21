@@ -35,11 +35,12 @@ def force_bytes(instr, encoding=BINARY_ENCODING_CRYPTO):
         ValueError: if it detects an improper str conversion (b'' around the string)
     """
     if isinstance(instr, str):
-        # raise Exception("ALREADY str!")
+        # raise Exception("ALREADY str!")  # Use this for investigations
         if instr.startswith("b'"):
             raise ValueError(
                 "Input was improperly converted into string (resulting in b'' characters added): %s" % instr
             )
+        # If the encoding is known codecs can be used for more efficiency, e.g. codecs.latin_1_encode(x)[0]
         return instr.encode(encoding)
     return instr
 

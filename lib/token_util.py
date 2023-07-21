@@ -8,6 +8,7 @@
 #   This is a collection of utility functions for HTCondor IDTOKEN generation
 
 
+import codecs
 import os
 import re
 import socket
@@ -77,12 +78,11 @@ def token_str_expired(token_str):
     return expired
 
 
-def simple_scramble(data):
+def simple_scramble(in_buf):
     """Undo the simple scramble of HTCondor
-    simply XOR with 0xdeadbeef
-    Using defaults.BINARY_ENCODING (latin-1) to have a 1-to-1 characted-byte correspondence
 
-    Source: https://github.com/CoffeaTeam/jhub/blob/master/charts/coffea-casa-jhub/files/hub/auth.py#L196-L235
+    simply XOR with 0xdeadbeef
+    Source: https://github.com/CoffeaTeam/coffea-casa/blob/master/charts/coffea-casa/files/hub-extra/auth.py
 
     Args:
         data(bytearray): binary string to be unscrambled
@@ -90,43 +90,42 @@ def simple_scramble(data):
     Returns:
         bytearray: an HTCondor scrambled binary string
     """
-    outb = "".encode(defaults.BINARY_ENCODING)
-    deadbeef = [0xDE, 0xAD, 0xBE, 0xEF]
-    ldata = len(data)
-    lbeef = len(deadbeef)
-    for i in range(ldata):
-        if sys.version_info[0] == 2:
-            datum = struct.unpack("B", data[i])[0]
-        else:
-            datum = data[i]
-        rslt = datum ^ deadbeef[i % lbeef]
-        b1 = struct.pack("H", rslt)[0]
-        outb += ("%c" % b1).encode(defaults.BINARY_ENCODING)
-    return outb
+    DEADBEEF = (0xDE, 0xAD, 0xBE, 0xEF)
+    out_buf = b""
+    for idx in range(len(in_buf)):
+        scramble = in_buf[idx] ^ DEADBEEF[idx % 4]  # 4 = len(DEADBEEF)
+        out_buf += b"%c" % scramble
+    return out_buf
 
 
 def derive_master_key(password):
     """Derive an encryption/decryption key
 
-    Source: https://github.com/CoffeaTeam/jhub/blob/master/charts/coffea-casa-jhub/files/hub/auth.py#L196-L235
+    Source: https://github.com/CoffeaTeam/coffea-casa/blob/master/charts/coffea-casa/files/hub-extra/auth.py
 
     Args:
         password(bytes): an unscrambled HTCondor password (bytes-like: bytes, bytearray, memoryview)
 
     Returns:
-       str: an HTCondor encryption/decryption key
+       bytes: an HTCondor encryption/decryption key
     """
 
-    # Key length, salt, and info fixed as part of protocol
+    # Key length, salt, and info are fixed as part of the protocol
+    # Here the types and meaning from cryptography.hazmat.primitives.kdf.hkdf:
+    # HKDF.__init__
+    #   Aalgorithm – An instance of HashAlgorithm.
+    #   length(int) – key length in bytes
+    #   salt(bytes) – To randomize
+    #   info(bytes) – Application data
     hkdf = HKDF(
         algorithm=hashes.SHA256(),
         length=32,
-        salt="htcondor".encode(defaults.BINARY_ENCODING),
-        info="master jwt".encode(defaults.BINARY_ENCODING),
+        salt=b"htcondor",
+        info=b"master jwt",
         backend=default_backend(),
     )
     # HKDF.derive() requires bytes and returns bytes
-    return hkdf.derive(password).decode(defaults.BINARY_ENCODING)
+    return hkdf.derive(password)
 
 
 def sign_token(identity, issuer, kid, master_key, duration=None, scope=None):
@@ -136,16 +135,15 @@ def sign_token(identity, issuer, kid, master_key, duration=None, scope=None):
         identity(str): who the token was generated for
         issuer(str): idtoken issuer, typically HTCondor Collector
         kid(str): Key ID
-        master_key(str): encryption key
+        master_key(bytes): encryption key
         duration(int, optional): number of seconds IDTOKEN is valid. Default: infinity
         scope(str, optional): permissions IDTOKEN has. Default: everything
 
     Returns:
-       str: a signed IDTOKEN
+       str: a signed IDTOKEN (jwt token)
     """
 
     iat = int(time.time())
-
     payload = {
         "sub": identity,
         "iat": iat,
@@ -158,6 +156,10 @@ def sign_token(identity, issuer, kid, master_key, duration=None, scope=None):
         payload["exp"] = exp
     if scope:
         payload["scope"] = scope
+    # master_key should be `bytes`. `str` could cause value changes if was decoded not using utf-8.
+    # The manual (https://pyjwt.readthedocs.io/en/stable/api.html) is incorrect to list `str` only.
+    # The source code (https://github.com/jpadilla/pyjwt/blob/72ad55f6d7041ae698dc0790a690804118be50fc/jwt/api_jws.py)
+    # shows `AllowedPrivateKeys | str | bytes` and if it is str, then it is encoded w/ utf-8:  value.encode("utf-8")
     encoded = jwt.encode(payload, master_key, algorithm="HS256", headers={"kid": kid})
     return encoded
 
@@ -185,7 +187,6 @@ def create_and_sign_token(pwd_file, issuer=None, identity=None, kid=None, durati
     if not kid:
         kid = os.path.basename(pwd_file)
     if not issuer:
-        # split() has been added because condor is only considering the first part. Here is
         # As of Oct 2022
         # TRUST_DOMAIN is an opaque string to be taken as it is (Brian B.), but for tokens only the first collector
         # is considered in the TRUST_DOMAIN (TJ, generate_token HTCSS code):
@@ -201,13 +202,13 @@ def create_and_sign_token(pwd_file, issuer=None, identity=None, kid=None, durati
         # TRUST_DOMAIN=vocms0803.cern.ch:9618
         # TRUST_DOMAIN=vocms0803.cern.ch:9618,Some Random Text
         # are all considered the same - vocms0803.cern.ch:9618."
-        full_issuer = iexe_cmd("condor_config_val TRUST_DOMAIN").strip()
+        full_issuer = iexe_cmd("condor_config_val TRUST_DOMAIN").strip()  # Remove trailing spaces and newline
         if not full_issuer:
             logSupport.log.warning(
                 "Unable to retrieve TRUST_DOMAIN and no issuer provided: token will have empty 'iss'"
             )
         else:
-            # to set the issuer TRUST_DOMAIN is split no matter whether coming from COLLECTOR_HOST or not
+            # To set the issuer TRUST_DOMAIN is split no matter whether coming from COLLECTOR_HOST or not
             # Using the same splitting as creation/web_base/setup_x509.sh
             # is_default_trust_domain = "# at: <Default>" in iexe_cmd("condor_config_val -v TRUST_DOMAIN")
             split_issuers = re.split(" |,|\t", full_issuer)  # get only the first collector
@@ -215,16 +216,20 @@ def create_and_sign_token(pwd_file, issuer=None, identity=None, kid=None, durati
             issuer = split_issuers[0]
     if not identity:
         identity = f"{os.getlogin()}@{socket.gethostname()}"
-
     with open(pwd_file, "rb") as fd:
         data = fd.read()
-    master_key = derive_master_key(simple_scramble(data))
+    password = simple_scramble(data)
+    # The POOL password requires a special handling
+    # Done in https://github.com/CoffeaTeam/coffea-casa/blob/master/charts/coffea-casa/files/hub-extra/auth.py#L252
+    if kid == "POOL":
+        password += password
+    master_key = derive_master_key(password)
     return sign_token(identity, issuer, kid, master_key, duration, scope)
 
 
-# to test: need htcondor password file (for example el7_osg34)
-# python token_util.py el7_osg34 $HOSTNAME:9618 vofrontend_service@$HOSTNAME
-# will output condor IDTOKEN to stdout - use condor_ping to verify/validate
+# To test you need htcondor password file
+# python3 token_util.py <condor_password_file_path> $HOSTNAME:9618 vofrontend_service@$HOSTNAME
+# will output condor IDTOKEN to stdout - use condor_ping to the server to verify/validate
 if __name__ == "__main__":
     kid = sys.argv[1]
     issuer = sys.argv[2]
