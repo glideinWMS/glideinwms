@@ -473,23 +473,21 @@ upgrade() {
         writeback=$DEFAULT_WRITEBACK
         force_delete=""
         fix_rrd=""
-        if [ -n "$@" ]; then
-            for var in "$@"
-            do
-                case "$var" in
-                yes | no) writeback="$var"
-                    ;;
-                "-force_delete") force_delete="-force_delete"
-                    ;;
-                "-fix_rrd") fix_rrd="-fix_rrd"
-                    ;;
-                *)  echo "Invalid option: $var"
-                    help_usage
-                    exit 2
-                    ;;
-                esac
-            done
-        fi
+        for var in "$@"
+        do
+            case "$var" in
+            yes | no) writeback="$var"
+                ;;
+            "-force_delete") force_delete="-force_delete"
+                ;;
+            "-fix_rrd") fix_rrd="-fix_rrd"
+                ;;
+            *)  echo "Invalid option: $var"
+                help_usage
+                exit 2
+                ;;
+            esac
+        done
 
         pushd $factory_dir 1>/dev/null
         if [ "$RPM_INSTALL" = "True" ]; then
