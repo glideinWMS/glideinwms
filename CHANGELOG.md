@@ -176,8 +176,8 @@ Changes since the last release
 
 ### New features / functionalities
 
--   item one of the list
--   item N
+-   Add option to set xml output directory in OSG_autoconf (PR #319)
+-   Allow OSG_autoconf to skip sites or CEs that are not present in the OSR collector (PR #315)
 
 ### Changed defaults / behaviours
 
