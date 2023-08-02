@@ -208,7 +208,7 @@ class TestOSGAutoconf(unittest.TestCase):
                 "GLIDEIN_MaxMemMBs": {"value": 32768},
                 "GLIDEIN_Max_Walltime": {"value": 84600},
                 "GLIDEIN_CPUS": {"value": 8},
-                "GLIDEIN_Supported_VOs": {"value": "osg,cms"},
+                "GLIDEIN_Supported_VOs": {"value": "cms,osg"},
                 "GLIDEIN_REQUIRED_OS": {"value": "rhel6"},
             },
             "submit_attrs": {"+maxWallTime": 1440, "+xcount": 8, "+maxMemory": 32768},
