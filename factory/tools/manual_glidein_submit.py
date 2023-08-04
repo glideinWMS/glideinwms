@@ -77,9 +77,9 @@ def parse_opts():
     # Initialize logging
     if options.debug:
         logging.basicConfig(format="%(levelname)s: %(message)s")
-        logging.getLogger().setLevel(logging.DEBUG)
+        logSupport.getLogger().setLevel(logging.DEBUG)
     else:
-        logging.getLogger().setLevel(logging.INFO)
+        logSupport.getLogger().setLevel(logging.INFO)
 
     return options
 
@@ -221,7 +221,7 @@ def main():
         params["Report_Failed"] = "NEVER"
 
         # Now that we have everything submit the pilot!
-        logging.getLogger().setLevel(logging.DEBUG)
+        logSupport.getLogger().setLevel(logging.DEBUG)
         submitGlideins(
             entry_name,
             "test.test",
@@ -232,7 +232,7 @@ def main():
             client_web,
             params,
             status_sf,
-            log=logging.getLogger(),
+            log=logSupport.getLogger(),
             factoryConfig=factory_config,
         )
 

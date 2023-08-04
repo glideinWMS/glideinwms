@@ -51,7 +51,7 @@ def main():
             compression=compression,
         )
 
-        log = logging.getLogger(log_name)
+        log = logSupport.getLogger(log_name)
         log.info("%s\n" % create_random_string(length=2048))
 
         return 0

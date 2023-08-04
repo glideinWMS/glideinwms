@@ -873,7 +873,7 @@ def main(startup_dir):
                 int(float(plog["backup_count"])),
                 plog["compression"],
             )
-    logSupport.log = logging.getLogger("factory")
+    logSupport.log = logSupport.getLogger("factory")
     logSupport.log.info("Logging initialized")
 
     if glideinDescript.data["Entries"].strip() in ("", ","):
