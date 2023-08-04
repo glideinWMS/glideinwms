@@ -78,7 +78,7 @@ class Entry:
                 int(float(plog["backup_count"])),
                 plog["compression"],
             )
-        self.log = logging.getLogger(self.name)
+        self.log = logSupport.getLogger(self.name)
 
         cleaner = cleanupSupport.DirCleanupWSpace(
             self.logDir,

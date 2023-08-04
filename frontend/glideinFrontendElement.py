@@ -224,7 +224,7 @@ class glideinFrontendElement:
                 plog["compression"],
             )
 
-        logSupport.log = logging.getLogger(self.group_name)
+        logSupport.log = logSupport.getLogger(self.group_name)
 
         # We will be starting often, so reduce the clutter
         # logSupport.log.info("Logging initialized")
