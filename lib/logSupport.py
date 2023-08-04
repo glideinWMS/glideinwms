@@ -11,7 +11,6 @@
 #
 
 import codecs
-import structlog
 import logging
 import os
 import re
@@ -20,6 +19,8 @@ import sys  # for alternate_log
 import time
 
 from logging.handlers import BaseRotatingHandler
+
+import structlog
 
 # Compressions depend on the available module
 COMPRESSION_SUPPORTED = {}
@@ -361,6 +362,6 @@ def format_dict(unformated_dict, log_format="   %-25s : %s\n"):
 
     return formatted_string
 
+
 def getLogger(name):
     return structlog.getLogger(name)
-

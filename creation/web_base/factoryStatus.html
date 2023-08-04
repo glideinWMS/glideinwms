@@ -201,7 +201,7 @@ Description:
       for (var entry in entries) {
         if (ec_added < groups_starting_idx) {
           entries_select.appendChild(
-            new Option(entries[entry], entries[entry])
+            new Option(entries[entry], entries[entry]),
           );
           ec_added++;
         } else {
@@ -227,7 +227,7 @@ Description:
         fes.appendChild(new Option("total", "total"));
         for (var frontend in frontend_list[entry]) {
           frontends_select.appendChild(
-            new Option(frontend_list[entry][frontend])
+            new Option(frontend_list[entry][frontend]),
           );
         }
       }
@@ -261,7 +261,7 @@ Description:
           "ClientJobsIdle",
           "ReqIdle",
           "StatusIdle",
-          "ClientInfoAge"
+          "ClientInfoAge",
         );
         gtype_DSs["idle"] = new Array(
           "ReqIdle",
@@ -269,14 +269,14 @@ Description:
           "StatusWait",
           "StatusPending",
           "ClientJobsIdle",
-          "ClientInfoAge"
+          "ClientInfoAge",
         );
         gtype_DSs["other"] = new Array(
           "StatusHeld",
           "StatusStageIn",
           "StatusStageOut",
           "StatusIdleOther",
-          "StatusIdle"
+          "StatusIdle",
         );
 
         gtype_formats = new Object();
@@ -519,7 +519,7 @@ Description:
             use_element_buttons: false,
           },
           gtype_DSs[gtype_id],
-          rra_ops
+          rra_ops,
         );
 
         // Finally, update the files loaded so far
@@ -636,7 +636,7 @@ Description:
           "rra",
           "window_min",
           "window_max",
-          "timezone"
+          "timezone",
         );
         group = 0;
         var entrySpec;
