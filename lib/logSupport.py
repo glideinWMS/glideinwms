@@ -11,6 +11,7 @@
 #
 
 import codecs
+import structlog
 import logging
 import os
 import re
@@ -359,3 +360,7 @@ def format_dict(unformated_dict, log_format="   %-25s : %s\n"):
         formatted_string += log_format % (key, unformated_dict[key])
 
     return formatted_string
+
+def getLogger(name):
+    return structlog.getLogger(name)
+

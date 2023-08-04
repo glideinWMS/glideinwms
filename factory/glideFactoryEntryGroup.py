@@ -646,7 +646,7 @@ def init_logs(name, log_dir, process_logs):
             int(float(plog["backup_count"])),
             plog["compression"],
         )
-        logSupport.log = logging.getLogger(name)
+        logSupport.log = logSupport.getLogger(name)
         logSupport.log.info("Logging initialized for %s" % name)
 
 

@@ -94,7 +94,7 @@ class TestLogSupport(unittest.TestCase):
             compression=compression,
         )
 
-        return logging.getLogger(log_name), log_dir
+        return logSupport.getLogger(log_name), log_dir
 
     def rotated_log_tests(self, section, log_dir):
         log_file_name = "{}.{}.log".format(

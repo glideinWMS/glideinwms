@@ -85,7 +85,7 @@ def logReconfig(msg):
                 int(float(plog["max_mbytes"])),
                 plog["compression"],
             )
-    logSupport.log = logging.getLogger("factoryadmin")
+    logSupport.log = logSupport.getLogger("factoryadmin")
     logSupport.log.info("Reconfiguring factory: %s" % msg)
 
 

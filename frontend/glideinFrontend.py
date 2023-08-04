@@ -542,7 +542,7 @@ def main(work_dir, action):
             int(float(plog["backup_count"])),
             plog["compression"],
         )
-    logSupport.log = logging.getLogger("frontend")
+    logSupport.log = logSupport.getLogger("frontend")
     logSupport.log.info("Logging initialized")
     logSupport.log.debug("Frontend startup time: %s" % str(startup_time))
 
