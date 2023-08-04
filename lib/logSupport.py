@@ -296,7 +296,7 @@ def add_processlog_handler(
 
     logfile = os.path.expandvars(f"{log_dir}/{logger_name}.{extension.lower()}.log")
 
-    mylog = logging.getLogger(logger_name)
+    mylog = structlog.getLogger(logger_name)
     mylog.setLevel(logging.DEBUG)
 
     handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount, compression)
