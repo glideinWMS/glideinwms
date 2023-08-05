@@ -1,26 +1,12 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This module implements the functions needed
 #   to aggregate the monitoring fo the frontend
-#
-# Author:
-#   Igor Sfiligoi (Mar 19th 2009)
-#
 
-import copy
 import os
 import os.path
-import shutil
-import string
-import tempfile
 import time
 
 from glideinwms.frontend import glideinFrontendMonitoring
@@ -90,76 +76,32 @@ frontend_job_type_strings = {
     "Requested": "Req",
 }
 
-####################################
-rrd_problems_found = False
+
+################################################
+# Function used by Frontend reconfig/upgrade
+# No logging available, output is to stdout/err
 
 
-def verifyHelper(filename, dict, fix_rrd=False):
-    """
-    Helper function for verifyRRD.  Checks one file,
-    prints out errors.  if fix_rrd, will attempt to
-    dump out rrd to xml, add the missing attributes,
-    then restore.  Original file is obliterated.
-
-    @param filename: filename of rrd to check
-    @param dict: expected dictionary
-    @param fix_rrd: if true, will attempt to add missing attrs
-    """
-    global rrd_problems_found
-    if not os.path.exists(filename):
-        print("WARNING: %s missing, will be created on restart" % (filename))
-        return
-    rrd_obj = rrdSupport.rrdSupport()
-    (missing, extra) = rrd_obj.verify_rrd(filename, dict)
-    for attr in extra:
-        print(f"ERROR: {filename} has extra attribute {attr}")
-        if fix_rrd:
-            print("ERROR: fix_rrd cannot fix extra attributes")
-    if not fix_rrd:
-        for attr in missing:
-            print(f"ERROR: {filename} missing attribute {attr}")
-        if len(missing) > 0:
-            rrd_problems_found = True
-    if fix_rrd and (len(missing) > 0):
-        (f, tempfilename) = tempfile.mkstemp()
-        (out, tempfilename2) = tempfile.mkstemp()
-        (restored, restoredfilename) = tempfile.mkstemp()
-        backup_str = str(int(time.time())) + ".backup"
-        print(f"Fixing {filename}... (backed up to {filename + backup_str})")
-        os.close(out)
-        os.close(restored)
-        os.unlink(restoredfilename)
-        # Use exe version since dump, restore not available in rrdtool
-        dump_obj = rrdSupport.rrdtool_exe()
-        outstr = dump_obj.dump(filename)
-        for line in outstr:
-            os.write(f, "%s\n" % line)
-        os.close(f)
-        rrdSupport.addDataStore(tempfilename, tempfilename2, missing)
-        os.unlink(filename)
-        dump_obj.restore(tempfilename2, restoredfilename)
-        os.unlink(tempfilename)
-        os.unlink(tempfilename2)
-        shutil.move(restoredfilename, filename)
-    if len(extra) > 0:
-        rrd_problems_found = True
-
-
-def verifyRRD(fix_rrd=False):
+def verifyRRD(fix_rrd=False, backup=False):
     """
     Go through all known monitoring rrds and verify that they
     match existing schema (could be different if an upgrade happened)
     If fix_rrd is true, then also attempt to add any missing attributes.
-    """
-    global rrd_problems_found
-    global monitorAggregatorConfig
-    # FROM: migration_3_1
-    # dir=monitorAggregatorConfig.monitor_dir
-    # total_dir=os.path.join(dir, "total")
-    mon_dir = monitorAggregatorConfig.monitor_dir
 
+    Args:
+        fix_rrd (bool): if True, will attempt to add missing attrs
+        backup (bool): if True, backup the old RRD before fixing
+
+    Returns:
+        bool: True if all OK, False if there is a problem w/ RRD files
+
+    """
+    rrd_problems_found = False
+    mon_dir = monitorAggregatorConfig.monitor_dir
+    # Frontend monitoring dictionaries
     status_dict = {}
     status_total_dict = {}
+    # initialize the RRD dictionaries to match the current schema for verification
     for tp in list(frontend_status_attributes.keys()):
         if tp in list(frontend_total_type_strings.keys()):
             tp_str = frontend_total_type_strings[tp]
@@ -171,36 +113,19 @@ def verifyRRD(fix_rrd=False):
             attributes_tp = frontend_status_attributes[tp]
             for a in attributes_tp:
                 status_dict[f"{tp_str}{a}"] = None
-
+    # check all the existing files
     if not os.path.isdir(mon_dir):
         print("WARNING: monitor/ directory does not exist, skipping rrd verification.")
         return True
-    # FROM: migration_3_1
-    # for filename in os.listdir(dir):
-    #     if (filename[:6]=="group_") or (filename=="total"):
-    #         current_dir=os.path.join(dir, filename)
-    #         if filename=="total":
-    #             verifyHelper(os.path.join(current_dir,
-    #                 "Status_Attributes.rrd"), status_total_dict, fix_rrd)
-    #         for dirname in os.listdir(current_dir):
-    #             current_subdir=os.path.join(current_dir, dirname)
-    #             if dirname[:6]=="state_":
-    #                 verifyHelper(os.path.join(current_subdir,
-    #                     "Status_Attributes.rrd"), status_dict, fix_rrd)
-    #             if dirname[:8]=="factory_":
-    #                 verifyHelper(os.path.join(current_subdir,
-    #                     "Status_Attributes.rrd"), status_dict, fix_rrd)
-    #             if dirname=="total":
-    #                 verifyHelper(os.path.join(current_subdir,
-    #                     "Status_Attributes.rrd"), status_total_dict, fix_rrd)
     for dir_name, sdir_name, f_list in os.walk(mon_dir):
         for file_name in f_list:
             if file_name == "Status_Attributes.rrd":
                 if os.path.basename(dir_name) == "total":
-                    verifyHelper(os.path.join(dir_name, file_name), status_total_dict, fix_rrd)
+                    if rrdSupport.verifyHelper(os.path.join(dir_name, file_name), status_total_dict, fix_rrd, backup):
+                        rrd_problems_found = True
                 else:
-                    verifyHelper(os.path.join(dir_name, file_name), status_dict, fix_rrd)
-
+                    if rrdSupport.verifyHelper(os.path.join(dir_name, file_name), status_dict, fix_rrd, backup):
+                        rrd_problems_found = True
     return not rrd_problems_found
 
 
@@ -276,7 +201,7 @@ def aggregateStatus():
     for group in monitorAggregatorConfig.groups:
         # load group status file
         status_fname = os.path.join(
-            os.path.join(monitorAggregatorConfig.monitor_dir, "group_" + group), monitorAggregatorConfig.status_relname
+            monitorAggregatorConfig.monitor_dir, f"group_{group}", monitorAggregatorConfig.status_relname
         )
         try:
             group_data = xmlParse.xmlfile2dict(status_fname)
@@ -292,7 +217,7 @@ def aggregateStatus():
         for fos in ("factories", "states"):
             try:
                 status["groups"][group][fos] = group_data[fos]
-            except KeyError as e:
+            except KeyError:
                 # first time after upgrade factories may not be defined
                 status["groups"][group][fos] = {}
 
@@ -457,15 +382,15 @@ def aggregateStatus():
     # Write rrds
 
     glideinFrontendMonitoring.monitoringConfig.establish_dir("total")
-    write_one_rrd("total/Status_Attributes", updated, global_total, 0)
+    write_one_rrd(os.path.join("total", "Status_Attributes"), updated, global_total, 0)
 
     for fact in list(global_fact_totals["factories"].keys()):
-        fe_dir = "total/factory_%s" % glideinFrontendMonitoring.sanitize(fact)
+        fe_dir = os.path.join("total", f"factory_{glideinFrontendMonitoring.sanitize(fact)}")
         glideinFrontendMonitoring.monitoringConfig.establish_dir(fe_dir)
-        write_one_rrd("%s/Status_Attributes" % fe_dir, updated, global_fact_totals["factories"][fact], 1)
+        write_one_rrd(os.path.join(fe_dir, "Status_Attributes"), updated, global_fact_totals["factories"][fact], 1)
     for fact in list(global_fact_totals["states"].keys()):
-        fe_dir = "total/state_%s" % glideinFrontendMonitoring.sanitize(fact)
+        fe_dir = os.path.join("total", f"state_{glideinFrontendMonitoring.sanitize(fact)}")
         glideinFrontendMonitoring.monitoringConfig.establish_dir(fe_dir)
-        write_one_rrd("%s/Status_Attributes" % fe_dir, updated, global_fact_totals["states"][fact], 1)
+        write_one_rrd(os.path.join(fe_dir, "Status_Attributes"), updated, global_fact_totals["states"][fact], 1)
 
     return status

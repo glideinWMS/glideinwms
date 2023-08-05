@@ -1,32 +1,17 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This module implements the functions needed
 #   to monitor the VO frontend
-#
-# Author:
-#   Igor Sfiligoi (Mar 19th 2009)
-#
 
 import copy
-import fcntl
-import math
 import os
 import os.path
-import random
-import re
 import string
 import time
-import traceback
 
-from glideinwms.lib import logSupport, rrdSupport, timeConversion, xmlFormat
+from glideinwms.lib import logSupport, rrdSupport, timeConversion, util, xmlFormat
 from glideinwms.lib.defaults import BINARY_ENCODING
 
 ############################################################
@@ -57,19 +42,16 @@ class MonitoringConfig:
 
     def write_file(self, relative_fname, output_str):
         fname = os.path.join(self.monitor_dir, relative_fname)
-        if not os.path.isdir(os.path.dirname(fname)):
-            os.makedirs(os.path.dirname(fname))
+        os.makedirs(os.path.dirname(fname), exist_ok=True)
         # print "Writing "+fname
         with open(fname + ".tmp", "w") as fd:
             fd.write(output_str + "\n")
-
-        tmp2final(fname)
+        util.file_tmp2final(fname, mask_exceptions=(logSupport.log.error, f"Failed rename/write into {fname}"))
         return
 
     def establish_dir(self, relative_dname):
         dname = os.path.join(self.monitor_dir, relative_dname)
-        if not os.path.isdir(dname):
-            os.mkdir(dname)
+        os.makedirs(dname, exist_ok=True)
         return
 
     def write_rrd_multi(self, relative_fname, ds_type, time, val_dict, min_val=None, max_val=None):
@@ -396,7 +378,7 @@ class groupStats:
                         val_dict[f"{tp_str}{a}"] = a_el
 
         monitoringConfig.establish_dir("%s" % name)
-        monitoringConfig.write_rrd_multi("%s/Status_Attributes" % name, "GAUGE", self.updated, val_dict)
+        monitoringConfig.write_rrd_multi(os.path.join(name, "Status_Attributes"), "GAUGE", self.updated, val_dict)
 
 
 ########################################################################
@@ -649,7 +631,7 @@ class factoryStats:
                         if not isinstance(a_el, dict):  # ignore subdictionaries
                             val_dict[f"{tp_str}{a}"] = a_el
 
-            monitoringConfig.write_rrd_multi("%s/Status_Attributes" % fe_dir, "GAUGE", self.updated, val_dict)
+            monitoringConfig.write_rrd_multi(os.path.join(fe_dir, "Status_Attributes"), "GAUGE", self.updated, val_dict)
 
         self.files_updated = self.updated
         return
@@ -658,29 +640,8 @@ class factoryStats:
 ############### P R I V A T E ################
 
 ##################################################
-def tmp2final(fname):
-    """
-    This exact method is also in glideFactoryMonitoring.py
-    """
-    try:
-        os.remove(fname + "~")
-    except:
-        pass
-
-    try:
-        os.rename(fname, fname + "~")
-    except:
-        pass
-
-    try:
-        os.rename(fname + ".tmp", fname)
-    except:
-        print(f"Failed renaming {fname}.tmp into {fname}")
-        logSupport.log.error(f"Failed renaming {fname}.tmp into {fname}")
-    return
 
 
-##################################################
 def sanitize(name):
     good_chars = string.ascii_letters + string.digits + ".-"
     outarr = []
@@ -740,7 +701,10 @@ def write_frontend_descript_xml(frontendDescript, monitor_dir):
         with open(fname + ".tmp", "wb") as f:
             f.write(output.encode(BINARY_ENCODING))
 
-        tmp2final(fname)
+        util.file_tmp2final(
+            fname,
+            mask_exceptions=(logSupport.log.error, f"Failed rename/write of the frontend descript.xml: {fname}"),
+        )
 
     except OSError:
         logSupport.log.exception("Error writing out the frontend descript.xml: ")

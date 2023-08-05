@@ -1,19 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This module implements the functions needed
 #   to monitor the glidein factory
-#
-# Author:
-#   Igor Sfiligoi (Dec 11th 2006)
-#
 
 import copy
 import json
@@ -193,8 +183,8 @@ class MonitoringConfig:
 
     def establish_dir(self, relative_dname):
         dname = os.path.join(self.monitor_dir, relative_dname)
-        if not os.path.isdir(dname):
-            os.mkdir(dname)
+        # make a directory, its parents and rise no exception if already there
+        os.makedirs(dname, exist_ok=True)
         return
 
     def write_rrd_multi(self, relative_fname, ds_type, time, val_dict, min_val=None, max_val=None):
@@ -718,7 +708,7 @@ class condorQStats:
                         if not isinstance(a_el, dict):  # ignore subdictionaries
                             val_dict[f"{tp_str}{a}"] = a_el
 
-            monitoringConfig.write_rrd_multi("%s/Status_Attributes" % fe_dir, "GAUGE", self.updated, val_dict)
+            monitoringConfig.write_rrd_multi(os.path.join(fe_dir, "Status_Attributes"), "GAUGE", self.updated, val_dict)
 
         self.files_updated = self.updated
         return
@@ -1347,22 +1337,28 @@ class condorLogSummary:
 
             # write the data to disk
             monitoringConfig.write_rrd_multi_hetero(
-                "%s/Log_Counts" % fe_dir, val_dict_counts_desc, self.updated, val_dict_counts
+                os.path.join(fe_dir, "Log_Counts"), val_dict_counts_desc, self.updated, val_dict_counts
             )
-            monitoringConfig.write_rrd_multi("%s/Log_Completed" % fe_dir, "ABSOLUTE", self.updated, val_dict_completed)
-            monitoringConfig.write_completed_json("%s/Log_Completed" % fe_dir, self.updated, val_dict_completed)
             monitoringConfig.write_rrd_multi(
-                "%s/Log_Completed_Stats" % fe_dir, "ABSOLUTE", self.updated, val_dict_stats
-            )
-            monitoringConfig.write_completed_json("%s/Log_Completed_Stats" % fe_dir, self.updated, val_dict_stats)
-            # Disable Waste RRDs... WasteTime much more useful
-            # monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
-            #                                 "ABSOLUTE",self.updated,val_dict_waste)
-            monitoringConfig.write_rrd_multi(
-                "%s/Log_Completed_WasteTime" % fe_dir, "ABSOLUTE", self.updated, val_dict_wastetime
+                os.path.join(fe_dir, "Log_Completed"), "ABSOLUTE", self.updated, val_dict_completed
             )
             monitoringConfig.write_completed_json(
-                "%s/Log_Completed_WasteTime" % fe_dir, self.updated, val_dict_wastetime
+                os.path.join(fe_dir, "Log_Completed"), self.updated, val_dict_completed
+            )
+            monitoringConfig.write_rrd_multi(
+                os.path.join(fe_dir, "Log_Completed_Stats"), "ABSOLUTE", self.updated, val_dict_stats
+            )
+            monitoringConfig.write_completed_json(
+                os.path.join(fe_dir, "Log_Completed_Stats"), self.updated, val_dict_stats
+            )
+            # Disable Waste RRDs... WasteTime much more useful
+            # monitoringConfig.write_rrd_multi(os.path.join(fe_dir, "Log_Completed_Waste"),
+            #                                 "ABSOLUTE",self.updated,val_dict_waste)
+            monitoringConfig.write_rrd_multi(
+                os.path.join(fe_dir, "Log_Completed_WasteTime"), "ABSOLUTE", self.updated, val_dict_wastetime
+            )
+            monitoringConfig.write_completed_json(
+                os.path.join(fe_dir, "Log_Completed_WasteTime"), self.updated, val_dict_wastetime
             )
 
         self.aggregate_frontend_data(self.updated, diff_summary)
@@ -1382,10 +1378,10 @@ class condorLogSummary:
         for frontend in list(diff_summary.keys()):
             fe_dir = "frontend_" + frontend
 
-            completed_filename = os.path.join(monitoringConfig.monitor_dir, fe_dir) + "/Log_Completed.json"
-            completed_stats_filename = os.path.join(monitoringConfig.monitor_dir, fe_dir) + "/Log_Completed_Stats.json"
-            completed_wastetime_filename = (
-                os.path.join(monitoringConfig.monitor_dir, fe_dir) + "/Log_Completed_WasteTime.json"
+            completed_filename = os.path.join(monitoringConfig.monitor_dir, fe_dir, "Log_Completed.json")
+            completed_stats_filename = os.path.join(monitoringConfig.monitor_dir, fe_dir, "Log_Completed_Stats.json")
+            completed_wastetime_filename = os.path.join(
+                monitoringConfig.monitor_dir, fe_dir, "Log_Completed_WasteTime.json"
             )
 
             try:
@@ -1920,28 +1916,5 @@ def get_completed_stats_xml_desc():
 
 
 ##################################################
-# def tmp2final(fname):
-#     """
-#     KEL this exact method is also in glideinFrontendMonitoring.py
-#     """
-#     try:
-#         os.remove(fname + "~")
-#     except:
-#         pass
-#
-#     try:
-#         os.rename(fname, fname + "~")
-#     except:
-#         pass
-#
-#     try:
-#         os.rename(fname + ".tmp", fname)
-#     except:
-#         print "Failed renaming %s.tmp into %s" % (fname, fname)
-#     return
-
-
-##################################################
-
 # global configuration of the module
 monitoringConfig = MonitoringConfig()
