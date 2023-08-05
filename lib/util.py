@@ -3,18 +3,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This is a collection of utilities functions for file handling and other
-#
-# Author:
-#   Marco Mambelli (some functions are from other modules and hardened)
-#
 
 
 import contextlib
@@ -169,16 +159,20 @@ def dict_normalize(in_dict, keys=None, prefix="", suffix="", default=None):
 # Atomic writing of files
 ###################################
 
+# TODO: to remove this comment block after all is OK (MM)
+# Using Python >=3.6 as of 2023
+# os.replace() is available, leaving this commented to make sure no other module is importing replace() from util
+#
 # Replace atomically the destination with the source
 # replace(source, destination)
-try:
-    # Python 3.3+ provides os.replace which is guaranteed atomic and overwrites existing files
-    replace = os.replace  # pylint: disable=no-member
-except AttributeError:
-    # os.rename is atomic in POSIX systems (e.g. not on Windows or some non local file systems)
-    # This post covers at length the problem, including a working solution on Windows
-    # http://stupidpythonideas.blogspot.com/2014/07/getting-atomic-writes-right.html
-    replace = os.rename
+# try:
+#     # Python 3.3+ provides os.replace which is guaranteed atomic and overwrites existing files
+#     replace = os.replace  # pylint: disable=no-member
+# except AttributeError:
+#     # os.rename is atomic in POSIX systems (e.g. not on Windows or some non local file systems)
+#     # This post covers at length the problem, including a working solution on Windows
+#     # http://stupidpythonideas.blogspot.com/2014/07/getting-atomic-writes-right.html
+#     replace = os.rename
 
 
 class ExpiredFileException(Exception):
@@ -313,21 +307,28 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
 # TODO: replace all definitions with this one
 
 
-def file_tmp2final(fname, tmp_fname=None, bck_fname=None, do_backup=True, mask_exceptions=None):
+def file_tmp2final(
+    fname, tmp_fname=None, bck_fname=None, do_backup=True, mask_exceptions=None, log=None, do_print=False
+):
     """Complete an atomic write by moving a file new version to its destination.
 
     If do_backup is True it removes the previous backup and copies the file to bak_fname.
     Moves tmp_fname to fname.
 
-    :param fname: name of the file
-    :param tmp_fname: name of the temporary file with the new version of the content (Default: <fname>.tmp)
-    :param bck_fname: name of a backup of the old version (Default: <fname>~)
-    :param do_backup: do a backup of the old version only if True (Default: True)
-    :param mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
-      The callback function can access the exception via sys.exc_info()
-      If a function is not provided, the exception is re-risen
-      if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
-    :return: False if the move caused an exception. True otherwise
+    Args:
+        fname(str): name of the file
+        tmp_fname(str|None): name of the temporary file with the new version of the content (Default: <fname>.tmp)
+        bck_fname(str|None): name of a backup of the old version (Default: <fname>~)
+        do_backup(bool): do a backup of the old version only if True (Default: True)
+        mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
+            The callback function can access the exception via sys.exc_info()
+            If a function is not provided, the exception is re-risen
+            if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
+        log:
+        do_print:
+
+    Returns:
+        bool: False if the move caused an exception. True otherwise
     """
     if tmp_fname is None:
         tmp_fname = fname + ".tmp"
@@ -341,7 +342,7 @@ def file_tmp2final(fname, tmp_fname=None, bck_fname=None, do_backup=True, mask_e
         except:
             pass
     try:
-        replace(tmp_fname, fname)
+        os.replace(tmp_fname, fname)
     except:
         # print "Failed renaming %s into %s" % (tmp_fname, fname)
         conditional_raise(mask_exceptions)

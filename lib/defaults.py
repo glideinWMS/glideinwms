@@ -17,6 +17,7 @@ BINARY_ENCODING = "latin_1"  # valid aliases (case insensitive)  latin-1, latin1
 # Anyway M2Crypto uses 'utf_8' to implement AnyStr (union of bytes and str)
 BINARY_ENCODING_CRYPTO = "utf_8"  # valid aliases: utf-8, utf8
 BINARY_ENCODING_ASCII = "ascii"  # valid aliases: 646, us-ascii
+BINARY_ENCODING_DEFAULT = "utf_8"  # valid aliases: utf-8, utf8 Default Python 3 encoding
 
 
 def force_bytes(instr, encoding=BINARY_ENCODING_CRYPTO):

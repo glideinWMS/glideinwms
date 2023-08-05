@@ -1,30 +1,21 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This module implements the basic functions needed
 #   to interface to rrdtool
-#
-# Author:
-#   Igor Sfiligoi
-#
 
-import shlex
-import string
-import subprocess
+import os
+import shutil
+import tempfile
 import time
 
-from . import subprocessSupport
+from . import defaults, subprocessSupport
 
 try:
     import rrdtool  # pylint: disable=import-error
 except:
+    # Will use the binary tools if the Python library is not available
     pass
 
 
@@ -538,10 +529,9 @@ class rrdSupport(BaseRRDSupport):
 ##################################################################
 
 
-##################################
-# Dummy, do nothing
-# Used just to get a object
 class DummyDiskLock:
+    """Dummy, do nothing. Used just to get a object"""
+
     def close(self):
         return
 
@@ -561,6 +551,10 @@ def string_quote_join(arglist):
 class rrdtool_exe:
     """This class is a wrapper around the rrdtool client (binary) and
     is used in place of the rrdtool python module, if that one is not available
+
+    It provides also extra functions:
+    dump: returns an array of lines with the content instead of saving the RRD in an XML file
+    restore: allows the restore of a DB
     """
 
     def __init__(self):
@@ -590,7 +584,9 @@ class rrdtool_exe:
         """Run rrd_tool dump
 
         Input is usually just the file name.
-        Output is a list of lines, as returned from rrdtool.
+        Output is a list of lines, as returned from rrdtool dump.
+        This is different from the `dump` method provided by the `rrdtool` package (Python binding)
+        which outputs to a file or stdout
 
         Args:
             *args: rrdtool dump arguments, joined in single string for the command line
@@ -600,7 +596,7 @@ class rrdtool_exe:
 
         """
         cmdline = f"{self.rrd_bin} dump {string_quote_join(args)}"
-        outstr = subprocessSupport.iexe_cmd(cmdline).decode("utf-8").split("\n")
+        outstr = subprocessSupport.iexe_cmd(cmdline).split("\n")
         return outstr
 
     def restore(self, *args):
@@ -672,3 +668,68 @@ def addDataStore(filenamein, filenameout, attrlist):
             out.write(line)
         if "<database>" in line:
             parse = True
+
+
+# Function used by verifyRRD (in Factory and Frontend), invoked during reconfig/upgrade
+# No logging available, output is to stdout/err
+def verifyHelper(filename, data_dict, fix_rrd=False, backup=True):
+    """Helper function for verifyRRD.
+    Checks one file, prints out errors.
+    if fix_rrd, will attempt to dump out rrd to xml, add the missing attributes, then restore.
+    Original file is backed up with time stamp if backup is True, obliterated otherwise.
+
+    Args:
+        filename(str): filename of rrd to check
+        data_dict(dict): expected dictionary
+        fix_rrd(bool): if True, will attempt to add missing attrs
+        backup(bool): if not True skip the backup of original rrd
+
+    Returns:
+        bool: True if there were some problem with the RRD file, False if all OK
+
+    """
+    rrd_problems_found = False
+    if not os.path.exists(filename):
+        print(f"WARNING: {filename} missing, will be created on restart")
+        return
+    rrd_obj = rrdSupport()
+    (missing, extra) = rrd_obj.verify_rrd(filename, data_dict)
+    for attr in extra:
+        print(f"ERROR: {filename} has extra attribute {attr}")
+        if fix_rrd:
+            print("ERROR: fix_rrd cannot fix extra attributes")
+    if not fix_rrd:
+        for attr in missing:
+            print(f"ERROR: {filename} missing attribute {attr}")
+        if len(missing) > 0:
+            rrd_problems_found = True
+    if fix_rrd and (len(missing) > 0):
+        (f, tempfilename) = tempfile.mkstemp()
+        (out, tempfilename2) = tempfile.mkstemp()
+        (restored, restoredfilename) = tempfile.mkstemp()
+        os.close(out)
+        os.close(restored)
+        os.unlink(restoredfilename)
+        # Use exe version since dump, restore not available in rrdtool
+        dump_obj = rrdtool_exe()
+        outstr = dump_obj.dump(filename)
+        for line in outstr:
+            # dump is returning an array of strings decoded w/ utf-8
+            os.write(f, f"{line}\n".encode(defaults.BINARY_ENCODING_DEFAULT))
+        os.close(f)
+        if backup:
+            backup_str = str(int(time.time())) + ".backup"
+            print(f"Fixing {filename}... (backed up to {filename + backup_str})")
+            # Move file to back up location
+            shutil.move(filename, filename + backup_str)
+        else:
+            print(f"Fixing {filename}... (no back up)")
+            os.unlink(filename)
+        addDataStore(tempfilename, tempfilename2, missing)
+        dump_obj.restore(tempfilename2, restoredfilename)
+        os.unlink(tempfilename)
+        os.unlink(tempfilename2)
+        shutil.move(restoredfilename, filename)
+    if len(extra) > 0:
+        rrd_problems_found = True
+    return rrd_problems_found
