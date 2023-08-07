@@ -1,17 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description: general purpose XML formatter
-#
-# Author:
-#  Igor Sfiligoi (part of the CDF CAF)
-#
 
 
 import string
@@ -46,7 +36,7 @@ from glideinwms.lib import timeConversion
 
 ##########################################################
 #
-# The following Global varables are used to set defaults
+# The following Global variables are used to set defaults
 # When the user does not specify anything
 #
 ##########################################################

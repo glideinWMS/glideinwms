@@ -57,7 +57,7 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True, en
     else:
         if encoding is None:
             encoding = defaults.BINARY_ENCODING_DEFAULT
-    exitStatus = 0
+    exit_status = 0
 
     try:
         # Add in parent process environment, make sure that env overrides parent
@@ -116,14 +116,15 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True, en
                 log.error(err_str)
             raise RuntimeError(err_str)
 
-        exitStatus = process.returncode
+        exit_status = process.returncode
 
     except OSError as e:
         err_str = f"Error running '{cmd}'\nStdout:{stdoutdata}\nStderr:{stderrdata}\nException OSError:{e}"
         if log is not None:
             log.error(err_str)
-        raise RuntimeError(err_str)
+        raise RuntimeError(err_str) from e
 
-    if exitStatus:
-        raise CalledProcessError(exitStatus, cmd, output="".join(stderrdata))
+    if exit_status:  # True if exit_status<>0
+        raise CalledProcessError(exit_status, cmd, output="".join(stderrdata))
+
     return stdoutdata

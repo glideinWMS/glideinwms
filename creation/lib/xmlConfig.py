@@ -217,7 +217,7 @@ class ListElement(Element):
             try:
                 LIST_TAGS[self.tag](child)
             except KeyError as e:
-                raise RuntimeError(child.err_str('missing "%s" attribute' % e))
+                raise RuntimeError(child.err_str('missing "%s" attribute' % e)) from None
 
     # this creates references into other rather than deep copies for efficiency
     def merge(self, other):
@@ -293,7 +293,7 @@ class FileElement(DictElement):
         try:
             period = int(self["period"])
         except ValueError:
-            raise RuntimeError(self.err_str("period must be an int"))
+            raise RuntimeError(self.err_str("period must be an int")) from None
 
         if is_exec + is_wrapper + is_tar > 1:
             raise RuntimeError(self.err_str('must be exactly one of type "executable", "wrapper", or "untar"'))

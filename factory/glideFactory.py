@@ -3,21 +3,11 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This is the main of the glideinFactory
 #
 # Arguments:
 #   $1 = glidein submit_dir
-#
-# Author:
-#   Igor Sfiligoi (Apr 9th 2007 - moved old glideFactory to glideFactoryEntry)
-#
 
 import copy
 import fcntl
@@ -168,12 +158,11 @@ def write_descript(glideinDescript, frontendDescript, monitor_dir):
 
 
 def generate_log_tokens(startup_dir, glideinDescript):
-    """
-    Generate the JSON Web Tokens used to authenticate with the remote HTTP log server.
+    """Generate the JSON Web Tokens used to authenticate with the remote HTTP log server.
     Note: tokens are generated for disabled entries too
 
     Args:
-        startup_dir: Path to the glideinsubmit directory
+        startup_dir (str|Path): Path to the glideinsubmit directory
         glideinDescript: Factory config's glidein description object
 
     Returns:
@@ -805,7 +794,6 @@ def increase_process_limit(new_limit=10000):
             logSupport.log.info("Raised RLIMIT_NPROC from %d to %d" % (soft, new_limit))
         except ValueError:
             logSupport.log.info("Warning: could not raise RLIMIT_NPROC " "from %d to %d" % (soft, new_limit))
-
     else:
         logSupport.log.info("RLIMIT_NPROC already %d, not changing to %d" % (soft, new_limit))
 
@@ -969,8 +957,10 @@ def main(startup_dir):
             % (pid_obj.mypid, err)
         )
         raise
+    # TODO: use a single try.. except.. finally when moving to Python 3.8 or above (dropping 3.6)
     try:
         try:
+            # Spawn the EntryGroup processes handling the work
             spawn(
                 sleep_time,
                 advertize_rate,
@@ -981,11 +971,13 @@ def main(startup_dir):
                 restart_attempts,
                 restart_interval,
             )
-        except KeyboardInterrupt as e:
-            raise e
+        # No need for special handling of KeyboardInterrupt
+        # It is not in Exception so it will remain un-handled
+        # except KeyboardInterrupt as e:
+        #   raise e  # raise e is re-raising a different exceptoin from here? Use raise instead?
         except HUPException as e:
             # inside spawn(), outermost try will catch HUPException,
-            # then the code within the finally will run
+            # then the code within the finally clouse of spawn() will run
             # which will terminate glideFactoryEntryGroup children processes
             # and then the following 3 lines will be executed.
             logSupport.log.info("Received SIGHUP, reload config uid = %d" % os.getuid())
@@ -1004,8 +996,12 @@ def main(startup_dir):
                     "/etc/gwms-factory/glideinWMS.xml",
                 ],
             )
-        except:
-            logSupport.log.exception("Exception occurred spawning the factory: ")
+            # TODO: verify. This is invoking reconfig but how is the Factory/EntryGroups re-started?
+            #    Should there be an infinite loop around spawn?
+        except Exception as e:
+            # Exception excludes SystemExit, KeyboardInterrupt, GeneratorExit
+            # Log the exception and exit
+            logSupport.log.exception("Exception occurred spawning the factory: %s" % e)
     finally:
         pid_obj.relinquish()
 
@@ -1016,14 +1012,18 @@ def main(startup_dir):
 #
 ############################################################
 class HUPException(Exception):
+    """Used to catch SIGHUP and trigger a reconfig"""
+
     pass
 
 
 def termsignal(signr, frame):
+    """Signal handler. Raise KeyboardInterrupt when receiving SIGTERN or SIGQUIT"""
     raise KeyboardInterrupt("Received signal %s" % signr)
 
 
 def hupsignal(signr, frame):
+    """Signal handler. Raise HUPException when receiving SIGHUP. Used to trigger a reconfig and restart."""
     signal.signal(signal.SIGHUP, signal.SIG_IGN)
     raise HUPException("Received signal %s" % signr)
 

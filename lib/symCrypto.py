@@ -1,13 +1,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-
 """symCrypto - This module defines classes to perform symmetric key cryptography (shared or hidden key)
 
 It uses M2Crypto: https://github.com/mcepl/M2Crypto

@@ -1,15 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
 # Description: This module describes base classes for classads and advertisers
-#
-# Author:
-#   Parag Mhashilkar
-#
+
 
 import os
 import string
@@ -79,7 +72,7 @@ class Classad:
 
         try:
             f = open(filename, o_flag)
-        except:
+        except Exception:
             raise
 
         with f:

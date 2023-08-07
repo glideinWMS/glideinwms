@@ -1,19 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This module implements classes and functions to parse
 #   the condor log files.
-#
-# Author:
-#   Igor Sfiligoi (Feb 1st 2007)
-#
 
 # NOTE:
 # Inactive files are log files that have only completed or removed entries
@@ -1384,8 +1374,8 @@ def loadCache(fname):
     """
     try:
         data = util.file_pickle_load(fname)
-    except Exception:
-        raise RuntimeError("Could not read %s" % fname)
+    except Exception as e:
+        raise RuntimeError("Could not read %s" % fname) from e
     return data
 
 

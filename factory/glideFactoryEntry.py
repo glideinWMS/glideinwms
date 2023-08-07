@@ -3,15 +3,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   Entry class
-#
 
 
 import copy
@@ -375,7 +368,7 @@ class Entry:
             self.log.info("Schedd %s not responding, skipping" % self.scheddName)
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             self.log.warning("getCondorQData failed, traceback: %s" % "".join(tb))
-            raise e
+            raise
 
     def glideinsWithinLimits(self, condorQ):
         """

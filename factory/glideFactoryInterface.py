@@ -1,19 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This module implements the functions needed to advertize
 #   and get commands from the Collector
-#
-# Author:
-#   Igor Sfiligoi (Sept 7th 2006)
-#
 
 import fcntl
 import os

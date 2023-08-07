@@ -56,7 +56,7 @@ def translate_match_attrs(loc_str, match_attrs_name, match_attrs):
         try:
             translated_attrs[attr_name] = translations[attr_type]
         except KeyError as e:
-            raise RuntimeError(f"Invalid {loc_str} {match_attrs_name} attr type '{attr_type}'")
+            raise RuntimeError(f"Invalid {loc_str} {match_attrs_name} attr type '{attr_type}'") from e
 
     return translated_attrs
 
@@ -106,9 +106,9 @@ def validate_match(loc_str, match_str, factory_attrs, job_attrs, attr_dict, poli
         match_obj = compile(match_str, "<string>", "exec")
         eval(match_obj, env)
     except KeyError as e:
-        raise RuntimeError(f"Invalid {loc_str} match_expr '{match_str}': Missing attribute {e}")
+        raise RuntimeError(f"Invalid {loc_str} match_expr '{match_str}': Missing attribute {e}") from e
     except Exception as e:
-        raise RuntimeError(f"Invalid {loc_str} match_expr '{match_str}': {e}")
+        raise RuntimeError(f"Invalid {loc_str} match_expr '{match_str}': {e}") from e
 
     # Validate the match(job, glidein) from the policy modules
     for pmodule in policy_modules:
@@ -118,9 +118,9 @@ def validate_match(loc_str, match_str, factory_attrs, job_attrs, attr_dict, poli
         except KeyError as e:
             raise RuntimeError(
                 f"Error in {loc_str} policy module's {pmodule.name}.match(job, glidein): Missing attribute {e}"
-            )
+            ) from e
         except Exception as e:
-            raise RuntimeError(f"Error in {loc_str} policy module's {pmodule.name}.match(job, glidein): {e}")
+            raise RuntimeError(f"Error in {loc_str} policy module's {pmodule.name}.match(job, glidein): {e}") from e
 
     return
 
@@ -770,7 +770,7 @@ def add_attr_unparsed(attr_name, params, dicts, description):
     try:
         add_attr_unparsed_real(attr_name, params, dicts)
     except RuntimeError as e:
-        raise RuntimeError(f"Error parsing attr {description}[{attr_name}]: {str(e)}")
+        raise RuntimeError(f"Error parsing attr {description}[{attr_name}]: {str(e)}") from e
 
 
 def validate_attribute(attr_name, attr_val):

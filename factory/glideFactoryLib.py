@@ -1572,21 +1572,32 @@ def escapeParam(param_str):
 
 
 def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
+    """Submit Glideins using the `condor_submit` command in a custom environment
+
+    Args:
+        log: logger to use
+        factoryConfig:
+        username:
+        schedd (str): HTCSS schedd name
+        exe_env (list): environment list
+        submitFile (str): path os the submit file
+
+    Returns:
+        list: list of submitted Glideins
+    """
     # check to see if the username for the proxy is
     # same as the factory username
+    submit_out = []
     try:
         submit_out = condorExe.iexe_cmd(f"condor_submit -name {schedd} {submitFile}", child_env=env_list2dict(exe_env))
-
     except condorExe.ExeError as e:
-        submit_out = []
         msg = "condor_submit failed: %s" % str(e)
         log.error(msg)
-        raise RuntimeError(msg)
+        raise RuntimeError(msg) from e
     except Exception as e:
-        submit_out = []
         msg = "condor_submit failed: Unknown error: %s" % str(e)
         log.error(msg)
-        raise RuntimeError(msg)
+        raise RuntimeError(msg) from e
     return submit_out
 
 
@@ -1603,17 +1614,17 @@ def submitGlideins(
     log=logSupport.log,
     factoryConfig=None,
 ):
-
-    """Submit the glidein
+    """Submit the Glideins
+    Calls `executeSubmit` to run the HTCSS command
 
     Args:
         entry_name (str):
-        client_name (str):
+        client_name (str): client (e.g. Frontend group) name
         nr_glideins (int):
         idle_lifetime (int):
         frontend_name (str):
         submit_credentials (dict):
-        client_web client_web (str): None means client did not pass one, backwards compatibility
+        client_web (str): None means client did not pass one, backwards compatibility
         params:
         status_sf (dict): keys are GlideinEntrySubmitFile(s) and values is a  jobStatus/numJobs dict
         log:
@@ -1647,11 +1658,11 @@ def submitGlideins(
             log=log,
             factoryConfig=factoryConfig,
         )
-    except:
+    except Exception as e:
         msg = "Failed to setup execution environment."
         log.error(msg)
         log.exception(msg)
-        raise RuntimeError(msg)
+        raise RuntimeError(msg) from e
 
     if username != MY_USERNAME:
         # need to push all the relevant env variables through
@@ -1703,14 +1714,22 @@ def submitGlideins(
         log.info("Submitted %i glideins to %s: %s" % (len(submitted_jids), schedd, submitted_jids))
 
 
-# remove the glideins in the list
 def removeGlideins(schedd_name, jid_list, force=False, log=logSupport.log, factoryConfig=None):
-    ####
-    # We are assuming the gfactory to be
-    # a condor superuser and thus does not need
-    # identity switching to remove jobs
-    ####
+    """Remove the Glideins in the list
 
+    We are assuming the gfactory to be a condor superuser or the only user owning jobs (Glideins)
+    and thus does not need identity switching to remove jobs
+
+    Args:
+        schedd_name (str): HTCSS schedd name
+        jid_list:
+        force:
+        log:
+        factoryConfig:
+
+    Returns:
+        None
+    """
     if factoryConfig is None:
         factoryConfig = globals()["factoryConfig"]
 
@@ -1747,14 +1766,21 @@ def removeGlideins(schedd_name, jid_list, force=False, log=logSupport.log, facto
     log.info("Removed %i glideins on %s: %s" % (len(removed_jids), schedd_name, removed_jids))
 
 
-# release the glideins in the list
 def releaseGlideins(schedd_name, jid_list, log=logSupport.log, factoryConfig=None):
-    ####
-    # We are assuming the gfactory to be
-    # a condor superuser and thus does not need
-    # identity switching to release jobs
-    ####
+    """Release the glideins in the list
 
+    We are assuming the gfactory to be a condor superuser or the only user owning jobs (Glideins)
+    and thus does not need identity switching to release jobs
+
+    Args:
+        schedd_name:
+        jid_list:
+        log:
+        factoryConfig:
+
+    Returns:
+
+    """
     if factoryConfig is None:
         factoryConfig = globals()["factoryConfig"]
 
@@ -2018,10 +2044,13 @@ email_logs = False
                 msg = "Error setting up submission environment (bad key)"
                 log.debug(msg)
                 log.exception(msg)
+                # Known error, can continue without the missing elements
+                #  (from the one missing to the end of the section)
             except Exception:
                 msg = "Error setting up submission environment (in %s section)" % grid_type
                 log.debug(msg)
                 log.exception(msg)
+                # Unknown error, re-raise to stop the environment build
                 raise
         else:
             proxy = submit_credentials.security_credentials.get("SubmitProxy", "")
@@ -2055,6 +2084,7 @@ email_logs = False
         msg = "Error setting up submission environment: %s" % str(e)
         log.debug(msg)
         log.exception(msg)
+        # Exception logged, continuing. No valid environment, returning None
 
 
 def isGlideinWithinHeldLimits(jobInfo, factoryConfig=None):

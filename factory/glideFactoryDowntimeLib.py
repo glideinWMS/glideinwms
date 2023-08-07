@@ -1,19 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This module implements the functions needed to
 #   handle the downtimes
-#
-# Author:
-#   Igor Sfiligoi (July 7th 2008)
-#
 
 import fcntl
 import os.path
@@ -22,22 +12,38 @@ import time
 from glideinwms.lib import timeConversion
 
 
-#
-# Handle a downtime file
-#
-# Each line in the file has two entries
-# start_time   end_time
-# expressed in utime
-# if end_time is None, the downtime does not have a set expiration
-#  (i.e. it runs forever)
 class DowntimeFile:
+    """Handle a downtime file
+
+    space separated  file with downtime information
+    Each line has space-separated values
+    The first line is a comment (starts with #) and header line :
+     "#%-29s %-30s %-20s %-30s %-20s # %s\n" % ("Start", "End", "Entry", "Frontend", "Sec_Class", "Comment")
+    Each non-comment line in the file has at least two entries
+      start_time   end_time
+      expressed in utime
+    if end_time is None, the downtime does not have a set expiration
+    (i.e. it runs forever)
+    Additional entries are used to limit the scope (Entry, Frontend, Sec_Class) and to add a comment
+    """
+
     def __init__(self, fname):
         self.fname = fname
 
-    # return a list of downtime periods (utimes)
-    # a value of None idicates "forever"
-    # for example: [(1215339200,1215439170),(1215439271,None)]
     def read(self, raise_on_error=False):
+        """Return a list of downtime periods (utimes)
+        a value of None idicates "forever"
+        for example: `[(1215339200,1215439170),(1215439271,None)]`
+
+        Args:
+            raise_on_error (bool): if not True mask all the exceptions
+
+        Returns:
+            list: list of downtime periods [(start, end), ...]
+                a value of None idicates "forever", no start time, or no end time
+                timestamps are in seconds from epoch (utime)
+                `[]` returned when `raise_on_error` is False (default) and there is no downtime file
+        """
         return read(self.fname, raise_on_error)
 
     def printDowntime(self, entry="Any", check_time=None):
@@ -49,14 +55,27 @@ class DowntimeFile:
         self.downtime_comment = msg
         return rtn
 
-    # add a scheduled downtime
     def addPeriod(
         self, start_time, end_time, entry="All", frontend="All", security_class="All", comment="", create_if_empty=True
     ):
+        """Add a scheduled downtime
+        Maintin a lock (fcntl.LOCK_EX) on the downtime file while writing
+        entry, frontend, and security_class default to "All"
+
+        Args:
+            start_time (int): start time in seconds from Epoch
+            end_time (int): end time in seconds from Epoch
+            entry (str): entry  name or "All"
+            frontend (str): frontend name os "All"
+            security_class (str): security class name or "All"
+            comment (str): comment to add
+            create_if_empty (bool): if False, raise FileNotFoundError if there is not already a downtime file
+
+        Returns:
+            int: 0
+        """
         return addPeriod(self.fname, start_time, end_time, entry, frontend, security_class, comment, create_if_empty)
 
-    # start a downtime that we don't know when it will end
-    # if start_time==None, use current time
     def startDowntime(
         self,
         start_time=None,
@@ -67,17 +86,55 @@ class DowntimeFile:
         comment="",
         create_if_empty=True,
     ):
+        """start a downtime that we don't know when it will end
+        if start_time==None, use current time
+        entry, frontend, and security_class default to "All"
+
+        Args:
+            start_time (int|None): start time in seconds from Epoch
+            end_time (int|None): end time in seconds from Epoch
+            entry (str): entry  name or "All"
+            frontend (str): frontend name os "All"
+            security_class (str): security class name or "All"
+            comment (str): comment to add
+            create_if_empty (bool): if False, raise FileNotFoundError if there is not already a downtime file
+
+        Returns:
+
+        """
         if start_time is None:
             start_time = int(time.time())
         return self.addPeriod(start_time, end_time, entry, frontend, security_class, comment, create_if_empty)
 
-    # end a downtime (not a scheduled one)
-    # if end_time==None, use current time
     def endDowntime(self, end_time=None, entry="All", frontend="All", security_class="All", comment=""):
+        """End a downtime (not a scheduled one)
+        if end_time==None, use current time
+        entry, frontend, and security_class default to "All"
+
+        Args:
+            end_time (int|None): end time in seconds from Epoch. If end_time==None, default, use current time
+            entry (str): entry  name or "All"
+            frontend (str): frontend name os "All"
+            security_class (str): security class name or "All"
+            comment (str): comment to add
+
+        Returns:
+            int: number of records closed
+        """
         return endDowntime(self.fname, end_time, entry, frontend, security_class, comment)
 
-    # if cut time<0, use current_time-abs(cut_time)
     def purgeOldPeriods(self, cut_time=None, raise_on_error=False):
+        """Purge old downtime periods
+        if cut time<0, use current_time-abs(cut_time)
+
+        Args:
+            cut_time (int): cut time in seconds from epoch, if cut_time==None or 0, use current time,
+                if cut time<0, use current_time-abs(cut_time)
+            raise_on_error (bool): if not True, mask all exceptions
+
+        Returns:
+            int: number of records purged
+        """
         return purgeOldPeriods(self.fname, cut_time, raise_on_error)
 
 
@@ -85,17 +142,29 @@ class DowntimeFile:
 # INTERNAL - Do not use
 #############################
 
-# return a list of downtime periods (utimes)
-# a value of None idicates "forever"
-# for example: [(1215339200,1215439170),(1215439271,None)]
+
 def read(fname, raise_on_error=False):
+    """Return a list of downtime periods (utimes)
+    a value of None idicates "forever"
+    for example: `[(1215339200,1215439170),(1215439271,None)]`
+
+    Args:
+        fname (str|Path): downtimes file
+        raise_on_error (bool): if not True mask all the exceptions
+
+    Returns:
+        list: list of downtime periods [(start, end), ...]
+            a value of None idicates "forever", no start time, or no end time
+            timestamps are in seconds from epoch (utime)
+            `[]` returned when `raise_on_error` is False (default) and there is no file
+    """
     try:
         with open(fname) as fd:
             fcntl.flock(fd, fcntl.LOCK_SH)
             lines = fd.readlines()
     except OSError as e:
         if raise_on_error:
-            raise
+            raise  # re-rise the exact same exception like no except
         else:
             return []  # no file -> no downtimes
 
@@ -120,7 +189,7 @@ def read(fname, raise_on_error=False):
             start_time = timeConversion.extractISO8601_Local(arr[0])
         except ValueError as e:
             if raise_on_error:
-                raise ValueError("%s:%i: 1st element: %s" % (fname, lnr, e))
+                raise ValueError("%s:%i: 1st element: %s" % (fname, lnr, e)) from e
             else:
                 continue  # ignore errors
 
@@ -131,7 +200,7 @@ def read(fname, raise_on_error=False):
                 end_time = timeConversion.extractISO8601_Local(arr[1])
         except ValueError as e:
             if raise_on_error:
-                raise ValueError("%s:%i: 2nd element: %s" % (fname, lnr, e))
+                raise ValueError("%s:%i: 2nd element: %s" % (fname, lnr, e)) from e
             else:
                 continue  # ignore errors
 
@@ -191,8 +260,22 @@ def printDowntime(fname, entry="Any", check_time=None):
                 print("%-30s Up  \tAll:All" % (entry))
 
 
-# if check_time==None, use current time
 def checkDowntime(fname, entry="Any", frontend="Any", security_class="Any", check_time=None):
+    """Check if there is a downtime at `check_time`
+    if check_time==None, use current time
+    "All" (default) is a wildcard for entry, frontend and security_class
+
+    Args:
+        fname (str|Path): Downtime file
+        entry (str): entry  name or "All"
+        frontend (str): frontend name os "All"
+        security_class (str): security class name or "All"
+        check_time: time to check in seconds from epoch, if check_time==None, use current time
+
+    Returns:
+        (str, bool): tuple with the comment string and True is in downtime
+            or ("", False) is not in downtime
+    """
     if check_time is None:
         check_time = int(time.time())
     time_list = read(fname)
@@ -224,9 +307,25 @@ def checkDowntime(fname, entry="Any", frontend="Any", security_class="Any", chec
 def addPeriod(
     fname, start_time, end_time, entry="All", frontend="All", security_class="All", comment="", create_if_empty=True
 ):
+    """Add a downtime period
+    Maintin a lock (fcntl.LOCK_EX) on the downtime file while writing
+
+    Args:
+        fname (str|Path): downtime file
+        start_time (int): start time in seconds from Epoch
+        end_time (int): end time in seconds from Epoch
+        entry (str): entry  name or "All"
+        frontend (str): frontend name os "All"
+        security_class (str): security class name or "All"
+        comment (str): comment to add
+        create_if_empty (bool): if False, raise FileNotFoundError if there is not already a downtime file
+
+    Returns:
+        int: 0
+    """
     exists = os.path.isfile(fname)
     if (not exists) and (not create_if_empty):
-        raise OSError("[Errno 2] No such file or directory: '%s'" % fname)
+        raise FileNotFoundError("[Errno 2] No such file or directory: '%s'" % fname)
 
     comment = comment.replace("\n", " ")
     comment = comment.replace("\r", " ")
@@ -256,9 +355,20 @@ def addPeriod(
     return 0
 
 
-# if cut_time==None or 0, use current time
-# if cut time<0, use current_time-abs(cut_time)
 def purgeOldPeriods(fname, cut_time=None, raise_on_error=False):
+    """Purge old rules using cut_time
+    if cut_time==None or 0, use current time
+    if cut time<0, use current_time-abs(cut_time)
+
+    Args:
+        fname (str|Path): downtime file
+        cut_time (int): cut time in seconds from epoch, if cut_time==None or 0, use current time,
+            if cut time<0, use current_time-abs(cut_time)
+        raise_on_error (bool): if not True, mask all exceptions
+
+    Returns:
+        int: number of records purged
+    """
     if cut_time is None:
         cut_time = int(time.time())
     elif cut_time <= 0:
@@ -268,7 +378,7 @@ def purgeOldPeriods(fname, cut_time=None, raise_on_error=False):
         fd = open(fname, "r+")
     except OSError as e:
         if raise_on_error:
-            raise
+            raise  # re-rise the exact same exception like no except
         else:
             return 0  # no file -> nothing to purge
     with fd:
@@ -303,7 +413,7 @@ def purgeOldPeriods(fname, cut_time=None, raise_on_error=False):
                     end_time = timeConversion.extractISO8601_Local(arr[1])
             except ValueError as e:
                 if raise_on_error:
-                    raise ValueError("%s:%i: 2nd element: %s" % (fname, lnr, e))
+                    raise ValueError("%s:%i: 2nd element: %s" % (fname, lnr, e)) from e
                 else:
                     outlines.append(long_line)
                     continue  # unknown, pass on
@@ -328,9 +438,22 @@ def purgeOldPeriods(fname, cut_time=None, raise_on_error=False):
     return cut_nr
 
 
-# end a downtime (not a scheduled one)
-# if end_time==None, use current time
 def endDowntime(fname, end_time=None, entry="All", frontend="All", security_class="All", comment=""):
+    """End a downtime (not a scheduled one)
+    if end_time==None, use current time
+    "All" (default) is a wildcard for entry, frontend and security_class
+
+    Args:
+        fname (str|Path): Downtime file
+        end_time (int): end time in seconds from epoch, if end_time==None, use current time
+        entry (str): entry  name or "All"
+        frontend (str): frontend name os "All"
+        security_class (str): security class name or "All"
+        comment (str): comment to add
+
+    Returns:
+        int: Number of downtime records closed
+    """
     comment = comment.replace("\r", " ")
     comment = comment.replace("\n", " ")
     if end_time is None:
