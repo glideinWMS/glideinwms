@@ -1,18 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #  Handle pid lock files
-#
-# Author:
-#   Igor Sfiligoi
-#
 
 import fcntl
 import os
@@ -26,7 +16,7 @@ import time
 # Verify if the system knows about a pid
 #
 def check_pid(pid):
-    return os.path.isfile("/proc/%s/cmdline" % pid)
+    return os.path.isfile(f"/proc/{pid}/cmdline")
 
 
 ############################################################
@@ -73,9 +63,9 @@ class PidSupport:
         try:
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
             self.lock_in_place = True
-        except OSError:
+        except OSError as e:
             fd.close()
-            raise AlreadyRunning("Another process already running. Unable to acquire lock %s" % self.pid_fname)
+            raise AlreadyRunning(f"Another process already running. Unable to acquire lock {self.pid_fname}") from e
         fd.seek(0)
         fd.truncate()
         fd.write(self.format_pid_file_content())
@@ -122,7 +112,8 @@ class PidSupport:
 
         try:
             self.parse_pid_file_content(lines)
-        except:
+        except Exception:
+            # Data is corrupted, cannot get the PID, masking exceptions
             return
 
         if not check_pid(self.mypid):
@@ -152,8 +143,8 @@ class PidSupport:
 
         try:
             pid = int(pidarr[1])
-        except:
-            raise RuntimeError("Corrupted lock file: invalid PID")
+        except Exception:
+            raise RuntimeError("Corrupted lock file: invalid PID") from None
 
         self.mypid = pid
         return
@@ -204,8 +195,8 @@ class PidWParentSupport(PidSupport):
 
         try:
             pid = int(pidarr[1])
-        except:
-            raise RuntimeError("Corrupted lock file: invalid PID")
+        except Exception:
+            raise RuntimeError("Corrupted lock file: invalid PID") from None
 
         pidarr = lines[1].split(":")
         if (len(pidarr) != 2) or (pidarr[0] != "Parent PID"):
@@ -213,8 +204,8 @@ class PidWParentSupport(PidSupport):
 
         try:
             parent_pid = int(pidarr[1])
-        except:
-            raise RuntimeError("Corrupted lock file: invalid Parent PID")
+        except Exception:
+            raise RuntimeError("Corrupted lock file: invalid Parent PID") from None
 
         self.mypid = pid
         self.parent_pid = parent_pid

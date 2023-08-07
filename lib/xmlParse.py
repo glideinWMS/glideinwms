@@ -1,17 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description: general purpose XML decoder
-#
-# Author:
-#  Igor Sfiligoi (Mar 27th, 2007)
-#
 
 import xml.dom.minidom
 
@@ -101,7 +91,7 @@ def xmlfile2dict(
     try:
         doc = xml.dom.minidom.parse(fname)
     except xml.parsers.expat.ExpatError as e:
-        raise CorruptXML(f"XML corrupt in file {fname}: {e}")
+        raise CorruptXML(f"XML corrupt in file {fname}: {e}") from e
 
     data = domel2dict(doc.documentElement, use_ord_dict, always_singular_list)
 

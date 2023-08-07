@@ -201,11 +201,13 @@ def print_funct(*args, **kwargs):
 def conditional_raise(mask_exceptions):
     """Auxiliary function to handle conditional raising
 
-    :param mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
-      The callback function can access the exception via sys.exc_info()
-      If a function is not provided, the exception is re-risen
-      if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
-    :return: None
+    Args:
+        mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
+            The callback function can access the exception via sys.exc_info()
+            If a function is not provided, the exception is re-risen
+            if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
+    Returns:
+        None
     """
     if mask_exceptions and hasattr(mask_exceptions[0], "__call__"):
         # protect and report
@@ -221,21 +223,24 @@ def file_pickle_dump(fname, content, tmp_type="PID", mask_exceptions=None, proto
     """Serialize and save content
 
     To avoid inconsistent content
-    @param fname: file storing the serialized content
-    @param content: content to serialize
-    @param tmp_type: tmp file type as defined in file_get_tmp (Default: PID, .$PID.tmp suffix)
-    @param mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
-      The callback function can access the exception via sys.exc_info()
-      If a function is not provided, the exception is re-risen
-      if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
-    @param protocol: Pickle protocol to be used (Default: pickle.HIGHEST_PROTOCOL, 5 as of py3.8)
-    @return: True if the saving was successful, False or an exception otherwise
+    Args:
+        fname: file storing the serialized content
+        content: content to serialize
+        tmp_type: tmp file type as defined in file_get_tmp (Default: PID, .$PID.tmp suffix)
+        mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
+          The callback function can access the exception via sys.exc_info()
+          If a function is not provided, the exception is re-risen
+          if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
+        protocol: Pickle protocol to be used (Default: pickle.HIGHEST_PROTOCOL, 5 as of py3.8)
+
+    Returns:
+        bool: True if the saving was successful, False or an exception otherwis
     """
     tmp_fname = file_get_tmp(fname, tmp_type)
     try:
         with open(tmp_fname, "wb") as pfile:
             pickle.dump(content, pfile, protocol)
-    except:
+    except Exception:
         conditional_raise(mask_exceptions)
         return False
     else:
@@ -247,23 +252,28 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
     """Load a serialized dictionary
 
     This implementation does not use file locking, it relies on the atomicity of file movement/replacement and deletion
-    @param fname: name of the file with the serialized data
-    @param mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
-      The callback function can access the exception via sys.exc_info()
-      If a function is not provided, the exception is re-risen
-      if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
-    @param default: value returned if the unpickling fails (Default: None)
-    @param expiration: input file expiration in seconds (Default: -1)
-      -1 file never expires
-      0  file always expires after reading
-    @param remove_expired: remove expired file (Default: False)
-      NOTE: if you remove the obsolete file from the reader you may run into a race condition with undesired effects:
-      1. the reader detects the obsolete file, 2. the writer writes a new version, 3. the reader deletes the new version
-      This can happen only in cycles where there is an obsolete data file to start with, so the number of data files
-      lost because of this is smaller than the occurrences of obsoleted files. When the expiration time is much bigger
-      than the loop time of the writer this is generally acceptable.
-    @param last_time: last time a file has been used, persistent to keep history (Default: {}, first time called)
-    @return: python objects (e.g. data dictionary)
+
+    Args:
+        fname: name of the file with the serialized data
+        mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
+          The callback function can access the exception via sys.exc_info()
+          If a function is not provided, the exception is re-risen
+          if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
+        default: value returned if the unpickling fails (Default: None)
+        expiration (int): input file expiration in seconds (Default: -1)
+          -1 file never expires
+          0  file always expires after reading
+        remove_expired (bool): remove expired file (Default: False)
+          NOTE: if you remove the obsolete file from the reader you may run into a race condition with undesired effects:
+          1. the reader detects the obsolete file, 2. the writer writes a new version, 3. the reader deletes the new version
+          This can happen only in cycles where there is an obsolete data file to start with, so the number of data files
+          lost because of this is smaller than the occurrences of obsoleted files. When the expiration time is much bigger
+          than the loop time of the writer this is generally acceptable.
+        last_time (dict): last time a file has been used, persistent to keep history (Default: {}, first time called)
+          Dictionary file_name->time
+
+    Returns:
+        Object: python objects (e.g. data dictionary)
     """
     data = default
     try:
@@ -293,18 +303,15 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
             # the file produced at the next iteration will be used
             try:
                 os.remove(fname)
-            except:
+            except OSError:
                 pass
         conditional_raise(mask_exceptions)
-    except:
+    except Exception:
         conditional_raise(mask_exceptions)
     return data
 
 
 # One writer, avoid partial write due to code, OS or file system problems
-# from factory/glideFactoryMonitoring
-#     KEL this exact method is also in glideinFrontendMonitoring.py
-# TODO: replace all definitions with this one
 
 
 def file_tmp2final(
@@ -343,7 +350,7 @@ def file_tmp2final(
             pass
     try:
         os.replace(tmp_fname, fname)
-    except:
+    except Exception:
         # print "Failed renaming %s into %s" % (tmp_fname, fname)
         conditional_raise(mask_exceptions)
         return False
@@ -399,7 +406,6 @@ def safe_boolcomp(value, expected):
     Returns:
         bool: True if str(value).lower() is True
     """
-
     return str(value).lower() == str(expected).lower()
 
 
@@ -416,7 +422,6 @@ def str2bool(val):
 
 def handle_hooks(basedir, script_dir):
     """The function itaretes over the script_dir directory and executes any script found there"""
-
     dirname = os.path.join(basedir, script_dir)
     if not os.path.isdir(dirname):
         return
@@ -437,12 +442,10 @@ def hash_nc(data, len=None):
     Returns:
         str: Hash
     """
-
     # TODO set md5 usedforsecurity to False when updating to Python 3.9
     out = b32encode(md5(force_bytes(data)).digest()).decode(BINARY_ENCODING_ASCII)
     if len:
         out = out[:len]
-
     return out
 
 

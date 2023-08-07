@@ -141,7 +141,7 @@ class PubRSAKey:
             # This helps operator understand which file might be corrupted so that they can try to delete it
             e.key_fname = key_fname
             e.cwd = os.getcwd()
-            raise
+            raise e from e  # Need to raise a new exception to have the modified values (only raise keeps the original)
         return
 
     ###########################################
@@ -169,7 +169,7 @@ class PubRSAKey:
                 bio = M2Crypto.BIO.MemoryBuffer(key_str)
                 self._load_from_bio(bio)
             except M2Crypto.RSA.RSAError as e:
-                raise PubCryptoError("M2Crypto.RSA.RSAError: %s" % e)
+                raise PubCryptoError("M2Crypto.RSA.RSAError: %s" % e) from e
         elif key_fname is not None:
             bio = M2Crypto.BIO.openfile(key_fname)
             if bio is None:

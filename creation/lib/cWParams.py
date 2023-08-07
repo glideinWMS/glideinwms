@@ -267,7 +267,7 @@ class Params:
             # create derived values
             self.derive()
         except RuntimeError as e:
-            raise RuntimeError("Unexpected error occurred loading the configuration file.\n\n%s" % e)
+            raise RuntimeError("Unexpected error occurred loading the configuration file.\n\n%s" % e) from e
 
     def derive(self):
         return  # by default nothing... children should overwrite this
@@ -308,9 +308,9 @@ class Params:
         try:
             self.data = xmlParse.xmlfile2dict(fname, use_ord_dict=True)
         except xml.parsers.expat.ExpatError as e:
-            raise RuntimeError("XML error parsing config file: %s" % e)
+            raise RuntimeError("XML error parsing config file: %s" % e) from e
         except OSError as e:
-            raise RuntimeError("Config file error: %s" % e)
+            raise RuntimeError("Config file error: %s" % e) from e
         self.subparams = self.get_subparams_class()(self.data)
         return
 

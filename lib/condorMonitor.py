@@ -390,7 +390,7 @@ class CondorQEdit:
                 "Error querying schedd %s in pool %s using python bindings (qedit of job/attr/val %s/%s/%s): %s"
                 % (s, p, j1, j2, j3, ex)
             )
-            raise QueryError(err_str)
+            raise QueryError(err_str) from ex
 
 
 #
@@ -502,7 +502,7 @@ class CondorQuery(StoredQuery):
                 "Error executing htcondor query to pool %s with constraint %s and format_list %s: %s. Env is %s"
                 % (self.pool_name, constraint, format_list, ex, os.environ)
             )
-            raise QueryError(err_str).with_traceback(sys.exc_info()[2])
+            raise QueryError(err_str) from ex
 
     def fetch_using_exe(self, constraint=None, format_list=None):
         """Return the results obtained from executing the HTCondor query command
@@ -648,7 +648,7 @@ class CondorQ(CondorQuery):
             if self.pool_name is not None:
                 p = self.pool_name
             err_str = f"Error querying schedd {s} in pool {p} using python bindings: {ex}"
-            raise PBError(err_str).with_traceback(sys.exc_info()[2])
+            raise PBError(err_str) from ex
         finally:
             self.security_obj.restore_state()
 
@@ -698,7 +698,7 @@ class CondorStatus(CondorQuery):
             if self.pool_name is not None:
                 p = self.pool_name
             err_str = f"Error querying pool {p} using python bindings: {ex}"
-            raise PBError(err_str).with_traceback(sys.exc_info()[2])
+            raise PBError(err_str) from ex
         finally:
             self.security_obj.restore_state()
 
@@ -988,9 +988,9 @@ def xml2list(xml_data):
         try:
             p.Parse(" ".join(xml_data[found_xml:]), 1)
         except TypeError as e:
-            raise RuntimeError("Failed to parse XML data, TypeError: %s" % e)
-        except:
-            raise RuntimeError("Failed to parse XML data, generic error")
+            raise RuntimeError("Failed to parse XML data, TypeError: %s" % e) from e
+        except Exception as e:
+            raise RuntimeError("Failed to parse XML data, generic error") from e
     # else no xml, so return an empty list
 
     return xml2list_data

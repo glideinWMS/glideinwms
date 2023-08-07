@@ -1,16 +1,12 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   Classes needed to handle dictionary files
 #   And other support functions
-#
+
+# TODO: in this file there are several directory creation functions. Use what's available in
+#  Python 3 and reduce custom code
 
 import copy
 import io
@@ -209,7 +205,7 @@ class DictFile:
             with open(filepath, "wb") as fd:
                 self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         except OSError as e:
-            raise DictFileError(f"Error creating or writing to {filepath}: {e}")
+            raise DictFileError(f"Error creating or writing to {filepath}: {e}") from e
 
         # ensure that the file permissions are 644
         # This is to minimize a security risk where we load python code from
@@ -257,7 +253,7 @@ class DictFile:
                 fd.write(b"%s\n" % footer.encode(BINARY_ENCODING))
         except AttributeError as e:
             # .encode() attribute may be missing because bytes are passed
-            raise DictFileError(f"str received while writing {self.fname} ({type(self).__name__}): {e}")
+            raise DictFileError(f"str received while writing {self.fname} ({type(self).__name__}): {e}") from e
 
         if set_readonly:
             self.set_readonly(True)
@@ -336,7 +332,7 @@ class DictFile:
             with fd:
                 self.load_from_fd(fd, erase_first, set_not_changed)
         except RuntimeError as e:
-            raise DictFileError(f"File {filepath}: {str(e)}")
+            raise DictFileError(f"File {filepath}: {str(e)}") from e
 
         if change_self:
             self.dir = dir
@@ -372,7 +368,7 @@ class DictFile:
             try:
                 self.parse_val(line.decode(BINARY_ENCODING))
             except RuntimeError as e:
-                raise DictFileError("Line %i: %s" % (idx, str(e)))
+                raise DictFileError("Line %i: %s" % (idx, str(e))) from e
 
         if set_not_changed:
             self.changed = False  # the memory copy is now same as the one on disk
@@ -394,7 +390,7 @@ class DictFile:
             try:
                 self.load_from_fd(fd, erase_first, set_not_changed)
             except RuntimeError as e:
-                raise DictFileError("Memory buffer: %s" % (str(e)))
+                raise DictFileError("Memory buffer: %s" % (str(e))) from e
         return
 
     def is_equal(self, other, compare_dir=False, compare_fname=False, compare_keys=None):
@@ -913,7 +909,7 @@ class SimpleFileDictFile(DictFile):
             with open(filepath, "rb") as fd:
                 self.add_from_fd(key, val, fd, allow_overwrite)
         except OSError as e:
-            raise DictFileError("Could not open file or read from it: %s" % filepath)
+            raise DictFileError("Could not open file or read from it: %s" % filepath) from e
 
     def format_val(self, key, want_comments):
         """Print lines: only the file name (key) the first item of the value tuple if not None
@@ -988,12 +984,12 @@ class SimpleFileDictFile(DictFile):
             try:
                 fd = open(filepath, "wb")
             except OSError as e:
-                raise DictFileError("Could not create file %s" % filepath)
+                raise DictFileError("Could not create file %s" % filepath) from None
             try:
                 with fd:
                     fd.write(fdata)
             except OSError as e:
-                raise DictFileError("Error writing into file %s" % filepath)
+                raise DictFileError("Error writing into file %s" % filepath) from None
 
 
 class FileDictFile(SimpleFileDictFile):
@@ -1125,8 +1121,10 @@ class FileDictFile(SimpleFileDictFile):
         # TODO: check parameters!!
         try:
             int(val[2])  # to check if is integer. Period must be int or convertible to int
-        except (ValueError, IndexError):
-            raise DictFileError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
+        except (ValueError, IndexError) as e:
+            raise DictFileError(
+                "Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val
+            ) from e
 
         if len(val) == self.DATA_LENGTH:
             # Alt: return self.add_from_str(key, val[:self.DATA_LENGTH-1], val[self.DATA_LENGTH-1], allow_overwrite)
@@ -1411,6 +1409,7 @@ class VarsDictFile(DictFile):
         elif user_name == True:
             user_name = "+"
 
+        # TODO: check .add and set allow_overwrite=False above instead allow_overwrite=0
         self.add(key, (type_str, val_default, condor_name, req_str, export_condor_str, user_name), allow_overwrite)
 
     def format_val(self, key, want_comments):
@@ -1551,7 +1550,7 @@ class ExeFile(SimpleFile):
             with open(filepath, "wb") as fd:
                 self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         except OSError as e:
-            raise RuntimeError(f"Error creating or writing to {filepath}: {e}")
+            raise RuntimeError(f"Error creating or writing to {filepath}: {e}") from e
         chmod(filepath, 0o755)
 
         return
@@ -1597,17 +1596,17 @@ class simpleDirSupport(dirSupport):
         self.dir = dir
         self.dir_name = dir_name
 
+    # TODO: there is os.mkdirs with fail_if_exists
     def create_dir(self, fail_if_exists=True):
         if os.path.isdir(self.dir):
             if fail_if_exists:
                 raise RuntimeError(f"Cannot create {self.dir_name} dir {self.dir}, already exists.")
             else:
                 return False  # already exists, nothing to do
-
         try:
             os.mkdir(self.dir)
         except OSError as e:
-            raise RuntimeError(f"Failed to create {self.dir_name} dir: {e}")
+            raise RuntimeError(f"Failed to create {self.dir_name} dir: {e}") from None
         return True
 
     def delete_dir(self):
@@ -1619,6 +1618,7 @@ class chmodDirSupport(simpleDirSupport):
         simpleDirSupport.__init__(self, dir, dir_name)
         self.chmod = chmod
 
+    # TODO: there is os.mkdirs with fail_if_exists
     def create_dir(self, fail_if_exists=True):
         if os.path.isdir(self.dir):
             if fail_if_exists:
@@ -1629,7 +1629,7 @@ class chmodDirSupport(simpleDirSupport):
         try:
             os.mkdir(self.dir, self.chmod)
         except OSError as e:
-            raise RuntimeError(f"Failed to create {self.dir_name} dir: {e}")
+            raise RuntimeError(f"Failed to create {self.dir_name} dir: {e}") from None
         return True
 
 
@@ -1641,6 +1641,7 @@ class symlinkSupport(dirSupport):
         self.symlink = symlink
         self.dir_name = dir_name
 
+    # TODO: there is os.mkdirs with fail_if_exists, check if something similar for symlink
     def create_dir(self, fail_if_exists=True):
         if os.path.islink(self.symlink):
             if fail_if_exists:
@@ -1651,7 +1652,7 @@ class symlinkSupport(dirSupport):
         try:
             os.symlink(self.target_dir, self.symlink)
         except OSError as e:
-            raise RuntimeError(f"Failed to create {self.dir_name} symlink: {e}")
+            raise RuntimeError(f"Failed to create {self.dir_name} symlink: {e}") from None
         return True
 
     def delete_dir(self):
@@ -1667,6 +1668,7 @@ class dirsSupport:
     def add_dir_obj(self, dir_obj):
         self.dir_list.append(dir_obj)
 
+    # TODO: there is os.mkdirs with fail_if_exists
     def create_dirs(self, fail_if_exists=True):
         created_dirs = []
         try:

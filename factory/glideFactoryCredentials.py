@@ -1,14 +1,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-
-
 import base64
 import gzip
 import io
@@ -191,11 +183,11 @@ def process_global(classad, glidein_descript, frontend_descript):
             msg = "updating credential for %s" % username
             logSupport.log.debug(msg)
             update_credential_file(username, cred_id, cred_data, request_clientname)
-    except:
+    except Exception as e:
         logSupport.log.debug(f"\nclassad {classad}\nfrontend_descript {frontend_descript}\npub_key_obj {pub_key_obj})")
         error_str = "Error occurred processing the globals classads."
         logSupport.log.exception(error_str)
-        raise CredentialError(error_str)
+        raise CredentialError(error_str) from e
 
 
 def get_key_obj(pub_key_obj, classad):
@@ -211,11 +203,11 @@ def get_key_obj(pub_key_obj, classad):
         try:
             sym_key_obj = pub_key_obj.extract_sym_key(classad["ReqEncKeyCode"])
             return sym_key_obj
-        except:
+        except Exception as e:
             logSupport.log.debug(f"\nclassad {classad}\npub_key_obj {pub_key_obj}\n")
             error_str = "Symmetric key extraction failed."
             logSupport.log.exception(error_str)
-            raise CredentialError(error_str)
+            raise CredentialError(error_str) from e
     else:
         error_str = "Classad does not contain a key.  We cannot decrypt."
         raise CredentialError(error_str)

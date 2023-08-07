@@ -1,18 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This module implements the functions to execute condor commands
-#
-# Author:
-#   Igor Sfiligoi (Sept 7th 2006)
-#
 
 
 import os
@@ -162,9 +152,9 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
         try:
             logSupport.log.error(msg)
             logSupport.log.debug(generate_bash_script(cmd, os.environ))
-        except:
+        except Exception:
             pass
-        raise ExeError(msg)
+        raise ExeError(msg) from ex
 
     return stdout_data.splitlines()
 
