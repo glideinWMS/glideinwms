@@ -86,9 +86,9 @@ SPDX-License-Identifier: Apache-2.0
             chartData.push(
               simpleEncoding.charAt(
                 Math.round(
-                  ((simpleEncoding.length - 1) * currentValue) / maxValue,
-                ),
-              ),
+                  ((simpleEncoding.length - 1) * currentValue) / maxValue
+                )
+              )
             );
           } else {
             chartData.push("_");
@@ -109,7 +109,7 @@ SPDX-License-Identifier: Apache-2.0
           var numericVal = new Number(arrVals[i]);
           // Scale the value to maxVal.
           var scaledVal = Math.floor(
-            (EXTENDED_MAP_LENGTH * EXTENDED_MAP_LENGTH * numericVal) / maxVal,
+            (EXTENDED_MAP_LENGTH * EXTENDED_MAP_LENGTH * numericVal) / maxVal
           );
 
           if (scaledVal > EXTENDED_MAP_LENGTH * EXTENDED_MAP_LENGTH - 1) {
@@ -169,8 +169,8 @@ SPDX-License-Identifier: Apache-2.0
         return (
           decodeURIComponent(
             (new RegExp("[?|&]" + name + "=" + "([^&;]+?)(&|#|;|$)").exec(
-              location.search,
-            ) || [, ""])[1].replace(/\+/g, "%20"),
+              location.search
+            ) || [, ""])[1].replace(/\+/g, "%20")
           ) || null
         );
       }
@@ -263,7 +263,7 @@ SPDX-License-Identifier: Apache-2.0
           window.history.pushState(
             { group: selected_group },
             "",
-            addParameter(document.location.href, "group", selected_group),
+            addParameter(document.location.href, "group", selected_group)
           );
         } else {
           going_back = false;
@@ -321,7 +321,7 @@ SPDX-License-Identifier: Apache-2.0
                 group_name +
                 "'><i class='icon-chevron-right'></i>" +
                 group_name +
-                "</a>  </li>",
+                "</a>  </li>"
             );
 
             if (first_group == true) {
@@ -367,7 +367,7 @@ SPDX-License-Identifier: Apache-2.0
           .each(function () {
             if ($(this).attr("name") == "Local") {
               $("#updated_display").html(
-                "Snapshot last updated: " + $(this).attr("human"),
+                "Snapshot last updated: " + $(this).attr("human")
               );
             }
           });
@@ -400,7 +400,7 @@ SPDX-License-Identifier: Apache-2.0
         } else {
           $(input_array).each(function () {
             toReturn.push(
-              (parseFloat(this) / parseFloat(normalized_total)) * 100.0,
+              (parseFloat(this) / parseFloat(normalized_total)) * 100.0
             );
           });
         }
@@ -455,11 +455,11 @@ SPDX-License-Identifier: Apache-2.0
             data.setCell(counter, 0, entry_name);
 
             var matched_idle_glideins = parseFloat(
-              $(this).find("MatchedGlideins").attr("Idle"),
+              $(this).find("MatchedGlideins").attr("Idle")
             );
             matchedglideins_idle.push(matched_idle_glideins);
             var matched_running_glideins = parseFloat(
-              $(this).find("MatchedGlideins").attr("Running"),
+              $(this).find("MatchedGlideins").attr("Running")
             );
             matchedglideins_running.push(matched_running_glideins);
             data.setCell(counter, 3, matched_running_glideins);
@@ -482,29 +482,29 @@ SPDX-License-Identifier: Apache-2.0
             data.setCell(counter, 2, mji);
 
             matchedjobs_running.push(
-              parseFloat($(this).find("MatchedJobs").attr("RunningHere")),
+              parseFloat($(this).find("MatchedJobs").attr("RunningHere"))
             );
             data.setCell(
               counter,
               1,
-              parseFloat($(this).find("MatchedJobs").attr("RunningHere")),
+              parseFloat($(this).find("MatchedJobs").attr("RunningHere"))
             );
 
             requested_idle.push(
-              parseFloat($(this).find("Requested").attr("Idle")),
+              parseFloat($(this).find("Requested").attr("Idle"))
             );
             data.setCell(
               counter,
               7,
-              parseFloat($(this).find("Requested").attr("Idle")),
+              parseFloat($(this).find("Requested").attr("Idle"))
             );
             requested_max_running.push(
-              parseFloat($(this).find("Requested").attr("MaxGlideins")),
+              parseFloat($(this).find("Requested").attr("MaxGlideins"))
             );
             data.setCell(
               counter,
               6,
-              parseFloat($(this).find("Requested").attr("MaxGlideins")),
+              parseFloat($(this).find("Requested").attr("MaxGlideins"))
             );
 
             counter++;
@@ -518,7 +518,7 @@ SPDX-License-Identifier: Apache-2.0
             "No Entry Points Detected",
             "No entry points were detected in the group: <strong>" +
               group_name +
-              "</strong>. <p>Please select another group from the menu on the left.</p>",
+              "</strong>. <p>Please select another group from the menu on the left.</p>"
           );
 
           // If no jobs are detected, idle or running
@@ -536,7 +536,7 @@ SPDX-License-Identifier: Apache-2.0
             "No Jobs Detected",
             "No jobs were detected, idle or running, in the group: <strong>" +
               group_name +
-              "</strong>.  <p>Please select another group from the menu on the left.</p>",
+              "</strong>.  <p>Please select another group from the menu on the left.</p>"
           );
         } else {
           $("#group_graphs").fadeTo(0, 1.0);
@@ -562,7 +562,7 @@ SPDX-License-Identifier: Apache-2.0
         data.setCell(
           counter,
           5,
-          Math.round(SumElements(matchedglideins_idlefra) * 100) / 100.0,
+          Math.round(SumElements(matchedglideins_idlefra) * 100) / 100.0
         );
         data.setCell(counter, 6, SumElements(requested_max_running));
         data.setCell(counter, 7, SumElements(requested_idle));
@@ -574,7 +574,7 @@ SPDX-License-Identifier: Apache-2.0
           factories.slice(),
           matchedglideins_idle,
           "Glideins not matched",
-          img,
+          img
         );
 
         img = CreateGraphImage();
@@ -586,7 +586,7 @@ SPDX-License-Identifier: Apache-2.0
           factories.slice(),
           matchedglideins_running,
           "Glideins claimed by jobs",
-          img,
+          img
         );
 
         img = CreateGraphImage();
@@ -599,7 +599,7 @@ SPDX-License-Identifier: Apache-2.0
           factories.slice(),
           matchedjobs_running,
           "Running jobs by Entry",
-          img,
+          img
         );
 
         img = CreateGraphImage();
@@ -612,11 +612,11 @@ SPDX-License-Identifier: Apache-2.0
           factories.slice(),
           requested_max_running,
           "Requested Max Running",
-          img,
+          img
         );
 
         table = new google.visualization.Table(
-          document.getElementById("group_table"),
+          document.getElementById("group_table")
         );
         var dataview = new google.visualization.DataView(data);
         table.draw(dataview);
@@ -638,7 +638,7 @@ SPDX-License-Identifier: Apache-2.0
             .html(
               '<div id="image_load_fail" class="image_error">Unable to load image: ' +
                 img_title +
-                "<div>",
+                "<div>"
             );
         });
         $(img).click(function () {
@@ -699,7 +699,7 @@ SPDX-License-Identifier: Apache-2.0
             entry_data[i][0] +
               " (" +
               Math.round(entry_data[i][1] * 10) / 10.0 +
-              ")",
+              ")"
           );
         }
         baseurl += formatted_entry_points.join("|");
@@ -720,7 +720,7 @@ SPDX-License-Identifier: Apache-2.0
       function ShowDialog(tocenter_object, title, text) {
         HideDialog();
         $(tocenter_object).append(
-          "<div id='error_dialog' title=\"" + title + '">' + text + "</div>",
+          "<div id='error_dialog' title=\"" + title + '">' + text + "</div>"
         );
         $("#error_dialog")
           .dialog({

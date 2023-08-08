@@ -224,7 +224,7 @@ Description:
             "onclick",
             'setGroupEntriesValue("' +
               entrylist2groupname(entries[entry]) +
-              '", true)',
+              '", true)'
           );
 
           var but_el2 = document.createElement("input");
@@ -235,7 +235,7 @@ Description:
             "onclick",
             'setGroupEntriesValue("' +
               entrylist2groupname(entries[entry]) +
-              '", false)',
+              '", false)'
           );
 
           var form_el = document.getElementById("selector");
@@ -390,7 +390,7 @@ Description:
           var fn_array = new Array();
           for (var j = 0; j < ent_list.length; j++) {
             fn_array.push(
-              "entry_" + ent_list[j] + "/total/" + rrd_name + ".rrd",
+              "entry_" + ent_list[j] + "/total/" + rrd_name + ".rrd"
             );
           }
           fnames.push(fn_array.join(","));
@@ -413,7 +413,7 @@ Description:
                 FetchBinaryURLAsync(
                   fn_array[j],
                   update_grouped_fname_handler,
-                  i,
+                  i
                 );
                 rrds_to_load++;
               }

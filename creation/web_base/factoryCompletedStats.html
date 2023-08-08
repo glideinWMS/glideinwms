@@ -179,7 +179,7 @@ Description:
         "aggwsum",
         "aggavgf",
         "affwsumf",
-        "fail",
+        "fail"
       );
       var ENTRY;
 
@@ -224,7 +224,7 @@ Description:
       for (var entry in entries) {
         if (ec_added < groups_starting_idx) {
           entries_select.appendChild(
-            new Option(entries[entry], entries[entry]),
+            new Option(entries[entry], entries[entry])
           );
           ec_added++;
         } else {
@@ -254,7 +254,7 @@ Description:
         fes.appendChild(new Option("total", "total"));
         for (var frontend in frontend_list[entry]) {
           frontends_select.appendChild(
-            new Option(frontend_list[entry][frontend]),
+            new Option(frontend_list[entry][frontend])
           );
         }
       }
@@ -831,7 +831,7 @@ Description:
           for (var i = 0; i < gtype_filtered_list.length; i++) {
             rrd_filtered_data = new RRDFilterDS(
               rrd_data1,
-              gtype_DSs[gtype_filtered_list[i]],
+              gtype_DSs[gtype_filtered_list[i]]
             );
             var DS_list = [];
             for (var j = 0; j < rrd_filtered_data.getNrDSs(); j++) {
@@ -849,7 +849,7 @@ Description:
             rrd_data1,
             null,
             gtype_formats[gtype_id],
-            null,
+            null
           );
         } else if (gtype_id == "fail") {
           var DS_list = [];
@@ -872,8 +872,8 @@ Description:
           op_list.push(
             new FractionDS(
               rrd_data1.getDS(failed_idx).getName(),
-              rrd_data1.getDS(glidein_idx).getName(),
-            ),
+              rrd_data1.getDS(glidein_idx).getName()
+            )
           );
           rrd_data1 = new RRDFilterOp(rrd_data1, op_list);
           var f = new rrdFlot(
@@ -881,7 +881,7 @@ Description:
             rrd_data1,
             null,
             gtype_formats[gtype_id],
-            null,
+            null
           );
         }
         //Non-Aggregated InfoGroups
@@ -903,12 +903,12 @@ Description:
               continue;
             }
             op_list.push(
-              new RelativeDS(DS_list, rrd_data1.getDS(i).getName(), i),
+              new RelativeDS(DS_list, rrd_data1.getDS(i).getName(), i)
             );
           }
           if (flag == 1) {
             op_list.push(
-              new RelativeDS(DS_list, rrd_data1.getDS(0).getName(), 0),
+              new RelativeDS(DS_list, rrd_data1.getDS(0).getName(), 0)
             );
           }
 
@@ -950,7 +950,7 @@ Description:
             rrd_data1,
             null,
             gtype_formats[gtype_id],
-            { num_cb_rows: x },
+            { num_cb_rows: x }
           );
         }
 
