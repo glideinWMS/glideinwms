@@ -239,7 +239,7 @@ Description:
           "MatchCoreRunning",
           "MatchJobIdle",
           "ReqIdle",
-          "ReqMaxRun"
+          "ReqMaxRun",
         );
         //                                       'JobsRunning',    'GlideinTotal',     'GlideinRunning',     'GlideinIdle',     'JobsIdle');
         gtype_DSs["idle"] = new Array(
@@ -254,7 +254,7 @@ Description:
           "MatchCoreIdle",
           "MatchCoreRunning",
           "ReqIdle",
-          "ReqMaxRun"
+          "ReqMaxRun",
         );
 
         var gtype_formats = new Object();
@@ -501,7 +501,7 @@ Description:
             window_max: local_window_max,
             use_checked_DSs: true,
             use_element_buttons: true,
-          }
+          },
         );
       }
 
@@ -569,7 +569,7 @@ Description:
           "rra",
           "window_min",
           "window_max",
-          "timezone"
+          "timezone",
         );
         var groupSpec;
         var infoGroupSpec;
@@ -610,11 +610,11 @@ Description:
                     //   as seen in the factory menu.
                     var state_list = getFrontendGroupStates(
                       loadFrontendStats(),
-                      groups[group]
+                      groups[group],
                     );
                     var fac_list = getFrontendGroupFactories(
                       loadFrontendStats(),
-                      groups[group]
+                      groups[group],
                     );
 
                     //states listed first in the Factory menu, so push factories onto state list

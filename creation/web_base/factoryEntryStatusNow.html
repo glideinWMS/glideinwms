@@ -72,7 +72,7 @@ SPDX-License-Identifier: Apache-2.0
         "ClientJobsIdle",
         "ClientGlideTotal",
         "ClientCoresTotal",
-        "ClientInfoAge"
+        "ClientInfoAge",
       );
 
       var xmlAttStatusArry = new Array(
@@ -83,7 +83,7 @@ SPDX-License-Identifier: Apache-2.0
         "StageIn",
         "StageOut",
         "IdleOther",
-        "Held"
+        "Held",
       );
       var xmlAttReqArry = new Array("MaxGlideins", "Idle");
       var xmlAttCMArry = new Array(
@@ -96,7 +96,7 @@ SPDX-License-Identifier: Apache-2.0
         "JobsIdle",
         "GlideTotal",
         "CoresTotal",
-        "InfoAge"
+        "InfoAge",
       );
       var xmlAttStatNumArry = new Array();
       var xmlAttReqNumArry = new Array();
@@ -123,7 +123,7 @@ SPDX-License-Identifier: Apache-2.0
         "cmGlideinIdle",
         "cmGlideinJobsIdle",
         "cmGlideinTotal",
-        "cmGlideinInfoAge"
+        "cmGlideinInfoAge",
       );
 
       var exactCols = new Array(
@@ -145,7 +145,7 @@ SPDX-License-Identifier: Apache-2.0
         "Registered",
         "Info age",
         "Diff(Status: Running - CM: Registered)",
-        "Diff(Status: Idle - Requested: Idle)"
+        "Diff(Status: Idle - Requested: Idle)",
       );
       var prTxtArry = new Array("Now", "2 hours", "24 hours", "7 days");
 
@@ -171,7 +171,7 @@ SPDX-License-Identifier: Apache-2.0
         "Status: Stage out",
         "Status: Unknown",
         "Status: Held",
-        "Client Monitor: Info age"
+        "Client Monitor: Info age",
       );
       var indivTableAttColors = new Array(
         0,
@@ -192,7 +192,7 @@ SPDX-License-Identifier: Apache-2.0
         0,
         0,
         0,
-        2
+        2,
       );
 
       var indivAtts = new Array(
@@ -214,7 +214,7 @@ SPDX-License-Identifier: Apache-2.0
         5,
         6,
         7,
-        16
+        16,
       );
 
       var indivChild;
@@ -315,10 +315,10 @@ SPDX-License-Identifier: Apache-2.0
                 .attributes[0].value
             ) {
               feArryMaster.push(
-                totalEntries[optionIndex].childNodes[feChild].childNodes[x]
+                totalEntries[optionIndex].childNodes[feChild].childNodes[x],
               );
               feArryPMaster.push(
-                totalEntriesP[optionIndex].childNodes[3].childNodes[x]
+                totalEntriesP[optionIndex].childNodes[3].childNodes[x],
               );
             }
           }
@@ -342,7 +342,7 @@ SPDX-License-Identifier: Apache-2.0
               xmlhttp.responseXML.documentElement.getElementsByTagName("total");
             frontEndsP =
               xmlhttp.responseXML.documentElement.getElementsByTagName(
-                "frontend"
+                "frontend",
               );
             totalEntriesP =
               xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
@@ -446,8 +446,8 @@ SPDX-License-Identifier: Apache-2.0
               cellsD[count].appendChild(
                 document.createTextNode(
                   entryAttDescript[optionIndex].childNodes[1].attributes[i - 1]
-                    .name
-                )
+                    .name,
+                ),
               );
               cellsD[count].style.fontWeight = "bold";
               rowsD[i].appendChild(cellsD[count]);
@@ -456,8 +456,8 @@ SPDX-License-Identifier: Apache-2.0
               cellsD[count].appendChild(
                 document.createTextNode(
                   entryAttDescript[optionIndex].childNodes[1].attributes[i - 1]
-                    .value
-                )
+                    .value,
+                ),
               );
               rowsD[i].appendChild(cellsD[count]);
               count++;
@@ -483,8 +483,8 @@ SPDX-License-Identifier: Apache-2.0
               cellsT[count2].appendChild(
                 document.createTextNode(
                   entryAttDescript[optionIndex].childNodes[3].attributes[i - 1]
-                    .name
-                )
+                    .name,
+                ),
               );
               cellsT[count2].style.fontWeight = "bold";
               rowsD[i].appendChild(cellsT[count2]);
@@ -493,8 +493,8 @@ SPDX-License-Identifier: Apache-2.0
               cellsT[count2].appendChild(
                 document.createTextNode(
                   entryAttDescript[optionIndex].childNodes[3].attributes[i - 1]
-                    .value
-                )
+                    .value,
+                ),
               );
               rowsD[i].appendChild(cellsT[count2]);
               count2++;
@@ -528,7 +528,7 @@ SPDX-License-Identifier: Apache-2.0
           if (xmlhttp.readyState == 4) {
             updated =
               xmlhttp.responseXML.documentElement.getElementsByTagName(
-                "updated"
+                "updated",
               );
             totalEntriesMaster =
               xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
@@ -536,7 +536,7 @@ SPDX-License-Identifier: Apache-2.0
               xmlhttp.responseXML.documentElement.getElementsByTagName("total");
             frontEnds =
               xmlhttp.responseXML.documentElement.getElementsByTagName(
-                "frontend"
+                "frontend",
               );
             totalEntries =
               xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
@@ -760,7 +760,7 @@ SPDX-License-Identifier: Apache-2.0
                   totStatChild,
                   totStatChild,
                   totStatChild,
-                  totCMChild
+                  totCMChild,
                 );
 
                 indivChildFE = new Array(
@@ -782,7 +782,7 @@ SPDX-License-Identifier: Apache-2.0
                   feStatChild,
                   feStatChild,
                   feStatChild,
-                  feCMChild
+                  feCMChild,
                 );
                 break;
               }
@@ -815,7 +815,7 @@ SPDX-License-Identifier: Apache-2.0
         select.setAttribute("id", "choose");
         select.setAttribute(
           "onchange",
-          "makeTotTable(document.getElementById('choose').value)"
+          "makeTotTable(document.getElementById('choose').value)",
         );
         head = document.createElement("option");
         txt0 = document.createTextNode("No Entry Selected");
@@ -885,7 +885,7 @@ SPDX-License-Identifier: Apache-2.0
               document
                 .getElementsByTagName("div")
                 [index].removeChild(
-                  document.getElementsByTagName("div")[index].firstChild
+                  document.getElementsByTagName("div")[index].firstChild,
                 );
             }
             /* REMOVE ALL CHILDNODES (PARAM TABLE) */
@@ -895,7 +895,7 @@ SPDX-License-Identifier: Apache-2.0
               document
                 .getElementsByTagName("div")
                 [index + 1].removeChild(
-                  document.getElementsByTagName("div")[index + 1].firstChild
+                  document.getElementsByTagName("div")[index + 1].firstChild,
                 );
             }
             index++;
@@ -928,7 +928,7 @@ SPDX-License-Identifier: Apache-2.0
               document
                 .getElementsByTagName("div")
                 [index].removeChild(
-                  document.getElementsByTagName("div")[index].firstChild
+                  document.getElementsByTagName("div")[index].firstChild,
                 );
             }
             /* REMOVE ALL CHILDNODES (PARAM TABLE) */
@@ -938,7 +938,7 @@ SPDX-License-Identifier: Apache-2.0
               document
                 .getElementsByTagName("div")
                 [index + 1].removeChild(
-                  document.getElementsByTagName("div")[index + 1].firstChild
+                  document.getElementsByTagName("div")[index + 1].firstChild,
                 );
             }
             index++;
@@ -982,7 +982,7 @@ SPDX-License-Identifier: Apache-2.0
           cell_num - 1,
           cell_num - 1,
           cell_num,
-          cell_num - 1
+          cell_num - 1,
         );
 
         table = document.createElement("table");
@@ -1081,7 +1081,7 @@ SPDX-License-Identifier: Apache-2.0
               k != 2 - (cell_num - cell_numArry[c])
             ) {
               cont = document.createTextNode(
-                feArryMaster[k - 3].attributes[0].value
+                feArryMaster[k - 3].attributes[0].value,
               );
             } else if (c == 0 && k == 2 - (cell_num - cell_numArry[c])) {
               cont = document.createTextNode("Total");
@@ -1145,7 +1145,7 @@ SPDX-License-Identifier: Apache-2.0
             "Now",
             "2 Hours",
             "24 Hours",
-            "7 Days"
+            "7 Days",
           );
           rowLength = rowsTwoTxt.length;
         } else {
@@ -1198,7 +1198,7 @@ SPDX-License-Identifier: Apache-2.0
           if (j % (rowLength / 2) == 0) {
             cols[j].setAttribute(
               "bgColor",
-              colorArry[indivTableAttColors[attribute]]
+              colorArry[indivTableAttColors[attribute]],
             );
             colsTxt[j] = document.createTextNode(indivTableAtts[attribute]);
             attribute++;
@@ -1234,7 +1234,7 @@ SPDX-License-Identifier: Apache-2.0
           if ((j + k) % (rowLength / 2) == 0) {
             cols[j + k].setAttribute(
               "bgColor",
-              colorArry[indivTableAttColors[attribute]]
+              colorArry[indivTableAttColors[attribute]],
             );
             colsTxt[j + k] = document.createTextNode(indivTableAtts[attribute]);
             attribute++;
@@ -1268,10 +1268,10 @@ SPDX-License-Identifier: Apache-2.0
           if ((j + k + l) % (rowLength / 2) == 0) {
             cols[j + k + l].setAttribute(
               "bgColor",
-              colorArry[indivTableAttColors[attribute]]
+              colorArry[indivTableAttColors[attribute]],
             );
             colsTxt[j + k + l] = document.createTextNode(
-              indivTableAtts[attribute]
+              indivTableAtts[attribute],
             );
             attribute++;
           } else {
@@ -1304,10 +1304,10 @@ SPDX-License-Identifier: Apache-2.0
           if ((j + k + l + m) % (rowLength / 2) == 0) {
             cols[j + k + l + m].setAttribute(
               "bgColor",
-              colorArry[indivTableAttColors[attribute]]
+              colorArry[indivTableAttColors[attribute]],
             );
             colsTxt[j + k + l + m] = document.createTextNode(
-              indivTableAtts[attribute]
+              indivTableAtts[attribute],
             );
             attribute++;
           } else {
@@ -1341,10 +1341,10 @@ SPDX-License-Identifier: Apache-2.0
           ) {
             cols[j + k + l + m + n].setAttribute(
               "bgColor",
-              colorArry[indivTableAttColors[attribute]]
+              colorArry[indivTableAttColors[attribute]],
             );
             colsTxt[j + k + l + m + n] = document.createTextNode(
-              indivTableAtts[attribute]
+              indivTableAtts[attribute],
             );
             attribute++;
           } else {
@@ -1724,7 +1724,7 @@ SPDX-License-Identifier: Apache-2.0
             "Now",
             "2 Hours",
             "24 Hours",
-            "7 Days"
+            "7 Days",
           );
         else feRowTwoTxt = new Array("", "Now", "", "Now");
         index = 0;
@@ -1803,7 +1803,7 @@ SPDX-License-Identifier: Apache-2.0
             if (j % (feRowTwoTxt.length / 2) == 0) {
               feCell[j].setAttribute(
                 "bgColor",
-                colorArry[indivTableAttColors[attribute]]
+                colorArry[indivTableAttColors[attribute]],
               );
               feCellTxt[j] = document.createTextNode(indivTableAtts[attribute]);
               attribute++;
@@ -1841,10 +1841,10 @@ SPDX-License-Identifier: Apache-2.0
             if ((j + k) % (feRowTwoTxt.length / 2) == 0) {
               feCell[j + k].setAttribute(
                 "bgColor",
-                colorArry[indivTableAttColors[attribute]]
+                colorArry[indivTableAttColors[attribute]],
               );
               feCellTxt[j + k] = document.createTextNode(
-                indivTableAtts[attribute]
+                indivTableAtts[attribute],
               );
               attribute++;
             } else {
@@ -1882,10 +1882,10 @@ SPDX-License-Identifier: Apache-2.0
             if ((j + k + l) % (feRowTwoTxt.length / 2) == 0) {
               feCell[j + k + l].setAttribute(
                 "bgColor",
-                colorArry[indivTableAttColors[attribute]]
+                colorArry[indivTableAttColors[attribute]],
               );
               feCellTxt[j + k + l] = document.createTextNode(
-                indivTableAtts[attribute]
+                indivTableAtts[attribute],
               );
               attribute++;
             } else {
@@ -1921,10 +1921,10 @@ SPDX-License-Identifier: Apache-2.0
             if ((j + k + l + m) % (feRowTwoTxt.length / 2) == 0) {
               feCell[j + k + l + m].setAttribute(
                 "bgColor",
-                colorArry[indivTableAttColors[attribute]]
+                colorArry[indivTableAttColors[attribute]],
               );
               feCellTxt[j + k + l + m] = document.createTextNode(
-                indivTableAtts[attribute]
+                indivTableAtts[attribute],
               );
               attribute++;
             } else {
@@ -1963,10 +1963,10 @@ SPDX-License-Identifier: Apache-2.0
             ) {
               feCell[j + k + l + m + n].setAttribute(
                 "bgColor",
-                colorArry[indivTableAttColors[attribute]]
+                colorArry[indivTableAttColors[attribute]],
               );
               feCellTxt[j + k + l + m + n] = document.createTextNode(
-                indivTableAtts[attribute]
+                indivTableAtts[attribute],
               );
               attribute++;
             } else {
@@ -2002,7 +2002,7 @@ SPDX-License-Identifier: Apache-2.0
 
           paramRow[0] =
             document.createElement(
-              "tr"
+              "tr",
             ); /* Will hold parameter table header. */
           paramCell = document.createElement("td");
 
@@ -2011,7 +2011,7 @@ SPDX-License-Identifier: Apache-2.0
               .length <= 1
           ) {
             paramTxtHead = document.createTextNode(
-              "(" + feArryMaster[i].attributes[0].value + ") No Parameters "
+              "(" + feArryMaster[i].attributes[0].value + ") No Parameters ",
             );
           } else paramTxtHead = document.createTextNode("Parameters: ");
           paramCell.appendChild(paramTxtHead);
@@ -2034,11 +2034,11 @@ SPDX-License-Identifier: Apache-2.0
             paramCell[j] = document.createElement("td");
             paramCellTxt[j - 1] = document.createTextNode(
               feArryMaster[i].childNodes[feReqChild].childNodes[1].childNodes[j]
-                .attributes[0].value
+                .attributes[0].value,
             );
             paramCellTxt[j] = document.createTextNode(
               feArryMaster[i].childNodes[feReqChild].childNodes[1].childNodes[j]
-                .attributes[1].value
+                .attributes[1].value,
             );
             paramCell[j - 1].appendChild(paramCellTxt[j - 1]);
             paramCell[j].appendChild(paramCellTxt[j]);
@@ -2490,7 +2490,7 @@ SPDX-License-Identifier: Apache-2.0
         font-size: 40px;
         color: #000;
         font-weight: bold;
-        font-family: 'Times New Roman', Times;
+        font-family: &quot;Times New Roman&quot;, Times;
         text-decoration: none;
         left: 50%;
       "
