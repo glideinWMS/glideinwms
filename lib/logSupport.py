@@ -63,7 +63,7 @@ def alternate_log(msg):
 
 class GlideinHandler(BaseRotatingHandler):
     """
-    Custom logging handler class for glideinWMS.  It combines the decision tree
+    Custom logging handler class for GlideinWMS.  It combines the decision tree
     for log rotation from the TimedRotatingFileHandler with the decision tree
     from the RotatingFileHandler.  This allows us to specify a lifetime AND
     file size to determine when to rotate the file.
@@ -172,8 +172,7 @@ class GlideinHandler(BaseRotatingHandler):
         return do_timed_rollover or do_size_rollover
 
     def getFilesToDelete(self):
-        """
-        Determine the files to delete when rolling over.
+        """Determine the files to delete when rolling over.
 
         More specific than the earlier method, which just used glob.glob().
         """
@@ -225,7 +224,7 @@ class GlideinHandler(BaseRotatingHandler):
 
         # Open a new log file
         self.mode = "w"
-        self.stream = self._open_new_log()
+        self.stream = self._open()
 
         # determine the next rollover time for the timed rollover check
         currentTime = int(time.time())
@@ -260,22 +259,24 @@ class GlideinHandler(BaseRotatingHandler):
             except OSError as e:
                 alternate_log("Log file gzip compression failed: %s" % e)
 
-    def _open_new_log(self):
-        """
-        This function is here to bridge the gap between the old (python 2.4) way
-        of opening new log files and the new (python 2.7) way.
-        """
-        new_stream = None
-        try:
-            # pylint: disable=E1101
-            new_stream = self._open()
-            # pylint: enable=E1101
-        except:
-            if self.encoding:
-                new_stream = codecs.open(self.baseFilename, self.mode, self.encoding)
-            else:
-                new_stream = open(self.baseFilename, self.mode)
-        return new_stream
+    # TODO: remove if all OK
+    # in python 3 _open() and ancoding are safe to use all the time
+    # def _open_new_log(self):
+    #     """
+    #     This function is here to bridge the gap between the old (python 2.4) way
+    #     of opening new log files and the new (python 2.7) way.
+    #     """
+    #     new_stream = None
+    #     try:
+    #         # pylint: disable=E1101
+    #         new_stream = self._open()
+    #         # pylint: enable=E1101
+    #     except:
+    #         if self.encoding:
+    #             new_stream = codecs.open(self.baseFilename, self.mode, self.encoding)
+    #         else:
+    #             new_stream = open(self.baseFilename, self.mode)
+    #     return new_stream
 
     def check_and_perform_rollover(self):
         if self.shouldRollover(None, empty_record=True):
@@ -346,20 +347,71 @@ class MsgFilter(logging.Filter):
 
 
 def format_dict(unformated_dict, log_format="   %-25s : %s\n"):
-    """
-    Convenience function used to format a dictionary for the logs to make it
-    human readable.
+    """Convenience function used to format a dictionary for the logs to make it  human-readable.
 
-    @type unformated_dict: dict
-    @param unformated_dict: The dictionary to be formatted for logging
-    @type log_format: string
-    @param log_format: format string for logging
+    Args:
+        unformated_dict (dict): The dictionary to be formatted for logging
+        log_format (str): format string for logging
+
+    Returns:
+        str: Formatted string
     """
     formatted_string = ""
     for key in unformated_dict:
         formatted_string += log_format % (key, unformated_dict[key])
 
     return formatted_string
+
+
+###############################
+# structlog
+
+# From structlog's suggested configurations - separate rendering, using same output
+structlog.configure(
+    processors=[
+        # If log level is too low, abort pipeline and throw away log entry.
+        structlog.stdlib.filter_by_level,
+        # Add the name of the logger to event dict.
+        structlog.stdlib.add_logger_name,
+        # Add log level to event dict.
+        structlog.stdlib.add_log_level,
+        # Perform %-style formatting.
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        # Add a timestamp in ISO 8601 format.
+        structlog.processors.TimeStamper(fmt="iso"),
+        # If the "stack_info" key in the event dict is true, remove it and
+        # render the current stack trace in the "stack" key.
+        structlog.processors.StackInfoRenderer(),
+        # If the "exc_info" key in the event dict is either true or a
+        # sys.exc_info() tuple, remove "exc_info" and render the exception
+        # with traceback into the "exception" key.
+        structlog.processors.format_exc_info,
+        # If some value is in bytes, decode it to a unicode str.
+        structlog.processors.UnicodeDecoder(),
+        # Add callsite parameters.
+        structlog.processors.CallsiteParameterAdder(
+            {
+                structlog.processors.CallsiteParameter.FILENAME,
+                structlog.processors.CallsiteParameter.FUNC_NAME,
+                structlog.processors.CallsiteParameter.LINENO,
+            }
+        ),
+        # Render the final event dict as JSON.
+        structlog.processors.JSONRenderer(),
+    ],
+    # `wrapper_class` is the bound logger that you get back from
+    # get_logger(). This one imitates the API of `logging.Logger`.
+    wrapper_class=structlog.stdlib.BoundLogger,
+    # `logger_factory` is used to create wrapped loggers that are used for
+    # OUTPUT. This one returns a `logging.Logger`. The final value (a JSON
+    # string) from the final processor (`JSONRenderer`) will be passed to
+    # the method of the same name as that you've called on the bound logger.
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    # Effectively freeze configuration after creating the first bound
+    # logger.
+    cache_logger_on_first_use=True,
+)
+
 
 def getLogger(name):
     return structlog.getLogger(name)
