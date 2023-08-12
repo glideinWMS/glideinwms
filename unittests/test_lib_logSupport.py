@@ -4,12 +4,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Project:
-    glideinwms
 Purpose:
     test glideinwms/lib/logSupport.py
-Author:
-    Anthony Tiradani, tiradani@fnal.gov
 """
 
 
@@ -63,9 +59,9 @@ class TestLogSupport(unittest.TestCase):
         log_name = str(self.config[section]["log_name"])
         extension = str(self.config[section]["extension"])
         msg_types = str(self.config[section]["msg_types"])
-        max_days = float(self.config[section]["max_days"])
-        min_days = float(self.config[section]["min_days"])
-        max_mbytes = float(self.config[section]["max_mbytes"])
+        max_days = int(float(self.config[section]["max_days"]))
+        min_days = int(float(self.config[section]["min_days"]))
+        max_mbytes = int(float(self.config[section]["max_mbytes"]))
 
         backupCount = 5
         try:
@@ -82,7 +78,7 @@ class TestLogSupport(unittest.TestCase):
         log_dir = f"{self.log_base_dir}/{log_name}"
         os.makedirs(log_dir)
 
-        logSupport.add_processlog_handler(
+        handler = logSupport.get_processlog_handler(
             log_name,
             log_dir,
             msg_types,
@@ -93,8 +89,9 @@ class TestLogSupport(unittest.TestCase):
             backupCount=backupCount,
             compression=compression,
         )
-
-        return logSupport.getLogger(log_name), log_dir
+        log = logSupport.get_logging_logger(log_name)
+        log.addHandler(handler)
+        return log, log_dir
 
     def rotated_log_tests(self, section, log_dir):
         log_file_name = "{}.{}.log".format(

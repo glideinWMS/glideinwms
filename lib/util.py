@@ -402,6 +402,22 @@ def safe_boolcomp(value, expected):
     return str(value).lower() == str(expected).lower()
 
 
+# DEV NOTE: merging of creation.lib.CWParamDict.is_true() and factory.tools.OSG_autoconf.is_true()
+#   the first one required the argument to be a string. OK to drop that
+def is_true(value):
+    """Case-insensitive "True" string parsing helper.
+    Return True for true (case-insensitive string representation matching), False otherwise.
+
+    Args:
+        value: argument to evaluate as True or False. Can be any type.
+
+    Returns:
+        bool: True if the string representation of value is "true"
+    """
+
+    return str(value).lower() == "true"
+
+
 def str2bool(val):
     """Convert u"True" or u"False" to boolean or raise ValueError"""
     if val not in ["True", "False"]:

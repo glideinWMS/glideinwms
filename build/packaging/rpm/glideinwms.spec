@@ -185,11 +185,13 @@ Requires: python3-pyyaml
 Requires: python3-jwt
 Requires: python3-cryptography
 Requires: python3-m2crypto
+#Requires: python3-structlog
 %else
 Requires: PyYAML
 Requires: python36-jwt
 Requires: python36-cryptography
 Requires: python36-m2crypto
+Requires: python36-structlog
 %endif
 Requires: python3-rrdtool
 %description libs

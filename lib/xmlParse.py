@@ -1,17 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description: general purpose XML decoder
-#
-# Author:
-#  Igor Sfiligoi (Mar 27th, 2007)
-#
 
 import xml.dom.minidom
 

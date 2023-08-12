@@ -1,12 +1,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   Frontend creation module
 #   Classes and functions needed to handle dictionary files
@@ -17,12 +11,9 @@
 
 import os.path
 
+from glideinwms.lib.util import is_true
+
 from . import cWConsts, cWDictFile
-
-
-def is_true(s):
-    """Case insensitive string parsing helper. Return True for true (case insensitive matching), False otherwise."""
-    return type(s) == str and s.lower() == "true"
 
 
 def has_file_wrapper(dicts):

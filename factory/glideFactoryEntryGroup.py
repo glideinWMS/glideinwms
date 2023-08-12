@@ -3,25 +3,18 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This is the glideinFactoryEntryGroup. Common Tasks like querying collector
 #   and advertizing the work done by group are done here
 #
 # Arguments:
-#   $1 = poll period (in seconds)
-#   $2 = advertize rate (every $2 loops)
-#   $3 = glidein submit_dir
-#   $4 = entry name
-#
-# Author:
-#   Parag Mhashilkar (October 2012)
-#
+#   $1 = parent_pid (int): The pid for the Factory daemon
+#   $2 = sleep_time (int): The number of seconds to sleep between iterations
+#   $3 = advertize_rate (int): The rate at which advertising should occur (every $3 loops)
+#   $4 = startup_dir (str|Path): The "home" directory for the entry.
+#   $5 = entry_names (str): Colon separated list with the names of the entries this process should work on
+#   $6 = group_id (str): Group id, normally a number (with the "group_" prefix formes the group name),
+#             It can change between Factory reconfigurations
 
 import logging
 import os
@@ -578,17 +571,21 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDes
                                 entry.writeStats()
                                 return_dict[entry.name] = entry.getState()
                             except:
-                                entry.log.warning("Error writing stats for entry '%s'" % (entry.name))
-                                entry.log.exception("Error writing stats for entry '%s': " % (entry.name))
+                                entry.log.warning(f"Error writing stats for entry '{entry.name}'")
+                                entry.log.exception(f"Error writing stats for entry '{entry.name}': ")
 
                         try:
-                            os.write(w, pickle.dumps(return_dict))
-                        except:
-                            # Catch and log exceptions if any to avoid
-                            # runaway processes.
-                            entry.log.exception("Error writing pickled state for entry '%s': " % (entry.name))
-                        os.close(w)
+                            try:
+                                os.write(w, pickle.dumps(return_dict))
+                            except:
+                                # Catch and log exceptions if any to avoid
+                                # runaway processes.
+                                entry.log.exception("Error writing pickled state for entry '%s': " % (entry.name))
+                        finally:
+                            # TODO: add close inside single try..except..finally clause when allowed (Py>=3.8)
+                            os.close(w)
                         # Exit without triggering SystemExit exception
+                        # Note that this is skippihg also all the cleanup (files closing, finally clauses)
                         os._exit(0)
 
                 try:
@@ -630,65 +627,34 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDes
 
 
 ############################################################
-# Initialize log_files for entries and groups
-
-
-def init_logs(name, log_dir, process_logs):
-    for plog in process_logs:
-        logSupport.add_processlog_handler(
-            name,
-            log_dir,
-            plog["msg_types"],
-            plog["extension"],
-            int(float(plog["max_days"])),
-            int(float(plog["min_days"])),
-            int(float(plog["max_mbytes"])),
-            int(float(plog["backup_count"])),
-            plog["compression"],
-        )
-        logSupport.log = logSupport.getLogger(name)
-        logSupport.log.info("Logging initialized for %s" % name)
-
-
-############################################################
 
 
 def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_names, group_id):
-    """
-    GlideinFactoryEntryGroup main function
+    """GlideinFactoryEntryGroup main function
 
     Setup logging, monitoring, and configuration information. Starts the Entry
     group main loop and handles cleanup at shutdown.
 
-    @type parent_pid: int
-    @param parent_pid: The pid for the Factory daemon
+    Args:
+        parent_pid (int): The pid for the Factory daemon
+        sleep_time (int): The number of seconds to sleep between iterations
+        advertize_rate (int): The rate at which advertising should occur
+        startup_dir (str|Path): The "home" directory for the entry.
+        entry_names (str): Colon separated list with the names of the entries this process should work on
+        group_id (str): Group id, normally a number (with the "group_" prefix formes the group name),
+            It can change between Factory reconfigurations
 
-    @type sleep_time: int
-    @param sleep_time: The number of seconds to sleep between iterations
-
-    @type advertize_rate: int
-    @param advertize_rate: The rate at which advertising should occur
-
-    @type startup_dir: string
-    @param startup_dir: The "home" directory for the entry.
-
-    @type entry_names: string
-    @param entry_names: The CVS name of the entries this process should work on
-
-    @type group_id: string
-    @param group_id: Group id
     """
 
     # Assume name to be group_[0,1,2] etc. Only required to create log_dir
     # where tasks common to the group will be stored. There is no other
     # significance to the group_name and number of entries supported by a group
     # can change between factory reconfigs
-
     group_name = "group_%s" % group_id
 
     os.chdir(startup_dir)
 
-    # Setup the lock_dir
+    # Set up the lock_dir
     gfi.factoryConfig.lock_dir = os.path.join(startup_dir, "lock")
 
     # Read information about the glidein and frontends
@@ -706,10 +672,10 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_names, group
     my_entries = {}
     glidein_entries = glideinDescript.data["Entries"]
 
-    # Initiate the logs
+    # Initialize log files for entry groups
     logSupport.log_dir = os.path.join(glideinDescript.data["LogDir"], "factory")
-    process_logs = eval(glideinDescript.data["ProcessLogs"])
-    init_logs(group_name, logSupport.log_dir, process_logs)
+    logSupport.log = logSupport.get_logger_with_handlers(group_name, logSupport.log_dir, glideinDescript.data)
+    logSupport.log.info("Logging initialized for %s" % group_name)
 
     logSupport.log.info("Starting up")
     logSupport.log.info(f"Entries processed by {group_name}: {entry_names} ")
@@ -752,19 +718,17 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_names, group
 
 
 def compile_pickle_data(entry, work_done):
+    """Extract the state of the entry after doing work
+
+    Args:
+        entry (Entry): Entry object
+        work_done (int): Work done info
+
+    Returns:
+        dict: pickle-friendly version of the Entry (state of the Entry)
     """
-    Extract the state of the entry after doing work
-
-    @type entry: Entry
-    @param entry: Entry object
-
-    @type work_done: int
-    @param work_done: Work done info
-    """
-
     return_dict = entry.getState()
     return_dict["work_done"] = work_done
-
     return return_dict
 
 
@@ -780,4 +744,4 @@ if __name__ == "__main__":
     # Force integrity checks on all condor operations
     gfl.set_condor_integrity_checks()
 
-    main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4], sys.argv[5], sys.argv[6])
+    main(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]), sys.argv[4], sys.argv[5], sys.argv[6])

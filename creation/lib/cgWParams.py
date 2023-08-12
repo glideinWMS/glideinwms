@@ -1,18 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Desscription:
 #   This module contains the create_glidein params class
-#
-# Author:
-#   Igor Sfiligoi
-#
 
 import copy
 import os
@@ -28,10 +18,6 @@ from glideinwms.lib.util import safe_boolcomp
 from glideinwms.lib.xmlParse import OrderedDict
 
 from . import cWParams
-
-# import types
-# import traceback
-# from collections import OrderedDict
 
 
 ######################################################
@@ -297,6 +283,7 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["monitor_footer"] = monitor_footer_defaults
 
         process_log_defaults = copy.deepcopy(one_log_retention_defaults)
+        process_log_defaults["structured"] = ["False", "Bool", "True to use structured logs", None]
         process_log_defaults["extension"] = ["all", "string", "name of the log extention", None]
         process_log_defaults["msg_types"] = ["INFO, WARN, ERR", "string", "types of log messages", None]
         process_log_defaults["backup_count"] = ["5", "string", "Number of backup logs to keep", None]

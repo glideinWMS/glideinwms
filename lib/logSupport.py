@@ -1,16 +1,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description: log support module
-#
+#   Uses the Python built-in logging to log anything anywhere
+#   and structlog to improve machine parsing
 
-import codecs
 import logging
 import os
 import re
@@ -21,6 +15,8 @@ import time
 from logging.handlers import BaseRotatingHandler
 
 import structlog
+
+from . import util
 
 # Compressions depend on the available module
 COMPRESSION_SUPPORTED = {}
@@ -38,7 +34,7 @@ except ImportError:
     pass
 
 
-# create a place holder for a global logger (logging.Logger),
+# Create a placeholder for a global logger (logging.Logger),
 # individual modules can create their own loggers if necessary
 log = None
 
@@ -49,9 +45,14 @@ handlers = []
 DEFAULT_FORMATTER = logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s")
 DEBUG_FORMATTER = logging.Formatter("[%(asctime)s] %(levelname)s: %(module)s:%(lineno)d: %(message)s")
 
-# Adding in the capability to use the built in Python logging Module
-# This will allow us to log anything, anywhere
-#
+# A reminder of the logging levels:
+# 0  NOTSET
+# 10 DEBUG
+# 20 INFO
+# 30 WARN WARNING
+# 40 ERROR
+# 50 FATAL CRITICAL
+# A message will be printed if it's level >= max(handler.level, logger.level)
 
 
 def alternate_log(msg):
@@ -84,23 +85,20 @@ class GlideinHandler(BaseRotatingHandler):
     """
 
     def __init__(self, filename, maxDays=1, minDays=0, maxMBytes=10, backupCount=5, compression=None):
-        """
-        Initialize the Handler.  We assume the following:
+        """Initialize the Handler.  We assume the following:
 
             1. Interval is in days
             2. No special encoding
             3. No delays are set
             4. Timestamps are not in UTC
 
-        @type filename: string
-        @param filename: The full path of the log file
-        @type interval: int
-        @param interval: Number of days before file rotation
-        @type maxMBytes: int
-        @param maxMBytes: Maximum size of the logfile in MB before file rotation
-        @type backupCount: int
-        @param backupCount: Number of backups to keep
-
+        Args:
+            filename (str|Path): The full path of the log file
+            maxDays (int): Max number of days before file rotation
+            minDays (int): Minimum number of days before file rotation (used with max bytes)
+            maxMBytes (int): Maximum size of the logfile in MB before file rotation (used with min days)
+            backupCount (int): Number of backups to keep
+            compression (str): Compression to use (gz, zip, depending on available compression modules)
         """
         # Make dirs if logging directory does not exist
         if not os.path.exists(os.path.dirname(filename)):
@@ -133,34 +131,37 @@ class GlideinHandler(BaseRotatingHandler):
         self.rolloverAt = begin_interval_time + self.interval
 
     def shouldRollover(self, record, empty_record=False):
-        """
-        Determine if rollover should occur.
+        """Determine if rollover should occur.
 
         Basically, we are combining the checks for size and time interval
 
-        @type record: string
-        @param record: The message that will be logged.
+        Args:
+            record (str): The message that will be logged.
+            empty_record (bool): If False (default)  count also `record` length to evaluate if a rollover is needed
+
+        Returns:
+            bool: True if rollover should be performed, False otherwise
 
         @attention: Due to the architecture decision to fork "workers" we run
         into an issue where the child that was forked could cause a log
-        rotation.  However the parent will never know and the parent's file
+        rotation.  However, the parent will never know and the parent's file
         descriptor will still be pointing at the old log file (now renamed by
         the child).  This will in turn cause the parent to immediately request
         a log rotate, which results in what appears to be truncated logs.  To
-        handle this we add a flag to disable log rotation.  By default this is
+        handle this we add a flag to disable log rotation.  By default, this is
         set to False, but anywhere we want to fork a child (or in any object
         that will be forked) we set the flag to True.  Then in the parent, we
         initiate a log function that will log and rotate if necessary.
         """
         if disable_rotate:
-            return 0
+            return False
 
-        do_timed_rollover = 0
+        do_timed_rollover = False
         t = int(time.time())
         if t >= self.rolloverAt:
-            do_timed_rollover = 1
+            do_timed_rollover = True
 
-        do_size_rollover = 0
+        do_size_rollover = False
         if self.maxBytes > 0:  # are we rolling over?
             if empty_record:
                 msg = ""
@@ -168,7 +169,7 @@ class GlideinHandler(BaseRotatingHandler):
                 msg = "%s\n" % self.format(record)
             self.stream.seek(0, 2)  # due to non-posix-compliant Windows feature
             if self.stream.tell() + len(msg) >= self.maxBytes:
-                do_size_rollover = 1
+                do_size_rollover = True
 
         return do_timed_rollover or do_size_rollover
 
@@ -195,8 +196,9 @@ class GlideinHandler(BaseRotatingHandler):
         return result
 
     def doRollover(self):
-        """
-        do a rollover; in this case, a date/time stamp is appended to the filename
+        """Do a rollover
+
+        In this case, a date/time stamp is appended to the filename
         when the rollover happens.  If there is a backup count, then we have to get
         a list of matching filenames, sort them and remove the one with the oldest
         suffix.
@@ -260,25 +262,6 @@ class GlideinHandler(BaseRotatingHandler):
             except OSError as e:
                 alternate_log("Log file gzip compression failed: %s" % e)
 
-    # TODO: remove if all OK
-    # in python 3 _open() and ancoding are safe to use all the time
-    # def _open_new_log(self):
-    #     """
-    #     This function is here to bridge the gap between the old (python 2.4) way
-    #     of opening new log files and the new (python 2.7) way.
-    #     """
-    #     new_stream = None
-    #     try:
-    #         # pylint: disable=E1101
-    #         new_stream = self._open()
-    #         # pylint: enable=E1101
-    #     except:
-    #         if self.encoding:
-    #             new_stream = codecs.open(self.baseFilename, self.mode, self.encoding)
-    #         else:
-    #             new_stream = open(self.baseFilename, self.mode)
-    #     return new_stream
-
     def check_and_perform_rollover(self):
         if self.shouldRollover(None, empty_record=True):
             self.doRollover()
@@ -289,7 +272,8 @@ def roll_all_logs():
         handler.check_and_perform_rollover()
 
 
-def add_processlog_handler(
+# TODO: to remove once sure that not needed and all use get_logger_with_handlers
+def OLD_add_processlog_handler(
     logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes, backupCount=5, compression=None
 ):
     """
@@ -332,9 +316,77 @@ def add_processlog_handler(
     handlers.append(handler)
 
 
-class MsgFilter(logging.Filter):
+def get_processlog_handler(
+    log_file_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes, backupCount=5, compression=None
+):
+    """Return a configured handler for the GlideinLogger logger
+
+    The file name is `"{log_dir}/{log_file_name}.{extension.lower()}.log"` and can include env variables
+
+    Args:
+        log_file_name (str): log file name (same as the logger name)
+        log_dir (str|Path): log directory
+        msg_types (str): log levels to include (comma separated list). Keywords are:
+            DEBUG,INFO,WARN,ERR, or ADMIN or ALL (which mean all the previous)
+        extension (str): file name extension
+        maxDays (int): Max number of days before file rotation
+        minDays (int): Minimum number of days before file rotation (used with max bytes)
+        maxMBytes (int): Maximum size of the logfile in MB before file rotation (used with min days)
+        backupCount (int): Number of backups to keep
+        compression (str): Compression to use (gz, zip, depending on available compression modules)
+
+    Returns:
+        GlideinHandler: configured handler
     """
-    Filter used in handling records for the info logs.
+    # Parameter adjustments
+    msg_types = msg_types.upper()
+    if "ADMIN" in msg_types:
+        msg_types = "DEBUG,INFO,WARN,ERR"
+        if not log_file_name.endswith("admin"):
+            log_file_name = log_file_name + "admin"
+    if "ALL" in msg_types:
+        msg_types = "DEBUG,INFO,WARN,ERR"
+    # File name
+    logfile = os.path.expandvars(f"{log_dir}/{log_file_name}.{extension.lower()}.log")
+
+    handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount, compression)
+    handler.setFormatter(DEFAULT_FORMATTER)
+    # Setting the handler logging level to DEBUG to control all from the logger level and the
+    # filter. This allows to pick any level combination, but may be less performant than a
+    # min level selection.
+    # Should the handler level be logging.NOTSET (0) ?
+    handler.setLevel(logging.DEBUG)
+    has_debug = False
+    msg_type_list = []
+    for msg_type in msg_types.split(","):
+        msg_type = msg_type.upper().strip()
+        if msg_type == "INFO":
+            msg_type_list.append(logging.INFO)
+        elif msg_type == "WARN":
+            msg_type_list.append(logging.WARN)
+            msg_type_list.append(logging.WARNING)
+        elif msg_type == "ERR":
+            msg_type_list.append(logging.ERROR)
+            msg_type_list.append(logging.CRITICAL)
+        elif msg_type == "DEBUG":
+            msg_type_list.append(logging.DEBUG)
+            has_debug = True
+
+    if has_debug:
+        handler.setFormatter(DEBUG_FORMATTER)
+    else:
+        handler.setFormatter(DEFAULT_FORMATTER)
+
+    handler.addFilter(MsgFilter(msg_type_list))
+
+    handlers.append(handler)
+    return handler
+
+
+class MsgFilter(logging.Filter):
+    """Filter used in handling records for the info logs.
+
+    Default to logging.INFO
     """
 
     msg_type_list = [logging.INFO]
@@ -363,9 +415,6 @@ def format_dict(unformated_dict, log_format="   %-25s : %s\n"):
 
     return formatted_string
 
-
-###############################
-# structlog
 
 # From structlog's suggested configurations - separate rendering, using same output
 structlog.configure(
@@ -414,5 +463,54 @@ structlog.configure(
 )
 
 
-def getLogger(name):
-    return structlog.getLogger(name)
+def get_logging_logger(name):
+    return logging.getLogger(name)
+
+
+def get_structlog_logger(name):
+    return structlog.get_logger(name)
+
+
+def get_logger_with_handlers(name, directory, config_data, level=logging.DEBUG):
+    """Create/retrieve a logger, set the handlers, set the starting logging level, and return the logger
+
+    The file name is {name}.{plog["extension"].lower()}.log
+
+    Args:
+        name (str): logger name (and file base name)
+        directory (str|Path): log directory
+        config_data (dict): logging configuration
+          (the "ProcessLogs" value evaluates to list of dictionary with process_logs section values)
+        level: logger's logging level (default: logging.DEBUG)
+
+    Returns:
+        logging.Logger: configured logger
+    """
+    # Contains a dictionary in a string
+    process_logs = eval(config_data["ProcessLogs"])
+    is_structured = False
+    handlers_list = []
+    for plog in process_logs:
+        # If at least one handler is structured, it will use structured logging
+        # All handlers should be consistent and use the same
+        is_structured = is_structured or util.is_true(plog["structured"])
+        handler = get_processlog_handler(
+            name,
+            directory,
+            plog["msg_types"],
+            plog["extension"],
+            int(float(plog["max_days"])),
+            int(float(plog["min_days"])),
+            int(float(plog["max_mbytes"])),
+            int(float(plog["backup_count"])),
+            plog["compression"],
+        )
+        handlers_list.append(handler)
+    if is_structured:
+        mylog = structlog.get_logger(name)
+    else:
+        mylog = logging.getLogger(name)
+    for handler in handlers_list:
+        mylog.addHandler(handler)
+    mylog.setLevel(level)
+    return mylog

@@ -210,21 +210,9 @@ class glideinFrontendElement:
         )
 
         # Configure frontend group process logging
-        process_logs = eval(self.elementDescript.frontend_data["ProcessLogs"])
-        for plog in process_logs:
-            logSupport.add_processlog_handler(
-                self.group_name,
-                logSupport.log_dir,
-                plog["msg_types"],
-                plog["extension"],
-                int(float(plog["max_days"])),
-                int(float(plog["min_days"])),
-                int(float(plog["max_mbytes"])),
-                int(float(plog["backup_count"])),
-                plog["compression"],
-            )
-
-        logSupport.log = logSupport.getLogger(self.group_name)
+        logSupport.log = logSupport.get_logger_with_handlers(
+            self.group_name, logSupport.log_dir, self.elementDescript.frontend_data
+        )
 
         # We will be starting often, so reduce the clutter
         # logSupport.log.info("Logging initialized")
@@ -244,8 +232,7 @@ class glideinFrontendElement:
             if not proxy_plugins.get(self.elementDescript.merged_data["ProxySelectionPlugin"]):
                 logSupport.log.warning(
                     "Invalid ProxySelectionPlugin '%s', supported plugins are %s"
-                    % (self.elementDescript.merged_data["ProxySelectionPlugin"]),
-                    list(proxy_plugins.keys()),
+                    % (self.elementDescript.merged_data["ProxySelectionPlugin"], list(proxy_plugins.keys()))
                 )
                 return 1
             self.x509_proxy_plugin = proxy_plugins[self.elementDescript.merged_data["ProxySelectionPlugin"]](
