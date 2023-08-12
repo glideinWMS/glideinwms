@@ -86,7 +86,7 @@ function getFactoryFrontends(factoryQStats) {
                                     var frontend_name =
                                         el3.attributes[0].value.toString();
                                     groups[entry_name.value].push(
-                                        frontend_name
+                                        frontend_name,
                                     );
                                 }
                             }
@@ -134,16 +134,16 @@ function getFactoryEntryGroups(factoryQStats) {
                                 ) {
                                     var group_name =
                                         grp.attributes.getNamedItem(
-                                            "group_name"
+                                            "group_name",
                                         );
                                     if (group_name.value in groups) {
                                         groups[group_name.value].push(
-                                            entry_name.value
+                                            entry_name.value,
                                         );
                                     } else {
                                         groups[group_name.value] = new Array();
                                         groups[group_name.value].push(
-                                            entry_name.value
+                                            entry_name.value,
                                         );
                                     }
                                 }
@@ -174,7 +174,7 @@ function set_title_and_footer(browser_title, page_title) {
             //4 == READY
             factory_info =
                 xmlhttp_descript.responseXML.documentElement.getElementsByTagName(
-                    "factory"
+                    "factory",
                 );
 
             for (var i = 0; i < factory_info[0].attributes.length; i++) {
