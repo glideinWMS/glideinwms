@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
-import logging
+import logging  # This script is using straight logging instead of logSupport or structlog
 import os
 import pprint
 import socket
@@ -77,9 +77,9 @@ def parse_opts():
     # Initialize logging
     if options.debug:
         logging.basicConfig(format="%(levelname)s: %(message)s")
-        logSupport.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
     else:
-        logSupport.getLogger().setLevel(logging.INFO)
+        logging.getLogger().setLevel(logging.INFO)
 
     return options
 
@@ -231,7 +231,7 @@ def main():
         params["Report_Failed"] = "NEVER"
 
         # Now that we have everything submit the pilot!
-        logSupport.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
         submitGlideins(
             entry_name,
             "test.test",
@@ -242,7 +242,7 @@ def main():
             client_web,
             params,
             status_sf,
-            log=logSupport.getLogger(),
+            log=logging.getLogger(),
             factoryConfig=factory_config,
         )
 

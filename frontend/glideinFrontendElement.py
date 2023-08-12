@@ -3,12 +3,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This is the main of the glideinFrontend
 #
@@ -18,15 +12,10 @@
 #   $3 = group_name
 #   $4 = operation type (optional, defaults to "run")
 #
-# Author:
-#   Igor Sfiligoi (was glideinFrontend.py until Nov 21, 2008)
-#
 
 import copy
-import logging
 import os
 import re
-import shutil
 import socket
 import sys
 import tempfile
@@ -181,7 +170,7 @@ class glideinFrontendElement:
         self.removal_requests_tracking = self.elementDescript.element_data["RemovalRequestsTracking"]
         self.removal_margin = int(self.elementDescript.element_data["RemovalMargin"])
 
-        # Default bahavior: Use factory proxies unless configure overrides it
+        # Default behavior: Use factory proxies unless configure overrides it
         self.x509_proxy_plugin = None
 
         # If not None, this is a request for removal of glideins only (i.e. do not ask for more)
@@ -210,21 +199,9 @@ class glideinFrontendElement:
         )
 
         # Configure frontend group process logging
-        process_logs = eval(self.elementDescript.frontend_data["ProcessLogs"])
-        for plog in process_logs:
-            logSupport.add_processlog_handler(
-                self.group_name,
-                logSupport.log_dir,
-                plog["msg_types"],
-                plog["extension"],
-                int(float(plog["max_days"])),
-                int(float(plog["min_days"])),
-                int(float(plog["max_mbytes"])),
-                int(float(plog["backup_count"])),
-                plog["compression"],
-            )
-
-        logSupport.log = logSupport.getLogger(self.group_name)
+        logSupport.log = logSupport.get_logger_with_handlers(
+            self.group_name, logSupport.log_dir, self.elementDescript.frontend_data
+        )
 
         # We will be starting often, so reduce the clutter
         # logSupport.log.info("Logging initialized")
@@ -244,8 +221,7 @@ class glideinFrontendElement:
             if not proxy_plugins.get(self.elementDescript.merged_data["ProxySelectionPlugin"]):
                 logSupport.log.warning(
                     "Invalid ProxySelectionPlugin '%s', supported plugins are %s"
-                    % (self.elementDescript.merged_data["ProxySelectionPlugin"]),
-                    list(proxy_plugins.keys()),
+                    % (self.elementDescript.merged_data["ProxySelectionPlugin"], list(proxy_plugins.keys()))
                 )
                 return 1
             self.x509_proxy_plugin = proxy_plugins[self.elementDescript.merged_data["ProxySelectionPlugin"]](

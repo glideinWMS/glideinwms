@@ -406,6 +406,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["work"] = work_defaults
 
         process_log_defaults = cWParams.CommentedOrderedDict()
+        process_log_defaults["structured"] = ["False", "Bool", "True to use structured logs", None]
         process_log_defaults["min_days"] = [
             "3.0",
             "days",

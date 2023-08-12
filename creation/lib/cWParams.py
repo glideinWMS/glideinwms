@@ -1,21 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This module contains the generic params classes
-#
-# Extracted from:
-#   cgWParams.py
-#
-# Author:
-#   Igor Sfiligoi
-#
 
 import copy
 import os
@@ -95,6 +82,7 @@ class SubParams(Mapping):
 
         """
         for k in self.data:
+            # TODO: MMBFIX is the next line doing anything? should it be removed? check history?
             self.data
             if k not in base:
                 # element not in base, report
@@ -663,7 +651,7 @@ def shorten_text(text, width):
 
 
 def defdict2string(defaults, indent, width=80):
-    """Convert defualts to a string
+    """Convert defaults to a string
 
     Args:
         defaults:

@@ -65,20 +65,7 @@ class Entry:
         self.scheddName = self.jobDescript.data["Schedd"]
 
         # glideFactoryLib.log_files
-        process_logs = eval(self.glideinDescript.data["ProcessLogs"])
-        for plog in process_logs:
-            logSupport.add_processlog_handler(
-                self.name,
-                self.logDir,
-                plog["msg_types"],
-                plog["extension"],
-                int(float(plog["max_days"])),
-                int(float(plog["min_days"])),
-                int(float(plog["max_mbytes"])),
-                int(float(plog["backup_count"])),
-                plog["compression"],
-            )
-        self.log = logSupport.getLogger(self.name)
+        self.log = logSupport.get_logger_with_handlers(self.name, self.logDir, self.glideinDescript.data)
 
         cleaner = cleanupSupport.DirCleanupWSpace(
             self.logDir,

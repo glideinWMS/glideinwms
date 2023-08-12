@@ -30,6 +30,7 @@ from glideinwms.lib.config_util import (
     write_to_xml_file,
     write_to_yaml_file,
 )
+from glideinwms.lib.util import is_true
 
 
 def parse_opts():
@@ -291,19 +292,6 @@ def get_entries_configuration(data):
 #                    out[site][ce_hostname].setdefault(BEST_FIT_TAG, {})[qelem] = q_information
 #                    del out[site][ce_hostname][qelem]
 #
-
-
-def is_true(param):
-    """Determine if the parameter passed as argument is true or false
-
-    Args:
-        param: the parameter we need to determine if it is True or False. Can be any type.
-
-    Returns:
-        bool: True if the the string representation of param is "true"
-    """
-
-    return str(param).lower() == "true"
 
 
 def sanitize(whitelist_info):
