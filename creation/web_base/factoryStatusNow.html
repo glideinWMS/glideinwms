@@ -110,7 +110,7 @@ SPDX-License-Identifier: Apache-2.0
         "Unmatched cores",
         "User idle",
         "Registered cores",
-        "Info age"
+        "Info age",
       );
 
       var headColArryPR = new Array(
@@ -133,7 +133,7 @@ SPDX-License-Identifier: Apache-2.0
         "Unmatched cores",
         "User idle",
         "Registered cores",
-        "Info age"
+        "Info age",
       );
 
       var headColArryTR = new Array(
@@ -145,7 +145,7 @@ SPDX-License-Identifier: Apache-2.0
         "Status: Idle",
         "Requested: Idle",
         "Diff(Status: Idle, Requested: Idle)",
-        "Client: User Idle"
+        "Client: User Idle",
       );
 
       var headColArryTRPR = new Array(
@@ -157,7 +157,7 @@ SPDX-License-Identifier: Apache-2.0
         "Status: Idle",
         "Requested: Idle",
         "Diff(Status: Idle, Requested: Idle)",
-        "Client: User Idle"
+        "Client: User Idle",
       );
 
       var columnArray = new Array(
@@ -181,7 +181,7 @@ SPDX-License-Identifier: Apache-2.0
         "cmCoresIdle",
         "cmGlideinJobsIdle",
         "cmCoresTotal",
-        "cmGlideinInfoAge"
+        "cmGlideinInfoAge",
       );
       /* columnArrayStruct describes columnArray: total length (length) and length and offset of its component: DT, Status, Req, CM
    it is used to display the table w/ the values
@@ -217,7 +217,7 @@ SPDX-License-Identifier: Apache-2.0
         "Client Monitor: Unmatched cores",
         "Client Monitor: User idle",
         "Client Monitor: Registered cores",
-        "Client Monitor: Info age"
+        "Client Monitor: Info age",
       );
 
       var exactColumnsTR = new Array(
@@ -229,7 +229,7 @@ SPDX-License-Identifier: Apache-2.0
         "Status: Idle",
         "Requested: Idle",
         "Diff(Status: Idle, Requested: Idle)",
-        "Client Monitor: User Idle"
+        "Client Monitor: User Idle",
       );
 
       var xmlAttPeriodArry = new Array(
@@ -252,7 +252,7 @@ SPDX-License-Identifier: Apache-2.0
         "ClientCoresIdle",
         "ClientJobsIdle",
         "ClientCoresTotal",
-        "ClientInfoAge"
+        "ClientInfoAge",
       ); /* ONE LESS ATT THAN DEFAULT, no Downtime */
 
       var xmlAttDTArry = new Array("Status");
@@ -265,7 +265,7 @@ SPDX-License-Identifier: Apache-2.0
         "StageOut",
         "IdleOther",
         "Held",
-        "RunningCores"
+        "RunningCores",
       );
       var xmlAttReqArry = new Array("MaxGlideins", "Idle");
       // var xmlAttCMArry = new Array("GlideRunning", "CoresRunning", "JobsRunHere", "JobsRunning", "GlideIdle", "CoresIdle", "JobsIdle", "GlideTotal", "CoresTotal", "InfoAge");
@@ -276,7 +276,7 @@ SPDX-License-Identifier: Apache-2.0
         "CoresIdle",
         "JobsIdle",
         "CoresTotal",
-        "InfoAge"
+        "InfoAge",
       );
       var xmlAttStatNumArry = new Array();
       var xmlAttReqNumArry = new Array();
@@ -394,7 +394,7 @@ SPDX-License-Identifier: Apache-2.0
         if (entry.childNodes[totChild].childNodes.length == 0) {
           /* POP UP TEXT CONTENTS */
           nameTxtNode = document.createTextNode(
-            totalEntries[row - 1].getAttribute("name")
+            totalEntries[row - 1].getAttribute("name"),
           );
           if (troubleshoot)
             attTxtNode = document.createTextNode(exactColumnsTR[column]);
@@ -443,7 +443,7 @@ SPDX-License-Identifier: Apache-2.0
         td3 = document.createElement("td");
         td4 = document.createElement("td");
         nameTxtNode = document.createTextNode(
-          totalEntries[row - 1].getAttribute("name")
+          totalEntries[row - 1].getAttribute("name"),
         );
         if (troubleshoot)
           attTxtNode = document.createTextNode(exactColumnsTR[column]);
@@ -520,7 +520,7 @@ SPDX-License-Identifier: Apache-2.0
             tr = document.createElement("tr");
             td = document.createElement("td");
             txt = document.createTextNode(
-              sortedFE[i].attributes[0].value + ":"
+              sortedFE[i].attributes[0].value + ":",
             );
             td2 = document.createElement("td");
 
@@ -546,12 +546,12 @@ SPDX-License-Identifier: Apache-2.0
               diff = 0;
               try {
                 val1 = parseInt(
-                  sortedFE[i].childNodes[child1].attributes[att1].value
+                  sortedFE[i].childNodes[child1].attributes[att1].value,
                 );
               } catch (err) {}
               try {
                 val2 = parseInt(
-                  sortedFE[i].childNodes[child2].attributes[att2].value
+                  sortedFE[i].childNodes[child2].attributes[att2].value,
                 );
               } catch (err) {}
               diff = val1 - val2;
@@ -562,7 +562,7 @@ SPDX-License-Identifier: Apache-2.0
                 txt2 = document.createTextNode(
                   sortedFE[i].childNodes[feStatChild].attributes[
                     xmlAttTotalNumArry[column - 1]
-                  ].value
+                  ].value,
                 );
               } catch (err) {
                 txt2 = document.createTextNode(0);
@@ -576,7 +576,7 @@ SPDX-License-Identifier: Apache-2.0
                 txt2 = document.createTextNode(
                   sortedFE[i].childNodes[feReqChild].attributes[
                     xmlAttTotalNumArry[column - 1]
-                  ].value
+                  ].value,
                 );
               } catch (err) {
                 txt2 = document.createTextNode(0);
@@ -587,7 +587,7 @@ SPDX-License-Identifier: Apache-2.0
                 txt2 = document.createTextNode(
                   sortedFE[i].childNodes[feCMChild].attributes[
                     xmlAttTotalNumArry[column - 1]
-                  ].value
+                  ].value,
                 );
               } catch (err) {
                 txt2 = document.createTextNode(0);
@@ -754,21 +754,21 @@ SPDX-License-Identifier: Apache-2.0
         if (entry.childNodes[totChild].childNodes.length == 0) {
           /* POP UP TEXT CONTENTS */
           nameTxtNode = document.createTextNode(
-            tempTotalEntries[row].getAttribute("name")
+            tempTotalEntries[row].getAttribute("name"),
           );
 
           if (!diffCol)
             attTxtNode = document.createTextNode(
-              exactColumns[column + 1] + timeFrame
+              exactColumns[column + 1] + timeFrame,
             );
           else if (diffCol == 1)
             attTxtNode = document.createTextNode(
               "Diff(Status: Running cores, Client: Registered cores) " +
-                timeFrame
+                timeFrame,
             );
           else
             attTxtNode = document.createTextNode(
-              "Diff(Status: Idle, Requested: Idle) " + timeFrame
+              "Diff(Status: Idle, Requested: Idle) " + timeFrame,
             );
 
           NFE = document.createTextNode("No Frontends Exist");
@@ -815,18 +815,19 @@ SPDX-License-Identifier: Apache-2.0
         td3 = document.createElement("td");
         td4 = document.createElement("td");
         cont = document.createTextNode(
-          tempTotalEntries[row].getAttribute("name")
+          tempTotalEntries[row].getAttribute("name"),
         );
 
         if (!diffCol)
           cont2 = document.createTextNode(exactColumns[column + 1] + timeFrame);
         else if (diffCol == 1)
           cont2 = document.createTextNode(
-            "Diff(Status: Running cores, Client: Registered cores) " + timeFrame
+            "Diff(Status: Running cores, Client: Registered cores) " +
+              timeFrame,
           );
         else
           cont2 = document.createTextNode(
-            "Diff(Status: Idle, Requested: Idle) " + timeFrame
+            "Diff(Status: Idle, Requested: Idle) " + timeFrame,
           );
 
         td1.appendChild(cont);
@@ -894,7 +895,7 @@ SPDX-License-Identifier: Apache-2.0
             tr = document.createElement("tr");
             td = document.createElement("td");
             txt = document.createTextNode(
-              sortedFE[i].attributes[0].value + ":"
+              sortedFE[i].attributes[0].value + ":",
             );
             td2 = document.createElement("td");
 
@@ -936,7 +937,7 @@ SPDX-License-Identifier: Apache-2.0
                     ].value -
                       sortedFE[i].childNodes[trFEChildArry[1]].attributes[
                         xmlAttTotalNumArry[dCol2]
-                      ].value
+                      ].value,
                   );
                 } else {
                   /* 2ND DIFF COL */
@@ -946,7 +947,7 @@ SPDX-License-Identifier: Apache-2.0
                     ].value -
                       sortedFE[i].childNodes[trFEChildArry[4]].attributes[
                         xmlAttTotalNumArry[dCol2]
-                      ].value
+                      ].value,
                   );
                 }
               } else {
@@ -960,8 +961,8 @@ SPDX-License-Identifier: Apache-2.0
                         .childNodes[1].childNodes[pr].attributes[
                         xmlAttPeriodNumArry[dCol2 - 1]
                       ].value) *
-                      100
-                  ) / 100
+                      100,
+                  ) / 100,
                 );
               }
             } else if (column < columnArrayDesc.Req.offset - 1) {
@@ -971,7 +972,7 @@ SPDX-License-Identifier: Apache-2.0
                   txt2 = document.createTextNode(
                     sortedFE[i].childNodes[feStatChild].attributes[
                       xmlAttTotalNumArry[column]
-                    ].value
+                    ].value,
                   );
                 } else {
                   txt2 = document.createTextNode(
@@ -979,8 +980,8 @@ SPDX-License-Identifier: Apache-2.0
                       tempTotalEntriesP[row].childNodes[3].childNodes[prFEChild]
                         .childNodes[1].childNodes[pr].attributes[
                         xmlAttPeriodNumArry[column - 1]
-                      ].value * 100
-                    ) / 100
+                      ].value * 100,
+                    ) / 100,
                   );
                 }
               } else txt2 = document.createTextNode(0);
@@ -994,7 +995,7 @@ SPDX-License-Identifier: Apache-2.0
                   txt2 = document.createTextNode(
                     sortedFE[i].childNodes[feReqChild].attributes[
                       xmlAttTotalNumArry[column]
-                    ].value
+                    ].value,
                   );
                 } else {
                   txt2 = document.createTextNode(
@@ -1002,8 +1003,8 @@ SPDX-License-Identifier: Apache-2.0
                       tempTotalEntriesP[row].childNodes[3].childNodes[prFEChild]
                         .childNodes[1].childNodes[pr].attributes[
                         xmlAttPeriodNumArry[column - 1]
-                      ].value * 100
-                    ) / 100
+                      ].value * 100,
+                    ) / 100,
                   );
                 }
               } else txt2 = document.createTextNode(0);
@@ -1014,7 +1015,7 @@ SPDX-License-Identifier: Apache-2.0
                   txt2 = document.createTextNode(
                     sortedFE[i].childNodes[feCMChild].attributes[
                       xmlAttTotalNumArry[column]
-                    ].value
+                    ].value,
                   );
                 } else {
                   txt2 = document.createTextNode(
@@ -1022,8 +1023,8 @@ SPDX-License-Identifier: Apache-2.0
                       tempTotalEntriesP[row].childNodes[3].childNodes[prFEChild]
                         .childNodes[1].childNodes[pr].attributes[
                         xmlAttPeriodNumArry[column - 1]
-                      ].value * 100
-                    ) / 100
+                      ].value * 100,
+                    ) / 100,
                   );
                 }
               } else txt2 = document.createTextNode(0);
@@ -1229,7 +1230,7 @@ SPDX-License-Identifier: Apache-2.0
         select.setAttribute("id", "choose");
         select.setAttribute(
           "onchange",
-          "loadFrontEnd(document.getElementById('choose').value)"
+          "loadFrontEnd(document.getElementById('choose').value)",
         );
         def = document.createElement("option");
         defTxt = document.createTextNode("Total (Default)");
@@ -1655,7 +1656,7 @@ SPDX-License-Identifier: Apache-2.0
                     childView = j;
                     feEntries.push(totalEntries[i]);
                     feTotal.push(
-                      totalEntries[i].childNodes[feChild].childNodes[j]
+                      totalEntries[i].childNodes[feChild].childNodes[j],
                     );
                     feEntriesP.push(totalEntriesP[i]);
                     feTotalP.push(totalEntriesP[i].childNodes[3].childNodes[j]);
@@ -1894,12 +1895,12 @@ SPDX-License-Identifier: Apache-2.0
           links[i].setAttribute("onbrowseover", "hideEntryName()");
           links[i].setAttribute(
             "onmouseover",
-            "showPopUpSubEntries(this, '" + y + "')"
+            "showPopUpSubEntries(this, '" + y + "')",
           );
           links[i].setAttribute("onmouseout", "hidePopUpSubEntries()");
           links[i].setAttribute(
             "href",
-            "factoryEntryStatusNow.html?entry=" + y
+            "factoryEntryStatusNow.html?entry=" + y,
           );
           links[i].setAttribute("onclick", "entryClick(this)");
           table.rows[i].cells[0].appendChild(links[i]);
@@ -2084,7 +2085,7 @@ SPDX-License-Identifier: Apache-2.0
               xmlhttp.responseXML.documentElement.getElementsByTagName("total");
             frontEndsP =
               xmlhttp.responseXML.documentElement.getElementsByTagName(
-                "frontend"
+                "frontend",
               );
             totalEntriesP =
               xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
@@ -2132,19 +2133,19 @@ SPDX-License-Identifier: Apache-2.0
         xmlhttp.onreadystatechange = function () {
           if (!active)
             document.getElementById(
-              "active"
+              "active",
             ).checked = false; /* Reset active check box. */
           if (!updating && !period && !prTr)
             document.getElementById(
-              "period"
+              "period",
             ).checked = false; /* Reset troubleshoot box. */
           if (!updating && !troubleshoot && !prTr)
             document.getElementById(
-              "troubleshoot"
+              "troubleshoot",
             ).checked = false; /* Reset troubleshoot box. */
           if (!periodV && !prTr)
             document.getElementById(
-              "period"
+              "period",
             ).checked = false; /* Reset active check box. */
 
           if (xmlhttp.readyState == 4) {
@@ -2157,7 +2158,7 @@ SPDX-License-Identifier: Apache-2.0
             /* GET ALL NECESSARY INFO FROM THE XML */
             updated =
               xmlhttp.responseXML.documentElement.getElementsByTagName(
-                "updated"
+                "updated",
               );
             showTime();
             totalEntriesMaster =
@@ -2166,13 +2167,13 @@ SPDX-License-Identifier: Apache-2.0
               xmlhttp.responseXML.documentElement.getElementsByTagName("total");
             frontEnds =
               xmlhttp.responseXML.documentElement.getElementsByTagName(
-                "frontend"
+                "frontend",
               );
             totalEntries =
               xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
             statusEntries =
               xmlhttp.responseXML.documentElement.getElementsByTagName(
-                "StatusEntries"
+                "StatusEntries",
               );
             total =
               xmlhttp.responseXML.documentElement.getElementsByTagName("total");
@@ -2761,28 +2762,28 @@ SPDX-License-Identifier: Apache-2.0
           1,
           columnArrayDesc.Status.length,
           columnArrayDesc.Req.length,
-          columnArrayDesc.CM.length
+          columnArrayDesc.CM.length,
         );
         headTxt = new Array(
           "",
           "",
           "Status: ",
           "Requested: ",
-          "Client Monitor: "
+          "Client Monitor: ",
         );
         headId = new Array(
           "empty",
           "downtime",
           "status",
           "requested",
-          "client"
+          "client",
         );
         headClr = new Array(
           "#DCDCDC",
           "#DCDCDC",
           "#FAF0E6",
           "#FFDAB9",
-          "#CDAF95"
+          "#CDAF95",
         );
 
         /* HEADER */
@@ -3006,7 +3007,7 @@ SPDX-License-Identifier: Apache-2.0
           3,
           3,
           3,
-          3
+          3,
         ); /* 1 DT + 9 STAT + 4 REQ + 10 CM  = 24 */
         trSortColNumArry = new Array(
           0,
@@ -3026,7 +3027,7 @@ SPDX-License-Identifier: Apache-2.0
           0,
           0,
           8,
-          3
+          3,
         );
         feChildArry = new Array(feStatChild, feReqChild, feCMChild);
         totChildArry = new Array(totStatChild, totReqChild, totCMChild);
@@ -3878,7 +3879,7 @@ SPDX-License-Identifier: Apache-2.0
             "Status: Idle",
             "Requested: Idle",
             "Diff(Status: Idle, Requested: Idle)",
-            "Client: User Idle"
+            "Client: User Idle",
           );
           trColumnId = new Array(
             "entryLinks",
@@ -3889,7 +3890,7 @@ SPDX-License-Identifier: Apache-2.0
             "status",
             "requested",
             "difference",
-            "client"
+            "client",
           );
           colors = new Array(
             "#DCDCDC",
@@ -3900,7 +3901,7 @@ SPDX-License-Identifier: Apache-2.0
             "#FAF0E6",
             "#FFDAB9",
             "#7D9EC0",
-            "#CDAF95"
+            "#CDAF95",
           );
 
           /* SET CHILD ARRAY */
@@ -3910,7 +3911,7 @@ SPDX-License-Identifier: Apache-2.0
               feCMChild,
               feStatChild,
               feReqChild,
-              feCMChild
+              feCMChild,
             );
           else
             child = new Array(
@@ -3918,7 +3919,7 @@ SPDX-License-Identifier: Apache-2.0
               totCMChild,
               totStatChild,
               totReqChild,
-              totCMChild
+              totCMChild,
             );
 
           count = 0;
@@ -3982,7 +3983,7 @@ SPDX-License-Identifier: Apache-2.0
                   hrefs[i - 1].innerHTML = y;
                   hrefs[i - 1].setAttribute(
                     "href",
-                    "factoryEntryStatusNow.html?entry=" + y
+                    "factoryEntryStatusNow.html?entry=" + y,
                   );
                   hrefs[i - 1].setAttribute("onclick", "entryClick(this)");
                   cols[j].appendChild(hrefs[i - 1]);
@@ -4027,7 +4028,7 @@ SPDX-License-Identifier: Apache-2.0
                           tempTotalEntries[i - 1].childNodes[totChild]
                             .childNodes[child[count - 2]].attributes[
                             att[count - 2]
-                          ].value
+                          ].value,
                         );
                       } catch (err) {
                         val1 = 0;
@@ -4037,7 +4038,7 @@ SPDX-License-Identifier: Apache-2.0
                           tempTotalEntries[i - 1].childNodes[totChild]
                             .childNodes[child[count - 1]].attributes[
                             att[count - 1]
-                          ].value
+                          ].value,
                         );
                       } catch (err) {
                         val2 = 0;
@@ -4047,7 +4048,7 @@ SPDX-License-Identifier: Apache-2.0
                         val1 = parseInt(
                           tempTotalEntries[i - 1].childNodes[feChild]
                             .childNodes[childView].childNodes[child[count - 2]]
-                            .attributes[att[count - 2]].value
+                            .attributes[att[count - 2]].value,
                         );
                       } catch (err) {
                         val1 = 0;
@@ -4056,7 +4057,7 @@ SPDX-License-Identifier: Apache-2.0
                         val2 = parseInt(
                           tempTotalEntries[i - 1].childNodes[feChild]
                             .childNodes[childView].childNodes[child[count - 1]]
-                            .attributes[att[count - 1]].value
+                            .attributes[att[count - 1]].value,
                         );
                       } catch (err) {
                         val2 = 0;
@@ -4191,7 +4192,7 @@ SPDX-License-Identifier: Apache-2.0
           "Status: Idle",
           "Requested: Idle",
           "diff",
-          "Client: User Idle"
+          "Client: User Idle",
         );
         sortColNum = new Array(
           "statusRunning",
@@ -4200,11 +4201,11 @@ SPDX-License-Identifier: Apache-2.0
           "statusIdle",
           "requestIdle",
           "diff",
-          "cmGlideinJobsIdle"
+          "cmGlideinJobsIdle",
         );
         diffCol = new Array(
           "Diff(Status: Running cores, Client: Registered cores)",
-          "Diff(Status: Idle, Requested: Idle)"
+          "Diff(Status: Idle, Requested: Idle)",
         );
 
         if (!prTr) diffCell = new Array(4, 7);
@@ -4219,7 +4220,7 @@ SPDX-License-Identifier: Apache-2.0
             totStatChild,
             totCMChild,
             totStatChild,
-            totReqChild
+            totReqChild,
           );
 
         att = new Array(5, 2, 1, 0); // child and att are used only for the diff values
@@ -4255,7 +4256,7 @@ SPDX-License-Identifier: Apache-2.0
               sorted = temp;
             }
             trSortSignal(
-              tempHold + 2
+              tempHold + 2,
             ); /* ENTRY NAME COL + DOWNTIME STATUS COL = 2 */
             return;
           }
@@ -4281,14 +4282,14 @@ SPDX-License-Identifier: Apache-2.0
             if (!prTr) {
               for (k = 0; k < trTable.rows.length; k++) {
                 diffArry.push(
-                  parseInt(trTable.rows[k].cells[diffCell[j]].innerHTML)
+                  parseInt(trTable.rows[k].cells[diffCell[j]].innerHTML),
                 );
               }
             } else {
               for (k = 0; k < trpr_Table.rows.length; k++) {
                 if (k % 4 == 0) {
                   diffArry.push(
-                    parseInt(trpr_Table.rows[k].cells[diffCell[j]].innerHTML)
+                    parseInt(trpr_Table.rows[k].cells[diffCell[j]].innerHTML),
                   );
                 }
               }
@@ -4387,7 +4388,8 @@ SPDX-License-Identifier: Apache-2.0
                   try {
                     val1 = parseInt(
                       totalEntries[k].childNodes[feChild].childNodes[childView]
-                        .childNodes[child[helper]].attributes[att[helper]].value
+                        .childNodes[child[helper]].attributes[att[helper]]
+                        .value,
                     );
                   } catch (err) {}
                   try {
@@ -4395,7 +4397,7 @@ SPDX-License-Identifier: Apache-2.0
                       totalEntries[k].childNodes[feChild].childNodes[childView]
                         .childNodes[child[helper + 1]].attributes[
                         att[helper + 1]
-                      ].value
+                      ].value,
                     );
                   } catch (err) {}
                   diff = val1 - val2;
@@ -4432,14 +4434,14 @@ SPDX-License-Identifier: Apache-2.0
                     val1 = parseInt(
                       totalEntries[k].childNodes[totChild].childNodes[
                         child[helper]
-                      ].attributes[att[helper]].value
+                      ].attributes[att[helper]].value,
                     );
                   } catch (err) {}
                   try {
                     val2 = parseInt(
                       totalEntries[k].childNodes[totChild].childNodes[
                         child[helper + 1]
-                      ].attributes[att[helper + 1]].value
+                      ].attributes[att[helper + 1]].value,
                     );
                   } catch (err) {}
                   diff = val1 - val2;
@@ -4659,7 +4661,7 @@ SPDX-License-Identifier: Apache-2.0
           "Status: Idle",
           "Requested: Idle",
           "Diff(Status: Idle, Requested: Idle)",
-          "Client: User Idle"
+          "Client: User Idle",
         );
         colors = new Array(
           "#DCDCDC",
@@ -4671,7 +4673,7 @@ SPDX-License-Identifier: Apache-2.0
           "#FAF0E6",
           "#FFDAB9",
           "#7D9EC0",
-          "#CDAF95"
+          "#CDAF95",
         );
         trColumnId = new Array(
           "entryLinks",
@@ -4683,7 +4685,7 @@ SPDX-License-Identifier: Apache-2.0
           "status",
           "requested",
           "difference",
-          "client"
+          "client",
         );
 
         /* FRONTEND VIEW */
@@ -4693,7 +4695,7 @@ SPDX-License-Identifier: Apache-2.0
             feCMChild,
             feStatChild,
             feReqChild,
-            feCMChild
+            feCMChild,
           );
         /* TOTAL VIEW */ else
           child = new Array(
@@ -4701,7 +4703,7 @@ SPDX-License-Identifier: Apache-2.0
             totCMChild,
             totStatChild,
             totReqChild,
-            totCMChild
+            totCMChild,
           );
 
         /* ARRAYS FOR INFO ACCESSING */
@@ -4713,7 +4715,7 @@ SPDX-License-Identifier: Apache-2.0
           totStatChild,
           totReqChild,
           0,
-          totCMChild
+          totCMChild,
         );
         trFEChildArry = new Array(
           feStatChild,
@@ -4722,19 +4724,19 @@ SPDX-License-Identifier: Apache-2.0
           feStatChild,
           feReqChild,
           0,
-          feCMChild
+          feCMChild,
         );
         // StatusRunningCores(Running cores) , ClientCoresTotal(Registered cores), StatusIdle(Idle), ReqIdle(Idle), ClientJobsIdle(User idle)
         // using columnArrayDesc, i starts w/ Entry_name, xmlAttTotalNumArry starts w/ DT (-1), xmlAttPeriodNumArry starts w/ Status (-columnArrayDesc.Status.offset)
         // In elements offset: 8, 5, -, 1, 1, -, 4
         trAttArry = new Array();
         trAttArry.push(
-          xmlAttTotalNumArry[columnArrayDesc.Status.offset - 1 + 8]
+          xmlAttTotalNumArry[columnArrayDesc.Status.offset - 1 + 8],
         );
         trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.CM.offset - 1 + 5]);
         trAttArry.push(0);
         trAttArry.push(
-          xmlAttTotalNumArry[columnArrayDesc.Status.offset - 1 + 1]
+          xmlAttTotalNumArry[columnArrayDesc.Status.offset - 1 + 1],
         );
         trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Req.offset - 1 + 1]);
         trAttArry.push(0);
@@ -4745,20 +4747,20 @@ SPDX-License-Identifier: Apache-2.0
         prAttArry.push(
           xmlAttPeriodNumArry[
             columnArrayDesc.CM.offset - columnArrayDesc.Status.offset + 5
-          ]
+          ],
         );
         prAttArry.push(0);
         prAttArry.push(xmlAttPeriodNumArry[1]); // columnArrayDesc.Status.offset-columnArrayDesc.Status.offset+1
         prAttArry.push(
           xmlAttPeriodNumArry[
             columnArrayDesc.Req.offset - columnArrayDesc.Status.offset + 1
-          ]
+          ],
         );
         prAttArry.push(0);
         prAttArry.push(
           xmlAttPeriodNumArry[
             columnArrayDesc.CM.offset - columnArrayDesc.Status.offset + 4
-          ]
+          ],
         );
 
         rows = new Array();
@@ -4827,7 +4829,7 @@ SPDX-License-Identifier: Apache-2.0
                 cols[k].setAttribute("onmouseout", "hidePopUp()");
                 cols[k - 1].setAttribute(
                   "onmouseover",
-                  "showPopUpPeriod(this)"
+                  "showPopUpPeriod(this)",
                 );
                 cols[k - 1].setAttribute("id", c);
                 cols[k - 1].setAttribute("onmouseout", "hidePopUp()");
@@ -4869,7 +4871,7 @@ SPDX-License-Identifier: Apache-2.0
             links[i].innerHTML = y;
             links[i].setAttribute(
               "href",
-              "factoryEntryStatusNow.html?entry=" + y
+              "factoryEntryStatusNow.html?entry=" + y,
             );
             links[i].setAttribute("onclick", "entryClick(this)");
             trpr_Table.rows[i].cells[0].appendChild(links[i]);
@@ -5166,7 +5168,7 @@ SPDX-License-Identifier: Apache-2.0
           "#FFFAF0",
           "#FAF0E6",
           "#FFDAB9",
-          "#CDAF95"
+          "#CDAF95",
         );
         hArry2 = new Array(
           "",
@@ -5174,7 +5176,7 @@ SPDX-License-Identifier: Apache-2.0
           "Period:",
           "Status:",
           "Requested:",
-          "Client Monitor:"
+          "Client Monitor:",
         );
         // hArry3 = new Array(1, 1, 1,xmlAttStatNumArry.length, xmlAttReqNumArry.length, xmlAttCMNumArry.length);
         hArry3 = new Array(
@@ -5183,7 +5185,7 @@ SPDX-License-Identifier: Apache-2.0
           1,
           columnArrayDesc.Status.length,
           columnArrayDesc.Req.length,
-          columnArrayDesc.CM.length
+          columnArrayDesc.CM.length,
         );
 
         /*
@@ -5240,7 +5242,7 @@ SPDX-License-Identifier: Apache-2.0
                 cell[k].setAttribute("onmouseout", "hidePopUp()");
                 cell[k - 1].setAttribute(
                   "onmouseover",
-                  "showPopUpPeriod(this)"
+                  "showPopUpPeriod(this)",
                 );
                 cell[k - 1].setAttribute("id", c);
                 cell[k - 1].setAttribute("onmouseout", "hidePopUp()");
@@ -5337,7 +5339,7 @@ SPDX-License-Identifier: Apache-2.0
             links[i].innerHTML = y;
             links[i].setAttribute(
               "href",
-              "factoryEntryStatusNow.html?entry=" + y
+              "factoryEntryStatusNow.html?entry=" + y,
             );
             links[i].setAttribute("onclick", "entryClick(this)");
             tableP.rows[i].cells[0].appendChild(links[i]);

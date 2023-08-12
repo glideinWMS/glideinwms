@@ -185,7 +185,7 @@ Description:
       for (var entry in entries) {
         if (ec_added < groups_starting_idx) {
           entries_select.appendChild(
-            new Option(entries[entry], entries[entry])
+            new Option(entries[entry], entries[entry]),
           );
           ec_added++;
         } else {
@@ -226,7 +226,7 @@ Description:
         fes.appendChild(new Option("total", "total"));
         for (var frontend in frontend_list[entry]) {
           frontends_select.appendChild(
-            new Option(frontend_list[entry][frontend])
+            new Option(frontend_list[entry][frontend]),
           );
         }
       }
@@ -240,7 +240,7 @@ Description:
           "EnteredRunning",
           "ExitedRunning",
           "EnteredCompleted",
-          "EnteredHeld"
+          "EnteredHeld",
         );
         gtype_DSs["idle"] = new Array(
           "StatusIdle",
@@ -250,7 +250,7 @@ Description:
           "EnteredWait",
           "ExitedWait",
           "EnteredRunning",
-          "EnteredHeld"
+          "EnteredHeld",
         );
         gtype_DSs["other"] = new Array(
           "StatusHeld",
@@ -258,7 +258,7 @@ Description:
           "ExitedHeld",
           "EnteredRemoved",
           "EnteredIdle",
-          "EnteredRunning"
+          "EnteredRunning",
         );
         gtype_DSs["completed"] = new Array(
           "Lasted",
@@ -268,7 +268,7 @@ Description:
           "JobsGoodput",
           "Glideins",
           "FailedNr",
-          "JobsNr"
+          "JobsNr",
         );
 
         var gtype_formats = new Object();
@@ -471,7 +471,7 @@ Description:
           "mygraph",
           rrd_data1,
           null,
-          gtype_formats[gtype_id]
+          gtype_formats[gtype_id],
         );
 
         // Finally, update the files loaded so far

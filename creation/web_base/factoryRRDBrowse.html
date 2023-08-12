@@ -151,7 +151,7 @@ Description:
         "Log_Counts",
         "Log_Completed",
         "Log_Completed_Stats",
-        "Log_Completed_WasteTime"
+        "Log_Completed_WasteTime",
       );
       var ENTRY;
 
@@ -196,7 +196,7 @@ Description:
       for (var entry in entries) {
         if (ec_added < groups_starting_idx) {
           entries_select.appendChild(
-            new Option(entries[entry], entries[entry])
+            new Option(entries[entry], entries[entry]),
           );
           ec_added++;
         } else {
@@ -226,7 +226,7 @@ Description:
         fes.appendChild(new Option("total", "total"));
         for (var frontend in frontend_list[entry]) {
           frontends_select.appendChild(
-            new Option(frontend_list[entry][frontend])
+            new Option(frontend_list[entry][frontend]),
           );
         }
       }

@@ -47,7 +47,7 @@ function getFrontendGroupFoS(
     frontendStats,
     group_name,
     fos_tag_top,
-    fos_tag_one
+    fos_tag_one,
 ) {
     factories = new Array();
 
@@ -88,7 +88,7 @@ function getFrontendGroupFoS(
                                     if (factory.nodeName == fos_tag_one) {
                                         factory_name =
                                             factory.attributes.getNamedItem(
-                                                "name"
+                                                "name",
                                             );
                                         factories.push(factory_name.value);
                                     }
@@ -109,7 +109,7 @@ function getFrontendGroupFactories(frontendStats, group_name) {
         frontendStats,
         group_name,
         "factories",
-        "factory"
+        "factory",
     );
 }
 
@@ -147,7 +147,7 @@ function set_title_and_footer(browser_title, page_title) {
             //4 == READY
             frontend_info =
                 xmlhttp_descript.responseXML.documentElement.getElementsByTagName(
-                    "frontend"
+                    "frontend",
                 );
             frontend_name = frontend_info[0].attributes[0].value;
             document.getElementById("pgtitle").innerHTML =
@@ -157,7 +157,7 @@ function set_title_and_footer(browser_title, page_title) {
 
             footer_info =
                 xmlhttp_descript.responseXML.documentElement.getElementsByTagName(
-                    "monitor_footer"
+                    "monitor_footer",
                 );
             footer_text = footer_info[0].attributes[0].value;
             footer_link = footer_info[0].attributes[1].value;
