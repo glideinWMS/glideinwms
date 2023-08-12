@@ -719,7 +719,7 @@ SPDX-License-Identifier: Apache-2.0
       // text: Text inside the dialog box
       function ShowDialog(tocenter_object, title, text) {
         HideDialog();
-        $(tocenter_object).append(
+        $.find(tocenter_object).append(
           "<div id='error_dialog' title=\"" + title + '">' + text + "</div>"
         );
         $("#error_dialog")
