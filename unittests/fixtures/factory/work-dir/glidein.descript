@@ -34,4 +34,4 @@ SummaryLogRetentionMaxMBs 	100.0
 CondorLogRetentionMaxDays 	14.0
 CondorLogRetentionMinDays 	3.0
 CondorLogRetentionMaxMBs 	100.0
-ProcessLogs 	[{u'compression': u'', u'extension': u'info', u'min_days': u'3.0', u'msg_types': u'INFO', u'max_days': u'7.0', u'max_mbytes': u'100.0', u'backup_count': u'5'}, {u'compression': u'', u'extension': u'err', u'min_days': u'3.0', u'msg_types': u'DEBUG,ERR,WARN,EXCEPTION', u'max_days': u'7.0', u'max_mbytes': u'100.0', u'backup_count': u'5'}]
+ProcessLogs     [{'backup_count': '5', 'compression': '', 'extension': 'info', 'max_days': '7.0', 'max_mbytes': '100.0', 'min_days': '3.0', 'msg_types': 'INFO', 'comment': None, 'structured': 'False'}, {'backup_count': '5', 'compression': '', 'extension': 'err', 'max_days': '7.0', 'max_mbytes': '100.0', 'min_days': '3.0', 'msg_types': 'DEBUG,ERR,WARN,EXCEPTION', 'comment': None, 'structured': 'False'}]

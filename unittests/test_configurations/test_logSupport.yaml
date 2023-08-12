@@ -1,6 +1,14 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+test_level:
+  log_name: level
+  msg_types: INFO,DEBUG,ERR,WARN
+  extension: level
+  max_days: 1
+  min_days: 0
+  max_mbytes: 1
+
 test_size_rotate:
   log_name: sizeRotate
   msg_types: INFO,DEBUG,ERR,WARN

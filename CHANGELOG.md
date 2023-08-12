@@ -10,6 +10,7 @@ Changes since the last release
 ### New features / functionalities
 
 -   Added support for Debian 11 and Ubuntu 22 worker nodes (PR #320)
+-   Added structured logging. It is a hybrid format with some fields followed by a JSON dictionary. The exact format of the messages may change in the future, and we plan for it to become the default. Now it is disabled by default. Add `structured="True"` to all `<process_log>` elements (PR #333)
 -   Add option to set xml output directory in OSG_autoconf (PR #319)
 -   Allow OSG_autoconf to skip sites or CEs that are not present in the OSG collector (PR #315)
 

@@ -4,14 +4,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Project:
-    glideinwms
 Purpose:
     test glideinwms/lib/logSupport.py
-Author:
-    Anthony Tiradani, tiradani@fnal.gov
 """
-
 
 import logging
 import os
@@ -26,9 +21,9 @@ import xmlrunner
 # pylint: disable=E0611,F0401
 import yaml
 
-# use tesfixtures.test_time to speed up clock so test takes less elapsed time
-# TODO: test_time() deprecated in testfixtures 7.0.0, use mock_time() in the future
-from testfixtures import Replacer, test_time
+# use tesfixtures.mock_time to speed up clock so test takes less elapsed time
+# This was formerly named test_time, name deprecated since testfixtures 7.0.0
+from testfixtures import mock_time, Replacer
 
 from glideinwms.lib import logSupport
 from glideinwms.unittests.unittest_utils import create_random_string
@@ -49,9 +44,9 @@ class TestLogSupport(unittest.TestCase):
         config_file = "%s/test_logSupport.yaml" % os.path.join(sys.path[0], "test_configurations")
         self.config = yaml.load(open(config_file), Loader=yaml.FullLoader)
         self.replace = Replacer()
-        # pylint: disable=redundant-keyword-arg; E1124, test_time is overloaded, OK to invoke that way
+        # pylint: disable=redundant-keyword-arg; E1124, mock_time is overloaded, OK to invoke that way
         self.replace(
-            "glideinwms.lib.logSupport.time.time", test_time(2018, 6, 13, 16, 0, 1, delta=60, delta_type="seconds")
+            "glideinwms.lib.logSupport.time.time", mock_time(2018, 6, 13, 16, 0, 1, delta=60, delta_type="seconds")
         )
 
     def tearDown(self):
@@ -76,13 +71,13 @@ class TestLogSupport(unittest.TestCase):
         compression = ""
         try:
             compression = str(self.config[section]["compression"])
-        except BaseException:
+        except (KeyError, TypeError, ValueError):
             pass  # compress may not exist in all sections
 
         log_dir = f"{self.log_base_dir}/{log_name}"
         os.makedirs(log_dir)
 
-        logSupport.add_processlog_handler(
+        handler = logSupport.get_processlog_handler(
             log_name,
             log_dir,
             msg_types,
@@ -93,13 +88,12 @@ class TestLogSupport(unittest.TestCase):
             backupCount=backupCount,
             compression=compression,
         )
-
-        return logSupport.getLogger(log_name), log_dir
+        log = logSupport.get_logging_logger(log_name)
+        log.addHandler(handler)
+        return log, log_dir
 
     def rotated_log_tests(self, section, log_dir):
-        log_file_name = "{}.{}.log".format(
-            str(self.config[section]["log_name"]), str(self.config[section]["extension"])
-        )
+        log_file_name = f'{str(self.config[section]["log_name"])}.{str(self.config[section]["extension"])}.log'
         # ls self.log_dir
         file_list = os.listdir(log_dir)
         # are there at least two files?
@@ -112,6 +106,17 @@ class TestLogSupport(unittest.TestCase):
                 extension = log_file.split(".")[-1]
                 rotate_time = time.mktime(time.strptime(extension, self.format))
                 self.assertTrue(rotate_time < time.time(), "The rotated log extension is in the future")
+
+    def test_level(self):
+        section = "test_level"
+        log, log_dir = self.load_log(section)
+        self.assertEqual(log.level, logging.DEBUG, "The default logging level is not DEBUG as expected")
+        self.assertEqual(log.getEffectiveLevel(), logging.DEBUG, "The effective logging level is not DEBUG as expected")
+        log = logSupport.get_structlog_logger(section)
+        self.assertEqual(log.level, logging.DEBUG, "The default structlog level is not DEBUG as expected")
+        self.assertEqual(
+            log.getEffectiveLevel(), logging.DEBUG, "The effective structlog level is not DEBUG as expected"
+        )
 
     def test_logSupport_size_rotate(self):
         section = "test_size_rotate"

@@ -3,20 +3,11 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This is the main of the glideinFrontend
 #
 # Arguments:
 #   $1 = work_dir
-#
-# Author:
-#   Igor Sfiligoi
 #
 
 
@@ -529,20 +520,8 @@ def main(work_dir, action):
     logSupport.log_dir = os.path.join(frontendDescript.data["LogDir"], "frontend")
 
     # Configure frontend process logging
-    process_logs = eval(frontendDescript.data["ProcessLogs"])
-    for plog in process_logs:
-        logSupport.add_processlog_handler(
-            "frontend",
-            logSupport.log_dir,
-            plog["msg_types"],
-            plog["extension"],
-            int(float(plog["max_days"])),
-            int(float(plog["min_days"])),
-            int(float(plog["max_mbytes"])),
-            int(float(plog["backup_count"])),
-            plog["compression"],
-        )
-    logSupport.log = logSupport.getLogger("frontend")
+    logSupport.log = logSupport.get_logger_with_handlers("frontend", logSupport.log_dir, frontendDescript.data)
+
     logSupport.log.info("Logging initialized")
     logSupport.log.debug("Frontend startup time: %s" % str(startup_time))
 

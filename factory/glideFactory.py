@@ -835,33 +835,7 @@ def main(startup_dir):
     logSupport.log_dir = os.path.join(glideinDescript.data["LogDir"], "factory")
 
     # Configure factory process logging
-    process_logs = eval(glideinDescript.data["ProcessLogs"])
-    for plog in process_logs:
-        if "ADMIN" in plog["msg_types"].upper():
-            logSupport.add_processlog_handler(
-                "factoryadmin",
-                logSupport.log_dir,
-                "DEBUG,INFO,WARN,ERR",
-                plog["extension"],
-                int(float(plog["max_days"])),
-                int(float(plog["min_days"])),
-                int(float(plog["max_mbytes"])),
-                int(float(plog["backup_count"])),
-                plog["compression"],
-            )
-        else:
-            logSupport.add_processlog_handler(
-                "factory",
-                logSupport.log_dir,
-                plog["msg_types"],
-                plog["extension"],
-                int(float(plog["max_days"])),
-                int(float(plog["min_days"])),
-                int(float(plog["max_mbytes"])),
-                int(float(plog["backup_count"])),
-                plog["compression"],
-            )
-    logSupport.log = logSupport.getLogger("factory")
+    logSupport.log = logSupport.get_logger_with_handlers("factory", logSupport.log_dir, glideinDescript.data)
     logSupport.log.info("Logging initialized")
 
     if glideinDescript.data["Entries"].strip() in ("", ","):

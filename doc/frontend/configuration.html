@@ -159,14 +159,14 @@ SPDX-License-Identifier: Apache-2.0
               <a href="#">&lt;process_logs &gt;</a><br />
               <blockquote>
                 <a href="#process_logs"
-                  >&lt;process_log extension="info" max_days="7.0"
-                  max_mbytes="100.0" min_days="3.0" msg_types="INFO"
-                  backup_count="5" compression="gz" /&gt;</a
+                  >&lt;process_log structured="False" extension="info"
+                  max_days="7.0" max_mbytes="100.0" min_days="3.0"
+                  msg_types="INFO" backup_count="5" compression="gz" /&gt;</a
                 ><br />
                 <a href="#process_logs"
-                  >&lt;process_log extension="debug" max_days="7.0"
-                  max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN"
-                  backup_count="5" /&gt;</a
+                  >&lt;process_log structured="False" extension="debug"
+                  max_days="7.0" max_mbytes="100.0" min_days="3.0"
+                  msg_types="DEBUG,ERR,WARN" backup_count="5" /&gt;</a
                 ><br />
               </blockquote>
               <a href="#">&lt;/process_logs &gt;</a><br />
@@ -518,9 +518,10 @@ SPDX-License-Identifier: Apache-2.0
             <a name="process_logs" />
             <div class="xml">
               &lt;frontend&gt;&lt;log_retention&gt;&lt;process_logs&gt;&lt;process_log
-              max_days=&quot;<i>max days</i>&quot; min_days=&quot;<i>min days</i
-              >&quot; max_bytes=&quot;<i>max bytes</i>&quot;
-              backup_count=&quot;<i>backup count</i>&quot;
+              structured="True" max_days=&quot;<i>max days</i>&quot;
+              min_days=&quot;<i>min days</i>&quot; max_bytes=&quot;<i
+                >max bytes</i
+              >&quot; backup_count=&quot;<i>backup count</i>&quot;
               type=&quot;<i>ALL</i>&quot; compression=&quot;<i>gz</i>&quot;/&gt;
             </div>
             <p>
@@ -541,6 +542,12 @@ SPDX-License-Identifier: Apache-2.0
                 that don't necessarily cause abnormal execution.
               </li>
             </ul>
+            If any of the logs has <i>structured=True</i>, then the logs are
+            written in structured format. It is actuallly a hybrid format, with
+            some initial field and a JSON dictionary. Since all logs share the
+            same logger, it is not possible to have some in structured and some
+            in classic format. In the future we plan for the structured format
+            to become the default. <br /><br />
             The extension is added to the log name to create separate logs.
             <br /><br />
             <b>Log Retention and Rotation Policy:</b>

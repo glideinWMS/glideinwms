@@ -1,11 +1,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   Glidein creation module
 #   Classes and functions needed to handle dictionary files

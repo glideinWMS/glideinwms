@@ -3,13 +3,12 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import logging
 import os
 import sys
 
 import yaml
 
-# this shoud be not needed #was-pylint: disable=import-error
+# this should be not needed #was-pylint: disable=import-error
 import glideinwms.lib.logSupport as logSupport
 
 from glideinwms.unittests.unittest_utils import create_random_string
@@ -31,15 +30,16 @@ def main():
         log_name = str(config[section]["log_name"])
         extension = str(config[section]["extension"])
         msg_types = str(config[section]["msg_types"])
-        max_days = float(config[section]["max_days"])
-        min_days = float(config[section]["min_days"])
-        max_mbytes = float(config[section]["max_mbytes"])
+        max_days = int(float(config[section]["max_days"]))
+        min_days = int(float(config[section]["min_days"]))
+        max_mbytes = int(float(config[section]["max_mbytes"]))
         backupCount = 5
         compression = ""
+        structured = False
 
-        log_dir = "/tmp/%s" % log_name
+        log_dir = os.path.join("/tmp", log_name)
 
-        logSupport.add_processlog_handler(
+        handler = logSupport.get_processlog_handler(
             log_name,
             log_dir,
             msg_types,
@@ -50,9 +50,13 @@ def main():
             backupCount=backupCount,
             compression=compression,
         )
+        if structured:
+            log = logSupport.get_structlog_logger(log_name)
+        else:
+            log = logSupport.get_logging_logger(log_name)
+        log.addHandler(handler)
 
-        log = logSupport.getLogger(log_name)
-        log.info("%s\n" % create_random_string(length=2048))
+        log.info(f"{create_random_string(length=2048)}\n")
 
         return 0
     except:

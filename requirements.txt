@@ -4,6 +4,7 @@ htcondor
 # classad  # pure python 3rd party classad implementation
 m2crypto
 requests
+structlog
 pyyaml
 pyjwt
 
