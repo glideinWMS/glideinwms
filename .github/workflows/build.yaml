@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - master
-      - branch_v3_7
+      - branch_v3_11
 jobs:
   build_job:
     runs-on: ubuntu-latest
@@ -31,7 +31,7 @@ jobs:
           git checkout --progress --force -B ${BRANCH} refs/remotes/origin/${BRANCH}
         id: sparse-checkout
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: "glideinwms"
       - name: RPM build action step
@@ -39,7 +39,7 @@ jobs:
         uses: ./.github/actions/build-in-sl7-docker
       - name: Archive RPM packages
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: rpmpackages
           path: rpms.tar.bz2

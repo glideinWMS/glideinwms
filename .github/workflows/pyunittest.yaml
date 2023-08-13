@@ -28,7 +28,7 @@ jobs:
           git checkout --progress --force -B ${BRANCH} refs/remotes/origin/${BRANCH}
         id: sparse-checkout
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: "glideinwms"
       - name: unit test action step
@@ -36,7 +36,7 @@ jobs:
         uses: ./.github/actions/pyunittest-in-sl7-docker
       - name: Archive unittest log
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: reports
           path: logs.tar.bz2

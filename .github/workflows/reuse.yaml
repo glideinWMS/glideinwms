@@ -34,11 +34,11 @@ jobs:
           git checkout --progress --force -B ${BRANCH} refs/remotes/origin/${BRANCH}
         id: sparse-checkout
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: "glideinwms"
       - name: reuse lint action step
         id: reuse
-        uses: fsfe/reuse-action@v1
+        uses: fsfe/reuse-action@v2
         with:
           args: --root ./glideinwms lint
