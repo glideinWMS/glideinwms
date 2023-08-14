@@ -411,6 +411,13 @@ SPDX-License-Identifier: Apache-2.0
       var table;
       var data;
 
+      // Sanitizer to avoid HTML injection (XSS attacks)
+      function sanitizeString(str) {
+        // more loose: str = str.replace(/["'`<>&]/gim,"");
+        str = str.replace(/[^a-z0-9áéíóúñü \.,_-]/gim, "");
+        return str.trim();
+      }
+
       // Main Data Function.  Will update the group information, including:
       // table & charts
       // group_obj: object (pointer) to the xml position of the group to update
@@ -428,7 +435,7 @@ SPDX-License-Identifier: Apache-2.0
         requested_max_running = [];
 
         // Convinence variables
-        var group_name = $(group_obj).attr("name");
+        var group_name = $.find(group_obj).attr("name");
         var group_selector = "#group_graphs";
 
         data.addColumn("string", "Entry Name");
@@ -517,7 +524,7 @@ SPDX-License-Identifier: Apache-2.0
             $("#content-area"),
             "No Entry Points Detected",
             "No entry points were detected in the group: <strong>" +
-              group_name +
+              sanitizeString(group_name) +
               "</strong>. <p>Please select another group from the menu on the left.</p>",
           );
 
@@ -535,7 +542,7 @@ SPDX-License-Identifier: Apache-2.0
             $("#content-area"),
             "No Jobs Detected",
             "No jobs were detected, idle or running, in the group: <strong>" +
-              group_name +
+              sanitizeString(group_name) +
               "</strong>.  <p>Please select another group from the menu on the left.</p>",
           );
         } else {
