@@ -7,15 +7,18 @@ import subprocess
 
 from subprocess import CalledProcessError
 
+from . import defaults
+
 # CalledProcessError(self, returncode, cmd, output=None, stderr=None)
 # Provides: cmd, returncode, stdout, stderr, output (same as stdout)
 # __str__ of this class is not printing the stdout in the error message
 
 
-def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True):
-    """
-    Fork a process and execute cmd - rewritten to use select to avoid filling
-    up stderr and stdout queues.
+def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True, encoding=None, timeout=None, log=None):
+    """Fork a process and execute cmd
+
+    Using `process.communicate()` automatically handling buffers to avoid deadlocks.
+    Before it had been rewritten to use select to avoid filling up stderr and stdout queues.
 
     The useShell value of True should be used sparingly.  It allows for
     executing commands that need access to shell features such as pipes,
@@ -28,15 +31,22 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True):
     Args:
         cmd (str): String containing the entire command including all arguments
         useShell (bool): if True run the command in a shell (passed to Popen as shell)
-        stdin_data (str/bytes): Data that will be fed to the command via stdin. It will be bytes if text is False,
-            str otherwise
+        stdin_data (str/bytes): Data that will be fed to the command via stdin. It should be bytes if text is False
+            and encoding is None, str otherwise
         child_env (dict): Environment to be set before execution
         text (bool): if False, then stdin_data and the return value are bytes instead of str (default: True)
+        encoding (str|None): encoding to use for the streams. If None (default) and text is True, then the
+            defaults.BINARY_ENCODING_DEFAULT (utf-8) encoding is used
+        timeout (None|int): timeout in seconds. No timeout by default
+        log (logger): optional logger for debug and error messages
 
     Returns:
         str/bytes: output of the command. It will be bytes if text is False,
             str otherwise
 
+    Raises:
+        subprocess.CalledProcessError: if the subprocess fails (exit status not 0)
+        RuntimeError: if it fails to invoke the subprocess or the subprocess times out
     """
     # TODO: use subprocess.run instead of Pipe
     #   could this be replaced directly by subprocess run throughout the program?
@@ -44,10 +54,13 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True):
     stdoutdata = stderrdata = ""
     if not text:
         stdoutdata = stderrdata = b""
+    else:
+        if encoding is None:
+            encoding = defaults.BINARY_ENCODING_DEFAULT
     exitStatus = 0
 
     try:
-        # Add in parent process environment, make sure that env ovrrides parent
+        # Add in parent process environment, make sure that env overrides parent
         if child_env:
             for k in os.environ:
                 if not k in child_env:
@@ -64,6 +77,7 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True):
         else:
             command_list = shlex.split(cmd)
         # launch process - Converted to using the subprocess module
+        # when specifying an encoding the streams are text, bytes if encoding is None
         process = subprocess.Popen(
             command_list,
             shell=useShell,
@@ -71,8 +85,12 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             env=child_env,
-            universal_newlines=text,
+            encoding=encoding,
         )
+        if log is not None:
+            if encoding is None:
+                encoding = "bytes"
+            log.debug(f"Spawned subprocess {process.pid} ({encoding}, {timeout}) for {command_list}")
 
         # GOTCHAS:
         # 1) stdin should be buffered in memory.
@@ -83,12 +101,29 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True):
         # 3) Do not use communicate when you are dealing with multiple threads
         #    or processes at same time. It will serialize the process voiding
         #    any benefits from multiple processes
-        stdoutdata, stderrdata = process.communicate(input=stdin_data)
+        try:
+            stdoutdata, stderrdata = process.communicate(input=stdin_data, timeout=timeout)
+        except subprocess.TimeoutExpired as e:
+            process.kill()
+            stdoutdata, stderrdata = process.communicate()
+            err_str = "Timeout running '{}'\nStdout:{}\nStderr:{}\nException subprocess.TimeoutExpired:{}".format(
+                cmd,
+                stdoutdata,
+                stderrdata,
+                e,
+            )
+            if log is not None:
+                log.error(err_str)
+            raise RuntimeError(err_str)
+
         exitStatus = process.returncode
 
     except OSError as e:
-        err_str = "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError:%s"
-        raise RuntimeError(err_str % (cmd, stdoutdata, stderrdata, e))
+        err_str = f"Error running '{cmd}'\nStdout:{stdoutdata}\nStderr:{stderrdata}\nException OSError:{e}"
+        if log is not None:
+            log.error(err_str)
+        raise RuntimeError(err_str)
+
     if exitStatus:
         raise CalledProcessError(exitStatus, cmd, output="".join(stderrdata))
     return stdoutdata
