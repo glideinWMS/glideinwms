@@ -10,6 +10,8 @@ Changes since the last release
 ### New features / functionalities
 
 -   Added support for Debian 11 and Ubuntu 22 worker nodes (PR #320)
+-   Add option to set xml output directory in OSG_autoconf (PR #319)
+-   Allow OSG_autoconf to skip sites or CEs that are not present in the OSG collector (PR #315)
 
 ### Changed defaults / behaviours
 
@@ -27,7 +29,7 @@ Changes since the last release
 -   Fixing Python 3.9 deprecations (`imp`, `getchildren()` in `xml.etree.ElementTree`) (PR #302, PR #303)
 -   Populate missing Entry parameters for ARC CEs submissions (PR #304)
 -   Modified the usage of subprocess module, for building/rebuilding cvmfsexec distributions, only when necessary (PR #309)
--   manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (issue #283, PR#284)
+-   manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (issue #283, PR #284)
 
 ### Testing / Development
 
@@ -176,8 +178,8 @@ Changes since the last release
 
 ### New features / functionalities
 
--   Add option to set xml output directory in OSG_autoconf (PR #319)
--   Allow OSG_autoconf to skip sites or CEs that are not present in the OSR collector (PR #315)
+-   item one of the list
+-   item N
 
 ### Changed defaults / behaviours
 
