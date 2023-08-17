@@ -3,10 +3,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
 # Description:
 #   Helper script to wrap periodically executed scripts
 #   This script will allow periodic script to be similar to the

@@ -3,12 +3,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
+# Description:
+#   Base script of the Glidein (pilot job)
+#   This scripts runs all the others
 
 # default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
 IFS=$' \t\n'
@@ -479,16 +476,16 @@ glidein_exit() {
   final_result_long=$(simplexml2longxml "${final_result_simple}" "${global_result}")
 
   if [ "$1" -ne 0 ]; then
-      report_failed=$(grep -i "^GLIDEIN_Report_Failed " "${glidein_config}" | cut -d ' ' -f 2-)
+      report_failed=$(gconfig_get GLIDEIN_Report_Failed "${glidein_config}" "-i")
 
       if [ -z "${report_failed}" ]; then
           report_failed="NEVER"
       fi
 
-      factory_report_failed=$(grep -i "^GLIDEIN_Factory_Report_Failed " "${glidein_config}" | cut -d ' ' -f 2-)
+      factory_report_failed=$(gconfig_get GLIDEIN_Factory_Report_Failed "${glidein_config}" "-i")
 
       if [ -z "${factory_report_failed}" ]; then
-          factory_collector=$(grep -i "^GLIDEIN_Factory_Collector " "${glidein_config}" | cut -d ' ' -f 2-)
+          factory_collector=$(gconfig_get GLIDEIN_Factory_Collector "${glidein_config}" "-i")
           if [ -z "${factory_collector}" ]; then
               # no point in enabling it if there are no collectors
               factory_report_failed="NEVER"
@@ -516,7 +513,7 @@ glidein_exit() {
 
       add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Keeping node busy until ${dl} (${dlf})."
 
-      condor_vars_file="$(grep -i "^CONDOR_VARS_FILE " "${glidein_config}" | cut -d ' ' -f 2-)"
+      condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "${glidein_config}" "-i")
       if [ -n "${condor_vars_file}" ]; then
          # if we are to advertise, this should be available... else, it does not matter anyhow
          add_condor_vars_line "GLIDEIN_ADVERTISE_ONLY" "C" "True" "+" "Y" "Y" "-"
@@ -1450,7 +1447,7 @@ fetch_file_try() {
     if [[ "${fft_config_check}" != "TRUE" ]]; then
         # TRUE is a special case, always downloaded and processed
         local fft_get_ss
-        fft_get_ss=$(grep -i "^${fft_config_check} " glidein_config | cut -d ' ' -f 2-)
+        fft_get_ss=$(gconfig_get "${fft_config_check}" glidein_config "-i")
         # Stop download and processing if the cond_attr variable is not defined or has a value different from 1
         [[ "${fft_get_ss}" != "1" ]] && return 0
         # TODO: what if fft_get_ss is not 1? nothing, still skip the file?
@@ -1461,7 +1458,7 @@ fetch_file_try() {
     if [[ "${fft_base_name}" = gconditional_* ]]; then
         fft_condition_attr="${fft_base_name#gconditional_}"
         fft_condition_attr="GLIDEIN_USE_${fft_condition_attr%%_*}"
-        fft_condition_attr_val=$(grep -i "^${fft_condition_attr} " glidein_config | cut -d ' ' -f 2-)
+        fft_condition_attr_val=$(gconfig_get "${fft_condition_attr}" glidein_config "-i")
         # if the variable fft_condition_attr is not defined or empty, do not download
         [[ -z "${fft_condition_attr_val}" ]] && return 0
     fi
