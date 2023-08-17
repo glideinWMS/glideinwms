@@ -36,6 +36,7 @@ PSPID="$(command -v ps) -q"
 # Return the value stored in glidein_config
 #  1: id (key) of the value to retrieve;
 #  2(opt): path of the config file ("$glidein_config" by default)
+#  3(opt): options for grep (e.g. -i for case insensitive)
 # Counting on $glidein_config if $2 not provided
 # compatible w/: grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-
 # different form previous: grep "^$1 " "$glidein_config" | awk '{print $2}' (was trimming and returning 1st word, not rest of line)
@@ -43,9 +44,10 @@ PSPID="$(command -v ps) -q"
 gconfig_get() {
     local config_file=${2:-$glidein_config}
     [[ -z "${config_file}" ]] && { warn "Error: glidein_config not provided and glidein_config variable not defined. Forcing exit."; exit 1; }
+    [[ -n "$3" && ! "$3" = \-* ]] && { warn "Error: gconfig_get 3rd parameter must start with '-' Forcing exit."; exit 1; }
     [[ -r "$config_file" ]] || { true; return; }
     # Leave the extra space in the grep, to parse correctly strings w/ the same beginning
-    $TAC "$config_file" | grep -m1 "^$1 " | cut -d ' ' -f 2-
+    $TAC "$config_file" | grep -m1 $3 "^$1 " | cut -d ' ' -f 2-
 }
 
 gconfig_log_name() {
