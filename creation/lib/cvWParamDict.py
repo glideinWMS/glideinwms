@@ -1159,12 +1159,13 @@ def populate_common_descript(descript_dict, params):
         # print params.security.credentials
         for pel in params.security.credentials:
             validate_credential_type(pel["type"])
-            if pel["absfname"] is None:
-                if pel["generator"] is None:
+            if not pel["absfname"]:
+                if not pel["generator"]:
                     raise RuntimeError("All credentials without generator need a absfname!")
                 else:
                     # TODO: absfname - use name instead
-                    pel["absfname"] = pel["generator"]
+                    # TODO: accessing data directly is not good but this is a temporary solution until we refactor the Credentials class
+                    pel.data["absfname"] = pel["generator"]
             for i in pel["type"].split("+"):
                 attr = proxy_attr_type_list.get(i)
                 if attr and pel[attr] is None:
