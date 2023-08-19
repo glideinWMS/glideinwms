@@ -1159,13 +1159,14 @@ def populate_common_descript(descript_dict, params):
         # print params.security.credentials
         for pel in params.security.credentials:
             validate_credential_type(pel["type"])
-            if not pel["absfname"]:
-                if not pel["generator"]:
+            # TODO: absfname - use name instead (add a credential name/ID)
+            id_absfname_value = pel["absfname"]  # ID for a credential (file name or generator file name)
+            if not pel["absfname"]:  # Check for both missing (None) or empty value
+                if not pel["generator"]:  # Check for both missing (None) or empty value
                     raise RuntimeError("All credentials without generator need a absfname!")
                 else:
-                    # TODO: absfname - use name instead
-                    # TODO: accessing data directly is not good but this is a temporary solution until we refactor the Credentials class
-                    pel.data["absfname"] = pel["generator"]
+                    # Cannot change the value of a SubParam (no assignment to pel["absfname"]
+                    id_absfname_value = pel["generator"]
             for i in pel["type"].split("+"):
                 attr = proxy_attr_type_list.get(i)
                 if attr and pel[attr] is None:
@@ -1174,19 +1175,19 @@ def populate_common_descript(descript_dict, params):
                     )
             if (pel["pool_idx_len"] is None) and (pel["pool_idx_list"] is None):
                 # only one
-                proxies.append(pel["absfname"])
+                proxies.append(id_absfname_value)
                 for attr in proxy_attrs:
                     if pel[attr] is not None:
-                        proxy_descript_values[attr][pel["absfname"]] = pel[attr]
+                        proxy_descript_values[attr][id_absfname_value] = pel[attr]
             else:  # pool
                 # TODO: absfname - use name instead
                 pool_idx_list_expanded_strings = get_pool_list(pel)
                 for idx in pool_idx_list_expanded_strings:
-                    absfname = "{}{}".format(pel["absfname"], idx)
+                    absfname = f"{id_absfname_value}{idx}"
                     proxies.append(absfname)
                     for attr in proxy_attrs:
                         if pel[attr] is not None:
-                            proxy_descript_values[attr][pel["absfname"]] = pel[attr]
+                            proxy_descript_values[attr][id_absfname_value] = pel[attr]
 
         descript_dict.add("Proxies", repr(proxies))
         for attr in proxy_attrs:
