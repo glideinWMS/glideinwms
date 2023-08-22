@@ -482,12 +482,13 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data, factoryC
     #  Since dn and voms are extracted, should they be used in a log message or the file name?
     dn = ""
     voms = ""
+    tempfilename = ""
     try:
         (f, tempfilename) = tempfile.mkstemp()
         os.write(f, proxy_data)
         os.close(f)
     except:
-        logSupport.log.error("Unable to create tempfile %s!" % tempfilename)
+        logSupport.log.error(f"Unable to create tempfile '{tempfilename}'!")
 
     try:
         dn = x509Support.extract_DN(tempfilename)  # not really used

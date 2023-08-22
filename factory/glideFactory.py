@@ -665,7 +665,7 @@ def spawn(
                     logSupport.log.exception("Error occurred processing the globals classads: ")
 
             logSupport.log.info("Checking EntryGroups %s" % list(childs.keys()))
-            for group in childs:
+            for group in list(childs):  # making a copy of the keys because the dict is being modified in the loop
                 entry_names = ":".join(entry_groups[group])
                 child = childs[group]
 
