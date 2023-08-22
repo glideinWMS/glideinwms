@@ -84,12 +84,12 @@ def sleep_fn(sleep_tm=None):
 
 class TestForkResultError(unittest.TestCase):
     def test___init__(self):
+        fork_result_error = "FAILED"
         try:
             fork_result_error = ForkResultError(nr_errors=1, good_results=None, failed=1)
         except ForkResultError as err:
             self.assertEqual("", str(err))
             self.assertEqual("", str(fork_result_error))
-
         return
 
 

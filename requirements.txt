@@ -9,8 +9,10 @@ pyjwt
 
 #for verifications
 pylint
-pycodestyle
+#pylint==2.7.1  # TODO: Remove this lock when https://github.com/PyCQA/pylint/issues/3624 is solved
 astroid
+#astroid==2.5.0  # Required by pylint 2.7.1 TODO: Remove this lock along with the above lock
+pycodestyle
 hypothesis
 autopep8
 testfixtures
@@ -20,6 +22,7 @@ future
 # std in p3 argparse
 pyyaml
 PyJWT
+toml
 
 # for tests
 jsonpickle

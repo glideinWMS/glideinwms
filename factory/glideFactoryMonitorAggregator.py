@@ -166,7 +166,7 @@ def aggregateStatus(in_downtime):
 
     # initialize the RRD dictionary, so it gets created properly
     val_dict = {}
-    for tp in list(global_total.keys()):
+    for tp in global_total:
         # values (RRD type) - Status or Requested
         if not (tp in list(status_attributes.keys())):
             continue
@@ -216,26 +216,27 @@ def aggregateStatus(in_downtime):
             nr_entries += 1
             status["entries"][entry]["total"] = entry_data["total"]
 
-            for w in global_total:
+            for w in list(global_total):  # making a copy of the keys because the dict is being modified (keys are not!)
                 tel = global_total[w]
                 if w not in entry_data["total"]:
                     continue
                 el = entry_data["total"][w]
                 if tel is None:
                     # new one, just copy over
-                    global_total[w] = {}
-                    tel = global_total[w]
+                    tel = {}
                     for a in el:
-                        tel[a] = int(el[a])  # coming from XML, everything is a string
+                        # coming from XML, everything is a string
+                        tel[a] = int(el[a])
+                    global_total[w] = tel
                 else:
                     # successive, sum
                     for a in el:
-                        if a in tel:
-                            tel[a] += int(el[a])
+                        if a in tel:  # pylint: disable=unsupported-membership-test
+                            tel[a] += int(el[a])  # pylint: disable=unsupported-assignment-operation
                     # if any attribute from prev. frontends is not in the current one, remove from total
                     for a in list(tel):  # making a copy of the keys because the dict is being modified
                         if a not in el:
-                            del tel[a]
+                            del tel[a]  # pylint: disable=unsupported-delete-operation
                             tmp_list_removed.append(a)
                     if tmp_list_removed:
                         logSupport.log.debug(
@@ -309,7 +310,9 @@ def aggregateStatus(in_downtime):
             for a in tel:  # pylint: disable=not-an-iterable
                 if a in avgEntries:
                     # since all entries must have this attr to be here, just divide by nr of entries
-                    tel[a] = tel[a] // nr_entries
+                    tel[a] = (
+                        tel[a] // nr_entries
+                    )  # pylint: disable=unsupported-assignment-operation,unsubscriptable-object
 
     # do average for per-fe stat--'InfoAge' only
     for fe in list(status_fe["frontends"].keys()):

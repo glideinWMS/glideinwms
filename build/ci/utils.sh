@@ -210,7 +210,13 @@ setup_python3_venv() {
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
         pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
 
-        # TODO: load the list from requirements.txt
+        # TODO: clean above here and the variables above once load from requirements.txt is tested and reliable
+
+        pip_packages=""
+        while read -r line; do
+            [[ "$line" = "#"* ]] && continue
+            pip_packages="$pip_packages ${line}"
+        done < "${GLIDEINWMS_SRC}/requirements.txt"
 
         # Uncomment to troubleshoot setup:  loginfo "$(log_python)"
 
