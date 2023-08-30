@@ -3,6 +3,7 @@ v3_10_2
 	Added a factory knob to allow control over rebuilding of cvmfsexec distributions (PR#272)
 	RHEL9 worker node are now recognized by condor_platform_select automatic OS detection (PR#285)
 	Removed pre-reconfigure hook used for rebuilding cvmfsexec distributions whenever a factory reconfig/upgrade was run (issue#262)
+	Bug fix: Use correct variable for `$exit_code` in `singularity_exec_simple` (PR#259)
 	Bug fix: Make sure default value does not overwrite the global one for idtoken_lifetime (PR#261)
 	Bug fix: Protect OSG_autoconf from OSG collector unavailability (PR#276)
 	Bug fix: Fixed jobs going in unknown state in factory monitoring. added QUEUING state for new ARC-CEs REST (PR#286)

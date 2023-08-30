@@ -57,6 +57,7 @@ Changes since the last release
 
 ### Bug Fixes
 
+-   Use correct variable for `$exit_code` in `singularity_exec_simple` (PR #259)
 -   Make sure default value does not overwrite the global one for idtoken_lifetime (PR #261)
 -   Protect OSG_autoconf from OSG collector unavailability (PR #276)
 -   Fixed jobs going in unknown state in factory monitoring. added QUEUING state for new ARC-CEs REST (PR #286)
