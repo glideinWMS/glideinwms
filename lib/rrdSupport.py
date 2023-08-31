@@ -464,7 +464,10 @@ class BaseRRDSupport:
             args.append("--daemon")
             args.append(str(daemon))
 
-        return self.rrd_obj.fetch(*args)
+        if os.path.exists(filename):
+            return self.rrd_obj.fetch(*args)
+        else:
+            raise FileNotFoundError(f"File {filename} does not exist. Skipping...")
 
     def verify_rrd(self, filename, expected_dict):
         """
