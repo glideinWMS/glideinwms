@@ -31,6 +31,7 @@ Changes since the last release
 -   Populate missing Entry parameters for ARC CEs submissions (PR #304)
 -   Modified the usage of subprocess module, for building/rebuilding cvmfsexec distributions, only when necessary (PR #309)
 -   manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (issue #283, PR #284)
+-   Fixed fetch_rrd crash in EL9 causing missing monitoring and glidefactoryclient classad information (Issue #338, PR #339)
 
 ### Testing / Development
 
@@ -38,8 +39,6 @@ Changes since the last release
 
 -   When generating cvmfsexec distribution for el9 machine type on an el7 machine, the factory reconfig and/or upgrade fails as a result of an error in `create_cvmfsexec_distros.sh`. This is possibly due to the tools for el7 being unable to handle el9 files (as per Dave Dykstra). Please exercise caution if using `rhel9-x86_64` in the `mtypes` list for the `cvmfsexec_distro` tag in factory configuration.
     -   Our workaround: the el9 machine type has been removed from the default list of machine types supported by the custom distros creation script (PR #312)
--   Installing the factory on Alma9 results in missing monitoring and glidefactoryclient classad. As a consequence of this, the Factory continued to submit pilots since it was not aware of the submitted pilots. See Issue #338 for the technical details.
-    -   Our workaround: added a check to test if the rrd file under question exists. If the file is non-existent, fetching the rrd file will be skipped.
 
 ## v3.10.2 \[2023-5-10\]
 
