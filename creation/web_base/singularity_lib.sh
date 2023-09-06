@@ -697,6 +697,7 @@ env_process_options() {
     #   gwmsset - set of GWMS utilities variables
     #   clear - same as: clearall,gwmsset,osgset,condorset
     #   clearpaths - clear only PATH,LD_LIBRARY_PATH,PYTHONPATH (default)
+    #   clearconflicts - clear variables defined by the GLIDEIN_SINGULARITY_ENV_CONFLICTS knob
     #   keepall - clear no variable, incompatible w/ any clear... option
     # Inconsistencies should be checked by configuration validation
     # In
@@ -705,7 +706,7 @@ env_process_options() {
     #  stdout - normalized environment options
     local retval
     if [[ -z "$1" ]]; then
-        retval=clearpath
+        retval=clearpaths
     else
         # Verify consistency and normalize
         [[ ",${1}," = *",clear"* && ",${1}," = *",keepall,"* ]] &&
@@ -739,6 +740,11 @@ env_clear() {
         # clear the ...PATH variables
         # PATH should be cleared also by Singularity, but the behavior is inconsistent across versions
         for i in PATH LD_LIBRARY_PATH PYTHONPATH ; do
+            env_clear_one ${i}
+        done
+    fi
+    if [[ "${env_options}" = *",clearconflicts,"* ]]; then
+        for i in "$GLIDEIN_SINGULARITY_ENV_CONFLICTS" ; do
             env_clear_one ${i}
         done
     fi
@@ -913,6 +919,12 @@ env_restore() {
         # PATH should be cleared also by Singularity, but the behavior is inconsistent across versions
         info "Restoring the cleared PATH, LD_LIBRARY_PATH, PYTHONPATH"
         for i in PATH LD_LIBRARY_PATH PYTHONPATH ; do
+            varname="GWMS_OLDENV_$i"
+            export ${i}="${!varname}"
+        done
+    fi
+    if [[ "${env_options}" = *",clearconflicts,"* ]]; then
+        for i in "$GLIDEIN_SINGULARITY_ENV_CONFLICTS" ; do
             varname="GWMS_OLDENV_$i"
             export ${i}="${!varname}"
         done
@@ -2074,6 +2086,8 @@ setup_from_environment() {
     #export OSGVO_PROJECT_NAME=$(get_prop_str ${_CONDOR_JOB_AD} ProjectName)
     #export OSGVO_SUBMITTER=$(get_prop_str ${_CONDOR_JOB_AD} User)
 
+    export GLIDEIN_SINGULARITY_ENV=${GLIDEIN_SINGULARITY_ENV_CONFLICTS:-$(gwms_from_config GLIDEIN_SINGULARITY_ENV "clearpaths" get_prop_str)}
+    export GLIDEIN_SINGULARITY_ENV_CONFLICTS=${GLIDEIN_SINGULARITY_ENV_CONFLICTS:-$(gwms_from_config GLIDEIN_SINGULARITY_ENV_CONFLICTS "" get_prop_str)}
     # from singularity_setup.sh executed earlier (Machine ClassAd)
     export HAS_SINGULARITY=${HAS_SINGULARITY:-$(gwms_from_config HAS_SINGULARITY 0 get_prop_bool)}
     export GWMS_SINGULARITY_STATUS=${GWMS_SINGULARITY_STATUS:-$(gwms_from_config GWMS_SINGULARITY_STATUS "" get_prop_str)}
