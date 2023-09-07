@@ -22,7 +22,7 @@ Changes since the last release
 
 ### Security Related Fixes
 
--   manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (PR #280)
+-   manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (issue #283, PR #284)
 
 ### Bug Fixes
 
@@ -30,7 +30,6 @@ Changes since the last release
 -   Fixing Python 3.9 deprecations (`imp`, `getchildren()` in `xml.etree.ElementTree`) (PR #302, PR #303)
 -   Populate missing Entry parameters for ARC CEs submissions (PR #304)
 -   Modified the usage of subprocess module, for building/rebuilding cvmfsexec distributions, only when necessary (PR #309)
--   manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (issue #283, PR #284)
 -   Fixed fetch_rrd crash in EL9 causing missing monitoring and glidefactoryclient classad information (Issue #338, PR #339)
 
 ### Testing / Development

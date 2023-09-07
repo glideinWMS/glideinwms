@@ -456,7 +456,6 @@ v3_10_3:
     - Add option to set xml output directory in OSG_autoconf (PR#319)
     - Allow OSG_autoconf to skip sites or CEs that are not present in the OSG collector (PR#315)
   Bug fix:
-    - manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (PR#280)
     - Removed `classad` from requirements.txt. The HTCSS team distributes only the `htcondor` library in PyPI which includes a different version of classad (PR#301)
     - Fixing Python 3.9 deprecations (`imp`, `getchildren()` in `xml.etree.ElementTree`) (PR#302, PR#303)
     - Populate missing Entry parameters for ARC CEs submissions (PR#304)
