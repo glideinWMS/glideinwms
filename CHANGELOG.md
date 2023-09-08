@@ -13,6 +13,7 @@ Changes since the last release
 -   Added structured logging. It is a hybrid format with some fields followed by a JSON dictionary. The exact format of the messages may change in the future, and we plan for it to become the default. Now it is disabled by default. Add `structured="True"` to all `<process_log>` elements (PR #333)
 -   Add option to set xml output directory in OSG_autoconf (PR #319)
 -   Allow OSG_autoconf to skip sites or CEs that are not present in the OSG collector (PR #315)
+-   Add option to set num_factories in OSG_autoconf (PR #345)
 
 ### Changed defaults / behaviours
 
