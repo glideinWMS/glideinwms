@@ -744,13 +744,16 @@ env_clear() {
             env_clear_one ${i}
         done
     fi
+    echo "${singularity_opts}"
+}
+
+env_clearlist() {
     if [[ -n "$GLIDEIN_CONTAINER_ENV_CLEARLIST" ]]; then
         #local IFS=,  # Default "\t\t\"", changed from here to end of function
         for i in ${GLIDEIN_CONTAINER_ENV_CLEARLIST//,/ } ; do
             env_clear_one "${i}"
         done
     fi
-    echo "${singularity_opts}"
 }
 
 
@@ -925,6 +928,9 @@ env_restore() {
             export ${i}="${!varname}"
         done
     fi
+}
+
+env_restorelist() {
     if [[ -n "$GLIDEIN_CONTAINER_ENV_CLEARLIST"  ]]; then
         #local IFS=,  # Default "\t\t\"", changed from here to end of function
         for i in ${GLIDEIN_CONTAINER_ENV_CLEARLIST//,/ } ; do
@@ -2044,6 +2050,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
 
     # Add --clearenv if requested
     GWMS_SINGULARITY_EXTRA_OPTS=$(env_clear "${GLIDEIN_CONTAINER_ENV}" "${GWMS_SINGULARITY_EXTRA_OPTS}")
+    env_clearlist
 
     # If there is clearenv protect the variables (it may also have been added by the custom Singularity options)
     if env_gets_cleared "${GWMS_SINGULARITY_EXTRA_OPTS}"; then
@@ -2065,6 +2072,8 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     # Continuing here only if exec of singularity failed
     GWMS_SINGULARITY_REEXEC=0
     env_restore "${GLIDEIN_CONTAINER_ENV}"
+    env_restorelist
+
     # Restoring paths that are always cleared before invoking Singularity,
     # may contain something used for error communication
     [[ -n "$old_path" ]] && PATH=$old_path
