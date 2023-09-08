@@ -22,7 +22,7 @@ Changes since the last release
 
 ### Security Related Fixes
 
--   manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (PR #280)
+-   manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (issue #283, PR #284)
 
 ### Bug Fixes
 
@@ -30,15 +30,14 @@ Changes since the last release
 -   Fixing Python 3.9 deprecations (`imp`, `getchildren()` in `xml.etree.ElementTree`) (PR #302, PR #303)
 -   Populate missing Entry parameters for ARC CEs submissions (PR #304)
 -   Modified the usage of subprocess module, for building/rebuilding cvmfsexec distributions, only when necessary (PR #309)
--   manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (issue #283, PR #284)
 -   Fixed fetch_rrd crash in EL9 causing missing monitoring and glidefactoryclient classad information (Issue #338, PR #339)
 
 ### Testing / Development
 
 ### Known Issues
 
--   When generating cvmfsexec distribution for el9 machine type on an el7 machine, the factory reconfig and/or upgrade fails as a result of an error in `create_cvmfsexec_distros.sh`. This is possibly due to the tools for el7 being unable to handle el9 files (as per Dave Dykstra). Please exercise caution if using `rhel9-x86_64` in the `mtypes` list for the `cvmfsexec_distro` tag in factory configuration.
-    -   Our workaround: the el9 machine type has been removed from the default list of machine types supported by the custom distros creation script (PR #312)
+-   When generating cvmfsexec distribution for EL9 machine type on an EL7 machine, the factory reconfig and/or upgrade fails as a result of an error in `create_cvmfsexec_distros.sh`. This is possibly due to the tools for EL7 being unable to handle EL9 files (as per Dave Dykstra). Please exercise caution if using `rhel9-x86_64` in the `mtypes` list for the `cvmfsexec_distro` tag in factory configuration.
+    -   Our workaround is to remove the EL9 machine type from the default list of machine types supported by the custom distros creation script. Add it back if you are running on an EL9 system and want an EL9 cvmfsexec distrinution. (PR #312)
 
 ## v3.10.2 \[2023-5-10\]
 
@@ -69,9 +68,9 @@ Changes since the last release
 ### Known Issues
 
 -   When using on-demand CVMFS, all Glideins after the first one on a node are failing (Issue #287)
--   This happens because mountrepo and umountrepo work at the node level and subsequent Glideins see the mounts done by the first one and abort.
--   To avoid problems use only whole-node Glideins when using on-demand CVMFS.
--   All versions with on-demand CVMFS are affected.
+    This happens because mountrepo and umountrepo work at the node level and subsequent Glideins see the mounts done by the first one and abort.
+    To avoid problems use only whole-node Glideins when using on-demand CVMFS.
+    All versions with on-demand CVMFS are affected.
 
 ## v3.10.1 \[2022-12-13\]
 
