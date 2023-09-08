@@ -162,7 +162,7 @@ dit() { echo "TEST:<$1><$2><$3>"; }
 
 @test "Verify env_process_options" {
     local envoptions=
-    [ "$(env_process_options $envoptions)" = "clearpath" ]  # Default is 'clearpath'
+    [ "$(env_process_options $envoptions)" = "clearpaths" ]  # Default is 'clearpaths'
     [[ ",$(env_process_options clear)," = *",clearall,gwmsset,osgset,condorset,"* ]] || false  # clear substitution
     [[ ",$(env_process_options aaa,osgset)," = *",condorset,"* ]] || false  # osgset implies condorset
     [[ ",$(env_process_options aaa,osgset)," = *",gwmsset,"* ]] || false  # osgset implies gwmsset
@@ -246,7 +246,7 @@ preset_env() {
     preset_env
     env_preserve
     count_env_sing="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^SINGULARITYENV_ | wc -l)"
-    [ $count_env_sing -eq 13 ]  # default is clearpath, GWMS set is preserved
+    [ $count_env_sing -eq 13 ]  # default is clearpaths, GWMS set is preserved
     preset_env
     env_preserve gwmsset
     count_env_sing="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^SINGULARITYENV_ | wc -l)"
