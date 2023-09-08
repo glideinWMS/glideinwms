@@ -268,6 +268,8 @@ def get_entries_configuration(data):
                         entry_configuration["submit_attrs"] = get_submit_attr_str(entry_configuration["submit_attrs"])
                     else:
                         entry_configuration["submit_attrs"] = ""
+                    num_factories = entry_configuration.get("num_factories")
+                    entry_configuration["num_factories"] = "" if num_factories==None else f' num_factories="{num_factories}"'
                     entry_configuration["limits"] = get_limits_str(entry_configuration["limits"])
                     entry_configuration["submission_speed"] = get_submission_speed(
                         entry_configuration["submission_speed"]
