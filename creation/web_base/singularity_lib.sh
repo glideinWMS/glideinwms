@@ -697,9 +697,10 @@ env_process_options() {
     #   gwmsset - set of GWMS utilities variables
     #   clear - same as: clearall,gwmsset,osgset,condorset
     #   clearpaths - clear only PATH,LD_LIBRARY_PATH,PYTHONPATH (default)
-    #   clearconflicts - clear variables defined by the GLIDEIN_SINGULARITY_ENV_CONFLICTS knob
     #   keepall - clear no variable, incompatible w/ any clear... option
     # Inconsistencies should be checked by configuration validation
+    # NOTE that the GLIDEIN_CONTAINER_ENV_CLEARLIST env variable is independent from these options.
+    #  If present, those variables will be cleared also when keepall is specified
     # In
     #  1 - environment options
     # Out
@@ -743,9 +744,10 @@ env_clear() {
             env_clear_one ${i}
         done
     fi
-    if [[ "${env_options}" = *",clearconflicts,"* ]]; then
-        for i in "$GLIDEIN_SINGULARITY_ENV_CONFLICTS" ; do
-            env_clear_one ${i}
+    if [[ -n "$GLIDEIN_CONTAINER_ENV_CLEARLIST" ]]; then
+        #local IFS=,  # Default "\t\t\"", changed from here to end of function
+        for i in ${GLIDEIN_CONTAINER_ENV_CLEARLIST//,/ } ; do
+            env_clear_one "${i}"
         done
     fi
     echo "${singularity_opts}"
@@ -923,10 +925,11 @@ env_restore() {
             export ${i}="${!varname}"
         done
     fi
-    if [[ "${env_options}" = *",clearconflicts,"* ]]; then
-        for i in "$GLIDEIN_SINGULARITY_ENV_CONFLICTS" ; do
+    if [[ -n "$GLIDEIN_CONTAINER_ENV_CLEARLIST"  ]]; then
+        #local IFS=,  # Default "\t\t\"", changed from here to end of function
+        for i in ${GLIDEIN_CONTAINER_ENV_CLEARLIST//,/ } ; do
             varname="GWMS_OLDENV_$i"
-            export ${i}="${!varname}"
+            export "${i}"="${!varname}"
         done
     fi
 }
@@ -2086,8 +2089,6 @@ setup_from_environment() {
     #export OSGVO_PROJECT_NAME=$(get_prop_str ${_CONDOR_JOB_AD} ProjectName)
     #export OSGVO_SUBMITTER=$(get_prop_str ${_CONDOR_JOB_AD} User)
 
-    export GLIDEIN_SINGULARITY_ENV=${GLIDEIN_SINGULARITY_ENV_CONFLICTS:-$(gwms_from_config GLIDEIN_SINGULARITY_ENV "clearpaths" get_prop_str)}
-    export GLIDEIN_SINGULARITY_ENV_CONFLICTS=${GLIDEIN_SINGULARITY_ENV_CONFLICTS:-$(gwms_from_config GLIDEIN_SINGULARITY_ENV_CONFLICTS "" get_prop_str)}
     # from singularity_setup.sh executed earlier (Machine ClassAd)
     export HAS_SINGULARITY=${HAS_SINGULARITY:-$(gwms_from_config HAS_SINGULARITY 0 get_prop_bool)}
     export GWMS_SINGULARITY_STATUS=${GWMS_SINGULARITY_STATUS:-$(gwms_from_config GWMS_SINGULARITY_STATUS "" get_prop_str)}
@@ -2103,6 +2104,7 @@ setup_from_environment() {
     export SINGULARITY_IMAGES_DICT=${GWMS_SINGULARITY_IMAGES_DICT}
     export GWMS_SINGULARITY_IMAGE_RESTRICTIONS=${GWMS_SINGULARITY_IMAGE_RESTRICTIONS:-$(gwms_from_config SINGULARITY_IMAGE_RESTRICTIONS)}
     export OSG_MACHINE_GPUS=${OSG_MACHINE_GPUS:-$(gwms_from_config GPUs 0)}
+    export GLIDEIN_CONTAINER_ENV_CLEARLIST=${GLIDEIN_CONTAINER_ENV_CLEARLIST:-$(gwms_from_config GLIDEIN_CONTAINER_ENV_CLEARLIST "" get_prop_str)}
     # Setting below 0 as default for GPU_USE, to distinguish when undefined in machine AD
     export GPU_USE=${GPU_USE:-$(gwms_from_config GPU_USE)}
     # http_proxy from OSG advertise script

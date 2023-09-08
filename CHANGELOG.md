@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 ## v3.10.3 \[2023-6-15\]
 
-Changes since the last release
+This release provides full functionality in EL9 and Python 3.9. Changes since the last release
 
 ### New features / functionalities
 
@@ -13,7 +13,8 @@ Changes since the last release
 -   Added structured logging. It is a hybrid format with some fields followed by a JSON dictionary. The exact format of the messages may change in the future, and we plan for it to become the default. Now it is disabled by default. Add `structured="True"` to all `<process_log>` elements (PR #333)
 -   Add option to set xml output directory in OSG_autoconf (PR #319)
 -   Allow OSG_autoconf to skip sites or CEs that are not present in the OSG collector (PR #315)
--   Add option to set num_factories in OSG_autoconf (PR #345)
+-   Add option to set num_factories in OSG_autoconf (Issue #344, PR #345)
+-   Added the ability to clear a list of variables from the environment via GLIDEIN_CONTAINER_ENV_CLEARLIST before starting a container (PR #342)
 
 ### Changed defaults / behaviours
 
