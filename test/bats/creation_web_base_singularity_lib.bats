@@ -179,6 +179,37 @@ dit() { echo "TEST:<$1><$2><$3>"; }
 }
 
 
+@test "Verify env_clearlist" {
+    VAR1=value1
+    export VAR2="complex var, with_spaces"
+    unset VAR3
+    #export GWMS_OLDENV_VAR1=simplevar
+    #export GWMS_OLDENV_VAR2="complex var, with_spaces"
+    # GWMS_OLDENV_VAR3 missing on purpose
+    env_clearlist VAR1,VAR2,VAR3
+    [ -n "${GWMS_OLDENV_VAR1+x}" ]
+    [ -n "${GWMS_OLDENV_VAR2+x}" ]
+    [ "$GWMS_OLDENV_VAR2" = "complex var, with_spaces" ]
+    [ -z "${GWMS_OLDENV_VAR3+x}" ]
+}
+
+
+@test "Verify env_restorelist" {
+    unset VAR1
+    unset VAR2
+    unset VAR3
+    export GWMS_OLDENV_VAR1=simplevar
+    export GWMS_OLDENV_VAR2="complex var, with_spaces"
+    unset GWMS_OLDENV_VAR3
+    # GWMS_OLDENV_VAR3 missing on purpose
+    env_restorelist VAR1,VAR2,VAR3
+    [ -n "${VAR1+x}" ]
+    [ -n "${VAR2+x}" ]
+    [ "$VAR2" = "complex var, with_spaces" ]
+    [ -z "${VAR3+x}" ]
+}
+
+
 @test "Verify env_restore" {
     # Restoring PATH, LD_LIBRARY_PATH, PYTHONPATH
     unset PATH

@@ -263,7 +263,6 @@ dict_get_keys() {
     echo "${res%,}"
 }
 
-
 dict_get_first() {
     # Returns the first element of the dictionary (whole item, or key, or value)
     #  $1 dict
@@ -358,6 +357,7 @@ robust_realpath() {
     fi
 }
 
+
 gwms_process_scripts() {
     # Process all the scripts in the directory, in lexicographic order
     #  ignore the files named .ignore files
@@ -395,6 +395,7 @@ gwms_process_scripts() {
     done
     cd "$old_pwd" || warn "Unable to return old directory after scripts ($old_pwd)."
 }
+
 
 gwms_from_config() {
     # Retrieve a parameter from glidien_config ($glidien_config) and echo it to stdout
@@ -525,6 +526,7 @@ get_prop_str() {
     return 0
 }
 
+
 # $glidein_config from the file importing this
 # add_config_line and add_condor_vars_line are in add_config_line.source (ADD_CONFIG_LINE_SOURCE in $glidein_config)
 if [[ -e "$glidein_config" ]]; then    # was: [ -n "$glidein_config" ] && [ "$glidein_config" != "NONE" ]
@@ -591,6 +593,7 @@ advertise() {
     fi
 }
 
+
 advertise_safe() {
     # Add the attribute to glidein_config (if not NONE) and return the string for the HTC ClassAd
     # Thos should be used in periodic scripts or wrappers, because it uses add_config_line_safe
@@ -628,6 +631,7 @@ htc_setmatch() {
   shift
   eval "${__[@]}"
 }
+
 
 htc_rematch() {
   [[ $1 =~ $2 ]] || return 1
@@ -722,6 +726,19 @@ env_process_options() {
 }
 
 
+env_clearlist() {
+    # Clear from the environment all the variables in the input list
+    # In
+    #  1 - comma separated list of variables to clear
+    if [[ -n "$1" ]]; then
+        #local IFS=,  # Default "\t\t\"", changed from here to end of function
+        for i in ${1//,/ } ; do
+            env_clear_one "${i}"
+        done
+    fi
+}
+
+
 env_clear() {
     # If requested in the env options, clear the PATH vasiables and add the singularity option
     # In
@@ -745,15 +762,6 @@ env_clear() {
         done
     fi
     echo "${singularity_opts}"
-}
-
-env_clearlist() {
-    if [[ -n "$GLIDEIN_CONTAINER_ENV_CLEARLIST" ]]; then
-        #local IFS=,  # Default "\t\t\"", changed from here to end of function
-        for i in ${GLIDEIN_CONTAINER_ENV_CLEARLIST//,/ } ; do
-            env_clear_one "${i}"
-        done
-    fi
 }
 
 
@@ -907,6 +915,20 @@ env_preserve() {
 }
 
 
+env_restorelist() {
+    # Restore in the environment all the variables in the input list
+    # In
+    #  1 - Comma separated list of all the variables to restore
+    if [[ -n "$1"  ]]; then
+        #local IFS=,  # Default "\t\t\"", changed from here to end of function
+        for i in ${1//,/ } ; do
+            varname="GWMS_OLDENV_$i"
+            [[ -n "${!varname}" ]] && export "${i}"="${!varname}" || true
+        done
+    fi
+}
+
+
 env_restore() {
     # Restore the environment if the Singularity invocation fails
     # Nothing to do for the env cleared by Singularity, we are outside of it.
@@ -926,16 +948,6 @@ env_restore() {
         for i in PATH LD_LIBRARY_PATH PYTHONPATH ; do
             varname="GWMS_OLDENV_$i"
             export ${i}="${!varname}"
-        done
-    fi
-}
-
-env_restorelist() {
-    if [[ -n "$GLIDEIN_CONTAINER_ENV_CLEARLIST"  ]]; then
-        #local IFS=,  # Default "\t\t\"", changed from here to end of function
-        for i in ${GLIDEIN_CONTAINER_ENV_CLEARLIST//,/ } ; do
-            varname="GWMS_OLDENV_$i"
-            export "${i}"="${!varname}"
         done
     fi
 }
@@ -2050,7 +2062,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
 
     # Add --clearenv if requested
     GWMS_SINGULARITY_EXTRA_OPTS=$(env_clear "${GLIDEIN_CONTAINER_ENV}" "${GWMS_SINGULARITY_EXTRA_OPTS}")
-    env_clearlist
+    env_clearlist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
 
     # If there is clearenv protect the variables (it may also have been added by the custom Singularity options)
     if env_gets_cleared "${GWMS_SINGULARITY_EXTRA_OPTS}"; then
@@ -2072,7 +2084,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     # Continuing here only if exec of singularity failed
     GWMS_SINGULARITY_REEXEC=0
     env_restore "${GLIDEIN_CONTAINER_ENV}"
-    env_restorelist
+    env_restorelist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
 
     # Restoring paths that are always cleared before invoking Singularity,
     # may contain something used for error communication
