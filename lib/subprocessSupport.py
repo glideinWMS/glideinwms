@@ -125,6 +125,6 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True, en
         raise RuntimeError(err_str) from e
 
     if exit_status:  # True if exit_status<>0
-        raise CalledProcessError(exit_status, cmd, output="".join(stderrdata))
+        raise CalledProcessError(exit_status, cmd, output="".join(stdoutdata), stderr="".join(stderrdata))
 
     return stdoutdata

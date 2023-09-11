@@ -7,6 +7,8 @@
 
 import os
 
+from subprocess import CalledProcessError
+
 from . import logSupport, subprocessSupport
 
 
@@ -147,12 +149,22 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
     try:
         # invoking subprocessSupport.iexe_cmd w/ text=True (default), stdin_data and returned output are str
         stdout_data = subprocessSupport.iexe_cmd(cmd, stdin_data=stdin_data, child_env=child_env)
+    except CalledProcessError as ex:
+        msg = f"Failed condor command '{cmd}'. Exit code: {ex.returncode}. Stdout: {ex.stdout}. Stderr: {ex.stderr}"
+        try:
+            logSupport.log.error(msg)
+            logSupport.log.debug(generate_bash_script(cmd, os.environ))
+        except Exception:
+            # log may be missing
+            pass
+        raise ExeError(msg) from ex
     except Exception as ex:
         msg = f"Unexpected Error running '{cmd}'. Details: {ex}. Stdout: {stdout_data}"
         try:
             logSupport.log.error(msg)
             logSupport.log.debug(generate_bash_script(cmd, os.environ))
         except Exception:
+            # log may be missing
             pass
         raise ExeError(msg) from ex
 
