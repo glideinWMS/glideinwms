@@ -1,8 +1,8 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_3_rc2
+# GLIDEINWMS_VERSION v3_10_3
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-580bfdd59604cc6c5b57694aca8dd5f2  ./CHANGELOG.md
+87c83929562fefd468c17240a2607992  ./CHANGELOG.md
 8e7d1957a094cc33c89f5b2c935666ff  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
@@ -123,7 +123,7 @@ a07332de53ae9fb905f7cc97e08ef37f  ./creation/web_base/nodes.blacklist
 b6e8b47e95d9342a41002034336bdee0  ./creation/web_base/setup_network.sh
 214d7ed29a9a5f92453191b9c4089f12  ./creation/web_base/setup_prejob.sh
 44ddb239979e4592e0fc77ec8a21efd7  ./creation/web_base/setup_script.sh
-54c4a86da8da79a9d20d8a1cf1aafcda  ./creation/web_base/singularity_lib.sh
+2273a4c8b396ecbfecc692d7349d1b77  ./creation/web_base/singularity_lib.sh
 09cb7472f92efcac002ee7166f9d4ae4  ./creation/web_base/singularity_wrapper.sh
 1feebbec48bdd2edece16d9b9167a03c  ./creation/web_base/smart_partitionable.sh
 d9e26df8e25bbd357868ed02a0db52b5  ./creation/web_base/update_proxy.py
@@ -166,25 +166,25 @@ f051d2d579307298f9b9c52d022de57d  ./install/glidecondor_createSecCol
 d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 53d2b5342f7f5e4aa70c8c5fcca387cd  ./lib/classadSupport.py
 1ce65038d934c35ddf383393994fe53d  ./lib/cleanupSupport.py
-e7e42fe7fa735f375033828c99b187b7  ./lib/condorExe.py
+bb2fbb714822015c27e1bc2044ebdefd  ./lib/condorExe.py
 c6adaec2707e6ca2e382bcb025705b09  ./lib/condorLogParser.py
 a63da69c4259927dafaaaa1fb7610e17  ./lib/condorManager.py
 85f2053c397d57298fd1bae77e453d50  ./lib/condorMonitor.py
 7019241649ff9af4e32a6ef6282b84a9  ./lib/condorSecurity.py
-25d7288aa62f23cc9db606c0cab67df1  ./lib/config_util.py
+07ae4017d4dc5902702874e95e41b907  ./lib/config_util.py
 5ff372e1965b8e6ae859e175970073e5  ./lib/defaults.py
 e0c681cd88c2b729b1c355de3d5fddb0  ./lib/disk_cache.py
 da959c3d6542d3ce19d4fa95f4a52ea3  ./lib/exprParser.py
 65f4bb27982199bbccc0c5997ba433dd  ./lib/fork.py
 70c6439359178740f148d17590cd65ab  ./lib/glideinWMSVersion.py
 f232fa81722308ba3b0b1fa66b94577f  ./lib/hashCrypto.py
-3a278c7420e11e75d3e1cbdfe9ad11ff  ./lib/logSupport.py
+9237acaa0fc8c11c11198ae47574e383  ./lib/logSupport.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
 07dcfab3d58ee13c3bb0767684e6d3ac  ./lib/pidSupport.py
 6147e4761a7bc54f06a5fdd6ebd1e213  ./lib/pubCrypto.py
 5d61375932d2e6c2634b49b335e0e467  ./lib/rrdSupport.py
 6e58280bacbef0afa9beb326a6d16dc0  ./lib/servicePerformance.py
-d559afc5843c6fb990f6d6935b09f059  ./lib/subprocessSupport.py
+b845484acf9d56b09fc3a8081ab4b47e  ./lib/subprocessSupport.py
 e0c89ec75e75e4303f643943000bd3b6  ./lib/symCrypto.py
 798c46a1d00b7382af3a92ec93b17e19  ./lib/tarSupport.py
 53df61c89ff3d2eddef02e498d04101f  ./lib/timeConversion.py
