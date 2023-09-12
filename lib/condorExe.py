@@ -129,7 +129,7 @@ def generate_bash_script(cmd, environment):
     return "\n".join(script)
 
 
-def iexe_cmd(cmd, stdin_data=None, child_env=None):
+def iexe_cmd(cmd, stdin_data=None, child_env=None, log=None):
     """Fork a process and execute cmd - rewritten to use select to avoid filling
     up stderr and stdout queues.
 
@@ -146,14 +146,17 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
 
     """
     stdout_data = ""
+    if log is None:
+        log = logSupport.log
     try:
         # invoking subprocessSupport.iexe_cmd w/ text=True (default), stdin_data and returned output are str
         stdout_data = subprocessSupport.iexe_cmd(cmd, stdin_data=stdin_data, child_env=child_env)
     except CalledProcessError as ex:
         msg = f"Failed condor command '{cmd}'. Exit code: {ex.returncode}. Stdout: {ex.stdout}. Stderr: {ex.stderr}"
         try:
-            logSupport.log.error(msg)
-            logSupport.log.debug(generate_bash_script(cmd, os.environ))
+            if log is not None:
+                log.error(msg)
+                log.debug(generate_bash_script(cmd, os.environ))
         except Exception:
             # log may be missing
             pass
@@ -161,8 +164,9 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
     except Exception as ex:
         msg = f"Unexpected Error running '{cmd}'. Details: {ex}. Stdout: {stdout_data}"
         try:
-            logSupport.log.error(msg)
-            logSupport.log.debug(generate_bash_script(cmd, os.environ))
+            if log is not None:
+                log.error(msg)
+                log.debug(generate_bash_script(cmd, os.environ))
         except Exception:
             # log may be missing
             pass

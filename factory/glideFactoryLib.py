@@ -1589,7 +1589,9 @@ def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
     # same as the factory username
     submit_out = []
     try:
-        submit_out = condorExe.iexe_cmd(f"condor_submit -name {schedd} {submitFile}", child_env=env_list2dict(exe_env))
+        submit_out = condorExe.iexe_cmd(
+            f"condor_submit -name {schedd} {submitFile}", child_env=env_list2dict(exe_env), log=log
+        )
     except condorExe.ExeError as e:
         msg = "condor_submit failed: %s" % str(e)
         log.error(msg)
