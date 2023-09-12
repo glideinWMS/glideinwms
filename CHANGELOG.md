@@ -3,9 +3,30 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.10.3 \[2023-6-15\]
+## Changes Since Last Release
 
-This release provides full functionality in EL9 and Python 3.9. Changes since the last release
+Changes since the last release
+
+### New features / functionalities
+
+-   item one of the list
+-   item N
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+### Testing / Development
+
+### Known Issues
+
+## v3.10.3 \[2023-9-11\]
+
+This release provides full functionality in EL9 and Python 3.9. Changes since v3.10.2
 
 ### New features / functionalities
 
