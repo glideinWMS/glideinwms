@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!main/gwms-python
 
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
