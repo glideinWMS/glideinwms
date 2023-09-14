@@ -467,3 +467,12 @@ v3_10_3:
   NOTE-FACTORY:
     - When generating cvmfsexec distribution for EL9 machine type on an EL7 machine, the factory reconfig and/or upgrade fails as a result of an error in `create_cvmfsexec_distros.sh`. This is possibly due to the tools for EL7 being unable to handle EL9 files (as per Dave Dykstra). Please exercise caution if using `rhel9-x86_64` in the `mtypes` list for the `cvmfsexec_distro` tag in factory configuration.
       - Our workaround is to remove the EL9 machine type from the default list of machine types supported by the custom distros creation script.  Add it back if you are running on an EL9 system and want an EL9 cvmfsexec distrinution. (PR#312)'
+
+v3_10_4:
+  Date: September 14, 2023
+  Series: Stable
+  Tarball: false
+  Bug fix:
+    - Fixed missing arguments from rrdtool fetch call (Issue#351, PR#352)
+    - gconfig.py to use `gwms-python`, not use `python3` (Issue#349, PR#350)
+    - Fixed alternative Shell code still using the `python` (i.e. python2) interpreter (PR#353)

@@ -3,14 +3,11 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release
+## v3.10.4 \[2023-9-11\]
 
-Changes since the last release
+Bug fix quick release
 
 ### New features / functionalities
-
--   item one of the list
--   item N
 
 ### Changed defaults / behaviours
 
@@ -19,6 +16,10 @@ Changes since the last release
 ### Security Related Fixes
 
 ### Bug Fixes
+
+-   Fixed missing arguments from rrdtool fetch call (Issue #351, PR #352)
+-   gconfig.py to use `gwms-python`, not use `python3` (Issue #349, PR #350)
+-   Fixed alternative Shell code still using the `python` (i.e. python2) interpreter (PR #353)
 
 ### Testing / Development
 

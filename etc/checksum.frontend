@@ -1,8 +1,8 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_3
+# GLIDEINWMS_VERSION v3_10_4
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-87c83929562fefd468c17240a2607992  ./CHANGELOG.md
+7b372ed39b7115114a57ab2c659a1673  ./CHANGELOG.md
 8e7d1957a094cc33c89f5b2c935666ff  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
@@ -49,7 +49,7 @@ fc648630677156904ef40f5434d25872  ./creation/templates/gwms-renew-proxies.cron
 8fbe2ecd0d56fb58d7f7aa4c4b152632  ./creation/templates/proxies.ini
 98dc291aff163d32c5e759b223ebe284  ./creation/web_base/add_config_line.source
 81745ec60a29b34e5f116f8e06e8b139  ./creation/web_base/advertise_failure.helper
-4d922eae346324f7fe9bf372bafecf5a  ./creation/web_base/b64uuencode.source
+99e956233214cc2fdabce268f17f8d37  ./creation/web_base/b64uuencode.source
 57b93914779a0986bfc60b537382a718  ./creation/web_base/cat_consts.sh
 a863aa7a52e48d290965fa884cfde40d  ./creation/web_base/check_blacklist.sh
 ff58ab9411080105fcf05ba4143ebbcb  ./creation/web_base/check_proxy.sh
@@ -115,7 +115,7 @@ b617fa0536251494c3713794fa2e406d  ./creation/web_base/frontendStatus.html
 8b9e6282741bd6a53944e30f3161297b  ./creation/web_base/htchirp.tar.gz
 e330a00cbf9966d96edaf33e9f3bf164  ./creation/web_base/htchirp.tar.gz.license
 911f7f57fe4f54e2bc052462f07d0227  ./creation/web_base/java_setup.sh
-05576f6e94e4e1996939cf1d8d691f95  ./creation/web_base/logging_utils.source
+1adfc9fd8ca464e5fc204e5ae253b376  ./creation/web_base/logging_utils.source
 dd977a9927595f73a1f4907771b70c45  ./creation/web_base/mjf_setparams.sh
 a07332de53ae9fb905f7cc97e08ef37f  ./creation/web_base/nodes.blacklist
 7e9edf1abe5ca0ca0e1bfdafbbc08673  ./creation/web_base/parse_starterlog.awk
@@ -123,7 +123,7 @@ a07332de53ae9fb905f7cc97e08ef37f  ./creation/web_base/nodes.blacklist
 b6e8b47e95d9342a41002034336bdee0  ./creation/web_base/setup_network.sh
 214d7ed29a9a5f92453191b9c4089f12  ./creation/web_base/setup_prejob.sh
 44ddb239979e4592e0fc77ec8a21efd7  ./creation/web_base/setup_script.sh
-2273a4c8b396ecbfecc692d7349d1b77  ./creation/web_base/singularity_lib.sh
+13358d53a35cab3fe5577221a23085ac  ./creation/web_base/singularity_lib.sh
 09cb7472f92efcac002ee7166f9d4ae4  ./creation/web_base/singularity_wrapper.sh
 1feebbec48bdd2edece16d9b9167a03c  ./creation/web_base/smart_partitionable.sh
 d9e26df8e25bbd357868ed02a0db52b5  ./creation/web_base/update_proxy.py
@@ -166,7 +166,7 @@ f051d2d579307298f9b9c52d022de57d  ./install/glidecondor_createSecCol
 d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 53d2b5342f7f5e4aa70c8c5fcca387cd  ./lib/classadSupport.py
 1ce65038d934c35ddf383393994fe53d  ./lib/cleanupSupport.py
-bb2fbb714822015c27e1bc2044ebdefd  ./lib/condorExe.py
+318918afce3412755568e908bd23ceeb  ./lib/condorExe.py
 c6adaec2707e6ca2e382bcb025705b09  ./lib/condorLogParser.py
 a63da69c4259927dafaaaa1fb7610e17  ./lib/condorManager.py
 85f2053c397d57298fd1bae77e453d50  ./lib/condorMonitor.py
@@ -182,9 +182,9 @@ f232fa81722308ba3b0b1fa66b94577f  ./lib/hashCrypto.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
 07dcfab3d58ee13c3bb0767684e6d3ac  ./lib/pidSupport.py
 6147e4761a7bc54f06a5fdd6ebd1e213  ./lib/pubCrypto.py
-5d61375932d2e6c2634b49b335e0e467  ./lib/rrdSupport.py
+1d350ae73742a7929558df566b78b3d5  ./lib/rrdSupport.py
 6e58280bacbef0afa9beb326a6d16dc0  ./lib/servicePerformance.py
-b845484acf9d56b09fc3a8081ab4b47e  ./lib/subprocessSupport.py
+af6e875c8ca9ba8497c8256be42bcb7e  ./lib/subprocessSupport.py
 e0c89ec75e75e4303f643943000bd3b6  ./lib/symCrypto.py
 798c46a1d00b7382af3a92ec93b17e19  ./lib/tarSupport.py
 53df61c89ff3d2eddef02e498d04101f  ./lib/timeConversion.py
