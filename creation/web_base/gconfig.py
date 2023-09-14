@@ -1,9 +1,24 @@
-#!main/gwms-python
+#!/bin/sh
 
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Implementation of funtions to interact with glidein_config or the HTCSS configuration in the Glidein
+"""":
+# Shell preamble to find the Python interpreter (type OK, command -v is POSIX)
+if [ -f "$(dirname "$0")"/gwms-python ]; then
+    exec "$(dirname "$0")"/gwms-python "$0" "$@"
+elif type gwms-python >/dev/null 2>&1; then
+    exec gwms-python "$0" "$@"
+elif type python3 > /dev/null 2>&1; then
+    exec python3 "$0" "$@"
+elif type python > /dev/null 2>&1; then
+    exec python "$0" "$@"
+else
+    echo >&2 "Python not installed"
+fi
+exit 1
+
+Implementation of functions to interact with glidein_config or the HTCSS configuration in the Glidein
 Similar to `add_config_line.source` (shell)
 
 Must support Python 3 and should support also Python 2.7
@@ -11,7 +26,8 @@ Using a singleton (`_GLIDEIN_CONFIG`)
 
 A previous implementation by CMS was incomplete and had some bugs (when attributes start w/ another attribute)
 https://gitlab.cern.ch/CMSSI/CMSglideinWMSValidation/-/blob/production/export_siteconf_info.py
-"""
+"""  # "
+
 
 import argparse
 import os
