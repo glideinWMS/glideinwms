@@ -466,7 +466,7 @@ class BaseRRDSupport:
 
         if os.path.exists(filename):
             try:
-                return self.rrd_obj.fetch(filename)
+                return self.rrd_obj.fetch(*args)
             except Exception as e:
                 raise RuntimeError(f"Error when running rrdtool.fetch") from e
         else:
