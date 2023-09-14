@@ -1045,6 +1045,10 @@ rm -rf $RPM_BUILD_ROOT
 #%config(noreplace) %{_sysconfdir}/condor/scripts/frontend_condortoken
 
 %changelog
+* Thu Sep 14 2023 Marco Mambelli <marcom@fnal.gov> - 3.10.4
+- Glideinwms v3.10.4
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_10_4/history.html
+
 * Mon Sep 11 2023 Marco Mambelli <marcom@fnal.gov> - 3.10.3
 - Glideinwms v3.10.3
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_10_3/history.html
