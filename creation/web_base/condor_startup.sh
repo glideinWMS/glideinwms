@@ -245,14 +245,38 @@ set_var() {
     return 0
 }
 
+# TODO: import from b64uuencode.source instead of redefining
+#       check about maxsize 45 (60 per line) vs 57 (76 x line), both OK, <80
+
+get_python() {
+    local py_command
+    if command -v python3 > /dev/null 2>&1; then
+        py_command="python3"
+    elif command -v python > /dev/null 2>&1; then
+        py_command="python"
+    elif command -v python2 > /dev/null 2>&1; then
+        py_command="python2"
+    elif command -v gwms-python > /dev/null 2>&1; then
+        py_command="gwms-python"
+    else
+        return 1
+    fi
+    echo "$py_command"
+}
+
 python_b64uuencode() {
     echo "begin-base64 644 -"
-    python -c 'import binascii,sys;fd=sys.stdin;buf=fd.read();size=len(buf);idx=0
+    if py_command=$(get_python); then
+        $py_command -c 'from __future__ import print_function; import binascii,sys;
+fdb=getattr(sys.stdin, "buffer", sys.stdin);buf=fdb.read();size=len(buf);idx=0
 while size>57:
- print binascii.b2a_base64(buf[idx:idx+57]),;
+ print(binascii.b2a_base64(buf[idx:idx+57]).decode(), end="");
  idx+=57;
  size-=57;
-print binascii.b2a_base64(buf[idx:]),'
+print(binascii.b2a_base64(buf[idx:]).decode(), end="")'
+    else
+        echo "ERROR_FAILED_ENCODING"
+    fi
     echo "===="
 }
 

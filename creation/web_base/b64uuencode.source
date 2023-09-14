@@ -3,17 +3,41 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+get_python() {
+    local py_command
+    if command -v python3 > /dev/null 2>&1; then
+        py_command="python3"
+    elif command -v python > /dev/null 2>&1; then
+        py_command="python"
+    elif command -v python2 > /dev/null 2>&1; then
+        py_command="python2"
+    elif command -v gwms-python > /dev/null 2>&1; then
+        py_command="gwms-python"
+    else
+        return 1
+    fi
+    echo "$py_command"
+}
+
+# maxsize controls the line length
+# was 45, changed to 57 (76 chars per line), this is the standard uuencode -m behavior
+# TODO: Should failure return an empty encoding instead of the invalid error message?
 python_b64uuencode() {
     echo "begin-base64 644 -"
-    python -c 'import binascii, sys
-fd = sys.stdin
-buf = fd.read()
-idx, size, maxsize = 0, len(buf), 45
+    if py_command=$(get_python); then
+        $py_command -c 'from __future__ import print_function
+import binascii, sys
+fdb=getattr(sys.stdin, "buffer", sys.stdin)
+buf = fdb.read()
+idx, size, maxsize = 0, len(buf), 57
 while size > maxsize:
-    print binascii.b2a_base64(buf[idx:idx+maxsize]),;
+    print(binascii.b2a_base64(buf[idx:idx+maxsize]).decode(), end="");
     idx += maxsize;
     size -= maxsize;
-print binascii.b2a_base64(buf[idx:]),'
+print(binascii.b2a_base64(buf[idx:]).decode(), end="")'
+    else
+        echo "ERROR_FAILED_ENCODING"
+    fi
     echo "====" }
 }
 

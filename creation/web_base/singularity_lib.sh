@@ -303,21 +303,22 @@ list_get_intersection() {
     # Valid values: rhelNN, default
     local intersection
     [[ -z "$1"  ||  -z "$2" ]] && return 1
-    if [[ "x$1" = "xany" ]]; then
+    if [[ "$1" = "any" ]]; then
         intersection="$2"
     else
-        if [[ "x$2" = "xany" ]]; then
+        if [[ "$2" = "any" ]]; then
             intersection="$1"
         else
             local cmd
-            # desired_os="$(python -c "print sorted(list(set('$2'.split(',')).intersection('$1'.split(','))))[0]" 2>/dev/null)"
-            if cmd=$(command -v python2 2>/dev/null); then
+            if cmd=$(command -v python3 2>/dev/null); then
+                intersection="$($cmd -c "print(','.join(sorted(list(set('$2'.split(',')).intersection('$1'.split(','))))))" 2>/dev/null)"
+            elif cmd=$(command -v python2 2>/dev/null); then
                 intersection="$($cmd -c "print ','.join(sorted(list(set('$2'.split(',')).intersection('$1'.split(',')))))" 2>/dev/null)"
-            elif cmd=$(command -v python3 2>/dev/null); then
+            elif cmd=$(command -v python 2>/dev/null); then
                 intersection="$($cmd -c "print(','.join(sorted(list(set('$2'.split(',')).intersection('$1'.split(','))))))" 2>/dev/null)"
             else
-                # no valid python found
-                warn "Python (python2/python3) not found. Returning empty intersection"
+                # no valid Python found
+                warn "Python (python3/python2/python) not found. Returning empty intersection"
                 return 1
             fi
         fi
