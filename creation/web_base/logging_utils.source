@@ -100,14 +100,15 @@ log_init_tokens() {
 
     declare -A tokens_arr
     for recip in "${recipients[@]}"; do
-        local recip_dir="$(grep "^${recip} " url_dirs.desc | cut -d ' ' -f 2-)"
+        local recip_dir
+        recip_dir="$(grep "^${recip} " url_dirs.desc | cut -d ' ' -f 2-)"
         local vofe_token_name="TODO"    # TODO: get the name of the frontend + group
         if [ -f "tokens/${recip_dir}/${vofe_token_name}" ]; then
             # Use the token signed by the frontend
             tokens_arr["${recip}"]=$(cat tokens/${recip_dir}/${vofe_token_name}.jwt)
         elif [ -f "tokens/${recip_dir}/default.jwt" ]; then
             # Use the token signed by the factory
-            tokens_arr["${recip}"]=$(cat tokens/${recip_dir}/default.jwt)
+            tokens_arr["${recip}"]=$(cat tokens/"${recip_dir}"/default.jwt)
         else
             warn "log_init_tokens: could not find any valid token for ${recip}"
             # TODO: maybe fail only for this recipient, still serving the others?
@@ -246,8 +247,20 @@ json_escape() {
     # Escape json special characters
     # Arguments:
     #   1: text to escape
-
-    qstr="$(printf '%s' "$1" | python -c 'import json,sys; print(json.dumps(sys.stdin.read()))')"
+    local py_command
+    if command -v python3 > /dev/null 2>&1; then
+        py_command="python3"
+    elif command -v python > /dev/null 2>&1; then
+        py_command="python"
+    elif command -v python2 > /dev/null 2>&1; then
+        py_command="python2"
+    elif command -v gwms-python > /dev/null 2>&1; then
+        py_command="gwms-python"
+    else
+        echo ERROR_UNABLE_TO_ESCAPE
+    fi
+    # print() with 1 argument OK also for python2, no need for from __future__ import print_function;
+    qstr="$(printf '%s' "$1" | "$py_command" -c 'import json,sys; print(json.dumps(sys.stdin.read()))')"
     # Remove unwanted outer double quotes
     qstr="${qstr%\"}"
     qstr="${qstr#\"}"
@@ -284,7 +297,8 @@ log_write() {
 
     # Source encoding utilities
     b64uuencode_source=$(gconfig_get B64UUENCODE_SOURCE "${glidein_config}")
-    source "${b64uuencode_source}"
+    # shellcheck source=./b64uuencode.source
+    . "${b64uuencode_source}"
 
     # Argument $1 (invoker)
     invoker="$1"
