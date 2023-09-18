@@ -2480,6 +2480,20 @@ MAX_STARTD_LOG          I       10000000        +                               
             </td>
           </tr>
           <tr>
+            <td><b>SINGULARITY_DISABLE_PID_NAMESPACES</b></td>
+            <td>String</td>
+            <td></td>
+            <td>Frontend Factory</td>
+            <td>
+              <p>
+                When set, it disables the <t>--pid</t> option in the
+                Singularity/Apptainer invocation, which is added by default.
+                This is needed when running inside Docker or Podman (e.g. in
+                conteinarized worker nodes).
+              </p>
+            </td>
+          </tr>
+          <tr>
             <td><b>GLIDEIN_SINGULARITY_BINARY_OVERRIDE</b></td>
             <td>String</td>
             <td></td>
