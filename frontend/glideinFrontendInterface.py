@@ -1,16 +1,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
-#   This module implements the functions needed to advertize
+#   This module implements the functions needed to advertise
 #   and get resources from the Collector
 
+"""
+This module implements the functions needed to advertise and get resources from the Collector
+"""
 
 import calendar
 import copy
@@ -864,6 +861,8 @@ class MultiAdvertizeWork:
                     try:
                         cred_data = cred_el.generated_data
                     except AttributeError:
+                        # TODO: credential parsing form file could fail (wrong permission, not found, ...)
+                        #  Add message? Handle here or declare raising
                         cred_data = cred_el.getString(cred_file)
                     if cred_data:
                         cred_el.loaded_data.append((cred_file, cred_data))
