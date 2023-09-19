@@ -1,18 +1,16 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Project:
-#   glideinWMS
-#
 # Description:
 #   This is a collection of utility functions for HTCondor IDTOKEN generation
 
+"""
+Collection of utility functions for HTCondor IDTOKEN generation and verification
+"""
 
-import codecs
 import os
 import re
 import socket
-import struct
 import sys
 import time
 import uuid
@@ -45,6 +43,8 @@ def token_file_expired(token_file):
             token_str = tf.read()
         token_str = token_str.strip()
         return token_str_expired(token_str)
+    except FileNotFoundError:
+        logSupport.log.warning(f"Token file '{token_file}' not found. Considering it expired.")
     except Exception as e:
         logSupport.log.exception("%s" % e)
     return expired
@@ -62,7 +62,9 @@ def token_str_expired(token_str):
         bool: True if exp in future or absent and nbf in past or absent,
               False otherwise
     """
-
+    if not token_str:
+        logSupport.log.debug("The token string is empty. Considering it expired")
+        return True
     expired = True
     try:
         decoded = jwt.decode(
@@ -72,6 +74,9 @@ def token_str_expired(token_str):
         expired = False
     except jwt.exceptions.ExpiredSignatureError as e:
         logSupport.log.error("Expired token: %s" % e)
+    except jwt.exceptions.DecodeError as e:
+        logSupport.log.error("Bad token: %s" % e)
+        logSupport.log.debug(f"Faulty token: {token_str}")
     except Exception as e:
         logSupport.log.exception("Unknown exception decoding token: %s" % e)
         logSupport.log.debug(f"Faulty token: {token_str}")
@@ -161,6 +166,11 @@ def sign_token(identity, issuer, kid, master_key, duration=None, scope=None):
     # The source code (https://github.com/jpadilla/pyjwt/blob/72ad55f6d7041ae698dc0790a690804118be50fc/jwt/api_jws.py)
     # shows `AllowedPrivateKeys | str | bytes` and if it is str, then it is encoded w/ utf-8:  value.encode("utf-8")
     encoded = jwt.encode(payload, master_key, algorithm="HS256", headers={"kid": kid})
+    # TODO: PyJWT bug workaround. Remove this conversion once affected PyJWT is no more around
+    #  PyJWT in EL7 (PyJWT <2.0.0) has a bug, jwt.encode() is declaring str as return type, but it is returning bytes
+    #  https://github.com/jpadilla/pyjwt/issues/391
+    if isinstance(encoded, bytes):
+        encoded = encoded.decode("UTF-8")
     return encoded
 
 

@@ -233,7 +233,7 @@ def generate_log_tokens(startup_dir, glideinDescript):
             # Obtain a legal filename from the url, escaping "/" and other tricky symbols
             recipient_safe_url = urllib.parse.quote(recipient_url, "")
 
-            # Generate the token
+            # Generate the monitoring token
             # TODO: in the future must include Frontend tokens as well
             factory_token = "default.jwt"
             token_name = factory_token
@@ -259,6 +259,11 @@ def generate_log_tokens(startup_dir, glideinDescript):
                 "nbf": curtime - 300,
             }
             token = jwt.encode(token_payload, secret, algorithm="HS256")
+            # TODO: PyJWT bug workaround. Remove this conversion once affected PyJWT is no more around
+            #  PyJWT in EL7 (PyJWT <2.0.0) has a bug, jwt.encode() is declaring str as return type, but it is returning bytes
+            #  https://github.com/jpadilla/pyjwt/issues/391
+            if isinstance(token, bytes):
+                token = token.decode("UTF-8")
             try:
                 # Write the factory token
                 with open(token_filepath, "w") as tkfile:

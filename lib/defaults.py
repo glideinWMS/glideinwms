@@ -37,7 +37,8 @@ def force_bytes(instr, encoding=BINARY_ENCODING_CRYPTO):
     """
     if isinstance(instr, str):
         # raise Exception("ALREADY str!")  # Use this for investigations
-        if instr.startswith("b'"):
+        if instr.startswith("b'") and len(instr) > 2 and instr.endswith("'"):
+            # This may cause errors with the random strings generated for unit tests, which may start with "b'"
             raise ValueError(
                 "Input was improperly converted into string (resulting in b'' characters added): %s" % instr
             )

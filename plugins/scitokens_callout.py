@@ -9,7 +9,7 @@ import sys
 import tempfile
 import time
 
-from glideinwms.lib import subprocessSupport, token_util
+from glideinwms.lib import subprocessSupport
 
 # This is a generic implementation of the the Scitoken plugin interface.
 # VOs would implement their own version of this to interact with the
@@ -17,6 +17,7 @@ from glideinwms.lib import subprocessSupport, token_util
 #
 # Dependencies are the python3-scitokens package, and a copy of the
 # scitoken key.
+# You may want to import and use glideinwms.lib.token_util
 #
 # The key details are hardcoded below. At the minimum, key_file,
 # key_id, and issuer need to be changed to the VO specific ones.
