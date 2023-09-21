@@ -326,6 +326,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             print(cvmfsexec_distros_build_out)  # prints the output from the shell script executed in the previous line
             # get the location of the tarballs created during reconfig/upgrade
             distros_loc = os.path.join(self.work_dir, "cvmfsexec/tarballs")
+            distros = []
             try:
                 distros = [
                     d for d in os.listdir(distros_loc) if d.startswith("cvmfsexec")
