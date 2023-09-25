@@ -250,7 +250,7 @@ USAGE:
                 print("\nWARNING: Cannot open", file_dir)
                 print("Using RPM default %s instead" % rpmfile_dir)
             dir = rpmdir
-            file_dir = rpmfile_dir
+            file_dir = "file://" + rpmfile_dir
 
     try:
         u = urlopen(file_dir)
@@ -375,7 +375,7 @@ Status Attributes analysis for %s - %s
     ######################################################################
 
     # sort periods from least to greatest, with 24 hours at the top
-    period_list = period_data.keys()
+    period_list = list(period_data.keys())
     period_list.sort()
     period_list.remove(86400)
     period_list.insert(0, 86400)
