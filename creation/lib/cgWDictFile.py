@@ -231,7 +231,6 @@ def get_common_dicts(submit_dir, stage_dir):
         "signature": cWDictFile.SHA1DictFile(
             stage_dir, cWConsts.insert_timestr(cWConsts.SIGNATURE_FILE), fname_idx=cWConsts.SIGNATURE_FILE
         ),
-        "build_cvmfsexec": cWDictFile.ReprDictFile(submit_dir, cgWConsts.CVMFSEXEC_BUILD_FILE),
     }
     refresh_description(common_dicts)
     return common_dicts
@@ -241,6 +240,7 @@ def get_main_dicts(submit_dir, stage_dir):
     main_dicts = get_common_dicts(submit_dir, stage_dir)
     main_dicts["summary_signature"] = cWDictFile.SummarySHA1DictFile(submit_dir, cWConsts.SUMMARY_SIGNATURE_FILE)
     main_dicts["glidein"] = cWDictFile.StrDictFile(submit_dir, cgWConsts.GLIDEIN_FILE)
+    main_dicts["build_cvmfsexec"] = cWDictFile.ReprDictFile(submit_dir, cgWConsts.CVMFSEXEC_BUILD_FILE)
     main_dicts["frontend_descript"] = cWDictFile.ReprDictFile(submit_dir, cgWConsts.FRONTEND_DESCRIPT_FILE)
     main_dicts["gridmap"] = cWDictFile.GridMapDict(stage_dir, cWConsts.insert_timestr(cWConsts.GRIDMAP_FILE))
     main_dicts["at_file_list"] = cWDictFile.FileDictFile(
@@ -271,7 +271,6 @@ def load_common_dicts(dicts, description_el):  # update in place
     # first submit dir ones (mutable)
     dicts["params"].load()
     dicts["attrs"].load()
-    dicts["build_cvmfsexec"].load()
     # now the ones keyed in the description
     dicts["signature"].load(fname=description_el.vals2["signature"])
     dicts["file_list"].load(fname=description_el.vals2["file_list"])
@@ -289,6 +288,8 @@ def load_main_dicts(main_dicts):  # update in place
     main_dicts["frontend_descript"].load()
     # summary_signature has keys for description
     main_dicts["summary_signature"].load()
+    # load the cvmfsexec build
+    main_dicts["build_cvmfsexec"].load()
     # load the description
     # print "\ndebug %s main_dicts['summary_signature']['main'][1] = %s" % (__file__, main_dicts['summary_signature']['main'][1])
     main_dicts["description"].load(fname=main_dicts["summary_signature"]["main"][1])
@@ -417,13 +418,13 @@ def save_common_dicts(dicts, is_main, set_readonly=True):  # will update in plac
     # finally save the mutable one(s)
     dicts["params"].save(set_readonly=set_readonly)
     dicts["attrs"].save(set_readonly=set_readonly)
-    dicts["build_cvmfsexec"].save(set_readonly=set_readonly)
 
 
 # must be invoked after all the entries have been saved
 def save_main_dicts(main_dicts, set_readonly=True):  # will update in place, too
     main_dicts["glidein"].save(set_readonly=set_readonly)
     main_dicts["frontend_descript"].save(set_readonly=set_readonly)
+    main_dicts["build_cvmfsexec"].save(set_readonly=set_readonly)
     save_common_dicts(main_dicts, True, set_readonly=set_readonly)
     summary_signature = main_dicts["summary_signature"]
     summary_signature.add_from_file(
@@ -494,7 +495,7 @@ def reuse_common_dicts(dicts, other_dicts, is_main, all_reused):
             dicts[k].set_readonly(True)
 
     # check the mutable ones
-    for k in ("attrs", "params", "build_cvmfsexec"):
+    for k in ("attrs", "params"):
         reuse_simple_dict(dicts, other_dicts, k)
 
     return all_reused
@@ -502,6 +503,7 @@ def reuse_common_dicts(dicts, other_dicts, is_main, all_reused):
 
 def reuse_main_dicts(main_dicts, other_main_dicts):
     reuse_simple_dict(main_dicts, other_main_dicts, "glidein")
+    reuse_simple_dict(main_dicts, other_main_dicts, "build_cvmfsexec")
     reuse_simple_dict(main_dicts, other_main_dicts, "frontend_descript")
     reuse_simple_dict(main_dicts, other_main_dicts, "gridmap")
     all_reused = reuse_common_dicts(main_dicts, other_main_dicts, True, True)
