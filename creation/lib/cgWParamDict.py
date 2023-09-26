@@ -303,7 +303,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             os.path.join(cgWConsts.WEB_BASE_DIR, cvmfs_helper),
         )
 
-        ### for dynamic selection of cvmfsexec distribution -- block start
+        ### Add helper script for dynamic selection of cvmfsexec distribution
         dist_select_script = "cvmfsexec_platform_select.sh"
         self.dicts["file_list"].add_from_file(
             dist_select_script,
@@ -312,6 +312,23 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             ),
             os.path.join(cgWConsts.WEB_BASE_DIR, dist_select_script),
         )
+
+        # make sure condor_startup does not get executed ahead of time under normal circumstances
+        # but must be loaded early, as it also works as a reporting script in case of error
+        self.dicts["description"].add(cgWConsts.CONDOR_STARTUP_FILE, "last_script")
+
+        # At this point in the glideins, condor_advertise should be able to
+        # talk to the FE collector
+
+        # put user files in stage
+        for file in self.conf.get_child_list("files"):
+            add_file_unparsed(file, self.dicts, True)
+
+        # put user attributes into config files
+        for attr in self.conf.get_child_list("attrs"):
+            # ignore attributes that need expansion in the global section
+            if str(attr.get_val()).find("$") == -1 or not self.enable_expansion:  # does not need to be expanded
+                add_attr_unparsed(attr, self.dicts, "main")
 
         # Check if cvmfsexec distributions need to be built/rebuilt
         populate_cvmfsexec_build_config(self.dicts["build_cvmfsexec"], self.conf)
@@ -341,9 +358,11 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 for cvmfsexec_idx in range(len(distros)):  # TODO: os.scandir() is more efficient with python 3.x
                     distro_info = distros[cvmfsexec_idx].split("_")
                     try:
-                        distro_arch_temp = (
-                            distro_info[3] + "_" + distro_info[4]
-                        )  # added protection with try-except and continue if fail
+                        if len(distro_info) == 4:  # for machine types like ppc64le, aarch64
+                            distro_arch_temp = distro_info[2] + "_" + distro_info[3]
+                        else:
+                            distro_arch_temp = distro_info[3] + "_" + distro_info[4]
+                            # added protection with try-except and continue if fail
                     except:
                         print(f"Wrong subdirectory cvmfsexec/tarballs/{distro_info}")
                         continue
@@ -370,34 +389,29 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                     # Add cond_name in the config, so that it is known
                     # But leave it disabled by default
                     self.dicts["consts"].add(cvmfsexec_cond_name, "0", allow_overwrite=False)
-            ### for dynamic selection of cvmfsexec distribution -- block end
         else:
             if not mtypes:
-                print("No sources specified. Building/Rebuilding of cvmfsexec distributions disabled!\n")
-            print("=======================!!WARNING!!========================")
-            print(
-                "There might be existing cvmfsexec distributions, from a \nprevious factory reconfig that might be obsolete in case \n"
-                "a newer version of cvmfsexec exists. If using the on-demand \nCVMFS provisioning feature, it is recommended to build \n"
-                "the cvmfsexec distributions from scratch so that the latest \nversion of distributions are shipped with the glideins."
-            )
-            print("==========================================================")
-            print("...Ignoring building/rebuilding of cvmfsexec distributions.")
-        # make sure condor_startup does not get executed ahead of time under normal circumstances
-        # but must be loaded early, as it also works as a reporting script in case of error
-        self.dicts["description"].add(cgWConsts.CONDOR_STARTUP_FILE, "last_script")
-
-        # At this point in the glideins, condor_advertise should be able to
-        # talk to the FE collector
-
-        # put user files in stage
-        for file in self.conf.get_child_list("files"):
-            add_file_unparsed(file, self.dicts, True)
-
-        # put user attributes into config files
-        for attr in self.conf.get_child_list("attrs"):
-            # ignore attributes that need expansion in the global section
-            if str(attr.get_val()).find("$") == -1 or not self.enable_expansion:  # does not need to be expanded
-                add_attr_unparsed(attr, self.dicts, "main")
+                print("...No sources specified. Building/Rebuilding of cvmfsexec distributions disabled!")
+            try:
+                # fetch the on-demand cvmfs provisioning feature setting
+                ondemand_cvmfs = self.dicts["attrs"]["GLIDEIN_USE_CVMFSEXEC"]
+            except KeyError as e:
+                # on-demand CVMFS not used at the global level; ignore and continue
+                pass
+            else:
+                # check if on demand cvmfs provisioning is requested/enabled
+                if ondemand_cvmfs:
+                    # check the dir containing cvmfsexec distros to see if they were built previously
+                    if os.path.exists(os.path.join(self.work_dir, "cvmfsexec/tarballs")) and os.listdir(
+                        os.path.join(self.work_dir, "cvmfsexec/tarballs")
+                    ):
+                        # cvmfsexec distros were found from a previous factory reconfig
+                        print(f"...Found cvmfsexec distributions in {os.path.join(self.work_dir)}")
+                        print("......RECOMMENDED: Rebuild distributions using the latest version of cvmfsexec")
+                    else:
+                        print("...cvmfsexec distributions unavailable but on-demand CVMFS requested; Aborting!")
+                        exit(1)
+                print("...Ignoring building/rebuilding of cvmfsexec distributions")
 
         # add additional system scripts
         for script_name in at_file_list_scripts:
@@ -696,6 +710,27 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         # put user attributes into config files
         for attr in entry_attrs:
             add_attr_unparsed(attr, self.dicts, self.sub_name)
+
+        try:
+            # fetch the on-demand cvmfs provisioning feature setting
+            ondemand_cvmfs = self.dicts["attrs"]["GLIDEIN_USE_CVMFSEXEC"]
+        except KeyError as e:
+            # on-demand CVMFS not used by entry; ignore and continue
+            pass
+        else:
+            # check if on demand cvmfs provisioning is requested/enabled on an active entry
+            if ondemand_cvmfs:
+                # check the dir containing cvmfsexec distros to see if they were built previously
+                if os.path.exists(os.path.join(self.work_dir, "../cvmfsexec/tarballs")) and os.listdir(
+                    os.path.join(self.work_dir, "../cvmfsexec/tarballs")
+                ):
+                    # cvmfsexec distros were found from a previous factory reconfig
+                    print(f"...Found cvmfsexec distributions in {os.path.dirname(os.path.join(self.work_dir))}")
+                    print("......RECOMMENDED: Rebuild distributions using the latest version of cvmfsexec.")
+                else:
+                    print("...cvmfsexec distributions unavailable but on-demand CVMFS is requested")
+                    exit(1)
+            print("...Ignoring building/rebuilding of cvmfsexec distributions")
 
         # put standard attributes into config file
         # override anything the user set
