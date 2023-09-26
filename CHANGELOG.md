@@ -3,6 +3,26 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## v3.10.5 \[2023-9-11\]
+
+Bug fix quick release
+
+### New features / functionalities
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Added bash requirement to files using bashisms, notably `glidein_sitewms_setup.sh` (PR #358)
+
+### Testing / Development
+
+### Known Issues
+
 ## v3.10.4 \[2023-9-11\]
 
 Bug fix quick release

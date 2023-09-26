@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # must use glidein_config, it is used as global variable
 glidein_config=$1
 

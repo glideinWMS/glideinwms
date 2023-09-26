@@ -1,12 +1,8 @@
+#!/bin/bash
+
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This is an include file for glidein_startup.sh
 #   It creates a minimal condor_mapfile so that condor_advertise can work in case of problems.
@@ -22,7 +18,7 @@ add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" |
 error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
 # create a condor_mapfile starting from a grid-mapfile
-function create_condormapfile {
+create_condormapfile() {
     id=`id -un`
 
     # make sure there is nothing in place already

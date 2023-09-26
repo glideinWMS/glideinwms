@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
@@ -26,7 +28,7 @@ GLIDEIN_CONDOR_TOKEN=$(gconfig_get GLIDEIN_CONDOR_TOKEN "$glidein_config")
 export GLIDEIN_CONDOR_TOKEN
 
 #if an IDTOKEN is available, continue.  Else exit
-exit_if_no_token(){
+exit_if_no_token() {
     if [ !  -e "$GLIDEIN_CONDOR_TOKEN" ]; then
         exit $1
     fi
@@ -34,7 +36,7 @@ exit_if_no_token(){
 }
 
 
-function openssl_get_x509_timeleft {
+openssl_get_x509_timeleft() {
     # $1 cert pathname
     if [ ! -r "$1" ]; then
         return 1
@@ -69,7 +71,7 @@ function openssl_get_x509_timeleft {
 
 # returns the expiration time of the proxy
 # return value in RETVAL
-function get_x509_expiration {
+get_x509_expiration() {
     RETVAL=0
     #now=$(date +%s)
     if ! now=$(date +%s); then
