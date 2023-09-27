@@ -94,8 +94,8 @@ class DictFile:
         return self.vals[key]
 
     # MM .get() added 5345, check no trouble
-    def get(self, key):
-        return self.vals.get(key)
+    def get(self, key, default=None):
+        return self.vals.get(key, default)
 
     def get_fname(self):
         return self.fname
