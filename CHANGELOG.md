@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.10.5 \[2023-9-11\]
+## v3.10.5 \[2023-9-27\]
 
 Bug fix quick release
 
@@ -28,7 +28,7 @@ Bug fix quick release
 
 ### Known Issues
 
-## v3.10.4 \[2023-9-11\]
+## v3.10.4 \[2023-9-14\]
 
 Bug fix quick release
 
