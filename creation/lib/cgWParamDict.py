@@ -359,7 +359,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                     try:
                         distro_info = distros[cvmfsexec_idx].split(".")[0].split("_", 3)
                     except:
-                        print(f"Problem parsing name: {distros[cvmfsexec_idx]}!")
+                        print(f"Problem parsing the cvmfsexec distro name: {distros[cvmfsexec_idx]}! Ignoring it.")
                         continue
                     platform = "-".join(distro_info[1:])
 
@@ -385,29 +385,24 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                     self.dicts["consts"].add(cvmfsexec_cond_name, "0", allow_overwrite=False)
         else:
             print("...No sources specified. Building/Rebuilding of cvmfsexec distributions disabled!")
-            ondemand_cvmfs = 0
-            try:
-                # fetch the on-demand cvmfs provisioning feature setting
-                ondemand_cvmfs = self.dicts["attrs"]["GLIDEIN_USE_CVMFSEXEC"]
-            except KeyError as e:
-                # on-demand CVMFS not used at the global level; ignore and continue
-                pass
-            else:
-                # check if on demand cvmfs provisioning is requested/enabled
-                if ondemand_cvmfs != 0:
-                    # check the dir containing cvmfsexec distros to see if they were built previously
-                    if os.path.exists(os.path.join(self.work_dir, "cvmfsexec/tarballs")) and os.listdir(
-                        os.path.join(self.work_dir, "cvmfsexec/tarballs")
-                    ):
-                        # cvmfsexec distros were found from a previous factory reconfig
-                        print(f"...Found cvmfsexec distributions in {os.path.join(self.work_dir)}")
-                        print("......RECOMMENDED: Rebuild distributions using the latest version of cvmfsexec.")
-                    else:
-                        # can be overridden at the entry level, so ignore and [entry supersedes global setting]
-                        print(
-                            "...cvmfsexec distributions unavailable but on-demand CVMFS requested via GLIDEIN_USE_CVMFSEXEC; Continuing..."
-                        )
-                print("...Ignoring building/rebuilding of cvmfsexec distributions")
+            # TODO: This check could be done in the XML, checking if the entries are consistent in the current version
+            # fetch the on-demand cvmfs provisioning feature setting
+            # if on-demand CVMFS not used at the global level; ignore and continue
+            ondemand_cvmfs = self.dicts["attrs"].get("GLIDEIN_USE_CVMFSEXEC", 0)
+            # check if on demand cvmfs provisioning is requested/enabled
+            if ondemand_cvmfs != 0:
+                # check the dir containing cvmfsexec distros to see if they were built previously
+                if os.path.exists(os.path.join(self.work_dir, "cvmfsexec/tarballs")) and os.listdir(
+                    os.path.join(self.work_dir, "cvmfsexec/tarballs")
+                ):
+                    # cvmfsexec distros were found from a previous factory reconfig
+                    print(f"...Found cvmfsexec distributions in {os.path.join(self.work_dir)}")
+                    print("......RECOMMENDED: Rebuild distributions using the latest version of cvmfsexec.")
+                else:
+                    # can be overridden at the entry level, so ignore and [entry supersedes global setting]
+                    print(
+                        "...cvmfsexec distributions unavailable but on-demand CVMFS requested via GLIDEIN_USE_CVMFSEXEC; Continuing..."
+                    )
 
         # add additional system scripts
         for script_name in at_file_list_scripts:
@@ -707,29 +702,23 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         for attr in entry_attrs:
             add_attr_unparsed(attr, self.dicts, self.sub_name)
 
-        ondemand_cvmfs = 0
-        try:
-            # fetch the on-demand cvmfs provisioning feature setting
-            ondemand_cvmfs = self.dicts["attrs"]["GLIDEIN_USE_CVMFSEXEC"]
-        except KeyError as e:
-            # on-demand CVMFS not used by entry; ignore and continue
-            pass
-        else:
-            # check if on demand cvmfs provisioning is requested/enabled on an active entry
-            if ondemand_cvmfs != 0:
-                # check the dir containing cvmfsexec distros to see if they were built previously
-                if os.path.exists(os.path.join(self.work_dir, "../cvmfsexec/tarballs")) and os.listdir(
-                    os.path.join(self.work_dir, "../cvmfsexec/tarballs")
-                ):
-                    # cvmfsexec distros were found from a previous factory reconfig
-                    print(f"...Found cvmfsexec distributions in {os.path.dirname(os.path.join(self.work_dir))}")
-                    print("......RECOMMENDED: Rebuild distributions using the latest version of cvmfsexec.")
-                else:
-                    print(
-                        "...cvmfsexec distributions unavailable but on-demand CVMFS is requested via GLIDEIN_USE_CVMFSEXEC; Aborting!"
-                    )
-                    exit(1)
-            print("...Ignoring building/rebuilding of cvmfsexec distributions")
+        # TODO: This check could be done in the XML, checking if the entries are consistent in the current version
+        # fetch the on-demand cvmfs provisioning feature setting
+        # if on-demand CVMFS not used by entry, ignore and continue
+        ondemand_cvmfs = self.dicts["attrs"].get("GLIDEIN_USE_CVMFSEXEC", 0)
+        if ondemand_cvmfs != 0:
+            # check the dir containing cvmfsexec distros to see if they were built previously
+            if os.path.exists(os.path.join(self.work_dir, "../cvmfsexec/tarballs")) and os.listdir(
+                os.path.join(self.work_dir, "../cvmfsexec/tarballs")
+            ):
+                # cvmfsexec distros were found from a previous factory reconfig
+                print(f"...Found cvmfsexec distributions in {os.path.dirname(os.path.join(self.work_dir))}")
+                print("......RECOMMENDED: Rebuild distributions using the latest version of cvmfsexec.")
+            else:
+                print(
+                    "...cvmfsexec distributions unavailable but on-demand CVMFS is requested via GLIDEIN_USE_CVMFSEXEC; Aborting!"
+                )
+                exit(1)
 
         # put standard attributes into config file
         # override anything the user set
