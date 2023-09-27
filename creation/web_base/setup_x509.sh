@@ -441,7 +441,9 @@ _main() {
         gconfig_add GLIDEIN_CONDOR_TOKEN "$GLIDEIN_CONDOR_TOKEN"
         gconfig_add GLIDEIN_CONDOR_TOKEN_ORIG "$GLIDEIN_CONDOR_TOKEN_ORIG"
         out=$(gconfig_get TRUST_DOMAIN "${glidein_config}")
-        if [[ -z "$out" ]]; then
+        if [[ -n "$out" ]]; then
+            cred_updated+=idtoken,
+        else
             # Retrieve TRUST_DOMAIN from COLLECTOR_HOST and CCB if not already defined in condor_config (config attrs)
             if out=$(get_trust_domain); then
                 export TRUST_DOMAIN="$out"

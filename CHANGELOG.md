@@ -17,7 +17,11 @@ Bug fix quick release
 
 ### Bug Fixes
 
+-   Workaround for EL7 PyJWT bug, generating bytes instead of str (PR #355)
 -   Added bash requirement to files using bashisms, notably `glidein_sitewms_setup.sh` (PR #358)
+-   Fixed syntax errors in analyze_queues (PR #357)
+-   Fixed setup_x509 to be successful w/ TRUST_DOMAIN set in the as Factory or Frontend parameter (PR #359)
+-   GLIDEIN_SINGULARITY_BINARY_OVERRIDE set also with Frontend and Factory params, not only WN environment (PR #360)
 
 ### Testing / Development
 
