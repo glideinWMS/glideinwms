@@ -282,7 +282,7 @@ export GWMS_SINGULARITY_IMAGE
 
 info_stdout "`date` Searching and testing the singularity binary"
 
-# Changes PATH (Singularity path may be added), GWMS_SINGULARITY_VERSION, GWMS_SINGULARITY_PATH, HAS_SINGULARITY, singularity_in
+# Changes PATH (Singularity path may be added), GWMS_SINGULARITY_VERSION, GWMS_SINGULARITY_PATH, HAS_SINGULARITY, singularity_bin
 singularity_locate_bin "$singularity_bin" "$GWMS_SINGULARITY_IMAGE"
 
 if [[ "$HAS_SINGULARITY" = "True" ]]; then

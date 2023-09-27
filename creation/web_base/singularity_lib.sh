@@ -406,7 +406,7 @@ gwms_from_config() {
     # 3. - function to validate or process the parameter (get_prop_bool or same interface)
     #      The default, when used, is not processed by this function
     local ret=
-    if [[ -n "$glidein_config" ]]; then
+    if [[ -r "$glidein_config" ]]; then
         #ret=$(grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-)
         #ret=$(tac "$glidein_config" | grep -m1 "^$1 " | cut -d ' ' -f 2-)
         if ! ret=$(gconfig_get "$1" "$glidein_config" 2>/dev/null); then
@@ -433,8 +433,9 @@ gwms_from_config() {
 get_prop_bool() {
     # In:
     #  $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD) special keywords: NONE, VALUE_PROVIDED
-    #  $2 the key
+    #  $2 the key (the value if $1 is VALUE_PROVIDED)
     #  $3 default value (optional, must be 1->true or 0->false, 0 if unset)
+    # If $1 is NONE, $2 is ignored, $3 or the default value is returned
     # For HTCondor consider True: true (case insensitive), any integer != 0
     #                       Anything else is False (0, false, undefined, ...)
     #                       This is the default behavior (default=0)
@@ -449,10 +450,10 @@ get_prop_bool() {
     local val
     if [[ $# -lt 2 || $# -gt 3 ]]; then
         val=0
-    elif [[ "x$1" = "xNONE" ]]; then
+    elif [[ "$1" = "NONE" ]]; then
         val=$default
     else
-        if [[ "x$1" = "xVALUE_PROVIDED" ]]; then
+        if [[ "$1" = "VALUE_PROVIDED" ]]; then
             val=$2
         else
             # sed "s/[\"' \t\r\n]//g" not working on OS X, '\040\011\012\015' = ' '$'\t'$'\r'$'\n'
@@ -1498,7 +1499,8 @@ singularity_locate_bin() {
     local test_out
     HAS_SINGULARITY=False
     local osg_singularity_binary="${OSG_SINGULARITY_BINARY:-${OSG_SINGULARITY_BINARY_DEFAULT}}"
-    local singularity_binary_override="${GLIDEIN_SINGULARITY_BINARY_OVERRIDE}"
+    local singularity_binary_override
+    singularity_binary_override="${GLIDEIN_SINGULARITY_BINARY_OVERRIDE:-$(gwms_from_config GLIDEIN_SINGULARITY_BINARY_OVERRIDE)}"
 
     if [[ -n "$singularity_binary_override" ]]; then
         # 1. Look first in the override path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)

@@ -73,7 +73,7 @@ gwms_from_config() {
     # NOTE: If grep-based reading of glidein_config needs to be replaced with
     # gconfig_xxx functions, make sure that the script that calls this function has
     # imported add_config_line.source file
-    if [[ -n "$glidein_config" ]]; then
+    if [[ -r "$glidein_config" ]]; then
         ret=$(grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-)
     fi
     if [[ -n "$ret" ]]; then
