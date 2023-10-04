@@ -1835,9 +1835,9 @@ def get_submit_environment(
 
         exe_env = ["GLIDEIN_ENTRY_NAME=%s" % entry_name]
         if "frontend_scitoken" in submit_credentials.identity_credentials:
-            exe_env.append("SCITOKENS_FILE=%s" % submit_credentials.identity_credentials["frontend_scitoken"])
+            exe_env.append("SCITOKENS_FILE=%s" % submit_credentials.identity_credentials["frontend_scitoken"].path)
         if "frontend_condortoken" in submit_credentials.identity_credentials:
-            exe_env.append("IDTOKENS_FILE=%s" % submit_credentials.identity_credentials["frontend_condortoken"])
+            exe_env.append("IDTOKENS_FILE=%s" % submit_credentials.identity_credentials["frontend_condortoken"].path)
         else:
             # TODO: this ends up transferring an empty file called 'null' in the Glidein start dir. Find a better way
             exe_env.append("IDTOKENS_FILE=/dev/null")
@@ -1955,12 +1955,12 @@ def get_submit_environment(
                 pass
             exe_env.append(
                 "GRID_RESOURCE_OPTIONS=--rgahp-key %s --rgahp-nopass"
-                % submit_credentials.security_credentials["PrivateKey"]
+                % submit_credentials.security_credentials["PrivateKey"].path
             )
-            exe_env.append("X509_USER_PROXY=%s" % submit_credentials.security_credentials["GlideinProxy"])
+            exe_env.append("X509_USER_PROXY=%s" % submit_credentials.security_credentials["GlideinProxy"].path)
             exe_env.append(
                 "X509_USER_PROXY_BASENAME=%s"
-                % os.path.basename(submit_credentials.security_credentials["GlideinProxy"])
+                % os.path.basename(submit_credentials.security_credentials["GlideinProxy"].path)
             )
             glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
             # condor and batch (BLAH/BOSCO) submissions do not like arguments enclosed in quotes
@@ -1978,21 +1978,21 @@ def get_submit_environment(
             # log.debug("submit_credentials.identity_credentials: %s" % str(submit_credentials.identity_credentials))
 
             try:
-                exe_env.append("X509_USER_PROXY=%s" % submit_credentials.security_credentials["GlideinProxy"])
+                exe_env.append("X509_USER_PROXY=%s" % submit_credentials.security_credentials["GlideinProxy"].path)
 
                 exe_env.append("IMAGE_ID=%s" % submit_credentials.identity_credentials["VMId"])
                 exe_env.append("INSTANCE_TYPE=%s" % submit_credentials.identity_credentials["VMType"])
                 if grid_type == "ec2":
-                    exe_env.append("ACCESS_KEY_FILE=%s" % submit_credentials.security_credentials["PublicKey"])
-                    exe_env.append("SECRET_KEY_FILE=%s" % submit_credentials.security_credentials["PrivateKey"])
+                    exe_env.append("ACCESS_KEY_FILE=%s" % submit_credentials.security_credentials["PublicKey"].path)
+                    exe_env.append("SECRET_KEY_FILE=%s" % submit_credentials.security_credentials["PrivateKey"].path)
                     exe_env.append(
-                        "CREDENTIAL_DIR=%s" % os.path.dirname(submit_credentials.security_credentials["PublicKey"])
+                        "CREDENTIAL_DIR=%s" % os.path.dirname(submit_credentials.security_credentials["PublicKey"].path)
                     )
                 elif grid_type == "gce":
-                    exe_env.append("GCE_AUTH_FILE=%s" % submit_credentials.security_credentials["AuthFile"])
+                    exe_env.append("GCE_AUTH_FILE=%s" % submit_credentials.security_credentials["AuthFile"].path)
                     exe_env.append("GRID_RESOURCE_OPTIONS=%s" % "$(gce_project_name) $(gce_availability_zone)")
                     exe_env.append(
-                        "CREDENTIAL_DIR=%s" % os.path.dirname(submit_credentials.security_credentials["AuthFile"])
+                        "CREDENTIAL_DIR=%s" % os.path.dirname(submit_credentials.security_credentials["AuthFile"].path)
                     )
 
                 try:
@@ -2039,7 +2039,7 @@ email_logs = False
                 exe_env.append("USER_DATA=%s" % ini)
 
                 # get the proxy
-                full_path_to_proxy = submit_credentials.security_credentials["GlideinProxy"]
+                full_path_to_proxy = submit_credentials.security_credentials["GlideinProxy"].path
                 exe_env.append("GLIDEIN_PROXY_FNAME=%s" % full_path_to_proxy)
 
             except KeyError:
@@ -2055,8 +2055,9 @@ email_logs = False
                 # Unknown error, re-raise to stop the environment build
                 raise
         else:
-            proxy = submit_credentials.security_credentials.get("SubmitProxy", "")
-            exe_env.append("X509_USER_PROXY=%s" % proxy)
+            proxy = submit_credentials.security_credentials.get("SubmitProxy", None)
+            proxy_path = proxy.path if proxy else ""
+            exe_env.append("X509_USER_PROXY=%s" % proxy_path)
 
             # TODO: we might review this part as we added this here because the macros were been expanded when used in the gt2 submission
             # we don't add the macros to the arguments for the EC2 submission since condor will never

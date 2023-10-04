@@ -32,7 +32,6 @@ from M2Crypto.RSA import RSAError
 
 from glideinwms.factory import (
     glideFactoryConfig,
-    glideFactoryCredentials,
     glideFactoryDowntimeLib,
     glideFactoryEntryGroup,
     glideFactoryInterface,
@@ -41,7 +40,7 @@ from glideinwms.factory import (
     glideFactoryMonitoring,
     glideFactoryPidLib,
 )
-from glideinwms.lib import cleanupSupport, condorMonitor, glideinWMSVersion, logSupport, util
+from glideinwms.lib import cleanupSupport, condorMonitor, credentials, glideinWMSVersion, logSupport, util
 from glideinwms.lib.condorMonitor import CondorQEdit, QueryError
 from glideinwms.lib.pubCrypto import RSAKey
 
@@ -647,14 +646,14 @@ def spawn(
             # available when the Entries startup
             classads = {}
             try:
-                classads = glideFactoryCredentials.get_globals_classads()
+                classads = credentials.get_globals_classads()
             except Exception:
                 logSupport.log.error("Error occurred retrieving globals classad -- is Condor running?")
 
             for classad_key in classads:
                 classad = classads[classad_key]
                 try:
-                    glideFactoryCredentials.process_global(classad, glideinDescript, frontendDescript)
+                    credentials.process_global(classad, glideinDescript, frontendDescript)
                 except:
                     logSupport.log.exception("Error occurred processing the globals classads: ")
 

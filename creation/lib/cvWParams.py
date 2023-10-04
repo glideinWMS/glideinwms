@@ -342,6 +342,11 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults["vm_type_fname"] = (None, "fname", "to specify a vm type without reconfig", None)
         proxy_defaults["project_id"] = (None, "string", "OSG Project ID. Ex TG-12345", None)
 
+        # Parameter settings
+        parameter_defaults = cWParams.CommentedOrderedDict()
+        parameter_defaults["name"] = (None, "string", "parameter name", None)
+        parameter_defaults["value"] = (None, "string", "parameter value", None)
+
         security_defaults = cWParams.CommentedOrderedDict()
         security_defaults["proxy_selection_plugin"] = (
             None,
@@ -354,6 +359,12 @@ class VOFrontendParams(cWParams.CommonParams):
             "List of credentials",
             "Each credential element contains",
             proxy_defaults,
+        )
+        security_defaults["parameters"] = (
+            OrderedDict(),
+            "List of parameters",
+            "Each parameter element contains",
+            parameter_defaults,
         )
         security_defaults["security_name"] = (
             None,
@@ -725,6 +736,7 @@ class VOFrontendParams(cWParams.CommonParams):
                 "attrs": {"el_name": "attr", "subtypes_params": {"class": {}}},
                 "groups": {"el_name": "group", "subtypes_params": {"class": {}}},
                 "match_attrs": {"el_name": "match_attr", "subtypes_params": {"class": {}}},
+                "parameters": {"el_name": "parameter", "subtypes_params": {"class": {}}},
             },
         }
 

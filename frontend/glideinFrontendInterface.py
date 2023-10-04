@@ -27,6 +27,7 @@ from glideinwms.lib import (
     x509Support,
 )
 from glideinwms.lib.util import hash_nc
+from glideinwms.lib.credentials import CredentialPair, CredentialType, AuthenticationMethod
 
 ############################################################
 #
@@ -290,6 +291,7 @@ def format_condor_dict(data):
 # and not for every iteration.
 
 
+# DEPRECATED: use glideinwms.lib.credentials.Credential
 class Credential:
     def __init__(self, proxy_id, proxy_fname, elementDescript):
         self.req_idle = 0
@@ -462,7 +464,7 @@ class Credential:
         if (remaining != -1) and (self.update_frequency != -1) and (remaining < self.update_frequency):
             self.create()
 
-    def supports_auth_method(self, auth_method):
+    def supports_auth_method(self, auth_method):  # TODO: Check for credentials refactoring impact
         """
         Check if this credential has all the necessary info to support
         auth_method for a given factory entry
@@ -834,6 +836,7 @@ class MultiAdvertizeWork:
             count += len(self.factory_queue[factory_pool])
         return count
 
+    # TODO: Review the need for this method. If we're keeping it, it should be refactored.
     def renew_and_load_credentials(self):
         """
         Get the list of proxies,
@@ -841,6 +844,7 @@ class MultiAdvertizeWork:
         and read the credentials in memory.
         Modifies the self.x509_proxies_data variable.
         """
+        # TODO: remove references to x509
         self.x509_proxies_data = []
         if self.descript_obj.x509_proxies_plugin is not None:
             self.x509_proxies_data = self.descript_obj.x509_proxies_plugin.get_credentials()
@@ -852,24 +856,8 @@ class MultiAdvertizeWork:
         for i in range(nr_credentials):
             cred_el = self.x509_proxies_data[i]
             cred_el.advertize = True
-            cred_el.renew()
-            cred_el.createIfNotExist()
-
-            cred_el.loaded_data = []
-            for cred_file in (cred_el.filename, cred_el.key_fname, cred_el.pilot_fname):
-                if cred_file:
-                    try:
-                        cred_data = cred_el.generated_data
-                    except AttributeError:
-                        # TODO: credential parsing form file could fail (wrong permission, not found, ...)
-                        #  Add message? Handle here or declare raising
-                        cred_data = cred_el.getString(cred_file)
-                    if cred_data:
-                        cred_el.loaded_data.append((cred_file, cred_data))
-                    else:
-                        # We encountered error with this credential
-                        # Move onto next credential
-                        break
+            cred_el.credential.renew()
+            cred_el.credential.save_to_file(overwrite=False)
 
         return nr_credentials
 
@@ -990,14 +978,12 @@ class MultiAdvertizeWork:
                 cred_el = self.x509_proxies_data[i]
                 if cred_el.advertize == False:
                     continue  # we already determined it cannot be used
-                for ld_el in cred_el.loaded_data:
-                    ld_fname, ld_data = ld_el
-                    glidein_params_to_encrypt[cred_el.file_id(ld_fname)] = ld_data
-                    if hasattr(cred_el, "security_class"):
-                        # Convert the sec class to a string so the Factory can interpret the value correctly
-                        glidein_params_to_encrypt["SecurityClass" + cred_el.file_id(ld_fname)] = str(
-                            cred_el.security_class
-                        )
+                glidein_params_to_encrypt[cred_el.id] = cred_el.credential.string
+                if hasattr(cred_el, "security_class"):
+                    # Convert the sec class to a string so the Factory can interpret the value correctly
+                    glidein_params_to_encrypt["SecurityClass" + cred_el.id] = str(
+                        cred_el.security_class
+                    )
 
             key_obj = None
             if factory_pool in self.global_key:
@@ -1159,6 +1145,7 @@ class MultiAdvertizeWork:
         logSupport.log.debug("In create Advertize work")
 
         factory_trust, factory_auth = self.factory_constraint[params_obj.request_name]
+        factory_auth = AuthenticationMethod(factory_auth)
 
         total_nr_credentials = len(self.x509_proxies_data)
 
@@ -1176,12 +1163,21 @@ class MultiAdvertizeWork:
         nr_credentials = len(credentials_with_requests)
         if nr_credentials == 0:
             raise NoCredentialException
+        
+        cred_types = set(t.credential.cred_type for t in credentials_with_requests)
+        auth_set = factory_auth.match(cred_types)
+        if not auth_set:
+            logSupport.log.warning("No credentials match for factory pool %s, not advertising request" % factory_pool)
+            raise NoCredentialException
 
         if file_id_cache is None:
             # create a local cache, if no global provided
             file_id_cache = CredentialCache()
+        
+        for name, value in descript_obj.x509_proxies_plugin.params_dict.items():
+            params_obj.glidein_params_to_encrypt[name.value] = value
 
-        for i in range(nr_credentials):
+        for credential_el in credentials_with_requests:
             fd = None
             glidein_monitors_this_cred = {}
             try:
@@ -1196,9 +1192,7 @@ class MultiAdvertizeWork:
                 req_idle = 0
                 req_max_run = 0
 
-                # credential_el (Credebtial())
-                credential_el = credentials_with_requests[i]
-                logSupport.log.debug(f"Checking Credential file {credential_el.filename} ...")
+                logSupport.log.debug(f"Checking Credential file {credential_el.credential.path} ...")
                 if credential_el.advertize == False:
                     # We already determined it cannot be used
                     # if hasattr(credential_el,'filename'):
@@ -1206,27 +1200,19 @@ class MultiAdvertizeWork:
                     # logSupport.log.warning("Credential file %s had some earlier problem in loading so not advertizing, skipping..."%(filestr))
                     continue
 
-                if credential_el.supports_auth_method("scitoken"):
-                    try:
-                        # try first for credential generator
-                        token_expired = token_util.token_str_expired(credential_el.generated_data)
-                    except AttributeError:
-                        # then try file stored credential
-                        token_expired = token_util.token_file_expired(credential_el.filename)
-                    if token_expired:
-                        logSupport.log.warning(
-                            f"Credential file {credential_el.filename} has expired scitoken, skipping"
-                        )
-                        continue
-                    glidein_params_to_encrypt["ScitokenId"] = file_id_cache.file_id(
-                        credential_el, credential_el.filename
+                # TODO: REFACTOR THIS BLOCK!!!
+                if not credential_el.credential.valid():
+                    logSupport.log.warning(
+                        f"Credential file {credential_el.credential.path} has expired, skipping..."
                     )
+                    continue
 
                 if params_obj.request_name in self.factory_constraint:
-                    if (factory_auth != "Any") and (not credential_el.supports_auth_method(factory_auth)):
+                    if not auth_set.supports(credential_el.credential.cred_type):
+                        # TODO: Check for credentials refactoring impact
                         logSupport.log.warning(
                             "Credential %s does not match auth method %s (for %s), skipping..."
-                            % (credential_el.type, factory_auth, params_obj.request_name)
+                            % (credential_el.credential.cred_type, factory_auth, params_obj.request_name)
                         )
                         continue
                     if (credential_el.trust_domain != factory_trust) and (factory_trust != "Any"):
@@ -1237,66 +1223,26 @@ class MultiAdvertizeWork:
                         continue
                 # Convert the sec class to a string so the Factory can interpret the value correctly
                 glidein_params_to_encrypt["SecurityClass"] = str(credential_el.security_class)
-                classad_name = credential_el.file_id(credential_el.filename, ignoredn=True) + "_" + classad_name
-                if "username_password" in credential_el.type:
-                    glidein_params_to_encrypt["Username"] = file_id_cache.file_id(credential_el, credential_el.filename)
-                    glidein_params_to_encrypt["Password"] = file_id_cache.file_id(
-                        credential_el, credential_el.key_fname
-                    )
-                if "grid_proxy" in credential_el.type:
-                    glidein_params_to_encrypt["SubmitProxy"] = file_id_cache.file_id(
-                        credential_el, credential_el.filename
-                    )
-                if "cert_pair" in credential_el.type:
-                    glidein_params_to_encrypt["PublicCert"] = file_id_cache.file_id(
-                        credential_el, credential_el.filename
-                    )
-                    glidein_params_to_encrypt["PrivateCert"] = file_id_cache.file_id(
-                        credential_el, credential_el.key_fname
-                    )
-                if "key_pair" in credential_el.type:
-                    glidein_params_to_encrypt["PublicKey"] = file_id_cache.file_id(
-                        credential_el, credential_el.filename
-                    )
-                    glidein_params_to_encrypt["PrivateKey"] = file_id_cache.file_id(
-                        credential_el, credential_el.key_fname
-                    )
-                if "auth_file" in credential_el.type:
-                    glidein_params_to_encrypt["AuthFile"] = file_id_cache.file_id(credential_el, credential_el.filename)
-                if "vm_id" in credential_el.type:
-                    if credential_el.vm_id_fname:
-                        glidein_params_to_encrypt["VMId"] = self.vm_attribute_from_file(
-                            credential_el.vm_id_fname, "VM_ID"
-                        )
-                    else:
-                        glidein_params_to_encrypt["VMId"] = str(credential_el.vm_id)
-                if "vm_type" in credential_el.type:
-                    if credential_el.vm_type_fname:
-                        glidein_params_to_encrypt["VMType"] = self.vm_attribute_from_file(
-                            credential_el.vm_type_fname, "VM_TYPE"
-                        )
-                    else:
-                        glidein_params_to_encrypt["VMType"] = str(credential_el.vm_type)
-                    # removing this, was here by mistake? glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
+                classad_name = credential_el.id + "_" + classad_name
 
-                # Process additional information of the credential
-                if credential_el.pilot_fname:
-                    glidein_params_to_encrypt["GlideinProxy"] = file_id_cache.file_id(
-                        credential_el, credential_el.pilot_fname
-                    )
+                glidein_params_to_encrypt[credential_el.credential.classad_attribute] = credential_el.id
+                if isinstance(credential_el.credential, CredentialPair):
+                    glidein_params_to_encrypt[credential_el.credential.private_credential.classad_attribute] = credential_el.private_id
 
-                if credential_el.remote_username:  # MM: or "username" in credential_el.type
-                    glidein_params_to_encrypt["RemoteUsername"] = str(credential_el.remote_username)
-                if credential_el.project_id:
-                    glidein_params_to_encrypt["ProjectId"] = str(credential_el.project_id)
+                # TODO: Is this still needed?
+                # # Process additional information of the credential
+                # if credential_el.pilot_fname:
+                #     glidein_params_to_encrypt["GlideinProxy"] = file_id_cache.file_id(
+                #         credential_el, credential_el.pilot_fname
+                #     )
 
-                (req_idle, req_max_run) = credential_el.get_usage_details()
+                (req_idle, req_max_run) = (credential_el.req_idle, credential_el.req_max_run)
                 logSupport.log.debug(
                     "Advertizing credential %s with (%d idle, %d max run) for request %s"
-                    % (credential_el.filename, req_idle, req_max_run, params_obj.request_name)
+                    % (credential_el.credential.path, req_idle, req_max_run, params_obj.request_name)
                 )
 
-                glidein_monitors_this_cred = params_obj.glidein_monitors_per_cred.get(credential_el.getId(), {})
+                glidein_monitors_this_cred = params_obj.glidein_monitors_per_cred.get(credential_el.id, {})
 
                 if frontendConfig.advertise_use_multi is True:
                     fname = self.adname
@@ -1368,13 +1314,14 @@ class MultiAdvertizeWork:
                 # add a final empty line... useful when appending
                 fd.write("\n")
                 fd.close()
-            except:
-                logSupport.log.exception("Exception writing advertisement file: ")
+            except Exception as e:
+                logSupport.log.exception(f"Exception writing advertisement file: {e}")
                 # remove file in case of problems
                 if fd is not None:
                     fd.close()
                     os.remove(fname)
                 raise
+
         return cred_filename_arr
 
     def set_glidein_config_limits(self, limits_data):

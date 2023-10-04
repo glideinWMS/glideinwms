@@ -17,11 +17,21 @@ import sys
 import tempfile
 import traceback
 
-from glideinwms.factory import glideFactoryConfig, glideFactoryCredentials, glideFactoryDowntimeLib
+from glideinwms.factory import glideFactoryConfig, glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryInterface as gfi
 from glideinwms.factory import glideFactoryLib, glideFactoryLogParser, glideFactoryMonitoring, glideFactoryPidLib
-from glideinwms.lib import classadSupport, cleanupSupport, defaults, glideinWMSVersion, logSupport, token_util, util
+from glideinwms.lib import (
+    classadSupport,
+    cleanupSupport,
+    credentials,
+    defaults,
+    glideinWMSVersion,
+    logSupport,
+    token_util,
+    util,
+)
 from glideinwms.lib.util import chmod
+from glideinwms.lib.defaults import force_bytes
 
 
 ############################################################
@@ -1036,10 +1046,10 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         scitoken_passthru = params.get("CONTINUE_IF_NO_PROXY") == "True"
         try:
             entry.log.debug("Checking security credentials for client %s " % client_int_name)
-            glideFactoryCredentials.check_security_credentials(
+            credentials.check_security_credentials(
                 auth_method, decrypted_params, client_int_name, entry.name, scitoken_passthru
             )
-        except glideFactoryCredentials.CredentialError:
+        except credentials.CredentialError:
             entry.log.exception("Error checking credentials, skipping request: ")
             continue
 
@@ -1221,60 +1231,34 @@ def unit_work_v3(
         return return_dict
 
     # Initialize submit credential object & determine the credential location
-    submit_credentials = glideFactoryCredentials.SubmitCredentials(credential_username, credential_security_class)
+    submit_credentials = credentials.SubmitBundle(credential_username, credential_security_class)
     submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username)
 
-    condortoken = f"{entry.name}.idtoken"
-    condortokenbase = f"credential_{client_int_name}_{entry.name}.idtoken"
-    condortoken_file = os.path.join(submit_credentials.cred_dir, condortokenbase)
-    condortoken_data = decrypted_params.get(condortoken)
+    condortoken_name = f"{entry.name}.idtoken"
+    condortoken_file = os.path.join(submit_credentials.cred_dir, f"credential_{client_int_name}_{entry.name}.idtoken")
+    condortoken_data = decrypted_params.get(condortoken_name)
     if condortoken_data:
-        (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
-        try:
-            entry.log.info(f"frontend_token supplied, writing to {condortoken_file}")
-            chmod(tmpnm, 0o600)
-            os.write(fd, condortoken_data.encode("utf-8"))
-            os.close(fd)
-            util.file_tmp2final(condortoken_file, tmpnm)
-
-        except Exception as err:
-            entry.log.exception(f"failed to create token: {err}")
-            for i in sys.exc_info():
-                entry.log.exception("%s" % i)
-        finally:
-            if os.path.exists(tmpnm):
-                os.remove(tmpnm)
-    if os.path.exists(condortoken_file):
-        if not submit_credentials.add_identity_credential("frontend_condortoken", condortoken_file):
+        condortoken = credentials.create_credential(string=force_bytes(condortoken_data), path=condortoken_file)
+        entry.log.info(f"frontend_token supplied, writing to {condortoken.path}")
+        condortoken.save_to_file(backup=True)
+        if not submit_credentials.add_identity_credential("frontend_condortoken", condortoken):
             entry.log.warning(
                 "failed to add frontend_condortoken %s to the identity credentials %s"
-                % (condortoken_file, str(submit_credentials.identity_credentials))
+                % (condortoken.path, str(submit_credentials.identity_credentials))
             )
 
     scitoken_passthru = params.get("CONTINUE_IF_NO_PROXY") == "True"
-    scitoken = f"credential_{client_int_name}_{entry.name}.scitoken"
-    scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
+    scitoken_name = f"credential_{client_int_name}_{entry.name}.scitoken"
+    scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken_name)
     scitoken_data = decrypted_params.get("frontend_scitoken")
     if scitoken_data:
-        if token_util.token_str_expired(scitoken_data):
+        scitoken = credentials.create_credential(string=force_bytes(scitoken_data), path=scitoken_file)
+        if not scitoken.valid():
             entry.log.warning(f"Continuing, but the frontend_scitoken supplied is expired: {scitoken_file}")
-        tmpnm = ""
-        try:
-            entry.log.info(f"frontend_scitoken supplied, writing to {scitoken_file}")
-            (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
-            with os.fdopen(fd, "w", encoding="utf-8") as f:
-                f.write(f"{scitoken_data.strip()}\n")
-            chmod(tmpnm, 0o600)
-            util.file_tmp2final(scitoken_file, tmpnm)
-        except Exception as err:
-            entry.log.exception(f"failed to create scitoken: {err}")
-        finally:
-            if os.path.exists(tmpnm):
-                os.remove(tmpnm)
-
-    if os.path.exists(scitoken_file):
+        entry.log.info(f"frontend_scitoken supplied, writing to {scitoken_file}")
+        scitoken.save_to_file(backup=True)
         # TODO: why identity_credential and not submit_credential? Consider moving when refactoring
-        if not submit_credentials.add_identity_credential("frontend_scitoken", scitoken_file):
+        if not submit_credentials.add_identity_credential("frontend_scitoken", scitoken):
             entry.log.warning(
                 "failed to add frontend_scitoken %s to identity credentials %s"
                 % (scitoken_file, str(submit_credentials.identity_credentials))
@@ -1294,7 +1278,8 @@ def unit_work_v3(
 
     if "scitoken" in auth_method:
         if os.path.exists(scitoken_file):
-            if token_util.token_file_expired(scitoken_file):
+            scitoken = credentials.create_credential(path=scitoken_file)
+            if not scitoken.valid():
                 entry.log.warning(f"Found frontend_scitoken '{scitoken_file}', but is expired. Continuing")
             if "ScitokenId" in decrypted_params:
                 scitoken_id = decrypted_params.get("ScitokenId")
@@ -1361,9 +1346,10 @@ def unit_work_v3(
                     # create an idtoken file that process_global can find and add to compressed credential
                     _fname_idtoken = f"credential_{client_int_name}_{proxy_id}_idtoken"
                     credential_idtoken_fname = os.path.join(submit_credentials.cred_dir, _fname_idtoken)
-                    glideFactoryCredentials.safe_update(
-                        credential_idtoken_fname, defaults.force_bytes(condortoken_data)
+                    condortoken = credentials.create_credential(
+                        string=force_bytes(condortoken_data), path=credential_idtoken_fname
                     )
+                    condortoken.save_to_file(backup=True)
             else:
                 # BOSCO is using regular proxy, not compressed
                 credential_name = f"{client_int_name}_{proxy_id}"
@@ -1390,7 +1376,7 @@ def unit_work_v3(
         if grid_type in ("ec2", "gce"):
             # vm_id and vm_type are only applicable to Clouds
 
-            if "vm_id" in auth_method:
+            if "vm_id" in auth_method:  # TODO: Check for credentials refactoring impact
                 # First check if the Frontend supplied it
                 vm_id = decrypted_params.get("VMId")
                 if not vm_id:
@@ -1409,7 +1395,7 @@ def unit_work_v3(
                     )
                     return return_dict
 
-            if "vm_type" in auth_method:
+            if "vm_type" in auth_method:  # TODO: Check for credentials refactoring impact
                 # First check if the Frontend supplied it
                 vm_type = decrypted_params.get("VMType")
                 if not vm_type:
@@ -1431,7 +1417,7 @@ def unit_work_v3(
         submit_credentials.add_identity_credential("VMId", vm_id)
         submit_credentials.add_identity_credential("VMType", vm_type)
 
-        if "cert_pair" in auth_method:
+        if "cert_pair" in auth_method:  # TODO: Check for credentials refactoring impact
             public_cert_id = decrypted_params.get("PublicCert")
             submit_credentials.id = public_cert_id
             if public_cert_id and not submit_credentials.add_security_credential(
@@ -1453,7 +1439,7 @@ def unit_work_v3(
                 )
                 return return_dict
 
-        elif "key_pair" in auth_method:
+        elif "key_pair" in auth_method:  # TODO: Check for credentials refactoring impact
             # Used by AWS & BOSCO so handle accordingly
             public_key_id = decrypted_params.get("PublicKey")
             submit_credentials.id = public_key_id
@@ -1477,7 +1463,7 @@ def unit_work_v3(
                 # and remove if clause? Check with Marco Mambelli
                 remote_username = decrypted_params.get("RemoteUsername")
                 if not remote_username:
-                    if "username" in auth_method:
+                    if "username" in auth_method:  # TODO: Check for credentials refactoring impact
                         entry.log.warning(
                             f"Client '{client_int_name}' did not specify a remote username in the request, "
                             f"this is required by entry {entry.name}, skipping request."
@@ -1504,7 +1490,7 @@ def unit_work_v3(
                 )
                 return return_dict
 
-        elif "auth_file" in auth_method:
+        elif "auth_file" in auth_method:  # TODO: Check for credentials refactoring impact
             auth_file_id = decrypted_params.get("AuthFile")
             submit_credentials.id = auth_file_id
             if auth_file_id and not submit_credentials.add_security_credential(
@@ -1516,7 +1502,7 @@ def unit_work_v3(
                 )
                 return return_dict
 
-        elif "username_password" in auth_method:
+        elif "username_password" in auth_method:  # TODO: Check for credentials refactoring impact
             username_id = decrypted_params.get("Username")
             submit_credentials.id = username_id
             if username_id and not submit_credentials.add_security_credential(

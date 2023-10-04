@@ -38,6 +38,7 @@ from glideinwms.frontend import (
 from glideinwms.lib import (
     cleanupSupport,
     condorMonitor,
+    credentials,
     logSupport,
     pubCrypto,
     servicePerformance,
@@ -170,8 +171,8 @@ class glideinFrontendElement:
         self.removal_requests_tracking = self.elementDescript.element_data["RemovalRequestsTracking"]
         self.removal_margin = int(self.elementDescript.element_data["RemovalMargin"])
 
-        # Default behavior: Use factory proxies unless configure overrides it
-        self.x509_proxy_plugin = None
+        # Default bahavior: Use factory proxies unless configure overrides it
+        self.x509_proxy_plugin: glideinFrontendPlugins.CredentialsPlugin = None # type: ignore
 
         # If not None, this is a request for removal of glideins only (i.e. do not ask for more)
         self.request_removal_wtype = None
@@ -221,11 +222,12 @@ class glideinFrontendElement:
             if not proxy_plugins.get(self.elementDescript.merged_data["ProxySelectionPlugin"]):
                 logSupport.log.warning(
                     "Invalid ProxySelectionPlugin '%s', supported plugins are %s"
-                    % (self.elementDescript.merged_data["ProxySelectionPlugin"], list(proxy_plugins.keys()))
+                    % (self.elementDescript.merged_data["ProxySelectionPlugin"],
+                    list(proxy_plugins.keys()))
                 )
                 return 1
             self.x509_proxy_plugin = proxy_plugins[self.elementDescript.merged_data["ProxySelectionPlugin"]](
-                group_dir, glideinFrontendPlugins.createCredentialList(self.elementDescript)
+                group_dir, glideinFrontendPlugins.createRequestBundle(self.elementDescript)
             )
         self.idtoken_lifetime = int(self.elementDescript.merged_data.get("IDTokenLifetime", 24))
         self.idtoken_keyname = self.elementDescript.merged_data.get("IDTokenKeyname", "FRONTEND")
@@ -786,9 +788,9 @@ class glideinFrontendElement:
 
             """
             for cred in self.x509_proxy_plugin.cred_list:
-                glidein_monitors_per_cred[cred.getId()] = {}
+                glidein_monitors_per_cred[cred.id] = {}
                 for t in count_status:
-                    glidein_monitors_per_cred[cred.getId()]['Glideins%s' % t] = count_status_per_cred[cred.getId()][t]
+                    glidein_monitors_per_cred[cred.id]['Glideins%s' % t] = count_status_per_cred[cred.id][t]
             """
 
             # Number of credentials that have running and glideins.
@@ -801,12 +803,12 @@ class glideinFrontendElement:
             creds_with_running = 0
 
             for cred in self.x509_proxy_plugin.cred_list:
-                glidein_monitors_per_cred[cred.getId()] = {}
+                glidein_monitors_per_cred[cred.id] = {}
                 for t in count_status:
-                    glidein_monitors_per_cred[cred.getId()]["Glideins%s" % t] = count_status_per_cred[cred.getId()][t]
-                glidein_monitors_per_cred[cred.getId()]["ScaledRunning"] = 0
+                    glidein_monitors_per_cred[cred.id]["Glideins%s" % t] = count_status_per_cred[cred.id][t]
+                glidein_monitors_per_cred[cred.id]["ScaledRunning"] = 0
                 # This credential has running glideins.
-                if glidein_monitors_per_cred[cred.getId()]["GlideinsRunning"]:
+                if glidein_monitors_per_cred[cred.id]["GlideinsRunning"]:
                     creds_with_running += 1
 
             if creds_with_running:
@@ -814,19 +816,19 @@ class glideinFrontendElement:
                 scaled = 0
                 tr = glidein_monitors["Running"]
                 for cred in self.x509_proxy_plugin.cred_list:
-                    if glidein_monitors_per_cred[cred.getId()]["GlideinsRunning"]:
+                    if glidein_monitors_per_cred[cred.id]["GlideinsRunning"]:
                         # This cred has running. Scale them down
 
                         if (creds_with_running - scaled) == 1:
                             # This is the last one. Assign remaining running
 
-                            glidein_monitors_per_cred[cred.getId()]["ScaledRunning"] = (
+                            glidein_monitors_per_cred[cred.id]["ScaledRunning"] = (
                                 tr - (tr // creds_with_running) * scaled
                             )
                             scaled += 1
                             break
                         else:
-                            glidein_monitors_per_cred[cred.getId()]["ScaledRunning"] = tr // creds_with_running
+                            glidein_monitors_per_cred[cred.id]["ScaledRunning"] = tr // creds_with_running
                             scaled += 1
 
             key_obj = None
@@ -862,17 +864,17 @@ class glideinFrontendElement:
                         logSupport.log.debug("could NOT find condor token: %s" % entry_token_name)
 
                 # now try to generate a credential using a generator plugin
-                generator_name, stkn = self.generate_credential(
+                generator_name, stkn = credentials.generate_credential(
                     self.elementDescript, glidein_el, self.group_name, trust_domain
                 )
 
                 # look for a local scitoken if no credential was generated
                 if not stkn:
-                    stkn = self.get_scitoken(self.elementDescript, trust_domain)
+                    stkn = credentials.get_scitoken(self.elementDescript, trust_domain)
 
                 if stkn:
                     if generator_name:
-                        for cred_el in advertizer.descript_obj.x509_proxies_plugin.cred_list:
+                        for cred_el in advertizer.descript_obj.x509_proxies_plugin.cred_list: # type: ignore
                             if cred_el.filename == generator_name:
                                 cred_el.generated_data = stkn
                                 break
@@ -959,109 +961,6 @@ class glideinFrontendElement:
         servicePerformance.endPerfMetricEvent(self.group_name, "advertize_classads")
 
         return
-
-    def get_scitoken(self, elementDescript, trust_domain):
-        """Look for a local SciToken specified for the trust domain.
-
-        Args:
-            elementDescript (ElementMergedDescript): element descript
-            trust_domain (string): trust domain for the element
-
-        Returns:
-            string, None: SciToken or None if not found
-        """
-
-        scitoken_fullpath = ""
-        cred_type_data = elementDescript.element_data.get("ProxyTypes")
-        trust_domain_data = elementDescript.element_data.get("ProxyTrustDomains")
-        if not cred_type_data:
-            cred_type_data = elementDescript.frontend_data.get("ProxyTypes")
-        if not trust_domain_data:
-            trust_domain_data = elementDescript.frontend_data.get("ProxyTrustDomains")
-        if trust_domain_data and cred_type_data:
-            cred_type_map = eval(cred_type_data)
-            trust_domain_map = eval(trust_domain_data)
-            for cfname in cred_type_map:
-                if cred_type_map[cfname] == "scitoken":
-                    if trust_domain_map[cfname] == trust_domain:
-                        scitoken_fullpath = cfname
-
-        if os.path.exists(scitoken_fullpath):
-            try:
-                logSupport.log.debug(f"found scitoken {scitoken_fullpath}")
-                stkn = ""
-                with open(scitoken_fullpath) as fbuf:
-                    for line in fbuf:
-                        stkn += line
-                stkn = stkn.strip()
-                return stkn
-            except Exception as err:
-                logSupport.log.exception(f"failed to read scitoken: {err}")
-
-        return None
-
-    def generate_credential(self, elementDescript, glidein_el, group_name, trust_domain):
-        """Generates a credential with a credential generator plugin provided for the trust domain.
-
-        Args:
-            elementDescript (ElementMergedDescript): element descript
-            glidein_el (dict): glidein element
-            group_name (string): group name
-            trust_domain (string): trust domain for the element
-
-        Returns:
-            string, None: Credential or None if not generated
-        """
-
-        ### The credential generator plugin should define the following function:
-        # def get_credential(log:logger, group:str, entry:dict{name:str, gatekeeper:str}, trust_domain:str):
-        # Generates a credential given the parameter
-
-        # Args:
-        # log:logger
-        # group:str,
-        # entry:dict{
-        #     name:str,
-        #     gatekeeper:str},
-        # trust_domain:str,
-        # Return
-        # tuple
-        #     token:str
-        #     lifetime:int seconds of remaining lifetime
-        # Exception
-        # KeyError - miss some information to generate
-        # ValueError - could not generate the token
-
-        generator = None
-        generators = elementDescript.element_data.get("CredentialGenerators")
-        trust_domain_data = elementDescript.element_data.get("ProxyTrustDomains")
-        if not generators:
-            generators = elementDescript.frontend_data.get("CredentialGenerators")
-        if not trust_domain_data:
-            trust_domain_data = elementDescript.frontend_data.get("ProxyTrustDomains")
-        if trust_domain_data and generators:
-            generators_map = eval(generators)
-            trust_domain_map = eval(trust_domain_data)
-            for cfname in generators_map:
-                if trust_domain_map[cfname] == trust_domain:
-                    generator = generators_map[cfname]
-                    logSupport.log.debug(f"found credential generator plugin {generator}")
-                    try:
-                        if not generator in plugins:
-                            plugins[generator] = import_module(generator)
-                        entry = {
-                            "name": glidein_el["attrs"].get("EntryName"),
-                            "gatekeeper": glidein_el["attrs"].get("GLIDEIN_Gatekeeper"),
-                            "factory": glidein_el["attrs"].get("AuthenticatedIdentity"),
-                        }
-                        stkn, _ = plugins[generator].get_credential(logSupport, group_name, entry, trust_domain)
-                        return cfname, stkn
-                    except ModuleNotFoundError:
-                        logSupport.log.warning(f"Failed to load credential generator plugin {generator}")
-                    except Exception as e:  # catch any exception from the plugin to prevent the frontend from crashing
-                        logSupport.log.warning(f"Failed to generate credential: {e}.")
-
-        return None, None
 
     def refresh_entry_token(self, glidein_el):
         """Create or update a condor token for an entry point
@@ -2326,7 +2225,7 @@ class glideinFrontendElement:
             count_status_multi[request_name] = {}
             count_status_multi_per_cred[request_name] = {}
             for cred in self.x509_proxy_plugin.cred_list:
-                count_status_multi_per_cred[request_name][cred.getId()] = {}
+                count_status_multi_per_cred[request_name][cred.id] = {}
 
             # It is cheaper to get Idle and Running from request-only
             # classads then filter out requests from Idle and Running
@@ -2358,7 +2257,7 @@ class glideinFrontendElement:
                     count_status_multi[request_name][st] = glideinFrontendLib.countCondorStatus(req_dict)
 
                 for cred in self.x509_proxy_plugin.cred_list:
-                    cred_id = cred.getId()
+                    cred_id = cred.id
                     cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict, cred_id)
 
                     if st in ("TotalCores", "IdleCores", "RunningCores"):

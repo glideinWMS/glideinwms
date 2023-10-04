@@ -1195,6 +1195,7 @@ def populate_common_descript(descript_dict, params):
                 descript_dict.add(proxy_attr_names[attr], repr(proxy_descript_values[attr]))
 
     match_expr = params.match.match_expr
+    descript_dict.add("Parameters", repr(params.security.parameters))
     descript_dict.add("MatchExpr", match_expr)
 
 

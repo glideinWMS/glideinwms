@@ -12,7 +12,6 @@ import sys
 
 from glideinwms.creation.lib.factoryXmlConfig import parse
 from glideinwms.factory import glideFactoryConfig as gfc
-from glideinwms.factory.glideFactoryCredentials import SubmitCredentials, validate_frontend
 from glideinwms.factory.glideFactoryLib import (
     ClientWeb,
     escapeParam,
@@ -20,6 +19,7 @@ from glideinwms.factory.glideFactoryLib import (
     set_condor_integrity_checks,
     submitGlideins,
 )
+from glideinwms.lib.credentials import SubmitBundle, validate_frontend
 
 try:
     import htcondor  # pylint: disable=import-error
@@ -186,7 +186,7 @@ def main():
         )
 
         # Create the submit_credentials object
-        credentials = SubmitCredentials(user_name, security_class)
+        credentials = SubmitBundle(user_name, security_class)
         credentials.id = proxyid
         credentials.cred_dir = conf.get_client_proxy_dirs()[user_name]
         credfname = "{}_{}".format(ad_gc["ClientName"], proxyid)

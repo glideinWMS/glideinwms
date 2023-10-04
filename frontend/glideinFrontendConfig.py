@@ -323,12 +323,16 @@ class ElementMergedDescript:
                     self.merged_data[t] = data[t]
 
         proxies = []
+        parameters = {}
         # switching the order, so that the group credential will
         # be chosen before the global credential when ProxyFirst is used.
         for data in (self.element_data, self.frontend_data):
             if "Proxies" in data:
                 proxies += eval(data["Proxies"])
+            if "Parameters" in data:
+                parameters.update(eval(data["Parameters"]))
         self.merged_data["Proxies"] = proxies
+        self.merged_data["Parameters"] = parameters
 
         proxy_descript_attrs = [
             "ProxySecurityClasses",

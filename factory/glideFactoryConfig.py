@@ -12,7 +12,7 @@ import os
 import os.path
 import shutil
 
-from glideinwms.lib import pubCrypto, symCrypto
+from glideinwms.lib import pubCrypto, symCrypto, credentials
 
 ############################################################
 #
@@ -114,7 +114,7 @@ class JoinConfigFile(ConfigFile):
 ############################################################
 
 
-class GlideinKey:
+class GlideinKey:  # TODO: Check for credentials refactor
     def __init__(self, pub_key_type, key_fname=None, recreate=False):
         self.pub_key_type = pub_key_type
         self.load(key_fname, recreate)
@@ -230,7 +230,7 @@ class GlideinDescript(ConfigFile):
 
         if self.data["OldPubKeyType"] is not None:
             try:
-                self.data["OldPubKeyObj"] = GlideinKey(self.data["OldPubKeyType"], key_fname=self.backup_rsakey_fname)
+                self.data["OldPubKeyObj"] = credentials.RSAKey(path=self.backup_rsakey_fname)
             except:
                 self.data["OldPubKeyType"] = None
                 self.data["OldPubKeyObj"] = None
@@ -256,9 +256,9 @@ class GlideinDescript(ConfigFile):
         """
 
         if self.data["PubKeyType"] is not None:
-            self.data["PubKeyObj"] = GlideinKey(
-                self.data["PubKeyType"], key_fname=self.default_rsakey_fname, recreate=recreate
-            )
+            self.data["PubKeyObj"] = credentials.RSAKey(path=self.default_rsakey_fname)
+            if recreate:
+                self.data["PubKeyObj"].recreate()
         else:
             self.data["PubKeyObj"] = None
         return
