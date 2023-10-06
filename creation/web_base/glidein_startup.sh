@@ -110,16 +110,16 @@ logdebug() {
 
 # Functions to start multiple glideins
 copy_all() {
-   # 1:prefix (of the files to skip), 2:directory
-   # should it copy also hidden files?
-   mkdir -p "$2"
-   for f in *; do
-       [[ -e "${f}" ]] || break    # protect for nullglob TODO: should this be a continue?
-       if [[ "${f}" = ${1}* ]]; then
-           continue
-       fi
-       cp -r "${f}" "$2"/
-   done
+    # 1:prefix (of the files to skip), 2:directory
+    # should it copy also hidden files?
+    mkdir -p "$2"
+    for f in *; do
+        [[ -e "${f}" ]] || break    # protect for nullglob TODO: should this be a continue?
+        if [[ "${f}" = ${1}* ]]; then
+            continue
+        fi
+        cp -r "${f}" "$2"/
+    done
 }
 
 do_start_all() {
@@ -242,11 +242,11 @@ else
 fi
 
 construct_xml() {
-  result="$1"
+    result="$1"
 
-  glidein_end_time="$(date +%s)"
+    glidein_end_time="$(date +%s)"
 
-  echo "<?xml version=\"1.0\"?>
+    echo "<?xml version=\"1.0\"?>
 <OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">
   <operatingenvironment>
     <env name=\"cwd\">${start_dir}</env>
@@ -262,135 +262,135 @@ ${result}
 
 
 extract_parent_fname() {
-  exitcode=$1
+    exitcode=$1
 
-  if [ -s otrx_output.xml ]; then
-      # file exists and is not 0 size
-      last_result=$(cat otrx_output.xml)
+    if [ -s otrx_output.xml ]; then
+        # file exists and is not 0 size
+        last_result=$(cat otrx_output.xml)
 
-      if [ "${exitcode}" -eq 0 ]; then
-          echo "SUCCESS"
-      else
-          last_script_name=$(echo "${last_result}" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}')
-          echo "${last_script_name}"
-      fi
-  else
-      echo "Unknown"
-  fi
+        if [ "${exitcode}" -eq 0 ]; then
+            echo "SUCCESS"
+        else
+            last_script_name=$(echo "${last_result}" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}')
+            echo "${last_script_name}"
+        fi
+    else
+        echo "Unknown"
+    fi
 }
 
 extract_parent_xml_detail() {
-  exitcode=$1
-  glidein_end_time="$(date +%s)"
+    exitcode=$1
+    glidein_end_time="$(date +%s)"
 
-  if [ -s otrx_output.xml ]; then
-      # file exists and is not 0 size
-      last_result="$(cat otrx_output.xml)"
+    if [ -s otrx_output.xml ]; then
+        # file exists and is not 0 size
+        last_result="$(cat otrx_output.xml)"
 
-      if [ "${exitcode}" -eq 0 ]; then
-          echo "  <result>"
-          echo "    <status>OK</status>"
-          # propagate metrics as well
-          echo "${last_result}" | grep '<metric '
-          echo "  </result>"
-      else
-          last_script_name=$(echo "${last_result}" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}')
+        if [ "${exitcode}" -eq 0 ]; then
+            echo "  <result>"
+            echo "    <status>OK</status>"
+            # propagate metrics as well
+            echo "${last_result}" | grep '<metric '
+            echo "  </result>"
+        else
+            last_script_name=$(echo "${last_result}" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}')
 
-          last_script_reason=$(echo "${last_result}" | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}')
-          my_reason="     Validation failed in ${last_script_name}.
+            last_script_reason=$(echo "${last_result}" | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}')
+            my_reason="     Validation failed in ${last_script_name}.
 
 ${last_script_reason}"
 
-          echo "  <result>"
-          echo "    <status>ERROR</status>
+            echo "  <result>"
+            echo "    <status>ERROR</status>
     <metric name=\"TestID\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${last_script_name}</metric>"
-          # propagate metrics as well (will include the failure metric)
-          echo "${last_result}" | grep '<metric '
-          echo "  </result>"
-          echo "  <detail>
+            # propagate metrics as well (will include the failure metric)
+            echo "${last_result}" | grep '<metric '
+            echo "  </result>"
+            echo "  <detail>
 ${my_reason}
   </detail>"
-      fi
-  else
-      # create a minimal XML file, else
-      echo "  <result>"
-      if [ "${exitcode}" -eq 0 ]; then
-          echo "    <status>OK</status>"
-      else
-          echo "    <status>ERROR</status>"
-          echo "    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Unknown</metric>"
-      fi
-      echo "  </result>
+        fi
+    else
+        # create a minimal XML file, else
+        echo "  <result>"
+        if [ "${exitcode}" -eq 0 ]; then
+            echo "    <status>OK</status>"
+        else
+            echo "    <status>ERROR</status>"
+            echo "    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Unknown</metric>"
+        fi
+        echo "  </result>
   <detail>
     No detail. Could not find source XML file.
   </detail>"
-  fi
+    fi
 }
 
 basexml2simplexml() {
-  final_result="$1"
+    final_result="$1"
 
-  # augment with node info
-  echo "${final_result}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<operatingenvironment>/{fr=0;}'
+    # augment with node info
+    echo "${final_result}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<operatingenvironment>/{fr=0;}'
 
-  echo "    <env name=\"client_name\">${client_name}</env>"
-  echo "    <env name=\"client_group\">${client_group}</env>"
+    echo "    <env name=\"client_name\">${client_name}</env>"
+    echo "    <env name=\"client_group\">${client_group}</env>"
 
-  echo "    <env name=\"user\">$(id -un)</env>"
-  echo "    <env name=\"arch\">$(uname -m)</env>"
-  if [ -e '/etc/redhat-release' ]; then
-      echo "    <env name=\"os\">$(cat /etc/redhat-release)</env>"
-  fi
-  echo "    <env name=\"hostname\">$(uname -n)</env>"
+    echo "    <env name=\"user\">$(id -un)</env>"
+    echo "    <env name=\"arch\">$(uname -m)</env>"
+    if [ -e '/etc/redhat-release' ]; then
+        echo "    <env name=\"os\">$(cat /etc/redhat-release)</env>"
+    fi
+    echo "    <env name=\"hostname\">$(uname -n)</env>"
 
-  echo "${final_result}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'
+    echo "${final_result}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'
 }
 
 simplexml2longxml() {
-  final_result_simple="$1"
-  global_result="$2"
+    final_result_simple="$1"
+    global_result="$2"
 
-  echo "${final_result_simple}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<OSGTestResult /{fr=0;}'
+    echo "${final_result_simple}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<OSGTestResult /{fr=0;}'
 
-  if [ "${global_result}" != "" ]; then
-      # subtests first, so it is more readable, when tailing
-      echo '  <subtestlist>'
-      echo '    <OSGTestResults>'
-      echo "${global_result}" | awk '{print "      " $0}'
-      echo '    </OSGTestResults>'
-      echo '  </subtestlist>'
-  fi
+    if [ "${global_result}" != "" ]; then
+        # subtests first, so it is more readable, when tailing
+        echo '  <subtestlist>'
+        echo '    <OSGTestResults>'
+        echo "${global_result}" | awk '{print "      " $0}'
+        echo '    </OSGTestResults>'
+        echo '  </subtestlist>'
+    fi
 
-  echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<OSGTestResult /{fr=1;}/<operatingenvironment>/{fr=0;}'
+    echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<OSGTestResult /{fr=1;}/<operatingenvironment>/{fr=0;}'
 
-  echo "    <env name=\"glidein_factory\">${glidein_factory}</env>"
-  echo "    <env name=\"glidein_name\">${glidein_name}</env>"
-  echo "    <env name=\"glidein_entry\">${glidein_entry}</env>"
-  echo "    <env name=\"condorg_cluster\">${condorg_cluster}</env>"
-  echo "    <env name=\"condorg_subcluster\">${condorg_subcluster}</env>"
-  echo "    <env name=\"glidein_credential_id\">${glidein_cred_id}</env>"
-  echo "    <env name=\"condorg_schedd\">${condorg_schedd}</env>"
+    echo "    <env name=\"glidein_factory\">${glidein_factory}</env>"
+    echo "    <env name=\"glidein_name\">${glidein_name}</env>"
+    echo "    <env name=\"glidein_entry\">${glidein_entry}</env>"
+    echo "    <env name=\"condorg_cluster\">${condorg_cluster}</env>"
+    echo "    <env name=\"condorg_subcluster\">${condorg_subcluster}</env>"
+    echo "    <env name=\"glidein_credential_id\">${glidein_cred_id}</env>"
+    echo "    <env name=\"condorg_schedd\">${condorg_schedd}</env>"
 
-  echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'
+    echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'
 }
 
 print_tail() {
-  exit_code=$1
-  final_result_simple="$2"
-  final_result_long="$3"
+    exit_code=$1
+    final_result_simple="$2"
+    final_result_long="$3"
 
-  glidein_end_time=$(date +%s)
-  let total_time=${glidein_end_time}-${startup_time}
-  echo "=== Glidein ending $(date) (${glidein_end_time}) with code ${exit_code} after ${total_time} ==="
-  echo ""
-  echo "=== XML description of glidein activity ==="
-  echo  "${final_result_simple}" | grep -v "<cmd>"
-  echo "=== End XML description of glidein activity ==="
+    glidein_end_time=$(date +%s)
+    let total_time=${glidein_end_time}-${startup_time}
+    echo "=== Glidein ending $(date) (${glidein_end_time}) with code ${exit_code} after ${total_time} ==="
+    echo ""
+    echo "=== XML description of glidein activity ==="
+    echo  "${final_result_simple}" | grep -v "<cmd>"
+    echo "=== End XML description of glidein activity ==="
 
-  echo "" 1>&2
-  echo "=== Encoded XML description of glidein activity ===" 1>&2
-  echo "${final_result_long}" | gzip --stdout - | b64uuencode 1>&2
-  echo "=== End encoded XML description of glidein activity ===" 1>&2
+    echo "" 1>&2
+    echo "=== Encoded XML description of glidein activity ===" 1>&2
+    echo "${final_result_long}" | gzip --stdout - | b64uuencode 1>&2
+    echo "=== End encoded XML description of glidein activity ===" 1>&2
 }
 
 ####################################
@@ -426,169 +426,169 @@ glidien_cleanup() {
 # use this for early failures, when we cannot assume we can write to disk at all
 # too bad we end up with some repeated code, but difficult to do better
 early_glidein_failure() {
-  error_msg="$1"
+    error_msg="$1"
 
-  warn "${error_msg}"
+    warn "${error_msg}"
 
-  sleep "${sleep_time}"
-  # wait a bit in case of error, to reduce lost glideins
+    sleep "${sleep_time}"
+    # wait a bit in case of error, to reduce lost glideins
 
-  glidein_end_time="$(date +%s)"
-  result="    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">WN_RESOURCE</metric>
+    glidein_end_time="$(date +%s)"
+    result="    <metric name=\"failure\" ts=\"$(date --date=@"${glidein_end_time}" +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">WN_RESOURCE</metric>
     <status>ERROR</status>
     <detail>
      ${error_msg}
     </detail>"
 
-  final_result="$(construct_xml "${result}")"
-  final_result_simple="$(basexml2simplexml "${final_result}")"
-  # have no global section
-  final_result_long="$(simplexml2longxml "${final_result_simple}" "")"
+    final_result="$(construct_xml "${result}")"
+    final_result_simple="$(basexml2simplexml "${final_result}")"
+    # have no global section
+    final_result_long="$(simplexml2longxml "${final_result_simple}" "")"
 
-  glidien_cleanup
+    glidien_cleanup
 
-  print_tail 1 "${final_result_simple}" "${final_result_long}"
+    print_tail 1 "${final_result_simple}" "${final_result_long}"
 
-  exit 1
+    exit 1
 }
 
 
 # use this one once the most basic ops have been done
 glidein_exit() {
-  # Removed lines about $lock_file (lock file for whole machine) not present elsewhere
+    # Removed lines about $lock_file (lock file for whole machine) not present elsewhere
 
-  gwms_process_scripts "$GWMS_DIR" cleanup "${glidein_config}"
+    gwms_process_scripts "$GWMS_DIR" cleanup "${glidein_config}"
 
-  global_result=""
-  if [ -f otr_outlist.list ]; then
-      global_result=$(cat otr_outlist.list)
-      chmod u+w otr_outlist.list
-  fi
+    global_result=""
+    if [ -f otr_outlist.list ]; then
+        global_result=$(cat otr_outlist.list)
+        chmod u+w otr_outlist.list
+    fi
 
-  ge_last_script_name=$(extract_parent_fname "$1")
-  result=$(extract_parent_xml_detail "$1")
-  final_result=$(construct_xml "${result}")
+    ge_last_script_name=$(extract_parent_fname "$1")
+    result=$(extract_parent_xml_detail "$1")
+    final_result=$(construct_xml "${result}")
 
-  # augment with node info
-  final_result_simple=$(basexml2simplexml "${final_result}")
+    # augment with node info
+    final_result_simple=$(basexml2simplexml "${final_result}")
 
-  # Create a richer version, too
-  final_result_long=$(simplexml2longxml "${final_result_simple}" "${global_result}")
+    # Create a richer version, too
+    final_result_long=$(simplexml2longxml "${final_result_simple}" "${global_result}")
 
-  if [ "$1" -ne 0 ]; then
-      report_failed=$(gconfig_get GLIDEIN_Report_Failed "${glidein_config}" "-i")
+    if [ "$1" -ne 0 ]; then
+        report_failed=$(gconfig_get GLIDEIN_Report_Failed "${glidein_config}" "-i")
 
-      if [ -z "${report_failed}" ]; then
-          report_failed="NEVER"
-      fi
+        if [ -z "${report_failed}" ]; then
+            report_failed="NEVER"
+        fi
 
-      factory_report_failed=$(gconfig_get GLIDEIN_Factory_Report_Failed "${glidein_config}" "-i")
+        factory_report_failed=$(gconfig_get GLIDEIN_Factory_Report_Failed "${glidein_config}" "-i")
 
-      if [ -z "${factory_report_failed}" ]; then
-          factory_collector=$(gconfig_get GLIDEIN_Factory_Collector "${glidein_config}" "-i")
-          if [ -z "${factory_collector}" ]; then
-              # no point in enabling it if there are no collectors
-              factory_report_failed="NEVER"
-          else
-              factory_report_failed="ALIVEONLY"
-          fi
-      fi
+        if [ -z "${factory_report_failed}" ]; then
+            factory_collector=$(gconfig_get GLIDEIN_Factory_Collector "${glidein_config}" "-i")
+            if [ -z "${factory_collector}" ]; then
+                # no point in enabling it if there are no collectors
+                factory_report_failed="NEVER"
+            else
+                factory_report_failed="ALIVEONLY"
+            fi
+        fi
 
-      do_report=0
-      if [ "${report_failed}" != "NEVER" ] || [ "${factory_report_failed}" != "NEVER" ]; then
-          do_report=1
-      fi
+        do_report=0
+        if [ "${report_failed}" != "NEVER" ] || [ "${factory_report_failed}" != "NEVER" ]; then
+            do_report=1
+        fi
 
 
-      # wait a bit in case of error, to reduce lost glideins
-      let "dl=$(date +%s) + ${sleep_time}"
-      dlf=$(date --date="@${dl}")
-      add_config_line "GLIDEIN_ADVERTISE_ONLY" "1"
-      add_config_line "GLIDEIN_Failed" "True"
-      add_config_line "GLIDEIN_EXIT_CODE" "$1"
-      add_config_line "GLIDEIN_ToDie" "${dl}"
-      add_config_line "GLIDEIN_Expire" "${dl}"
-      add_config_line "GLIDEIN_LAST_SCRIPT" "${ge_last_script_name}"
-      add_config_line "GLIDEIN_ADVERTISE_TYPE" "Retiring"
+        # wait a bit in case of error, to reduce lost glideins
+        let "dl=$(date +%s) + ${sleep_time}"
+        dlf=$(date --date="@${dl}")
+        add_config_line "GLIDEIN_ADVERTISE_ONLY" "1"
+        add_config_line "GLIDEIN_Failed" "True"
+        add_config_line "GLIDEIN_EXIT_CODE" "$1"
+        add_config_line "GLIDEIN_ToDie" "${dl}"
+        add_config_line "GLIDEIN_Expire" "${dl}"
+        add_config_line "GLIDEIN_LAST_SCRIPT" "${ge_last_script_name}"
+        add_config_line "GLIDEIN_ADVERTISE_TYPE" "Retiring"
 
-      add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Keeping node busy until ${dl} (${dlf})."
+        add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Keeping node busy until ${dl} (${dlf})."
 
-      condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "${glidein_config}" "-i")
-      if [ -n "${condor_vars_file}" ]; then
-         # if we are to advertise, this should be available... else, it does not matter anyhow
-         add_condor_vars_line "GLIDEIN_ADVERTISE_ONLY" "C" "True" "+" "Y" "Y" "-"
-         add_condor_vars_line "GLIDEIN_Failed" "C" "True" "+" "Y" "Y" "-"
-         add_condor_vars_line "GLIDEIN_EXIT_CODE" "I" "-" "+" "Y" "Y" "-"
-         add_condor_vars_line "GLIDEIN_ToDie" "I" "-" "+" "Y" "Y" "-"
-         add_condor_vars_line "GLIDEIN_Expire" "I" "-" "+" "Y" "Y" "-"
-         add_condor_vars_line "GLIDEIN_LAST_SCRIPT" "S" "-" "+" "Y" "Y" "-"
-         add_condor_vars_line "GLIDEIN_FAILURE_REASON" "S" "-" "+" "Y" "Y" "-"
-      fi
-      main_work_dir="$(get_work_dir main)"
+        condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "${glidein_config}" "-i")
+        if [ -n "${condor_vars_file}" ]; then
+            # if we are to advertise, this should be available... else, it does not matter anyhow
+            add_condor_vars_line "GLIDEIN_ADVERTISE_ONLY" "C" "True" "+" "Y" "Y" "-"
+            add_condor_vars_line "GLIDEIN_Failed" "C" "True" "+" "Y" "Y" "-"
+            add_condor_vars_line "GLIDEIN_EXIT_CODE" "I" "-" "+" "Y" "Y" "-"
+            add_condor_vars_line "GLIDEIN_ToDie" "I" "-" "+" "Y" "Y" "-"
+            add_condor_vars_line "GLIDEIN_Expire" "I" "-" "+" "Y" "Y" "-"
+            add_condor_vars_line "GLIDEIN_LAST_SCRIPT" "S" "-" "+" "Y" "Y" "-"
+            add_condor_vars_line "GLIDEIN_FAILURE_REASON" "S" "-" "+" "Y" "Y" "-"
+        fi
+        main_work_dir="$(get_work_dir main)"
 
-      for ((t=$(date +%s); t < dl; t=$(date +%s)))
-      do
-        if [ -e "${main_work_dir}/${last_script}" ] && [ "${do_report}" = "1" ] ; then
-            # if the file exists, we should be able to talk to the collectors
-            # notify that things went badly and we are waiting
+        for ((t=$(date +%s); t < dl; t=$(date +%s)))
+        do
+            if [ -e "${main_work_dir}/${last_script}" ] && [ "${do_report}" = "1" ] ; then
+                # if the file exists, we should be able to talk to the collectors
+                # notify that things went badly and we are waiting
+                if [ "${factory_report_failed}" != "NEVER" ]; then
+                    add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
+                    warn "Notifying Factory of error"
+                    "${main_work_dir}/${last_script}" glidein_config
+                fi
+                if [ "${report_failed}" != "NEVER" ]; then
+                    add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "VO"
+                    warn "Notifying VO of error"
+                    "${main_work_dir}/${last_script}" glidein_config
+                fi
+            fi
+
+            # sleep for about 5 mins... but randomize a bit
+            let "ds=250+${RANDOM}%100"
+            let "as=$(date +%s) + ${ds}"
+            if [ ${as} -gt ${dl} ]; then
+                # too long, shorten to the deadline
+                let "ds=${dl} - $(date +%s)"
+            fi
+            warn "Sleeping ${ds}"
+            sleep ${ds}
+        done
+
+        if [ -e "${main_work_dir}/${last_script}" ] && [ "${do_report}" = "1" ]; then
+            # notify that things went badly and we are going away
             if [ "${factory_report_failed}" != "NEVER" ]; then
                 add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
-                warn "Notifying Factory of error"
+                if [ "${factory_report_failed}" = "ALIVEONLY" ]; then
+                    add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
+                else
+                    add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
+                    add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. (${dl}) (${dlf})"
+                fi
                 "${main_work_dir}/${last_script}" glidein_config
+                warn "Last notification sent to Factory"
             fi
             if [ "${report_failed}" != "NEVER" ]; then
                 add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "VO"
-                warn "Notifying VO of error"
+                if [ "${report_failed}" = "ALIVEONLY" ]; then
+                    add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
+                else
+                    add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
+                    add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. (${dl}) (${dlf})"
+                fi
                 "${main_work_dir}/${last_script}" glidein_config
+                warn "Last notification sent to VO"
             fi
         fi
+    fi
 
-        # sleep for about 5 mins... but randomize a bit
-        let "ds=250+${RANDOM}%100"
-        let "as=$(date +%s) + ${ds}"
-        if [ ${as} -gt ${dl} ]; then
-            # too long, shorten to the deadline
-            let "ds=${dl} - $(date +%s)"
-        fi
-        warn "Sleeping ${ds}"
-        sleep ${ds}
-      done
+    log_write "glidein_startup.sh" "text" "glidein is about to exit with retcode $1" "info"
+    send_logs_to_remote
 
-      if [ -e "${main_work_dir}/${last_script}" ] && [ "${do_report}" = "1" ]; then
-          # notify that things went badly and we are going away
-          if [ "${factory_report_failed}" != "NEVER" ]; then
-              add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
-              if [ "${factory_report_failed}" = "ALIVEONLY" ]; then
-                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
-              else
-                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
-                  add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. (${dl}) (${dlf})"
-              fi
-              "${main_work_dir}/${last_script}" glidein_config
-              warn "Last notification sent to Factory"
-          fi
-          if [ "${report_failed}" != "NEVER" ]; then
-              add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "VO"
-              if [ "${report_failed}" = "ALIVEONLY" ]; then
-                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
-              else
-                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
-                  add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. (${dl}) (${dlf})"
-              fi
-              "${main_work_dir}/${last_script}" glidein_config
-              warn "Last notification sent to VO"
-          fi
-      fi
-  fi
+    glidien_cleanup
 
-  log_write "glidein_startup.sh" "text" "glidein is about to exit with retcode $1" "info"
-  send_logs_to_remote
+    print_tail "$1" "${final_result_simple}" "${final_result_long}"
 
-  glidien_cleanup
-
-  print_tail "$1" "${final_result_simple}" "${final_result_long}"
-
-  exit "$1"
+    exit "$1"
 }
 
 ####################################################
@@ -783,17 +783,17 @@ fi
 repository_entry_url="${repository_url}/entry_${glidein_entry}"
 
 if [ -z "${proxy_url}" ]; then
-  proxy_url="None"
+    proxy_url="None"
 fi
 
 if [ "${proxy_url}" = "OSG" ]; then
-  if [ -z "${OSG_SQUID_LOCATION}" ]; then
-     # if OSG does not define a Squid, then don't use any
-     proxy_url="None"
-     warn "OSG_SQUID_LOCATION undefined, not using any Squid URL" 1>&2
-  else
-     proxy_url="$(echo "${OSG_SQUID_LOCATION}" | awk -F ':' '{if ($2 =="") {print $1 ":3128"} else {print $0}}')"
-  fi
+    if [ -z "${OSG_SQUID_LOCATION}" ]; then
+        # if OSG does not define a Squid, then don't use any
+        proxy_url="None"
+        warn "OSG_SQUID_LOCATION undefined, not using any Squid URL" 1>&2
+    else
+        proxy_url="$(echo "${OSG_SQUID_LOCATION}" | awk -F ':' '{if ($2 =="") {print $1 ":3128"} else {print $0}}')"
+    fi
 fi
 
 if [ -z "${sign_id}" ]; then
@@ -816,33 +816,33 @@ if [ "${sign_type}" != "sha1" ]; then
 fi
 
 if [ -n "${client_repository_url}" ]; then
-  # client data is optional, user url as a switch
-  if [ -z "${client_sign_type}" ]; then
-      client_sign_type="sha1"
-  fi
+    # client data is optional, user url as a switch
+    if [ -z "${client_sign_type}" ]; then
+        client_sign_type="sha1"
+    fi
 
-  if [ "${client_sign_type}" != "sha1" ]; then
-    warn "Unsupported clientsigntype ${client_sign_type} found."
-    usage
-  fi
+    if [ "${client_sign_type}" != "sha1" ]; then
+        warn "Unsupported clientsigntype ${client_sign_type} found."
+        usage
+    fi
 
-  if [ -z "${client_descript_file}" ]; then
-    warn "Missing client descript fname."
-    usage
-  fi
+    if [ -z "${client_descript_file}" ]; then
+        warn "Missing client descript fname."
+        usage
+    fi
 
-  if [ -n "${client_repository_group_url}" ]; then
-      # client group data is optional, user url as a switch
-      if [ -z "${client_group}" ]; then
-          warn "Missing client group name."
-          usage
-      fi
+    if [ -n "${client_repository_group_url}" ]; then
+        # client group data is optional, user url as a switch
+        if [ -z "${client_group}" ]; then
+            warn "Missing client group name."
+            usage
+        fi
 
-      if [ -z "${client_descript_group_file}" ]; then
-          warn "Missing client descript fname for group."
-          usage
-      fi
-  fi
+        if [ -z "${client_descript_group_file}" ]; then
+            warn "Missing client descript fname for group."
+            usage
+        fi
+    fi
 fi
 
 md5wrapper() {
@@ -942,16 +942,16 @@ echo
 echo "Running on $(uname -n)"
 echo "System: $(uname -a)"
 if [ -e '/etc/redhat-release' ]; then
- echo "Release: $(cat /etc/redhat-release 2>&1)"
+    echo "Release: $(cat /etc/redhat-release 2>&1)"
 fi
 echo "As: $(id)"
 echo "PID: $$"
 echo
 
 if [ ${set_debug} -ne 0 ]; then
-  echo "------- Initial environment ---------------"  1>&2
-  env 1>&2
-  echo "------- =================== ---------------" 1>&2
+    echo "------- Initial environment ---------------"  1>&2
+    env 1>&2
+    echo "------- =================== ---------------" 1>&2
 fi
 
 # Before anything else, spawn multiple glideins and wait, if asked to do so
@@ -981,33 +981,33 @@ fi
 if [ -r "${OSG_GRID}/setup.sh" ]; then
     . "${OSG_GRID}/setup.sh"
 else
-  if [ -r "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh" ]; then
-    . "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh"
-  fi
+    if [ -r "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh" ]; then
+        . "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh"
+    fi
 fi
 
 if [ -z "${GLOBUS_PATH}" ]; then
-  if [ -z "${GLOBUS_LOCATION}" ]; then
-    # if GLOBUS_LOCATION not defined, try to guess it
-    if [ -r "/opt/globus/etc/globus-user-env.sh" ]; then
-       GLOBUS_LOCATION=/opt/globus
-    elif  [ -r "/osgroot/osgcore/globus/etc/globus-user-env.sh" ]; then
-       GLOBUS_LOCATION=/osgroot/osgcore/globus
-    else
-       warn "GLOBUS_LOCATION not defined and could not guess it."
-       warn "Looked in:"
-       warn ' /opt/globus/etc/globus-user-env.sh'
-       warn ' /osgroot/osgcore/globus/etc/globus-user-env.sh'
-       warn 'Continuing like nothing happened'
+    if [ -z "${GLOBUS_LOCATION}" ]; then
+        # if GLOBUS_LOCATION not defined, try to guess it
+        if [ -r "/opt/globus/etc/globus-user-env.sh" ]; then
+            GLOBUS_LOCATION=/opt/globus
+        elif  [ -r "/osgroot/osgcore/globus/etc/globus-user-env.sh" ]; then
+            GLOBUS_LOCATION=/osgroot/osgcore/globus
+        else
+            warn "GLOBUS_LOCATION not defined and could not guess it."
+            warn "Looked in:"
+            warn ' /opt/globus/etc/globus-user-env.sh'
+            warn ' /osgroot/osgcore/globus/etc/globus-user-env.sh'
+            warn 'Continuing like nothing happened'
+        fi
     fi
-  fi
 
-  if [ -r "${GLOBUS_LOCATION}/etc/globus-user-env.sh" ]; then
-    . "${GLOBUS_LOCATION}/etc/globus-user-env.sh"
-  else
-    warn "GLOBUS_PATH not defined and ${GLOBUS_LOCATION}/etc/globus-user-env.sh does not exist."
-    warn 'Continuing like nothing happened'
-  fi
+    if [ -r "${GLOBUS_LOCATION}/etc/globus-user-env.sh" ]; then
+        . "${GLOBUS_LOCATION}/etc/globus-user-env.sh"
+    else
+        warn "GLOBUS_PATH not defined and ${GLOBUS_LOCATION}/etc/globus-user-env.sh does not exist."
+        warn 'Continuing like nothing happened'
+    fi
 fi
 
 set_proxy_fullpath() {
@@ -1677,7 +1677,7 @@ fetch_file_base() {
             else
                 warn "wget ${wget_version} cannot disable caching"
             fi
-         fi
+        fi
     fi
 
     if [ "${proxy_url}" != "None" ];then
@@ -1815,7 +1815,7 @@ fetch_file_base() {
 </OSGTestResult>" > otrx_output.xml
     fi
 
-   return 0
+    return 0
 }
 
 # Adds $1 to GWMS_PATH and update PATH
@@ -1858,40 +1858,40 @@ check_signature=0
 
 for gs_id in main entry client client_group
 do
-  if [ -z "${client_repository_url}" ]; then
-      if [ "${gs_id}" = "client" ]; then
-          # no client file when no cilent_repository
-          continue
-      fi
-  fi
-  if [ -z "${client_repository_group_url}" ]; then
-      if [ "${gs_id}" = "client_group" ]; then
-          # no client group file when no cilent_repository_group
-          continue
-      fi
-  fi
+    if [ -z "${client_repository_url}" ]; then
+        if [ "${gs_id}" = "client" ]; then
+            # no client file when no cilent_repository
+            continue
+        fi
+    fi
+    if [ -z "${client_repository_group_url}" ]; then
+        if [ "${gs_id}" = "client_group" ]; then
+            # no client group file when no cilent_repository_group
+            continue
+        fi
+    fi
 
-  gs_id_work_dir="$(get_work_dir ${gs_id})"
+    gs_id_work_dir="$(get_work_dir ${gs_id})"
 
-  # Fetch description file
-  gs_id_descript_file="$(get_descript_file ${gs_id})"
-  fetch_file_regular "${gs_id}" "${gs_id_descript_file}"
-  if ! signature_file_line="$(grep "^signature " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
-      warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file} (wc: $(wc < "${gs_id_work_dir}/${gs_id_descript_file}" 2>/dev/null))."
-      glidein_exit 1
-  fi
-  signature_file=$(echo "${signature_file_line}" | cut -s -f 2-)
+    # Fetch description file
+    gs_id_descript_file="$(get_descript_file ${gs_id})"
+    fetch_file_regular "${gs_id}" "${gs_id_descript_file}"
+    if ! signature_file_line="$(grep "^signature " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
+        warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file} (wc: $(wc < "${gs_id_work_dir}/${gs_id_descript_file}" 2>/dev/null))."
+        glidein_exit 1
+    fi
+    signature_file=$(echo "${signature_file_line}" | cut -s -f 2-)
 
-  # Fetch signature file
-  gs_id_signature="$(get_signature ${gs_id})"
-  fetch_file_regular "${gs_id}" "${signature_file}"
-  echo "${gs_id_signature}  ${signature_file}" > "${gs_id_work_dir}/signature.sha1.test"
-  if ! (cd "${gs_id_work_dir}" && sha1sum -c signature.sha1.test) 1>&2 ; then
-      warn "Corrupted signature file '${gs_id_work_dir}/${signature_file}'."
-      glidein_exit 1
-  fi
-  # for simplicity use a fixed name for signature file
-  mv "${gs_id_work_dir}/${signature_file}" "${gs_id_work_dir}/signature.sha1"
+    # Fetch signature file
+    gs_id_signature="$(get_signature ${gs_id})"
+    fetch_file_regular "${gs_id}" "${signature_file}"
+    echo "${gs_id_signature}  ${signature_file}" > "${gs_id_work_dir}/signature.sha1.test"
+    if ! (cd "${gs_id_work_dir}" && sha1sum -c signature.sha1.test) 1>&2 ; then
+        warn "Corrupted signature file '${gs_id_work_dir}/${signature_file}'."
+        glidein_exit 1
+    fi
+    # for simplicity use a fixed name for signature file
+    mv "${gs_id_work_dir}/${signature_file}" "${gs_id_work_dir}/signature.sha1"
 done
 
 # re-enable for everything else
@@ -1903,25 +1903,25 @@ check_signature=1
 # the description file
 for gs_id in main entry client client_group
 do
-  if [ -z "${client_repository_url}" ]; then
-      if [ "${gs_id}" = "client" ]; then
-          # no client file when no cilent_repository
-          continue
-      fi
-  fi
-  if [ -z "${client_repository_group_url}" ]; then
-      if [ "${gs_id}" = "client_group" ]; then
-          # no client group file when no cilent_repository_group
-          continue
-      fi
-  fi
+    if [ -z "${client_repository_url}" ]; then
+        if [ "${gs_id}" = "client" ]; then
+            # no client file when no cilent_repository
+            continue
+        fi
+    fi
+    if [ -z "${client_repository_group_url}" ]; then
+        if [ "${gs_id}" = "client_group" ]; then
+            # no client group file when no cilent_repository_group
+            continue
+        fi
+    fi
 
-  gs_id_descript_file="$(get_descript_file ${gs_id})"
-  if ! check_file_signature "${gs_id}" "${gs_id_descript_file}"; then
-      gs_id_work_dir="$(get_work_dir ${gs_id})"
-      warn "Corrupted description file ${gs_id_work_dir}/${gs_id_descript_file}."
-      glidein_exit 1
-  fi
+    gs_id_descript_file="$(get_descript_file ${gs_id})"
+    if ! check_file_signature "${gs_id}" "${gs_id_descript_file}"; then
+        gs_id_work_dir="$(get_work_dir ${gs_id})"
+        warn "Corrupted description file ${gs_id_work_dir}/${gs_id_descript_file}."
+        glidein_exit 1
+    fi
 done
 
 ###################################################
@@ -1969,8 +1969,8 @@ do
                 continue
             fi
         fi
-      warn "No '${gs_file_list_id}' in description file ${gs_id_work_dir}/${gs_id_descript_file}."
-      glidein_exit 1
+        warn "No '${gs_file_list_id}' in description file ${gs_id_work_dir}/${gs_id_descript_file}."
+        glidein_exit 1
     fi
     # space+tab separated file with multiple elements (was: awk '{print $2}', not safe for spaces in file name)
     gs_file_list="$(echo "${gs_file_list_line}" | cut -s -f 2 | sed -e 's/[[:space:]]*$//')"
