@@ -67,7 +67,7 @@ class TarballManager(HTMLParser):
     been released (they have a release directory). The list of releases are
     solely used for validation purposes, and to know the latest release.
 
-    It then offers a mothod to download a tarball and save it locally,
+    It then offers a method to download a tarball and save it locally,
     and a method to generate the xml snippet to add to the glideinWMS.xml
     tarball configuration section.
     """
@@ -322,13 +322,14 @@ def main():
             to_download = sorted(set(manager.releases) - set(major_dict["BLACKLIST"]), key=StrictVersion)
             for version in to_download:
                 manager.download_tarballs(version)
-        xml += manager.generate_xml(
-            config["OS_MAP"],
-            config["ARCH_MAP"],
-            major_dict["WHITELIST"],
-            major_dict["BLACKLIST"],
-            manager.latest_version if default_tarball_version == "latest" else default_tarball_version,
-        )
+        if config.get("XML_OUT") is not None:
+            xml += manager.generate_xml(
+                config["OS_MAP"],
+                config["ARCH_MAP"],
+                major_dict["WHITELIST"],
+                major_dict["BLACKLIST"],
+                manager.latest_version if default_tarball_version == "latest" else default_tarball_version,
+            )
 
     if config.get("XML_OUT") is not None:
         try:
