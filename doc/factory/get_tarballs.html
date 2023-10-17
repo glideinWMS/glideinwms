@@ -123,31 +123,43 @@ SPDX-License-Identifier: Apache-2.0
         <p>
           The <i>get_tarball</i> script is a Python script that downloads
           HTCondor tarballs from the official HTCondor website.
-	  <br/>
-	  The tarballs are downloaded by looking at the URL set using
-          <b>TARBALL_BASE_URL</b> in the configuration file. The files
-          are downloaded and stored in the <b>DESTINATION_DIR</b> directory.
-          Checkusm are verified after a file is downloaded. If a file already exist,
-          or if its checksum is wrong or missing, the file is skipped.
-          <br/>
-	  A list of major condor version has to be specified using <b>CONDOR_TARBALL_LIST</b>.
-	  Each major version has to be a directory <a href="https://research.cs.wisc.edu/htcondor/tarball/">here</a>
-          (assuming this is the link set in the configuration).
-          For each major version, all the tarballs in the <b>WHITELIST</b> are downloaded.
-	  Alternatively, all tarballs available are downloaded excluding the one in the <b>BLACKLIST</b>.
-	  <br/>
-          For each minor version (e.g.: "9.0.7"), the script attempts to download all the files in the <b>FILENAME_LIST</b>.
-          The attempted URL is <i>TARBALL_BASE_URL/MAJOR_VERSION/WHITELIST[i]/release/FILENAME_LIST[j]</i>,
-          for example: <a>https://research.cs.wisc.edu/htcondor/tarball/23.0/23.0.0/release/condor-23.0.0-x86_64_CentOS7-stripped.tar.gz</a>
-          <br/>
-	  The next three parameters, <b>OS_MAP</b>, <b>ARCH_MAP</b>, and <b>XML_OUT</b> determines if and how
-          an xml file with the tarballs has to be generated. If <b>XML_OUT</b> is not set then nothing is done
-          and the other two parameters can be missing. Otherwise an xml file will be generated and stored there.
-          <b>OS_MAP</b> and <b>ARCH_MAP</b> indicates how the operating system and the architecture in the
-          tarball filename has to be translated in the xml corresponding fields.
-          <br/>
-          <i>get_tarball</i> is a standalone script and does not require any glideinWMS dependency or installation.
-	</p>
+          <br />
+          The tarballs are downloaded by looking at the URL set using
+          <b>TARBALL_BASE_URL</b> in the configuration file. The files are
+          downloaded and stored in the <b>DESTINATION_DIR</b> directory.
+          Checkusm are verified after a file is downloaded. If a file already
+          exist, or if its checksum is wrong or missing, the file is skipped.
+          <br />
+          A list of major condor version has to be specified using
+          <b>CONDOR_TARBALL_LIST</b>. Each major version has to be a directory
+          <a href="https://research.cs.wisc.edu/htcondor/tarball/">here</a>
+          (assuming this is the link set in the configuration). For each major
+          version, all the tarballs in the <b>WHITELIST</b> are downloaded.
+          Alternatively, all tarballs available are downloaded excluding the one
+          in the <b>BLACKLIST</b>.
+          <br />
+          For each minor version (e.g.: "9.0.7"), the script attempts to
+          download all the files in the <b>FILENAME_LIST</b>. The attempted URL
+          is
+          <i
+            >TARBALL_BASE_URL/MAJOR_VERSION/WHITELIST[i]/release/FILENAME_LIST[j]</i
+          >, for example:
+          <a
+            >https://research.cs.wisc.edu/htcondor/tarball/23.0/23.0.0/release/condor-23.0.0-x86_64_CentOS7-stripped.tar.gz</a
+          >
+          <br />
+          The next three parameters, <b>OS_MAP</b>, <b>ARCH_MAP</b>, and
+          <b>XML_OUT</b> determines if and how an xml file with the tarballs has
+          to be generated. If <b>XML_OUT</b> is not set then nothing is done and
+          the other two parameters can be missing. Otherwise an xml file will be
+          generated and stored there. <b>OS_MAP</b> and
+          <b>ARCH_MAP</b> indicates how the operating system and the
+          architecture in the tarball filename has to be translated in the xml
+          corresponding fields.
+          <br />
+          <i>get_tarball</i> is a standalone script and does not require any
+          glideinWMS dependency or installation.
+        </p>
         <h2><a name="exit"></a>Exit Codes</h2>
         <ul>
           <li><strong>0:</strong> All operations completed successfully.</li>
@@ -155,16 +167,21 @@ SPDX-License-Identifier: Apache-2.0
         </ul>
         <h2><a name="config"></a>Configuration</h2>
         <p>
-            To specify the configuration for the downloader, you can use the following methods:
+          To specify the configuration for the downloader, you can use the
+          following methods:
         </p>
         <ul>
-            <li>Set the <strong>GET_TARBALLS_CONFIG</strong> environment variable.</li>
-            <li>Place a configuration file named <strong>get_tarballs.yaml</strong> in the same directory as <strong>get_tarball.py</strong>.</li>
+          <li>
+            Set the <strong>GET_TARBALLS_CONFIG</strong> environment variable.
+          </li>
+          <li>
+            Place a configuration file named
+            <strong>get_tarballs.yaml</strong> in the same directory as
+            <strong>get_tarball.py</strong>.
+          </li>
         </ul>
-        <p>
-            Sample Configuration File:
-        </p>
-<pre>
+        <p>Sample Configuration File:</p>
+        <pre>
 DESTINATION_DIR: "/var/lib/gwms-factory/condor/"
 TARBALL_BASE_URL: "https://research.cs.wisc.edu/htcondor/tarball/"
 DEFAULT_TARBALL_VERSION: ["9.0.16"] # Can be set to "latest"
@@ -178,7 +195,7 @@ CONDOR_TARBALL_LIST:
      DOWNLOAD_LATEST: True # Same as adding "latest" to a WHITELIST. Default False
    - MAJOR_VERSION: "23.0"
      WHITELIST: ["23.0.0"]
-FILENAME_LIST: ["condor-{version}-x86_64_CentOS7-stripped.tar.gz", "condor-{version}-x86_64_CentOS8-stripped.tar.gz", 
+FILENAME_LIST: ["condor-{version}-x86_64_CentOS7-stripped.tar.gz", "condor-{version}-x86_64_CentOS8-stripped.tar.gz",
     "condor-{version}-x86_64_AlmaLinux8-stripped.tar.gz", "condor-{version}-x86_64_Ubuntu18-stripped.tar.gz", "condor-{version}-x86_64_Ubuntu20-stripped.tar.gz",
     "condor-{version}-aarch64_Stream8-stripped.tar.gz", "condor-{version}-ppc64le_CentOS8-stripped.tar.gz", "condor-{version}-ppc64le_AlmaLinux8-stripped.tar.gz",
     "condor-{version}-aarch64_AlmaLinux8-stripped.tar.gz"]
@@ -186,10 +203,12 @@ OS_MAP: { "CentOS7": "default, rhel7, linux-rhel7", "CentOS8": "rhel8, linux-rhe
     "Ubuntu20": "ubuntu20, linux-ubuntu20" }
 ARCH_MAP: { "x86_64": "default", "ppc64le": "ppc64le", "aarch64": "aarch64" }
 XML_OUT: "/etc/gwms-factory/config.d/01-condor-tarballs.xml"
-</pre>
+</pre
+        >
         <h2><a name="exec"></a>Sample Execution</h2>
-This is the standard execution output. More output can be obtained using <b>--verbose</b>.
-<pre>
+        This is the standard execution output. More output can be obtained using
+        <b>--verbose</b>.
+        <pre>
 $ get_tarballs
 Handling major version 9.0
 	File condor-9.0.7-x86_64_CentOS7-stripped.tar.gz successfully downloaded
@@ -223,11 +242,14 @@ Handling major version 23.0
 	File condor-23.0.0-x86_64_Ubuntu20-stripped.tar.gz successfully downloaded
 	File condor-23.0.0-ppc64le_AlmaLinux8-stripped.tar.gz successfully downloaded
 	File condor-23.0.0-aarch64_AlmaLinux8-stripped.tar.gz successfully downloaded
-</pre>
+</pre
+        >
         <h2><a name="xml"></a>Sample Generated XML File</h2>
-An xml configuration file can be generated and placed in the <i>/etc/gwms-factory/config.d/</i> directory to be picked up and used
-for the final <i>glideinWMS.xml</i> file. Here is a sample generated xml:
-<pre>
+        An xml configuration file can be generated and placed in the
+        <i>/etc/gwms-factory/config.d/</i> directory to be picked up and used
+        for the final <i>glideinWMS.xml</i> file. Here is a sample generated
+        xml:
+        <pre>
 &lt;glidein&gt;
    &lt;condor_tarballs&gt;
       &lt;condor_tarball arch=&quot;default&quot; os=&quot;default, rhel7, linux-rhel7&quot; tar_file=&quot;/tmp/condor-9.0.7-x86_64_CentOS7-stripped.tar.gz&quot; version=&quot;9.0.7&quot;/&gt;
@@ -258,8 +280,10 @@ for the final <i>glideinWMS.xml</i> file. Here is a sample generated xml:
       &lt;condor_tarball arch=&quot;aarch64&quot; os=&quot;rhel8, linux-rhel8&quot; tar_file=&quot;/tmp/condor-23.0.0-aarch64_AlmaLinux8-stripped.tar.gz&quot; version=&quot;23.0.0,23.0.x&quot;/&gt;
    &lt;/condor_tarballs&gt;
 &lt;/glidein&gt;
-</pre>
-Optionally, you can create a pre configuration hook to fully automate the tarballs download and setup.
+</pre
+        >
+        Optionally, you can create a pre configuration hook to fully automate
+        the tarballs download and setup.
       </div>
       <div class="footer">
         Banner image by
