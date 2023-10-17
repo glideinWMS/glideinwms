@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 <html>
   <head>
     <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8" />
-    <title>GlideinWMS - Custom Scripts</title>
+    <title>GlideinWMS - Tarball Downloader</title>
     <meta name="CREATED" content="0;0" />
     <meta name="CHANGED" content="20100521;20081031;14115200" />
     <link
@@ -31,7 +31,7 @@ SPDX-License-Identifier: Apache-2.0
       <li><a href="../index.html">Home</a></li>
       <li><a href="./index.html">WMS Factory</a></li>
       <li><a href="./configuration.html">Configuration</a></li>
-      <li>Custom Scripts</li>
+      <li>Tarball Downloader</li>
     </ul>
     <div class="clear" />
     <div class="leftmenu">
@@ -97,12 +97,16 @@ SPDX-License-Identifier: Apache-2.0
             <a href="./troubleshooting.html">Troubleshooting</a>
           </li>
         </ul>
-        <h3>Custom Scripts</h3>
+        <h3>Tarball Downloader</h3>
       </div>
       <div class="jump">
         <u>Jump to:</u>
         <ol>
-          <li><a href="#config">Script inclusion</a></li>
+          <li><a href="#desc">Description</a></li>
+          <li><a href="#exit">Exit Codes</a></li>
+          <li><a href="#config">Configuration</a></li>
+          <li><a href="#exec">Sample Execution</a></li>
+          <li><a href="#xml">Sample Generated XML ile</a></li>
         </ol>
       </div>
       <div class="related">
@@ -115,16 +119,147 @@ SPDX-License-Identifier: Apache-2.0
         </ul>
       </div>
       <div class="section">
-        <h2>Description</h2>
+        <h2><a name="desc"></a>Description</h2>
         <p>
-          The HTCondor Tarball Downloader is a Python script that downloads
+          The <i>get_tarball</i> script is a Python script that downloads
           HTCondor tarballs from the official HTCondor website.
-        </p>
-        <h2>Exit Codes</h2>
+	  <br/>
+	  The tarballs are downloaded by looking at the URL set using
+          <b>TARBALL_BASE_URL</b> in the configuration file. The files
+          are downloaded and stored in the <b>DESTINATION_DIR</b> directory.
+          Checkusm are verified after a file is downloaded. If a file already exist,
+          or if its checksum is wrong or missing, the file is skipped.
+          <br/>
+	  A list of major condor version has to be specified using <b>CONDOR_TARBALL_LIST</b>.
+	  Each major version has to be a directory <a href="https://research.cs.wisc.edu/htcondor/tarball/">here</a>
+          (assuming this is the link set in the configuration).
+          For each major version, all the tarballs in the <b>WHITELIST</b> are downloaded.
+	  Alternatively, all tarballs available are downloaded excluding the one in the <b>BLACKLIST</b>.
+	  <br/>
+          For each minor version (e.g.: "9.0.7"), the script attempts to download all the files in the <b>FILENAME_LIST</b>.
+          The attempted URL is <i>TARBALL_BASE_URL/MAJOR_VERSION/WHITELIST[i]/release/FILENAME_LIST[j]</i>,
+          for example: <a>https://research.cs.wisc.edu/htcondor/tarball/23.0/23.0.0/release/condor-23.0.0-x86_64_CentOS7-stripped.tar.gz</a>
+          <br/>
+	  The next three parameters, <b>OS_MAP</b>, <b>ARCH_MAP</b>, and <b>XML_OUT</b> determines if and how
+          an xml file with the tarballs has to be generated. If <b>XML_OUT</b> is not set then nothing is done
+          and the other two parameters can be missing. Otherwise an xml file will be generated and stored there.
+          <b>OS_MAP</b> and <b>ARCH_MAP</b> indicates how the operating system and the architecture in the
+          tarball filename has to be translated in the xml corresponding fields.
+          <br/>
+          <i>get_tarball</i> is a standalone script and does not require any glideinWMS dependency or installation.
+	</p>
+        <h2><a name="exit"></a>Exit Codes</h2>
         <ul>
           <li><strong>0:</strong> All operations completed successfully.</li>
           <li><strong>1:</strong> Configuration file does not exist.</li>
         </ul>
+        <h2><a name="config"></a>Configuration</h2>
+        <p>
+            To specify the configuration for the downloader, you can use the following methods:
+        </p>
+        <ul>
+            <li>Set the <strong>GET_TARBALLS_CONFIG</strong> environment variable.</li>
+            <li>Place a configuration file named <strong>get_tarballs.yaml</strong> in the same directory as <strong>get_tarball.py</strong>.</li>
+        </ul>
+        <p>
+            Sample Configuration File:
+        </p>
+<pre>
+DESTINATION_DIR: "/var/lib/gwms-factory/condor/"
+TARBALL_BASE_URL: "https://research.cs.wisc.edu/htcondor/tarball/"
+DEFAULT_TARBALL_VERSION: ["9.0.16"] # Can be set to "latest"
+CONDOR_TARBALL_LIST:
+   - MAJOR_VERSION: "9.0"
+     WHITELIST: ["9.0.7", "9.0.16", "latest"]
+   - MAJOR_VERSION: "10.0"
+     WHITELIST: ["latest"]
+     CHECK_LATEST: True
+   - MAJOR_VERSION: "10.x"
+     DOWNLOAD_LATEST: True # Same as adding "latest" to a WHITELIST. Default False
+   - MAJOR_VERSION: "23.0"
+     WHITELIST: ["23.0.0"]
+FILENAME_LIST: ["condor-{version}-x86_64_CentOS7-stripped.tar.gz", "condor-{version}-x86_64_CentOS8-stripped.tar.gz", 
+    "condor-{version}-x86_64_AlmaLinux8-stripped.tar.gz", "condor-{version}-x86_64_Ubuntu18-stripped.tar.gz", "condor-{version}-x86_64_Ubuntu20-stripped.tar.gz",
+    "condor-{version}-aarch64_Stream8-stripped.tar.gz", "condor-{version}-ppc64le_CentOS8-stripped.tar.gz", "condor-{version}-ppc64le_AlmaLinux8-stripped.tar.gz",
+    "condor-{version}-aarch64_AlmaLinux8-stripped.tar.gz"]
+OS_MAP: { "CentOS7": "default, rhel7, linux-rhel7", "CentOS8": "rhel8, linux-rhel8", "AlmaLinux8": "rhel8, linux-rhel8", "Ubuntu18": "ubuntu18, linux-ubuntu18",
+    "Ubuntu20": "ubuntu20, linux-ubuntu20" }
+ARCH_MAP: { "x86_64": "default", "ppc64le": "ppc64le", "aarch64": "aarch64" }
+XML_OUT: "/etc/gwms-factory/config.d/01-condor-tarballs.xml"
+</pre>
+        <h2><a name="exec"></a>Sample Execution</h2>
+This is the standard execution output. More output can be obtained using <b>--verbose</b>.
+<pre>
+$ get_tarballs
+Handling major version 9.0
+	File condor-9.0.7-x86_64_CentOS7-stripped.tar.gz successfully downloaded
+	File condor-9.0.7-x86_64_CentOS8-stripped.tar.gz successfully downloaded
+	File condor-9.0.7-x86_64_Ubuntu18-stripped.tar.gz successfully downloaded
+	File condor-9.0.7-x86_64_Ubuntu20-stripped.tar.gz successfully downloaded
+	File condor-9.0.16-x86_64_CentOS7-stripped.tar.gz successfully downloaded
+	File condor-9.0.16-x86_64_CentOS8-stripped.tar.gz successfully downloaded
+	File condor-9.0.16-x86_64_Ubuntu18-stripped.tar.gz successfully downloaded
+	File condor-9.0.16-x86_64_Ubuntu20-stripped.tar.gz successfully downloaded
+	File condor-9.0.18-x86_64_CentOS7-stripped.tar.gz successfully downloaded
+	File condor-9.0.18-x86_64_CentOS8-stripped.tar.gz successfully downloaded but
+	     checksum not available at https://research.cs.wisc.edu/htcondor/tarball/9.0/9.0.18/release/ (check 'sha256sum.txt')
+	File condor-9.0.18-x86_64_Ubuntu18-stripped.tar.gz successfully downloaded
+	File condor-9.0.18-x86_64_Ubuntu20-stripped.tar.gz successfully downloaded
+Handling major version 10.0
+	File condor-10.0.9-x86_64_CentOS7-stripped.tar.gz successfully downloaded
+	File condor-10.0.9-x86_64_AlmaLinux8-stripped.tar.gz successfully downloaded
+	File condor-10.0.9-x86_64_Ubuntu20-stripped.tar.gz successfully downloaded
+	File condor-10.0.9-ppc64le_AlmaLinux8-stripped.tar.gz successfully downloaded
+	File condor-10.0.9-aarch64_AlmaLinux8-stripped.tar.gz successfully downloaded
+Handling major version 10.x
+	File condor-10.9.0-x86_64_CentOS7-stripped.tar.gz successfully downloaded
+	File condor-10.9.0-x86_64_AlmaLinux8-stripped.tar.gz successfully downloaded
+	File condor-10.9.0-x86_64_Ubuntu20-stripped.tar.gz successfully downloaded
+	File condor-10.9.0-ppc64le_AlmaLinux8-stripped.tar.gz successfully downloaded
+	File condor-10.9.0-aarch64_AlmaLinux8-stripped.tar.gz successfully downloaded
+Handling major version 23.0
+	File condor-23.0.0-x86_64_CentOS7-stripped.tar.gz successfully downloaded
+	File condor-23.0.0-x86_64_AlmaLinux8-stripped.tar.gz successfully downloaded
+	File condor-23.0.0-x86_64_Ubuntu20-stripped.tar.gz successfully downloaded
+	File condor-23.0.0-ppc64le_AlmaLinux8-stripped.tar.gz successfully downloaded
+	File condor-23.0.0-aarch64_AlmaLinux8-stripped.tar.gz successfully downloaded
+</pre>
+        <h2><a name="xml"></a>Sample Generated XML File</h2>
+An xml configuration file can be generated and placed in the <i>/etc/gwms-factory/config.d/</i> directory to be picked up and used
+for the final <i>glideinWMS.xml</i> file. Here is a sample generated xml:
+<pre>
+&lt;glidein&gt;
+   &lt;condor_tarballs&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;default, rhel7, linux-rhel7&quot; tar_file=&quot;/tmp/condor-9.0.7-x86_64_CentOS7-stripped.tar.gz&quot; version=&quot;9.0.7&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;rhel8, linux-rhel8&quot; tar_file=&quot;/tmp/condor-9.0.7-x86_64_CentOS8-stripped.tar.gz&quot; version=&quot;9.0.7&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;ubuntu18, linux-ubuntu18&quot; tar_file=&quot;/tmp/condor-9.0.7-x86_64_Ubuntu18-stripped.tar.gz&quot; version=&quot;9.0.7&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;ubuntu20, linux-ubuntu20&quot; tar_file=&quot;/tmp/condor-9.0.7-x86_64_Ubuntu20-stripped.tar.gz&quot; version=&quot;9.0.7&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;default, rhel7, linux-rhel7&quot; tar_file=&quot;/tmp/condor-9.0.16-x86_64_CentOS7-stripped.tar.gz&quot; version=&quot;9.0.16,default&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;rhel8, linux-rhel8&quot; tar_file=&quot;/tmp/condor-9.0.16-x86_64_CentOS8-stripped.tar.gz&quot; version=&quot;9.0.16,default&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;ubuntu18, linux-ubuntu18&quot; tar_file=&quot;/tmp/condor-9.0.16-x86_64_Ubuntu18-stripped.tar.gz&quot; version=&quot;9.0.16,default&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;ubuntu20, linux-ubuntu20&quot; tar_file=&quot;/tmp/condor-9.0.16-x86_64_Ubuntu20-stripped.tar.gz&quot; version=&quot;9.0.16,default&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;default, rhel7, linux-rhel7&quot; tar_file=&quot;/tmp/condor-9.0.18-x86_64_CentOS7-stripped.tar.gz&quot; version=&quot;9.0.18,9.0.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;ubuntu18, linux-ubuntu18&quot; tar_file=&quot;/tmp/condor-9.0.18-x86_64_Ubuntu18-stripped.tar.gz&quot; version=&quot;9.0.18,9.0.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;ubuntu20, linux-ubuntu20&quot; tar_file=&quot;/tmp/condor-9.0.18-x86_64_Ubuntu20-stripped.tar.gz&quot; version=&quot;9.0.18,9.0.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;default, rhel7, linux-rhel7&quot; tar_file=&quot;/tmp/condor-10.0.9-x86_64_CentOS7-stripped.tar.gz&quot; version=&quot;10.0.9,10.0.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;rhel8, linux-rhel8&quot; tar_file=&quot;/tmp/condor-10.0.9-x86_64_AlmaLinux8-stripped.tar.gz&quot; version=&quot;10.0.9,10.0.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;ubuntu20, linux-ubuntu20&quot; tar_file=&quot;/tmp/condor-10.0.9-x86_64_Ubuntu20-stripped.tar.gz&quot; version=&quot;10.0.9,10.0.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;ppc64le&quot; os=&quot;rhel8, linux-rhel8&quot; tar_file=&quot;/tmp/condor-10.0.9-ppc64le_AlmaLinux8-stripped.tar.gz&quot; version=&quot;10.0.9,10.0.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;aarch64&quot; os=&quot;rhel8, linux-rhel8&quot; tar_file=&quot;/tmp/condor-10.0.9-aarch64_AlmaLinux8-stripped.tar.gz&quot; version=&quot;10.0.9,10.0.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;default, rhel7, linux-rhel7&quot; tar_file=&quot;/tmp/condor-10.9.0-x86_64_CentOS7-stripped.tar.gz&quot; version=&quot;10.9.0,10.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;rhel8, linux-rhel8&quot; tar_file=&quot;/tmp/condor-10.9.0-x86_64_AlmaLinux8-stripped.tar.gz&quot; version=&quot;10.9.0,10.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;ubuntu20, linux-ubuntu20&quot; tar_file=&quot;/tmp/condor-10.9.0-x86_64_Ubuntu20-stripped.tar.gz&quot; version=&quot;10.9.0,10.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;ppc64le&quot; os=&quot;rhel8, linux-rhel8&quot; tar_file=&quot;/tmp/condor-10.9.0-ppc64le_AlmaLinux8-stripped.tar.gz&quot; version=&quot;10.9.0,10.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;aarch64&quot; os=&quot;rhel8, linux-rhel8&quot; tar_file=&quot;/tmp/condor-10.9.0-aarch64_AlmaLinux8-stripped.tar.gz&quot; version=&quot;10.9.0,10.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;default, rhel7, linux-rhel7&quot; tar_file=&quot;/tmp/condor-23.0.0-x86_64_CentOS7-stripped.tar.gz&quot; version=&quot;23.0.0,23.0.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;rhel8, linux-rhel8&quot; tar_file=&quot;/tmp/condor-23.0.0-x86_64_AlmaLinux8-stripped.tar.gz&quot; version=&quot;23.0.0,23.0.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;default&quot; os=&quot;ubuntu20, linux-ubuntu20&quot; tar_file=&quot;/tmp/condor-23.0.0-x86_64_Ubuntu20-stripped.tar.gz&quot; version=&quot;23.0.0,23.0.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;ppc64le&quot; os=&quot;rhel8, linux-rhel8&quot; tar_file=&quot;/tmp/condor-23.0.0-ppc64le_AlmaLinux8-stripped.tar.gz&quot; version=&quot;23.0.0,23.0.x&quot;/&gt;
+      &lt;condor_tarball arch=&quot;aarch64&quot; os=&quot;rhel8, linux-rhel8&quot; tar_file=&quot;/tmp/condor-23.0.0-aarch64_AlmaLinux8-stripped.tar.gz&quot; version=&quot;23.0.0,23.0.x&quot;/&gt;
+   &lt;/condor_tarballs&gt;
+&lt;/glidein&gt;
+</pre>
+Optionally, you can create a pre configuration hook to fully automate the tarballs download and setup.
       </div>
       <div class="footer">
         Banner image by
