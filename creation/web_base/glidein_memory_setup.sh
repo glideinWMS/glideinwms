@@ -27,6 +27,7 @@ condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
 
 # Use GLIDEIN_MaxMemMBs if configured by the factory
 GLIDEIN_MaxMemMBs=$(gconfig_get GLIDEIN_MaxMemMBs "$glidein_config")
+GLIDEIN_OVERLOAD_MEMORY=$(gconfig_get GLIDEIN_OVERLOAD_MEMORY "$glidein_config")
 
 if [ "${GLIDEIN_MaxMemMBs}" = "" ]; then
     echo "`date` GLIDEIN_MaxMemMBs not set in $glidein_config."
@@ -72,6 +73,14 @@ if [ "${GLIDEIN_MaxMemMBs}" = "" ]; then
 	"$error_gen" -ok "glidein_memory_setup.sh"  "MaxMemMBs" "default"
         exit 0
     fi
+fi
+
+if [[ -n "$GLIDEIN_OVERLOAD_MEMORY" ]]; then
+    echo "GLIDEIN_OVERLOAD_MEMORY has been set to $GLIDEIN_OVERLOAD_MEMORY . Adjusting GLIDEIN_MaxMemMBs from base value $GLIDEIN_MaxMemMBs"
+    # Multiply the two variables using bc
+    result=$(bc <<< "scale=2; $GLIDEIN_MaxMemMBs * $GLIDEIN_OVERLOAD_MEMORY")
+    # Round up the result
+    GLIDEIN_MaxMemMBs=$(printf "%.0f" "$result")
 fi
 
 # Export the GLIDEIN_MaxMemMBs
