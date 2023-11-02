@@ -29,6 +29,7 @@ condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
 
 # Use GLIDEIN_CPUS if configured by the factory
 GLIDEIN_CPUS=$(gconfig_get GLIDEIN_CPUS "$glidein_config")
+GLIDEIN_OVERLOAD_CPUS=$(gconfig_get GLIDEIN_OVERLOAD_CPUS "$glidein_config")
 
 # 3.2.16 Meaning of "auto" chenged from "node" to "slot"
 # node and 0 mean the same thing - detect the hardware resources
@@ -190,6 +191,14 @@ if [ "${GLIDEIN_CPUS}" = "0" ]; then
     fi
     GLIDEIN_CPUS="$cores"
     glidein_cpus_how="(host cpus)"
+fi
+
+if [[ -n "$GLIDEIN_OVERLOAD_CPUS" ]]; then
+    echo "GLIDEIN_OVERLOAD_CPUS has been set to $GLIDEIN_OVERLOAD_CPUS . Adjusting GLIDEIN_CPUS from base value $GLIDEIN_CPUS"
+    # Multiply the two variables using bc
+    result=$(bc <<< "scale=2; $GLIDEIN_CPUS * $GLIDEIN_OVERLOAD_CPUS")
+    # Round up the result
+    GLIDEIN_CPUS=$(printf "%.0f" "$result")
 fi
 
 # export the GLIDEIN_CPUS

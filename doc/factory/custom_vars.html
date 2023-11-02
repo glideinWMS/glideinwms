@@ -965,6 +965,29 @@ MAX_STARTD_LOG          I       10000000        +                               
             </td>
           </tr>
           <tr>
+            <td><b>GLIDEIN_OVERLOAD_CPUS</b></td>
+            <td>Float</td>
+
+            <td>1</td>
+            <td>
+              <p>
+                Adjustment factor for GLIDEIN_CPUS that allows to overload pilots.
+                This means GLIDEIN_CPUS will be multpilied by GLIDEIN_OVERLOAD_CPUS
+                allowing to increase the size of the slot compared to the original
+                value. The original GLIDEIN_CPUS value is usually set to the same
+                value as the submit_attribute used to submit the pilot to the CE.
+                For example, usually both GLIDEIN_CPUS and the submit attribute
+                +xcount are set to 8. Setting GLIDEIN_OVERLOAD_CPUS=1.25 allows to
+                increase the value of GLIDEIN_CPUS to 10 while keeping +xcount to 8.
+                While in principle you could just set GLIDEIN_CPUS to 10, using
+                GLIDEIN_OVERLOAD_CPUS is required for whole node pilots. Therefore,
+                we recommend to always use the GLIDEIN_OVERLOAD_CPU attribute every
+                time GLIDEIN_CPUS is different compared to +xcount (or whatever
+                submit attribute the CE accepts)
+              </p>
+            </td>
+          </tr>
+          <tr>
             <td><b>GLIDEIN_NODES</b></td>
             <td>Int</td>
 
@@ -1017,6 +1040,31 @@ MAX_STARTD_LOG          I       10000000        +                               
                 Used in conjunction with GLIDEIN_MaxMemMBs. It is ignored if
                 GLIDEIN_MaxMemMBs is set to any value. See GLIDEIN_MaxMemMBs for
                 the description.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td><b>GLIDEIN_OVERLOAD_MEMORY</b></td>
+            <td>Float</td>
+
+            <td>1</td>
+            <td>
+              <p>
+                Adjustment factor for GLIDEIN_MaxMemMBs that allows to overload
+                pilot memory. This means GLIDEIN_MaxMemMBs will be multpilied by
+                GLIDEIN_OVERLOAD_MEMORY allowing to increase the size of the slot
+                compared to the original GLIDEIN_MaxMemMBs value.
+                The original GLIDEIN_MaxMemMBs value is usually set to the same
+                value as the submit_attribute used to submit the pilot to the CE.
+                For example, usually both GLIDEIN_MaxMemMBs and the submit attribute
+                +MaxMemory are seto to 20Mb (2.5Gb per core).
+                Setting GLIDEIN_OVERLOAD_MEMORY=1.25 allows to increase the value
+                of GLIDEIN_MaxMemMBs to 25Mb while keeping +MaxMemory to 20Mb.
+                While in principle you could just set GLIDEIN_MaxMemMBs to 25Mb,
+                using GLIDEIN_OVERLOAD_MEMORY is required for whole node pilots.
+                Therefore, we recommend to always use the GLIDEIN_OVERLOAD_MEMORY
+                attribute every time GLIDEIN_MaxMemMBs is different compared to
+                MaxMemory (or whatever submit attribute the CE accepts)
               </p>
             </td>
           </tr>
