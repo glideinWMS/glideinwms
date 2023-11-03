@@ -9,8 +9,9 @@ import os.path
 from . import cWConsts
 
 # these are in the stage dir, so they need to be renamed if changed
-AFTER_FILE_LISTFILE = "after_%s" % cWConsts.FILE_LISTFILE
-AT_FILE_LISTFILE = "at_%s" % cWConsts.FILE_LISTFILE
+AFTER_FILE_LISTFILE = f"after_{cWConsts.FILE_LISTFILE}"
+AT_FILE_LISTFILE = f"at_{cWConsts.FILE_LISTFILE}"
+PRECVMFS_FILE_LISTFILE = f"precvmfs_{cWConsts.FILE_LISTFILE}"
 
 CONDOR_FILE = "condor_bin_%s.tgz"
 CONDOR_DIR = "condor"
@@ -23,6 +24,8 @@ CVMFSEXEC_DISTRO_FILE = "cvmfsexec_dist_%s.tgz"
 CVMFSEXEC_DIR = "cvmfsexec"
 CVMFSEXEC_ATTR = "CVMFSEXEC_DIR"
 
+# constant that defines the priority values used by the factory/glidein
+PRIORITY_SETTINGS = ["file_list", "precvmfs_file_list", "at_file_list", "after_file_list"]
 
 # these are in the submit dir, so they can be changed
 SUBMIT_ATTRS_FILE = "submit_attrs.cfg"

@@ -10,6 +10,8 @@ import os
 import os.path
 import shutil
 
+from collections import Counter
+
 from glideinwms.lib import pubCrypto, subprocessSupport
 from glideinwms.lib.util import str2bool
 
@@ -219,6 +221,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts["params"].add("GLIDEIN_Factory_Collector", str(factory_monitoring_collector))
         populate_gridmap(self.conf, self.dicts["gridmap"])
 
+        # the following list will be a megalist containing all the scripts; used for duplication check logic subsequently
+        all_scripts = list()
         # NOTE that all the files in these _scripts lists are added as executables (i.e. must report with error_gen)
         file_list_scripts = [
             "collector_setup.sh",
@@ -226,8 +230,17 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             "gwms-python",
             cgWConsts.CONDOR_STARTUP_FILE,
         ]
+        # add the above list to the megalist created before
+        all_scripts.extend(file_list_scripts)
+
+        # singularity_setup should be performed after cvmfs_setup; condor_chirp's order does not matter
+        precvmfs_file_list_scripts = ["cvmfs_setup.sh"]
+        all_scripts.extend(precvmfs_file_list_scripts)  # add this list to the megalist
+
         # These are right after the entry, before some VO scripts. The order in the following list is important
         at_file_list_scripts = ["singularity_setup.sh", "condor_chirp", "gconfig.py"]
+        all_scripts.extend(at_file_list_scripts)  # adding the above list to the megalist as before
+
         # The order in the following list is important
         after_file_list_scripts = [
             "check_proxy.sh",
@@ -240,15 +253,14 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             "glidein_sitewms_setup.sh",
             "script_wrapper.sh",
             "smart_partitionable.sh",
-            "cvmfs_setup.sh",
             "cvmfs_umount.sh",
         ]
-        # Only execute scripts once
-        duplicate_scripts = list(set(file_list_scripts).intersection(after_file_list_scripts))
-        duplicate_scripts += list(set(file_list_scripts).intersection(at_file_list_scripts))
-        duplicate_scripts += list(set(at_file_list_scripts).intersection(after_file_list_scripts))
+        all_scripts.extend(after_file_list_scripts)  # adding the above list to the megalist as before
+        # Scripts need to be only executed once, so check for duplicates
+        count_duplicates = Counter(all_scripts)
+        duplicate_scripts = [scr for scr, cnt in count_duplicates.items() if cnt > 1]
         if duplicate_scripts:
-            raise RuntimeError("Duplicates found in the list of files to execute '%s'" % ",".join(duplicate_scripts))
+            raise RuntimeError(f"Duplicates found in the list of files to execute: {', '.join(duplicate_scripts)}")
 
         # Load more system scripts
         for script_name in file_list_scripts:
@@ -414,6 +426,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                     )
 
         # add additional system scripts
+        for script_name in precvmfs_file_list_scripts:
+            self.dicts["precvmfs_file_list"].add_from_file(
+                script_name,
+                cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), "exec:r"),
+                os.path.join(cgWConsts.WEB_BASE_DIR, script_name),
+            )
         for script_name in at_file_list_scripts:
             self.dicts["at_file_list"].add_from_file(
                 script_name,
