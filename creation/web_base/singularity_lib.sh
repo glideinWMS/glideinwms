@@ -1659,6 +1659,14 @@ singularity_get_image() {
         [[ -z "$singularity_image" ]] && singularity_image=$(dict_get_first SINGULARITY_IMAGES_DICT)
     fi
 
+    if [[ -n "$CVMFS_MOUNT_DIR" ]]; then
+        # set things up here since the path needs to be bindmounted inside the container
+        local mount_home=${CVMFS_MOUNT_DIR/\/dist\/cvmfs/}
+        local symlink_target
+	symlink_target=$(readlink $mount_home/dist/${singularity_image#/})
+        singularity_image=$mount_home/dist/${symlink_target#/}
+    fi
+
     # At this point, GWMS_SINGULARITY_IMAGE is still empty, something is wrong
     if [[ -z "$singularity_image" ]]; then
         [[ -z "$SINGULARITY_IMAGES_DICT" ]] && warn "No Singularity image available (SINGULARITY_IMAGES_DICT is empty)" ||
