@@ -7,6 +7,37 @@
 #   Base script of the Glidein (pilot job)
 #   This scripts runs all the others
 
+############################
+# Customizable and initialization variables
+
+# Default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
+IFS=$' \t\n'
+
+# Some sites empty PATH. Setting a reasonable default
+if [[ -z "$PATH" ]]; then
+    export PATH="/bin:/usr/bin"
+fi
+
+global_args="$*"
+# GWMS_STARTUP_SCRIPT=$0
+GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+GWMS_PATH=""
+# Relative to the work directory (GWMS_DIR, gwms_lib_dir, gwms_bin_dir and gwms_exec_dir will be the absolute paths)
+# bin (utilities), lib (libraries), exec (aux scripts to be executed/sourced, e.g. pre-job)
+GWMS_SUBDIR=".gwms.d"
+
+export LANG=C
+
+# General options
+GWMS_MULTIUSER_GLIDEIN=
+# Set GWMS_MULTIUSER_GLIDEIN if the Glidein may spawn processes (for jobs) as a different user.
+# This will prepare the glidein, e.g. setting to 777 the permission of TEMP directories
+# This should never happen only when using GlExec. Not in Singularity, not w/o sudo mechanisms.
+# Comment the following line if GlExec or similar will not be used
+#GWMS_MULTIUSER_GLIDEIN=true
+# Default GWMS log server
+GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
+
 ##############################
 # Utility functions to allow the script to source functions and retrieve data stored as tarball at the end of the script itself
 
@@ -56,7 +87,7 @@ trap_with_arg() {
     done
 }
 
-#function to handle passing signals to the child processes
+# Function to handle passing signals to the child processes
 # no need to re-raise sigint, caller does unconditional exit (https://www.cons.org/cracauer/sigint.html)
 on_die() {
     echo "Received kill signal... shutting down child processes (forwarding $1 signal)" 1>&2
@@ -64,6 +95,8 @@ on_die() {
     kill -s "$1" %1
 }
 
+# Multi-glidein variable. To remain with multi-glidein functions
+GWMS_MULTIGLIDEIN_CHILDS=
 on_die_multi() {
     echo "Multi-Glidein received signal... shutting down child glideins (forwarding $1 signal to ${GWMS_MULTIGLIDEIN_CHILDS})" 1>&2
     ON_DIE=1
@@ -133,41 +166,6 @@ do_start_all() {
     fi
 }
 
-usage() {
-    echo "Usage: glidein_startup.sh <options>"
-    echo "where <options> is:"
-    echo "  -factory <name>             : name of this factory"
-    echo "  -name <name>                : name of this glidein"
-    echo "  -entry <name>               : name of this glidein entry"
-    echo "  -clientname <name>          : name of the requesting client"
-    echo "  -clientgroup <name>         : group name of the requesting client"
-    echo "  -web <baseURL>              : base URL from where to fetch"
-    echo "  -proxy <proxyURL>           : URL of the local proxy"
-    echo "  -dir <dirID>                : directory ID (supports ., Condor, CONDOR, OSG, TMPDIR, AUTO)"
-    echo "  -sign <sign>                : signature of the signature file"
-    echo "  -signtype <id>              : type of signature (only sha1 supported for now)"
-    echo "  -signentry <sign>           : signature of the entry signature file"
-    echo "  -cluster <ClusterID>        : condorG ClusterId"
-    echo "  -subcluster <ProcID>        : condorG ProcId"
-    echo "  -submitcredid <CredentialID>: Credential ID of this condorG job"
-    echo "  -schedd <name>              : condorG Schedd Name"
-    echo "  -descript <fname>           : description file name"
-    echo "  -descriptentry <fname>      : description file name for entry"
-    echo "  -clientweb <baseURL>        : base URL from where to fetch client files"
-    echo "  -clientwebgroup <baseURL>   : base URL from where to fetch client group files"
-    echo "  -clientsign <sign>          : signature of the client signature file"
-    echo "  -clientsigntype <id>        : type of client signature (only sha1 supported for now)"
-    echo "  -clientsigngroup <sign>     : signature of the client group signature file"
-    echo "  -clientdescript <fname>     : client description file name"
-    echo "  -clientdescriptgroup <fname>: client description file name for group"
-    echo "  -slotslayout <type>         : how Condor will set up slots (fixed, partitionable)"
-    echo "  -v <id>                     : operation mode (std, nodebug, fast, check supported)"
-    echo "  -multiglidein <num>         : spawn multiple (<num>) glideins (unless also multirestart is set)"
-    echo "  -multirestart <num>         : started as one of multiple glideins (glidein number <num>)"
-    echo "  -param_* <arg>              : user specified parameters"
-    exit 1
-}
-
 construct_xml() {
     result="$1"
 
@@ -186,7 +184,6 @@ construct_xml() {
 ${result}
 </OSGTestResult>"
 }
-
 
 extract_parent_fname() {
     exitcode=$1
@@ -565,9 +562,11 @@ automatic_work_dir() {
 
 params_get_simple() {
     # Retrieve a simple parameter (no special characters in its value) from the param list
-    # 1:param, 2:param_list (quoted string w/ spaces)
-    [[ ${2} = *\ ${1}\ * ]] || return
-    local retval="${2##*\ ${1}\ }"
+    # param valuers should not contain spaces (used as separator)
+    # 1:param (string, not pattern), 2:param_list (quoted string w/ spaces)
+    [[ " ${2} " = *\ "${1}"\ * ]] || return
+    local retval=" $2 "
+    retval="${retval##*\ "${1}"\ }"  # unquote ${1} here and above if you like to match a pattern
     echo "${retval%%\ *}"
 }
 
@@ -603,43 +602,14 @@ params_decode() {
  -e 's/\.dot,/./g'
 }
 
-# Put parameters into the config file
+# Put parameters into the config file and build PARAM_LIST (comma separated list of parameters)
 params2file() {
-    param_list=""
+    local param_list=""
 
     while [ $# -gt 0 ]
     do
-        # TODO: Use params_decode. For 3.4.8, not to introduce many changes now. Use params_converter
         # Note: using $() we escape blackslash with \\ like above. Using backticks would require \\\
-        pfval=$(echo "$2" | sed \
- -e 's/\.nbsp,/ /g' \
- -e 's/\.semicolon,/;/g' \
- -e 's/\.colon,/:/g' \
- -e 's/\.tilde,/~/g' \
- -e 's/\.not,/!/g' \
- -e 's/\.question,/?/g' \
- -e 's/\.star,/*/g' \
- -e 's/\.dollar,/$/g' \
- -e 's/\.comment,/#/g' \
- -e 's/\.sclose,/]/g' \
- -e 's/\.sopen,/[/g' \
- -e 's/\.gclose,/}/g' \
- -e 's/\.gopen,/{/g' \
- -e 's/\.close,/)/g' \
- -e 's/\.open,/(/g' \
- -e 's/\.gt,/>/g' \
- -e 's/\.lt,/</g' \
- -e 's/\.minus,/-/g' \
- -e 's/\.plus,/+/g' \
- -e 's/\.eq,/=/g' \
- -e "s/\.singquot,/'/g" \
- -e 's/\.quot,/"/g' \
- -e 's/\.fork,/\`/g' \
- -e 's/\.pipe,/|/g' \
- -e 's/\.backslash,/\\/g' \
- -e 's/\.amp,/\&/g' \
- -e 's/\.comma,/,/g' \
- -e 's/\.dot,/./g')
+        pfval=$(params_decode "$2")
         if ! add_config_line "$1 ${pfval}"; then
             glidein_exit 1
         fi
@@ -787,7 +757,8 @@ get_untar_subdir() {
 }
 
 #####################
-# Periodic execution support function
+# Periodic execution support function and global status variable (used only in the function)
+add_startd_cron_counter=0
 add_periodic_script() {
     # schedules a script for periodic execution using startd_cron
     # parameters: wrapper full path, period, cwd, executable path (from cwd),
@@ -807,7 +778,7 @@ add_periodic_script() {
         rm -f ${include_fname}
     fi
 
-    let add_startd_cron_counter=add_startd_cron_counter+1
+    ((add_startd_cron_counter=add_startd_cron_counter+1))
     local name_prefix=GLIDEIN_PS_
     local s_name="${name_prefix}${add_startd_cron_counter}"
 
@@ -1234,7 +1205,7 @@ fetch_file_base() {
         if [ ${ret} -ne 0 ]; then
             "${main_dir}"/error_augment.sh -init
             "${main_dir}"/error_gen.sh -error "tar" "Corruption" "Error untarring '${ffb_outname}'" "file" "${ffb_outname}" "source_type" "${cfs_id}"
-            "${main_dir}"/error_augment.sh  -process ${cfs_rc} "tar" "${PWD}" "mkdir ${ffb_untar_dir} && cd ${ffb_untar_dir} && tar -xmzf ${ffb_outname}" "${START}" "$(date +%s)"
+            "${main_dir}"/error_augment.sh  -process "${cfs_rc}" "tar" "${PWD}" "mkdir ${ffb_untar_dir} && cd ${ffb_untar_dir} && tar -xmzf ${ffb_outname}" "${START}" "$(date +%s)"
             "${main_dir}"/error_augment.sh -concat
             warn "Error untarring '${ffb_outname}'"
             return 1
@@ -1304,38 +1275,52 @@ fixup_condor_dir() {
     fi
 }
 
+usage() {
+    echo "Usage: glidein_startup.sh <options>"
+    echo "where <options> is:"
+    echo "  -factory <name>             : name of this factory"
+    echo "  -name <name>                : name of this glidein"
+    echo "  -entry <name>               : name of this glidein entry"
+    echo "  -clientname <name>          : name of the requesting client"
+    echo "  -clientgroup <name>         : group name of the requesting client"
+    echo "  -web <baseURL>              : base URL from where to fetch"
+    echo "  -proxy <proxyURL>           : URL of the local proxy"
+    echo "  -dir <dirID>                : directory ID (supports ., Condor, CONDOR, OSG, TMPDIR, AUTO)"
+    echo "  -sign <sign>                : signature of the signature file"
+    echo "  -signtype <id>              : type of signature (only sha1 supported for now)"
+    echo "  -signentry <sign>           : signature of the entry signature file"
+    echo "  -cluster <ClusterID>        : condorG ClusterId"
+    echo "  -subcluster <ProcID>        : condorG ProcId"
+    echo "  -submitcredid <CredentialID>: Credential ID of this condorG job"
+    echo "  -schedd <name>              : condorG Schedd Name"
+    echo "  -descript <fname>           : description file name"
+    echo "  -descriptentry <fname>      : description file name for entry"
+    echo "  -clientweb <baseURL>        : base URL from where to fetch client files"
+    echo "  -clientwebgroup <baseURL>   : base URL from where to fetch client group files"
+    echo "  -clientsign <sign>          : signature of the client signature file"
+    echo "  -clientsigntype <id>        : type of client signature (only sha1 supported for now)"
+    echo "  -clientsigngroup <sign>     : signature of the client group signature file"
+    echo "  -clientdescript <fname>     : client description file name"
+    echo "  -clientdescriptgroup <fname>: client description file name for group"
+    echo "  -slotslayout <type>         : how Condor will set up slots (fixed, partitionable)"
+    echo "  -v <id>                     : operation mode (std, nodebug, fast, check supported)"
+    echo "  -multiglidein <num>         : spawn multiple (<num>) glideins (unless also multirestart is set)"
+    echo "  -multirestart <num>         : started as one of multiple glideins (glidein number <num>)"
+    echo "  -param_* <arg>              : user specified parameters"
+    exit 1
+}
+
+
 #####################################################################
 #################### Execution starts here.... ######################
 #####################################################################
 
-# default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
-IFS=$' \t\n'
+# Variables initialized on top of the file
 
-global_args="$*"
-# GWMS_STARTUP_SCRIPT=$0
-GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
-GWMS_PATH=""
-# Relative to the work directory (GWMS_DIR, gwms_lib_dir, gwms_bin_dir and gwms_exec_dir will be the absolute paths)
-# bin (utilities), lib (libraries), exec (aux scripts to be executed/sourced, e.g. pre-job)
-GWMS_SUBDIR=".gwms.d"
-
-export LANG=C
-
-# General options
-GWMS_MULTIUSER_GLIDEIN=
-# Set GWMS_MULTIUSER_GLIDEIN if the Glidein may spawn processes (for jobs) as a different user.
-# This will prepare the glidein, e.g. setting to 777 the permission of TEMP directories
-# This should never happen only when using GlExec. Not in Singularity, not w/o sudo mechanisms.
-# Comment the following line if GlExec or similar will not be used
-#GWMS_MULTIUSER_GLIDEIN=true
-# Default GWMS log server
-GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
-
-GWMS_MULTIGLIDEIN_CHILDS=
-
+# Command line options parsing. Storing all in global variables.
 # params will contain the full list of parameters
-# -param_XXX YYY will become "XXX YYY"
-# TODO: can use an array instead?
+#  -param_XXX YYY will become "XXX YYY"
+#  TODO: can use an array instead?
 params=""
 
 while [ $# -gt 0 ]
@@ -1508,6 +1493,7 @@ else
     glidein_uuid="$(od -x -w32 -N32 /dev/urandom | awk 'NR==1{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')"
 fi
 
+# Print initial variables values (argumants and environment)
 startup_time="$(date +%s)"
 echo "Starting glidein_startup.sh at $(date) (${startup_time})"
 
@@ -1850,9 +1836,6 @@ log_init "${glidein_uuid}" "${work_dir}"
 rm -rf tokens.tgz url_dirs.desc tokens
 log_setup "${glidein_config}"
 
-# Global variable for periodic execution support
-add_startd_cron_counter=0
-
 echo "Downloading files from Factory and Frontend"
 log_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"
 
@@ -2027,7 +2010,7 @@ log_write "glidein_startup.sh" "file" "${glidein_config}" "debug"
 send_logs_to_remote          # checkpoint
 echo "# --- Last Script values ---" >> glidein_config
 last_startup_time=$(date +%s)
-let validation_time=${last_startup_time}-${startup_time}
+((validation_time=last_startup_time-startup_time)) || true
 echo "=== Last script starting $(date) (${last_startup_time}) after validating for ${validation_time} ==="
 echo
 ON_DIE=0
@@ -2047,7 +2030,7 @@ last_startup_end_time=$(date +%s)
 "${main_dir}"/error_augment.sh  -process ${ret} "${last_script}" "${PWD}" "${gs_id_work_dir}/${last_script} glidein_config" "${last_startup_time}" "${last_startup_end_time}"
 "${main_dir}"/error_augment.sh -concat
 
-let last_script_time=${last_startup_end_time}-${last_startup_time}
+((last_script_time=last_startup_end_time-last_startup_time)) || true
 echo "=== Last script ended $(date) (${last_startup_end_time}) with code ${ret} after ${last_script_time} ==="
 echo
 if [ ${ret} -ne 0 ]; then
