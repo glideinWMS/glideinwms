@@ -315,6 +315,7 @@ class ParameterDict(dict):
 
 class CredentialGenerator(Credential[Credential]):
     cred_type = CredentialType.GENERATOR
+    classad_attribute = "CredentialGenerator"
 
     def __init__(self, string: Optional[bytes] = None, path: Optional[str] = None) -> None:
         if not string:
@@ -352,7 +353,8 @@ class CredentialGenerator(Credential[Credential]):
     def load(self, string: Optional[bytes] = None, path: Optional[str] = None) -> None:
         if string:
             self.load_from_string(string)
-            self.cred_type = self._payload.cred_type if self._payload else None
+            self.cred_type = self._payload.cred_type if self._payload else self.cred_type
+            self.classad_attribute = self._payload.classad_attribute if self._payload else self.classad_attribute
             if path:
                 self.path = path
         else:
