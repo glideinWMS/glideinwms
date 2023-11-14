@@ -29,7 +29,7 @@ T = TypeVar("T")
 class Generator(ABC, Generic[T]):
     def __str__(self):
         return f"{self.__class__.__name__}()"
-    
+
     def __repr__(self):
         return str(self)
 
@@ -74,10 +74,9 @@ def export_generator(generator: Generator):
 
 
 class RoundRobinGenerator(Generator[T]):
-
     def __init__(self, items: List[T]) -> None:
         self._items = items
-    
+
     def generate(self) -> T:
         item = self._items.pop()
         self._items.insert(0, item)
