@@ -867,20 +867,22 @@ class glideinFrontendElement:
                     self.elementDescript, glidein_el, self.group_name, trust_domain
                 )
 
+                # TODO: Remove this code once we are sure the new credentials work properly
+                #
                 # look for a local scitoken if no credential was generated
-                if not stkn:
-                    stkn = credentials.get_scitoken(self.elementDescript, trust_domain)
+                # if not stkn:
+                #     stkn = credentials.get_scitoken(self.elementDescript, trust_domain)
 
-                if stkn:
-                    if generator_name:
-                        for cred_el in advertizer.descript_obj.x509_proxies_plugin.cred_list:  # type: ignore
-                            if cred_el.filename == generator_name:
-                                cred_el.generated_data = stkn
-                                break
-                    if token_util.token_str_expired(stkn):
-                        logSupport.log.warning("SciToken is expired, not forwarding.")
-                    else:
-                        gp_encrypt["frontend_scitoken"] = stkn
+                # if stkn:
+                #     if generator_name:
+                #         for cred_el in advertizer.descript_obj.x509_proxies_plugin.cred_list:  # type: ignore
+                #             if cred_el.filename == generator_name:
+                #                 cred_el.generated_data = stkn
+                #                 break
+                #     if token_util.token_str_expired(stkn):
+                #         logSupport.log.warning("SciToken is expired, not forwarding.")
+                #     else:
+                #         gp_encrypt["frontend_scitoken"] = stkn
 
                 # now advertise
                 logSupport.log.debug("advertising tokens %s" % gp_encrypt.keys())

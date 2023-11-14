@@ -1221,6 +1221,8 @@ class MultiAdvertizeWork:
                 classad_name = credential_el.id + "_" + classad_name
 
                 glidein_params_to_encrypt[credential_el.credential.classad_attribute] = credential_el.id
+                if credential_el.credential.cred_type is CredentialType.TOKEN:
+                    glidein_params_to_encrypt["frontend_scitoken"] = credential_el.credential.string
                 if isinstance(credential_el.credential, CredentialPair):
                     glidein_params_to_encrypt[
                         credential_el.credential.private_credential.classad_attribute
