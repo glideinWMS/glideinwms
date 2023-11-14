@@ -35,6 +35,7 @@ from typing import Any, Generic, TypeVar, Optional, Union, Mapping, Iterable, Li
 
 from glideinwms.factory import glideFactoryInterface, glideFactoryLib
 from glideinwms.lib import condorMonitor, logSupport, pubCrypto, symCrypto
+from glideinwms.lib.generators import Generator, load_generator
 from glideinwms.lib.util import hash_nc
 
 sys.path.append("/etc/gwms-frontend/plugin.d")
@@ -63,6 +64,7 @@ class CredentialType(enum.Enum):
     TOKEN = "token"
     X509_CERT = "x509_cert"
     RSA_KEY = "rsa_key"
+    GENERATOR = "generator"
 
     def __repr__(self) -> str:
         return self.name
@@ -208,12 +210,15 @@ class Credential(ABC, Generic[T]):
         compress: bool = False,
         data_pattern: Optional[bytes] = None,
         overwrite: bool = True,
+        continue_if_no_path = False,
     ) -> None:
         if not self.string:
             raise CredentialError("Credential not initialized")
 
         path = path or self.path
         if not path:
+            if continue_if_no_path:
+                return
             raise CredentialError("No path specified")
 
         if os.path.isfile(path) and not overwrite:
@@ -294,20 +299,6 @@ class Parameter:
         return f"{self.name.value}={self.value}"
 
 
-class Parameter:
-    def __init__(self, name: ParameterName, value):
-        if not isinstance(name, ParameterName):
-            raise TypeError("Name must be a ParameterName")
-        self.name = name
-        self.value = value
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(name={self.name.value!r}, value={self.value!r})"
-
-    def __str__(self) -> str:
-        return f"{self.name.value}={self.value}"
-
-
 class ParameterDict(dict):
     def __setitem__(self, __k, __v):
         if not isinstance(__k, ParameterName):
@@ -318,6 +309,52 @@ class ParameterDict(dict):
         if not isinstance(parameter, Parameter):
             raise TypeError("Parameter must be a Parameter")
         self[parameter.name] = parameter.value
+
+
+class CredentialGenerator(Credential[Credential]):
+    cred_type = CredentialType.GENERATOR
+
+    def __init__(self, string: Optional[bytes] = None, path: Optional[str] = None) -> None:
+        if not string:
+            string = path.encode() if path else None
+        if not string:
+            raise CredentialError("No string or path specified")
+        self._string = string
+        self.path = None
+        self.load(string)
+    
+    def __renew__(self) -> None:
+        self.load(self._string)
+    
+    @property
+    def _payload(self) -> Optional[Credential]:
+        return self.decode(self._string) if self._string else None
+
+    @property
+    def string(self) -> Optional[bytes]:
+        return self._payload.string if self._payload else None
+    
+    @staticmethod
+    def decode(string: bytes) -> Credential:
+        generator = load_generator(string.decode())
+        return create_credential(generator.generate())
+    
+    def valid(self) -> bool:
+        if self._payload:
+            return self._payload.valid()
+        return False
+    
+    def load_from_file(self, path: str) -> None:
+        raise CredentialError("Cannot load CredentialGenerator from file")
+
+    def load(self, string: Optional[bytes] = None, path: Optional[str] = None) -> None:
+        if string:
+            self.load_from_string(string)
+            self.cred_type = self._payload.cred_type if self._payload else None
+            if path:
+                self.path = path
+        else:
+            raise CredentialError("No string specified")
 
 
 class Token(Credential[Mapping]):
@@ -424,16 +461,16 @@ class RSAKey(Credential[pubCrypto.RSAKey]):
         return symCrypto.AutoSymKey(self._payload.decrypt_hex(enc_sym_key))
 
 
-class TextCredential(Credential[bytes]):
-    cred_type = CredentialType.TOKEN
-    classad_attribute = "AuthFile"
+# class TextCredential(Credential[bytes]):
+#     cred_type = CredentialType.TOKEN
+#     classad_attribute = "AuthFile"
 
-    @staticmethod
-    def decode(string: bytes) -> bytes:
-        return string
+#     @staticmethod
+#     def decode(string: bytes) -> bytes:
+#         return string
     
-    def valid(self) -> bool:
-        return True
+#     def valid(self) -> bool:
+#         return True
 
 
 class X509Pair(CredentialPair, X509Cert):
@@ -451,25 +488,25 @@ class X509Pair(CredentialPair, X509Cert):
         self.private_credential.classad_attribute = "PrivateCert"
 
 
-class UsernamePassword(CredentialPair, TextCredential):
-    cred_type = CredentialPairType.USERNAME_PASSWORD
+# class UsernamePassword(CredentialPair, TextCredential):
+#     cred_type = CredentialPairType.USERNAME_PASSWORD
 
-    def __init__(
-        self,
-        string: Optional[bytes] = None,
-        path: Optional[str] = None,
-        private_string: Optional[bytes] = None,
-        private_path: Optional[str] = None,
-    ) -> None:
-        super().__init__(string, path, private_string, private_path)
-        self.classad_attribute = "Username"
-        self.private_credential.classad_attribute = "Password"
+#     def __init__(
+#         self,
+#         string: Optional[bytes] = None,
+#         path: Optional[str] = None,
+#         private_string: Optional[bytes] = None,
+#         private_path: Optional[str] = None,
+#     ) -> None:
+#         super().__init__(string, path, private_string, private_path)
+#         self.classad_attribute = "Username"
+#         self.private_credential.classad_attribute = "Password"
 
 
 class RequestCredential:
     def __init__(
         self,
-        credential: Credential,
+        credential: Union[Credential, Generator],
         purpose: Optional[CredentialPurpose] = None,
         trust_domain: Optional[TrustDomain] = None,
         security_class: Optional[str] = None,
@@ -490,10 +527,10 @@ class RequestCredential:
 
     @property
     def id(self) -> str:
-        if not self.credential.string:
+        if not str(self.credential):
             raise CredentialError("Credential not initialized")
         
-        return hash_nc(f"{self.credential.string.decode()}{self.purpose}{self.trust_domain}{self.security_class}", 8)
+        return hash_nc(f"{str(self.credential)}{self.purpose}{self.trust_domain}{self.security_class}", 8)
 
     @property
     def private_id(self) -> str:
@@ -589,7 +626,7 @@ class SubmitBundle:
 
 
 class AuthenticationSet:
-    _required_types: Set[CredentialType] = set()
+    _required_types: Set[Union[CredentialType, ParameterName]] = set()
 
     def __init__(self, cred_types: Iterable[CredentialType]):
         for cred_type in cred_types:
@@ -613,31 +650,45 @@ class AuthenticationSet:
 
 
 class AuthenticationMethod:
-    _supported_sets: List[AuthenticationSet] = []
-
     def __init__(self, auth_method: str):
+        self._requirements: List[List[Union[CredentialType, ParameterName]]] = []
         self.load(auth_method)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._supported_sets!r})"
+        return f"{self.__class__.__name__}({self._requirements!r})"
 
     def __str__(self) -> str:
-        return ";".join(str(auth_set) for auth_set in self._supported_sets)
+        return ";".join(str(auth_set) for auth_set in self._requirements)
 
     def load(self, auth_method: str):
-        for auth_set in auth_method.split(";"):
-            if auth_set.lower() == "any":
-                self._supported_sets.append(AuthenticationSet([]))
+        for group in auth_method.split(";"):
+            if group.lower() == "any":
+                self._requirements.append([]) # type: ignore
             else:
-                self._supported_sets.append(
-                    AuthenticationSet([CredentialType.from_string(cred_type) for cred_type in auth_set.split(",")])
-                )
+                options = []
+                for option in group.split(","):
+                    try:
+                        options.append(CredentialType.from_string(option))
+                    except CredentialError:
+                        try:
+                            options.append(ParameterName.from_string(option))
+                        except CredentialError:
+                            raise CredentialError(f"Unknown authentication requirement: {option}")
+                self._requirements.append(options)
 
-    def match(self, cred_types: Iterable[CredentialType]) -> Optional[AuthenticationSet]:
-        for auth_set in self._supported_sets:
-            if auth_set.satisfied_by(cred_types):
-                return auth_set
-        return None
+    def match(self, credentials: Iterable[Credential]) -> Optional[AuthenticationSet]:
+        if not self._requirements:
+            return AuthenticationSet([])
+
+        auth_set = []
+        cred_types = {credential.cred_type for credential in credentials if credential.valid()}
+        for group in self._requirements:
+            for option in group:
+                if option in cred_types:
+                    auth_set.append(option)
+                    break
+                return None
+        return AuthenticationSet(auth_set)
 
 
 def credential_of_type(
