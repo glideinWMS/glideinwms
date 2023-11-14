@@ -665,7 +665,7 @@ class AuthenticationMethod:
 
     def __str__(self) -> str:
         return ";".join(str(auth_set) for auth_set in self._requirements)
-    
+
     def __contains__(self, cred_type: Union[CredentialType, str]) -> bool:
         if isinstance(cred_type, str):
             cred_type = CredentialType.from_string(cred_type)
@@ -1108,11 +1108,11 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name,
     CredentialError: if the credentials in params don't match what is defined for the auth method
     """
 
-    try: 
+    try:
         auth_method = AuthenticationMethod(auth_method)
     except CredentialError:
         logSupport.log.warning(
-            f"Invalid authentication method: \"{auth_method}\". Supported methods are: {SUPPORTED_AUTH_METHODS}"
+            f'Invalid authentication method: "{auth_method}". Supported methods are: {SUPPORTED_AUTH_METHODS}'
         )
         return
 
