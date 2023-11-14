@@ -667,13 +667,6 @@ def createRequestBundle(elementDescript):
     return request_bundle
 
 
-def createRequestBundle(elementDescript):
-    """Creates a list of Credentials for a proxy plugin"""
-    request_bundle = RequestBundle()
-    request_bundle.load_from_element(elementDescript)
-    return request_bundle
-
-
 def fair_split(i, n, p):
     """
     Split n requests amongst p proxies

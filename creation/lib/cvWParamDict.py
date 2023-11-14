@@ -1355,7 +1355,7 @@ def populate_group_security(client_security, params, sub_params, group_name):
     client_security["schedd_DNs"] = schedd_dns
 
     pilot_dns = []
-    exclude_from_pilot_dns = ["SCITOKEN", "IDTOKEN"]
+    exclude_from_pilot_dns = ["SCITOKEN", "IDTOKEN", "GENERATOR"]
     for credentials in (params.security.credentials, sub_params.security.credentials):
         if is_true(params.groups[group_name].enabled):
             for pel in credentials:

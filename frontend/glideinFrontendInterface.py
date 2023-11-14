@@ -857,7 +857,7 @@ class MultiAdvertizeWork:
             cred_el = self.x509_proxies_data[i]
             cred_el.advertize = True
             cred_el.credential.renew()
-            cred_el.credential.save_to_file(overwrite=False)
+            cred_el.credential.save_to_file(overwrite=False, continue_if_no_path=True)
 
         return nr_credentials
 
@@ -1164,8 +1164,7 @@ class MultiAdvertizeWork:
         if nr_credentials == 0:
             raise NoCredentialException
         
-        cred_types = set(t.credential.cred_type for t in credentials_with_requests)
-        auth_set = factory_auth.match(cred_types)
+        auth_set = factory_auth.match([t.credential for t in credentials_with_requests])
         if not auth_set:
             logSupport.log.warning("No credentials match for factory pool %s, not advertising request" % factory_pool)
             raise NoCredentialException
