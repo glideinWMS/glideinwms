@@ -981,9 +981,7 @@ class MultiAdvertizeWork:
                 glidein_params_to_encrypt[cred_el.id] = cred_el.credential.string
                 if hasattr(cred_el, "security_class"):
                     # Convert the sec class to a string so the Factory can interpret the value correctly
-                    glidein_params_to_encrypt["SecurityClass" + cred_el.id] = str(
-                        cred_el.security_class
-                    )
+                    glidein_params_to_encrypt["SecurityClass" + cred_el.id] = str(cred_el.security_class)
 
             key_obj = None
             if factory_pool in self.global_key:
@@ -1163,7 +1161,7 @@ class MultiAdvertizeWork:
         nr_credentials = len(credentials_with_requests)
         if nr_credentials == 0:
             raise NoCredentialException
-        
+
         auth_set = factory_auth.match([t.credential for t in credentials_with_requests])
         if not auth_set:
             logSupport.log.warning("No credentials match for factory pool %s, not advertising request" % factory_pool)
@@ -1172,7 +1170,7 @@ class MultiAdvertizeWork:
         if file_id_cache is None:
             # create a local cache, if no global provided
             file_id_cache = CredentialCache()
-        
+
         for name, value in descript_obj.x509_proxies_plugin.params_dict.items():
             params_obj.glidein_params_to_encrypt[name.value] = value
 
@@ -1201,9 +1199,7 @@ class MultiAdvertizeWork:
 
                 # TODO: REFACTOR THIS BLOCK!!!
                 if not credential_el.credential.valid():
-                    logSupport.log.warning(
-                        f"Credential file {credential_el.credential.path} has expired, skipping..."
-                    )
+                    logSupport.log.warning(f"Credential file {credential_el.credential.path} has expired, skipping...")
                     continue
 
                 if params_obj.request_name in self.factory_constraint:
@@ -1226,7 +1222,9 @@ class MultiAdvertizeWork:
 
                 glidein_params_to_encrypt[credential_el.credential.classad_attribute] = credential_el.id
                 if isinstance(credential_el.credential, CredentialPair):
-                    glidein_params_to_encrypt[credential_el.credential.private_credential.classad_attribute] = credential_el.private_id
+                    glidein_params_to_encrypt[
+                        credential_el.credential.private_credential.classad_attribute
+                    ] = credential_el.private_id
 
                 # TODO: Is this still needed?
                 # # Process additional information of the credential

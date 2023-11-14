@@ -172,7 +172,7 @@ class glideinFrontendElement:
         self.removal_margin = int(self.elementDescript.element_data["RemovalMargin"])
 
         # Default bahavior: Use factory proxies unless configure overrides it
-        self.x509_proxy_plugin: glideinFrontendPlugins.CredentialsPlugin = None # type: ignore
+        self.x509_proxy_plugin: glideinFrontendPlugins.CredentialsPlugin = None  # type: ignore
 
         # If not None, this is a request for removal of glideins only (i.e. do not ask for more)
         self.request_removal_wtype = None
@@ -222,8 +222,7 @@ class glideinFrontendElement:
             if not proxy_plugins.get(self.elementDescript.merged_data["ProxySelectionPlugin"]):
                 logSupport.log.warning(
                     "Invalid ProxySelectionPlugin '%s', supported plugins are %s"
-                    % (self.elementDescript.merged_data["ProxySelectionPlugin"],
-                    list(proxy_plugins.keys()))
+                    % (self.elementDescript.merged_data["ProxySelectionPlugin"], list(proxy_plugins.keys()))
                 )
                 return 1
             self.x509_proxy_plugin = proxy_plugins[self.elementDescript.merged_data["ProxySelectionPlugin"]](
@@ -874,7 +873,7 @@ class glideinFrontendElement:
 
                 if stkn:
                     if generator_name:
-                        for cred_el in advertizer.descript_obj.x509_proxies_plugin.cred_list: # type: ignore
+                        for cred_el in advertizer.descript_obj.x509_proxies_plugin.cred_list:  # type: ignore
                             if cred_el.filename == generator_name:
                                 cred_el.generated_data = stkn
                                 break

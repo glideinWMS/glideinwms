@@ -51,11 +51,11 @@ class CredentialsPlugin(ABC):
 
     def __init__(self, config_dir: str, request_bundle: RequestBundle):
         self.request_bundle = request_bundle
-    
+
     @property
     def cred_list(self) -> List[RequestCredential]:
         return list(self.request_bundle.credentials.values())
-    
+
     @property
     def params_dict(self) -> Mapping[ParameterName, Parameter]:
         return self.request_bundle.parameters
@@ -78,7 +78,7 @@ class CredentialsPlugin(ABC):
 
     def update_usermap(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
         return
-    
+
     @abstractmethod
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         pass
@@ -120,6 +120,7 @@ class CredentialsAll(CredentialsPlugin):
 ###########################################################
 ### Proxy plugins are deprecated and should not be used ###
 ###########################################################
+
 
 class ProxyFirst:
     """This plugin always returns the first proxy
@@ -652,7 +653,7 @@ def list2ilist(lst):
     return out
 
 
-# TODO: Deprecate in favor of createRequestBundle 
+# TODO: Deprecate in favor of createRequestBundle
 def createCredentialList(elementDescript):
     """Creates a list of Credentials for a proxy plugin"""
     request_bundle = credentials.RequestBundle()

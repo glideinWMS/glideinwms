@@ -210,7 +210,7 @@ class Credential(ABC, Generic[T]):
         compress: bool = False,
         data_pattern: Optional[bytes] = None,
         overwrite: bool = True,
-        continue_if_no_path = False,
+        continue_if_no_path=False,
     ) -> None:
         if not self.string:
             raise CredentialError("Credential not initialized")
@@ -240,7 +240,9 @@ class Credential(ABC, Generic[T]):
                     try:
                         shutil.copy2(path, f"{path}.old")
                     except FileNotFoundError as err:
-                        logSupport.log.debug(f"Tried to backup credential at {path} but file does not exist: {err}. Probably first time saving credential.")
+                        logSupport.log.debug(
+                            f"Tried to backup credential at {path} but file does not exist: {err}. Probably first time saving credential."
+                        )
                 os.replace(fd.name, path)
         except OSError as err:
             raise CredentialError(f"Could not save credential to {path}: {err}") from err
@@ -268,10 +270,10 @@ class CredentialPair:
         credential_class = self.__class__.__bases__[1]
         super(credential_class, self).__init__(string, path)  # type: ignore
         self.private_credential = credential_class(private_string, private_path)
-    
+
     def renew(self) -> None:
         try:
-            self.__renew__() # type: ignore
+            self.__renew__()  # type: ignore
             self.private_credential.__renew__()
         except NotImplementedError:
             pass
@@ -322,10 +324,10 @@ class CredentialGenerator(Credential[Credential]):
         self._string = string
         self.path = None
         self.load(string)
-    
+
     def __renew__(self) -> None:
         self.load(self._string)
-    
+
     @property
     def _payload(self) -> Optional[Credential]:
         return self.decode(self._string) if self._string else None
@@ -333,17 +335,17 @@ class CredentialGenerator(Credential[Credential]):
     @property
     def string(self) -> Optional[bytes]:
         return self._payload.string if self._payload else None
-    
+
     @staticmethod
     def decode(string: bytes) -> Credential:
         generator = load_generator(string.decode())
         return create_credential(generator.generate())
-    
+
     def valid(self) -> bool:
         if self._payload:
             return self._payload.valid()
         return False
-    
+
     def load_from_file(self, path: str) -> None:
         raise CredentialError("Cannot load CredentialGenerator from file")
 
@@ -359,7 +361,7 @@ class CredentialGenerator(Credential[Credential]):
 
 class Token(Credential[Mapping]):
     cred_type = CredentialType.TOKEN
-    classad_attribute = "ScitokenId" # TODO: We might want to change this name to "TokenId" in the future
+    classad_attribute = "ScitokenId"  # TODO: We might want to change this name to "TokenId" in the future
 
     @property
     def scope(self) -> Optional[str]:
@@ -468,7 +470,7 @@ class RSAKey(Credential[pubCrypto.RSAKey]):
 #     @staticmethod
 #     def decode(string: bytes) -> bytes:
 #         return string
-    
+
 #     def valid(self) -> bool:
 #         return True
 
@@ -529,7 +531,7 @@ class RequestCredential:
     def id(self) -> str:
         if not str(self.credential):
             raise CredentialError("Credential not initialized")
-        
+
         return hash_nc(f"{str(self.credential)}{self.purpose}{self.trust_domain}{self.security_class}", 8)
 
     @property
@@ -538,7 +540,9 @@ class RequestCredential:
             raise CredentialError("Credential must be a CredentialPair")
         if not self.credential.private_credential.string:
             raise CredentialError("Private credential not initialized")
-        return hash_nc(f"{self.credential.private_credential.string.decode()}{self.purpose}{self.trust_domain}{self.security_class}")
+        return hash_nc(
+            f"{self.credential.private_credential.string.decode()}{self.purpose}{self.trust_domain}{self.security_class}"
+        )
 
     def add_usage_details(self, req_idle=0, req_max_run=0):
         self.req_idle = req_idle
@@ -560,7 +564,7 @@ class RequestBundle:
     def add_credential(self, credential, id=None, purpose=None, trust_domain=None, security_class=None):
         rbCredential = RequestCredential(credential, purpose, trust_domain, security_class)
         self.credentials[id or rbCredential.id] = rbCredential
-    
+
     def add_parameter(self, name: str, value: str):
         self.parameters.add(Parameter(ParameterName.from_string(name), value))
 
@@ -663,7 +667,7 @@ class AuthenticationMethod:
     def load(self, auth_method: str):
         for group in auth_method.split(";"):
             if group.lower() == "any":
-                self._requirements.append([]) # type: ignore
+                self._requirements.append([])  # type: ignore
             else:
                 options = []
                 for option in group.split(","):
