@@ -488,3 +488,14 @@ v3_10_5:
     - Fixed syntax errors in analyze_queues (PR#357)
     - Fixed setup_x509 to be successful w/ TRUST_DOMAIN set in the as Factory or Frontend parameter (PR#359)
     - GLIDEIN_SINGULARITY_BINARY_OVERRIDE set also with Frontend and Factory params, not only WN environment (PR#360)
+
+v3_11_0:
+  Date: November 15, 2023
+  Series: Upcoming
+  Tarball: false
+  Feature:
+    - Refactored Credentials class to be used by Factory and Frontend
+    - Multi-type authentication methods
+    - New generators model to be used for more than just credentials
+    - Credential generators refactored to use the new model
+    - A lot of boilerplating for upcoming features

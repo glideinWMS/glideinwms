@@ -1,59 +1,3 @@
-v3_10_5
-	Bug fix: Workaround for EL7 PyJWT bug, generating bytes instead of str (PR#355)
-	Bug fix: Fixed missing `cvmfsexec.cfg` files from Factory reconfig and improved cvmfsexec warnings (Issue#348, PR#356)
-	Bug fix: Added bash requirement to files using bashisms, notably `glidein_sitewms_setup.sh` (PR#358)
-	Bug fix: Fixed syntax errors in analyze_queues (PR#357)
-	Bug fix: Fixed setup_x509 to be successful w/ TRUST_DOMAIN set in the as Factory or Frontend parameter (PR#359)
-	Bug fix: GLIDEIN_SINGULARITY_BINARY_OVERRIDE set also with Frontend and Factory params, not only WN environment (PR#360)
-
-v3_10_4
-	Bug fix: Fixed missing arguments from rrdtool fetch call (Issue#351, PR#352)
-	Bug fix: gconfig.py to use `gwms-python`, not use `python3` (Issue#349, PR#350)
-	Bug fix: Fixed alternative Shell code still using the `python` (i.e. python2) interpreter (PR#353)
-
-v3_10_3
-	Added support for Debian 11 and Ubuntu 22 worker nodes (PR#320)
-	Added structured logging. It is a hybrid format with some fields followed by a JSON dictionary. The exact format of the messages may change in the future, and we plan for it to become the default. Now it is disabled by default. Add `structured="True"` to all `process_log` elements (PR#333)
-	Add option to set xml output directory in OSG_autoconf (PR#319)
-	Allow OSG_autoconf to skip sites or CEs that are not present in the OSG collector (PR#315)
-	Add option to set num_factories in OSG_autoconf (Issue#344, PR#345)
-	Added the ability to clear a list of variables from the environment via GLIDEIN_CONTAINER_ENV_CLEARLIST before starting a container (Issue#341, PR#342)
-	Bug fix: Removed `classad` from requirements.txt. The HTCSS team distributes only the `htcondor` library in PyPI which includes a different version of classad (PR#301)
-	Bug fix: Fixing Python 3.9 deprecations (`imp`, `getchildren()` in `xml.etree.ElementTree`) (PR#302, PR#303)
-	Bug fix: Populate missing Entry parameters for ARC CEs submissions (PR#304)
-	Bug fix: Modified the usage of subprocess module, for building/rebuilding cvmfsexec distributions, only when necessary (PR#309)
-	Bug fix: manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (issue#283, PR#284)
-	Bug fix: Fixed fetch_rrd crash in EL9 causing missing monitoring and glidefactoryclient classad information (Issue#338, PR#339)
-	NOTE-FACTORY: When generating cvmfsexec distribution for EL9 machine type on an EL7 machine, the factory reconfig and/or upgrade fails as a result of an error in `create_cvmfsexec_distros.sh`. This is possibly due to the tools for EL7 being unable to handle EL9 files (as per Dave Dykstra). Please exercise caution if using `rhel9-x86_64` in the `mtypes` list for the `cvmfsexec_distro` tag in factory configuration. - Our workaround is to remove the EL9 machine type from the default list of machine types supported by the custom distros creation script.  Add it back if you are running on an EL9 system and want an EL9 cvmfsexec distrinution. (PR#312)'
-
-v3_10_2
-	Add a parameter to control the name of the keyname for idtokens (PR#268)
-	Added a factory knob to allow control over rebuilding of cvmfsexec distributions (PR#272)
-	RHEL9 worker node are now recognized by condor_platform_select automatic OS detection (PR#285)
-	Removed pre-reconfigure hook used for rebuilding cvmfsexec distributions whenever a factory reconfig/upgrade was run (issue#262)
-	Bug fix: Use correct variable for `$exit_code` in `singularity_exec_simple` (PR#259)
-	Bug fix: Make sure default value does not overwrite the global one for idtoken_lifetime (PR#261)
-	Bug fix: Protect OSG_autoconf from OSG collector unavailability (PR#276)
-	Bug fix: Fixed jobs going in unknown state in factory monitoring. added QUEUING state for new ARC-CEs REST (PR#286)
-	NOTE: When using on-demand CVMFS, all Glideins after the first one on a node are failing (issue#287)
-	NOTE-FACTORY: The rebuilding of cvmfsexec distributions is now disabled by default, it must be enabled via the new factory knob.\ If you are upgrading from v3.9.5 or later, check that the cvmfsexec script is no more in the pre-reconfigure hooks directory.
-
-v3_10_1
-	Added utility function to replace error_gen in python scripts (PR#254)
-	Bug fix: Fixed status reporting for `gconfig.py`  (PR#254)
-	NOTE: Please see all the notes in 3.9.6 about the custom script changes
-
-v3_10_0
-	All the features and fixes in v3_9_6
-	Use `SINGULARITY_DISABLE_PID_NAMESPACES` disable `--pid` in Singularity/Apptainer  (OSG SOFTWARE-5340, PR#232)
-	Raise a warning if there are "FATAL" errors in Singularity/Apptainer stdlog and the exit code is 0 (PR#235)
-	Added `gconfig.py`. Python utilities to read and write glidein_config (PR#237)
-	Bug fix: Set PATH to default value instead of emptying it (PR#233)
-	Bug fix: Have `get_prop_str` return the default value when the attribute is "undefined" and `gwms_from_config` return the default when set instead of an empty string (PR#235)
-	Bug fix: Fixed credential ID in Glideins. It was not set for scitokens causing incorrect monitoring values (PR#242)
-	Bug fix: Fixed typo in `singularity_lib.sh` (issue#249)
-	NOTE: This follows v3_9_6. Please see all the notes about the custom script changes
-
 v3_9_6
 	Added token authentication to Glideins running in the Cloud (AWS and GCE). Now Glideins on all supported resources can authenticate back using IDTOKENS when using recent HTCSS versions.
 	Added `GLIDEIN_PERIODIC_SCRIPT` env variable to notify periodic custom scripts
@@ -307,6 +251,69 @@ v3_6
 	Bug fix: Factory could start also w/ a GT2 entry enabled
 	NOTE: v3_6 is fully interoperable w/ v3_5 and v3_4. I.e. You can mix v3_6_x, v3_5_x and v3_4_x Factories and Frontends in your system
 	NOTE-FACTORY: The v3.6 Factory (like v3.5) is using a single user. This is a major change. If you are upgrading, after the RPM upgrade you will need to:\ 1. stop Factory and HTCondor, 2. Migrate the HTCondor status running the fact_chown script, 3. Run upgrade and restart the HTCondor and the Factory. For detailed instructions see http://glideinwms.fnal.gov/doc.dev/factory/configuration.html#single_user
+
+v3_11_0
+	Refactored Credentials class to be used by Factory and Frontend
+	Multi-type authentication methods
+	New generators model to be used for more than just credentials
+	Credential generators refactored to use the new model
+	A lot of boilerplating for upcoming features
+
+v3_10_5
+	Bug fix: Workaround for EL7 PyJWT bug, generating bytes instead of str (PR#355)
+	Bug fix: Fixed missing `cvmfsexec.cfg` files from Factory reconfig and improved cvmfsexec warnings (Issue#348, PR#356)
+	Bug fix: Added bash requirement to files using bashisms, notably `glidein_sitewms_setup.sh` (PR#358)
+	Bug fix: Fixed syntax errors in analyze_queues (PR#357)
+	Bug fix: Fixed setup_x509 to be successful w/ TRUST_DOMAIN set in the as Factory or Frontend parameter (PR#359)
+	Bug fix: GLIDEIN_SINGULARITY_BINARY_OVERRIDE set also with Frontend and Factory params, not only WN environment (PR#360)
+
+v3_10_4
+	Bug fix: Fixed missing arguments from rrdtool fetch call (Issue#351, PR#352)
+	Bug fix: gconfig.py to use `gwms-python`, not use `python3` (Issue#349, PR#350)
+	Bug fix: Fixed alternative Shell code still using the `python` (i.e. python2) interpreter (PR#353)
+
+v3_10_3
+	Added support for Debian 11 and Ubuntu 22 worker nodes (PR#320)
+	Added structured logging. It is a hybrid format with some fields followed by a JSON dictionary. The exact format of the messages may change in the future, and we plan for it to become the default. Now it is disabled by default. Add `structured="True"` to all `process_log` elements (PR#333)
+	Add option to set xml output directory in OSG_autoconf (PR#319)
+	Allow OSG_autoconf to skip sites or CEs that are not present in the OSG collector (PR#315)
+	Add option to set num_factories in OSG_autoconf (Issue#344, PR#345)
+	Added the ability to clear a list of variables from the environment via GLIDEIN_CONTAINER_ENV_CLEARLIST before starting a container (Issue#341, PR#342)
+	Bug fix: Removed `classad` from requirements.txt. The HTCSS team distributes only the `htcondor` library in PyPI which includes a different version of classad (PR#301)
+	Bug fix: Fixing Python 3.9 deprecations (`imp`, `getchildren()` in `xml.etree.ElementTree`) (PR#302, PR#303)
+	Bug fix: Populate missing Entry parameters for ARC CEs submissions (PR#304)
+	Bug fix: Modified the usage of subprocess module, for building/rebuilding cvmfsexec distributions, only when necessary (PR#309)
+	Bug fix: manual_glidein_submit now correctly sets idtokens in the EncryptedInputFiles (issue#283, PR#284)
+	Bug fix: Fixed fetch_rrd crash in EL9 causing missing monitoring and glidefactoryclient classad information (Issue#338, PR#339)
+	NOTE-FACTORY: When generating cvmfsexec distribution for EL9 machine type on an EL7 machine, the factory reconfig and/or upgrade fails as a result of an error in `create_cvmfsexec_distros.sh`. This is possibly due to the tools for EL7 being unable to handle EL9 files (as per Dave Dykstra). Please exercise caution if using `rhel9-x86_64` in the `mtypes` list for the `cvmfsexec_distro` tag in factory configuration. - Our workaround is to remove the EL9 machine type from the default list of machine types supported by the custom distros creation script.  Add it back if you are running on an EL9 system and want an EL9 cvmfsexec distrinution. (PR#312)'
+
+v3_10_2
+	Add a parameter to control the name of the keyname for idtokens (PR#268)
+	Added a factory knob to allow control over rebuilding of cvmfsexec distributions (PR#272)
+	RHEL9 worker node are now recognized by condor_platform_select automatic OS detection (PR#285)
+	Removed pre-reconfigure hook used for rebuilding cvmfsexec distributions whenever a factory reconfig/upgrade was run (issue#262)
+	Bug fix: Use correct variable for `$exit_code` in `singularity_exec_simple` (PR#259)
+	Bug fix: Make sure default value does not overwrite the global one for idtoken_lifetime (PR#261)
+	Bug fix: Protect OSG_autoconf from OSG collector unavailability (PR#276)
+	Bug fix: Fixed jobs going in unknown state in factory monitoring. added QUEUING state for new ARC-CEs REST (PR#286)
+	NOTE: When using on-demand CVMFS, all Glideins after the first one on a node are failing (issue#287)
+	NOTE-FACTORY: The rebuilding of cvmfsexec distributions is now disabled by default, it must be enabled via the new factory knob.\ If you are upgrading from v3.9.5 or later, check that the cvmfsexec script is no more in the pre-reconfigure hooks directory.
+
+v3_10_1
+	Added utility function to replace error_gen in python scripts (PR#254)
+	Bug fix: Fixed status reporting for `gconfig.py`  (PR#254)
+	NOTE: Please see all the notes in 3.9.6 about the custom script changes
+
+v3_10_0
+	All the features and fixes in v3_9_6
+	Use `SINGULARITY_DISABLE_PID_NAMESPACES` disable `--pid` in Singularity/Apptainer  (OSG SOFTWARE-5340, PR#232)
+	Raise a warning if there are "FATAL" errors in Singularity/Apptainer stdlog and the exit code is 0 (PR#235)
+	Added `gconfig.py`. Python utilities to read and write glidein_config (PR#237)
+	Bug fix: Set PATH to default value instead of emptying it (PR#233)
+	Bug fix: Have `get_prop_str` return the default value when the attribute is "undefined" and `gwms_from_config` return the default when set instead of an empty string (PR#235)
+	Bug fix: Fixed credential ID in Glideins. It was not set for scitokens causing incorrect monitoring values (PR#242)
+	Bug fix: Fixed typo in `singularity_lib.sh` (issue#249)
+	NOTE: This follows v3_9_6. Please see all the notes about the custom script changes
 
 v3_5    Removed support for Globus GRAM (GT2/GT5)
         Removed dependency on condor_root_switchboard
