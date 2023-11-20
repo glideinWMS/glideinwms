@@ -645,14 +645,14 @@ def spawn(
             # available when the Entries startup
             classads = {}
             try:
-                classads = credentials.get_globals_classads()
+                classads = get_globals_classads()
             except Exception:
                 logSupport.log.error("Error occurred retrieving globals classad -- is Condor running?")
 
             for classad_key in classads:
                 classad = classads[classad_key]
                 try:
-                    credentials.process_global(classad, glideinDescript, frontendDescript)
+                    glideFactoryLib.process_global(classad, glideinDescript, frontendDescript)
                 except:
                     logSupport.log.exception("Error occurred processing the globals classads: ")
 
@@ -799,6 +799,21 @@ def increase_process_limit(new_limit=10000):
             logSupport.log.info("Warning: could not raise RLIMIT_NPROC " "from %d to %d" % (soft, new_limit))
     else:
         logSupport.log.info("RLIMIT_NPROC already %d, not changing to %d" % (soft, new_limit))
+
+
+def get_globals_classads(factory_collector=glideFactoryInterface.DEFAULT_VAL):
+    if factory_collector == glideFactoryInterface.DEFAULT_VAL:
+        factory_collector = glideFactoryInterface.factoryConfig.factory_collector
+
+    status_constraint = '(GlideinMyType=?="glideclientglobal")'
+
+    status = condorMonitor.CondorStatus("any", pool_name=factory_collector)
+    status.require_integrity(True)  # important, this dictates what gets submitted
+
+    status.load(status_constraint)
+
+    data = status.fetchStored()
+    return data
 
 
 ############################################################

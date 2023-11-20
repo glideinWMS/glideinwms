@@ -72,13 +72,13 @@ from glideinwms.factory.glideFactoryLib import (
     getQStatusSF,
     getQStatusStale,
     hrs2sec,
-    is_str_safe,
     isGlideinUnrecoverable,
     secClass2Name,
     set_condor_integrity_checks,
     which,
 )
 from glideinwms.unittests.unittest_utils import FakeLogger, TestImportError
+from glideinwms.lib.util import is_str_safe
 
 try:
     import glideinwms.factory.glideFactoryLib

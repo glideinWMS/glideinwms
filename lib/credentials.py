@@ -33,10 +33,9 @@ from io import BytesIO
 from hashlib import md5
 from typing import Any, Generic, TypeVar, Optional, Union, Mapping, Iterable, List, Set, Type
 
-from glideinwms.factory import glideFactoryInterface, glideFactoryLib
 from glideinwms.lib import condorMonitor, logSupport, pubCrypto, symCrypto
 from glideinwms.lib.generators import Generator, load_generator
-from glideinwms.lib.util import hash_nc
+from glideinwms.lib.util import hash_nc, is_str_safe
 
 sys.path.append("/etc/gwms-frontend/plugin.d")
 plugins = {}
@@ -403,12 +402,12 @@ class X509Cert(Credential[M2Crypto.X509.X509]):
     @property
     def not_before_time(self) -> Optional[datetime]:
         # return self._payload.get_not_before() if self._payload else None
-        return x509.load_pem_x509_certificate(self.string, default_backend()).not_valid_before
+        return x509.load_pem_x509_certificate(self.string, default_backend()).not_valid_before if self.string else None
 
     @property
     def not_after_time(self) -> Optional[datetime]:
         # return self._payload.get_not_after() if self._payload else None
-        return x509.load_pem_x509_certificate(self.string, default_backend()).not_valid_after
+        return x509.load_pem_x509_certificate(self.string, default_backend()).not_valid_after if self.string else None
 
     @staticmethod
     def decode(string: bytes) -> M2Crypto.X509.X509:
@@ -599,7 +598,7 @@ class SubmitBundle:
             self.security_credentials[cred_id] = credential
             return True
         if cred_name:
-            if not glideFactoryLib.is_str_safe(cred_name):
+            if not is_str_safe(cred_name):
                 return False
 
             cred_path = os.path.join(self.cred_dir, f"{prefix}{cred_name}")
@@ -871,21 +870,6 @@ def generate_credential(elementDescript, glidein_el, group_name, trust_domain):
     return None, None
 
 
-def get_globals_classads(factory_collector=glideFactoryInterface.DEFAULT_VAL):
-    if factory_collector == glideFactoryInterface.DEFAULT_VAL:
-        factory_collector = glideFactoryInterface.factoryConfig.factory_collector
-
-    status_constraint = '(GlideinMyType=?="glideclientglobal")'
-
-    status = condorMonitor.CondorStatus("any", pool_name=factory_collector)
-    status.require_integrity(True)  # important, this dictates what gets submitted
-
-    status.load(status_constraint)
-
-    data = status.fetchStored()
-    return data
-
-
 # Helper for update_credential_file
 def compress_credential(credential_data):
     compress_credential = None
@@ -940,33 +924,6 @@ def safe_update(fname, credential_data):
             os.rename(fname + ".new", fname)
 
 
-# Helper for process_global
-def update_credential_file(username: str, client_id: str, credential_data: Credential, request_clientname: str):
-    """
-    Updates the credential file
-
-    :param username: credentials' username
-    :param client_id: id used for tracking the submit credentials
-    :param credential_data: the credentials to be advertised
-    :param request_clientname: client name passed by frontend
-    :return:the credential file updated
-    """
-
-    proxy_dir = glideFactoryLib.factoryConfig.get_client_proxies_dir(username)
-    fname_short = f"credential_{request_clientname}_{glideFactoryLib.escapeParam(client_id)}"
-    fname = os.path.join(proxy_dir, fname_short)
-    fname_compressed = "%s_compressed" % fname
-
-    msg = "updating credential file %s" % fname
-    logSupport.log.debug(msg)
-
-    credential_data.save_to_file(fname)
-    credential_data.save_to_file(fname_compressed, compress=True, data_pattern=b"glidein_credentials=%b")
-    # Compressed+encoded credentials are used for GCE and AWS and have a key=value format (glidein_credentials= ...)
-
-    return fname, fname_compressed
-
-
 def get_key_obj(pub_key_obj, classad):
     """
     Gets the symmetric key object from the request classad
@@ -988,108 +945,6 @@ def get_key_obj(pub_key_obj, classad):
     else:
         error_str = "Classad does not contain a key. We cannot decrypt."
         raise CredentialError(f"{error_str}")
-
-
-# Helper for process_global
-def validate_frontend(classad, frontend_descript, pub_key_obj):
-    """
-    Validates that the frontend advertising the classad is allowed and that it
-    claims to have the same identity that Condor thinks it has.
-
-    @type classad: dictionary
-    @param classad: a dictionary representation of the classad
-    @type frontend_descript: class object
-    @param frontend_descript: class object containing all the frontend information
-    @type pub_key_obj: object
-    @param pub_key_obj: The factory public key object.  This contains all the encryption and decryption methods
-
-    @return: sym_key_obj - the object containing the symmetric key used for decryption
-    @return: frontend_sec_name - the frontend security name, used for determining
-    the username to use.
-    """
-
-    # we can get classads from multiple frontends, each with their own
-    # sym keys.  So get the sym_key_obj for each classad
-    sym_key_obj = get_key_obj(pub_key_obj, classad)
-    authenticated_identity = classad["AuthenticatedIdentity"]
-
-    # verify that the identity that the client claims to be is the identity that Condor thinks it is
-    try:
-        enc_identity = sym_key_obj.decrypt_hex(classad["ReqEncIdentity"]).decode("utf-8")
-    except:
-        error_str = "Cannot decrypt ReqEncIdentity."
-        logSupport.log.exception(error_str)
-        raise CredentialError(error_str)
-
-    if enc_identity != authenticated_identity:
-        error_str = "Client provided invalid ReqEncIdentity(%s!=%s). " "Skipping for security reasons." % (
-            enc_identity,
-            authenticated_identity,
-        )
-        raise CredentialError(error_str)
-    try:
-        frontend_sec_name = sym_key_obj.decrypt_hex(classad["GlideinEncParamSecurityName"]).decode("utf-8")
-    except:
-        error_str = "Cannot decrypt GlideinEncParamSecurityName."
-        logSupport.log.exception(error_str)
-        raise CredentialError(error_str)
-
-    # verify that the frontend is authorized to talk to the factory
-    expected_identity = frontend_descript.get_identity(frontend_sec_name)
-    if expected_identity is None:
-        error_str = "This frontend is not authorized by the factory.  Supplied security name: %s" % frontend_sec_name
-        raise CredentialError(error_str)
-    if authenticated_identity != expected_identity:
-        error_str = "This frontend Authenticated Identity, does not match the expected identity"
-        raise CredentialError(error_str)
-
-    return sym_key_obj, frontend_sec_name
-
-
-def process_global(classad, glidein_descript, frontend_descript):
-    # Factory public key must exist for decryption
-    pub_key_obj = glidein_descript.data["PubKeyObj"]
-    if pub_key_obj is None:
-        raise CredentialError("Factory has no public key.  We cannot decrypt.")
-
-    try:
-        # Get the frontend security name so that we can look up the username
-        sym_key_obj, frontend_sec_name = validate_frontend(classad, frontend_descript, pub_key_obj)
-
-        request_clientname = classad["ClientName"]
-
-        # get all the credential ids by filtering keys by regex
-        # this makes looking up specific values in the dict easier
-        r = re.compile("^GlideinEncParamSecurityClass")
-        mkeys = list(filter(r.match, list(classad.keys())))
-        for key in mkeys:
-            prefix_len = len("GlideinEncParamSecurityClass")
-            cred_id = key[prefix_len:]
-
-            cred_data = sym_key_obj.decrypt_hex(classad["GlideinEncParam%s" % cred_id])
-            cred = create_credential(string=cred_data)
-            security_class = sym_key_obj.decrypt_hex(classad[key]).decode("utf-8")
-            username = frontend_descript.get_username(frontend_sec_name, security_class)
-            if username == None:
-                logSupport.log.error(
-                    (
-                        "Cannot find a mapping for credential %s of client %s. Skipping it. The security"
-                        "class field is set to %s in the frontend. Please, verify the glideinWMS.xml and"
-                        " make sure it is mapped correctly"
-                    )
-                    % (cred_id, classad["ClientName"], security_class)
-                )
-                continue
-
-            msg = "updating credential for %s" % username
-            logSupport.log.debug(msg)
-
-            update_credential_file(username, cred_id, cred, request_clientname)
-    except Exception as e:
-        logSupport.log.debug(f"\nclassad {classad}\nfrontend_descript {frontend_descript}\npub_key_obj {pub_key_obj})")
-        error_str = "Error occurred processing the globals classads."
-        logSupport.log.exception(error_str)
-        raise CredentialError(error_str)
 
 
 # Not sure if this has to be abstract - probably better?

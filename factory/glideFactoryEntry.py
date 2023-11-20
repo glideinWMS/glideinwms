@@ -30,7 +30,7 @@ from glideinwms.lib import (
     token_util,
     util,
 )
-from glideinwms.lib.util import chmod
+from glideinwms.lib.util import is_str_safe
 from glideinwms.lib.defaults import force_bytes
 
 
@@ -998,7 +998,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
     # STEP: Process every work one at a time. This is done only for entries with work to do
     #
     for work_key in work:
-        if not glideFactoryLib.is_str_safe(work_key):
+        if not is_str_safe(work_key):
             # may be used to write files... make sure it is reasonable
             entry.log.warning("Request name '%s' not safe. Skipping request" % work_key)
             continue
@@ -1021,7 +1021,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             entry.log.warning("Request %s did not provide the client and/or request name. Skipping request" % work_key)
             continue
 
-        if not glideFactoryLib.is_str_safe(client_int_name):
+        if not is_str_safe(client_int_name):
             # may be used to write files... make sure it is reasonable
             entry.log.warning("Client name '%s' not safe. Skipping request" % client_int_name)
             continue
