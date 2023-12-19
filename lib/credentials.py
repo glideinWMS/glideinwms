@@ -18,15 +18,15 @@ import enum
 import gzip
 import tempfile
 import jwt
-import M2Crypto
 import os
 import re
 import shutil
 import sys
 
+import M2Crypto.X509
+import M2Crypto.EVP
+
 from abc import ABC, abstractmethod
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
 from datetime import datetime
 from importlib import import_module
 from io import BytesIO
@@ -401,13 +401,11 @@ class X509Cert(Credential[M2Crypto.X509.X509]):
 
     @property
     def not_before_time(self) -> Optional[datetime]:
-        # return self._payload.get_not_before() if self._payload else None
-        return x509.load_pem_x509_certificate(self.string, default_backend()).not_valid_before if self.string else None
+        return self._payload.get_not_before().get_datetime() if self._payload else None
 
     @property
     def not_after_time(self) -> Optional[datetime]:
-        # return self._payload.get_not_after() if self._payload else None
-        return x509.load_pem_x509_certificate(self.string, default_backend()).not_valid_after if self.string else None
+        return self._payload.get_not_after().get_datetime() if self._payload else None
 
     @staticmethod
     def decode(string: bytes) -> M2Crypto.X509.X509:
@@ -415,7 +413,7 @@ class X509Cert(Credential[M2Crypto.X509.X509]):
 
     def valid(self) -> bool:
         if self.not_before_time and self.not_after_time:
-            return self.not_before_time < datetime.now() < self.not_after_time
+            return self.not_before_time < datetime.now(self.not_before_time.tzinfo) < self.not_after_time
         else:
             return False
 
