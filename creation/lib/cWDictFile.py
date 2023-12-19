@@ -1771,6 +1771,7 @@ class monitorWLinkDirSupport(monitorDirSupport):
 #
 ################################################
 
+
 # helper class, used below
 class fileCommonDicts:
     def __init__(self):
@@ -2237,7 +2238,6 @@ class MonitorFileDicts:
         return
 
     def load(self, destroy_old_subs=True):  # if false, overwrite the subs you load, but leave the others as they are
-
         self.main_dicts.load()
         if destroy_old_subs:
             self.sub_list = []

@@ -105,6 +105,7 @@ def poll_group_process(group_name, child):
 
 ############################################################
 
+
 # return the list of (group,walltime) pairs
 def spawn_iteration(work_dir, frontendDescript, groups, max_active, failure_dict, max_failures, action):
     childs = {}
@@ -318,14 +319,12 @@ def spawn(
 
     logSupport.log.info("Frontend started with mode = %s" % mode)
     try:
-
         # Service will exit on signal only.
         # This infinite loop is for the slave to go back into hibernation
         # once the master becomes alive.
         # Master never loops infinitely here, but instead it does in
         # the inner loop while(mode=='master') ...
         while True:
-
             while hibernate:
                 # If I am slave enter hibernation cycle while Master is alive
                 logSupport.log.info("Master Frontend %s is online. Hibernating." % master_frontend_name)

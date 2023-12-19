@@ -168,7 +168,6 @@ class TestDictFileTwoKeys(unittest.TestCase):
                 )
 
     def test_parse_val(self):
-
         line = """foo    'bar'"""
         self.dict_file.parse_val(line)
         cpy = copy.deepcopy(self.dict_file)

@@ -1397,7 +1397,6 @@ class glideinFrontendElement:
             or (global_total_glideins >= self.global_total_max_glideins)
             or (global_total_idle_glideins >= self.global_total_max_vms_idle)
         ):
-
             # Do not request more glideins under following conditions:
             # 1. Have all the running jobs I wanted
             # 2. Have enough idle vms/slots
@@ -1504,7 +1503,6 @@ class glideinFrontendElement:
         global_total_idle_glideins,
         limits_triggered,
     ):
-
         # Identify the limits triggered for advertizing in glideresource
         if count_status["Total"] >= self.max_running:
             limits_triggered["TotalGlideinsPerEntry"] = "count=%i, limit=%i" % (count_status["Total"], self.max_running)
@@ -2059,7 +2057,6 @@ class glideinFrontendElement:
         return condorq_dict
 
     def get_condor_status(self):
-
         # All slots for this group
         status_dict = {}
         fe_counts = {"Idle": 0, "Total": 0}

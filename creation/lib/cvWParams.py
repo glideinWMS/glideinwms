@@ -797,6 +797,7 @@ class VOFrontendParams(cWParams.CommonParams):
 # Use the class method instead
 ####################################################################
 
+
 # return attribute value in the proper python format
 def extract_attr_val(attr_obj):
     if not attr_obj.type in ("string", "int", "expr"):

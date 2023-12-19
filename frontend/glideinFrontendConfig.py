@@ -61,6 +61,7 @@ def get_group_dir(base_dir, group_name):
 #
 ############################################################
 
+
 # loads a file or URL composed of
 #   NAME VAL
 # and creates
@@ -251,6 +252,7 @@ class BaseSignatureDescript(ConfigFile):
 # Processed configuration
 #
 ############################################################
+
 
 # not everything is merged
 # the old element can still be accessed

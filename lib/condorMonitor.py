@@ -67,6 +67,7 @@ def htcondor_full_reload():
 # Configuration
 #
 
+
 # Set path to condor binaries
 def set_path(new_condor_bin_path):
     global condor_bin_path
@@ -849,6 +850,7 @@ class Summarize:
 #
 ############################################################
 
+
 # check that req_format_els are present in in_format_list, and if not add them
 # return a new format_list
 def complete_format_list(in_format_list, req_format_els):
@@ -889,6 +891,7 @@ def complete_format_list(in_format_list, req_format_els):
 # </c>
 # </classads>
 #
+
 
 # 3 xml2list XML handler functions
 def xml2list_start_element(name, attrs):

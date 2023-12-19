@@ -269,6 +269,7 @@ class MonitoringConfig:
 #
 #######################################################################################################################
 
+
 # TODO: ['Downtime'] is added to the self.data[client_name] dictionary only if logRequest is called before logSchedd, logClientMonitor
 #       This is inconsistent and should be changed, Redmine [#17244]
 class condorQStats:
@@ -1234,7 +1235,6 @@ class condorLogSummary:
         return xmlFormat.time2xml(self.updated, "updated", indent_tab, leading_tab)
 
     def write_file(self, monitoringConfig=None):
-
         if monitoringConfig is None:
             monitoringConfig = globals()["monitoringConfig"]
 
@@ -1488,7 +1488,8 @@ class FactoryStatusData:
         rrdtool fetch returns 3 tuples: a[0], a[1], & a[2].
         [0] lists the resolution, start and end time, which can be specified as arugments of fetchData.
         [1] returns the names of the datasets.  These names are listed in the key.
-        [2] is a list of tuples. each tuple contains data from every dataset.  There is a tuple for each time data was collected."""
+        [2] is a list of tuples. each tuple contains data from every dataset.  There is a tuple for each time data was collected.
+        """
 
         # use rrdtool to fetch data
         baseRRDSupport = rrdSupport.rrdSupport()
@@ -1805,6 +1806,7 @@ class Descript2XML:
 
 
 ############### P R I V A T E ################
+
 
 ##################################################
 def getAllJobTypes():

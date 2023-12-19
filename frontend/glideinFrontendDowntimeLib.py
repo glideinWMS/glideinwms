@@ -50,6 +50,7 @@ class DowntimeFile:
 # INTERNAL - Do not use
 #############################
 
+
 # return a list of downtime periods (utimes)
 # a value of None idicates "forever"
 # for example: [(1215339200,1215439170),(1215439271,None)]
@@ -116,7 +117,6 @@ def checkDowntime(fname, check_time=None):
     time_list = read(fname)
 
     for time_tuple in time_list:
-
         if check_time < time_tuple[0]:  # check_time before start
             continue
 
@@ -155,7 +155,6 @@ def addPeriod(fname, start_time, end_time, create_if_empty=True):
 # end a downtime (not a scheduled one)
 # if end_time==None, use current time
 def endDowntime(fname, end_time=None):
-
     if end_time is None:
         end_time = int(time.time())
 

@@ -62,7 +62,7 @@ def create_client_mapfile(mapfile_fname, my_DN, factory_DNs, schedd_DNs, collect
     with open(mapfile_fname, "w") as fd:
         if my_DN:
             fd.write('GSI "^{}$" {}\n'.format(re.escape(my_DN), "me"))
-        for (uid, dns) in (
+        for uid, dns in (
             ("factory", factory_DNs),
             ("schedd", schedd_DNs),
             ("collector", collector_DNs),

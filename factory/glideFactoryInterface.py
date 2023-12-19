@@ -263,7 +263,7 @@ def findGroupWork(
         kel = data[k]
         el = {"requests": {}, "web": {}, "params": {}, "params_decrypted": {}, "monitor": {}, "internals": {}}
 
-        for (key, prefix) in (
+        for key, prefix in (
             ("requests", factoryConfig.client_req_prefix),
             ("web", factoryConfig.client_web_prefix),
             ("params", factoryConfig.glidein_param_prefix),
@@ -308,7 +308,7 @@ def findGroupWork(
 
         invalid_classad = False
 
-        for (key, prefix) in (("params_decrypted", factoryConfig.encrypted_param_prefix),):
+        for key, prefix in (("params_decrypted", factoryConfig.encrypted_param_prefix),):
             # TODO: useless for, only one element
             plen = len(prefix)
             for attr in kel:
@@ -476,7 +476,7 @@ def findWork(
     for k in list(data.keys()):
         kel = data[k]
         el = {"requests": {}, "web": {}, "params": {}, "params_decrypted": {}, "monitor": {}, "internals": {}}
-        for (key, prefix) in (
+        for key, prefix in (
             ("requests", factoryConfig.client_req_prefix),
             ("web", factoryConfig.client_web_prefix),
             ("params", factoryConfig.glidein_param_prefix),
@@ -516,7 +516,7 @@ def findWork(
                 continue  # uh oh... either the client is misconfigured, or someone is trying to cheat
 
         invalid_classad = False
-        for (key, prefix) in (("params_decrypted", factoryConfig.encrypted_param_prefix),):
+        for key, prefix in (("params_decrypted", factoryConfig.encrypted_param_prefix),):
             plen = len(prefix)
             for attr in list(kel.keys()):
                 if attr in reserved_names:
@@ -632,7 +632,7 @@ class EntryClassad(classadSupport.Classad):
             self.adParams["GlideinRequireGlideinProxy"] = "%s" % True
 
         # write out both the attributes, params and monitors
-        for (prefix, data) in (
+        for prefix, data in (
             (factoryConfig.glidein_attr_prefix, glidein_attrs),
             (factoryConfig.glidein_param_prefix, glidein_params),
             (factoryConfig.glidein_monitor_prefix, glidein_monitors),
@@ -705,7 +705,6 @@ class FactoryGlobalClassad(classadSupport.Classad):
 def advertizeGlobal(
     factory_name, glidein_name, supported_signtypes, pub_key_obj, stats_dict={}, factory_collector=DEFAULT_VAL
 ):
-
     """
     Creates the glidefactoryglobal classad and advertises.
 
@@ -792,6 +791,7 @@ def deadvertizeFactory(factory_name, glidein_name, factory_collector=DEFAULT_VAL
 
 
 ############################################################
+
 
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
@@ -952,6 +952,7 @@ class MultiAdvertizeGlideinClientMonitoring:
 ##############################
 # Start INTERNAL
 
+
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
@@ -1011,7 +1012,7 @@ def createGlideinClientMonitoringFile(
             fd.write("UpdateSequenceNumber = %i\n" % advertizeGFCCounter[client_name])
 
             # write out both the attributes, params and monitors
-            for (prefix, data) in (
+            for prefix, data in (
                 (factoryConfig.glidein_attr_prefix, glidein_attrs),
                 (factoryConfig.glidein_param_prefix, client_params),
                 (factoryConfig.glidein_monitor_prefix, client_monitors),

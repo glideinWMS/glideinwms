@@ -826,7 +826,6 @@ def aggregateRRDStats(log=logSupport.log):
     tab = xmlFormat.DEFAULT_TAB
 
     for rrd in rrdstats_relname:
-
         # assigns the data from every site to 'stats'
         stats = {}
         for entry in monitorAggregatorConfig.entries:

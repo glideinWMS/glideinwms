@@ -352,7 +352,6 @@ class ForkManager:
         return results
 
     def bounded_fork_and_collect(self, max_forks, log_progress=True, sleep_time=0.01):
-
         post_work_info = {}
         nr_errors = 0
 

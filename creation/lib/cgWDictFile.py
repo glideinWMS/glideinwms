@@ -208,6 +208,7 @@ class CondorJDLDictFile(cWDictFile.DictFile):
 #
 ################################################
 
+
 # internal, do not use from outside the module
 def get_common_dicts(submit_dir, stage_dir):
     common_dicts = {
@@ -265,6 +266,7 @@ def get_entry_dicts(entry_submit_dir, entry_stage_dir, entry_name):
 # Functions that load dictionaries
 #
 ################################################
+
 
 # internal, do not use from outside the module
 def load_common_dicts(dicts, description_el):  # update in place

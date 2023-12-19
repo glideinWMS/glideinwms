@@ -21,7 +21,6 @@ sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 
 
 def frontend_print(frontend, fe_mode, d, div, to_be_printed, fe_sorting, fe_attr_list, fe_sort_attribute):
-
     fdiv = 1
     if fe_attr_list[fe_sort_attribute] in ["total_time", "val", "used", "idle", "waste", "badput"]:
         fdiv = float(div)
@@ -222,7 +221,6 @@ def lineprint(entry_name, entry, g_entry, g, to_be_printed, attr_list, sort_attr
 
 
 def main():
-
     usage = """
 USAGE:
     -x [#] : interval to do verbose stats (default 24)
@@ -416,15 +414,12 @@ USAGE:
             sys.exit(1)
 
     for entry in c_data["entries"]:
-
         for frontend in c_data["entries"][entry]["frontends"]:
-
             if filter_frontend != 0:
                 if frontend != filter_frontend:
                     continue
 
             for period in c_data["entries"][entry]["frontends"][frontend]["periods"]:
-
                 if int(period) not in data:
                     data[int(period)] = {}
                 if frontend not in data[int(period)]:
@@ -601,7 +596,6 @@ Glidein log analysis for frontend %s - %s
     ################################################################################
 
     if filter_frontend == 0 and frontend_mode == 0:
-
         print(
             """
 ---------------------------------------
@@ -617,7 +611,6 @@ Per Entry (all frontends) stats for the past %s hours.\n"""
         totals_to_be_printed = []
 
         for entry_name, entry in entry_data_all_frontends[period].items():
-
             if entry["glideins"] == 0 or entry["total_time"] == 0:
                 continue
             if entry["validation"] == 0:

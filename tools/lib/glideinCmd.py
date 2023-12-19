@@ -92,6 +92,7 @@ def exe_cmd_script(argv_func, argv=sys.argv):
 # INTERNAL - Do not use directly
 ######################################
 
+
 # create a file usable by a callback function for glideinMonitor.monitor
 def monitorScriptFromList(monitor_file_name, monitor_control_relname, script_list):
     # create the command file
@@ -118,7 +119,6 @@ def argv2cmd(argv):
 # callback function for glideinMonitor.monitor
 # changes to the work dir and executes the command
 def createCmdMonitorFile(monitor_file_name, monitor_control_relname, argv, condor_status, monitorVM):
-
     script_lines = []
     # find work dir and execute command there
     # TODO: consider possible different directory for singularity jobs

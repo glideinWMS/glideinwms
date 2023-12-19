@@ -568,6 +568,7 @@ class GlideinParams(cWParams.CommonParams):
 #
 ############################################################
 
+
 #####################################
 # try to find out the base condor dir
 def find_condor_base_dir():

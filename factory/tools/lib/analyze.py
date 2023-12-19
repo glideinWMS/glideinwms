@@ -21,7 +21,6 @@ import urllib.request
 # Example: km(123456) returns "123 K"
 #      and km(1234567) returns "1.23 M"
 def km(z):
-
     if z < 0:
         neg = "-"
     else:

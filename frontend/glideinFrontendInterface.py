@@ -261,7 +261,7 @@ def format_condor_dict(data):
                 del kel[attr]
 
         # then move the parameters and monitoring
-        for (prefix, eldata) in (
+        for prefix, eldata in (
             (frontendConfig.glidein_param_prefix, el["params"]),
             (frontendConfig.glidein_monitor_prefix, el["monitor"]),
         ):
@@ -799,7 +799,6 @@ class MultiAdvertizeWork:
         auth_method="Any",
         ha_mode="master",
     ):
-
         params_obj = AdvertizeParams(
             request_name,
             glidein_name,
@@ -1341,7 +1340,7 @@ class MultiAdvertizeWork:
                     (frontendConfig.encrypted_param_prefix, encrypted_params),
                     (frontendConfig.glidein_config_prefix, self.glidein_config_limits),
                 )
-                for (prefix, data) in classad_info_tuples:
+                for prefix, data in classad_info_tuples:
                     for attr in list(data.keys()):
                         writeTypedClassadAttrToFile(fd, f"{prefix}{attr}", data[attr])
 

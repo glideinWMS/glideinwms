@@ -28,6 +28,7 @@ sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 
 USAGE = "Usage: cat_logs.py <factory> YY/MM/DD [hh:mm:ss]"
 
+
 # return a GlideinDescript with
 # factory_dir, date_arr and time_arr
 def parse_args():

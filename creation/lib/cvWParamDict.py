@@ -763,6 +763,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
 #
 ############################################################
 
+
 #######################
 # Register an attribute
 # attr_obj as described by Params.attr_defaults
@@ -833,7 +834,6 @@ def add_attr_unparsed_real(attr_name, params, dicts):
 ###################################
 # Create the frontend descript file
 def populate_frontend_descript(work_dir, frontend_dict, active_sub_list, params):  # will be modified
-
     frontend_dict.add("DowntimesFile", params.downtimes_file)
     frontend_dict.add("FrontendName", params.frontend_name)
     frontend_dict.add("WebURL", params.web_url)
@@ -891,7 +891,6 @@ def populate_frontend_descript(work_dir, frontend_dict, active_sub_list, params)
 #######################
 # Populate group descript
 def populate_group_descript(work_dir, group_descript_dict, sub_name, sub_params):  # will be modified
-
     group_descript_dict.add("GroupName", sub_name)
 
     group_descript_dict.add("MapFile", os.path.join(work_dir, cvWConsts.GROUP_MAP_FILE))
@@ -923,7 +922,6 @@ MATCH_ATTR_CONV = {"string": "s", "int": "i", "real": "r", "bool": "b"}
 
 
 def apply_group_singularity_policy(descript_dict, sub_params, params):
-
     glidein_singularity_use = None
     query_expr = descript_dict["FactoryQueryExpr"]
     match_expr = descript_dict["MatchExpr"]

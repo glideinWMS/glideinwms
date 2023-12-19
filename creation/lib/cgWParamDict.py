@@ -927,7 +927,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
             i = i + 1
         temp_list = sorted((x[1][1], x[0]) for x in list(d.items()))
         sortedList = []
-        for (tmp, key) in temp_list:
+        for tmp, key in temp_list:
             sortedList.append(d[key][0])
         return sortedList
 
@@ -945,6 +945,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
 # P R I V A T E - Do not use
 #
 ############################################################
+
 
 #############################################
 # Add a user file residing in the stage area
@@ -1118,7 +1119,6 @@ def iter_to_dict(dictObject):
 def populate_factory_descript(
     work_dir, glidein_dict, active_sub_list, disabled_sub_list, conf  # will be modified  # will be modified
 ):
-
     down_fname = os.path.join(work_dir, "glideinWMS.downtimes")
 
     sec_el = conf.get_child("security")

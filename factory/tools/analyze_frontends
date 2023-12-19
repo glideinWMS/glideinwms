@@ -22,7 +22,6 @@ sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 
 
 def list_print(frontend, zero_supp, entry_data, sorting, attr_list, sort_attribute, div):
-
     to_be_printed = []
     sum2 = 0
 
@@ -105,7 +104,6 @@ def list_print(frontend, zero_supp, entry_data, sorting, attr_list, sort_attribu
 
 
 def main():
-
     usage = """
 USAGE:
     -x [#] : interval to do verbose stats (default 24)
@@ -276,14 +274,12 @@ USAGE:
 
     for entry in rrd_data["entries"]:
         for frontend in rrd_data["entries"][entry]["frontends"]:
-
             # if filtering, only choose selected frontend
             if filter_frontend != 0:
                 if frontend != filter_frontend:
                     continue
 
             for period, elements in rrd_data["entries"][entry]["frontends"][frontend]["periods"].items():
-
                 if int(period) not in data:
                     data[int(period)] = {}
                 if frontend not in data[int(period)]:
@@ -379,7 +375,6 @@ Status Attributes (Clients) analysis for %s - %s
         period_list = [period]
 
     for period in period_list:
-
         title = "Past %.1f hours" % (float(period) / 3600)
 
         print(

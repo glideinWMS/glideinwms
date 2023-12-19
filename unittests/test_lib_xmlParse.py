@@ -119,7 +119,6 @@ class TestOrderedDict(unittest.TestCase):
         self.assertTrue("foo" in ordered_dict)
 
     def test_values(self):
-
         dict1 = xmlstring2dict(xmlstr, use_ord_dict=False, always_singular_list=[])
         ordered_dict = OrderedDict(dict1)
         self.assertEqual(ordered_dict_values_repr, list(ordered_dict.values()).__repr__())
@@ -158,7 +157,6 @@ class TestGetXMLAttributes(unittest.TestCase):
 
 class TestIsSingularOf(unittest.TestCase):
     def test_is_singular_of(self):
-
         self.assertEqual(True, is_singular_of(mysin="dog", myplu="dogs", always_singular_list=[]))
         self.assertEqual(True, is_singular_of(mysin="goose", myplu="geese", always_singular_list=["goose", "dog"]))
         self.assertEqual(False, is_singular_of(mysin="moose", myplu="meese", always_singular_list=["goose", "dog"]))

@@ -66,7 +66,6 @@ class Test_cvWCreate(unittest.TestCase):
         os.remove(mapfile_fname)
 
     def test_get_template(self):
-
         # test that we can fetch an existing template
         glideinWMS_dir = ".."
         template_name = "gwms-factory.service"

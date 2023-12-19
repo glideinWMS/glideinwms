@@ -129,7 +129,6 @@ class FETestCaseCount(FETestCaseBase):
 
     def test_countMatch_missingKey(self):
         with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, "debug") as m_debug:
-
             match_obj = compile('glidein["attrs"]["FOO"] == 3', "<string>", "eval")
             match_counts = glideinFrontendLib.countMatch(match_obj, self.condorq_dict, self.glidein_dict, {}, False)
             m_debug.assert_called_with(

@@ -81,6 +81,7 @@ class ParamsDictFile(cWDictFile.DictFile):
 #
 ################################################
 
+
 # internal, do not use from outside the module
 def get_common_dicts(work_dir, stage_dir, simple_work_dir):  # if True, do not create params
     common_dicts = {
@@ -147,6 +148,7 @@ def get_group_dicts(group_work_dir, group_stage_dir, group_name, simple_work_dir
 # Functions that load dictionaries
 #
 ################################################
+
 
 # internal, do not use from outside the module
 def load_common_dicts(dicts, description_el):  # update in place

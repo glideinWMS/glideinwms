@@ -288,7 +288,6 @@ class TestFactoryConfig(unittest.TestCase):
         self.assertTrue(is_str_safe(s2))
 
     def test_env_list2dict(self):
-
         env = ["a=b", "c=d"]
         expected = {"a": "b", "c": "d"}
         self.assertEqual(expected, env_list2dict(env))

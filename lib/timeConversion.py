@@ -104,6 +104,7 @@ def get_time_in_format(now=None, time_format=None):
 # Internal
 #########################
 
+
 # time.daylight tells only if the computer support daylight saving time,
 # tm_isdst must be checked to see if it is in effect at time t
 # Some corner cases (changes in standard) are still uncovered, see https://bugs.python.org/issue1647654

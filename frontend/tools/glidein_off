@@ -199,6 +199,7 @@ def lookup_addrs(constr):
 #############################################################################
 TP_FAIL = False
 
+
 # thrad callback
 def run_off(addr, off_type):
     global TP_FAIL

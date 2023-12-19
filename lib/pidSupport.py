@@ -12,6 +12,7 @@ import time
 
 ############################################################
 
+
 #
 # Verify if the system knows about a pid
 #
@@ -20,6 +21,7 @@ def check_pid(pid):
 
 
 ############################################################
+
 
 # this exception is raised when trying to register a pid
 # but another process is already owning the PID file

@@ -87,7 +87,6 @@ class OrderedDict2(UserDict):
 def xmlfile2dict(
     fname, use_ord_dict=False, always_singular_list=[]  # if true, return OrderedDict instead of a regular dictionary
 ):  # anything id listed here will be considered as a list
-
     try:
         doc = xml.dom.minidom.parse(fname)
     except xml.parsers.expat.ExpatError as e:

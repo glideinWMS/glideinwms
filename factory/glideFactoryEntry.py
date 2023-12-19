@@ -1184,7 +1184,6 @@ def unit_work_v3(
     )
 
     if entry.isSecurityClassInDowntime(client_security_name, credential_security_class):
-
         # Cannot use proxy for submission but entry is not in downtime
         # since other proxies may map to valid security classes
         entry.log.warning(
@@ -1851,7 +1850,6 @@ def update_entries_stats(factory_in_downtime, entry_list):
 
     updated_entries = []
     for entry in entry_list:
-
         # Add a heuristic to improve efficiency. Skip if no changes in the entry
         # if nothing_to_do:
         #    continue
@@ -1903,6 +1901,7 @@ def update_entries_stats(factory_in_downtime, entry_list):
 
 
 ############################################################
+
 
 # added by C.W. Murphy for glideFactoryEntryDescript
 def write_descript(entry_name, entryDescript, entryAttributes, entryParams, monitor_dir):

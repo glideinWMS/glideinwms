@@ -783,7 +783,6 @@ def getCondorStatusNonDynamic(status_dict):
 def getIdleCondorStatus(status_dict):
     out = {}
     for collector_name in list(status_dict.keys()):
-
         # Exclude partitionable slots with no free memory/cpus
         # Minimum memory required by CMS is 2500 MB
         # If the node had GPUs, there should be at least one available (requested by CMS)
@@ -1235,6 +1234,7 @@ def getCondorStatusSchedds(collector_names, constraint=None, format_list=None, w
 # I N T E R N A L - Do not use
 #
 ############################################################
+
 
 #
 # Return a dictionary of schedds containing jobs of a certain type

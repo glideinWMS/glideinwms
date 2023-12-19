@@ -173,7 +173,6 @@ def secClass2Name(client_security_name, proxy_security_class):
 
 
 def getCondorQData(entry_name, client_name, schedd_name, factoryConfig=None):
-
     """
     Get Condor data, given the glidein name
     To be passed to the main functions
@@ -405,7 +404,6 @@ def getCondorStatusData(
     client_startd_attribute=None,
     factoryConfig=None,
 ):
-
     if factoryConfig is None:
         factoryConfig = globals()["factoryConfig"]
 
@@ -580,7 +578,6 @@ class ClientWeb:
         client_group_sign,
         factoryConfig=None,
     ):
-
         if factoryConfig is None:
             factoryConfig = globals()["factoryConfig"]
 
@@ -832,7 +829,6 @@ def clean_glidein_queue(
     log=logSupport.log,
     factoryConfig=None,
 ):
-
     """Cleans up the glideins queue (removes any excesses) per the frontend request.
 
     We are not adjusting the glidein totals with what has been removed from the queue.  It may take a cycle (or more)
@@ -1000,7 +996,6 @@ def clean_glidein_queue(
 
 
 def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
-
     if factoryConfig is None:
         factoryConfig = globals()["factoryConfig"]
 
@@ -1739,7 +1734,6 @@ def removeGlideins(schedd_name, jid_list, force=False, log=logSupport.log, facto
 
     is_not_first = 0
     for jid in jid_list:
-
         # Respect the max_removes limit and exit right away if required
         if len(removed_jids) >= factoryConfig.max_removes:
             break  # limit reached, stop
@@ -1823,7 +1817,6 @@ def get_submit_environment(
     log=logSupport.log,
     factoryConfig=None,
 ):
-
     if factoryConfig is None:
         factoryConfig = globals()["factoryConfig"]
 
@@ -2241,7 +2234,6 @@ class GlideinTotals:
     """Keeps track of all glidein totals."""
 
     def __init__(self, entry_name, frontendDescript, jobDescript, entry_condorQ, log=logSupport.log):
-
         # Initialize entry limits
         self.entry_name = entry_name
         self.entry_max_glideins = int(jobDescript.data["PerEntryMaxGlideins"])
@@ -2288,7 +2280,7 @@ class GlideinTotals:
             ("PerFrontendMaxHeld", "max_held"),
         )
 
-        for (jd_key, max_glideinstatus_key) in limits_keynames:
+        for jd_key, max_glideinstatus_key in limits_keynames:
             fe_glideins_param = jobDescript.data[jd_key]
 
             if fe_glideins_param.find(";") != -1:

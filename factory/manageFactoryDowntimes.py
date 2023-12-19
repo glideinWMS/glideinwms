@@ -281,7 +281,6 @@ def vacuum(entry_or_id, opt_dict):
 
 
 def get_production_ress_entries(server, ref_dict_list):
-
     production_entries = []
 
     condor_obj = condorMonitor.CondorStatus(pool_name=server)

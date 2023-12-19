@@ -301,7 +301,7 @@ class TaskRPM(TaskTar):
             "_binary_filedigest_algorithm": "md5",
             #'global __python': '%%{__python2}',
             #'py_byte_compile': '',
-            #%py_byte_compile %{__python2} %{buildroot}%{_datadir}/mypackage/foo
+            # %py_byte_compile %{__python2} %{buildroot}%{_datadir}/mypackage/foo
         }
 
     #   __init__
@@ -394,7 +394,6 @@ class TaskRPM(TaskTar):
 
 class PackageExcludes:
     def __init__(self):
-
         self.commonPattern = [
             "CVS",
             ".DS_Store",
