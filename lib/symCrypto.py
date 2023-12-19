@@ -21,7 +21,8 @@ NOTE For convenience and consistency w/ previous versions of this module, Encryp
 
 import binascii
 
-import M2Crypto
+import M2Crypto.BIO
+import M2Crypto.Rand
 
 from . import defaults
 

@@ -22,7 +22,7 @@ NOTE get_hash() and extract_hash() both return Unicode utf-8 (defaults.BINARY_EN
 
 import binascii
 
-import M2Crypto
+import M2Crypto.EVP
 
 from . import defaults
 

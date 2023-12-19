@@ -21,7 +21,9 @@ NOTE For convenience and consistency w/ previous versions of this module, Encryp
 import binascii
 import os
 
-import M2Crypto
+import M2Crypto.BIO
+import M2Crypto.Err
+import M2Crypto.RSA
 
 from . import defaults
 

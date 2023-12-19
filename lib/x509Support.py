@@ -3,7 +3,7 @@
 
 import sys
 
-import M2Crypto
+import M2Crypto.X509
 
 from . import defaults
 
