@@ -315,7 +315,7 @@ def main():
             print(f"Latest version {manager.latest_version} not present in the glideinWMS.xml file.")
         if major_dict["WHITELIST"] != []:
             # Just get whitelisted versions
-            for version in major_dict["WHITELIST"]:
+            for version in set(major_dict["WHITELIST"]):
                 manager.download_tarballs(version)
         else:
             # Get everything but the blacklisted
