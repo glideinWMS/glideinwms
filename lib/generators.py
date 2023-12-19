@@ -13,12 +13,12 @@
 #   Contains the Generator base class and built-in generators
 #
 
-import sys
 import inspect
+import sys
 
 from abc import ABC, abstractmethod
 from importlib import import_module
-from typing import Generic, TypeVar, Optional, List, Mapping
+from typing import Generic, List, Mapping, Optional, TypeVar
 
 sys.path.append("/etc/gwms-frontend/plugin.d")
 _loaded_generators = {}

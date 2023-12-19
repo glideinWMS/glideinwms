@@ -77,8 +77,8 @@ from glideinwms.factory.glideFactoryLib import (
     set_condor_integrity_checks,
     which,
 )
-from glideinwms.unittests.unittest_utils import FakeLogger, TestImportError
 from glideinwms.lib.util import is_str_safe
+from glideinwms.unittests.unittest_utils import FakeLogger, TestImportError
 
 try:
     import glideinwms.factory.glideFactoryLib

@@ -26,8 +26,8 @@ from glideinwms.lib import (
     token_util,
     x509Support,
 )
+from glideinwms.lib.credentials import AuthenticationMethod, CredentialPair, CredentialType
 from glideinwms.lib.util import hash_nc
-from glideinwms.lib.credentials import CredentialPair, CredentialType, AuthenticationMethod
 
 ############################################################
 #

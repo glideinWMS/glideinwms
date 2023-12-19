@@ -14,7 +14,8 @@ from abc import ABC, abstractmethod
 from typing import List, Mapping
 
 from glideinwms.lib import logSupport, util
-from glideinwms.lib.credentials import RequestCredential, RequestBundle, CredentialType, Parameter, ParameterName
+from glideinwms.lib.credentials import CredentialType, Parameter, ParameterName, RequestBundle, RequestCredential
+
 from . import glideinFrontendInterface, glideinFrontendLib
 
 ################################################################################
@@ -44,6 +45,7 @@ from . import glideinFrontendInterface, glideinFrontendLib
 #     trust_domain will limit the returned credentials to a particular domain  #
 #                                                                              #
 ################################################################################
+
 
 # TODO: Add type annotations to this class
 class CredentialsPlugin(ABC):

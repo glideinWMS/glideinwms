@@ -39,8 +39,8 @@ from glideinwms.lib import (
     timeConversion,
     x509Support,
 )
+from glideinwms.lib.credentials import create_credential, Credential, CredentialError
 from glideinwms.lib.defaults import BINARY_ENCODING
-from glideinwms.lib.credentials import Credential, CredentialError, create_credential
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 

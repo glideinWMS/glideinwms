@@ -5,7 +5,7 @@ import os
 import os.path
 import shutil
 
-from glideinwms.lib import pubCrypto, symCrypto, credentials
+from glideinwms.lib import credentials, pubCrypto, symCrypto
 
 ############################################################
 #

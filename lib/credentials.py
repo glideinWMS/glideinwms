@@ -16,22 +16,22 @@
 import base64
 import enum
 import gzip
-import tempfile
-import jwt
 import os
 import re
 import shutil
 import sys
-
-import M2Crypto.X509
-import M2Crypto.EVP
+import tempfile
 
 from abc import ABC, abstractmethod
 from datetime import datetime
+from hashlib import md5
 from importlib import import_module
 from io import BytesIO
-from hashlib import md5
-from typing import Any, Generic, TypeVar, Optional, Union, Mapping, Iterable, List, Set, Type
+from typing import Any, Generic, Iterable, List, Mapping, Optional, Set, Type, TypeVar, Union
+
+import jwt
+import M2Crypto.EVP
+import M2Crypto.X509
 
 from glideinwms.lib import condorMonitor, logSupport, pubCrypto, symCrypto
 from glideinwms.lib.generators import Generator, load_generator

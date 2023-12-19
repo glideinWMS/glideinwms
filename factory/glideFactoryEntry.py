@@ -30,8 +30,8 @@ from glideinwms.lib import (
     token_util,
     util,
 )
-from glideinwms.lib.util import is_str_safe
 from glideinwms.lib.defaults import force_bytes
+from glideinwms.lib.util import is_str_safe
 
 
 ############################################################
