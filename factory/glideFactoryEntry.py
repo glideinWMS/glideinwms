@@ -17,7 +17,7 @@ import sys
 import tempfile
 import traceback
 
-from glideinwms.factory import glideFactoryConfig, glideFactoryDowntimeLib
+from glideinwms.factory import glideFactoryConfig, glideFactoryCredentials, glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryInterface as gfi
 from glideinwms.factory import glideFactoryLib, glideFactoryLogParser, glideFactoryMonitoring, glideFactoryPidLib
 from glideinwms.lib import (
@@ -1048,7 +1048,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         scitoken_passthru = params.get("CONTINUE_IF_NO_PROXY") == "True"
         try:
             entry.log.debug("Checking security credentials for client %s " % client_int_name)
-            credentials.check_security_credentials(
+            glideFactoryCredentials.check_security_credentials(
                 auth_method, decrypted_params, client_int_name, entry.name, scitoken_passthru
             )
         except credentials.CredentialError:

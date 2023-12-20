@@ -12,6 +12,7 @@ import sys
 
 from glideinwms.creation.lib.factoryXmlConfig import parse
 from glideinwms.factory import glideFactoryConfig as gfc
+from glideinwms.factory.glideFactoryCredentials import validate_frontend
 from glideinwms.factory.glideFactoryLib import (
     ClientWeb,
     escapeParam,
@@ -19,7 +20,7 @@ from glideinwms.factory.glideFactoryLib import (
     set_condor_integrity_checks,
     submitGlideins,
 )
-from glideinwms.lib.credentials import SubmitBundle, validate_frontend
+from glideinwms.lib.credentials import SubmitBundle
 
 try:
     import htcondor  # pylint: disable=import-error
