@@ -3,6 +3,31 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## Changes Since Last Release OR v3.10.6 \[2023-12-dd\]
+
+Bug fix quick release
+
+### New features / functionalities
+
+-   Add knobs to allow overloading of memory, GLIDEIN_OVERLOAD_MEMORY, and CPU, GLIDEIN_OVERLOAD_CPUS. (Issue #370, PR #374)
+-   Added HTCondor tarball downloader (Issue #367, PR #366)
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Changed M2Crypto imports to be compatible with 0.40.0 the code must import also the components (PR #377)
+
+### Testing / Development
+
+-   Python>=3.8 should be used as development environment, earlier versions are not supported by pre-commit. Code should still support any Python>=3.6.
+
+### Known Issues
+
 ## v3.10.5 \[2023-9-27\]
 
 Bug fix quick release
