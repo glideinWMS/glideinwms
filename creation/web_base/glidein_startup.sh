@@ -1248,17 +1248,19 @@ fetch_file_base() {
 }
 
 # Adds $1 to GWMS_PATH and update PATH
+# paths are adjusted to avoid adding the same path multiple times
 add_to_path() {
     logdebug "Adding to GWMS_PATH: $1"
-    local old_path=":${PATH%:}:"
-    old_path="${old_path//:$GWMS_PATH:/}"
+    local tmp_path=":${PATH%:}:"
     local old_gwms_path=":${GWMS_PATH%:}:"
-    old_gwms_path="${old_gwms_path//:$1:/}"
+    tmp_path="${tmp_path//${old_gwms_path}/}"
+    old_gwms_path="${old_gwms_path//:${1%:}:/}"
     old_gwms_path="${1%:}:${old_gwms_path#:}"
     export GWMS_PATH="${old_gwms_path%:}"
-    old_path="${GWMS_PATH}:${old_path#:}"
-    export PATH="${old_path%:}"
+    tmp_path="${GWMS_PATH}:${tmp_path#:}"
+    export PATH="${tmp_path%:}"
 }
+
 
 fixup_condor_dir() {
     # All files in the native condor tarballs have a directory like condor-9.0.11-1-x86_64_CentOS7-stripped

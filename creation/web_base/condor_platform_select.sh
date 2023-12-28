@@ -221,6 +221,7 @@ if [[ -z "$condor_version" ]]; then
     condor_version="default"
 fi
 
+# Get the first match in condor_platform_check
 condor_platform_check=""
 for version_el in $(echo "$condor_version" | tr ',' ' '); do
   if [[ -z "$condor_platform_check" ]]; then
