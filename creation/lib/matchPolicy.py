@@ -14,12 +14,13 @@
 #   Parag Mhashilkar
 #
 
-import importlib
 import os
 import os.path
 
 # import copy
 import re
+
+from glideinwms.lib.util import import_module
 
 # import string
 # import socket
@@ -80,11 +81,7 @@ class MatchPolicy:
             search_path.append(os.path.dirname(os.path.realpath(file)))
             self.searchPath = search_path
             try:
-                # First find the module
-                f, path, desc = importlib.util.find_spec(self.name, self.searchPath)
-                # Load the module
-                spec = importlib.util.spec_from_file_location(self.name, path)
-                self.pyObject = importlib.util.module_from_spec(spec)
+                self.pyObject = import_module(self.name, self.searchPath)
             except:
                 raise MatchPolicyLoadError(file=file, search_path=self.searchPath)
         else:

@@ -10,6 +10,7 @@
 import contextlib
 import os
 import pickle
+import re
 import shutil
 import subprocess
 import tempfile
@@ -22,6 +23,8 @@ from collections.abc import Mapping
 
 # imports for hash_nc
 from hashlib import md5
+from importlib.machinery import PathFinder, SourceFileLoader
+from importlib.util import module_from_spec
 from operator import add
 
 from glideinwms.lib.defaults import BINARY_ENCODING_ASCII, force_bytes
@@ -477,3 +480,40 @@ def chmod(*args, **kwargs):
     """
     with contextlib.suppress(PermissionError):
         os.chmod(*args, **kwargs)
+
+
+def import_module(module, search_path=None):
+    """Import a module by name or path
+
+    Args:
+        module (str): Module name, file name, or file path.
+        search_path (str or list of str, optional): Search path for the module. Defaults to None.
+
+    Raises:
+        ImportError: Failed to import the module
+
+    Returns:
+        module: Imported module
+    """
+
+    if search_path:
+        if type(search_path) is str:
+            search_path = [search_path]
+        if type(search_path) is not list:
+            raise ValueError("search_path must be a string or list of strings")
+        for path in search_path:
+            if not os.path.isdir(path):
+                raise ValueError(f"Invalid search_path: '{path}'")
+
+    try:
+        name = re.sub(r"\.py[co]?$", "", os.path.basename(module))
+        if os.path.isfile(module):
+            imported_module = SourceFileLoader(name, module).load_module()  # pylint: disable=no-value-for-parameter
+        else:
+            spec = PathFinder.find_spec(name, search_path)
+            imported_module = module_from_spec(spec)  # type: ignore[attr-defined]
+            spec.loader.exec_module(imported_module)  # type: ignore[member-defined]
+    except:
+        raise ImportError(f"Failed to import module {module}")
+
+    return imported_module
