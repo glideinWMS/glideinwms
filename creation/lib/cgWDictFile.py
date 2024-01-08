@@ -1,16 +1,43 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   Glidein creation module Classes and functions needed to
 #   handle dictionary files
-#
+
+"""Dictionary files used in the Factory
+
+Main dictionaries are in the global configuration.
+Entry dictionaries are in the entry configuration.
+Common dictionaries are in both.
+The versioned dictionary are stored in timestamp versioned files
+
+Common dictionaries:
+attrs (cWDictFile.ReprDictFile, cgWConsts.ATTRS_FILE): attributes in the "entry" XML tag and "attrs" set as constants
+description (cWDictFile.DescriptionDictFile, cWConsts.DESCRIPTION_FILE, versioned): factory/entry description
+consts (cWDictFile.StrDictFile, cWConsts.CONSTS_FILE, versioned): constant attrs - TODO: not written?
+params (cWDictFile.ReprDictFile, cgWConsts.PARAMS_FILE): attrs that are not constant (const="False", default)
+vars (cWDictFile.VarsDictFile, cWConsts.VARS_FILE, versioned): condor variables
+untar_cfg (cWDictFile.StrDictFile, cWConsts.UNTAR_CFG_FILE, versioned): instructions for files to un-compress
+file_list (cWDictFile.FileDictFile, cWConsts.FILE_LISTFILE, versioned): list of files to transfers
+signature (cWDictFile.SHA1DictFile, cWConsts.SIGNATURE_FILE, versioned): files signatures for tampering verification
+
+Main dictionaries (common and):
+summary_signature (cWDictFile.SummarySHA1DictFile, cWConsts.SUMMARY_SIGNATURE_FILE):
+glidein (cWDictFile.StrDictFile, cgWConsts.GLIDEIN_FILE):
+build_cvmfsexec (cWDictFile.ReprDictFile, cgWConsts.CVMFSEXEC_BUILD_FILE): cvmfsexec releases
+frontend_descript (cWDictFile.ReprDictFile, cgWConsts.FRONTEND_DESCRIPT_FILE): frontend description
+gridmap (cWDictFile.GridMapDict, cWConsts.GRIDMAP_FILE, versioned):
+at_file_list (cWDictFile.FileDictFile, cgWConsts.AT_FILE_LISTFILE, versioned): list of files w/ intermediate priority (close to entry)
+after_file_list (cWDictFile.FileDictFile, cgWConsts.AFTER_FILE_LISTFILE, versioned): list of files loaded later (after entry)
+
+Entry dictionaries (common and):
+job_descript (cWDictFile.StrDictFile, cgWConsts.JOB_DESCRIPT_FILE)
+infosys (InfoSysDictFile, cgWConsts.INFOSYS_FILE)
+mongroup (MonitorGroupDictFile, cgWConsts.MONITOR_CONFIG_FILE)
+
+
+"""
 
 import copy
 import os
@@ -211,6 +238,15 @@ class CondorJDLDictFile(cWDictFile.DictFile):
 
 # internal, do not use from outside the module
 def get_common_dicts(submit_dir, stage_dir):
+    """Return a dictionary with new instances of all the common (on both global and entry) dictionaries
+
+    Args:
+        submit_dir:
+        stage_dir:
+
+    Returns:
+        dict: dictionary with new instances of all the common (in both global and entry) dictionaries
+    """
     common_dicts = {
         "attrs": cWDictFile.ReprDictFile(submit_dir, cgWConsts.ATTRS_FILE),
         "description": cWDictFile.DescriptionDictFile(
@@ -238,12 +274,23 @@ def get_common_dicts(submit_dir, stage_dir):
 
 
 def get_main_dicts(submit_dir, stage_dir):
+    """Return a dictionary with new instances of all the main (global) only dictionaries
+
+    Args:
+        submit_dir:
+        stage_dir:
+
+    Returns:
+        dict: dictionary with new instances of all the main (global) only dictionaries
+    """
     main_dicts = get_common_dicts(submit_dir, stage_dir)
     main_dicts["summary_signature"] = cWDictFile.SummarySHA1DictFile(submit_dir, cWConsts.SUMMARY_SIGNATURE_FILE)
     main_dicts["glidein"] = cWDictFile.StrDictFile(submit_dir, cgWConsts.GLIDEIN_FILE)
     main_dicts["build_cvmfsexec"] = cWDictFile.ReprDictFile(submit_dir, cgWConsts.CVMFSEXEC_BUILD_FILE)
     main_dicts["frontend_descript"] = cWDictFile.ReprDictFile(submit_dir, cgWConsts.FRONTEND_DESCRIPT_FILE)
-    main_dicts["gridmap"] = cWDictFile.GridMapDict(stage_dir, cWConsts.insert_timestr(cWConsts.GRIDMAP_FILE))
+    main_dicts["gridmap"] = cWDictFile.GridMapDict(
+        stage_dir, cWConsts.insert_timestr(cWConsts.GRIDMAP_FILE)
+    )  # TODO: versioned but no fname_idx?
     main_dicts["at_file_list"] = cWDictFile.FileDictFile(
         stage_dir, cWConsts.insert_timestr(cgWConsts.AT_FILE_LISTFILE), fname_idx=cgWConsts.AT_FILE_LISTFILE
     )
@@ -253,7 +300,17 @@ def get_main_dicts(submit_dir, stage_dir):
     return main_dicts
 
 
-def get_entry_dicts(entry_submit_dir, entry_stage_dir, entry_name):
+def get_entry_dicts(entry_submit_dir, entry_stage_dir, entry_name):  # TODO: entry_name seems not used
+    """Return a dictionary with new instances of all the entry only dictionaries
+
+    Args:
+        entry_submit_dir:
+        entry_stage_dir:
+        entry_name (str): name of the entry
+
+    Returns:
+        dict: dictionary with new instances of all the entry only dictionaries
+    """
     entry_dicts = get_common_dicts(entry_submit_dir, entry_stage_dir)
     entry_dicts["job_descript"] = cWDictFile.StrDictFile(entry_submit_dir, cgWConsts.JOB_DESCRIPT_FILE)
     entry_dicts["infosys"] = InfoSysDictFile(entry_submit_dir, cgWConsts.INFOSYS_FILE)
@@ -270,6 +327,13 @@ def get_entry_dicts(entry_submit_dir, entry_stage_dir, entry_name):
 
 # internal, do not use from outside the module
 def load_common_dicts(dicts, description_el):  # update in place
+    """Load (from file) the common (to global and entry) dictionaries
+
+    Args:
+        dicts (dict): dictionary with the common dictionaries updated in place
+                      this dictionary may contain also other (global or entry) dictionaries that are not updated
+        description_el:
+    """
     # first submit dir ones (mutable)
     dicts["params"].load()
     dicts["attrs"].load()
@@ -286,6 +350,12 @@ def load_common_dicts(dicts, description_el):  # update in place
 
 
 def load_main_dicts(main_dicts):  # update in place
+    """Load (from file) the entry dictionaries
+    Loads also the common ones, calling load_common_dicts
+
+    Args:
+        main_dicts (dict): dictionary with main (global) dictionaries (updated in place)
+    """
     main_dicts["glidein"].load()
     main_dicts["frontend_descript"].load()
     # summary_signature has keys for description
@@ -310,6 +380,14 @@ def load_main_dicts(main_dicts):  # update in place
 
 
 def load_entry_dicts(entry_dicts, entry_name, summary_signature):  # update in place
+    """Load (from file) the entry dictionaries
+    Loads also the common ones, calling load_common_dicts
+
+    Args:
+        entry_dicts (dict): dictionary with entry dictionaries updated in place
+        entry_name (str): entry name
+        summary_signature:
+    """
     try:
         entry_dicts["infosys"].load()
     except RuntimeError:
@@ -535,9 +613,9 @@ def reuse_entry_dicts(entry_dicts, other_entry_dicts, entry_name):
 ################################################
 
 
-class clientDirSupport(cWDictFile.simpleDirSupport):
+class clientDirSupport(cWDictFile.SimpleDirSupport):
     def __init__(self, user, dir, dir_name):
-        cWDictFile.simpleDirSupport.__init__(self, dir, dir_name)
+        cWDictFile.SimpleDirSupport.__init__(self, dir, dir_name)
         self.user = user
 
     def create_dir(self, fail_if_exists=True):
@@ -600,9 +678,9 @@ class chmodClientDirSupport(clientDirSupport):
 # Support classes used my Main
 
 
-class baseClientDirSupport(cWDictFile.multiSimpleDirSupport):
+class baseClientDirSupport(cWDictFile.MultiSimpleDirSupport):
     def __init__(self, user, dir, dir_name="client"):
-        cWDictFile.multiSimpleDirSupport.__init__(self, (), dir_name)
+        cWDictFile.MultiSimpleDirSupport.__init__(self, (), dir_name)
         self.user = user
 
         self.base_dir = os.path.dirname(dir)
@@ -615,13 +693,13 @@ class baseClientDirSupport(cWDictFile.multiSimpleDirSupport):
         self.add_dir_obj(clientDirSupport(user, dir, dir_name))
 
 
-class clientSymlinksSupport(cWDictFile.multiSimpleDirSupport):
+class clientSymlinksSupport(cWDictFile.MultiSimpleDirSupport):
     def __init__(self, user_dirs, work_dir, symlink_base_subdir, dir_name):
         self.symlink_base_dir = os.path.join(work_dir, symlink_base_subdir)
-        cWDictFile.multiSimpleDirSupport.__init__(self, (self.symlink_base_dir,), dir_name)
+        cWDictFile.MultiSimpleDirSupport.__init__(self, (self.symlink_base_dir,), dir_name)
         for user in list(user_dirs.keys()):
             self.add_dir_obj(
-                cWDictFile.symlinkSupport(
+                cWDictFile.SymlinkSupport(
                     user_dirs[user], os.path.join(self.symlink_base_dir, "user_%s" % user), dir_name
                 )
             )
@@ -648,9 +726,9 @@ class clientProxiesDirSupport(chmodClientDirSupport):
 ################################################
 
 
-class glideinMainDicts(cWDictFile.fileMainDicts):
+class glideinMainDicts(cWDictFile.FileMainDicts):
     def __init__(self, work_dir, stage_dir, workdir_name, log_dir, client_log_dirs, client_proxies_dirs):
-        cWDictFile.fileMainDicts.__init__(
+        cWDictFile.FileMainDicts.__init__(
             self, work_dir, stage_dir, workdir_name, False, log_dir  # simple_work_dir=False
         )
         self.client_log_dirs = client_log_dirs
@@ -675,7 +753,7 @@ class glideinMainDicts(cWDictFile.fileMainDicts):
 
     # reuse as much of the other as possible
     def reuse(self, other):  # other must be of the same class
-        cWDictFile.fileMainDicts.reuse(self, other)
+        cWDictFile.FileMainDicts.reuse(self, other)
         reuse_main_dicts(self.dicts, other.dicts)
 
     ####################
@@ -697,7 +775,7 @@ class glideinMainDicts(cWDictFile.fileMainDicts):
 ################################################
 
 
-class glideinEntryDicts(cWDictFile.fileSubDicts):
+class glideinEntryDicts(cWDictFile.FileSubDicts):
     """This Class contains the entry and entry set dicts"""
 
     def __init__(
@@ -714,16 +792,16 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
         """Constructor
 
         Args:
-            base_work_dir:
-            base_stage_dir:
-            sub_name:
-            summary_signature:
-            workdir_name:
-            base_log_dir:
-            base_client_log_dirs:
-            base_client_proxies_dirs:
+            base_work_dir (str): base (not entry) work directory name
+            base_stage_dir (str): base stage directory name
+            sub_name (str): Entry name
+            summary_signature (_type_): _description_
+            workdir_name (str): work directory name
+            base_log_dir (str): base log directory name
+            base_client_log_dirs (str): base client log directory name
+            base_client_proxies_dirs (str): base client credentials direcoty name
         """
-        cWDictFile.fileSubDicts.__init__(
+        cWDictFile.FileSubDicts.__init__(
             self,
             base_work_dir,
             base_stage_dir,
@@ -759,7 +837,7 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
 
     # reuse as much of the other as possible
     def reuse(self, other):  # other must be of the same class
-        cWDictFile.fileSubDicts.reuse(self, other)
+        cWDictFile.FileSubDicts.reuse(self, other)
         reuse_entry_dicts(self.dicts, other.dicts, self.sub_name)
 
     ####################
@@ -790,13 +868,13 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
 ################################################
 
 
-class glideinDicts(cWDictFile.fileDicts):
+class glideinDicts(cWDictFile.FileDicts):
     def __init__(
         self, work_dir, stage_dir, log_dir, client_log_dirs, client_proxies_dirs, entry_list=[], workdir_name="submit"
     ):
         self.client_log_dirs = client_log_dirs
         self.client_proxies_dirs = client_proxies_dirs
-        cWDictFile.fileDicts.__init__(
+        cWDictFile.FileDicts.__init__(
             self, work_dir, stage_dir, entry_list, workdir_name, False, log_dir  # simple_work_dir=False
         )
 

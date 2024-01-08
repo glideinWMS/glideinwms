@@ -238,9 +238,9 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             log_dir=params.log_dir,
         )
         self.monitor_dir = params.monitor_dir
-        self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
+        self.add_dir_obj(cWDictFile.MonitorWLinkDirSupport(self.monitor_dir, self.work_dir))
         self.monitor_jslibs_dir = os.path.join(self.monitor_dir, "jslibs")
-        self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir, "monitor"))
+        self.add_dir_obj(cWDictFile.SimpleDirSupport(self.monitor_jslibs_dir, "monitor"))
         self.params = params
         self.enable_expansion = str2bool(self.params.data.get("enable_attribute_expansion", "False"))
         self.active_sub_list = []
@@ -498,7 +498,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
             base_log_dir=params.log_dir,
         )
         self.monitor_dir = cvWConsts.get_group_monitor_dir(params.monitor_dir, sub_name)
-        self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
+        self.add_dir_obj(cWDictFile.MonitorWLinkDirSupport(self.monitor_dir, self.work_dir))
         self.params = params
         self.enable_expansion = str2bool(self.params.data.get("enable_attribute_expansion", "False"))
         self.client_security = {}
