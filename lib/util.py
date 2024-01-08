@@ -506,7 +506,7 @@ def import_module(module, search_path=None):
                 raise ValueError(f"Invalid search_path: '{path}'")
 
     try:
-        name = re.sub(r"\.py[co]?$", "", os.path.basename(module))
+        name = re.sub(r"\.py[co]?$", "", os.path.basename(module))  # Remove eventual .py/.pyc/.pyo extension from the file name (if a file is used)
         if os.path.isfile(module):
             imported_module = SourceFileLoader(name, module).load_module()  # pylint: disable=no-value-for-parameter
         else:
