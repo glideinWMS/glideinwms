@@ -307,11 +307,11 @@ class DictFile:
         if they are, and change_self is True, change the self.
 
         Args:
-            dir:
-            fname:
-            change_self:
+            dir (str,Path,None): directory to store the dictionary file
+            fname (str, Path, None): file name to use for the dictionary
+            change_self (bool): if True, update the `dir` and `file` attributes (must provide `dir` and `file`)
             erase_first (bool): if True, delete old content first
-            set_not_changed (bool): if True, set self.changed to False
+            set_not_changed (bool): if True, set `self.changed` to False
 
         Returns:
 
@@ -1563,7 +1563,7 @@ class ExeFile(SimpleFile):
 ###########################################################
 
 
-class dirSupport:
+class DirSupport:
     """Abstract class for a directory creation"""
 
     def create_dir(self, fail_if_exists=True):
@@ -1585,7 +1585,7 @@ class dirSupport:
         raise RuntimeError("Undefined")
 
 
-class simpleDirSupport(dirSupport):
+class SimpleDirSupport(DirSupport):
     def __init__(self, dir, dir_name):
         """Constructor
 
@@ -1613,9 +1613,9 @@ class simpleDirSupport(dirSupport):
         shutil.rmtree(self.dir)
 
 
-class chmodDirSupport(simpleDirSupport):
+class ChmodDirSupport(SimpleDirSupport):
     def __init__(self, dir, chmod, dir_name):
-        simpleDirSupport.__init__(self, dir, dir_name)
+        SimpleDirSupport.__init__(self, dir, dir_name)
         self.chmod = chmod
 
     # TODO: there is os.mkdirs with fail_if_exists
@@ -1633,7 +1633,7 @@ class chmodDirSupport(simpleDirSupport):
         return True
 
 
-class symlinkSupport(dirSupport):
+class SymlinkSupport(DirSupport):
     """Symlink to a directory"""
 
     def __init__(self, target_dir, symlink, dir_name):
@@ -1660,7 +1660,7 @@ class symlinkSupport(dirSupport):
 
 
 # class for many directory creation
-class dirsSupport:
+class DirsSupport:
     def __init__(self):
         self.dir_list = []
 
@@ -1694,14 +1694,14 @@ class dirsSupport:
 
 
 # multiple simple dirs
-class multiSimpleDirSupport(dirSupport, dirsSupport):
+class MultiSimpleDirSupport(DirSupport, DirsSupport):
     def __init__(self, list_of_dirs, dir_name):
-        dirsSupport.__init__(self)
+        DirsSupport.__init__(self)
         self.list_of_dirs = list_of_dirs
         self.dir_name = dir_name
 
-        for dir in list_of_dirs:
-            self.add_dir_obj(simpleDirSupport(dir, self.dir_name))
+        for d in list_of_dirs:
+            self.add_dir_obj(SimpleDirSupport(d, self.dir_name))
 
     def create_dir(self, fail_if_exists=True):
         return self.create_dirs(fail_if_exists)
@@ -1713,39 +1713,39 @@ class multiSimpleDirSupport(dirSupport, dirsSupport):
 ###########################################
 
 
-class workDirSupport(multiSimpleDirSupport):
+class WorkDirSupport(MultiSimpleDirSupport):
     def __init__(self, work_dir, workdir_name):
-        multiSimpleDirSupport.__init__(self, (work_dir, os.path.join(work_dir, "lock")), workdir_name)
+        MultiSimpleDirSupport.__init__(self, (work_dir, os.path.join(work_dir, "lock")), workdir_name)
 
 
-# similar to workDirSupport but without lock subdir
-class simpleWorkDirSupport(simpleDirSupport):
+# similar to WorkDirSupport but without lock subdir
+class SimpleWorkDirSupport(SimpleDirSupport):
     pass
 
 
-class logDirSupport(simpleDirSupport):
+class LogDirSupport(SimpleDirSupport):
     def __init__(self, log_dir, dir_name="log"):
-        simpleDirSupport.__init__(self, log_dir, dir_name)
+        SimpleDirSupport.__init__(self, log_dir, dir_name)
 
 
-class logSymlinkSupport(symlinkSupport):
+class LogSymlinkSupport(SymlinkSupport):
     def __init__(self, log_dir, work_dir, symlink_subdir="log", dir_name="log"):
-        symlinkSupport.__init__(self, log_dir, os.path.join(work_dir, symlink_subdir), dir_name)
+        SymlinkSupport.__init__(self, log_dir, os.path.join(work_dir, symlink_subdir), dir_name)
 
 
-class stageDirSupport(simpleDirSupport):
+class StageDirSupport(SimpleDirSupport):
     def __init__(self, stage_dir, dir_name="stage"):
-        simpleDirSupport.__init__(self, stage_dir, dir_name)
+        SimpleDirSupport.__init__(self, stage_dir, dir_name)
 
 
-class monitorDirSupport(dirSupport, dirsSupport):
+class MonitorDirSupport(DirSupport, DirsSupport):
     def __init__(self, monitor_dir, dir_name="monitor"):
-        dirsSupport.__init__(self)
+        DirsSupport.__init__(self)
 
         self.dir_name = dir_name
         self.monitor_dir = monitor_dir
-        self.add_dir_obj(simpleDirSupport(self.monitor_dir, self.dir_name))
-        self.add_dir_obj(simpleDirSupport(os.path.join(self.monitor_dir, "lock"), self.dir_name))
+        self.add_dir_obj(SimpleDirSupport(self.monitor_dir, self.dir_name))
+        self.add_dir_obj(SimpleDirSupport(os.path.join(self.monitor_dir, "lock"), self.dir_name))
 
     def create_dir(self, fail_if_exists=True):
         return self.create_dirs(fail_if_exists)
@@ -1754,14 +1754,14 @@ class monitorDirSupport(dirSupport, dirsSupport):
         self.delete_dirs()
 
 
-class monitorWLinkDirSupport(monitorDirSupport):
+class MonitorWLinkDirSupport(MonitorDirSupport):
     def __init__(self, monitor_dir, work_dir, work_subdir="monitor", monitordir_name="monitor"):
-        monitorDirSupport.__init__(self, monitor_dir, monitordir_name)
+        MonitorDirSupport.__init__(self, monitor_dir, monitordir_name)
 
         self.work_dir = work_dir
         self.monitor_symlink = os.path.join(self.work_dir, work_subdir)
 
-        self.add_dir_obj(symlinkSupport(self.monitor_dir, self.monitor_symlink, self.dir_name))
+        self.add_dir_obj(SymlinkSupport(self.monitor_dir, self.monitor_symlink, self.dir_name))
 
 
 ################################################
@@ -1773,7 +1773,7 @@ class monitorWLinkDirSupport(monitorDirSupport):
 
 
 # helper class, used below
-class fileCommonDicts:
+class FileCommonDicts:
     def __init__(self):
         self.dicts = {}
 
@@ -1806,26 +1806,26 @@ class fileCommonDicts:
 ################################################
 
 
-class fileMainDicts(fileCommonDicts, dirsSupport):
+class FileMainDicts(FileCommonDicts, DirsSupport):
     """This Class contains the main dicts (dicts is a dict of DictFiles)"""
 
     def __init__(self, work_dir, stage_dir, workdir_name, simple_work_dir=False, log_dir=None):
         """Constructor
 
         Args:
-            work_dir:
-            stage_dir:
-            workdir_name:
+            work_dir (str): work dir path
+            stage_dir (str): stage dir path
+            workdir_name (str): work dir name
             simple_work_dir (bool): if True, do not create the lib and lock work_dir subdirs
-            base_log_dir (str): used only if simple_work_dir=False
+            log_dir (str): used only if simple_work_dir=False
 
         """
         self.active_sub_list = []
         self.disabled_sub_list = []
         self.monitor_dir = ""
 
-        fileCommonDicts.__init__(self)
-        dirsSupport.__init__(self)
+        FileCommonDicts.__init__(self)
+        DirsSupport.__init__(self)
 
         self.work_dir = work_dir
         self.stage_dir = stage_dir
@@ -1834,18 +1834,17 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
         self.simple_work_dir = simple_work_dir
         if simple_work_dir:
             self.log_dir = None
-            self.add_dir_obj(simpleWorkDirSupport(self.work_dir, self.workdir_name))
+            self.add_dir_obj(SimpleWorkDirSupport(self.work_dir, self.workdir_name))
         else:
             self.log_dir = log_dir
-            self.add_dir_obj(workDirSupport(self.work_dir, self.workdir_name))
-            self.add_dir_obj(logDirSupport(self.log_dir))
+            self.add_dir_obj(WorkDirSupport(self.work_dir, self.workdir_name))
+            self.add_dir_obj(LogDirSupport(self.log_dir))
             # make it easier to find; create a symlink in work
-            self.add_dir_obj(logSymlinkSupport(self.log_dir, self.work_dir))
-
+            self.add_dir_obj(LogSymlinkSupport(self.log_dir, self.work_dir))
             # in order to keep things clean, put daemon process logs into a separate dir
-            self.add_dir_obj(logDirSupport(self.get_daemon_log_dir(log_dir)))
+            self.add_dir_obj(LogDirSupport(self.get_daemon_log_dir(log_dir)))
 
-        self.add_dir_obj(stageDirSupport(self.stage_dir))
+        self.add_dir_obj(StageDirSupport(self.stage_dir))
 
         self.erase()
 
@@ -1918,7 +1917,7 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
 ################################################
 
 
-class fileSubDicts(fileCommonDicts, dirsSupport):
+class FileSubDicts(FileCommonDicts, DirsSupport):
     """This Class contains the sub dicts"""
 
     def __init__(
@@ -1942,8 +1941,8 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
             simple_work_dir (bool): if True, do not create the lib and lock work_dir subdirs
             base_log_dir (str): used only if simple_work_dir=False
         """
-        fileCommonDicts.__init__(self)
-        dirsSupport.__init__(self)
+        FileCommonDicts.__init__(self)
+        DirsSupport.__init__(self)
 
         self.sub_name = sub_name
 
@@ -1957,13 +1956,13 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
         self.simple_work_dir = simple_work_dir
         if simple_work_dir:
             self.log_dir = None
-            self.add_dir_obj(simpleWorkDirSupport(self.work_dir, self.workdir_name))
+            self.add_dir_obj(SimpleWorkDirSupport(self.work_dir, self.workdir_name))
         else:
             self.log_dir = self.get_sub_log_dir(base_log_dir)
-            self.add_dir_obj(workDirSupport(self.work_dir, self.workdir_name))
-            self.add_dir_obj(logDirSupport(self.log_dir))
+            self.add_dir_obj(WorkDirSupport(self.work_dir, self.workdir_name))
+            self.add_dir_obj(LogDirSupport(self.log_dir))
 
-        self.add_dir_obj(stageDirSupport(self.stage_dir))
+        self.add_dir_obj(StageDirSupport(self.stage_dir))
 
         self.summary_signature = summary_signature
         self.erase()
@@ -1987,7 +1986,7 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
         """
 
         Args:
-            other: other must be of the same class (child of fileSubDicts)
+            other: other must be of the same class (child of FileSubDicts)
             compare_sub_name (bool):
             compare_fnames (bool):
 
@@ -2043,7 +2042,7 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
 ################################################
 
 
-class fileDicts:
+class FileDicts:
     """This Class contains both the main and the sub dicts"""
 
     def __init__(self, work_dir, stage_dir, sub_list=[], workdir_name="work", simple_work_dir=False, log_dir=None):
@@ -2076,7 +2075,15 @@ class fileDicts:
         for el in list(self.sub_dicts.values()):
             el.set_readonly(readonly)
 
+    # TODO: the code seems to do the opposite of what the comment mentions
     def erase(self, destroy_old_subs=True):  # if false, the sub names will be preserved
+        """Erase the fileDict
+        If `destroy_old_subs` is True, then the sub list and dict are reset; if it is False,
+        then erase() is called recursively on the sub_list items.
+
+        Args:
+            destroy_old_subs (bool): if false, the sub names will be preserved
+        """
         self.main_dicts.erase()
         if destroy_old_subs:
             self.sub_list = []
@@ -2087,6 +2094,13 @@ class fileDicts:
         return
 
     def load(self, destroy_old_subs=True):  # if false, overwrite the subs you load, but leave the others as they are
+        """Load all the dictionaries (from files).
+        If `destroy_old_subs` is False, existing items are preserved if not over-written by a loaded one with the same
+        name. If it is True, old items are dropped and only the new ones will be in the dictionary.
+
+        Args:
+            destroy_old_subs (bool): if false, overwrite the subs you load, but leave the others as they are
+        """
         self.main_dicts.load()
         if destroy_old_subs:
             self.sub_list = []
@@ -2102,6 +2116,12 @@ class fileDicts:
                 self.sub_dicts[sub_name].load()
 
     def save(self, set_readonly=True):
+        """Save (to file) all the fileDict and sub dict.
+        Invoking SUB.save(), MAIN.save(), and SUB.save_final()
+
+        Args:
+            set_readonly (bool):  set the file as read only if True
+        """
         for sub_name in self.sub_list:
             self.sub_dicts[sub_name].save(set_readonly=set_readonly)
         self.main_dicts.save(set_readonly=set_readonly)
@@ -2123,10 +2143,22 @@ class fileDicts:
     def is_equal(
         self,
         other,  # other must be of the same class
-        compare_work_dir=False,
-        compare_stage_dir=False,
-        compare_fnames=False,
+        compare_work_dir: bool = False,
+        compare_stage_dir: bool = False,
+        compare_fnames: bool = False,
     ):
+        """Compare 2 fileDict main and sub dictionaries.
+        Return False if the content is different and optionally also if file name or staging or work directory differ.
+
+        Args:
+            other (:obj:): other fileDict of the same type to compare
+            compare_work_dir (bool): if True, fail if the 2 fileDict are not in the same directory (same work directory)
+            compare_stage_dir (bool): if True, fail if the 2 fileDict don't use the same staging directory
+            compare_fnames (bool): if True, fail if the file name is different
+
+        Returns:
+            bool: True if the 2 fileDict are the same (following the specified options)
+        """
         if compare_work_dir and (self.work_dir != other.work_dir):
             return False
         if compare_stage_dir and (self.stage_dir != other.stage_dir):
@@ -2175,14 +2207,20 @@ class fileDicts:
     ###########
 
     # this should be redefined by the child
-    # and return a child of fileMainDicts
+    # and return a child of FileMainDicts
     def new_MainDicts(self):
-        return fileMainDicts(self.work_dir, self.stage_dir, self.workdir_name, self.simple_work_dir, self.log_dir)
+        return FileMainDicts(self.work_dir, self.stage_dir, self.workdir_name, self.simple_work_dir, self.log_dir)
 
-    # this should be redefined by the child
-    # and return a child of fileSubDicts
     def new_SubDicts(self, sub_name):
-        return fileSubDicts(
+        """This should be redefined by the child and return a child of FileSubDicts
+
+        Args:
+            sub_name (str): sub dictionary name
+
+        Returns:
+
+        """
+        return FileSubDicts(
             self.work_dir,
             self.stage_dir,
             sub_name,
@@ -2192,8 +2230,15 @@ class fileDicts:
             self.log_dir,
         )
 
-    # this should be redefined by the child
     def get_sub_name_from_sub_stage_dir(self, sign_key):
+        """This should be redefined by the child
+
+        Args:
+            sign_key:
+
+        Returns:
+
+        """
         raise RuntimeError("Undefined")
 
 
@@ -2266,14 +2311,14 @@ class MonitorFileDicts:
 #
 #########################################################
 
-# Some valid addresses to test validate_node with (using fermicloudui to avoid DNS errors):
-# ['fermicloudui.fnal.gov:9618-9620', 'fermicloudui.fnal.gov:9618?sock=collector30-40',
-# 'fermicloudui.fnal.gov:9618-9630', 'fermicloudui.fnal.gov:9618?sock=collector30-50',
-# 'fermicloudui.fnal.gov:9618?sock=collector10-20', 'fermicloudui.fnal.gov:9618?sock=collector',
-# 'fermicloudui.fnal.gov:9618?sock=collector30-40', 'fermicloudui.fnal.gov:9618?sock=collector30',
-# 'fermicloudui.fnal.gov:9618?sock=collector', 'fermicloudui.fnal.gov:9618?sock=collector&key1=val1',
-# 'name@fermicloudui.fnal.gov:9618?sock=schedd', 'fermicloudui.fnal.gov:9618?sock=my5alpha0num',
-# 'fermicloudui.fnal.gov:9618?key1=val1&sock=collector&key2=val2']
+# Some valid addresses to test validate_node with (using www.test.com to avoid DNS errors):
+# ['www.test.com:9618-9620', 'www.test.com:9618?sock=collector30-40',
+# 'www.test.com:9618-9630', 'www.test.com:9618?sock=collector30-50',
+# 'www.test.com:9618?sock=collector10-20', 'www.test.com:9618?sock=collector',
+# 'www.test.com:9618?sock=collector30-40', 'www.test.com:9618?sock=collector30',
+# 'www.test.com:9618?sock=collector', 'www.test.com:9618?sock=collector&key1=val1',
+# 'name@www.test.com:9618?sock=schedd', 'www.test.com:9618?sock=my5alpha0num',
+# 'www.test.com:9618?key1=val1&sock=collector&key2=val2']
 
 
 def validate_node(nodestr, allow_range=False, check_dns=True):
@@ -2361,7 +2406,7 @@ def validate_node(nodestr, allow_range=False, check_dns=True):
     nodename = narr[0].split("@")[-1]
     try:
         socket.getaddrinfo(nodename, None)
-    except:
+    except Exception:
         if check_dns:
             raise RuntimeError("Node name unknown to DNS: '%s'" % nodestr)
         else:

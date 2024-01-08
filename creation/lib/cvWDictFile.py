@@ -409,7 +409,7 @@ def reuse_group_dicts(group_dicts, other_group_dicts, group_name):
 ################################################
 
 
-class frontendMainDicts(cWDictFile.fileMainDicts):
+class frontendMainDicts(cWDictFile.FileMainDicts):
     def __init__(
         self,
         work_dir,
@@ -420,7 +420,7 @@ class frontendMainDicts(cWDictFile.fileMainDicts):
         log_dir=None,
     ):  # used only if simple_work_dir=False
         self.assume_groups = assume_groups
-        cWDictFile.fileMainDicts.__init__(self, work_dir, stage_dir, workdir_name, simple_work_dir, log_dir)
+        cWDictFile.FileMainDicts.__init__(self, work_dir, stage_dir, workdir_name, simple_work_dir, log_dir)
 
     ######################################
     # Redefine methods needed by parent
@@ -432,7 +432,7 @@ class frontendMainDicts(cWDictFile.fileMainDicts):
 
     # reuse as much of the other as possible
     def reuse(self, other):  # other must be of the same class
-        cWDictFile.fileMainDicts.reuse(self, other)
+        cWDictFile.FileMainDicts.reuse(self, other)
         reuse_main_dicts(self.dicts, other.dicts)
 
     ####################
@@ -454,7 +454,7 @@ class frontendMainDicts(cWDictFile.fileMainDicts):
 ################################################
 
 
-class frontendGroupDicts(cWDictFile.fileSubDicts):
+class frontendGroupDicts(cWDictFile.FileSubDicts):
     ######################################
     # Redefine methods needed by parent
     def load(self):
@@ -468,7 +468,7 @@ class frontendGroupDicts(cWDictFile.fileSubDicts):
 
     # reuse as much of the other as possible
     def reuse(self, other):  # other must be of the same class
-        cWDictFile.fileSubDicts.reuse(self, other)
+        cWDictFile.FileSubDicts.reuse(self, other)
         reuse_group_dicts(self.dicts, other.dicts, self.sub_name)
 
     ####################
@@ -499,7 +499,7 @@ class frontendGroupDicts(cWDictFile.fileSubDicts):
 ################################################
 
 
-class frontendDicts(cWDictFile.fileDicts):
+class frontendDicts(cWDictFile.FileDicts):
     def __init__(
         self,
         work_dir,
@@ -509,7 +509,7 @@ class frontendDicts(cWDictFile.fileDicts):
         simple_work_dir=False,  # if True, do not create the lib and lock work_dir subdirs, nor the params dict
         log_dir=None,
     ):  # used only if simple_work_dir=False
-        cWDictFile.fileDicts.__init__(self, work_dir, stage_dir, group_list, workdir_name, simple_work_dir, log_dir)
+        cWDictFile.FileDicts.__init__(self, work_dir, stage_dir, group_list, workdir_name, simple_work_dir, log_dir)
 
     ###########
     # PRIVATE

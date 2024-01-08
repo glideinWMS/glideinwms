@@ -1,18 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   Functions needed to create files used by the glidein entry points
-#
-# Author: Igor Sfiligoi
-#
-####################################
+
 
 import io
 import os
@@ -24,8 +15,6 @@ import tarfile
 from glideinwms.lib.util import chmod
 
 from . import cgWDictFile, cWDictFile
-
-##############################
 
 
 # Create condor tarball and store it into a StringIO
@@ -141,14 +130,19 @@ def get_factory_log_recipients(entry):
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
     # MM5345 passing job_descript instead of entry (was sub_params in common root), used only in first section to eval variables
     def populate(self, exe_fname, entry_name, conf, entry):
-        """
-        Since there are only two parameters that ever were passed that didn't already exist in the params dict or the
+        """Since there are only two parameters that ever were passed that didn't already exist in the params dict or the
         sub_params dict, the function signature has been greatly simplified into just those two parameters and the
         two dicts.
 
         This has the added benefit of being "future-proof" for as long as we maintain this particular configuration
         method.  Any new attribute that may be in params or sub_params can be accessed here without having to add yet
         another parameter to the function.
+
+        Args:
+            exe_fname (str, Path): startup file name (glidein_startup.sh)
+            entry_name (str): Name of the Entry
+            conf (factoryXmlConfig.Config): XML configuration
+            entry (factoryXmlConfig.EntryElement): Entry element XML configuration
         """
 
         glidein_name = conf["glidein_name"]
@@ -289,8 +283,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.jobs_in_cluster = "$ENV(GLIDEIN_COUNT)"
 
     def populate_standard_grid(self, rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files=None):
-        """
-        create a standard condor jdl file to submit to  OSG grid
+        """Create a standard condor jdl file to submit to  OSG grid
+
         Args:
             rsl (str):
             auth_method (str): grid_proxy, voms_proxy, key_pair, cert_pair, username_password,
@@ -343,6 +337,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 or gridtype.startswith("batch ")
                 or gridtype in ("condor", "gce", "ec2", "arc")
             ):
+                # TODO: If switching to f-string, must use different quotes in the following line
+                #  to avoid error w/ f-string (fixed in Py 3.12) - check that formatter is not changing things
+                # self.add(f'{attr_prefix}{submit_attr["name"]}', submit_attr["value"])
                 self.add("{}{}".format(attr_prefix, submit_attr["name"]), submit_attr["value"])
 
     def populate_condorc_grid(self):

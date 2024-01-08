@@ -55,11 +55,11 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self, submit_dir, stage_dir, workdir_name, log_dir, client_log_dirs, client_proxy_dirs
         )
         self.monitor_dir = monitor_dir
-        self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
+        self.add_dir_obj(cWDictFile.MonitorWLinkDirSupport(self.monitor_dir, self.work_dir))
         self.monitor_jslibs_dir = os.path.join(self.monitor_dir, "jslibs")
-        self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir, "monitor"))
+        self.add_dir_obj(cWDictFile.SimpleDirSupport(self.monitor_jslibs_dir, "monitor"))
         self.monitor_images_dir = os.path.join(self.monitor_dir, "images")
-        self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_images_dir, "monitor"))
+        self.add_dir_obj(cWDictFile.SimpleDirSupport(self.monitor_images_dir, "monitor"))
         self.enable_expansion = str2bool(conf.get("enable_attribute_expansion", "False"))
         self.conf = conf
         self.active_sub_list = []
@@ -598,7 +598,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         self.enable_expansion = str2bool(conf.get("enable_attribute_expansion", "False"))
         self.monitor_dir = cgWConsts.get_entry_monitor_dir(monitor_dir, sub_name)
-        self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
+        self.add_dir_obj(cWDictFile.MonitorWLinkDirSupport(self.monitor_dir, self.work_dir))
 
     def erase(self):
         cgWDictFile.glideinEntryDicts.erase(self)
@@ -646,12 +646,9 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         """Populate the entry dictionary
 
         Args:
-            entry:
-            schedd:
-            main_dicts:
-
-        Returns:
-
+            entry (_type_): _description_
+            schedd (_type_): _description_
+            main_dicts (_type_): _description_
         """
         # put default files in place first
         self.dicts["file_list"].add_placeholder(cWConsts.CONSTS_FILE, allow_overwrite=True)
@@ -686,10 +683,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         for user_file in entry.get_child_list("files"):
             add_file_unparsed(user_file, self.dicts, True)
 
-        # Add attribute for voms
-
+        # Add entry attributes (attrs)
         entry_attrs = entry.get_child_list("attrs")
-
         # Insert the global values that need to be expanded and had been skipped in the global section
         # will be in the entry section now
         for attr in self.conf.get_child_list("attrs"):
@@ -697,7 +692,6 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                 if not (attr["name"] in [i["name"] for i in entry_attrs]):
                     add_attr_unparsed(attr, self.dicts, self.sub_name)
                 # else the entry value will override it later on (here below)
-
         # put user attributes into config files
         for attr in entry_attrs:
             add_attr_unparsed(attr, self.dicts, self.sub_name)
@@ -745,8 +739,10 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             if "proxy_url" in entry:
                 self.dicts[dtype].add("GLIDEIN_ProxyURL", entry["proxy_url"], allow_overwrite=True)
 
+        # Overwtiting value of attributes using expansion
         summed_attrs = {}
         if self.enable_expansion:
+            # TODO: submit_attrs not supporting expansion for now. May want to revisit
             # we now have all the attributes... do the expansion
             # first, let's merge the attributes
             for d in (main_dicts["attrs"], self.dicts["attrs"]):
@@ -812,7 +808,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             #                                   params.web_url,sub_params.proxy_url,sub_params.work_dir,
             #                                   params.submit.base_client_log_dir, sub_params.submit.submit_attrs)
             #
-            # Almost all of the parameters are attributes of params and/or sub_params.  Instead of maintaining an ever
+            # Almost all the parameters are attributes of params and/or sub_params.  Instead of maintaining an ever
             # increasing parameter list for this function, lets just pass params, sub_params, and the 2 other parameters
             # to the function and call it a day.
             ################################################################################################################
@@ -859,6 +855,13 @@ class glideinDicts(cgWDictFile.glideinDicts):
         return
 
     def populate(self, other=None):  # will update params (or self.params)
+        """Will update params (or self.params) using the values from `other`.
+        Set the schedd to use preserving the onses set in `other` and populate
+        the common element in the entry using the main dictionary content.
+
+        Args:
+            other (glideinDicts|None): other dictionary of the same type
+        """
         self.main_dicts.populate(other)
         self.active_sub_list = self.main_dicts.active_sub_list
 
@@ -899,6 +902,14 @@ class glideinDicts(cgWDictFile.glideinDicts):
 
     # reuse as much of the other as possible
     def reuse(self, other):  # other must be of the same class
+        """
+
+        Args:
+            other:
+
+        Returns:
+
+        """
         if self.monitor_dir != other.monitor_dir:
             print(
                 "WARNING: monitor base_dir has changed, stats may be lost: '%s'!='%s'"
@@ -1119,6 +1130,16 @@ def iter_to_dict(dictObject):
 def populate_factory_descript(
     work_dir, glidein_dict, active_sub_list, disabled_sub_list, conf  # will be modified  # will be modified
 ):
+    """Modifies the glidein_dict to contain the factory configuration values and the active_sub_list and
+    disabled_sub_list to contain the active and disabled entries
+
+    Args:
+        work_dir:
+        glidein_dict:
+        active_sub_list:
+        disabled_sub_list:
+        conf: Factory global configuration
+    """
     down_fname = os.path.join(work_dir, "glideinWMS.downtimes")
 
     sec_el = conf.get_child("security")
