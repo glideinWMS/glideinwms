@@ -2043,18 +2043,18 @@ class FileSubDicts(FileCommonDicts, DirsSupport):
 
 
 class FileDicts:
-    """This Class contains both the main and the sub dicts"""
+    """This Class contains both the main and the sub dicts for a file dictionary"""
 
     def __init__(self, work_dir, stage_dir, sub_list=[], workdir_name="work", simple_work_dir=False, log_dir=None):
-        """
+        """Constructor for Class containing both the main and the sub dicts for a file dictionary
 
         Args:
-            work_dir:
-            stage_dir:
-            sub_list:
-            workdir_name:
-            simple_work_dir: if True, do not create the lib and lock work_dir subdirs
-            log_dir: used only if simple_work_dir=False
+            work_dir (str, Path): work directory
+            stage_dir (str, Path): stage directory
+            sub_list (list): List of sub items (Entries), empty by default
+            workdir_name: work dir name (Default: "work")
+            simple_work_dir (bool): if True, do not create the lib and lock work_dir subdirs
+            log_dir (str, Path, None): Log directory. Used only if simple_work_dir=False
         """
         self.work_dir = work_dir
         self.workdir_name = workdir_name
@@ -2075,11 +2075,10 @@ class FileDicts:
         for el in list(self.sub_dicts.values()):
             el.set_readonly(readonly)
 
-    # TODO: the code seems to do the opposite of what the comment mentions
-    def erase(self, destroy_old_subs=True):  # if false, the sub names will be preserved
+    def erase(self, destroy_old_subs=True):
         """Erase the fileDict
         If `destroy_old_subs` is True, then the sub list and dict are reset; if it is False,
-        then erase() is called recursively on the sub_list items.
+        then erase() is called recursively on the sub_list items but the sub names is preserved.
 
         Args:
             destroy_old_subs (bool): if false, the sub names will be preserved
@@ -2093,10 +2092,11 @@ class FileDicts:
                 self.sub_dicts[sub_name].erase()
         return
 
-    def load(self, destroy_old_subs=True):  # if false, overwrite the subs you load, but leave the others as they are
+    def load(self, destroy_old_subs=True):
         """Load all the dictionaries (from files).
-        If `destroy_old_subs` is False, existing items are preserved if not over-written by a loaded one with the same
-        name. If it is True, old items are dropped and only the new ones will be in the dictionary.
+        If `destroy_old_subs` is False, existing (in the FileDicts dictionary) items are preserved if not over-written
+        by a loaded one with the same name.
+        If it is True, old items are dropped and only the new ones will be in the dictionary.
 
         Args:
             destroy_old_subs (bool): if false, overwrite the subs you load, but leave the others as they are
@@ -2142,7 +2142,7 @@ class FileDicts:
 
     def is_equal(
         self,
-        other,  # other must be of the same class
+        other,
         compare_work_dir: bool = False,
         compare_stage_dir: bool = False,
         compare_fnames: bool = False,
@@ -2151,7 +2151,7 @@ class FileDicts:
         Return False if the content is different and optionally also if file name or staging or work directory differ.
 
         Args:
-            other (:obj:): other fileDict of the same type to compare
+            other (FileDicts): other FileDicts object to compare to self. Must be of the same class as self
             compare_work_dir (bool): if True, fail if the 2 fileDict are not in the same directory (same work directory)
             compare_stage_dir (bool): if True, fail if the 2 fileDict don't use the same staging directory
             compare_fnames (bool): if True, fail if the file name is different
@@ -2182,8 +2182,15 @@ class FileDicts:
                 return False
         return True
 
-    # reuse as much of the other as possible
-    def reuse(self, other):  # other must be of the same class
+    def reuse(self, other):
+        """Populate the dictionary (re)using as much as possible of `other`. I.e. all the items with the same key.
+
+        Args:
+            other (FileDicts): File dictionary to reuse. Must be of the same class as self
+
+        Raises:
+            RuntimeError: if the file dict is incompatible, i.e. the work_dir or stage_dir are different
+        """
         if self.work_dir != other.work_dir:
             raise RuntimeError(f"Cannot change {self.workdir_name} base_dir! '{self.work_dir}'!='{other.work_dir}'")
         if self.stage_dir != other.stage_dir:
@@ -2206,9 +2213,12 @@ class FileDicts:
     # PRIVATE
     ###########
 
-    # this should be redefined by the child
-    # and return a child of FileMainDicts
     def new_MainDicts(self):
+        """This should be redefined by the child and return a child of FileMainDicts
+
+        Returns:
+            FileMainDicts: return a main dictionary of the same type (child of FileMainDicts)
+        """
         return FileMainDicts(self.work_dir, self.stage_dir, self.workdir_name, self.simple_work_dir, self.log_dir)
 
     def new_SubDicts(self, sub_name):
@@ -2218,7 +2228,7 @@ class FileDicts:
             sub_name (str): sub dictionary name
 
         Returns:
-
+            FileSubDicts: return a sub dictionary of the same type (child of FileSubDicts)
         """
         return FileSubDicts(
             self.work_dir,
@@ -2230,14 +2240,14 @@ class FileDicts:
             self.log_dir,
         )
 
-    def get_sub_name_from_sub_stage_dir(self, sign_key):
-        """This should be redefined by the child
+    def get_sub_name_from_sub_stage_dir(self, stage_dir):
+        """This must be redefined by the child and return the sub (e.g. Entry) name
 
         Args:
-            sign_key:
+            stage_dir (str, Path): sub item stage directory
 
         Returns:
-
+            str: sub item name (e.g. Entry name)
         """
         raise RuntimeError("Undefined")
 

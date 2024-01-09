@@ -353,7 +353,7 @@ def load_common_dicts(dicts, description_el):  # update in place
 
 
 def load_main_dicts(main_dicts):  # update in place
-    """Load (from file) the entry dictionaries
+    """Load (from file) the main dictionaries
     Loads also the common ones, calling load_common_dicts
 
     Args:
@@ -803,7 +803,7 @@ class glideinEntryDicts(cWDictFile.FileSubDicts):
             workdir_name (str): work directory name
             base_log_dir (str): base log directory name
             base_client_log_dirs (str): base client log directory name
-            base_client_proxies_dirs (str): base client credentials direcoty name
+            base_client_proxies_dirs (str): base client credentials directory name
         """
         cWDictFile.FileSubDicts.__init__(
             self,

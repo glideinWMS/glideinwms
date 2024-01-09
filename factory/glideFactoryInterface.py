@@ -587,11 +587,11 @@ class EntryClassad(classadSupport.Classad):
         """Class Constructor
 
         glidein_attrs is a dictionary of values to publish like {"Arch":"INTEL","MinDisk":200000}
-        similar for glidein_submits, glidein_params, glidein_monitor_monitors and the other disctionaries.
+        similar for glidein_submits, glidein_params, glidein_monitor_monitors and the other dictionaries.
 
         Args:
             factory_name (str): Name of the factory
-            glidein_name (str): Name of the resource in the glideclient classad?
+            glidein_name (str): Name of the resource in the glideclient classad
             entry_name (str): Name of the resource in the glidefactory classad
             trust_domain (str): trust domain for this Entry
             auth_method (str): the authentication methods this entry supports in glidein submission, i.e. grid_proxy, scitoken
@@ -602,7 +602,7 @@ class EntryClassad(classadSupport.Classad):
             glidein_params (dict, optional): params to be published, can be overwritten by Frontends. Defaults to {}.
             glidein_monitors (dict, optional): monitor attrs to be published. Defaults to {}.
             glidein_stats (dict, optional): aggregated Entry(entry) and Factory(total) statistics to be published. Defaults to {}.
-            glidein_web_attrs (dict, optional): _description_. Defaults to {}.
+            glidein_web_attrs (dict, optional): Web attributes to be published. Defaults to {}.
             glidein_config_limits (dict, optional): Factory configuration limits to be published. Defaults to {}.
         """
         # TODO: rename glidein_ to entry_ (entry_monitors)?
@@ -611,7 +611,7 @@ class EntryClassad(classadSupport.Classad):
 
         classadSupport.Classad.__init__(self, factoryConfig.factory_id, "UPDATE_AD_GENERIC", "INVALIDATE_ADS_GENERIC")
 
-        # Short hand for easy access
+        # Shorthand for easy access
         classad_name = f"{entry_name}@{glidein_name}@{factory_name}"
         self.adParams["Name"] = classad_name
         self.adParams["FactoryName"] = "%s" % factory_name

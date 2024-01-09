@@ -872,13 +872,14 @@ class glideinDicts(cgWDictFile.glideinDicts):
 
         return
 
-    def populate(self, other=None):  # will update params (or self.params)
+    def populate(self, other=None):
         """Will update params (or self.params) using the values from `other`.
-        Set the schedd to use preserving the onses set in `other` and populate
-        the common element in the entry using the main dictionary content.
+        When `other` is provided, set the schedd to use for an Entry preserving
+        the ones set in `other` and populate the common element in the entry using
+        the main dictionary content.
 
         Args:
-            other (glideinDicts|None): other dictionary of the same type
+            other (glideinDicts|None): other dictionary of the same Class
         """
         self.main_dicts.populate(other)
         self.active_sub_list = self.main_dicts.active_sub_list
