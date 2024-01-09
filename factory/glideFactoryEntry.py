@@ -5,6 +5,7 @@
 
 # Description:
 #   Entry class
+#   Model and behavior of a Factory Entry (element describing a resource)
 
 
 import copy
@@ -12,7 +13,6 @@ import logging
 import os
 import os.path
 import signal
-import string
 import sys
 import tempfile
 import traceback
@@ -54,6 +54,7 @@ class Entry:
         self.jobDescript = glideFactoryConfig.JobDescript(name)
         self.jobAttributes = glideFactoryConfig.JobAttributes(name)
         self.jobParams = glideFactoryConfig.JobParams(name)
+        self.jobSubmitAttrs = glideFactoryConfig.JobSubmitAttrs(name)
 
         # glideFactoryMonitoring.monitoringConfig.monitor_dir
         self.monitorDir = os.path.join(self.startupDir, "monitor/entry_%s" % self.name)
@@ -578,6 +579,7 @@ class Entry:
             auth_method,
             self.gflFactoryConfig.supported_signtypes,
             pub_key_obj=pub_key_obj,
+            glidein_submit=self.jobSubmitAttrs.data.copy(),
             glidein_attrs=myJobAttributes,
             glidein_params=self.jobParams.data.copy(),
             glidein_monitors=glidein_monitors.copy(),

@@ -1,17 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   Keep all the constants used to create glidein entries in this module
-#
-# Author: Igor Sfiligoi
-#
 
 import os.path
 
@@ -34,6 +25,7 @@ CVMFSEXEC_ATTR = "CVMFSEXEC_DIR"
 
 
 # these are in the submit dir, so they can be changed
+SUBMIT_ATTRS_FILE = "submit_attrs.cfg"
 PARAMS_FILE = "params.cfg"
 ATTRS_FILE = "attributes.cfg"
 CVMFSEXEC_BUILD_FILE = "cvmfsexec.cfg"

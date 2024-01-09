@@ -3,16 +3,16 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR v3.10.6 \[2023-12-dd\]
+## v3.10.6 \[2024-01-dd\]
 
-Bug fix quick release
+Minor new features, mostly a bug fix release
 
 ### New features / functionalities
 
 -   Add knobs to allow overloading of memory, GLIDEIN_OVERLOAD_MEMORY, and CPU, GLIDEIN_OVERLOAD_CPUS. (Issue #370, PR #374)
 -   Added HTCondor tarball downloader (Issue #367, PR #366)
 -   Added default (/bin,/usr/bin) when PATH is empty in glidein_startup.sh (PR #373)
--   Advertising Factory's HTCondor submit parameters (Issue #307)
+-   Advertising Factory's HTCondor submit parameters (Issue #307, PR #382)
 
 ### Changed defaults / behaviours
 
@@ -24,6 +24,7 @@ Bug fix quick release
 
 -   Changed M2Crypto imports to be compatible with 0.40.0 the code must import also the components (PR #377)
 -   Fixed PATHs handling in glidein_startup.sh (PR #379)
+-   Fixed match policy_file import failure (Issue #378, PR #380)
 
 ### Testing / Development
 

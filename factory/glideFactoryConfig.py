@@ -1,13 +1,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-
 import os
 import os.path
 import shutil
@@ -25,11 +18,13 @@ class FactoryConfig:
     def __init__(self):
         # set default values
         # user should modify if needed
+        # These values should be consistent w/ creation/lib/c?WConst.py files content
 
         self.glidein_descript_file = "glidein.descript"
         self.job_descript_file = "job.descript"
         self.job_attrs_file = "attributes.cfg"
         self.job_params_file = "params.cfg"
+        self.job_submit_attrs_file = "submit_attrs.cfg"
         self.frontend_descript_file = "frontend.descript"
         self.signatures_file = "signatures.sha1"
         self.aggregated_stats_file = "aggregated_stats_dict.data"
@@ -47,13 +42,17 @@ factoryConfig = FactoryConfig()
 ############################################################
 
 
-# loads a file composed of
-#   NAME VAL
-# and creates
-#   self.data[NAME]=VAL
-# It also defines:
 #   self.config_file="name of file"
 class ConfigFile:
+    """In memory dictionary-like representation of key-value config files
+    Loads a file composed of
+        NAME VAL
+    and creates
+        self.data[NAME]=VAL
+    It also defines:
+        self.config_file="name of file"
+    """
+
     def __init__(self, config_file, convert_function=repr):
         self.config_file = config_file
         self.load(config_file, convert_function)
@@ -211,7 +210,7 @@ class GlideinDescript(ConfigFile):
                 shutil.copy(self.default_rsakey_fname, self.backup_rsakey_fname)
                 self.data["OldPubKeyType"] = self.data["PubKeyType"]
                 return
-            except:
+            except Exception:
                 # In case of failure, the requests from frontend get
                 # delayed. So it is not critical enough to fail.
                 pass
@@ -232,7 +231,7 @@ class GlideinDescript(ConfigFile):
         if self.data["OldPubKeyType"] is not None:
             try:
                 self.data["OldPubKeyObj"] = GlideinKey(self.data["OldPubKeyType"], key_fname=self.backup_rsakey_fname)
-            except:
+            except Exception:
                 self.data["OldPubKeyType"] = None
                 self.data["OldPubKeyObj"] = None
         return
@@ -286,6 +285,18 @@ class JobParams(JoinConfigFile):
         global factoryConfig
         JoinConfigFile.__init__(
             self, entry_name, factoryConfig.job_params_file, lambda s: s
+        )  # values are in python format
+
+
+class JobSubmitAttrs(JoinConfigFile):
+    def __init__(self, entry_name):
+        global factoryConfig
+        JoinConfigFile.__init__(
+            # Using repr instead of identity (convert into strings) would keep the quotes in the values
+            self,
+            entry_name,
+            factoryConfig.job_submit_attrs_file,
+            lambda s: s,
         )  # values are in python format
 
 
