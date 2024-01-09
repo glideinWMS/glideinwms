@@ -330,6 +330,16 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             if str(attr.get_val()).find("$") == -1 or not self.enable_expansion:  # does not need to be expanded
                 add_attr_unparsed(attr, self.dicts, "main")
 
+        # Add global submit_attrs into the main dict (and their config file)
+        submit_attrs = []
+        try:
+            submit_attrs = self.conf.get_child("submit").get_child_list("submit_attrs")
+        except KeyError:
+            pass  # No submit_attrs in the configuration
+        for attr in submit_attrs:
+            # TODO: attribute expansion is not considered for submit_attrs
+            add_submit_attr_unparsed(attr, self.dicts, "main", "main")
+
         # Check if cvmfsexec distributions need to be built/rebuilt
         populate_cvmfsexec_build_config(self.dicts["build_cvmfsexec"], self.conf)
         cfgs = self.dicts["build_cvmfsexec"]["sources"]  # returns string type
@@ -739,6 +749,14 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             if "proxy_url" in entry:
                 self.dicts[dtype].add("GLIDEIN_ProxyURL", entry["proxy_url"], allow_overwrite=True)
 
+        # Add entry submit_attrs
+        try:
+            submit_attrs = submit.get_child_list("submit_attrs")
+        except KeyError:
+            submit_attrs = []  # No submit_attrs in this entry configuration
+        for attr in submit_attrs:
+            add_submit_attr_unparsed(attr, self.dicts, self.sub_name, entry["gridtype"])
+
         # Overwtiting value of attributes using expansion
         summed_attrs = {}
         if self.enable_expansion:
@@ -1031,6 +1049,54 @@ def add_file_unparsed(user_file, dicts, is_factory):
             dicts[file_list_idx].add_from_file(
                 relfname, cWDictFile.FileDictFile.make_val_tuple(relfname, val), absfname
             )  # no timestamp if it can be modified
+
+
+#############################
+# Register a submit attribute
+def validate_submit_attr(attr_name, attr_val, always_publish, resource_type):
+    """Validate if a submit_attr is configured correctly. Raise RuntimeError if incorrect
+
+    Args:
+        attr_name (str): attribute name
+        attr_val (str): attribute value
+        always_publish (bol): True if the attribute should be puublished on all resources
+            (not only the ones supporting condor attributes)
+        resource_type (str): type of the resource used
+
+    Raises:
+        RuntimeError: if the submit_attr configuration is incorrect
+    """
+    # TODO: implement control
+    #  submit attributes are not used if the grid type is not condor or always_publish is set to true
+    #  raise exception in case of problems. e.g.
+    #              raise RuntimeError(
+    #                 "Submit attribuutes should not be used with False all_grid_types on %s resources"
+    #                 % grid_type
+    #             )
+    return True
+
+
+def add_submit_attr_unparsed(attr, dicts, description, resource_type="main"):
+    """Adds a submit_attr to the main/entry dictionary. The value is added raw, not parsed
+
+    Args:
+        attr: submit_attr element from the XML file
+        dicts: Entry or main dictionary. This is updated adding a value in `dicts["submit_attrs"]`
+        description (str): name of the entry ("main" for the main/global configuration)
+        resource_type (str): Resource type of the entry where the attribute is defined. Use "main" for the main config
+
+    Raises:
+        RuntimeError: if the submit_attr configuration is incorrect
+    """
+    try:
+        # name and value are mandatory, all_grid_types is optional
+        attr_name = attr["name"]
+        attr_all_grid_types = eval(attr.get("all_grid_types", "False"), {}, {})
+        attr_val = attr["value"]
+        validate_submit_attr(attr_name, attr_val, attr_all_grid_types, resource_type)
+        dicts["submit"].add(attr_name, attr_val)
+    except RuntimeError as e:
+        raise RuntimeError("Error parsing submit attr {}[{}]: {}".format(description, attr["name"], str(e)))
 
 
 #######################

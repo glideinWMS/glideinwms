@@ -17,6 +17,7 @@ attrs (cWDictFile.ReprDictFile, cgWConsts.ATTRS_FILE): attributes in the "entry"
 description (cWDictFile.DescriptionDictFile, cWConsts.DESCRIPTION_FILE, versioned): factory/entry description
 consts (cWDictFile.StrDictFile, cWConsts.CONSTS_FILE, versioned): constant attrs - TODO: not written?
 params (cWDictFile.ReprDictFile, cgWConsts.PARAMS_FILE): attrs that are not constant (const="False", default)
+submit (cWDictFile.ReprDictFile, cgWConsts.SUBMIT_ATTRS_FILE): submit configuration attributes
 vars (cWDictFile.VarsDictFile, cWConsts.VARS_FILE, versioned): condor variables
 untar_cfg (cWDictFile.StrDictFile, cWConsts.UNTAR_CFG_FILE, versioned): instructions for files to un-compress
 file_list (cWDictFile.FileDictFile, cWConsts.FILE_LISTFILE, versioned): list of files to transfers
@@ -256,6 +257,7 @@ def get_common_dicts(submit_dir, stage_dir):
             stage_dir, cWConsts.insert_timestr(cWConsts.CONSTS_FILE), fname_idx=cWConsts.CONSTS_FILE
         ),
         "params": cWDictFile.ReprDictFile(submit_dir, cgWConsts.PARAMS_FILE),
+        "submit": cWDictFile.ReprDictFile(submit_dir, cgWConsts.SUBMIT_ATTRS_FILE),
         "vars": cWDictFile.VarsDictFile(
             stage_dir, cWConsts.insert_timestr(cWConsts.VARS_FILE), fname_idx=cWConsts.VARS_FILE
         ),
@@ -335,6 +337,7 @@ def load_common_dicts(dicts, description_el):  # update in place
         description_el:
     """
     # first submit dir ones (mutable)
+    dicts["submit"].load()
     dicts["params"].load()
     dicts["attrs"].load()
     # now the ones keyed in the description
@@ -496,6 +499,7 @@ def save_common_dicts(dicts, is_main, set_readonly=True):  # will update in plac
     dicts["signature"].save(set_readonly=set_readonly)
 
     # finally save the mutable one(s)
+    dicts["submit"].save(set_readonly=set_readonly)
     dicts["params"].save(set_readonly=set_readonly)
     dicts["attrs"].save(set_readonly=set_readonly)
 
@@ -575,7 +579,7 @@ def reuse_common_dicts(dicts, other_dicts, is_main, all_reused):
             dicts[k].set_readonly(True)
 
     # check the mutable ones
-    for k in ("attrs", "params"):
+    for k in ("attrs", "params", "submit"):
         reuse_simple_dict(dicts, other_dicts, k)
 
     return all_reused

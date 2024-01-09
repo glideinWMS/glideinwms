@@ -56,6 +56,9 @@ class FactoryConfig:
         # String to prefix for the attributes
         self.glidein_attr_prefix = ""
 
+        # String to prefix for the submit attributes
+        self.glidein_submit_prefix = "GlideinSubmit"
+
         # String to prefix for the parameters
         self.glidein_param_prefix = "GlideinParam"
         self.encrypted_param_prefix = "GlideinEncParam"
@@ -573,6 +576,7 @@ class EntryClassad(classadSupport.Classad):
         auth_method,
         supported_signtypes,
         pub_key_obj=None,
+        glidein_submit={},
         glidein_attrs={},
         glidein_params={},
         glidein_monitors={},
@@ -582,23 +586,24 @@ class EntryClassad(classadSupport.Classad):
     ):
         """Class Constructor
 
-        :param factory_name: Name of the factory
-        :param glidein_name: Name of the resource in the glideclient classad?
-        :param entry_name: Name of the resource in the glidefactory classad
-        :param trust_domain: trust domain for this entry
-        :param auth_method: the authentication methods this entry supports in glidein submission, i.e. grid_proxy
-        :param supported_signtypes: suppported sign types, i.e. sha1
-        :param pub_key_obj: GlideinKey - for the frontend to use in encryption
-        :param glidein_attrs: glidein attrs to be published, not be overwritten by Frontends
-        :param glidein_params: params to be published, can be overwritten by Frontends
-        :param glidein_monitors: monitor attrs to be published
-        :param glidein_stats: aggregated Entry(entry) and Factory(total) statistics to be published
-        :param glidein_config_limits: Factory configuration limits to be published
-        :return:
-
         glidein_attrs is a dictionary of values to publish like {"Arch":"INTEL","MinDisk":200000}
-        similar for glidein_params and glidein_monitor_monitors
+        similar for glidein_submits, glidein_params, glidein_monitor_monitors and the other disctionaries.
 
+        Args:
+            factory_name (str): Name of the factory
+            glidein_name (str): Name of the resource in the glideclient classad?
+            entry_name (str): Name of the resource in the glidefactory classad
+            trust_domain (str): trust domain for this Entry
+            auth_method (str): the authentication methods this entry supports in glidein submission, i.e. grid_proxy, scitoken
+            supported_signtypes (str): suppported sign types, i.e. sha1 (comma separated list)
+            pub_key_obj (_type_, optional): GlideinKey - for the frontend to use in encryption. Defaults to None.
+            glidein_submit (dict, optional): Submit attributes in the configuration. Defaults to {}.
+            glidein_attrs (dict, optional): glidein attrs to be published, not be overwritten by Frontends. Defaults to {}.
+            glidein_params (dict, optional): params to be published, can be overwritten by Frontends. Defaults to {}.
+            glidein_monitors (dict, optional): monitor attrs to be published. Defaults to {}.
+            glidein_stats (dict, optional): aggregated Entry(entry) and Factory(total) statistics to be published. Defaults to {}.
+            glidein_web_attrs (dict, optional): _description_. Defaults to {}.
+            glidein_config_limits (dict, optional): Factory configuration limits to be published. Defaults to {}.
         """
         # TODO: rename glidein_ to entry_ (entry_monitors)?
 
@@ -633,6 +638,7 @@ class EntryClassad(classadSupport.Classad):
 
         # write out both the attributes, params and monitors
         for prefix, data in (
+            (factoryConfig.glidein_submit_prefix, glidein_submit),
             (factoryConfig.glidein_attr_prefix, glidein_attrs),
             (factoryConfig.glidein_param_prefix, glidein_params),
             (factoryConfig.glidein_monitor_prefix, glidein_monitors),
