@@ -382,7 +382,7 @@ class Token(Credential[Mapping]):
 
     @staticmethod
     def decode(string: bytes) -> Mapping:
-        return jwt.decode(string.strip(), verify=False)
+        return jwt.decode(string.decode().strip(), options={"verify_signature": False})
 
     def valid(self) -> bool:
         if self.not_before_time and self.expiration_time:
