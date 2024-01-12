@@ -346,6 +346,7 @@ class VOFrontendParams(cWParams.CommonParams):
         parameter_defaults = cWParams.CommentedOrderedDict()
         parameter_defaults["name"] = (None, "string", "parameter name", None)
         parameter_defaults["value"] = (None, "string", "parameter value", None)
+        parameter_defaults["type"] = ("static", "string", "parameter type", None)
 
         security_defaults = cWParams.CommentedOrderedDict()
         security_defaults["proxy_selection_plugin"] = (

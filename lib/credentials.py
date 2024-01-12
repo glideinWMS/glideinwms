@@ -17,7 +17,6 @@ import base64
 import enum
 import gzip
 import os
-import re
 import shutil
 import sys
 import tempfile
@@ -27,13 +26,13 @@ from datetime import datetime
 from hashlib import md5
 from importlib import import_module
 from io import BytesIO
-from typing import Any, Generic, Iterable, List, Mapping, Optional, Set, Type, TypeVar, Union
+from typing import Generic, Iterable, List, Mapping, Optional, Set, Type, TypeVar, Union
 
 import jwt
 import M2Crypto.EVP
 import M2Crypto.X509
 
-from glideinwms.lib import condorMonitor, logSupport, pubCrypto, symCrypto
+from glideinwms.lib import logSupport, pubCrypto, symCrypto
 from glideinwms.lib.generators import Generator, load_generator
 from glideinwms.lib.util import hash_nc, is_str_safe
 
@@ -133,6 +132,16 @@ class ParameterName(enum.Enum):
         if string in extended_map:
             return extended_map[string]
         raise CredentialError(f"Unknown Parameter name: {string}")
+
+
+class ParameterType(enum.Enum):
+    GENERATOR = "generator"
+    STATIC = "static"
+
+    @classmethod
+    def from_string(cls, string: str) -> "ParameterType":
+        string = string.lower()
+        return ParameterType(string)
 
 
 class TrustDomain(enum.Enum):
@@ -267,12 +276,12 @@ class CredentialPair:
             raise CredentialError("CredentialPair requires a Credential subclass as second base class")
 
         credential_class = self.__class__.__bases__[1]
-        super(credential_class, self).__init__(string, path)  # type: ignore
+        super(credential_class, self).__init__(string, path)  # pylint: disable=bad-super-call # type: ignore
         self.private_credential = credential_class(private_string, private_path)
 
     def renew(self) -> None:
         try:
-            self.__renew__()  # type: ignore
+            self.__renew__()  # pylint: disable=no-member # type: ignore
             self.private_credential.__renew__()
         except NotImplementedError:
             pass
@@ -287,29 +296,64 @@ class CredentialDict(dict):
 
 
 class Parameter:
-    def __init__(self, name: ParameterName, value):
+    param_type = ParameterType.STATIC
+
+    def __init__(self, name: ParameterName, value: str):
         if not isinstance(name, ParameterName):
             raise TypeError("Name must be a ParameterName")
-        self.name = name
-        self.value = value
+        self._name = name
+        self._value = value
+
+    @property
+    def name(self) -> ParameterName:
+        return self._name
+
+    @property
+    def value(self):
+        return self._value
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(name={self.name.value!r}, value={self.value!r})"
+        return f"{self.__class__.__name__}(name={self._name.value!r}, value={self._value!r}, param_type={self.param_type.value!r})"
 
     def __str__(self) -> str:
         return f"{self.name.value}={self.value}"
 
 
+class ParameterGenerator(Parameter):
+    param_type = ParameterType.GENERATOR
+
+    def __init__(self, name: ParameterName, value: str):
+        try:
+            self._generator = load_generator(value)
+        except ImportError as err:
+            raise TypeError(f"Could not load generator: {value}") from err
+
+        super().__init__(name, value)
+
+    @property
+    def value(self):
+        return self._generator.generate()
+
+
 class ParameterDict(dict):
     def __setitem__(self, __k, __v):
+        if isinstance(__k, str):
+            __k = ParameterName.from_string(__k)
         if not isinstance(__k, ParameterName):
             raise TypeError("Key must be a ParameterType")
         super().__setitem__(__k, __v)
 
+    def __getitem__(self, __k):
+        if isinstance(__k, str):
+            __k = ParameterName.from_string(__k)
+        if not isinstance(__k, ParameterName):
+            raise TypeError("Key must be a ParameterType")
+        return super().__getitem__(__k).value
+
     def add(self, parameter: Parameter):
         if not isinstance(parameter, Parameter):
             raise TypeError("Parameter must be a Parameter")
-        self[parameter.name] = parameter.value
+        self[parameter.name] = parameter
 
 
 class CredentialGenerator(Credential[Credential]):
@@ -564,8 +608,8 @@ class RequestBundle:
         rbCredential = RequestCredential(credential, purpose, trust_domain, security_class)
         self.credentials[id or rbCredential.id] = rbCredential
 
-    def add_parameter(self, name: str, value: str):
-        self.parameters.add(Parameter(ParameterName.from_string(name), value))
+    def add_parameter(self, parameter: Parameter):
+        self.parameters.add(parameter)
 
     def load_from_element(self, element_descript):
         for path in element_descript.merged_data["Proxies"]:
@@ -574,8 +618,11 @@ class RequestBundle:
             trust_domain = element_descript.merged_data["ProxyTrustDomains"].get(path, "None")
             security_class = element_descript.merged_data["ProxySecurityClasses"].get(path, id)
             self.add_credential(credential, trust_domain=trust_domain, security_class=security_class)
-        for name, parameter in element_descript.merged_data["Parameters"].items():
-            self.add_parameter(name, parameter["value"])
+        for name, data in element_descript.merged_data["Parameters"].items():
+            parameter = create_parameter(
+                ParameterName.from_string(name), data["value"], ParameterType.from_string(data["type"])
+            )
+            self.add_parameter(parameter)
 
 
 class SubmitBundle:
@@ -752,7 +799,7 @@ def create_credential_pair(
             credential_class = credential_of_type(cred_type)
             if issubclass(credential_class, CredentialPair):
                 return credential_class(string, path, private_string, private_path)
-        except CredentialError as err:
+        except CredentialError:
             pass
         except Exception as err:
             raise CredentialError(
@@ -761,6 +808,43 @@ def create_credential_pair(
     raise CredentialError(
         f'Could not load credential pair: string="{string}", path="{path}", private_string="{private_string}", private_path="{private_path}"'
     )
+
+
+def parameter_of_type(param_type: ParameterType) -> Type[Parameter]:
+    """Returns the parameter subclass for the given type.
+
+    Args:
+        param_type (ParameterType): parameter type
+
+    Raises:
+        CredentialError: if the parameter type is unknown
+
+    Returns:
+        Parameter: parameter subclass
+    """
+
+    class_dict = {}
+    for i in Parameter.__subclasses__():
+        class_dict[i.param_type] = i
+    class_dict[ParameterType.STATIC] = Parameter
+    try:
+        return class_dict[param_type]
+    except KeyError as err:
+        raise CredentialError(f"Unknown Parameter type: {param_type}") from err
+
+
+def create_parameter(name: ParameterName, value: str, param_type: Optional[ParameterType] = None) -> Parameter:
+    parameter_types = [param_type] if param_type else ParameterType
+    for param_type in parameter_types:
+        try:
+            parameter_class = parameter_of_type(param_type)
+            if issubclass(parameter_class, Parameter):
+                return parameter_class(name, value)
+        except TypeError:
+            pass  # Parameter type incompatible with input
+        except Exception as err:
+            raise CredentialError(f'Unexpected error loading parameter: name="{name}", value="{value}"') from err
+    raise CredentialError(f'Could not load parameter: name="{name}", value="{value}"')
 
 
 def get_scitoken(elementDescript, trust_domain):

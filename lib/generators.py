@@ -14,11 +14,14 @@
 #
 
 import inspect
+import os
+import re
 import sys
 
 from abc import ABC, abstractmethod
-from importlib import import_module
 from typing import Generic, List, Mapping, Optional, TypeVar
+
+from glideinwms.lib.util import import_module
 
 sys.path.append("/etc/gwms-frontend/plugin.d")
 _loaded_generators = {}
@@ -51,15 +54,17 @@ def load_generator(module: str) -> Generator:
         Generator: generator object
     """
 
+    module_name = re.sub(r"\.py[co]?$", "", os.path.basename(module))  # Extract module name from path
+
     try:
-        if not module in _loaded_generators:
+        if not module_name in _loaded_generators:
             imported_module = import_module(module)
-            if module not in _loaded_generators:
+            if module_name not in _loaded_generators:
                 del imported_module
                 raise ImportError(f"Module {module} does not export a generator")
     except ImportError as e:
         raise ImportError(f"Failed to import module {module}") from e
-    return _loaded_generators[module]
+    return _loaded_generators[module_name]
 
 
 def export_generator(generator: Generator):
