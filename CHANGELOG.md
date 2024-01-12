@@ -25,6 +25,7 @@ Minor new features, mostly a bug fix release
 -   Changed M2Crypto imports to be compatible with 0.40.0 the code must import also the components (PR #377)
 -   Fixed PATHs handling in glidein_startup.sh (PR #379)
 -   Fixed match policy_file import failure (Issue #378, PR #380)
+-   Fixed syntax error in ClassAd used for gangliad configuration (Issue #368, PR #385)
 
 ### Testing / Development
 
