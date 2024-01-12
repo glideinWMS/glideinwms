@@ -488,3 +488,17 @@ v3_10_5:
     - Fixed syntax errors in analyze_queues (PR#357)
     - Fixed setup_x509 to be successful w/ TRUST_DOMAIN set in the as Factory or Frontend parameter (PR#359)
     - GLIDEIN_SINGULARITY_BINARY_OVERRIDE set also with Frontend and Factory params, not only WN environment (PR#360)
+
+v3_10_6:
+  Date: January 10, 2024
+  Series: Stable
+  Tarball: false
+  Feature:
+    - Add knobs to allow overloading of memory, GLIDEIN_OVERLOAD_MEMORY, and CPU, GLIDEIN_OVERLOAD_CPUS. (Issue#370, PR#374)
+    - Added HTCondor tarball downloader (Issue#367, PR#366)
+    - Added default (/bin,/usr/bin) when PATH is empty in glidein_startup.sh (PR#373)
+    - Advertising Factory's HTCondor submit parameters (Issue#307, PR#382)
+  Bug fix:
+    - Changed M2Crypto imports to be compatible with 0.40.0 the code must import also the components (PR#377)
+    - Fixed PATHs handling in glidein_startup.sh (PR#379)
+    - Fixed match policy_file import failure (Issue#378, PR#380)
