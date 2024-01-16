@@ -99,7 +99,7 @@ class EntryConfigFile(ConfigFile):
 # and join the results
 class JoinConfigFile(ConfigFile):
     def __init__(self, entry_name, config_file, convert_function=repr):
-        ConfigFile.__init__(self, config_file, convert_function)
+        ConfigFile.__init__(self, os.path.join("entry_" + entry_name, config_file), convert_function)
         self.entry_name = entry_name
         entry_obj = EntryConfigFile(entry_name, config_file, convert_function)
         # merge by overriding whatever is found in the subdir
