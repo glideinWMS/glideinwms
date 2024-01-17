@@ -26,6 +26,7 @@ Minor new features, mostly a bug fix release
 -   Fixed PATHs handling in glidein_startup.sh (PR #379)
 -   Fixed match policy_file import failure (Issue #378, PR #380)
 -   Fixed syntax error in ClassAd used for gangliad configuration (Issue #368, PR #385)
+-   Added extra logging to investigate file rotatoin problem (Issue #362, PR #389)
 
 ### Testing / Development
 

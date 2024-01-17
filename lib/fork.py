@@ -1,27 +1,19 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import errno
-import os
-
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This module implements functions and classes
 #   to handle forking of processes
 #   and the collection of results
-#
-# Author:
-#   Burt Holzman and Igor Sfiligoi
-#
+
 # TODO: This could be rewritten so that the polling lists are registered once and the fd are removed only when
 #       not needed anymore (currently there is an extrnal structure and the poll object is a new one each time)
+
+import errno
+import os
 import pickle
 import select
+import subprocess
 import sys
 import time
 
@@ -440,3 +432,56 @@ class ForkManager:
             raise ForkResultError(nr_errors, post_work_info)
 
         return post_work_info
+
+
+####################
+# Utilities
+
+
+def print_child_processes(root_pid=str(os.getppid()), this_pid=str(os.getpid())):
+    """Print the process tree of the root PID
+
+    Args:
+        root_pid (str): String containing the process ID to use as root of the process tree
+        this_pid (str|None): If String containing the process ID of the current process (will get a star in the line)
+
+    Returns:
+        list: list of str containing all the lines of the process tree
+    """
+
+    def print_children(id, ps_dict, my_id="", level=0):
+        """Auxiliary recursive function of print_child_processes,
+        printing the children subtree of a given process ID
+
+        Args:
+            id (str): String w/ process ID root of the tree
+            ps_dict (dict): dictionary with all processes and theyr children
+            my_id (str): String w/ process ID of the print_children caller (Default: "")
+            level (int): level of the subtree (Default: 0)
+
+        Returns:
+            list: list of str containing all the lines of the process subtree
+        """
+        if my_id and my_id == id:
+            out = ["+" * level + id + " *"]
+        else:
+            out = ["+" * level + id]
+        if id in ps_dict:
+            for i in ps_dict[id]:
+                if i != id:
+                    out += print_children(i, ps_dict, my_id, level + 1)
+        return out
+
+    output = subprocess.check_output(["ps", "-o", "pid,ppid", "-ax"])
+    ps_cache = {}
+    out_tree = []
+    for line in output.decode().splitlines():
+        pid, ppid = line.split()
+        if ppid not in ps_cache:
+            ps_cache[ppid] = [pid]
+        else:
+            ps_cache[ppid].append(pid)
+    if root_pid not in ps_cache:
+        return out_tree
+    out_tree = print_children(root_pid, ps_cache, this_pid)
+    return out_tree

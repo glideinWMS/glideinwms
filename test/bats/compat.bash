@@ -33,6 +33,12 @@ if check_os_mac ; then
             /usr/local/bin/gxargs "$@"
         }
     fi
+    cmd=$(command -v gtimeout)
+    if [[ -x "$cmd" ]]; then
+        timeout() {
+            /usr/local/bin/gtimeout "$@"
+        }
+    fi
     cmd=$(command -v tac)
     if [[ ! -x "$cmd" ]]; then
         tac() {
