@@ -13,7 +13,7 @@
 #   $3 = advertize_rate (int): The rate at which advertising should occur (every $3 loops)
 #   $4 = startup_dir (str|Path): The "home" directory for the entry.
 #   $5 = entry_names (str): Colon separated list with the names of the entries this process should work on
-#   $6 = group_id (str): Group id, normally a number (with the "group_" prefix formes the group name),
+#   $6 = group_id (str): Group id, normally a number (with the "group_" prefix it forms the group name),
 #             It can change between Factory reconfigurations
 
 import logging
@@ -29,7 +29,7 @@ from glideinwms.factory import glideFactoryInterface as gfi
 from glideinwms.factory import glideFactoryLib as gfl
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.lib import classadSupport, cleanupSupport, logSupport
-from glideinwms.lib.fork import fetch_fork_result_list, ForkManager
+from glideinwms.lib.fork import fetch_fork_result_list, ForkManager, print_child_processes
 from glideinwms.lib.pidSupport import register_sighandler, unregister_sighandler
 
 ############################################################
@@ -236,30 +236,21 @@ def forked_update_entries_stats(factory_in_downtime, entries_list):
 
 
 def find_and_perform_work(do_advertize, factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries):
+    """For all entries in this group, find work requests from the WMS collector,
+    validate credentials, and requests Glideins.
+    If an entry is in downtime, requested Glideins is zero.
+
+    Args:
+        do_advertize (bool): Advertise (publish the gfc ClassAd) event if no work is preformed
+        factory_in_downtime (bool): True if factory is in downtime
+        glideinDescript (dict): Factory glidein config values
+        frontendDescript (dict): Security mappings for frontend identities, security classes, and usernames
+        group_name (str): Name of the group
+        my_entries (dict): Dictionary of entry objects (glideFactoryEntry.Entry) keyed on entry name
+
+    Returns:
+        dict: Dictionary of work to do keyed using entry name
     """
-    For all entries in this group, find work requests from the WMS collector,
-    validate credentials, and requests glideins. If an entry is in downtime,
-    requested glideins is zero.
-
-    @type factory_in_downtime: boolean
-    @param factory_in_downtime: True if factory is in downtime
-
-    @type glideinDescript: dict
-    @param glideinDescript: Factory glidein config values
-
-    @type frontendDescript: dict
-    @param frontendDescript: Security mappings for frontend identities, security classes, and usernames
-
-    @type group_name: string
-    @param group_name: Name of the group
-
-    @type my_entries: dict
-    @param my_entries: Dictionary of entry objects (glideFactoryEntry.Entry) keyed on entry name
-
-    @return: Dictionary of work to do keyed on entry name
-    @rtype: dict
-    """
-
     # Work done by group keyed by entry name. This will be returned back
     groupwork_done = {}
 
@@ -341,7 +332,16 @@ def find_and_perform_work(do_advertize, factory_in_downtime, glideinDescript, fr
         work_info_read_err = True
         t_end = time.time() - t_begin
 
-    logSupport.roll_all_logs()
+    # This caused  "ValueError: I/O operation on closed file." on a seek in logSupport.shouldRollover()
+    # Children use fork.fork_in_bg which has logSupport.disable_rotate = True
+    # Furthermore, all children should be completed, there should be no competition for log file rotation
+    # TODO: investigate logs with processs tree if this happens again
+    try:
+        logSupport.roll_all_logs()
+    except ValueError as e:
+        proc_id = os.getpid()
+        logSupport.log.debug(f"Failed log rotation in process {proc_id}, process tree:\n{print_child_processes()}")
+        logSupport.log.exception(f"Failed log rotation likely due to concurrent attempts: {e}")
     # Gather results from the forked children
     logSupport.log.info(
         "All children forked for glideFactoryEntry.check_and_perform_work terminated - took %s seconds. Loading post work state for the entry."
@@ -379,28 +379,19 @@ def find_and_perform_work(do_advertize, factory_in_downtime, glideinDescript, fr
 
 
 def iterate_one(do_advertize, factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries):
+    """One iteration of the entry group
+
+    Args:
+        do_advertize (bool): True if glidefactory classads should be advertised
+        factory_in_downtime (bool): True if factory is in downtime
+        glideinDescript (dict): Factory glidein config values
+        frontendDescript (dict): Security mappings for frontend identities, security classes, and usernames
+        group_name (str): Name of the group
+        my_entries (dict): Dictionary of entry objects (glideFactoryEntry.Entry) keyed on entry name
+
+    Returns:
+        int: Units of work preformed (0 if no Glidein was submitted)
     """
-    One iteration of the entry group
-
-    @type do_advertize: boolean
-    @param do_advertize: True if glidefactory classads should be advertised
-
-    @type factory_in_downtime: boolean
-    @param factory_in_downtime: True if factory is in downtime
-
-    @type glideinDescript: dict
-    @param glideinDescript: Factory glidein config values
-
-    @type frontendDescript: dict
-    @param frontendDescript: Security mappings for frontend identities, security classes, and usernames
-
-    @type group_name: string
-    @param group_name: Name of the group
-
-    @type my_entries: dict
-    @param my_entries: Dictionary of entry objects (glideFactoryEntry.Entry) keyed on entry name
-    """
-
     groupwork_done = {}
     done_something = 0
 
@@ -456,33 +447,18 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript, frontendDesc
 
 ############################################################
 def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDescript, group_name, my_entries):
+    """Iterate over set of tasks until it is time to quit or die.
+    The main "worker" function for the Factory Entry Group.
+
+    Args:
+        parent_pid (int): The pid for the Factory daemon
+        sleep_time (int): The number of seconds to sleep between iterations
+        advertize_rate (int): The rate at which advertising should occur
+        glideinDescript (glideFactoryConfig.GlideinDescript): glidein.descript object in the Factory root dir
+        frontendDescript (glideFactoryConfig.FrontendDescript): frontend.descript object in the Factory root dir
+        group_name (str): Name of the group
+        my_entries (dict): Dictionary of entry objects keyed on entry name
     """
-    Iterate over set of tasks until its time to quit or die. The main "worker"
-    function for the Factory Entry Group.
-    @todo: More description to come
-
-    @type parent_pid: int
-    @param parent_pid: the pid for the Factory daemon
-
-    @type sleep_time: int
-    @param sleep_time: The number of seconds to sleep between iterations
-
-    @type advertize_rate: int
-    @param advertize_rate: The rate at which advertising should occur
-
-    @type glideinDescript: glideFactoryConfig.GlideinDescript
-    @param glideinDescript: glidein.descript object in the Factory root dir
-
-    @type frontendDescript: glideFactoryConfig.FrontendDescript
-    @param frontendDescript: frontend.descript object in the Factory root dir
-
-    @type group_name: string
-    @param group_name: Name of the group
-
-    @type my_entries: dict
-    @param my_entries: Dictionary of entry objects keyed on entry name
-    """
-
     is_first = True  # In first iteration
     count = 0
 

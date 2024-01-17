@@ -4,14 +4,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Project:
-   glideinWMS
-
  Description:
    unit test for glideinwms/lib/fork.py
-
- Author:
-   Dennis Box dbox@fnal.gov
 """
 
 import os
@@ -37,6 +31,9 @@ from glideinwms.lib.fork import (
     wait_for_pids,
 )
 from glideinwms.unittests.unittest_utils import create_temp_file, FakeLogger
+
+# from unittest import mock
+
 
 LOGFILE = None
 LOGDICT = {}
@@ -253,6 +250,40 @@ class TestWaitForPids(unittest.TestCase):
         wait_for_pids(pid_list)
         # this is the last Test Class run, they are run in lexigraphical order
         global_log_cleanup()
+
+
+PID_OUTPUT = b"""  PID  PPID
+    0     0
+    1     0
+ 2021     1
+ 2041  2021
+ 2042  2021
+ 2011  2041
+ 2044  2041
+ 2051  2050
+"""
+# print_child_processes("2021", "2041")
+# ['2021', '+2041 *', '++2011', '++2044', '+2042']
+# print_child_processes("2021", "5")
+# print_child_processes("2021", "")
+# ['2021', '+2041', '++2011', '++2044', '+2042']
+
+
+# import subprocess
+def fake_check_output(*argv):
+    return PID_OUTPUT
+
+
+class TestPrinChildProcesses(unittest.TestCase):
+    def test_print_child_processes(self):
+        self.assertEqual(fork.print_child_processes()[:2], [str(os.getppid()), f"+{os.getpid()} *"])
+        # mock_check_output.return_value = PID_OUTPUT
+        # with mock.patch("fork.subprocess.check_output") as check_output:
+        #    check_output.return_value = PID_OUTPUT
+        fork.subprocess.check_output = fake_check_output
+        self.assertEqual(fork.print_child_processes("2021", "2041"), ["2021", "+2041 *", "++2011", "++2044", "+2042"])
+        self.assertEqual(fork.print_child_processes("2021", ""), ["2021", "+2041", "++2011", "++2044", "+2042"])
+        self.assertEqual(fork.print_child_processes("2021", "5"), ["2021", "+2041", "++2011", "++2044", "+2042"])
 
 
 if __name__ == "__main__":

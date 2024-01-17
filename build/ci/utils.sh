@@ -7,6 +7,34 @@
 
 
 ######################################
+# commands compatibility
+######################################
+check_os_mac() {
+  if ! [[ "$OSTYPE" =~ darwin* ]]; then
+      false
+  else
+      true
+  fi
+}
+
+COMPCMD_TIMEOUT=timeout
+if ! cmd=$(command -v timeout 2>/dev/null); then
+    if cmd=$(command -v gtimeout 2>/dev/null); then
+        COMPCMD_TIMEOUT="$cmd"
+    else
+        logwarn "No timeout command found (timeout and gtimeout not in PATH)."
+    fi
+fi
+COMPCMD_TAC=tac
+if ! cmd=$(command -v tac 2>/dev/null); then
+    COMPCMD_TAC="tail -r"
+fi
+
+# Consider preventive Mac commands replacement (see: test/bats/compat.bash)
+# genv, gxarg, gtimeout, tac
+
+
+######################################
 # logging and output functions
 ######################################
 
