@@ -13,6 +13,7 @@ import pickle
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -23,8 +24,8 @@ from collections.abc import Mapping
 
 # imports for hash_nc
 from hashlib import md5
-from importlib.machinery import PathFinder, SourceFileLoader
-from importlib.util import module_from_spec
+from importlib.machinery import PathFinder
+from importlib.util import module_from_spec, spec_from_file_location
 from operator import add
 
 from glideinwms.lib.defaults import BINARY_ENCODING_ASCII, force_bytes
@@ -486,10 +487,11 @@ def import_module(module, search_path=None):
     """Import a module by name or path
 
     Args:
-        module (str): Module name, file name, or file path.
+        module (str): Module name, module path, file name, or file path.
         search_path (str or list of str, optional): Search path for the module. Defaults to None.
 
     Raises:
+        ValueError: Invalid search_path
         ImportError: Failed to import the module
 
     Returns:
@@ -510,12 +512,24 @@ def import_module(module, search_path=None):
             r"\.py[co]?$", "", os.path.basename(module)
         )  # Remove eventual .py/.pyc/.pyo extension from the file name (if a file is used)
         if os.path.isfile(module):
-            imported_module = SourceFileLoader(name, module).load_module()  # pylint: disable=no-value-for-parameter
+            spec = spec_from_file_location(name, module)
         else:
+            if "." in name:
+                # Break down the module path into its components and update the search path
+                components = name.split(".")
+                name = components[-1]
+                path = os.path.join(*components[:-1])
+                search_path = search_path or sys.path
+                new_search_paths = []
+                for p in search_path:
+                    extended_p = os.path.join(p, path)
+                    if os.path.isdir(extended_p):
+                        new_search_paths.append(extended_p)
+                search_path += new_search_paths
             spec = PathFinder.find_spec(name, search_path)
-            imported_module = module_from_spec(spec)  # type: ignore[attr-defined]
-            spec.loader.exec_module(imported_module)  # type: ignore[member-defined]
-    except:
-        raise ImportError(f"Failed to import module {module}")
+        imported_module = module_from_spec(spec)  # type: ignore[attr-defined]
+        spec.loader.exec_module(imported_module)  # type: ignore[member-defined]
+    except Exception as err:
+        raise ImportError(f"Failed to import module {module}") from err
 
     return imported_module
