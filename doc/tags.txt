@@ -1,3 +1,15 @@
+v3_10_6
+	Add knobs to allow overloading of memory, GLIDEIN_OVERLOAD_MEMORY, and CPU, GLIDEIN_OVERLOAD_CPUS. (Issue#370, PR#374)
+	Added HTCondor tarball downloader (Issue#367, PR#366)
+	Added default (/bin,/usr/bin) when PATH is empty in glidein_startup.sh (PR#373)
+	Advertising Factory's HTCondor submit parameters (Issue#307, PR#382)
+	Bug fix: Changed M2Crypto imports to be compatible with 0.40.0 the code must import also the components (PR#377)
+	Bug fix: Fixed PATHs handling in glidein_startup.sh (PR#379)
+	Bug fix: Fixed match policy_file import failure (Issue#378, PR#380)
+	Bug fix: Fixed syntax error in ClassAd used for gangliad configuration (Issue#368, PR#385)
+	Bug fix: Added extra logging to investigate file rotation problem (Issue#362, PR#389)
+	Bug fix: Fixed writing of missing dict files during upgrade (Issue#388, PR#391)
+
 v3_10_5
 	Bug fix: Workaround for EL7 PyJWT bug, generating bytes instead of str (PR#355)
 	Bug fix: Fixed missing `cvmfsexec.cfg` files from Factory reconfig and improved cvmfsexec warnings (Issue#348, PR#356)

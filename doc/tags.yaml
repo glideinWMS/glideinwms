@@ -490,7 +490,7 @@ v3_10_5:
     - GLIDEIN_SINGULARITY_BINARY_OVERRIDE set also with Frontend and Factory params, not only WN environment (PR#360)
 
 v3_10_6:
-  Date: January 10, 2024
+  Date: January 19, 2024
   Series: Stable
   Tarball: false
   Feature:
@@ -502,3 +502,6 @@ v3_10_6:
     - Changed M2Crypto imports to be compatible with 0.40.0 the code must import also the components (PR#377)
     - Fixed PATHs handling in glidein_startup.sh (PR#379)
     - Fixed match policy_file import failure (Issue#378, PR#380)
+    - Fixed syntax error in ClassAd used for gangliad configuration (Issue#368, PR#385)
+    - Added extra logging to investigate file rotation problem (Issue#362, PR#389)
+    - Fixed writing of missing dict files during upgrade (Issue#388, PR#391)
