@@ -630,11 +630,19 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             self.dicts["condor_jdl"] = [cgWCreate.GlideinSubmitDictFile(self.work_dir, cgWConsts.SUBMIT_FILE)]
 
     def load(self):
+        """Load also the condor_jdl.
+        Other dictionaries are loaded using the parent method `cgWDictFile.glideinEntryDicts.load()`
+        """
         cgWDictFile.glideinEntryDicts.load(self)
         for cj in self.dicts["condor_jdl"]:
             cj.load()
 
     def save_final(self, set_readonly=True):
+        """Save the condor_jdl dictionaries last, since if contains the signatures of the other dictionaries
+
+        Args:
+            set_readonly (bool): True (default) if it should save and also set read-only
+        """
         sub_stage_dir = cgWConsts.get_entry_stage_dir("", self.sub_name)
 
         # Let's remove the job.condor single entry file (in case the entry_set has the same name of an old entry)
@@ -653,12 +661,12 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             cj.save(set_readonly=set_readonly)
 
     def populate(self, entry, schedd, main_dicts):
-        """Populate the entry dictionary
+        """Populate the entry dictionaries
 
         Args:
-            entry (_type_): _description_
-            schedd (_type_): _description_
-            main_dicts (_type_): _description_
+            entry (_type_): entry section from the Factory XML configuration
+            schedd (str): schedd used for the job submission
+            main_dicts (_type_): main dictionaries
         """
         # put default files in place first
         self.dicts["file_list"].add_placeholder(cWConsts.CONSTS_FILE, allow_overwrite=True)
@@ -851,7 +859,15 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
 
 class glideinDicts(cgWDictFile.glideinDicts):
+    """This Class contains all the main, the entry, and the entry set dicts"""
+
     def __init__(self, conf, sub_list=None):  # if None, get it from params
+        """Create a glidein dictionary w/ main, entries and entry-groups data
+
+        Args:
+            conf (glideinConfig): Factory configuartion
+            sub_list (list): list of sub-elements (Entries)
+        """
         if sub_list is None:
             sub_list = [e.getName() for e in conf.get_entries()]
 

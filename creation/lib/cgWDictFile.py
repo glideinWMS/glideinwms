@@ -477,8 +477,17 @@ def refresh_signature(dicts):  # update in place
 
 
 # internal, do not use from outside the module
-def save_common_dicts(dicts, is_main, set_readonly=True):  # will update in place, too
-    # make sure decription is up to date
+def save_common_dicts(dicts, is_main, set_readonly=True):
+    """Save the common dictionaries (in both the main and entry dictionaries lists)
+    If they are there, they will be updated in place
+    This function calls the save method of each individual dictionary in the common list
+
+    Args:
+        dicts (dict): dictionary of all dictionaries
+        is_main (bool): True if called while saving the main dictionaries (and not entries or entry lists)
+        set_readonly (bool): True (default) to also set the dictionary read only
+    """
+    # make sure decription is up-to-date
     refresh_description(dicts)
     # save the immutable ones
     for k in ("description",):
@@ -494,7 +503,7 @@ def save_common_dicts(dicts, is_main, set_readonly=True):  # will update in plac
     for k in ("file_list", "at_file_list", "after_file_list"):
         if k in dicts:
             dicts[k].save(set_readonly=set_readonly)
-    # calc and save the signatues
+    # calc and save the signatures
     refresh_signature(dicts)
     dicts["signature"].save(set_readonly=set_readonly)
 
@@ -506,6 +515,15 @@ def save_common_dicts(dicts, is_main, set_readonly=True):  # will update in plac
 
 # must be invoked after all the entries have been saved
 def save_main_dicts(main_dicts, set_readonly=True):  # will update in place, too
+    """Save the main dictionaries (corresponding to the global configuration)
+    If they are there, they will be updated in place
+    This function calls the save method of each individual dictionary in the main list,
+    including the common ones by calling `save_common_dicts`
+
+    Args:
+        main_dicts (dict): dictionary of all dictionaries
+        set_readonly (bool): True (default) to also set the dictionary read only
+    """
     main_dicts["glidein"].save(set_readonly=set_readonly)
     main_dicts["frontend_descript"].save(set_readonly=set_readonly)
     main_dicts["build_cvmfsexec"].save(set_readonly=set_readonly)
@@ -523,6 +541,17 @@ def save_main_dicts(main_dicts, set_readonly=True):  # will update in place, too
 def save_entry_dicts(
     entry_dicts, entry_name, summary_signature, set_readonly=True  # will update in place, too  # update in place
 ):
+    """Save the entry dictionaries (corresponding to the entry configuration)
+    If they are there, they will be updated in place
+    This function calls the save method of each individual dictionary in the entry list,
+    including the common ones by calling `save_common_dicts`
+
+    Args:
+        entry_dicts (dict): dictionary of all dictionaries
+        entry_name (str): name of the Entry
+        summary_signature: summary signature dict file, used to insert the entry sifnature dict file
+        set_readonly (bool): True (default) to also set the dictionary read only
+    """
     entry_dicts["mongroup"].save(set_readonly=set_readonly)
     entry_dicts["infosys"].save(set_readonly=set_readonly)
     entry_dicts["job_descript"].save(set_readonly=set_readonly)
