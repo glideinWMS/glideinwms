@@ -1,8 +1,8 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_6_rc1
+# GLIDEINWMS_VERSION v3_10_6_rc2
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-7237e221ae118454707fecca83594b2e  ./CHANGELOG.md
+75c2d9a45c18f5fb085684ce4eb5628f  ./CHANGELOG.md
 8e7d1957a094cc33c89f5b2c935666ff  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
@@ -20,7 +20,7 @@ c2a91f8bb1071f2481f2f8580d76390d  ./creation/create_frontend
 c94c78d5f47e8f0027a0d7085db743f7  ./creation/create_rpm_startup
 d41d8cd98f00b204e9800998ecf8427e  ./creation/lib/__init__.py
 249c493075e6aaedf56bd3ef9342601c  ./creation/lib/cWConsts.py
-2efb84aa1edaa25f7afeca37c95e7136  ./creation/lib/cWDictFile.py
+eb89b64c3c7b28967454c99520240bb8  ./creation/lib/cWDictFile.py
 468651def6370979e8b22bc6c35e1979  ./creation/lib/cWExpand.py
 aae4bc48002f7f209870348d4222c8ec  ./creation/lib/cWParamDict.py
 1e45cb4cae2feafabb95a8f58130852a  ./creation/lib/cWParams.py
@@ -129,7 +129,7 @@ f46c4b8a976e455aa891e8294c6a4eed  ./creation/web_base/singularity_lib.sh
 1feebbec48bdd2edece16d9b9167a03c  ./creation/web_base/smart_partitionable.sh
 d9e26df8e25bbd357868ed02a0db52b5  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
-7ae9a906bc6e839600c28fdc45d2dc67  ./factory/glideFactoryConfig.py
+201711145fd17fa7c8c7cea021972eff  ./factory/glideFactoryConfig.py
 61924cda10e96ca0b9024e2dfc8ecd66  ./factory/glideFactoryCredentials.py
 eeb73fa9b198b00093f7a88e82c61465  ./factory/glideFactoryInterface.py
 24b0195fa486146d269ebbfff61ab2ce  ./factory/glideFactorySelectionAlgorithms.py
@@ -176,7 +176,7 @@ a63da69c4259927dafaaaa1fb7610e17  ./lib/condorManager.py
 ba9d95ed03bd7c3a2531a7337cc8198d  ./lib/defaults.py
 e0c681cd88c2b729b1c355de3d5fddb0  ./lib/disk_cache.py
 da959c3d6542d3ce19d4fa95f4a52ea3  ./lib/exprParser.py
-1daf4503c4b99e13276d3f86ca6a8a33  ./lib/fork.py
+57af89e35bc97aedd84ed2d9965f7f28  ./lib/fork.py
 70c6439359178740f148d17590cd65ab  ./lib/glideinWMSVersion.py
 bc9ae2f058e2ad1e8ca410ff9897efb0  ./lib/hashCrypto.py
 9237acaa0fc8c11c11198ae47574e383  ./lib/logSupport.py
