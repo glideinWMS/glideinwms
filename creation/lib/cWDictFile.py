@@ -183,24 +183,34 @@ class DictFile:
             fname (str): file name (the file path is the concatenation of dir and fname), override the object value
             sort_keys (bool): True if keys should be sorted, override the object value
             set_readonly (bool): if True, set read only after saving it
+                (this is a flag in the file dict, unrelated to the persistent file permission)
             reset_changed (bool): if False, do not reset self.changed
             save_only_if_changed (bool): if False, save also if it was not changed
             want_comments (bool): if True, comments are saved as well
 
         """
-        if save_only_if_changed and (not self.changed):
-            return  # no change -> don't save
-
         if dir is None:
             dir = self.dir
         if fname is None:
             fname = self.fname
         if sort_keys is None:
             sort_keys = self.sort_keys
+        filepath = os.path.join(dir, fname)
+
+        # For some reason self.changed is set to false when the file is missin (and no items are added)
+        # This causes problems during upgrades (if a file dict is added) and if a file dict is accidentally deleted
+        # Things work OK on fresh installs when no file exist (no load attempt)
+        # This should never happen. I tracked all self.changed=False statements and never apply to the dict in question
+        # Anyway these lines will fix the error and compensate
+        # TODO: investigate why self.changed == False when the file is missing
+        if not os.path.exists(filepath):
+            self.changed = True
+
+        if save_only_if_changed and (not self.changed):
+            return  # no change -> don't save
 
         if not os.path.exists(dir):
             os.makedirs(dir)
-        filepath = os.path.join(dir, fname)
         try:
             with open(filepath, "wb") as fd:
                 self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
@@ -219,6 +229,7 @@ class DictFile:
 
     def save_into_fd(self, fd, sort_keys=None, set_readonly=True, reset_changed=True, want_comments=True):
         """Save into a BINARY_ENCODING (latin-1) encoded binary file
+        It could be an actual file or a byte array or a string
 
         Args:
             fd: binary file
@@ -283,7 +294,8 @@ class DictFile:
         return data
 
     def save_into_str(self, sort_keys=None, set_readonly=True, reset_changed=True, want_comments=True):
-        """Save the dictionary into a string
+        """Save the dictionary into a string.
+        E.g. to compare it with another dictionary
 
         Same as save_into_bytes, but returns a string
 
@@ -404,7 +416,6 @@ class DictFile:
 
         Returns:
             bool: True if self and other have the same representation
-
         """
         if compare_dir and (self.dir != other.dir):
             return False

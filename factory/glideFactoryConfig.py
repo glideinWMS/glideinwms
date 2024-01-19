@@ -16,10 +16,9 @@ from glideinwms.lib import pubCrypto, symCrypto
 
 class FactoryConfig:
     def __init__(self):
-        # set default values
-        # user should modify if needed
-        # These values should be consistent w/ creation/lib/c?WConst.py files content
-
+        """Set the default values, user should modify if needed
+        These values should be consistent w/ creation/lib/c?WConst.py files content
+        """
         self.glidein_descript_file = "glidein.descript"
         self.job_descript_file = "job.descript"
         self.job_attrs_file = "attributes.cfg"
@@ -42,15 +41,17 @@ factoryConfig = FactoryConfig()
 ############################################################
 
 
-#   self.config_file="name of file"
 class ConfigFile:
     """In memory dictionary-like representation of key-value config files
     Loads a file composed of
         NAME VAL
     and creates
-        self.data[NAME]=VAL
+        self.data[NAME]=convert_function(VAL)  # repr is the default conversion
     It also defines:
         self.config_file="name of file"
+
+    This is used only to load into memory and access the dictionary, not to update the
+    on-disk persistent values
     """
 
     def __init__(self, config_file, convert_function=repr):
@@ -87,24 +88,44 @@ class ConfigFile:
         return output
 
 
-# load from the entry subdir
 class EntryConfigFile(ConfigFile):
+    """Load from the entry subdir
+
+    It also defines:
+        self.config_file="name of file with entry directory" (from parent ConfigFile)
+        self.entry_name="Entry name"
+        self.config_file_short="name of file" (just the file name since the other had the directory)
+    """
+
     def __init__(self, entry_name, config_file, convert_function=repr):
         ConfigFile.__init__(self, os.path.join("entry_" + entry_name, config_file), convert_function)
         self.entry_name = entry_name
         self.config_file_short = config_file
 
 
-# load both the main and entry subdir config file
-# and join the results
 class JoinConfigFile(ConfigFile):
+    """Load both the main and entry subdir config file and join the results
+
+    Data is only read, not saved
+    `self.data` will contain the joint items (initially the common one,
+    then is updated using the content of `entry_obj.data`)
+
+    It also defines:
+        self.config_file="name of both files, with and without entry directory"
+          It is not an actual file
+        self.entry_name="Entry name"
+        self.config_file_short="name of file" (just the file name without the directory)
+    """
+
     def __init__(self, entry_name, config_file, convert_function=repr):
         ConfigFile.__init__(self, config_file, convert_function)
         self.entry_name = entry_name
         entry_obj = EntryConfigFile(entry_name, config_file, convert_function)
-        # merge by overriding whatever is found in the subdir
+        # merge by overriding whatever is found in the subdir (Entry)
         for k in list(entry_obj.data.keys()):
             self.data[k] = entry_obj.data[k]
+        self.config_file = f"{config_file} AND {entry_obj.config_file}"
+        self.config_file_short = config_file
 
 
 ############################################################
@@ -201,9 +222,7 @@ class GlideinDescript(ConfigFile):
         self.load_old_rsa_key()
 
     def backup_rsa_key(self):
-        """
-        Backup existing rsa key.
-        """
+        """Backup existing rsa key."""
 
         if self.data["PubKeyType"] == "RSA":
             try:
@@ -220,9 +239,7 @@ class GlideinDescript(ConfigFile):
         return
 
     def load_old_rsa_key(self):
-        """
-        Load the old key object.
-        """
+        """Load the old key object."""
 
         # Assume that old key if exists is of same type
         self.data["OldPubKeyType"] = self.data["PubKeyType"]
@@ -248,13 +265,11 @@ class GlideinDescript(ConfigFile):
         return
 
     def load_pub_key(self, recreate=False):
-        """
-        Load the key object. Create the key if required
+        """Load the key object. Create the key if required
 
-        @type recreate: bool
-        @param recreate: Create a new key overwriting the old one. Defaults to False
+        Args:
+            recreate (bool): Create a new key overwriting the old one. Defaults to False
         """
-
         if self.data["PubKeyType"] is not None:
             self.data["PubKeyObj"] = GlideinKey(
                 self.data["PubKeyType"], key_fname=self.default_rsakey_fname, recreate=recreate
@@ -301,9 +316,8 @@ class JobSubmitAttrs(JoinConfigFile):
 
 
 class FrontendDescript(ConfigFile):
-    """
-    Contains the security identity and username mappings for the Frontends that are authorized to
-    use this factory.
+    """Contains the security identity and username mappings for the Frontends
+    that are authorized to use this factory.
 
     Contains dictionary of dictionaries:
     obj.data[frontend]['ident']=identity
@@ -315,13 +329,14 @@ class FrontendDescript(ConfigFile):
         ConfigFile.__init__(self, factoryConfig.frontend_descript_file, lambda s: s)  # values are in python format
 
     def get_identity(self, frontend):
-        """
-        Gets the identity for the given frontend.  If the Frontend is unknown, returns None.
+        """Get the identity for the given frontend.
+        If the Frontend is unknown, returns None.
 
-        @type frontend: string
-        @param frontend: frontend name
+        Args:
+            frontend (str): frontend name
 
-        @return identity
+        Returns:
+            str|None: identity
         """
         if frontend in self.data:
             fe = self.data[frontend]
@@ -330,28 +345,27 @@ class FrontendDescript(ConfigFile):
             return None
 
     def get_username(self, frontend, sec_class):
-        """
-        Gets the security name mapping for the given frontend and security class.  If not found or not authorized, returns None.
+        """Get the security name mapping for the given frontend and security class.
+        If not found or not authorized, returns None.
 
-        @type frontend: string
-        @param frontend: frontend name
-        @type sec_class: string
-        @param sec_class: security class name
+        Args:
+            frontend (str): frontend name
+            sec_class (str): security class name
 
-        @return: security name
+        Returns:
+            str|None: security name
         """
         if frontend in self.data:
             fe = self.data[frontend]["usermap"]
             if sec_class in fe:
                 return fe[sec_class]
-
         return None
 
     def get_all_usernames(self):
-        """
-        Gets all the usernames assigned to all the frontends.
+        """Get all the usernames assigned to all the frontends.
 
-        @return: list of usernames
+        Returns:
+            list: list of usernames
         """
         usernames = {}
         for frontend in list(self.data.keys()):
@@ -362,8 +376,10 @@ class FrontendDescript(ConfigFile):
         return list(usernames.keys())
 
     def get_all_frontend_sec_classes(self):
-        """
-        Get a list of all frontend:sec_class
+        """Get a list of all frontend:sec_class
+
+        Returns:
+            list: Frontend security classes
         """
         frontend_sec_classes = []
         for fe_name in list(self.data.keys()):
@@ -373,20 +389,27 @@ class FrontendDescript(ConfigFile):
         return frontend_sec_classes
 
     def get_frontend_name(self, identity):
-        """
-        Get the frontend:sec_class mapping for the given identity
+        """Get the frontend:sec_class mapping for the given identity
+
+        Args:
+            identity (str): identity
+
+        Returns:
+            str: Frontend name
         """
         for fe_name in list(self.data.keys()):
             if self.data[fe_name]["ident"] == identity:
                 return fe_name
 
 
-# Signatures File
+# Signatures File format:
 ## File: signatures.sha1
 ##
 # 6e3565a9a0f39e0641d7e3e777b8f22d7ebc8b0f  description.a92arS.cfg  entry_AmazonEC2
 # 51b01a3c38589a41fb7a44936e12b31fe506ec7b  description.a92aqM.cfg  main
 class SignatureFile(ConfigFile):
+    """Signatures File dictionary"""
+
     def __init__(self):
         global factoryConfig
         ConfigFile.__init__(self, factoryConfig.signatures_file, lambda s: s)  # values are in python format
@@ -397,7 +420,7 @@ class SignatureFile(ConfigFile):
         from all the other class in that there are three values with the key being
         the last value.  The internal dictionary has the following structure:
             where:
-                line[0] is the sign for the line
+                line[0] is the signature for the line
                 line[1] is the descript file for the line
                 line[2] is the key for the line
 
