@@ -46,8 +46,11 @@ GLIDEIN_CPUS=1
 # Blackhole variables coming from Frontend configuration (GLIDEIN_BLACKHOLE_NUMJOBS and GLIDEIN_BLACKHOLE_RATE)
 # and from the condor_vars.lst (GLIDEIN_BLACKHOLE, dynamic variable)
 glidein_blackhole_numjobs= "$(gconfig_get GLIDEIN_BLACKHOLE_NUMJOBS "$config_file")"
+echo "MyDebug: glidein_blackhole_numjobs = $glidein_blackhole_numjobs"
 glidein_blackhole_rate= "$(gconfig_get GLIDEIN_BLACKHOLE_RATE "$config_file")"
+echo "MyDebug: glidein_blackhole_rate = $glidein_blackhole_rate"
 glidein_blackhole= "$(gconfig_get GLIDEIN_BLACKHOLE "$config_file")"
+echo "MyDebug: glidein_blackhole = $glidein_blackhole"
 
 # first of all, clean up any CONDOR variable
 condor_vars=$(env |awk '/^_[Cc][Oo][Nn][Dd][Oo][Rr]_/{split($1,a,"=");print a[1]}')
