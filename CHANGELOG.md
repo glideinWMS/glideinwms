@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.10.6 \[2024-01-dd\]
+## v3.10.6 \[2024-01-25\]
 
 Minor new features, mostly a bug fix release
 
@@ -15,6 +15,8 @@ Minor new features, mostly a bug fix release
 -   Advertising Factory's HTCondor submit parameters (Issue #307, PR #382)
 
 ### Changed defaults / behaviours
+
+-   The submit attributes (submit/submit*attrs) are now publishd in the glidefactory classad with the GlidinSubmit prefix followed by the attribute name and same value. If the attribute name starts with "+" this will be replaced by "\_PLUS*", since only alphanumeric characters and "\_" are valid in ClassAd attribute names.
 
 ### Deprecated / removed options and commands
 

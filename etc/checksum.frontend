@@ -1,8 +1,8 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_6_rc2
+# GLIDEINWMS_VERSION v3_10_6
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-75c2d9a45c18f5fb085684ce4eb5628f  ./CHANGELOG.md
+058d850e8c86a9465b636b00b4c8262e  ./CHANGELOG.md
 8e7d1957a094cc33c89f5b2c935666ff  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
@@ -131,7 +131,7 @@ d9e26df8e25bbd357868ed02a0db52b5  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 201711145fd17fa7c8c7cea021972eff  ./factory/glideFactoryConfig.py
 61924cda10e96ca0b9024e2dfc8ecd66  ./factory/glideFactoryCredentials.py
-eeb73fa9b198b00093f7a88e82c61465  ./factory/glideFactoryInterface.py
+9a69fcef03ff6dcaf6258c4a03c21128  ./factory/glideFactoryInterface.py
 24b0195fa486146d269ebbfff61ab2ce  ./factory/glideFactorySelectionAlgorithms.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 cb3a3407e6b27e7a09577eebb9a95151  ./frontend/checkFrontend.py
