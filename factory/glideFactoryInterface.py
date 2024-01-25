@@ -647,6 +647,11 @@ class EntryClassad(classadSupport.Classad):
         ):
             for attr in list(data.keys()):
                 el = data[attr]
+                # TODO: ClassAd attribute names must be alphanumeric and _
+                #  ad-hoc filter to be replaces with more exhaustive one
+                #  not expecting more that initial +, so OK for now
+                if attr[0] == "+":
+                    attr = f"_PLUS_{attr[1:]}"
                 if isinstance(el, int):
                     # don't quote ints
                     self.adParams[f"{prefix}{attr}"] = el
