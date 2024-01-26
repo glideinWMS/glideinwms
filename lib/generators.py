@@ -13,7 +13,6 @@
 #   Contains the Generator base class and built-in generators
 #
 
-import inspect
 import os
 import re
 import sys
@@ -72,10 +71,7 @@ def export_generator(generator: Generator):
 
     if not isinstance(generator, Generator):
         raise TypeError("generator must be a Generator object")
-    module = inspect.getmodule(inspect.stack()[1][0])
-    if not module:
-        raise RuntimeError("Failed to get module name")
-    _loaded_generators[module.__name__] = generator
+    _loaded_generators[generator.__module__] = generator
 
 
 class RoundRobinGenerator(Generator[T]):
