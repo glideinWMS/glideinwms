@@ -1127,6 +1127,7 @@ def populate_common_descript(descript_dict, params):
             "security_class": "ProxySecurityClasses",
             "trust_domain": "ProxyTrustDomains",
             "type": "ProxyTypes",
+            "purpose": "CredentialPurposes",
             # credential files probably should be handles as a list, each w/ name and path
             # or the attributes ending in _file are files
             # "file": "CredentialFiles",  # placeholder for when name will not be absfname

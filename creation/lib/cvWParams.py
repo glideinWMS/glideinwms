@@ -307,6 +307,12 @@ class VOFrontendParams(cWParams.CommonParams):
             "Type of credential: grid_proxy,cert_pair,key_pair,username_password,auth_file",
             None,
         )
+        proxy_defaults["purpose"] = (
+            "pilot",
+            "credential purpose",
+            "Purpose of credential: pilot,payload",
+            None,
+        )
         proxy_defaults["trust_domain"] = ("OSG", "grid_type", "Trust Domain", None)
         proxy_defaults["creation_script"] = (None, "command", "Script to re-create credential", None)
         proxy_defaults["update_frequency"] = (None, "int", "Update proxy when there is this much time left", None)

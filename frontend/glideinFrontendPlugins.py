@@ -92,7 +92,7 @@ class CredentialsAll(CredentialsPlugin):
     This is can be a very useful default policy
     """
 
-    def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
+    def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None, credential_purpose=None):
         """get the credentials, given the condor_q and condor_status data
 
         Args:
@@ -105,13 +105,11 @@ class CredentialsAll(CredentialsPlugin):
         """
         rtnlist = []
         for cred in self.cred_list:
-            if (trust_domain is not None) and (hasattr(cred, "trust_domain")) and (cred.trust_domain != trust_domain):
+            if trust_domain is not None and hasattr(cred, "trust_domain") and cred.trust_domain != trust_domain:
                 continue
-            if (
-                (credential_type is not None)
-                and (hasattr(cred, "type"))
-                and (not cred.supports_auth_method(credential_type))
-            ):
+            if credential_type is not None and hasattr(cred, "type") and not cred.supports_auth_method(credential_type):
+                continue
+            if credential_purpose is not None and cred.purpose != credential_purpose:
                 continue
             rtnlist.append(cred)
         if params_obj is not None:
@@ -658,7 +656,7 @@ def list2ilist(lst):
 # TODO: Deprecate in favor of createRequestBundle
 def createCredentialList(elementDescript):
     """Creates a list of Credentials for a proxy plugin"""
-    request_bundle = credentials.RequestBundle()
+    request_bundle = RequestBundle()
     request_bundle.load_from_element(elementDescript)
     return request_bundle
 

@@ -23,10 +23,15 @@ from glideinwms.lib import (
     defaults,
     glideinWMSVersion,
     logSupport,
-    token_util,
     x509Support,
 )
-from glideinwms.lib.credentials import AuthenticationMethod, CredentialPair, CredentialType
+from glideinwms.lib.credentials import (
+    AuthenticationMethod,
+    CredentialPair,
+    CredentialPurpose,
+    CredentialType,
+    pack_credential,
+)
 from glideinwms.lib.util import hash_nc
 
 ############################################################
@@ -1154,14 +1159,20 @@ class MultiAdvertizeWork:
         # get_credentials will augment the needed credentials with the requests
         # A little weird, but that's how it works right now
         # The credential objects are also persistent, so this will be a subset of self.x509_proxies_data
-        credentials_with_requests = descript_obj.x509_proxies_plugin.get_credentials(
-            params_obj=params_obj, credential_type=factory_auth, trust_domain=factory_trust
+        pilot_credentials = descript_obj.x509_proxies_plugin.get_credentials(
+            params_obj=params_obj,
+            credential_type=factory_auth,
+            trust_domain=factory_trust,
+            credential_purpose=CredentialPurpose.PILOT,
         )
-        nr_credentials = len(credentials_with_requests)
-        if nr_credentials == 0:
+        if len(pilot_credentials) == 0:
             raise NoCredentialException
 
-        auth_set = factory_auth.match([t.credential for t in credentials_with_requests])
+        payload_credentials = descript_obj.x509_proxies_plugin.get_credentials(
+            trust_domain=factory_trust, credential_purpose=CredentialPurpose.PAYLOAD
+        )
+
+        auth_set = factory_auth.match([t.credential for t in pilot_credentials])
         if not auth_set:
             logSupport.log.warning("No credentials match for factory pool %s, not advertising request" % factory_pool)
             raise NoCredentialException
@@ -1170,10 +1181,13 @@ class MultiAdvertizeWork:
             # create a local cache, if no global provided
             file_id_cache = CredentialCache()
 
-        for name, value in descript_obj.x509_proxies_plugin.params_dict.items():
-            params_obj.glidein_params_to_encrypt[name.value] = value
+        payload_strings = [pack_credential(cred.credential) for cred in payload_credentials]
+        params_obj.glidein_params_to_encrypt["PayloadCredentials"] = b",".join(payload_strings)
 
-        for credential_el in credentials_with_requests:
+        for name, param in descript_obj.x509_proxies_plugin.params_dict.items():
+            params_obj.glidein_params_to_encrypt[name.value] = param.value
+
+        for credential_el in pilot_credentials:
             fd = None
             glidein_monitors_this_cred = {}
             try:

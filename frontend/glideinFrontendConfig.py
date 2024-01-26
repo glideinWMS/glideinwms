@@ -340,6 +340,7 @@ class ElementMergedDescript:
             "ProxySecurityClasses",
             "ProxyTrustDomains",
             "ProxyTypes",
+            "CredentialPurposes",
             "CredentialGenerators",
             "ProxyKeyFiles",
             "ProxyPilotFiles",
