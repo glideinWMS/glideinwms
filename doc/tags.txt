@@ -9,7 +9,7 @@ v3_10_6
 	Bug fix: Fixed syntax error in ClassAd used for gangliad configuration (Issue#368, PR#385)
 	Bug fix: Added extra logging to investigate file rotation problem (Issue#362, PR#389)
 	Bug fix: Fixed writing of missing dict files during upgrade (Issue#388, PR#391)
-	NOTE-FACTORY: The submit attributes (submit/submit_attrs) are now publishd in the glidefactory classad with the GlidinSubmit prefix followed by the attribute name and same value. If the attribute name starts with "+" this will be replaced by "_PLUS_", since only alphanumeric characters and "_" are valid in ClassAd attribute names.
+	NOTE-FACTORY: The submit attributes (submit/submit_attrs) are now published in the glidefactory classad with the GlideinSubmit prefix followed by the attribute name and same value. If the attribute name starts with "+" this will be replaced by "_PLUS_", since only alphanumeric characters and "_" are valid in ClassAd attribute names.
 
 v3_10_5
 	Bug fix: Workaround for EL7 PyJWT bug, generating bytes instead of str (PR#355)
