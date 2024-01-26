@@ -1,8 +1,8 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_6_rc2
+# GLIDEINWMS_VERSION v3_10_6
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-75c2d9a45c18f5fb085684ce4eb5628f  ./CHANGELOG.md
+058d850e8c86a9465b636b00b4c8262e  ./CHANGELOG.md
 8e7d1957a094cc33c89f5b2c935666ff  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
@@ -131,7 +131,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 f886a6d48e652bc37ef888358d202fef  ./factory/glideFactoryDowntimeLib.py
 d0fe6879c0d9344c957a218e7ef422a1  ./factory/glideFactoryEntry.py
 c7bf52d9a0448e5dbf8240818e505360  ./factory/glideFactoryEntryGroup.py
-eeb73fa9b198b00093f7a88e82c61465  ./factory/glideFactoryInterface.py
+9a69fcef03ff6dcaf6258c4a03c21128  ./factory/glideFactoryInterface.py
 54d34bcc2bfc6153f14fea2f7d66476e  ./factory/glideFactoryLib.py
 f40a69a17e8b5b764f4fec365dabd412  ./factory/glideFactoryLogParser.py
 ed6bdb5b9cad2e2f3d98cb15a31b4879  ./factory/glideFactoryMonitorAggregator.py

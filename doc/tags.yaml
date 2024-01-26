@@ -490,7 +490,7 @@ v3_10_5:
     - GLIDEIN_SINGULARITY_BINARY_OVERRIDE set also with Frontend and Factory params, not only WN environment (PR#360)
 
 v3_10_6:
-  Date: January 19, 2024
+  Date: January 25, 2024
   Series: Stable
   Tarball: false
   Feature:
@@ -505,3 +505,5 @@ v3_10_6:
     - Fixed syntax error in ClassAd used for gangliad configuration (Issue#368, PR#385)
     - Added extra logging to investigate file rotation problem (Issue#362, PR#389)
     - Fixed writing of missing dict files during upgrade (Issue#388, PR#391)
+  NOTE-FACTORY:
+    - The submit attributes (submit/submit_attrs) are now published in the glidefactory classad with the GlideinSubmit prefix followed by the attribute name and same value. If the attribute name starts with "+" this will be replaced by "_PLUS_", since only alphanumeric characters and "_" are valid in ClassAd attribute names.
