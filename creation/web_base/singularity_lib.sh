@@ -1356,6 +1356,11 @@ singularity_test_exec() {
         info "Singularity at '$singularity_bin' appears to work ($singularity_mode mode), user namespaces not available"
         echo "$singularity_mode"
         # true - not needed echo returns true
+    elif [[ $singularity_ec -eq 0 ]]; then
+        singularity_mode=privileged
+        warn "Singularity at '$singularity_bin' exited correctly (ec: 0) but returned unexpected output ($check_singularity). Continuing assuming $singularity_mode mode."
+        echo "$singularity_mode"
+        # true - not needed echo returns true
     else
         # test failed
         [[ "$check_singularity" = ',' ]] && info "Singularity at $singularity_bin failed (ec:$singularity_ec)" ||
