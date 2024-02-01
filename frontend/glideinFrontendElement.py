@@ -42,9 +42,9 @@ from glideinwms.lib import (
     logSupport,
     pubCrypto,
     servicePerformance,
-    subprocessSupport,
     token_util,
 )
+from glideinwms.lib.credentials import CredentialPurpose
 from glideinwms.lib.disk_cache import DiskCache
 from glideinwms.lib.fork import fork_in_bg, ForkManager, wait_for_pids
 from glideinwms.lib.pidSupport import register_sighandler
@@ -172,7 +172,7 @@ class glideinFrontendElement:
         self.removal_margin = int(self.elementDescript.element_data["RemovalMargin"])
 
         # Default bahavior: Use factory proxies unless configure overrides it
-        self.x509_proxy_plugin: glideinFrontendPlugins.CredentialsPlugin = None  # type: ignore
+        self.credentials_plugin: glideinFrontendPlugins.CredentialsPlugin = None  # type: ignore
 
         # If not None, this is a request for removal of glideins only (i.e. do not ask for more)
         self.request_removal_wtype = None
@@ -225,7 +225,7 @@ class glideinFrontendElement:
                     % (self.elementDescript.merged_data["ProxySelectionPlugin"], list(proxy_plugins.keys()))
                 )
                 return 1
-            self.x509_proxy_plugin = proxy_plugins[self.elementDescript.merged_data["ProxySelectionPlugin"]](
+            self.credentials_plugin = proxy_plugins[self.elementDescript.merged_data["ProxySelectionPlugin"]](
                 group_dir, glideinFrontendPlugins.createRequestBundle(self.elementDescript)
             )
         self.idtoken_lifetime = int(self.elementDescript.merged_data.get("IDTokenLifetime", 24))
@@ -545,9 +545,9 @@ class glideinFrontendElement:
 
         # Update x509 user map and give proxy plugin a chance
         # to update based on condor stats
-        if self.x509_proxy_plugin:
+        if self.credentials_plugin:
             logSupport.log.info("Updating usermap")
-            self.x509_proxy_plugin.update_usermap(
+            self.credentials_plugin.update_usermap(
                 self.condorq_dict, condorq_dict_types, self.status_dict, self.status_dict_types
             )
 
@@ -562,7 +562,7 @@ class glideinFrontendElement:
             self.signatureDescript.signature_type,
             self.signatureDescript.frontend_descript_signature,
             self.signatureDescript.group_descript_signature,
-            x509_proxies_plugin=self.x509_proxy_plugin,
+            credentials_plugin=self.credentials_plugin,
             ha_mode=self.ha_mode,
         )
         descript_obj.add_monitoring_url(self.monitoring_web_url)
@@ -786,7 +786,7 @@ class glideinFrontendElement:
                 glidein_monitors["Glideins%s" % t] = count_status[t]
 
             """
-            for cred in self.x509_proxy_plugin.cred_list:
+            for cred in self.credentials_plugin.cred_list:
                 glidein_monitors_per_cred[cred.id] = {}
                 for t in count_status:
                     glidein_monitors_per_cred[cred.id]['Glideins%s' % t] = count_status_per_cred[cred.id][t]
@@ -799,9 +799,10 @@ class glideinFrontendElement:
             # Credential specific stats are not presented anywhere except the
             # classad. Monitoring info in frontend and factory shows
             # aggregated info considering all the credentials
+            pilot_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.PILOT)
             creds_with_running = 0
 
-            for cred in self.x509_proxy_plugin.cred_list:
+            for cred in pilot_creds:
                 glidein_monitors_per_cred[cred.id] = {}
                 for t in count_status:
                     glidein_monitors_per_cred[cred.id]["Glideins%s" % t] = count_status_per_cred[cred.id][t]
@@ -814,7 +815,7 @@ class glideinFrontendElement:
                 # Counter to handle rounding errors
                 scaled = 0
                 tr = glidein_monitors["Running"]
-                for cred in self.x509_proxy_plugin.cred_list:
+                for cred in pilot_creds:
                     if glidein_monitors_per_cred[cred.id]["GlideinsRunning"]:
                         # This cred has running. Scale them down
 
@@ -875,7 +876,7 @@ class glideinFrontendElement:
 
                 # if stkn:
                 #     if generator_name:
-                #         for cred_el in advertizer.descript_obj.x509_proxies_plugin.cred_list:  # type: ignore
+                #         for cred_el in advertizer.descript_obj.credentials_plugin.cred_list:  # type: ignore
                 #             if cred_el.filename == generator_name:
                 #                 cred_el.generated_data = stkn
                 #                 break
@@ -1936,9 +1937,9 @@ class glideinFrontendElement:
         condorq_dict = {}
         try:
             condorq_format_list = self.elementDescript.merged_data["JobMatchAttrs"]
-            if self.x509_proxy_plugin:
+            if self.credentials_plugin:
                 condorq_format_list = list(condorq_format_list) + list(
-                    self.x509_proxy_plugin.get_required_job_attributes()
+                    self.credentials_plugin.get_required_job_attributes()
                 )
 
             ### Add in elements to help in determining if jobs have voms creds
@@ -1987,9 +1988,9 @@ class glideinFrontendElement:
                 ("TotalSlotCpus", "i"),
             ]
 
-            if self.x509_proxy_plugin:
+            if self.credentials_plugin:
                 status_format_list = list(status_format_list) + list(
-                    self.x509_proxy_plugin.get_required_classad_attributes()
+                    self.credentials_plugin.get_required_classad_attributes()
                 )
 
             # Consider multicore slots with free cpus/memory only
@@ -2214,6 +2215,8 @@ class glideinFrontendElement:
         """
         out = ()
 
+        pilot_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.PILOT)
+
         count_status_multi = {}
         # Count distribution per credentials
         count_status_multi_per_cred = {}
@@ -2222,7 +2225,7 @@ class glideinFrontendElement:
 
             count_status_multi[request_name] = {}
             count_status_multi_per_cred[request_name] = {}
-            for cred in self.x509_proxy_plugin.cred_list:
+            for cred in pilot_creds:
                 count_status_multi_per_cred[request_name][cred.id] = {}
 
             # It is cheaper to get Idle and Running from request-only
@@ -2242,8 +2245,7 @@ class glideinFrontendElement:
                 "RunningCores": glideinFrontendLib.getRunningCoresCondorStatus(total_req_dict),
             }
 
-            for st in req_dict_types:
-                req_dict = req_dict_types[st]
+            for st, req_dict in req_dict_types.items():
                 if st in ("TotalCores", "IdleCores", "RunningCores"):
                     count_status_multi[request_name][st] = glideinFrontendLib.countCoresCondorStatus(req_dict, st)
                 elif st == "Running":
@@ -2254,23 +2256,22 @@ class glideinFrontendElement:
                 else:
                     count_status_multi[request_name][st] = glideinFrontendLib.countCondorStatus(req_dict)
 
-                for cred in self.x509_proxy_plugin.cred_list:
-                    cred_id = cred.id
-                    cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict, cred_id)
+                for cred in pilot_creds:
+                    cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict, cred.id)
 
                     if st in ("TotalCores", "IdleCores", "RunningCores"):
-                        count_status_multi_per_cred[request_name][cred_id][
+                        count_status_multi_per_cred[request_name][cred.id][
                             st
                         ] = glideinFrontendLib.countCoresCondorStatus(cred_dict, st)
                     elif st == "Running":
                         # Running counts are computed differently because of
                         # the dict composition. Dict also has p-slots
                         # corresponding to the dynamic slots
-                        count_status_multi_per_cred[request_name][cred_id][
+                        count_status_multi_per_cred[request_name][cred.id][
                             st
                         ] = glideinFrontendLib.countRunningCondorStatus(cred_dict)
                     else:
-                        count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCondorStatus(
+                        count_status_multi_per_cred[request_name][cred.id][st] = glideinFrontendLib.countCondorStatus(
                             cred_dict
                         )
 

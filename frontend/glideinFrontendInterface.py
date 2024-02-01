@@ -30,7 +30,7 @@ from glideinwms.lib.credentials import (
     CredentialPair,
     CredentialPurpose,
     CredentialType,
-    pack_credential,
+    CredentialDict
 )
 from glideinwms.lib.util import hash_nc
 
@@ -534,7 +534,7 @@ class FrontendDescript:
         signtype,
         main_sign,
         group_sign,
-        x509_proxies_plugin=None,
+        credentials_plugin=None,
         ha_mode="master",
     ):
         self.my_name = my_name
@@ -544,7 +544,7 @@ class FrontendDescript:
         self.main_descript = main_descript
         self.signtype = signtype
         self.main_sign = main_sign
-        self.x509_proxies_plugin = x509_proxies_plugin
+        self.credentials_plugin = credentials_plugin
         self.group_name = group_name
         self.group_descript = group_descript
         self.group_sign = group_sign
@@ -555,7 +555,7 @@ class FrontendDescript:
         self.monitoring_web_url = monitoring_web_url
 
     def need_encryption(self):
-        return self.x509_proxies_plugin is not None
+        return self.credentials_plugin is not None
 
     # return a list of strings
     def get_id_attrs(self):
@@ -781,7 +781,7 @@ class MultiAdvertizeWork:
         # set a few defaults
         self.unique_id = 1
         self.adname = None
-        self.x509_proxies_data = []
+        self.request_credentials = []
         self.ha_mode = "master"
         self.glidein_config_limits = {}
 
@@ -846,19 +846,17 @@ class MultiAdvertizeWork:
         Get the list of proxies,
         invoke the renew scripts if any,
         and read the credentials in memory.
-        Modifies the self.x509_proxies_data variable.
+        Modifies the self.request_credentials variable.
         """
         # TODO: remove references to x509
-        self.x509_proxies_data = []
-        if self.descript_obj.x509_proxies_plugin is not None:
-            self.x509_proxies_data = self.descript_obj.x509_proxies_plugin.get_credentials()
-            nr_credentials = len(self.x509_proxies_data)
+        self.request_credentials = []
+        if self.descript_obj.credentials_plugin is not None:
+            self.request_credentials = self.descript_obj.credentials_plugin.get_request_credentials()
+            nr_credentials = len(self.request_credentials)
         else:
             nr_credentials = 0
 
-        nr_good_credentials = nr_credentials
-        for i in range(nr_credentials):
-            cred_el = self.x509_proxies_data[i]
+        for cred_el in self.request_credentials:
             cred_el.advertize = True
             cred_el.credential.renew()
             cred_el.credential.save_to_file(overwrite=False, continue_if_no_path=True)
@@ -961,31 +959,30 @@ class MultiAdvertizeWork:
         tmpname = self.adname
         glidein_params_to_encrypt = {}
         with open(tmpname, "a") as fd:
-            nr_credentials = len(self.x509_proxies_data)
+            nr_credentials = len(self.request_credentials)
             if nr_credentials > 0:
-                glidein_params_to_encrypt["NumberOfCredentials"] = "%s" % nr_credentials
+                glidein_params_to_encrypt["NumberOfCredentials"] = "%s" % nr_credentials # TODO: Check if it needs refactoring
 
             request_name = "Global"
             if factory_pool in self.global_params:
                 request_name, security_name = self.global_params[factory_pool]
                 glidein_params_to_encrypt["SecurityName"] = security_name
             classad_name = f"{request_name}@{self.descript_obj.my_name}"
-            fd.write('MyType = "%s"\n' % frontendConfig.client_global)
-            fd.write('GlideinMyType = "%s"\n' % frontendConfig.client_global)
-            fd.write('GlideinWMSVersion = "%s"\n' % frontendConfig.glideinwms_version)
-            fd.write('Name = "%s"\n' % classad_name)
-            fd.write('FrontendName = "%s"\n' % self.descript_obj.frontend_name)
-            fd.write('FrontendHAMode = "%s"\n' % self.ha_mode)
-            fd.write('GroupName = "%s"\n' % self.descript_obj.group_name)
-            fd.write('ClientName = "%s"\n' % self.descript_obj.my_name)
-            for i in range(nr_credentials):
-                cred_el = self.x509_proxies_data[i]
-                if cred_el.advertize == False:
+            fd.write(f'MyType = "{frontendConfig.client_global}"\n')
+            fd.write(f'GlideinMyType = "{frontendConfig.client_global}"\n')
+            fd.write(f'GlideinWMSVersion = "{frontendConfig.glideinwms_version}"\n')
+            fd.write(f'Name = "{classad_name}"\n')
+            fd.write(f'FrontendName = "{self.descript_obj.frontend_name}"\n')
+            fd.write(f'FrontendHAMode = "{self.ha_mode}"\n')
+            fd.write(f'GroupName = "{self.descript_obj.group_name}"\n')
+            fd.write(f'ClientName = "{self.descript_obj.my_name}"\n')
+            for cred_el in self.request_credentials:
+                if not cred_el.advertize:
                     continue  # we already determined it cannot be used
-                glidein_params_to_encrypt[cred_el.id] = cred_el.credential.string
+                glidein_params_to_encrypt[cred_el.credential.id] = cred_el.credential.string
                 if hasattr(cred_el, "security_class"):
                     # Convert the sec class to a string so the Factory can interpret the value correctly
-                    glidein_params_to_encrypt["SecurityClass" + cred_el.id] = str(cred_el.security_class)
+                    glidein_params_to_encrypt["SecurityClass" + cred_el.credential.id] = str(cred_el.credential.security_class)
 
             key_obj = None
             if factory_pool in self.global_key:
@@ -1002,7 +999,7 @@ class MultiAdvertizeWork:
                 advertizeGCGounter[classad_name] += 1
             else:
                 advertizeGCGounter[classad_name] = 0
-            fd.write("UpdateSequenceNumber = %s\n" % advertizeGCGounter[classad_name])
+            fd.write(f"UpdateSequenceNumber = {advertizeGCGounter[classad_name]}\n")
 
             # add a final empty line... useful when appending
             fd.write("\n")
@@ -1139,55 +1136,39 @@ class MultiAdvertizeWork:
           adname, unique_id and x509_proxies_data
         to be set.
         """
-        global frontendConfig
-        global advertizeGCCounter
-
-        descript_obj = self.descript_obj
-
-        logSupport.log.debug("In create Advertize work")
-
-        factory_trust, factory_auth = self.factory_constraint[params_obj.request_name]
-        factory_auth = AuthenticationMethod(factory_auth)
-
-        total_nr_credentials = len(self.x509_proxies_data)
 
         cred_filename_arr = []
 
-        if total_nr_credentials == 0:
-            raise NoCredentialException
+        logSupport.log.debug("In create Advertize work")
 
-        # get_credentials will augment the needed credentials with the requests
-        # A little weird, but that's how it works right now
-        # The credential objects are also persistent, so this will be a subset of self.x509_proxies_data
-        pilot_credentials = descript_obj.x509_proxies_plugin.get_credentials(
-            params_obj=params_obj,
-            credential_type=factory_auth,
-            trust_domain=factory_trust,
-            credential_purpose=CredentialPurpose.PILOT,
-        )
-        if len(pilot_credentials) == 0:
-            raise NoCredentialException
-
-        payload_credentials = descript_obj.x509_proxies_plugin.get_credentials(
-            trust_domain=factory_trust, credential_purpose=CredentialPurpose.PAYLOAD
-        )
-
-        auth_set = factory_auth.match([t.credential for t in pilot_credentials])
-        if not auth_set:
-            logSupport.log.warning("No credentials match for factory pool %s, not advertising request" % factory_pool)
+        if len(self.request_credentials) == 0:
             raise NoCredentialException
 
         if file_id_cache is None:
             # create a local cache, if no global provided
             file_id_cache = CredentialCache()
+        
+        # Determine required credentials for the entry
+        factory_trust, factory_auth = self.factory_constraint[params_obj.request_name]
+        factory_auth = AuthenticationMethod(factory_auth)
+        auth_set = factory_auth.match(self.descript_obj.credentials_plugin.cred_list)
+        if not auth_set:
+            logSupport.log.warning(f"No credentials match for factory pool {factory_pool}, not advertising request")
+            # TODO: return?
 
-        payload_strings = [pack_credential(cred.credential) for cred in payload_credentials]
-        params_obj.glidein_params_to_encrypt["PayloadCredentials"] = b",".join(payload_strings)
+        # Pack payload credentials to advertise
+        payload_credentials = self.descript_obj.credentials_plugin.get_credentials(
+            trust_domain=factory_trust, credential_purpose=CredentialPurpose.PAYLOAD
+        )
+        params_obj.glidein_params_to_encrypt["PayloadCredentials"] = CredentialDict.from_list(payload_credentials).pack()
 
-        for name, param in descript_obj.x509_proxies_plugin.params_dict.items():
+        # Prepare parameters to advertise
+        for name, param in self.descript_obj.credentials_plugin.params_dict.items():
             params_obj.glidein_params_to_encrypt[name.value] = param.value
 
-        for credential_el in pilot_credentials:
+        self.descript_obj.credentials_plugin.assign_work(params_obj, self.request_credentials)
+
+        for request_cred in self.request_credentials:
             fd = None
             glidein_monitors_this_cred = {}
             try:
@@ -1197,64 +1178,61 @@ class MultiAdvertizeWork:
                     glidein_params_to_encrypt = {}
                 else:
                     glidein_params_to_encrypt = copy.deepcopy(glidein_params_to_encrypt)
-                classad_name = f"{params_obj.request_name}@{descript_obj.my_name}"
+                classad_name = f"{params_obj.request_name}@{self.descript_obj.my_name}"
 
                 req_idle = 0
                 req_max_run = 0
 
-                logSupport.log.debug(f"Checking Credential file {credential_el.credential.path} ...")
-                if credential_el.advertize == False:
+                logSupport.log.debug(f"Checking Credential file {request_cred.credential.path} ...")
+                if not request_cred.advertize:
                     # We already determined it cannot be used
-                    # if hasattr(credential_el,'filename'):
-                    #    filestr=credential_el.filename
+                    # if hasattr(request_cred,'filename'):
+                    #    filestr=request_cred.filename
                     # logSupport.log.warning("Credential file %s had some earlier problem in loading so not advertizing, skipping..."%(filestr))
                     continue
 
                 # TODO: REFACTOR THIS BLOCK!!!
-                if not credential_el.credential.valid():
-                    logSupport.log.warning(f"Credential file {credential_el.credential.path} has expired, skipping...")
+                if not request_cred.credential.valid():
+                    logSupport.log.warning(f"Credential file {request_cred.credential.path} has expired, skipping...")
                     continue
 
                 if params_obj.request_name in self.factory_constraint:
-                    if not auth_set.supports(credential_el.credential.cred_type):
+                    if not auth_set.supports(request_cred.credential.cred_type):
                         # TODO: Check for credentials refactoring impact
                         logSupport.log.warning(
-                            "Credential %s does not match auth method %s (for %s), skipping..."
-                            % (credential_el.credential.cred_type, factory_auth, params_obj.request_name)
+                            f"Credential {request_cred.credential.cred_type} does not match auth method {factory_auth} (for {params_obj.request_name}), skipping..."
                         )
                         continue
-                    if (credential_el.trust_domain != factory_trust) and (factory_trust != "Any"):
+                    if (request_cred.credential.trust_domain != factory_trust) and (factory_trust != "Any"):
                         logSupport.log.warning(
-                            "Credential %s does not match %s (for %s) domain, skipping..."
-                            % (credential_el.trust_domain, factory_trust, params_obj.request_name)
+                            f"Credential {request_cred.credential.trust_domain} does not match {factory_trust} (for {params_obj.request_name}) domain, skipping..."
                         )
                         continue
                 # Convert the sec class to a string so the Factory can interpret the value correctly
-                glidein_params_to_encrypt["SecurityClass"] = str(credential_el.security_class)
-                classad_name = credential_el.id + "_" + classad_name
+                glidein_params_to_encrypt["SecurityClass"] = str(request_cred.credential.security_class)
+                classad_name = request_cred.credential.id + "_" + classad_name
 
-                glidein_params_to_encrypt[credential_el.credential.classad_attribute] = credential_el.id
-                if credential_el.credential.cred_type is CredentialType.TOKEN:
-                    glidein_params_to_encrypt["frontend_scitoken"] = credential_el.credential.string
-                if isinstance(credential_el.credential, CredentialPair):
+                glidein_params_to_encrypt[request_cred.credential.classad_attribute] = request_cred.credential.id
+                if request_cred.credential.cred_type is CredentialType.TOKEN:
+                    glidein_params_to_encrypt["frontend_scitoken"] = request_cred.credential.string
+                if isinstance(request_cred.credential, CredentialPair):
                     glidein_params_to_encrypt[
-                        credential_el.credential.private_credential.classad_attribute
-                    ] = credential_el.private_id
+                        request_cred.credential.private_credential.classad_attribute
+                    ] = request_cred.credential.private_credential.id
 
                 # TODO: Is this still needed?
                 # # Process additional information of the credential
-                # if credential_el.pilot_fname:
+                # if request_cred.pilot_fname:
                 #     glidein_params_to_encrypt["GlideinProxy"] = file_id_cache.file_id(
-                #         credential_el, credential_el.pilot_fname
+                #         request_cred, request_cred.pilot_fname
                 #     )
 
-                (req_idle, req_max_run) = (credential_el.req_idle, credential_el.req_max_run)
+                (req_idle, req_max_run) = (request_cred.req_idle, request_cred.req_max_run)
                 logSupport.log.debug(
-                    "Advertizing credential %s with (%d idle, %d max run) for request %s"
-                    % (credential_el.credential.path, req_idle, req_max_run, params_obj.request_name)
+                    f"Advertizing credential {request_cred.credential.path} with ({req_idle} idle, {req_max_run} max run) for request {params_obj.request_name}"
                 )
 
-                glidein_monitors_this_cred = params_obj.glidein_monitors_per_cred.get(credential_el.id, {})
+                glidein_monitors_this_cred = params_obj.glidein_monitors_per_cred.get(request_cred.credential.id, {})
 
                 if frontendConfig.advertise_use_multi is True:
                     fname = self.adname
@@ -1266,15 +1244,15 @@ class MultiAdvertizeWork:
                 logSupport.log.debug(f"Writing {fname}")
                 fd = open(fname, "a")
 
-                fd.write('MyType = "%s"\n' % frontendConfig.client_id)
-                fd.write('GlideinMyType = "%s"\n' % frontendConfig.client_id)
-                fd.write('GlideinWMSVersion = "%s"\n' % frontendConfig.glideinwms_version)
-                fd.write('Name = "%s"\n' % classad_name)
-                fd.write("\n".join(descript_obj.get_id_attrs()) + "\n")
-                fd.write('ReqName = "%s"\n' % params_obj.request_name)
-                fd.write('ReqGlidein = "%s"\n' % params_obj.glidein_name)
+                fd.write(f'MyType = "{frontendConfig.client_id}"\n')
+                fd.write(f'GlideinMyType = "{frontendConfig.client_id}"\n')
+                fd.write(f'GlideinWMSVersion = "{frontendConfig.glideinwms_version}"\n')
+                fd.write(f'Name = "{classad_name}"\n')
+                fd.write("\n".join(self.descript_obj.get_id_attrs()) + "\n")
+                fd.write(f'ReqName = "{params_obj.request_name}"\n')
+                fd.write(f'ReqGlidein = "{params_obj.glidein_name}"\n')
 
-                fd.write("\n".join(descript_obj.get_web_attrs()) + "\n")
+                fd.write("\n".join(self.descript_obj.get_web_attrs()) + "\n")
 
                 if params_obj.security_name is not None:
                     glidein_params_to_encrypt["SecurityName"] = params_obj.security_name
@@ -1286,12 +1264,12 @@ class MultiAdvertizeWork:
                             defaults.BINARY_ENCODING_CRYPTO
                         )
 
-                fd.write("ReqIdleGlideins = %i\n" % req_idle)
-                fd.write("ReqMaxGlideins = %i\n" % req_max_run)
-                fd.write('ReqRemoveExcess = "%s"\n' % params_obj.remove_excess_str)
-                fd.write("ReqRemoveExcessMargin = %i\n" % params_obj.remove_excess_margin)
-                fd.write('ReqIdleLifetime = "%s"\n' % params_obj.idle_lifetime)
-                fd.write('WebMonitoringURL = "%s"\n' % descript_obj.monitoring_web_url)
+                fd.write(f"ReqIdleGlideins = {req_idle}\n")
+                fd.write(f"ReqMaxGlideins = {req_max_run}\n")
+                fd.write(f'ReqRemoveExcess = "{params_obj.remove_excess_str}"\n')
+                fd.write(f"ReqRemoveExcessMargin = {params_obj.remove_excess_margin}\n")
+                fd.write(f'ReqIdleLifetime = "{params_obj.idle_lifetime}"\n')
+                fd.write(f'WebMonitoringURL = "{self.descript_obj.monitoring_web_url}"\n')
 
                 # write out both the params
                 classad_info_tuples = (
@@ -1321,7 +1299,7 @@ class MultiAdvertizeWork:
                     advertizeGCCounter[classad_name] += 1
                 else:
                     advertizeGCCounter[classad_name] = 0
-                fd.write("UpdateSequenceNumber = %s\n" % advertizeGCCounter[classad_name])
+                fd.write(f"UpdateSequenceNumber = {advertizeGCCounter[classad_name]}\n")
 
                 # add a final empty line... useful when appending
                 fd.write("\n")

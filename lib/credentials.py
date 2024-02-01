@@ -17,7 +17,7 @@ import base64
 import enum
 import gzip
 import os
-import re
+import pickle
 import shutil
 import sys
 import tempfile
@@ -190,14 +190,24 @@ class Credential(ABC, Generic[T]):
     cred_type: Optional[CredentialType] = None
     classad_attribute: Optional[str] = None
 
-    def __init__(self, string: Optional[bytes] = None, path: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        string: Optional[bytes] = None,
+        path: Optional[str] = None,
+        purpose: Optional[CredentialPurpose] = None,
+        trust_domain: Optional[TrustDomain] = None,
+        security_class: Optional[str] = None,
+    ) -> None:
         self._string = None
         self.path = path
+        self.purpose = purpose
+        self.trust_domain = trust_domain
+        self.security_class = security_class
         if string or path:
             self.load(string, path)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(string={self.string!r}, path={self.path!r}"
+        return f"{self.__class__.__name__}(string={self.string!r}, path={self.path!r}, purpose={self.purpose!r}, trust_domain={self.trust_domain!r}, security_class={self.security_class!r})"
 
     def __str__(self) -> str:
         return self.string.decode() if self.string else ""
@@ -212,6 +222,13 @@ class Credential(ABC, Generic[T]):
     @property
     def string(self) -> Optional[bytes]:
         return self._string
+
+    @property
+    def id(self) -> str:
+        if not str(self.string):
+            raise CredentialError("Credential not initialized")
+
+        return hash_nc(f"{str(self.string)}{self.purpose}{self.trust_domain}{self.security_class}", 8)
 
     @staticmethod
     @abstractmethod
@@ -309,13 +326,18 @@ class CredentialPair:
         path: Optional[str] = None,
         private_string: Optional[bytes] = None,
         private_path: Optional[str] = None,
+        purpose: Optional[CredentialPurpose] = None,
+        trust_domain: Optional[TrustDomain] = None,
+        security_class: Optional[str] = None,
     ) -> None:
         if len(self.__class__.__bases__) < 2 or not issubclass(self.__class__.__bases__[1], Credential):
             raise CredentialError("CredentialPair requires a Credential subclass as second base class")
 
         credential_class = self.__class__.__bases__[1]
-        super(credential_class, self).__init__(string, path)  # pylint: disable=bad-super-call # type: ignore[call-arg]
-        self.private_credential = credential_class(private_string, private_path)
+        super(credential_class, self).__init__(
+            string, path, purpose, trust_domain, security_class
+        )  # pylint: disable=bad-super-call # type: ignore[call-arg]
+        self.private_credential = credential_class(private_string, private_path, purpose, trust_domain, security_class)
 
     def renew(self) -> None:
         try:
@@ -331,6 +353,28 @@ class CredentialDict(dict):
         if not isinstance(__v, Credential):
             raise TypeError("Value must be a credential")
         super().__setitem__(__k, __v)
+    
+    def add(self, credential: Credential, id: Optional[str] = None):
+        if not isinstance(credential, Credential):
+            raise TypeError("Value must be a credential")
+        self[id or credential.id] = credential
+    
+    def pack(self) -> bytes:
+        return pickle.dumps(self)
+    
+    @staticmethod
+    def unpack(data: bytes) -> "CredentialDict":
+        obj = pickle.loads(data)
+        if not isinstance(obj, CredentialDict):
+            raise TypeError("Unpacked object is not a CredentialDict")
+        return obj
+
+    @classmethod
+    def from_list(cls, credentials: Iterable[Credential]) -> "CredentialDict":
+        obj = cls()
+        for credential in credentials:
+            obj.add(credential)
+        return obj
 
 
 class Parameter:
@@ -567,8 +611,11 @@ class X509Pair(CredentialPair, X509Cert):
         path: Optional[str] = None,
         private_string: Optional[bytes] = None,
         private_path: Optional[str] = None,
+        purpose: Optional[CredentialPurpose] = None,
+        trust_domain: Optional[TrustDomain] = None,
+        security_class: Optional[str] = None,
     ) -> None:
-        super().__init__(string, path, private_string, private_path)
+        super().__init__(string, path, private_string, private_path, purpose, trust_domain, security_class)
         self.classad_attribute = "PublicCert"
         self.private_credential.classad_attribute = "PrivateCert"
 
@@ -582,8 +629,11 @@ class UsernamePassword(CredentialPair, TextCredential):
         path: Optional[str] = None,
         private_string: Optional[bytes] = None,
         private_path: Optional[str] = None,
+        purpose: Optional[CredentialPurpose] = None,
+        trust_domain: Optional[TrustDomain] = None,
+        security_class: Optional[str] = None,
     ) -> None:
-        super().__init__(string, path, private_string, private_path)
+        super().__init__(string, path, private_string, private_path, purpose, trust_domain, security_class)
         self.classad_attribute = "Username"
         self.private_credential.classad_attribute = "Password"
 
@@ -591,70 +641,31 @@ class UsernamePassword(CredentialPair, TextCredential):
 class RequestCredential:
     def __init__(
         self,
-        credential: Union[Credential, Generator],
-        purpose: Optional[CredentialPurpose] = None,
-        trust_domain: Optional[TrustDomain] = None,
-        security_class: Optional[str] = None,
+        credential: Credential,
     ):
-        if not isinstance(credential, (Credential, Generator)):
-            raise TypeError("Credential must be a Credential or Generator")
-        if purpose and not isinstance(purpose, CredentialPurpose):
-            raise TypeError("Purpose must be a CredentialPurpose")
-        # if trust_domain and not isinstance(trust_domain, TrustDomain):
-        #     raise TypeError("Trust domain must be a TrustDomain")
-
         self.credential = credential
-        self.purpose = purpose
-        self.trust_domain = trust_domain
-        self.security_class = security_class
-        self.advertize: bool = False
+        self.advertize: bool = True
         self.req_idle: int = 0
         self.req_max_run: int = 0
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(credential={self.credential!r}, purpose={self.purpose!r}, trust_domain={self.trust_domain!r}, security_class={self.security_class!r})"
+        return f"{self.__class__.__name__}(credential={self.credential!s}, advertize={self.advertize}, req_idle={self.req_idle}, req_max_run={self.req_max_run})"
 
     def __str__(self) -> str:
         return f"{self.credential!s}"
-
-    @property
-    def id(self) -> str:
-        if not str(self.credential):
-            raise CredentialError("Credential not initialized")
-
-        return hash_nc(f"{str(self.credential)}{self.purpose}{self.trust_domain}{self.security_class}", 8)
-
-    @property
-    def private_id(self) -> str:
-        if not isinstance(self.credential, CredentialPair):
-            raise CredentialError("Credential must be a CredentialPair")
-        if not self.credential.private_credential.string:
-            raise CredentialError("Private credential not initialized")
-        return hash_nc(
-            f"{self.credential.private_credential.string.decode()}{self.purpose}{self.trust_domain}{self.security_class}",
-            8,
-        )
 
     def add_usage_details(self, req_idle=0, req_max_run=0):
         self.req_idle = req_idle
         self.req_max_run = req_max_run
 
 
-class RequestCredentialDict(dict):
-    def __setitem__(self, __k, __v):
-        if not isinstance(__v, RequestCredential):
-            raise TypeError("Value must be a RequestBundleCredential")
-        super().__setitem__(__k, __v)
-
-
-class RequestBundle:
+class SecurityBundle:
     def __init__(self):
-        self.credentials = RequestCredentialDict()
+        self.credentials = CredentialDict()
         self.parameters = ParameterDict()
 
-    def add_credential(self, credential, id=None, purpose=None, trust_domain=None, security_class=None):
-        rbCredential = RequestCredential(credential, purpose, trust_domain, security_class)
-        self.credentials[id or rbCredential.id] = rbCredential
+    def add_credential(self, credential, credential_id=None):
+        self.credentials[credential_id or credential.id] = credential
 
     def add_parameter(self, parameter: Parameter):
         self.parameters.add(parameter)
@@ -662,20 +673,28 @@ class RequestBundle:
     def load_from_element(self, element_descript):
         for path in element_descript.merged_data["Proxies"]:
             cred_type = credential_type_from_string(element_descript.merged_data["ProxyTypes"].get(path))
-            if isinstance(cred_type, CredentialType):
-                credential = create_credential(path=path, cred_type=cred_type)
-            else:
-                cred_key = element_descript.merged_data["ProxyKeyFiles"].get(path, None)
-                credential = create_credential_pair(path=path, private_path=cred_key, cred_type=cred_type)
             purpose = element_descript.merged_data["CredentialPurposes"].get(path)
             trust_domain = element_descript.merged_data["ProxyTrustDomains"].get(path, "None")
             security_class = element_descript.merged_data["ProxySecurityClasses"].get(path, id)
-            self.add_credential(
-                credential,
-                purpose=CredentialPurpose.from_string(purpose),
-                trust_domain=trust_domain,
-                security_class=security_class,
-            )
+            if isinstance(cred_type, CredentialType):
+                credential = create_credential(
+                    path=path,
+                    purpose=CredentialPurpose.from_string(purpose),
+                    trust_domain=trust_domain,
+                    security_class=security_class,
+                    cred_type=cred_type,
+                )
+            else:
+                cred_key = element_descript.merged_data["ProxyKeyFiles"].get(path, None)
+                credential = create_credential_pair(
+                    path=path,
+                    private_path=cred_key,
+                    purpose=CredentialPurpose.from_string(purpose),
+                    trust_domain=trust_domain,
+                    security_class=security_class,
+                    cred_type=cred_type,
+                )
+            self.add_credential(credential)
         for name, data in element_descript.merged_data["Parameters"].items():
             parameter = create_parameter(
                 ParameterName.from_string(name), data["value"], ParameterType.from_string(data["type"])
@@ -841,14 +860,19 @@ def credential_of_type(
 
 
 def create_credential(
-    string: Optional[bytes] = None, path: Optional[str] = None, cred_type: Optional[CredentialType] = None
+    string: Optional[bytes] = None,
+    path: Optional[str] = None,
+    purpose: Optional[CredentialPurpose] = None,
+    trust_domain: Optional[TrustDomain] = None,
+    security_class: Optional[str] = None,
+    cred_type: Optional[CredentialType] = None,
 ) -> Credential:
     credential_types = [cred_type] if cred_type else CredentialType
     for cred_type in credential_types:
         try:
             credential_class = credential_of_type(cred_type)
             if issubclass(credential_class, Credential):
-                return credential_class(string, path)
+                return credential_class(string, path, purpose, trust_domain, security_class)
         except CredentialError:
             pass  # Credential type incompatible with input
         except Exception as err:
@@ -861,6 +885,9 @@ def create_credential_pair(
     path: Optional[str] = None,
     private_string: Optional[bytes] = None,
     private_path: Optional[str] = None,
+    purpose: Optional[CredentialPurpose] = None,
+    trust_domain: Optional[TrustDomain] = None,
+    security_class: Optional[str] = None,
     cred_type: Optional[CredentialPairType] = None,
 ) -> CredentialPair:
     credential_types = [cred_type] if cred_type else CredentialPairType
@@ -868,7 +895,9 @@ def create_credential_pair(
         try:
             credential_class = credential_of_type(cred_type)
             if issubclass(credential_class, CredentialPair):
-                return credential_class(string, path, private_string, private_path)
+                return credential_class(
+                    string, path, private_string, private_path, purpose, trust_domain, security_class
+                )
         except CredentialError:
             pass
         except Exception as err:
@@ -915,42 +944,6 @@ def create_parameter(name: ParameterName, value: str, param_type: Optional[Param
         except Exception as err:
             raise CredentialError(f'Unexpected error loading parameter: name="{name}", value="{value}"') from err
     raise CredentialError(f'Could not load parameter: name="{name}", value="{value}"')
-
-
-def pack_credential(credential: Credential) -> bytes:
-    if not isinstance(credential, Credential):
-        raise CredentialError("Credential must be a Credential")
-    if not credential.string:
-        raise CredentialError("Credential not initialized")
-    if not credential.cred_type:
-        raise CredentialError("Credential type not defined")
-    string = credential.string
-    cred_type = credential.cred_type.name.encode()
-    path = credential.path.encode() if credential.path else b""
-    private_credential = b""
-    if issubclass(type(credential), CredentialPair):
-        private_string = credential.private_credential.string or b""  # type: ignore[attr-defined]
-        private_path = credential.private_credential.path.encode() if credential.private_credential.path else b""  # type: ignore[attr-defined]
-        private_credential = b":%b:%b" % (private_string, private_path)
-    return b"<%b:%b:%b%b>" % (cred_type, string, path, private_credential)
-
-
-def unpack_credential(packed_credential: bytes) -> Union[Credential, CredentialPair]:
-    m = re.match(
-        rb"^<(?P<cred_type>[^:]+)\:(?P<string>[^:]+)\:(?P<path>[^:>]*)(?:\:(?P<p_string>[^:]*)\:(?P<p_path>[^:>]*))?>$",
-        packed_credential,
-    )
-    if not m:
-        raise CredentialError(f"Invalid credential string: {packed_credential}")
-    cred_type = credential_type_from_string(m.group("cred_type").decode()) if m.group("cred_type") else None
-    string = m.group("string") if m.group("string") else None
-    path = m.group("path").decode() if m.group("path") else None
-    p_string = m.group("p_string") if m.group("p_string") else None
-    p_path = m.group("p_path").decode() if m.group("p_path") else None
-    if type(cred_type) is CredentialType:
-        return create_credential(string, path, cred_type)
-    else:
-        return create_credential_pair(string, path, p_string, p_path, cred_type)
 
 
 def get_scitoken(elementDescript, trust_domain):

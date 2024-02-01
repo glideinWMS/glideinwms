@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 from typing import List, Mapping
 
 from glideinwms.lib import logSupport, util
-from glideinwms.lib.credentials import CredentialType, Parameter, ParameterName, RequestBundle, RequestCredential
+from glideinwms.lib.credentials import Credential, RequestCredential, CredentialType, CredentialPurpose, Parameter, ParameterName, SecurityBundle
 
 from . import glideinFrontendInterface, glideinFrontendLib
 
@@ -51,16 +51,16 @@ from . import glideinFrontendInterface, glideinFrontendLib
 class CredentialsPlugin(ABC):
     """Base class for all credential plugins"""
 
-    def __init__(self, config_dir: str, request_bundle: RequestBundle):
-        self.request_bundle = request_bundle
+    def __init__(self, config_dir: str, security_bundle: SecurityBundle):
+        self.security_bundle = security_bundle
 
     @property
-    def cred_list(self) -> List[RequestCredential]:
-        return list(self.request_bundle.credentials.values())
+    def cred_list(self) -> List[Credential]:
+        return list(self.security_bundle.credentials.values())
 
     @property
     def params_dict(self) -> Mapping[ParameterName, Parameter]:
-        return self.request_bundle.parameters
+        return self.security_bundle.parameters
 
     def get_required_job_attributes(self):
         """what job attributes are used by this plugin
@@ -82,7 +82,15 @@ class CredentialsPlugin(ABC):
         return
 
     @abstractmethod
-    def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
+    def get_credentials(self, credential_type=None, trust_domain=None , credential_purpose=None) -> List[Credential]:
+        pass
+
+    @abstractmethod
+    def get_request_credentials(self, params_obj) -> List[RequestCredential]:
+        pass
+
+    @abstractmethod
+    def assign_work(self, req_creds, params_obj):
         pass
 
 
@@ -92,7 +100,7 @@ class CredentialsAll(CredentialsPlugin):
     This is can be a very useful default policy
     """
 
-    def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None, credential_purpose=None):
+    def get_credentials(self, credential_type=None, trust_domain=None , credential_purpose=None) -> List[Credential]:
         """get the credentials, given the condor_q and condor_status data
 
         Args:
@@ -105,16 +113,24 @@ class CredentialsAll(CredentialsPlugin):
         """
         rtnlist = []
         for cred in self.cred_list:
-            if trust_domain is not None and hasattr(cred, "trust_domain") and cred.trust_domain != trust_domain:
+            if trust_domain and hasattr(cred, "trust_domain") and cred.trust_domain != trust_domain:
                 continue
-            if credential_type is not None and hasattr(cred, "type") and not cred.supports_auth_method(credential_type):
+            if credential_type and hasattr(cred, "cred_type") and cred.cred_type != credential_type:
                 continue
-            if credential_purpose is not None and cred.purpose != credential_purpose:
+            if credential_purpose and cred.purpose != credential_purpose:
                 continue
             rtnlist.append(cred)
-        if params_obj is not None:
-            rtnlist = fair_assign(rtnlist, params_obj)
         return rtnlist
+    
+    def get_request_credentials(self, params_obj=None) -> List[RequestCredential]:
+        pilot_creds = self.get_credentials(credential_purpose=CredentialPurpose.PILOT)
+        req_creds = [RequestCredential(cred) for cred in pilot_creds]
+        if params_obj:
+            self.assign_work(params_obj, req_creds)
+        return req_creds
+    
+    def assign_work(self, params_obj, req_creds):
+        fair_assign(req_creds, params_obj)
 
 
 ###########################################################
@@ -656,16 +672,16 @@ def list2ilist(lst):
 # TODO: Deprecate in favor of createRequestBundle
 def createCredentialList(elementDescript):
     """Creates a list of Credentials for a proxy plugin"""
-    request_bundle = RequestBundle()
-    request_bundle.load_from_element(elementDescript)
-    return request_bundle
+    security_bundle = SecurityBundle()
+    security_bundle.load_from_element(elementDescript)
+    return security_bundle
 
 
 def createRequestBundle(elementDescript):
     """Creates a list of Credentials for a proxy plugin"""
-    request_bundle = RequestBundle()
-    request_bundle.load_from_element(elementDescript)
-    return request_bundle
+    security_bundle = SecurityBundle()
+    security_bundle.load_from_element(elementDescript)
+    return security_bundle
 
 
 def fair_split(i, n, p):
