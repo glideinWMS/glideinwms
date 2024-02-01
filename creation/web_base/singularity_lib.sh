@@ -1322,11 +1322,12 @@ singularity_test_exec() {
     #   sed -r -e 's/\x1b\[[0-9;]*m?//g' -e 's/\x1b[()][A-Z0-9]//g'
     # singularity always creates a user map /proc/self/uid_map with lines (D.Dykstra):
     #   n1  n2  [n3]
+    # There may be no initial blank if n1 is big enough
     # Looking at the first line:
     # if n2 is 0 then it runs in privileged mode
     # if n1 is not 0, the it runs unprivileged as that user
     # if n1 is 0 but n2 not then it runs in fake-root mode (a special unprivileged mode in v3.3)
-    local map_format_regex="^,[0-9]+,[0-9]+,"
+    local map_format_regex="^,?[0-9]+,[0-9]+,"
     local check_singularity singularity_ec
     if [[ -e /proc/self/uid_map ]]; then
         check_singularity="$(singularity_exec_simple "$singularity_bin" "$singularity_image" cat /proc/self/uid_map |
@@ -1357,14 +1358,13 @@ singularity_test_exec() {
         echo "$singularity_mode"
         # true - not needed echo returns true
     elif [[ $singularity_ec -eq 0 ]]; then
-        singularity_mode=privileged
-        warn "Singularity at '$singularity_bin' exited correctly (ec: 0) but returned unexpected output ($check_singularity). Continuing assuming $singularity_mode mode."
-        echo "$singularity_mode"
-        # true - not needed echo returns true
+        # echo singularity_mode (privileged?) and remove false if OK to continue w/ wrong output
+        info "Singularity at '$singularity_bin' exited correctly (ec: 0) but returned unexpected output ($check_singularity). Failing."
+        false
     else
         # test failed
-        [[ "$check_singularity" = ',' ]] && info "Singularity at $singularity_bin failed (ec:$singularity_ec)" ||
-            info "Singularity at '$singularity_bin' failed (ec:$singularity_ec) w/ unexpected output"
+        [[ "$check_singularity" = ',' ]] && info "Singularity at '$singularity_bin' failed (ec:$singularity_ec)" ||
+            info "Singularity at '$singularity_bin' failed (ec:$singularity_ec) w/ unexpected output ($check_singularity)"
         false
     fi
 }
