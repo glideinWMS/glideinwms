@@ -17,7 +17,6 @@ import base64
 import enum
 import gzip
 import os
-import pickle
 import shutil
 import sys
 import tempfile
@@ -358,23 +357,6 @@ class CredentialDict(dict):
         if not isinstance(credential, Credential):
             raise TypeError("Value must be a credential")
         self[id or credential.id] = credential
-    
-    def pack(self) -> bytes:
-        return pickle.dumps(self)
-    
-    @staticmethod
-    def unpack(data: bytes) -> "CredentialDict":
-        obj = pickle.loads(data)
-        if not isinstance(obj, CredentialDict):
-            raise TypeError("Unpacked object is not a CredentialDict")
-        return obj
-
-    @classmethod
-    def from_list(cls, credentials: Iterable[Credential]) -> "CredentialDict":
-        obj = cls()
-        for credential in credentials:
-            obj.add(credential)
-        return obj
 
 
 class Parameter:
@@ -665,7 +647,7 @@ class SecurityBundle:
         self.parameters = ParameterDict()
 
     def add_credential(self, credential, credential_id=None):
-        self.credentials[credential_id or credential.id] = credential
+        self.credentials.add(credential, credential_id)
 
     def add_parameter(self, parameter: Parameter):
         self.parameters.add(parameter)

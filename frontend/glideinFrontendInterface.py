@@ -12,6 +12,7 @@ This module implements the functions needed to advertise and get resources from 
 import calendar
 import copy
 import os
+import pickle
 import time
 
 from glideinwms.lib import symCrypto  # pubCrypto was removed because unused
@@ -30,7 +31,6 @@ from glideinwms.lib.credentials import (
     CredentialPair,
     CredentialPurpose,
     CredentialType,
-    CredentialDict
 )
 from glideinwms.lib.util import hash_nc
 
@@ -1160,7 +1160,7 @@ class MultiAdvertizeWork:
         payload_credentials = self.descript_obj.credentials_plugin.get_credentials(
             trust_domain=factory_trust, credential_purpose=CredentialPurpose.PAYLOAD
         )
-        params_obj.glidein_params_to_encrypt["PayloadCredentials"] = CredentialDict.from_list(payload_credentials).pack()
+        params_obj.glidein_params_to_encrypt["PayloadCredentials"] = pickle.dumps(payload_credentials)
 
         # Prepare parameters to advertise
         for name, param in self.descript_obj.credentials_plugin.params_dict.items():
