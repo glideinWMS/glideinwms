@@ -3,6 +3,29 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+
+Changes since the last release
+
+### New features / functionalities
+
+-   item one of the list
+-   item N
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Fixed Apptainer validation not considering uid_map w/o initial blank (Issue #395, PR #396)
+
+### Testing / Development
+
+### Known Issues
+
 ## v3.10.6 \[2024-01-25\]
 
 Minor new features, mostly a bug fix release
