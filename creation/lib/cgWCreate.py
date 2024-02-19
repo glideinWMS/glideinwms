@@ -162,7 +162,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         submit_attrs = entry.get_child("config").get_child("submit").get_child_list("submit_attrs")
         enc_input_files = []
 
-        enc_input_files.append("$ENV(IDTOKENS_FILE:)")
+        enc_input_files.append("$ENV(IDENTITY_CREDENTIALS:)")
         self.add_environment("IDTOKENS_FILE=$ENV(IDTOKENS_FILE:)")
 
         if gridtype not in ["ec2", "gce"] and not (gridtype == "arc" and auth_method == "grid_proxy"):

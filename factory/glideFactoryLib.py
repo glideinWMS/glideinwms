@@ -21,7 +21,6 @@ import glob
 import os
 import pwd
 import re
-import string
 import tempfile
 import time
 
@@ -35,11 +34,10 @@ from glideinwms.lib import (
     condorManager,
     condorMonitor,
     logSupport,
-    subprocessSupport,
     timeConversion,
     x509Support,
 )
-from glideinwms.lib.credentials import create_credential, Credential, CredentialError
+from glideinwms.lib.credentials import CredentialPair
 from glideinwms.lib.defaults import BINARY_ENCODING
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
@@ -1835,6 +1833,15 @@ def get_submit_environment(
         else:
             # TODO: this ends up transferring an empty file called 'null' in the Glidein start dir. Find a better way
             exe_env.append("IDTOKENS_FILE=/dev/null")
+
+        id_cred_paths = []
+        for cred in submit_credentials.identity_credentials.values():
+            if cred.path:
+                id_cred_paths.append(cred.path)
+            if isinstance(cred, CredentialPair):
+                if cred.private_credential.path:
+                    id_cred_paths.append(cred.private_credential.path)
+        exe_env.append(f"IDENTITY_CREDENTIALS={','.join(id_cred_paths)}")
 
         # The parameter list to be added to the arguments for glidein_startup.sh
         params_str = ""

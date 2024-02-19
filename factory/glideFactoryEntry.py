@@ -9,27 +9,24 @@
 
 
 import copy
-import logging
 import os
 import os.path
+import pickle
 import signal
 import sys
-import tempfile
 import traceback
 
 from glideinwms.factory import glideFactoryConfig, glideFactoryCredentials, glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryInterface as gfi
-from glideinwms.factory import glideFactoryLib, glideFactoryLogParser, glideFactoryMonitoring, glideFactoryPidLib
+from glideinwms.factory import glideFactoryLib, glideFactoryLogParser, glideFactoryMonitoring
 from glideinwms.lib import (
     classadSupport,
     cleanupSupport,
-    credentials,
-    defaults,
     glideinWMSVersion,
     logSupport,
-    token_util,
     util,
 )
+from glideinwms.lib.credentials import SubmitBundle, CredentialPair, CredentialError, create_credential, standard_path
 from glideinwms.lib.defaults import force_bytes
 from glideinwms.lib.util import is_str_safe
 
@@ -1005,7 +1002,19 @@ def check_and_perform_work(factory_in_downtime, entry, work):
 
         # merge work and default params
         params = work[work_key]["params"]
-        decrypted_params = {key: value.decode() for key, value in work[work_key]["params_decrypted"].items()}
+        decrypted_params = {}
+        for key, value in work[work_key]["params_decrypted"].items():
+            decrypted_value = None
+            try:
+                decrypted_value = value.decode()
+            except UnicodeDecodeError:
+                try:
+                    decrypted_value = pickle.loads(value)
+                except pickle.PickleError:
+                    entry.log.exception(f'Failed to load decrypted value for key "{key}", value "{value}".')
+            finally:
+                if decrypted_value is not None:
+                    decrypted_params[key] = decrypted_value
 
         # add default values if not defined
         for k in entry.jobParams.data:
@@ -1051,7 +1060,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             glideFactoryCredentials.check_security_credentials(
                 auth_method, decrypted_params, client_int_name, entry.name, scitoken_passthru
             )
-        except credentials.CredentialError:
+        except CredentialError:
             entry.log.exception("Error checking credentials, skipping request: ")
             continue
 
@@ -1232,14 +1241,14 @@ def unit_work_v3(
         return return_dict
 
     # Initialize submit credential object & determine the credential location
-    submit_credentials = credentials.SubmitBundle(credential_username, credential_security_class)
+    submit_credentials = SubmitBundle(credential_username, credential_security_class)
     submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username)
 
     condortoken_name = f"{entry.name}.idtoken"
     condortoken_file = os.path.join(submit_credentials.cred_dir, f"credential_{client_int_name}_{entry.name}.idtoken")
     condortoken_data = decrypted_params.get(condortoken_name)
     if condortoken_data:
-        condortoken = credentials.create_credential(string=force_bytes(condortoken_data), path=condortoken_file)
+        condortoken = create_credential(string=force_bytes(condortoken_data), path=condortoken_file)
         entry.log.info(f"frontend_token supplied, writing to {condortoken.path}")
         condortoken.save_to_file(backup=True)
         if not submit_credentials.add_identity_credential("frontend_condortoken", condortoken):
@@ -1253,7 +1262,7 @@ def unit_work_v3(
     scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken_name)
     scitoken_data = decrypted_params.get("frontend_scitoken")
     if scitoken_data:
-        scitoken = credentials.create_credential(string=force_bytes(scitoken_data), path=scitoken_file)
+        scitoken = create_credential(string=force_bytes(scitoken_data), path=scitoken_file)
         if not scitoken.valid():
             entry.log.warning(f"Continuing, but the frontend_scitoken supplied is expired: {scitoken_file}")
         entry.log.info(f"frontend_scitoken supplied, writing to {scitoken_file}")
@@ -1264,6 +1273,21 @@ def unit_work_v3(
                 "failed to add frontend_scitoken %s to identity credentials %s"
                 % (scitoken_file, str(submit_credentials.identity_credentials))
             )
+
+    payload_credentials = decrypted_params.get("PayloadCredentials")
+    for cred in payload_credentials:
+        if cred.path:
+            cred.path = os.path.join(submit_credentials.cred_dir, os.path.basename(cred.path))
+            cred.path = standard_path(cred)
+            cred.save_to_file(backup=True)
+        if isinstance(cred, CredentialPair):
+            if cred.private_credential.path:
+                cred.private_credential.path = os.path.join(
+                    submit_credentials.cred_dir, os.path.basename(cred.private_credential.path)
+                )
+                cred.private_credential.path = standard_path(cred.private_credential)
+                cred.private_credential.save_to_file(backup=True)
+        submit_credentials.add_identity_credential(f"CRED_{cred.id}", cred)  # type: ignore[attr-defined]
 
     # Check if project id is required
     if "project_id" in auth_method:
@@ -1279,7 +1303,7 @@ def unit_work_v3(
 
     if "scitoken" in auth_method:
         if os.path.exists(scitoken_file):
-            scitoken = credentials.create_credential(path=scitoken_file)
+            scitoken = create_credential(path=scitoken_file)
             if not scitoken.valid():
                 entry.log.warning(f"Found frontend_scitoken '{scitoken_file}', but is expired. Continuing")
             if "ScitokenId" in decrypted_params:
@@ -1347,9 +1371,7 @@ def unit_work_v3(
                     # create an idtoken file that process_global can find and add to compressed credential
                     _fname_idtoken = f"credential_{client_int_name}_{proxy_id}_idtoken"
                     credential_idtoken_fname = os.path.join(submit_credentials.cred_dir, _fname_idtoken)
-                    condortoken = credentials.create_credential(
-                        string=force_bytes(condortoken_data), path=credential_idtoken_fname
-                    )
+                    condortoken = create_credential(string=force_bytes(condortoken_data), path=credential_idtoken_fname)
                     condortoken.save_to_file(backup=True)
             else:
                 # BOSCO is using regular proxy, not compressed

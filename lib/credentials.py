@@ -33,7 +33,7 @@ import M2Crypto.EVP
 import M2Crypto.X509
 
 from glideinwms.lib import logSupport, pubCrypto, symCrypto
-from glideinwms.lib.generators import Generator, load_generator
+from glideinwms.lib.generators import load_generator
 from glideinwms.lib.util import hash_nc, is_str_safe
 
 sys.path.append("/etc/gwms-frontend/plugin.d")
@@ -188,6 +188,7 @@ class TrustDomain(enum.Enum):
 class Credential(ABC, Generic[T]):
     cred_type: Optional[CredentialType] = None
     classad_attribute: Optional[str] = None
+    extension: Optional[str] = None
 
     def __init__(
         self,
@@ -473,6 +474,7 @@ class CredentialGenerator(Credential[Credential]):
 class Token(Credential[Mapping]):
     cred_type = CredentialType.TOKEN
     classad_attribute = "ScitokenId"  # TODO: We might want to change this name to "TokenId" in the future
+    extension = "jwt"
 
     @property
     def scope(self) -> Optional[str]:
@@ -504,6 +506,7 @@ class Token(Credential[Mapping]):
 class X509Cert(Credential[M2Crypto.X509.X509]):
     cred_type = CredentialType.X509_CERT
     classad_attribute = "SubmitProxy"
+    extension = "pem"
 
     @property
     def pub_key(self) -> Optional[M2Crypto.EVP.PKey]:
@@ -531,6 +534,7 @@ class X509Cert(Credential[M2Crypto.X509.X509]):
 class RSAKey(Credential[pubCrypto.RSAKey]):
     cred_type = CredentialType.RSA_KEY
     classad_attribute = "RSAKey"
+    extension = "rsa"
 
     @property
     def pub_key(self) -> Optional[pubCrypto.PubRSAKey]:
@@ -575,6 +579,7 @@ class RSAKey(Credential[pubCrypto.RSAKey]):
 class TextCredential(Credential[bytes]):
     cred_type = CredentialType.TEXT
     classad_attribute = "AuthFile"
+    extension = "txt"
 
     @staticmethod
     def decode(string: bytes) -> bytes:
@@ -926,6 +931,22 @@ def create_parameter(name: ParameterName, value: str, param_type: Optional[Param
         except Exception as err:
             raise CredentialError(f'Unexpected error loading parameter: name="{name}", value="{value}"') from err
     raise CredentialError(f'Could not load parameter: name="{name}", value="{value}"')
+
+
+def standard_path(cred: Credential) -> str:
+    if not cred.string:
+        raise CredentialError("Credential not initialized")
+    if not cred.path:
+        raise CredentialError("Credential path not set")
+
+    filename = os.path.basename(cred.path)
+    if not filename:
+        raise CredentialError("Credential path is not a file")
+
+    filename = f"credential_{cred.purpose}_{filename}.{cred.extension}"
+    path = os.path.join(os.path.dirname(cred.path), filename)
+
+    return path
 
 
 def get_scitoken(elementDescript, trust_domain):
