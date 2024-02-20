@@ -229,6 +229,29 @@ class Credential(ABC, Generic[T]):
             raise CredentialError("Credential not initialized")
 
         return hash_nc(f"{str(self.string)}{self.purpose}{self.trust_domain}{self.security_class}", 8)
+    
+    @property
+    def purpose(self) -> Optional[CredentialPurpose]:
+        return self._purpose[0]
+    
+    @purpose.setter
+    def purpose(self, value: Optional[Union[CredentialPurpose, str]]):
+        if not value:
+            self._purpose = (None, None)
+        elif isinstance(value, CredentialPurpose):
+            self._purpose = (value, None)
+        elif isinstance(value, str):
+            try:
+                self._purpose = (CredentialPurpose.from_string(value), None)
+            except ValueError:
+                self._purpose = (CredentialPurpose.PAYLOAD, value)
+        else:
+            raise CredentialError(f"Invalid purpose: {value}")
+    
+    @property
+    def purpose_alias(self) -> Optional[str]:
+        if self._purpose[0]:
+            return self._purpose[1] or self._purpose[0].value
 
     @staticmethod
     @abstractmethod
@@ -666,7 +689,7 @@ class SecurityBundle:
             if isinstance(cred_type, CredentialType):
                 credential = create_credential(
                     path=path,
-                    purpose=CredentialPurpose.from_string(purpose),
+                    purpose=purpose,
                     trust_domain=trust_domain,
                     security_class=security_class,
                     cred_type=cred_type,
@@ -676,7 +699,7 @@ class SecurityBundle:
                 credential = create_credential_pair(
                     path=path,
                     private_path=cred_key,
-                    purpose=CredentialPurpose.from_string(purpose),
+                    purpose=purpose,
                     trust_domain=trust_domain,
                     security_class=security_class,
                     cred_type=cred_type,
@@ -943,7 +966,7 @@ def standard_path(cred: Credential) -> str:
     if not filename:
         raise CredentialError("Credential path is not a file")
 
-    filename = f"credential_{cred.purpose}_{filename}.{cred.extension}"
+    filename = f"credential_{cred.purpose_alias}_{filename}.{cred.extension}"
     path = os.path.join(os.path.dirname(cred.path), filename)
 
     return path
