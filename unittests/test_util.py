@@ -15,11 +15,13 @@
 #
 
 
+import os
+import sys
 import unittest
 
 import xmlrunner
 
-from glideinwms.lib.util import safe_boolcomp
+from glideinwms.lib.util import import_module, safe_boolcomp
 
 
 class TestUtils(unittest.TestCase):
@@ -34,6 +36,42 @@ class TestUtils(unittest.TestCase):
         self.assertFalse(safe_boolcomp(False, True))
         self.assertFalse(safe_boolcomp("foo", True))
         self.assertFalse(safe_boolcomp("foo", False))
+
+    def test_import_module(self):
+        # Test import_module with a file path
+        module = import_module("fixtures/test_module.py")
+
+        # Test import_module with a file name and a search path
+        import_module("test_module.py", ["fixtures"])
+        import_module("test_module.py", "fixtures")
+
+        # Test import_module with a module name and a search path
+        import_module("test_module", ["fixtures"])
+        import_module("test_module", "fixtures")
+
+        # Test import_module with a module path
+        import_module("fixtures.test_module")
+
+        # Validate module contents
+        self.assertEqual(module.CONSTANT_ONE, "one")
+        self.assertEqual(module.CONSTANT_TWO, "two")
+        self.assertEqual(module.CONSTANT_THREE, "three")
+        self.assertEqual(module.ClassOne().method_one(), "one")
+        self.assertEqual(module.function_one(), "one")
+        self.assertEqual(module.function_two(), "two")
+        self.assertEqual(module.function_three(), "three")
+
+        # Test import_module with a bad name
+        with self.assertRaises(ImportError):
+            import_module("bad_name")
+
+        # Test import_module with a bad path
+        with self.assertRaises(ValueError):
+            import_module("test", "bad_path")
+
+        # Test import_module with a bad list of paths
+        with self.assertRaises(ValueError):
+            import_module("test", [1])
 
 
 if __name__ == "__main__":
