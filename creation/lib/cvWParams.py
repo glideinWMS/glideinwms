@@ -308,9 +308,9 @@ class VOFrontendParams(cWParams.CommonParams):
             None,
         )
         proxy_defaults["purpose"] = (
-            "pilot",
+            "request",
             "credential purpose",
-            "Purpose of credential: pilot,payload",
+            "Purpose of credential: request,payload",
             None,
         )
         proxy_defaults["trust_domain"] = ("OSG", "grid_type", "Trust Domain", None)

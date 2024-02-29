@@ -11,12 +11,13 @@ import random
 import time
 
 from abc import ABC, abstractmethod
-from typing import List, Mapping
+from typing import List, Mapping, Iterable
 
 from glideinwms.lib import logSupport, util
-from glideinwms.lib.credentials import Credential, RequestCredential, CredentialType, CredentialPurpose, Parameter, ParameterName, SecurityBundle
+from glideinwms.lib.credentials import Credential, RequestCredential, CredentialType, CredentialPurpose, Parameter, ParameterName, SecurityBundle, AuthenticationSet
 
-from . import glideinFrontendInterface, glideinFrontendLib
+from glideinwms.frontend import glideinFrontendLib
+from glideinwms.frontend.glideinFrontendInterface import AdvertizeParams
 
 ################################################################################
 #                                                                              #
@@ -86,15 +87,15 @@ class CredentialsPlugin(ABC):
         pass
 
     @abstractmethod
-    def get_request_credentials(self, params_obj) -> List[RequestCredential]:
+    def get_request_credentials(self) -> List[RequestCredential]:
         pass
 
     @abstractmethod
-    def assign_work(self, req_creds, params_obj):
+    def assign_work(self, req_creds: Iterable[RequestCredential], params_obj: AdvertizeParams, auth_set: AuthenticationSet):
         pass
 
 
-class CredentialsAll(CredentialsPlugin):
+class CredentialsBasic(CredentialsPlugin):
     """This plugin returns all credentials
 
     This is can be a very useful default policy
@@ -122,15 +123,18 @@ class CredentialsAll(CredentialsPlugin):
             rtnlist.append(cred)
         return rtnlist
     
-    def get_request_credentials(self, params_obj=None) -> List[RequestCredential]:
-        pilot_creds = self.get_credentials(credential_purpose=CredentialPurpose.PILOT)
-        req_creds = [RequestCredential(cred) for cred in pilot_creds]
-        if params_obj:
-            self.assign_work(params_obj, req_creds)
+    def get_request_credentials(self) -> List[RequestCredential]:
+        req_creds = self.get_credentials(credential_purpose=CredentialPurpose.REQUEST)
+        req_creds = [RequestCredential(cred) for cred in req_creds]
         return req_creds
     
-    def assign_work(self, params_obj, req_creds):
-        fair_assign(req_creds, params_obj)
+    def assign_work(self, req_creds: Iterable[RequestCredential], params_obj: AdvertizeParams, auth_set: AuthenticationSet):
+        for req_cred in req_creds:
+            if not req_cred.credential.cred_type:
+                continue
+            if auth_set.supports(req_cred.credential.cred_type):
+                req_cred.add_usage_details(params_obj.min_nr_glideins, params_obj.max_run_glideins)
+                return
 
 
 ###########################################################
@@ -751,7 +755,7 @@ def fair_assign(cred_list, params_obj):
 # They should go throug the dictionaries below to find the appropriate plugin
 
 proxy_plugins = {
-    "CredentialsAll": CredentialsAll,
+    "CredentialsBasic": CredentialsBasic,
     "ProxyAll": ProxyAll,
     "ProxyUserRR": ProxyUserRR,
     "ProxyFirst": ProxyFirst,

@@ -41,16 +41,6 @@ plugins = {}
 
 T = TypeVar("T")
 
-SUPPORTED_AUTH_METHODS = [
-    "grid_proxy",
-    "x509_cert",
-    "rsa_key",
-    "auth_file",
-    "username_password",
-    "idtoken",
-    "scitoken",
-]
-
 
 class CredentialError(Exception):
     """defining new exception so that we can catch only the credential errors here
@@ -113,9 +103,7 @@ class CredentialPairType(enum.Enum):
 
 class CredentialPurpose(enum.Enum):
     # TODO: Better define these
-    PILOT = "pilot"
-    FACTORY = "factory"
-    FRONTEND = "frontend"
+    REQUEST = "request"
     PAYLOAD = "payload"
 
     @classmethod
@@ -175,6 +163,7 @@ class ParameterType(enum.Enum):
         return f"{self.__class__.__name__}.{self.name}"
 
 
+# TODO: Define better trust domains
 class TrustDomain(enum.Enum):
     GRID = "grid"
 
@@ -229,11 +218,11 @@ class Credential(ABC, Generic[T]):
             raise CredentialError("Credential not initialized")
 
         return hash_nc(f"{str(self.string)}{self.purpose}{self.trust_domain}{self.security_class}", 8)
-    
+
     @property
     def purpose(self) -> Optional[CredentialPurpose]:
         return self._purpose[0]
-    
+
     @purpose.setter
     def purpose(self, value: Optional[Union[CredentialPurpose, str]]):
         if not value:
@@ -247,7 +236,7 @@ class Credential(ABC, Generic[T]):
                 self._purpose = (CredentialPurpose.PAYLOAD, value)
         else:
             raise CredentialError(f"Invalid purpose: {value}")
-    
+
     @property
     def purpose_alias(self) -> Optional[str]:
         if self._purpose[0]:
@@ -376,7 +365,7 @@ class CredentialDict(dict):
         if not isinstance(__v, Credential):
             raise TypeError("Value must be a credential")
         super().__setitem__(__k, __v)
-    
+
     def add(self, credential: Credential, id: Optional[str] = None):
         if not isinstance(credential, Credential):
             raise TypeError("Value must be a credential")
@@ -763,13 +752,15 @@ class SubmitBundle:
 
 
 class AuthenticationSet:
-    _required_types: Set[Union[CredentialType, ParameterName]] = set()
+    _required_types: Set[Union[CredentialType, CredentialPairType, ParameterName]] = set()
 
-    def __init__(self, cred_types: Iterable[CredentialType]):
-        for cred_type in cred_types:
-            if not isinstance(cred_type, CredentialType):
-                raise TypeError(f"Invalid credential type: {cred_type}")
-        self._required_types = set(cred_types)
+    def __init__(self, set_types: Iterable[CredentialType]):
+        for item_type in set_types:
+            if not isinstance(item_type, CredentialType) and \
+               not isinstance(item_type, CredentialPairType) and \
+               not isinstance(item_type, ParameterName):
+                raise TypeError(f"Invalid credential type: {item_type}")
+        self._required_types = set(set_types)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({super().__repr__()})"
@@ -777,9 +768,21 @@ class AuthenticationSet:
     def __str__(self) -> str:
         return ",".join(str(cred_type) for cred_type in self._required_types)
 
-    def supports(self, cred_type: Union[CredentialType, str]) -> bool:
+    def supports(self, cred_type: Union[CredentialType, CredentialPairType, ParameterName, str]) -> bool:
         if isinstance(cred_type, str):
-            cred_type = CredentialType.from_string(cred_type)
+            str_type = cred_type
+            try:
+                cred_type = CredentialType.from_string(str_type)
+            except CredentialError:
+                pass
+            try:
+                cred_type = CredentialPairType.from_string(str_type)
+            except CredentialError:
+                pass
+            try:
+                cred_type = ParameterName.from_string(str_type)
+            except CredentialError:
+                pass
         return cred_type in self._required_types
 
     def satisfied_by(self, cred_types: Iterable[CredentialType]) -> bool:
@@ -809,24 +812,35 @@ class AuthenticationMethod:
             else:
                 options = []
                 for option in group.split(","):
+                    parsed_option = None
                     try:
-                        options.append(CredentialType.from_string(option))
+                        parsed_option = CredentialType.from_string(option)
                     except CredentialError:
-                        try:
-                            options.append(ParameterName.from_string(option))
-                        except CredentialError:
-                            raise CredentialError(f"Unknown authentication requirement: {option}")
+                        pass
+                    try:
+                        parsed_option = CredentialPairType.from_string(option)
+                    except CredentialError:
+                        pass
+                    try:
+                        parsed_option = ParameterName.from_string(option)
+                    except CredentialError:
+                        pass
+                    if parsed_option:
+                        options.append(parsed_option)
+                    else:
+                        raise CredentialError(f"Unknown authentication requirement: {option}")
                 self._requirements.append(options)
 
-    def match(self, credentials: Iterable[Credential]) -> Optional[AuthenticationSet]:
+    def match(self, security_bundle: SecurityBundle) -> Optional[AuthenticationSet]:
         if not self._requirements:
             return AuthenticationSet([])
 
         auth_set = []
-        cred_types = {credential.cred_type for credential in credentials if credential.valid()}
+        sec_items = {credential.cred_type for credential in security_bundle.credentials.values() if credential.valid()}
+        sec_items.update({parameter for parameter in security_bundle.parameters.keys()})
         for group in self._requirements:
             for option in group:
-                if option in cred_types:
+                if option in sec_items:
                     auth_set.append(option)
                     break
                 return None

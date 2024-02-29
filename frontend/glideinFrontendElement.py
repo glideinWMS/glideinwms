@@ -799,7 +799,7 @@ class glideinFrontendElement:
             # Credential specific stats are not presented anywhere except the
             # classad. Monitoring info in frontend and factory shows
             # aggregated info considering all the credentials
-            pilot_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.PILOT)
+            pilot_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.REQUEST)
             creds_with_running = 0
 
             for cred in pilot_creds:
@@ -2215,7 +2215,7 @@ class glideinFrontendElement:
         """
         out = ()
 
-        pilot_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.PILOT)
+        pilot_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.REQUEST)
 
         count_status_multi = {}
         # Count distribution per credentials
