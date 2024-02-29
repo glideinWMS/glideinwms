@@ -26,7 +26,7 @@ from glideinwms.lib import (
     logSupport,
     util,
 )
-from glideinwms.lib.credentials import SubmitBundle, CredentialPair, CredentialError, create_credential, standard_path
+from glideinwms.lib.credentials import SubmitBundle, CredentialPair, CredentialPurpose, CredentialError, create_credential, standard_path
 from glideinwms.lib.defaults import force_bytes
 from glideinwms.lib.util import is_str_safe
 
@@ -1274,8 +1274,9 @@ def unit_work_v3(
                 % (scitoken_file, str(submit_credentials.identity_credentials))
             )
 
-    payload_credentials = decrypted_params.get("PayloadCredentials")
-    for cred in payload_credentials:
+    credentials_to_save =  decrypted_params.get("RequestCredentials")
+    credentials_to_save += decrypted_params.get("PayloadCredentials")
+    for cred in credentials_to_save:
         if cred.path:
             cred.path = os.path.join(submit_credentials.cred_dir, os.path.basename(cred.path))
             cred.path = standard_path(cred)
@@ -1287,7 +1288,8 @@ def unit_work_v3(
                 )
                 cred.private_credential.path = standard_path(cred.private_credential)
                 cred.private_credential.save_to_file(backup=True)
-        submit_credentials.add_identity_credential(f"CRED_{cred.id}", cred)  # type: ignore[attr-defined]
+        if cred.purpose == CredentialPurpose.PAYLOAD:  # type: ignore[attr-defined]
+            submit_credentials.add_identity_credential(f"{cred.id}", cred)  # type: ignore[attr-defined]
 
     # Check if project id is required
     if "project_id" in auth_method:
