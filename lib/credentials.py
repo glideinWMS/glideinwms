@@ -163,17 +163,6 @@ class ParameterType(enum.Enum):
         return f"{self.__class__.__name__}.{self.name}"
 
 
-# TODO: Define better trust domains
-class TrustDomain(enum.Enum):
-    GRID = "grid"
-
-    def __str__(self) -> str:
-        return self.value
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}.{self.name}"
-
-
 class Credential(ABC, Generic[T]):
     cred_type: Optional[CredentialType] = None
     classad_attribute: Optional[str] = None
@@ -184,7 +173,7 @@ class Credential(ABC, Generic[T]):
         string: Optional[bytes] = None,
         path: Optional[str] = None,
         purpose: Optional[CredentialPurpose] = None,
-        trust_domain: Optional[TrustDomain] = None,
+        trust_domain: Optional[str] = None,
         security_class: Optional[str] = None,
     ) -> None:
         self._string = None
@@ -339,14 +328,14 @@ class CredentialPair:
         private_string: Optional[bytes] = None,
         private_path: Optional[str] = None,
         purpose: Optional[CredentialPurpose] = None,
-        trust_domain: Optional[TrustDomain] = None,
+        trust_domain: Optional[str] = None,
         security_class: Optional[str] = None,
     ) -> None:
         if len(self.__class__.__bases__) < 2 or not issubclass(self.__class__.__bases__[1], Credential):
             raise CredentialError("CredentialPair requires a Credential subclass as second base class")
 
         credential_class = self.__class__.__bases__[1]
-        super(credential_class, self).__init__(
+        super(credential_class, self).__init__(  # pylint: disable=bad-super-call # type: ignore[call-arg]
             string, path, purpose, trust_domain, security_class
         )  # pylint: disable=bad-super-call # type: ignore[call-arg]
         self.private_credential = credential_class(private_string, private_path, purpose, trust_domain, security_class)
@@ -611,7 +600,7 @@ class X509Pair(CredentialPair, X509Cert):
         private_string: Optional[bytes] = None,
         private_path: Optional[str] = None,
         purpose: Optional[CredentialPurpose] = None,
-        trust_domain: Optional[TrustDomain] = None,
+        trust_domain: Optional[str] = None,
         security_class: Optional[str] = None,
     ) -> None:
         super().__init__(string, path, private_string, private_path, purpose, trust_domain, security_class)
@@ -629,7 +618,7 @@ class UsernamePassword(CredentialPair, TextCredential):
         private_string: Optional[bytes] = None,
         private_path: Optional[str] = None,
         purpose: Optional[CredentialPurpose] = None,
-        trust_domain: Optional[TrustDomain] = None,
+        trust_domain: Optional[str] = None,
         security_class: Optional[str] = None,
     ) -> None:
         super().__init__(string, path, private_string, private_path, purpose, trust_domain, security_class)
@@ -887,7 +876,7 @@ def create_credential(
     string: Optional[bytes] = None,
     path: Optional[str] = None,
     purpose: Optional[CredentialPurpose] = None,
-    trust_domain: Optional[TrustDomain] = None,
+    trust_domain: Optional[str] = None,
     security_class: Optional[str] = None,
     cred_type: Optional[CredentialType] = None,
 ) -> Credential:
@@ -910,7 +899,7 @@ def create_credential_pair(
     private_string: Optional[bytes] = None,
     private_path: Optional[str] = None,
     purpose: Optional[CredentialPurpose] = None,
-    trust_domain: Optional[TrustDomain] = None,
+    trust_domain: Optional[str] = None,
     security_class: Optional[str] = None,
     cred_type: Optional[CredentialPairType] = None,
 ) -> CredentialPair:
