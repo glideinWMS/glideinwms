@@ -53,15 +53,16 @@ exit_wrapper() {
     local sleep_time=${3:-$EXITSLEEP}
     local publish_fail
     # Publish the error so that HTCondor understands that is a wrapper error and retries the job
+    # The message is flattened (\n\r removed) when writing to HTCondor because it does not support multiline strings (see bug HTCONDOR-2305)
     if [[ -n "$_CONDOR_WRAPPER_ERROR_FILE" ]]; then
         warn "Wrapper script failed, creating condor log file: $_CONDOR_WRAPPER_ERROR_FILE"
-        echo "Wrapper script $GWMS_THIS_SCRIPT failed ($exit_code): $1" >>"$_CONDOR_WRAPPER_ERROR_FILE"
+        echo "Wrapper script $GWMS_THIS_SCRIPT failed ($exit_code): ${1//$'\r\n']/  /}" >>"$_CONDOR_WRAPPER_ERROR_FILE"
     else
         publish_fail="HTCondor error file"
     fi
     # If chirp (pychirp) is available set a job attribute
     if command -v condor_chirp >/dev/null 2>&1; then
-        condor_chirp set_job_attr JobWrapperFailure "Wrapper script $GWMS_THIS_SCRIPT failed ($exit_code): $1"
+        condor_chirp set_job_attr JobWrapperFailure "Wrapper script $GWMS_THIS_SCRIPT failed ($exit_code): ${1//$'\r\n']/  /}"
     else
         [[ -n "$publish_fail" ]] && publish_fail="${publish_fail} and "
         publish_fail="${publish_fail}condor_chirp"
