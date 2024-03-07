@@ -26,12 +26,7 @@ from glideinwms.lib import (
     logSupport,
     x509Support,
 )
-from glideinwms.lib.credentials import (
-    AuthenticationMethod,
-    CredentialPair,
-    CredentialPurpose,
-    CredentialType,
-)
+from glideinwms.lib.credentials import AuthenticationMethod, CredentialPair, CredentialPurpose, CredentialType
 from glideinwms.lib.util import hash_nc
 
 ############################################################
@@ -1207,9 +1202,9 @@ class MultiAdvertizeWork:
             if request_cred.credential.cred_type is CredentialType.TOKEN:
                 glidein_params_to_encrypt["frontend_scitoken"] = request_cred.credential.string
             if isinstance(request_cred.credential, CredentialPair):
-                glidein_params_to_encrypt[request_cred.credential.private_credential.classad_attribute] = (
-                    request_cred.credential.private_credential.id
-                )
+                glidein_params_to_encrypt[
+                    request_cred.credential.private_credential.classad_attribute
+                ] = request_cred.credential.private_credential.id
 
             # Encrypt parameters
             encrypted_params = {}
@@ -1294,7 +1289,7 @@ class MultiAdvertizeWork:
                     os.remove(fname)
                 raise
                 # TODO: Should we revert the changes done to advertizeGCCounter[classad_name]?
-            
+
             cred_filename_arr.append(fname)
 
             logSupport.log.debug(

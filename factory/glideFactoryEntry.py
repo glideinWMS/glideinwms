@@ -19,14 +19,15 @@ import traceback
 from glideinwms.factory import glideFactoryConfig, glideFactoryCredentials, glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryInterface as gfi
 from glideinwms.factory import glideFactoryLib, glideFactoryLogParser, glideFactoryMonitoring
-from glideinwms.lib import (
-    classadSupport,
-    cleanupSupport,
-    glideinWMSVersion,
-    logSupport,
-    util,
+from glideinwms.lib import classadSupport, cleanupSupport, glideinWMSVersion, logSupport, util
+from glideinwms.lib.credentials import (
+    create_credential,
+    CredentialError,
+    CredentialPair,
+    CredentialPurpose,
+    standard_path,
+    SubmitBundle,
 )
-from glideinwms.lib.credentials import SubmitBundle, CredentialPair, CredentialPurpose, CredentialError, create_credential, standard_path
 from glideinwms.lib.defaults import force_bytes
 from glideinwms.lib.util import is_str_safe
 
@@ -1274,7 +1275,7 @@ def unit_work_v3(
                 % (scitoken_file, str(submit_credentials.identity_credentials))
             )
 
-    credentials_to_save =  decrypted_params.get("RequestCredentials")
+    credentials_to_save = decrypted_params.get("RequestCredentials")
     credentials_to_save += decrypted_params.get("PayloadCredentials")
     for cred in credentials_to_save:
         if cred.path:

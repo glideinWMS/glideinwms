@@ -864,9 +864,9 @@ class glideinFrontendElement:
                         logSupport.log.debug("could NOT find condor token: %s" % entry_token_name)
 
                 # now try to generate a credential using a generator plugin
-                generator_name, stkn = credentials.generate_credential(
-                    self.elementDescript, glidein_el, self.group_name, trust_domain
-                )
+                # generator_name, stkn = credentials.generate_credential(
+                #     self.elementDescript, glidein_el, self.group_name, trust_domain
+                # )
 
                 # TODO: Remove this code once we are sure the new credentials work properly
                 #

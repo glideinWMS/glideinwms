@@ -11,13 +11,21 @@ import random
 import time
 
 from abc import ABC, abstractmethod
-from typing import List, Mapping, Iterable
-
-from glideinwms.lib import logSupport, util
-from glideinwms.lib.credentials import Credential, RequestCredential, CredentialType, CredentialPurpose, Parameter, ParameterName, SecurityBundle, AuthenticationSet
+from typing import Iterable, List, Mapping
 
 from glideinwms.frontend import glideinFrontendLib
 from glideinwms.frontend.glideinFrontendInterface import AdvertizeParams
+from glideinwms.lib import logSupport, util
+from glideinwms.lib.credentials import (
+    AuthenticationSet,
+    Credential,
+    CredentialPurpose,
+    CredentialType,
+    Parameter,
+    ParameterName,
+    RequestCredential,
+    SecurityBundle,
+)
 
 ################################################################################
 #                                                                              #
@@ -83,7 +91,7 @@ class CredentialsPlugin(ABC):
         return
 
     @abstractmethod
-    def get_credentials(self, credential_type=None, trust_domain=None , credential_purpose=None) -> List[Credential]:
+    def get_credentials(self, credential_type=None, trust_domain=None, credential_purpose=None) -> List[Credential]:
         pass
 
     @abstractmethod
@@ -91,7 +99,9 @@ class CredentialsPlugin(ABC):
         pass
 
     @abstractmethod
-    def assign_work(self, req_creds: Iterable[RequestCredential], params_obj: AdvertizeParams, auth_set: AuthenticationSet):
+    def assign_work(
+        self, req_creds: Iterable[RequestCredential], params_obj: AdvertizeParams, auth_set: AuthenticationSet
+    ):
         pass
 
 
@@ -101,7 +111,7 @@ class CredentialsBasic(CredentialsPlugin):
     This is can be a very useful default policy
     """
 
-    def get_credentials(self, credential_type=None, trust_domain=None , credential_purpose=None) -> List[Credential]:
+    def get_credentials(self, credential_type=None, trust_domain=None, credential_purpose=None) -> List[Credential]:
         """get the credentials, given the condor_q and condor_status data
 
         Args:
@@ -122,13 +132,15 @@ class CredentialsBasic(CredentialsPlugin):
                 continue
             rtnlist.append(cred)
         return rtnlist
-    
+
     def get_request_credentials(self) -> List[RequestCredential]:
         req_creds = self.get_credentials(credential_purpose=CredentialPurpose.REQUEST)
         req_creds = [RequestCredential(cred) for cred in req_creds]
         return req_creds
-    
-    def assign_work(self, req_creds: Iterable[RequestCredential], params_obj: AdvertizeParams, auth_set: AuthenticationSet):
+
+    def assign_work(
+        self, req_creds: Iterable[RequestCredential], params_obj: AdvertizeParams, auth_set: AuthenticationSet
+    ):
         for req_cred in req_creds:
             if not req_cred.credential.cred_type:
                 continue
