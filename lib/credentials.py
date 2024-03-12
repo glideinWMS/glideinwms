@@ -355,6 +355,28 @@ class Credential(ABC, Generic[T]):
         else:
             raise CredentialError("No string or path specified")
 
+    def copy(self) -> "Credential":
+        """
+        Create a copy of the credential.
+
+        Returns:
+            Credential: The static credential.
+
+        Raises:
+            CredentialError: If the credential is not initialized.
+        """
+
+        if not self.string:
+            raise CredentialError("Credential not initialized")
+        return create_credential(
+            string=self.string,
+            path=self.path,
+            purpose=self.purpose,
+            trust_domain=self.trust_domain,
+            security_class=self.security_class,
+            cred_type=self.cred_type,
+        )
+
     def save_to_file(
         self,
         path: Optional[str] = None,
@@ -482,6 +504,30 @@ class CredentialPair:
         except NotImplementedError:
             pass
 
+    def copy(self) -> "CredentialPair":
+        """
+        Create a copy of the credential pair.
+
+        Returns:
+            CredentialPair: The static credential pair.
+
+        Raises:
+            CredentialError: If the credential pair is not initialized.
+        """
+
+        if not self.string:  # pylint: disable=no-member # type: ignore[attr-defined]
+            raise CredentialError("Credential pair not initialized")
+        return create_credential_pair(
+            string=self.string,  # pylint: disable=no-member # type: ignore[attr-defined]
+            path=self.path,  # pylint: disable=no-member # type: ignore[attr-defined]
+            private_string=self.private_credential.string,
+            private_path=self.private_credential.path,
+            purpose=self.purpose,  # pylint: disable=no-member # type: ignore[attr-defined]
+            trust_domain=self.trust_domain,  # pylint: disable=no-member # type: ignore[attr-defined]
+            security_class=self.security_class,  # pylint: disable=no-member # type: ignore[attr-defined]
+            cred_type=self.cred_type,
+        )
+
 
 # Dictionary of Credentials
 class CredentialDict(dict):
@@ -525,7 +571,12 @@ class CredentialGenerator(Credential[Credential]):
     classad_attribute = "CredentialGenerator"
 
     def __init__(
-        self, string: Optional[bytes] = None, path: Optional[str] = None
+        self,
+        string: Optional[bytes] = None,
+        path: Optional[str] = None,
+        purpose: Optional[CredentialPurpose] = None,
+        trust_domain: Optional[str] = None,
+        security_class: Optional[str] = None,
     ) -> None:  # pylint: disable=super-init-not-called
         if not string:
             string = path.encode() if path else None
@@ -533,6 +584,9 @@ class CredentialGenerator(Credential[Credential]):
             raise CredentialError("No string or path specified")
         self._string = string
         self.path = None
+        self.purpose = purpose
+        self.trust_domain = trust_domain
+        self.security_class = security_class
         self.load(string)
 
     def __renew__(self) -> None:

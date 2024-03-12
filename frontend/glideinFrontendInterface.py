@@ -1153,14 +1153,14 @@ class MultiAdvertizeWork:
             raise NoCredentialException
 
         # Pack payload credentials to send with the request
-        payload_creds = self.descript_obj.credentials_plugin.get_credentials(
+        payload_creds = [cred.copy() for cred in self.descript_obj.credentials_plugin.get_credentials(
             trust_domain=factory_trust, credential_purpose=CredentialPurpose.PAYLOAD
-        )
+        )]
         params_obj.glidein_params_to_encrypt["PayloadCredentials"] = pickle.dumps(payload_creds)
 
         # Pack request credentials to send with the request
         request_creds = [
-            rc.credential for rc in self.request_credentials if rc.credential.trust_domain == factory_trust
+            rc.credential.copy() for rc in self.request_credentials if rc.credential.trust_domain == factory_trust
         ]
         params_obj.glidein_params_to_encrypt["RequestCredentials"] = pickle.dumps(request_creds)
 
