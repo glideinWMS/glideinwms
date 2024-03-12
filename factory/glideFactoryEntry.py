@@ -1278,10 +1278,11 @@ def unit_work_v3(
     credentials_to_save = decrypted_params.get("RequestCredentials")
     credentials_to_save += decrypted_params.get("PayloadCredentials")
     for cred in credentials_to_save:
-        if cred.path:
-            cred.path = os.path.join(submit_credentials.cred_dir, os.path.basename(cred.path))
-            cred.path = standard_path(cred)
-            cred.save_to_file(backup=True)
+        if not cred.path:
+            cred.path = cred.id
+        cred.path = os.path.join(submit_credentials.cred_dir, os.path.basename(cred.path))
+        cred.path = standard_path(cred)
+        cred.save_to_file(backup=True)
         if isinstance(cred, CredentialPair):
             if cred.private_credential.path:
                 cred.private_credential.path = os.path.join(
