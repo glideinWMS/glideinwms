@@ -95,7 +95,7 @@ def poll_group_process(group_name, child):
         pass  # ignore
     try:
         tempErr = child.stderr.read()
-        if tempOut:
+        if tempErr:
             logSupport.log.warning(f"[{group_name}]: {tempErr}")
     except OSError:
         pass  # ignore
