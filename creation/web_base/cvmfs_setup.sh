@@ -118,7 +118,7 @@ if [[ $cvmfsexec_mode -eq 3 || $cvmfsexec_mode -eq 2 ]]; then
     export GLIDEIN_CVMFS_REPOS="$GLIDEIN_CVMFS_REPOS"
 
     exec "$glidein_cvmfsexec_dir"/"$dist_file" -- "$GWMS_STARTUP_SCRIPT"
-    echo "!!WARNING!! Outside of reinvocation of glidein_startup"   
+    echo "!!WARNING!! Outside of reinvocation of glidein_startup"
     # the above line of code should not run; but is here as a safety check for debugging incorrect behavior of exec from previous line
 fi
 # the following is run if cvmfsexec cannot be used in mode 3/2
@@ -160,5 +160,5 @@ else
     fi
     # if CVMFS is not required, display operating system information and a user-friendly message
     "$error_gen" -ok "$(basename $0)" "WN_Resource" "Non-RHEL OS found but not supported; continuing without CVMFS setup"
-    return 0   
+    return 0
 fi
