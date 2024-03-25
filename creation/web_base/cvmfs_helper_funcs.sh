@@ -187,7 +187,7 @@ perform_system_check() {
 
     [[ $GWMS_OS_VERSION_MAJOR -ge 9 ]] && dnf list installed fuse3* &>/dev/null || yum list installed fuse &>/dev/null
     GWMS_IS_FUSE_INSTALLED=$?
-    
+
     [[ $GWMS_OS_VERSION_MAJOR -ge 9 ]] && fusermount3 -V &>/dev/null || fusermount -V &>/dev/null
     GWMS_IS_FUSERMOUNT=$?
 
@@ -426,7 +426,7 @@ has_fuse() {
                 loginfo "FUSE requirements not satisfied: user is not in fuse group"
                 ret_state=no
             fi
-        fi        
+        fi
     else
         # unprivileged user namespaces is either enabled or disabled
         if [[ "${GWMS_IS_FUSERMOUNT}" -eq 0 ]]; then
@@ -455,7 +455,7 @@ determine_cvmfsexec_mode_usage() {
 
     # make sure that perform_system_check has run
     [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
-    
+
     # check what specific configuration of unprivileged user namespaces exists in the system (worker node)
     unpriv_userns_status=$(has_unpriv_userns)
 
@@ -528,7 +528,7 @@ setup_cvmfsexec_use() {
 
 
 prepare_for_cvmfs_mount () {
-    # DESCRIPTION: This function is used to prepare the necessary items and keep them ready/accessible right before mounting CVMFS on demand. 
+    # DESCRIPTION: This function is used to prepare the necessary items and keep them ready/accessible right before mounting CVMFS on demand.
     #
     # INPUT(S): None
     # RETURN(S): None
@@ -590,7 +590,7 @@ prepare_for_cvmfs_mount () {
 
 
 perform_cvmfs_mount () {
-    # DESCRIPTION: This function serves as a wrapper for performing mounting of CVMFS on demand depending on a few factors. 
+    # DESCRIPTION: This function serves as a wrapper for performing mounting of CVMFS on demand depending on a few factors.
     #
     # INPUT(S): an integer denoting the selected cvmfsexec mode
     # RETURN(S): to stdout one of the following values:
@@ -613,7 +613,7 @@ perform_cvmfs_mount () {
         return 2
         # ----- Further Implementation: TBD (To Be Done) ----- #
     fi
-   
+
     prepare_for_cvmfs_mount
     if [[ $mode -eq 3 || $mode -eq 2 ]]; then
         return       # only prepare but do not actually mount (later in glidein reinvocation, mounting will be performed)
