@@ -39,7 +39,10 @@ variables_reset() {
 
     # following set of variables used to store operating system and kernel info
     GWMS_OS_DISTRO=
-    GWMS_OS_VERSION=
+    GWMS_OS_NAME=
+    GWMS_OS_VERSION_FULL=
+    GWMS_OS_VERSION_MAJOR=
+    GWMS_OS_VERSION_MINOR=
     GWMS_OS_KRNL_ARCH=
     GWMS_OS_KRNL_NUM=
     GWMS_OS_KRNL_VER=
@@ -107,7 +110,13 @@ print_exit_status () {
     [[ $1 -eq 0 ]] && echo yes || echo no
 }
 
+
 detect_local_cvmfs() {
+    # DESCRIPTION: This function detects whether CVMFS is natively (aka locally) available on the worker node. The result is stored in a common variable, i.e. GWMS_IS_CVMFS_LOCAL_MNT, and can be used downstream.
+    #
+    # INPUT(S): None
+    # RETURN(S): None
+
     CVMFS_ROOT="/cvmfs"
     repo_name=oasis.opensciencegrid.org
     # Second check...
@@ -120,8 +129,9 @@ detect_local_cvmfs() {
         GWMS_IS_CVMFS_LOCAL_MNT=1
     fi
 
-    loginfo "CVMFS locally installed: $(print_exit_status $GWMS_IS_CVMFS_LOCAL_MNT)"
+    loginfo "Worker node has native CVMFS: $(print_exit_status $GWMS_IS_CVMFS_LOCAL_MNT)"
 }
+
 
 perform_system_check() {
     # DESCRIPTION: This functions performs required system checks (such as
@@ -137,13 +147,28 @@ perform_system_check() {
     # 	-> assigns "yes" to GWMS_SYSTEM_CHECK to indicate this function
     # 	has been run.
 
-    if [[ -f "/etc/redhat-release" ]]; then
-        GWMS_OS_DISTRO=rhel
-    else
-        GWMS_OS_DISTRO=non-rhel
+    # reset all variables used in this script's namespace before executing the rest of the script
+    # variables_reset
+
+    # local user_namespaces
+    if [[ -f '/etc/redhat-release' ]]; then
+        # rhel derivative; use /etc/redhat-release to fetch the release information
+        # NOTE: using /etc/redhat-release over /etc/os-release as it is more consistent to rely on
+        GWMS_OS_DISTRO="rhel"
+        # GWMS_OS_DISTRO="non-rhel"
+        #GWMS_OS_VERSION_FULL=$(cat /etc/redhat-release | cut -d " " -f 3)
+        else
+        # not a rhel derivative; use /etc/os-release instead [fallback option]
+        GWMS_OS_DISTRO="non-rhel"
+        #GWMS_OS_VERSION_FULL=$(cat /etc/os-release | egrep "VERSION_ID" | cut -d = -f 2 | tr -d '"')
     fi
 
-    GWMS_OS_VERSION=$(lsb_release -r | awk -F'\t' '{print $2}')
+    # source the os-release file to access the variables defined
+    . /etc/os-release
+    GWMS_OS_VERSION_FULL=$VERSION_ID
+    GWMS_OS_VERSION_MAJOR=$(echo "$GWMS_OS_VERSION_FULL" | awk -F'.' '{print $1}')
+    GWMS_OS_VERSION_MINOR=$(echo "$GWMS_OS_VERSION_FULL" | awk -F'.' '{print $2}')
+    GWMS_OS_NAME=${NAME,,}
     GWMS_OS_KRNL_ARCH=$(arch)
     GWMS_OS_KRNL_NUM=$(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " )
     GWMS_OS_KRNL_VER=$(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " | awk -F'.' '{print $1}')
@@ -151,21 +176,19 @@ perform_system_check() {
     GWMS_OS_KRNL_MINOR_REV=$(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " | awk -F'.' '{print $3}')
     GWMS_OS_KRNL_PATCH_NUM=$(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 2 -d " ")
 
-    #df -h | grep /cvmfs &>/dev/null
-    #GWMS_IS_CVMFS_LOCAL_MNT=$?
     # call function to detect local CVMFS only if the GWMS_IS_CVMFS_LOCAL_MNT variable is not set; if the variable is not empty, do nothing
     [[ -z "${GWMS_IS_CVMFS_LOCAL_MNT}" ]] && detect_local_cvmfs || :
 
-    sysctl user.max_user_namespaces &>/dev/null
+    cat /proc/sys/user/max_user_namespaces &>/dev/null
     GWMS_IS_UNPRIV_USERNS_SUPPORTED=$?
 
     unshare -U true &>/dev/null
     GWMS_IS_UNPRIV_USERNS_ENABLED=$?
 
-    yum list installed *fuse* &>/dev/null
+    [[ $GWMS_OS_VERSION_MAJOR -ge 9 ]] && dnf list installed fuse3* &>/dev/null || yum list installed fuse &>/dev/null
     GWMS_IS_FUSE_INSTALLED=$?
-
-    fusermount -V &>/dev/null
+    
+    [[ $GWMS_OS_VERSION_MAJOR -ge 9 ]] && fusermount3 -V &>/dev/null || fusermount -V &>/dev/null
     GWMS_IS_FUSERMOUNT=$?
 
     getent group fuse | grep $USER &>/dev/null
@@ -183,7 +206,7 @@ print_os_info () {
     # INPUT(S): None
     # RETURN(S): Prints a message containing OS and kernel details
 
-    loginfo "Found $GWMS_OS_DISTRO${GWMS_OS_VERSION}-${GWMS_OS_KRNL_ARCH} with kernel $GWMS_OS_KRNL_NUM-$GWMS_OS_KRNL_PATCH_NUM"
+    loginfo "Found $GWMS_OS_NAME [$GWMS_OS_DISTRO] ${GWMS_OS_VERSION_FULL}-${GWMS_OS_KRNL_ARCH} with kernel $GWMS_OS_KRNL_NUM-$GWMS_OS_KRNL_PATCH_NUM"
 }
 
 
@@ -197,12 +220,16 @@ log_all_system_info () {
     # INPUT(S): None
     # RETURN(S): Prints user-friendly messages to STDOUT
 
+    # make sure that perform_system_check has run
+    [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
+    print_os_info
     loginfo "..."
     loginfo "Worker node details: "
     loginfo "Hostname: $(hostname)"
     loginfo "Operating system distro: $GWMS_OS_DISTRO"
-    loginfo "Operating System version: $GWMS_OS_VERSION"
-    loginfo "Kernel Architecture: $GWMS_OS_KRNL_ARCH"
+    loginfo "Operating system name: $GWMS_OS_NAME"
+    loginfo "Operating system version: $GWMS_OS_VERSION_FULL"
+    loginfo "Kernel architecture: $GWMS_OS_KRNL_ARCH"
     loginfo "Kernel version: $GWMS_OS_KRNL_VER"
     loginfo "Kernel major revision: $GWMS_OS_KRNL_MAJOR_REV"
     loginfo "Kernel minor revision: $GWMS_OS_KRNL_MINOR_REV"
@@ -230,19 +257,28 @@ mount_cvmfs_repos () {
     local cvmfsexec_mode=$1
     local config_repository=$2
     local additional_repos=$3
+    local config_repo_mntd num_repos_mntd total_num_repos
 
+    # if using mode 3, config repo should have been mounted already
+    # otherwise if using mode 1, mount the config repo now...
     if [[ $cvmfsexec_mode -eq 1 ]]; then
-        "$glidein_cvmfsexec_dir/$dist_file" "$1" -- echo "setting up mount utilities..." &> /dev/null
+        "$glidein_cvmfsexec_dir/$dist_file" "$config_repository" -- echo "setting up mount utilities..." &> /dev/null
     fi
     # at this point in the execution flow, it would have been determined that cvmfs is not locally available
-    # which implies no repositories are mounted but only config repo will be mounted
+    # this implies no repositories should be mounted. However, only config repo will be mounted if in mode 1 or mode 3 by this point
     if [[ $(df -h|grep /cvmfs|wc -l) -eq 1 ]]; then
         loginfo "CVMFS config repo already mounted!"
     else
-        # mounting the configuration repo (pre-requisite)
+        # mounting the configuration repo (pre-requisite) in case something went wrong previously
         loginfo "Mounting CVMFS config repo now..."
         [[ $cvmfsexec_mode -eq 1 ]] && "$glidein_cvmfsexec_dir"/.cvmfsexec/mountrepo "$config_repository"
         [[ $cvmfsexec_mode -eq 3 ]] && $CVMFSMOUNT "$config_repository"
+    fi
+    # see if the config repository got mounted
+    config_repo_mntd=$(df -h | grep /cvmfs | wc -l)
+    if [[ config_repo_mntd -eq 0 ]]; then
+        logwarn "One or more CVMFS repositories might not be mounted on the worker node"
+        return 1
     fi
 
     # using an array to unpack the names of additional CVMFS repositories
@@ -270,22 +306,24 @@ mount_cvmfs_repos () {
     GWMS_IS_CVMFS=0
     if [[ "$num_repos_mntd" -eq "$total_num_repos" ]]; then
         loginfo "All CVMFS repositories mounted successfully on the worker node"
-        echo 0
+        # export this info to the glidein environment after CVMFS is provisioned on demand
+        gconfig_add GWMS_IS_CVMFS $(print_exit_status $GWMS_IS_CVMFS)
+        get_mount_point
+        return 0
     else
         logwarn "One or more CVMFS repositories might not be mounted on the worker node"
         GWMS_IS_CVMFS=1
-        echo 1
+        return 1
     fi
-
-    # export this info to the glidein environment after CVMFS is provisioned on demand
-    gconfig_add GWMS_IS_CVMFS $(print_exit_status $GWMS_IS_CVMFS)
-
-    get_mount_point
 }
 
 
 get_mount_point() {
-    # TODO: Verify the findmnt ... will always find the correct CVMFS mount
+    # DESCRIPTION: This function is used to obtain the mount point information regarding where CVMFS is mounted on deman (when mounted). By default, CVMFS when mounted is at '/cvmfs'. Otherwise, CVMFS will be mounted at <glidein_work_dir>/.cvmfsexec/dist/cvmfs
+    #
+    # INPUT(S): None
+    # RETURN(S): None
+
     mount_point=$(findmnt -t fuse -S /dev/fuse | tail -n 1 | cut -d ' ' -f 1 )
     if [[ -n "$mount_point" && "$mount_point" != TARGET* ]]; then
         mount_point=$(dirname "$mount_point")
@@ -300,7 +338,7 @@ get_mount_point() {
 
 has_unpriv_userns() {
     # DESCRIPTION: This function checks the status of unprivileged user
-    # namespaces being supported and enabled on the worker node. Depending
+    # namespaces being supported and enabled on the worker node.
     #
     # INPUT(S): None
     # RETURN(S):
@@ -312,26 +350,26 @@ has_unpriv_userns() {
     # make sure that perform_system_check has run
     [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
 
-    # determine whether unprivileged user namespaces are supported and/or enabled...
+    # determine whether unprivileged user namespaces are supported and enabled...
     if [[ "${GWMS_IS_UNPRIV_USERNS_ENABLED}" -eq 0 ]]; then
-        # unprivileged user namespaces is enabled
+        # if unprivileged user namespaces is enabled in the system
         if [[ "${GWMS_IS_UNPRIV_USERNS_SUPPORTED}" -eq 0 ]]; then
-            # unprivileged user namespaces is supported
+            # check if unprivileged user namespaces is supported by the system
             loginfo "Unprivileged user namespaces supported and enabled"
             echo enabled
-	    return 0
-	fi
-        # unprivileged user namespaces is not supported
-        logerror "Inconsistent system configuration: unprivileged userns is enabled but not supported"
+	        return 0
+        fi
+        # otherwise, if unprivileged user namespaces is not supported by the system
+        logerror "Inconsistent system configuration: unprivileged usernamespaces is enabled but not supported"
         echo error
     else
-        # unprivileged user namespaces is disabled
+        # if unprivileged user namespaces is found to be disabled
         if [[ "${GWMS_IS_UNPRIV_USERNS_SUPPORTED}" -eq 0 ]]; then
             # unprivileged user namespaces is supported
             logwarn "Unprivileged user namespaces disabled: can be enabled by the root user via sysctl"
             echo disabled
         else
-            # unprivileged user namespaces is not supported
+            # otherwise, if unprivileged user namespaces is also not supported by the system
             logwarn "Unprivileged user namespaces disabled and unsupported: can be supported/enabled only after a system upgrade"
             echo unavailable
         fi
@@ -341,48 +379,34 @@ has_unpriv_userns() {
 
 
 has_fuse() {
-    # DESCRIPTION: This function checks FUSE-related configurations on the
-    # worker node. This is a pre-requisite before evaluating whether CVMFS
-    # is mounted on the filesystem.
-    #
-    # FUSE Documentation references:
-    # https://www.kernel.org/doc/html/latest/filesystems/fuse.html
-    # https://en.wikipedia.org/wiki/Filesystem_in_Userspace
+    # DESCRIPTION: This function checks the status of FUSE configuration being available on the worker node.
     #
     # INPUT(S): None
-    # RETURN(S): string denoting fuse availability (yes, no, error)
+    # RETURN(S):
+    #	-> true (0) if FUSE is available, false otherwise
+    #	-> status of FUSE configuration (no, yes, error) to stdout
 
     # make sure that perform_system_check has run
     [[ -n "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
 
-    # check what specific configuration of unprivileged user namespaces exists in the system (worker node)
-    local unpriv_userns_status
-    unpriv_userns_status=$(has_unpriv_userns)
-
-    # exit from the script if unprivileged namespaces are not supported but enabled in the kernel
-    if [[ "${unpriv_userns_status}" == error ]]; then
-        "$error_gen" -error "$(basename $0)" "WN_Resource" "Unprivileged user namespaces are not supported but enabled in the kernel! Check system configuration."
-        exit 1
-    fi
-
-    # determine if mountrepo/umountrepo could be used by checking availability of fuse, fusermount and user being in fuse group...
-    if [[ "${GWMS_IS_FUSE_INSTALLED}" -eq 0 ]]; then
+    # determine which cvmfsexec utilities can be used by checking availability of fuse, fusermount and user being in fuse group...
+    if [[ "${GWMS_IS_FUSE_INSTALLED}" -ne 0 ]]; then
         # fuse is not installed
-	if [[ "${GWMS_IS_FUSERMOUNT}" -eq 0 ]]; then
-	    # fusermount is somehow available and user is/is not in fuse group (scenarios 3,4)
-	    logwarn "Inconsistent system configuration: fusermount is only available with fuse and/or when user belongs to the fuse group"
+	    if [[ "${GWMS_IS_FUSERMOUNT}" -eq 0 ]]; then
+	        # fusermount is somehow available and user is/is not in fuse group (scenarios 3,4)
+	        logwarn "Inconsistent system configuration: fusermount is only available with fuse and/or when user belongs to the fuse group"
             echo error
         else
             # fusermount is not available and user is/is not in fuse group (scenarios case 1,2)
             loginfo "FUSE requirements not satisfied: fusermount is not available"
             echo no
         fi
-	return 1
+	    return 1
     fi
 
-    # fuse is installed
+    # fuse rpm is installed
     local ret_state
-    if [[ $unpriv_userns_status == unavailable ]]; then
+    if [[ $unpriv_userns_status = "unavailable" ]]; then
         # unprivileged user namespaces unsupported, i.e. kernels 2.x (scenarios 5b,6b)
         if [[ "${GWMS_IS_USR_IN_FUSE_GRP}" -eq 0 ]]; then
             # user is in fuse group -> fusermount is available (scenario 6b)
@@ -402,40 +426,71 @@ has_fuse() {
                 loginfo "FUSE requirements not satisfied: user is not in fuse group"
                 ret_state=no
             fi
-        fi
+        fi        
     else
         # unprivileged user namespaces is either enabled or disabled
         if [[ "${GWMS_IS_FUSERMOUNT}" -eq 0 ]]; then
-            # fusermount is available (scenarios 7,8)
+            # fuse is installed with fusermount available (scenarios 7,8)
             loginfo "FUSE requirements met by the worker node"
             ret_state=yes
         else
-            # fusermount is not available (scenarios 5a,6a)
+            # fuse is installed but fusermount not available (scenarios 5a,6a)
             logwarn "Inconsistent system configuration: fusermount is not available when fuse is installed "
             ret_state=error
         fi
     fi
-    echo ret_state
+    echo $ret_state
     [[ "$ret_state" == "yes" ]]
     return
 }
 
 
-evaluate_worker_node_config () {
-    # DESCRIPTION: This function evaluates the worker using FUSE and
-    # unpriv. userns configurations to determine whether CVMFS can be
-    # mounted using mountrepo utility.
+determine_cvmfsexec_mode_usage() {
+    # DESCRIPTION: This function is used to determine the cvmfsexec mode that will be applicable based on the worker node specifications, including the status of unprivileged user namespaces and FUSE configuration.
     #
     # INPUT(S): None
-    # RETURN(S): string message whether CVMFS can be mounted
+    # RETURN(S):
+    #	-> true (0) if it is determined that one of the three cvmfsexec modes can be used, false otherwise
+    #	-> an integer indicating the mode of cvmfsexec that will be possible (0, 1, 2, 3) to stdout
 
-    # collect info about FUSE configuration on the worker node
+    # make sure that perform_system_check has run
+    [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
+    
+    # check what specific configuration of unprivileged user namespaces exists in the system (worker node)
+    unpriv_userns_status=$(has_unpriv_userns)
+
+    # check FUSE configuration on the worker node
     fuse_config_status=$(has_fuse)
 
-    # check fuse related configurations in the system (worker node)
-    if [[ $fuse_config_status == yes ]]; then
-        # success;
-        loginfo "CVMFS can be mounted and unmounted on the worker node using mountrepo/umountrepo utility"
+    if [[ "${unpriv_userns_status}" == "error" && "${fuse_config_status}" == "error" ]]; then
+        logwarn "User namespaces and fuse mounts not available in unprivileged mode"
+        echo 0
+        return 1
+    fi
+    # either 1. if unprivileged user namespaces are enabled (and therefore supported)
+    if  [[ "${unpriv_userns_status}" == "enabled" ]]; then
+        # satisfies the minimum requirement for mode 3
+        if [[ $GWMS_OS_KRNL_VER -ge 5 || $GWMS_OS_KRNL_VER -ge 4 && $GWMS_OS_KRNL_MAJOR_REV -ge 18 || $GWMS_OS_KRNL_VER -ge 3 && $GWMS_OS_KRNL_MAJOR_REV -ge 10 && $GWMS_OS_KRNL_MINOR_REV -ge 0 && $GWMS_OS_KRNL_PATCH_NUM -ge 1127 ]]; then
+            # if newer kernels >= 4.18 (RHEL8) or >= 3.10.0-1127 (RHEL 7.8), cvmfsexec can be used in mode 3
+            echo 3
+            return 0
+        fi
+        # if RHEL <= 7.7, cvmfsexec can be used in mode 2
+        echo 2
+        return 0
+    elif [[ "${unpriv_userns_status}" =~ ^(disabled|unavailable)$ ]]; then
+        # when unpriv. userns are disabled/not available, take FUSE status into consideration
+        if [[ "${fuse_config_status}" != "yes" ]]; then
+            # cvmfsexec cannot be used in either of the three modes
+            loginfo "cvmfsexec cannot be used in either of the three modes!"
+            echo 0
+            return 1
+        fi
+    fi
+    # or 2. solely based on fuse status on the worker node, determine whether any of the cvmfsexec modes can be used
+    if [[ "${fuse_config_status}" == "yes" ]]; then
+        # cvmfsexec can be used in mode 1
+        echo 1
         return 0
     fi
     if [[ $fuse_config_status == no ]]; then
@@ -445,19 +500,41 @@ evaluate_worker_node_config () {
         # inconsistent system configurations detected in the worker node
         logerror "Detected inconsistent configurations on the worker node. mountrepo utility cannot be used!!"
     fi
+    echo 0
     return 1
 }
 
 
-prepare_for_cvmfs_mount () {
-    # reset all variables used in this script's namespace before executing the rest of the script
-    variables_reset
+setup_cvmfsexec_use() {
+    # DESCRIPTION: This function performs the necessary setup prior to using cvmfsexec, if possible. If cvmfsexec can be used in either of the three modes, the specific mode information is written to the glidein configuration file.
+    #
+    # INPUT(S): None
+    # RETURN(S): an integer depicting the cvmfsexec mode that is applicable for the worker node.
 
-    # perform checks on the worker node that will be used to assess whether CVMFS can be mounted or not
-    perform_system_check
+    local gwms_cvmfsexec_mode
+    # first we perform checks on the worker node that will be used to assess whether cvmfsexec can be used and if yes, which mode of cvmfsexec can be used
+    [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
 
-    # print/display all information pertaining to system checks performed previously (facilitates easy troubleshooting)
+    # second, log the results of the checks that were performed in the previous step
     log_all_system_info
+
+    # finally, using the results obtained from the checks, determine which mode of cvmfsexec can be used
+    gwms_cvmfsexec_mode=$(determine_cvmfsexec_mode_usage)
+    if [[ $gwms_cvmfsexec_mode -ne 0 ]]; then
+        gconfig_add GWMS_CVMFSEXEC_MODE $gwms_cvmfsexec_mode
+    fi
+    echo $gwms_cvmfsexec_mode
+}
+
+
+prepare_for_cvmfs_mount () {
+    # DESCRIPTION: This function is used to prepare the necessary items and keep them ready/accessible right before mounting CVMFS on demand. 
+    #
+    # INPUT(S): None
+    # RETURN(S): None
+
+    # if not previously performed, perform checks on the worker node that will be used to assess whether CVMFS can be mounted or not
+    [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
 
     # get the CVMFS source information from <attr> in the glidein configuration
     cvmfs_source=$(gconfig_get CVMFS_SRC "$glidein_config")
@@ -465,16 +542,27 @@ prepare_for_cvmfs_mount () {
     # get the directory where cvmfsexec is unpacked
     glidein_cvmfsexec_dir=$(gconfig_get CVMFSEXEC_DIR "$glidein_config")
 
-    # get the CVMFS requirement setting passed as one of the factory attributes
-    glidein_cvmfs=$(gconfig_get GLIDEIN_CVMFS "$glidein_config")
-
-    # # gather the worker node information; perform_system_check sets a few variables that can be helpful here
+    # gather the worker node information to construct the name of the cvmfsexec distribution file based on the worker node specs
+    # perform_system_check sets a few variables that can be helpful here
     os_like=$GWMS_OS_DISTRO
-    os_ver=$(echo "$GWMS_OS_VERSION" | awk -F'.' '{print $1}')
+    os_ver=$GWMS_OS_VERSION_MAJOR
     arch=$GWMS_OS_KRNL_ARCH
     # construct the name of the cvmfsexec distribution file based on the worker node specs
     dist_file=cvmfsexec-${cvmfs_source}-${os_like}${os_ver}-${arch}
     # the appropriate distribution file does not have to manually untarred as the glidein setup takes care of this automatically
+
+    if [[ ! -d "$glidein_cvmfsexec_dir" && ! -f "${glidein_cvmfsexec_dir}/${dist_file}" ]]; then
+        # neither the cvmfsexec directory nor the cvmfsexec distribution is found -- this happens when a directory named 'cvmfsexec' does not exist on the glidein because an appropriate distribution tarball is not found in the list of all the available tarballs and was not unpacked [trying to unpack osg-rhel8 on osg-rhel7 worker node]
+        # if use_cvmfsexec is set to 1, then warn that cvmfs will not be mounted and flag an error
+        logerror "Error occured during preparing for cvmfs setup: None of the available cvmfsexec distributions is compatible with the worker node specifications."
+        "$error_gen" -error "$(basename $0)" "WN_Resource" "Error occured during cvmfs setup... no matching cvmfsexec distribution available."
+        exit 1
+    elif [[ -d "$glidein_cvmfsexec_dir" && ! -f "${glidein_cvmfsexec_dir}/${dist_file}" ]]; then
+        # something might have gone wrong during the unpacking of the tarball into the glidein_cvmfsexec_dir
+        logerror "Something went wrong during the unpacking of the cvmfsexec distribution tarball!"
+        "$error_gen" -error "$(basename $0)" "WN_Resource" "Error: Something went wrong during the unpacking of the cvmfsexec distribution tarball"
+        exit 1
+    fi
 
     loginfo "CVMFS Source = $cvmfs_source"
     # initializing CVMFS repositories to a variable for easy modification in the future
@@ -502,57 +590,37 @@ prepare_for_cvmfs_mount () {
 
 
 perform_cvmfs_mount () {
-    # by this point, it would have been established that CVMFS is not locally available
-    # so, install CVMFS via mode 1 of cvmfsexec (mountrepo) or mode 3 of cvmfsexec (cvmfsexec)
-    loginfo "CVMFS is NOT locally mounted on the worker node! Mounting now..."
+    # DESCRIPTION: This function serves as a wrapper for performing mounting of CVMFS on demand depending on a few factors. 
+    #
+    # INPUT(S): an integer denoting the selected cvmfsexec mode
+    # RETURN(S): to stdout one of the following values:
+    #	-> true (0) if CVMFS was mounted successfully without any errors
+    #	-> false (1) if CVMFS was not mounted successfully due to errors
+    #   -> false (2) if CVMFS was not mounted because the OS distribution found on the worker node is not rhel-based (only RHEL distros are supported as of now).
+
+    local mode=$1
+    # if not previously performed, assess the worker node based on its existing system configurations and perform next steps to mount CVMFS
+    [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
+
+    # if strict requirement of CVMFS mounting is not set to 'never' (i.e. 'required' or 'preferred')
+    # by this point, it would have been established that CVMFS is not locally available, so install CVMFS via one of the three modes of cvmfsexec
+    loginfo "Mounting CVMFS on demand using mode $mode of cvmfsexec"
     # check the operating system distribution
-    #if [[ $GWMS_OS_DISTRO = RHEL ]]; then
-    # evaluate the worker node's system configurations to decide whether CVMFS can be mounted or not
-    loginfo "Evaluating the worker node..."
-    # display operating system information
-    print_os_info
-
-    local cvmfsexec_mode=$1
-    # check whether the strict requirement of CVMFS mounting is defined (in the factory configuration)
-    if [[ $glidein_cvmfs = never ]]; then
-	    # do nothing; test the node and print the results but do not even try to mount CVMFS
-            # just continue with glidein startup
-            "$error_gen" -ok "$(basename $0)" "msg" "Not trying to install CVMFS."
-	    return 0
+    if [[ "${GWMS_OS_DISTRO}" != "rhel" ]]; then
+        # if operating system distribution is non-RHEL (any non-rhel OS)
+        print_os_info
+        logwarn "This is a non-RHEL OS and is not covered in the implementation yet!"
+        return 2
+        # ----- Further Implementation: TBD (To Be Done) ----- #
     fi
-
-    # if strict requirement of CVMFS mounting is not set to 'never' (i.e. 'required', 'preferred', or 'optional')
-    # assess the worker node based on its existing system configurations and perform next steps accordingly
-    if evaluate_worker_node_config ; then
-	    # if evaluation was true, then proceed to mount CVMFS
-        loginfo "Mounting CVMFS repositories..."
-        if ! mount_cvmfs_repos $cvmfsexec_mode $GLIDEIN_CVMFS_CONFIG_REPO $GLIDEIN_CVMFS_REPOS ; then
-            if [[ $glidein_cvmfs = preferred || $glidein_cvmfs = optional ]]; then
-                # if mount CVMFS is not successful, report a warning/error in the logs and continue with glidein startup
-                # script status must be OK, otherwise the glidein will fail
-                "$error_gen" -ok "$(basename $0)" "WN_Resource" "Unable to mount required CVMFS on the worker node. Continuing without CVMFS."
-                exit 0
-            fi
-            if [[ $glidein_cvmfs = required ]]; then
-                # if mount CVMFS is not successful, report an error and exit with failure exit code
-                "$error_gen" -error "$(basename $0)" "WN_Resource" "CVMFS is required but unable to mount CVMFS on the worker node."
-            else
-                "$error_gen" -error "$(basename $0)" "WN_Resource" "Invalid factory attribute value specified for CVMFS requirement."
-            fi
-            exit 1
-        fi
-    else
-        # if evaluation of the worker node was false, then exit from this activity of mounting CVMFS
-        "$error_gen" -error "$(basename $0)" "WN_Resource" "Worker node configuration did not pass the evaluation checks. CVMFS will not be mounted."
-        exit 1
+   
+    prepare_for_cvmfs_mount
+    if [[ $mode -eq 3 || $mode -eq 2 ]]; then
+        return       # only prepare but do not actually mount (later in glidein reinvocation, mounting will be performed)
     fi
-    #else
-    # if operating system distribution is non-RHEL (any non-rhel OS)
-    # display operating system information and a user-friendly message
-    #print_os_info
-    #logwarn "This is a non-RHEL OS and is not covered in the implementation yet!"
-    # ----- Further Implementation: TBD (To Be Done) ----- #
-    #fi
-
-    #fi
+    loginfo "Mounting CVMFS repositories..."
+    if ! mount_cvmfs_repos $mode $GLIDEIN_CVMFS_CONFIG_REPO $GLIDEIN_CVMFS_REPOS ; then
+        return 1
+    fi
+    return 0
 }
