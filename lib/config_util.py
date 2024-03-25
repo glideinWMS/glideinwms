@@ -273,7 +273,7 @@ def update(data, update_data, overwrite=True):
         if value is None:
             if key in data:
                 del data[key]
-        elif isinstance(value, collections.Mapping):
+        elif isinstance(value, collections.abc.Mapping):
             sub_data = data.get(key, {})
             if sub_data is not None:
                 data[key] = update(sub_data, value, overwrite)

@@ -106,9 +106,9 @@ class SubParams(Mapping):
                         # list of elements
                         if isinstance(self.data[k], OrderedDict):
                             if len(list(self.data[k].keys())) == 0:
-                                self.data[
-                                    k
-                                ] = []  # XML does not know if an empty list is a dictionary or not.. fix this
+                                self.data[k] = (
+                                    []
+                                )  # XML does not know if an empty list is a dictionary or not.. fix this
 
                         mylist = self[k]
                         if not isinstance(mylist, list):
