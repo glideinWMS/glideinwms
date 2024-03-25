@@ -8,6 +8,15 @@
 #   This scripts runs all the others
 
 ############################
+
+printenv GWMS_CVMFS_REEXEC > /dev/null
+status=$?
+if [[ "$status" -eq 0 ]]; then
+    echo "Now reinvoking glidein startup..."
+    gwms_cvmfs_reexec=$(printenv GWMS_CVMFS_REEXEC | sed s"/ //g")
+else
+    gwms_cvmfs_reexec=$(grep "^GWMS_CVMFS_REEXEC " "${glidein_config}" | cut -d ' ' -f 2-)
+fi
 # Customizable and initialization variables
 
 # Default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
@@ -16,11 +25,14 @@ IFS=$' \t\n'
 # Some sites empty PATH. Setting a reasonable default
 if [[ -z "$PATH" ]]; then
     export PATH="/bin:/usr/bin"
+elif [[ -z "$gwms_cvmfs_reexec" ]]; then
+    export PATH="/usr/sbin:$PATH"
 fi
 
 global_args="$*"
 # GWMS_STARTUP_SCRIPT=$0
 GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+export GWMS_STARTUP_SCRIPT=${GWMS_STARTUP_SCRIPT}       # for glidein reinvocation
 GWMS_PATH=""
 # Relative to the work directory (GWMS_DIR, gwms_lib_dir, gwms_bin_dir and gwms_exec_dir will be the absolute paths)
 # bin (utilities), lib (libraries), exec (aux scripts to be executed/sourced, e.g. pre-job)
@@ -1175,8 +1187,6 @@ fetch_file_base() {
             if [[ "${ffb_file_type}" = "exec:s" ]]; then
                 "${main_dir}/singularity_wrapper.sh" "${ffb_outname}" glidein_config "${ffb_id}"
             elif [[ "${ffb_file_type}" = "exec:r" ]]; then
-                echo "INSIDE EXEC:r BLOCK..."
-                echo "###### Sourcing $ffb_outname script ############"
                 . "${ffb_outname}" glidein_config "${ffb_id}"
             else
                 "${ffb_outname}" glidein_config "${ffb_id}"
@@ -1265,7 +1275,6 @@ add_to_path() {
     export PATH="${tmp_path%:}"
 }
 
-
 fixup_condor_dir() {
     # All files in the native condor tarballs have a directory like condor-9.0.11-1-x86_64_CentOS7-stripped
     # However the (not used anymore) gwms create_condor_tarball removes that dir
@@ -1320,20 +1329,6 @@ usage() {
 #####################################################################
 #################### Execution starts here.... ######################
 #####################################################################
-
-printenv GWMS_CVMFS_REEXEC # > /dev/null
-status=$?
-if [[ "$status" -eq 0 ]]; then
-    echo ".....(RE)START OF GLIDEIN_STARTUP.SH....."
-    gwms_cvmfs_reexec=$(printenv GWMS_CVMFS_REEXEC | sed s"/ //g")
-    echo "GWMS_CVMFS_REEXEC (inside reinvocation) set to $gwms_cvmfs_reexec"
-    echo "work_dir variable (right after invocation): $work_dir"        # should print nothing because the reinvocation is happening through an exec
-else
-    # echo "glidein_config set to $glidein_config"
-    echo ".....START OF GLIDEIN_STARTUP.SH....."
-    gwms_cvmfs_reexec=$(grep "^GWMS_CVMFS_REEXEC " "${glidein_config}" | cut -d ' ' -f 2-)
-    echo "GWMS_CVMFS_REEXEC set to $gwms_cvmfs_reexec"
-fi
 
 if [[ -z "$gwms_cvmfs_reexec" ]]; then
     # if GWMS_CVMFS_REEXEC is empty, then this script is being invoked the first time; so proceed with usual glidein setup...
@@ -1444,6 +1439,7 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
         usage
     fi
 
+    export REPOSITORY_URL=$repository_url   # for glidein reinvocation
     repository_entry_url="${repository_url}/entry_${glidein_entry}"
 
     if [ -z "${proxy_url}" ]; then
@@ -1506,7 +1502,9 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
                 warn "Missing client descript fname for group."
                 usage
             fi
+            export CLIENT_REPOSITORY_GROUP_URL=$client_repository_group_url     # for glidein reinvocation
         fi
+        export CLIENT_REPOSITORY_URL=$client_repository_url     # for glidein reinvocation
     fi
 
     # Generate glidein UUID
@@ -1519,6 +1517,7 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
     # Print initial variables values (argumants and environment)
     startup_time="$(date +%s)"
     echo "Starting glidein_startup.sh at $(date) (${startup_time})"
+    export STARTUP_TIME=$startup_time   # for glidein reinvocation
 
     echo "script_checksum   = '$(md5wrapper "$0")'"
     echo "debug_mode        = '${operation_mode}'"
@@ -1675,6 +1674,7 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
         fi
     fi
     work_dir_created=1
+    export GLIDEIN_WORK_DIR=${GLIDEIN_WORK_DIR}     # for glidein reinvocation
 
     # GWMS_SUBDIR defined on top
     GWMS_DIR="${work_dir}/$GWMS_SUBDIR"
@@ -1685,10 +1685,12 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
     if ! mkdir -p "$gwms_lib_dir" ; then
         early_glidein_failure "Cannot create lib dir '$gwms_lib_dir'"
     fi
+    export GWMS_LIB_DIR=${gwms_lib_dir}     # for glidein reinvocation
     gwms_bin_dir="${GWMS_DIR}/bin"
     if ! mkdir -p "$gwms_bin_dir" ; then
         early_glidein_failure "Cannot create bin dir '$gwms_bin_dir'"
     fi
+    export GWMS_BIN_DIR=${gwms_bin_dir}     # for glidein reinvocation
     gwms_exec_dir="${GWMS_DIR}/exec"
     if ! mkdir -p "$gwms_exec_dir" ; then
         early_glidein_failure "Cannot create exec dir '$gwms_exec_dir'"
@@ -1696,7 +1698,11 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
         for i in setup prejob postjob cleanup setup_singularity ; do
             mkdir -p "$gwms_exec_dir"/$i
         done
+        export GWMS_EXEC_DIR=${gwms_exec_dir}   # for glidein reinvocation
     fi
+    # below lines for glidein reinvocation
+    export GWMS_SUBDIR=${GWMS_SUBDIR}
+    export GWMS_DIR=${GWMS_DIR}
 
     # mktemp makes it user readable by definition (ignores umask)
     # TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
@@ -1736,12 +1742,14 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
     if ! mkdir "${main_dir}"; then
         early_glidein_failure "Cannot create '${main_dir}'"
     fi
+    export GWMS_MAIN_DIR=${main_dir}        # for glidein reinvocation
 
     short_entry_dir=entry_${glidein_entry}
     entry_dir="${work_dir}/${short_entry_dir}"
     if ! mkdir "${entry_dir}"; then
         early_glidein_failure "Cannot create '${entry_dir}'"
     fi
+    export GWMS_ENTRY_DIR=${entry_dir}      # for glidein reinvocation
 
     if [ -n "${client_repository_url}" ]; then
         short_client_dir=client
@@ -1749,6 +1757,7 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
         if ! mkdir "$client_dir"; then
             early_glidein_failure "Cannot create '${client_dir}'"
         fi
+        export GWMS_CLIENT_DIR=${client_dir}        # for glidein reinvocation
 
         if [ -n "${client_repository_group_url}" ]; then
             short_client_group_dir=client_group_${client_group}
@@ -1757,6 +1766,7 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
                 early_glidein_failure "Cannot create '${client_group_dir}'"
             fi
         fi
+        export GWMS_CLIENTGROUP_DIR=${client_group_dir}     # for glidein reinvocation
     fi
 
     # Move the token files from condor to glidein workspace
@@ -1784,12 +1794,14 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
 
     wrapper_list="${PWD}/wrapper_list.lst"
     touch "${wrapper_list}"
+    export WRAPPER_LIST=${wrapper_list}     # for glidein reinvocation
 
     # create glidein_config
     glidein_config="${PWD}/glidein_config"
     if ! echo > "${glidein_config}"; then
         early_glidein_failure "Could not create '${glidein_config}'"
     fi
+    export GLIDEIN_CONFIG=${glidein_config}     # for glidein reinvocation
     if ! {
         echo "# --- glidein_startup vals ---"
         echo "GLIDEIN_UUID ${glidein_uuid}"
@@ -1942,6 +1954,7 @@ if [[ -z "$gwms_cvmfs_reexec" ]]; then
     gs_id_work_dir="$(get_work_dir main)"
     gs_id_descript_file="$(get_descript_file main)"
     last_script="$(grep "^last_script " "${gs_id_work_dir}/${gs_id_descript_file}" | cut -s -f 2-)"
+    export LAST_SCRIPT="$last_script"       # for glidein reinvocation
     if [ -z "${last_script}" ]; then
         warn "last_script not in description file ${gs_id_work_dir}/${gs_id_descript_file}."
         glidein_exit 1
@@ -2025,7 +2038,6 @@ fi
 
 if [[ -n "$gwms_cvmfs_reexec" && "$gwms_cvmfs_reexec" == "yes" ]]; then
     # gwms_cvmfs_reexec is not empty; meaning this block is being run inside of cvmfsexec environment
-    echo "======================== control flow is inside reinvocation of glidein_startup.sh ========================"
     printenv GLIDEIN_CONFIG > /dev/null
     status=$?
     if [[ ${status} -eq 0 ]]; then
@@ -2045,15 +2057,16 @@ if [[ -n "$gwms_cvmfs_reexec" && "$gwms_cvmfs_reexec" == "yes" ]]; then
         gwms_exec_dir=$(printenv GWMS_EXEC_DIR | sed "s/ //g")
     fi
 
+    # import add_config_line function
+    add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
+    # shellcheck source=./add_config_line.source
+    . "$add_config_line_source"
+
     # re-sourcing the helper script inside of cvmfsexec environment
     . "$work_dir"/cvmfs_helper_funcs.sh
-
-    mount_cvmfs_repos $gwms_cvmfsexec_mode $gwms_cvmfs_reexec $cvmfs_config_repo $cvmfs_add_repos
-    echo "GWMS_IS_CVMFS set to $GWMS_IS_CVMFS (mode 3)"
-
+    mount_cvmfs_repos $gwms_cvmfsexec_mode $cvmfs_config_repo $cvmfs_add_repos
     # check if the cvmfs repos are still mounted inside of reinvocation
     df -h
-    echo "CVMFS_MOUNT_DIR is $(printenv CVMFS_MOUNT_DIR) in mode 3"
 
     # re-source all the scripts as it'd have been done during the first invocation of this script
     extract_all_data
@@ -2061,239 +2074,14 @@ if [[ -n "$gwms_cvmfs_reexec" && "$gwms_cvmfs_reexec" == "yes" ]]; then
     log_setup "${glidein_config}"
 fi
 
-echo "*************** BEFORE THE SECOND FOR LOOP ***************"
 glidein_debug_options=$(gconfig_get GLIDEIN_DEBUG_OPTIONS "$glidein_config")
 glidein_debug_output=$(gconfig_get GLIDEIN_DEBUG_OUTPUT "$glidein_config")
-echo "-*-*-*-*-*- glidein_debug_options: $glidein_debug_options -*-*-*-*-*-"
-echo "-*-*-*-*-*- glidein_debug_output:  $glidein_debug_output -*-*-*-*-*-"
 export GLIDEIN_DEBUG_OPTIONS=$glidein_debug_options
 export GLIDEIN_DEBUG_OUTPUT=$glidein_debug_output
-echo "**********************************************************"
 
-<<<<<<< HEAD
-short_entry_dir=entry_${glidein_entry}
-entry_dir="${work_dir}/${short_entry_dir}"
-if ! mkdir "${entry_dir}"; then
-    early_glidein_failure "Cannot create '${entry_dir}'"
-fi
-
-if [ -n "${client_repository_url}" ]; then
-    short_client_dir=client
-    client_dir="${work_dir}/${short_client_dir}"
-    if ! mkdir "$client_dir"; then
-        early_glidein_failure "Cannot create '${client_dir}'"
-    fi
-
-    if [ -n "${client_repository_group_url}" ]; then
-        short_client_group_dir=client_group_${client_group}
-        client_group_dir="${work_dir}/${short_client_group_dir}"
-        if ! mkdir "${client_group_dir}"; then
-            early_glidein_failure "Cannot create '${client_group_dir}'"
-        fi
-    fi
-fi
-
-# Move the token files from condor to glidein workspace
-# TODO: compare this w/ setup_x509.sh
-# monitoring tokens, Should be using same credentials directory?
-mv "${start_dir}/tokens.tgz" .
-mv "${start_dir}/url_dirs.desc" .
-# idtokens are handled in setup_x509.sh - TODO: remove once verified
-#for idtk in ${start_dir}/*.idtoken; do
-#   if cp "${idtk}" . ; then
-#       echo "copied idtoken ${idtk} to $(pwd)"
-#   else
-#       echo "failed to copy idtoken  ${idtk} to $(pwd)" 1>&2
-#   fi
-#done
-#if [ -e "${GLIDEIN_CONDOR_TOKEN}" ]; then
-#    mkdir -p ticket
-#    tname="$(basename ${GLIDEIN_CONDOR_TOKEN})"
-#    cp "${GLIDEIN_CONDOR_TOKEN}" "ticket/${tname}"
-#    export GLIDEIN_CONDOR_TOKEN="$(pwd)/ticket/${tname}"
-#fi
-
-# Extract and source all the data contained at the end of this script as tarball
-extract_all_data
-
-wrapper_list="${PWD}/wrapper_list.lst"
-touch "${wrapper_list}"
-
-# create glidein_config
-glidein_config="${PWD}/glidein_config"
-if ! echo > "${glidein_config}"; then
-    early_glidein_failure "Could not create '${glidein_config}'"
-fi
-if ! {
-    echo "# --- glidein_startup vals ---"
-    echo "GLIDEIN_UUID ${glidein_uuid}"
-    echo "GLIDEIN_Factory ${glidein_factory}"
-    echo "GLIDEIN_Name ${glidein_name}"
-    echo "GLIDEIN_Entry_Name ${glidein_entry}"
-
-    if [ -n "${client_name}" ]; then
-        # client name not required as it is not used for anything but debug info
-        echo "GLIDECLIENT_Name ${client_name}"
-    fi
-    if [ -n "${client_group}" ]; then
-        # client group not required as it is not used for anything but debug info
-        echo "GLIDECLIENT_Group ${client_group}"
-    fi
-    echo "GLIDEIN_CredentialIdentifier ${glidein_cred_id}"
-    echo "CONDORG_CLUSTER ${condorg_cluster}"
-    echo "CONDORG_SUBCLUSTER ${condorg_subcluster}"
-    echo "CONDORG_SCHEDD ${condorg_schedd}"
-    echo "DEBUG_MODE ${set_debug}"
-    echo "GLIDEIN_STARTUP_PID $$"
-    echo "GLIDEIN_START_DIR_ORIG ${start_dir}"
-    echo "GLIDEIN_WORKSPACE_ORIG $(pwd)"
-    echo "GLIDEIN_WORK_DIR ${main_dir}"
-    echo "GLIDEIN_ENTRY_WORK_DIR ${entry_dir}"
-    echo "TMP_DIR ${glide_tmp_dir}"
-    echo "GLIDEIN_LOCAL_TMP_DIR ${glide_local_tmp_dir}"
-    echo "PROXY_URL ${proxy_url}"
-    echo "DESCRIPTION_FILE ${descript_file}"
-    echo "DESCRIPTION_ENTRY_FILE ${descript_entry_file}"
-    echo "GLIDEIN_Signature ${sign_id}"
-    echo "GLIDEIN_Entry_Signature ${sign_entry_id}"
-
-    if [ -n "${client_repository_url}" ]; then
-        echo "GLIDECLIENT_WORK_DIR ${client_dir}"
-        echo "GLIDECLIENT_DESCRIPTION_FILE ${client_descript_file}"
-        echo "GLIDECLIENT_Signature ${client_sign_id}"
-        if [ -n "${client_repository_group_url}" ]; then
-            echo "GLIDECLIENT_GROUP_WORK_DIR ${client_group_dir}"
-            echo "GLIDECLIENT_DESCRIPTION_GROUP_FILE ${client_descript_group_file}"
-            echo "GLIDECLIENT_Group_Signature ${client_sign_group_id}"
-        fi
-    fi
-    echo "B64UUENCODE_SOURCE ${PWD}/b64uuencode.source"
-    echo "ADD_CONFIG_LINE_SOURCE ${PWD}/add_config_line.source"
-    echo "GET_ID_SELECTORS_SOURCE ${PWD}/get_id_selectors.source"
-    echo "LOGGING_UTILS_SOURCE ${PWD}/logging_utils.source"
-    echo "GLIDEIN_PATHS_SOURCE ${PWD}/glidein_paths.source"
-    echo "WRAPPER_LIST ${wrapper_list}"
-    echo "SLOTS_LAYOUT ${slots_layout}"
-    # Add a line saying we are still initializing...
-    echo "GLIDEIN_INITIALIZED 0"
-    # ...but be optimist, and leave advertise_only for the actual error handling script
-    echo "GLIDEIN_ADVERTISE_ONLY 0"
-    echo "GLIDEIN_CONDOR_TOKEN ${GLIDEIN_CONDOR_TOKEN}"
-    echo "# --- User Parameters ---"
-} >> "${glidein_config}"; then
-    early_glidein_failure "Failed in updating '${glidein_config}'"
-fi
-# shellcheck disable=SC2086
-params2file ${params}
-
-############################################
-# Setup logging
-log_init "${glidein_uuid}" "${work_dir}"
-# Remove these files, if they are still there
-rm -rf tokens.tgz url_dirs.desc tokens
-log_setup "${glidein_config}"
-
-echo "Downloading files from Factory and Frontend"
-log_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"
-
-#####################################
-# Fetch descript and signature files
-
-# disable signature check before I get the signature file itself
-# disable_check_signature is global
-disable_check_signature=yes
-
-for gs_id in main entry client client_group
-do
-    if [ -z "${client_repository_url}" ]; then
-        if [ "${gs_id}" = "client" ]; then
-            # no client file when no cilent_repository
-            continue
-        fi
-    fi
-    if [ -z "${client_repository_group_url}" ]; then
-        if [ "${gs_id}" = "client_group" ]; then
-            # no client group file when no cilent_repository_group
-            continue
-        fi
-    fi
-
-    gs_id_work_dir="$(get_work_dir ${gs_id})"
-
-    # Fetch description file
-    gs_id_descript_file="$(get_descript_file ${gs_id})"
-    fetch_file_regular "${gs_id}" "${gs_id_descript_file}"
-    if ! signature_file_line="$(grep "^signature " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
-        warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file} (wc: $(wc < "${gs_id_work_dir}/${gs_id_descript_file}" 2>/dev/null))."
-        glidein_exit 1
-    fi
-    signature_file=$(echo "${signature_file_line}" | cut -s -f 2-)
-
-    # Fetch signature file
-    gs_id_signature="$(get_signature ${gs_id})"
-    fetch_file_regular "${gs_id}" "${signature_file}"
-    echo "${gs_id_signature}  ${signature_file}" > "${gs_id_work_dir}/signature.sha1.test"
-    if ! (cd "${gs_id_work_dir}" && sha1sum -c signature.sha1.test) 1>&2 ; then
-        warn "Corrupted signature file '${gs_id_work_dir}/${signature_file}'."
-        glidein_exit 1
-    fi
-    # for simplicity use a fixed name for signature file
-    mv "${gs_id_work_dir}/${signature_file}" "${gs_id_work_dir}/signature.sha1"
-done
-
-# re-enable for everything else
-disable_check_signature=
-
-# Now verify the description was not tampered with
-# doing it so late should be fine, since nobody should have been able
-# to fake the signature file, even if it faked its name in
-# the description file
-for gs_id in main entry client client_group
-do
-    if [ -z "${client_repository_url}" ]; then
-        if [ "${gs_id}" = "client" ]; then
-            # no client file when no cilent_repository
-            continue
-        fi
-    fi
-    if [ -z "${client_repository_group_url}" ]; then
-        if [ "${gs_id}" = "client_group" ]; then
-            # no client group file when no cilent_repository_group
-            continue
-        fi
-    fi
-
-    gs_id_descript_file="$(get_descript_file ${gs_id})"
-    if ! check_file_signature "${gs_id}" "${gs_id_descript_file}"; then
-        gs_id_work_dir="$(get_work_dir ${gs_id})"
-        warn "Corrupted description file ${gs_id_work_dir}/${gs_id_descript_file}."
-        glidein_exit 1
-    fi
-done
-
-###################################################
-# get last_script, as it is used by the fetch_file
-gs_id_work_dir="$(get_work_dir main)"
-gs_id_descript_file="$(get_descript_file main)"
-last_script="$(grep "^last_script " "${gs_id_work_dir}/${gs_id_descript_file}" | cut -s -f 2-)"
-if [ -z "${last_script}" ]; then
-    warn "last_script not in description file ${gs_id_work_dir}/${gs_id_descript_file}."
-    glidein_exit 1
-fi
-#cleanup_script="$(grep "^cleanup_script " "${gs_id_work_dir}/${gs_id_descript_file}" | cut -s -f 2-)"
-cleanup_script=$(grep "^GLIDEIN_CLEANUP_SCRIPT " "${glidein_config}" | cut -d ' ' -f 2-)
-
-
-##############################
-# Fetch all the other files
-for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "main at_file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
-do
-    gs_id="$(echo "${gs_file_id}" |awk '{print $1}')"
-=======
 for gs_file_id in "main at_file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
 do
     gs_id="$(echo "${gs_file_id}" |awk '{print $1}')"       # one of four possibilities
->>>>>>> c39a07e72 (updated for glidein reinvocation when in mode 3)
 
     if [ -z "${client_repository_url}" ]; then
         if [ "${gs_id}" = "client" ]; then
