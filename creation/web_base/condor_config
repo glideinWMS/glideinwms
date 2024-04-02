@@ -109,12 +109,12 @@ GSI_SKIP_HOST_CHECK_CERT_REGEX = $(X509_SKIP_HOST_CHECK_DNS_REGEX)
 STARTD.ALLOW_CLIENT = collector*/*, anonymous*/*, frontend*/*, condor*/*, submit-side@matchsession/*
 
 STARTD.GSI_DAEMON_NAME =
-DENY_WRITE = anonymous@*
-DENY_ADMINISTRATOR = anonymous@*
-DENY_DAEMON = anonymous@*
-DENY_NEGOTIATOR = anonymous@*
-DENY_OWNER = anonymous@*
-DENY_CONFIG = anonymous@*
+DENY_WRITE = anonymous@* unauthenticated@*
+DENY_ADMINISTRATOR = anonymous@* unauthenticated@*
+DENY_DAEMON = anonymous@* unauthenticated@*
+DENY_NEGOTIATOR = anonymous@* unauthenticated@*
+DENY_OWNER = anonymous@* unauthenticated@*
+DENY_CONFIG = anonymous@* unauthenticated@*
 
 LOCAL_CONFIG_FILE       =
 
