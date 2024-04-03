@@ -12,9 +12,10 @@
 printenv GWMS_CVMFS_REEXEC > /dev/null
 status=$?
 if [[ "$status" -eq 0 ]]; then
-    echo "Now reinvoking glidein startup..."
+    # glidein being reinvoked
     gwms_cvmfs_reexec=$(printenv GWMS_CVMFS_REEXEC | sed s"/ //g")
 else
+    # regular glidein invocation
     gwms_cvmfs_reexec=$(grep "^GWMS_CVMFS_REEXEC " "${glidein_config}" | cut -d ' ' -f 2-)
 fi
 # Customizable and initialization variables

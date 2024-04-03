@@ -1663,7 +1663,7 @@ singularity_get_image() {
         # set things up here since the path needs to be bindmounted inside the container
         local mount_home=${CVMFS_MOUNT_DIR/\/dist\/cvmfs/}
         local symlink_target
-	symlink_target=$(readlink $mount_home/dist/${singularity_image#/})
+        symlink_target=$(readlink $mount_home/dist/${singularity_image#/})
         singularity_image=$mount_home/dist/${symlink_target#/}
     fi
 

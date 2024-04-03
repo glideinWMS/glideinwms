@@ -319,10 +319,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         dist_select_script = "cvmfsexec_platform_select.sh"
         self.dicts["file_list"].add_from_file(
             dist_select_script,
-            cWDictFile.FileDictFile.make_val_tuple(
-                cWConsts.insert_timestr(dist_select_script),
-                "exec",
-            ),
+            cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(dist_select_script), "exec"),
             os.path.join(cgWConsts.WEB_BASE_DIR, dist_select_script),
         )
 
