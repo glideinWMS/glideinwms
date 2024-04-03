@@ -2716,13 +2716,19 @@ MAX_STARTD_LOG          I       10000000        +                               
       </div>
 
       <div class="section">
-        <h3><a name="cvmfs_vars"></a>CVMFS Variables</h3>
+        <h3><a name="cvmfs_vars"></a>On-demand CVMFS Provisioning</h3>
         <p>
-          This section describes the variables that can be configured for use
-          with the glidein to allow CVMFS to be provisioned on-demand. These
-          variables are configured at the glidein level so that it applies to
-          all the entries that are configured in the factory's configuration
-          file.
+          GlideinWMS supports provisioning of CVMFS on demand when sites may not
+          have CVMFS natively. GlideinWMS uses the
+          <i>cvmfsexec</i> utility to provision CVMFS as needed when CVMFS is
+          unavailable (more details about cvmfsexec
+          <a href="https://www.github.com/cvmfs/cvmfsexec.git">here</a>). The
+          following table describes the knobs that can be used to configure
+          GlideinWMS to allow provisioning of CVMFS when a native installation
+          of CVMFS is unavailable on a compute element (CE). The configuration
+          knobs identified for use in factory can be configured such that the
+          configuration applies to all the defined entries defined, or a
+          specific entry.
         </p>
         <table class="attributes">
           <tr class="head">
@@ -2743,18 +2749,17 @@ MAX_STARTD_LOG          I       10000000        +                               
             </td>
           </tr>
           <tr>
-            <td><b>GLIDEIN_USE_CVMFSEXEC</b></td>
+            <td><b>GLIDEIN_USE_CVMFS</b></td>
             <td>Int</td>
             <td></td>
-            <td>Factory</td>
+            <td>Frontend</td>
             <td>
               <p>
-                Not set by default. This variable controls whether
-                <i>cvmfsexec</i> utility is used to mount CVMFS. Possible values
-                are 0 or 1. A value of 0 indicates that glidein will not use
-                <i>cvmfsexec</i> to mount CVMFS on the worker noden. A value of
-                1 indicates <i>cvmfsexec</i> will be used to mount CVMFS on the
-                worker node by the glidein.
+                Not set by default. This attribute controls whether the user/job
+                requires CVMFS. Possible values are 0 or 1. A value of 0
+                indicates that the job does not need to use CVMFS during its
+                execution on the compute element. A value of 1 indicates that
+                the job needs to use CVMFS when it runs on the compute element.
               </p>
             </td>
           </tr>
@@ -2765,53 +2770,85 @@ MAX_STARTD_LOG          I       10000000        +                               
             <td>Factory</td>
             <td>
               <p>
-                Not set by default. This variable controls the origin (source)
+                Not set by default. This attribute controls the origin (source)
                 from which to download the CVMFS configuration repository from.
                 Possible values are: <br />
-                osg - configuration for cvmfs-config-osg; <br />
-                egi - configuration for cvmfs-config-egi; <br />
-                default - configuration for cvmfs-config-default<br />
+                osg - configuration for <i>cvmfs-config-osg</i><br />
+                egi - configuration for <i>cvmfs-config-egi</i><br />
+                default - configuration for <i>cvmfs-config-default</i><br />
               </p>
             </td>
           </tr>
           <tr>
-            <td><b>GLIDEIN_CVMFS</b></td>
+            <td><b>GLIDEIN_CVMFS_REQUIRE</b></td>
             <td>String</td>
             <td></td>
             <td>Factory</td>
             <td>
               <p>
-                Not set by default. This variable controls the error handling
-                behavior of the glidein in case of failures during the mounting
-                of CVMFS. Possible values are:<br />
-                REQUIRED - if unable to mount, report an error and abort
-                mounting);<br />
-                PREFERRED - if unable to mount, notify and continue normally;<br />
-                OPTIONAL - continue if unable to mount (similar to
-                PREFERRED);<br />
-                NEVER - only exit if mounting fails<br />
+                Not set by default. This attribute, in conjunction with
+                GLIDEIN_USE_CVMFS (defined in frontend), specifies the
+                site/factory policy to be used when provisioning CVMFS. This
+                also helps in determining the behavior of the glidein behavior
+                in case failures are encountered during the provisioning of
+                CVMFS.
               </p>
+              <p>
+                This configuration attribute takes one of the following three
+                values:<br />
+              </p>
+              <ul>
+                <li>
+                  REQUIRED - if unable to mount CVMFS on demand, report an error
+                  and abort the glidein setup
+                </li>
+                <li>
+                  PREFERRED - if unable to mount CVMFS on demand, report a
+                  warning and continue with the glidein setup normally
+                </li>
+                <li>
+                  NEVER - do not even attempt to mount CVMFS on demand even if
+                  the user job requests via GLIDEIN_USE_CVMFS
+                </li>
+              </ul>
+              <p>
+                Assuming that CVMFS is not found natively, the policy driving
+                glidein behavior is as follows:
+              </p>
+              <ul>
+                <li>when GLIDEIN_USE_CVMFS is 1:</li>
+                <ul>
+                  <li>
+                    GLIDEIN_CVMFS_REQUIRE is NEVER: glidein will not match sites
+                    (and therefore, not provision CVMFS on those sites).
+                  </li>
+                  <li>
+                    GLIDEIN_CVMFS_REQUIRE is REQUIRED|PREFERRED: glidein will
+                    try to provision CVMFS if not found natively. Glidein will
+                    fail when unable to provision CVMFS irrespective of
+                    GLIDEIN_CVMFS_REQUIRE value.
+                  </li>
+                </ul>
+                <li>when GLIDEIN_USE_CVMFS is 0:</li>
+                <ul>
+                  <li>
+                    GLIDEIN_CVMFS_REQUIRE is NEVER: does not matter as
+                    GLIEIN_USE_CVMFS says that the job does not want CVMFS.
+                  </li>
+                  <li>
+                    GLIDEIN_CVMFS_REQUIRE is REQUIRED|PREFERRED: glidein will
+                    try to provision CVMFS if not found natively. Glidein will
+                    fail when unable to provision CVMFS <b>only</b> when
+                    GLIDEIN_CVMFS_REQUIRE is REQUIRED. Otherwise, glidein will
+                    continue without CVMFS (when GLIDEIN_CVMFS_REQUIRE is
+                    PREFERRED).
+                  </li>
+                </ul>
+              </ul>
             </td>
           </tr>
         </table>
         <br />
-        <h4>
-          Dynamic creation and selection of cvmfsexec platform-specific
-          distribution
-        </h4>
-        <p>
-          GlideinWMS factory includes the capability to mount and unmount CVMFS
-          on demand, i.e. for sites that do not have a local installation of
-          CVMFS available. This is achieved via the scripts
-          <b>cvmfs_setup.sh</b> and <b>cvmfs_umount.sh</b>. Two additional shell
-          scripts <i>cvmfs_helper_funcs.sh</i> and <i>cvmfs_mount .sh</i> are
-          used as helper scripts during the mounting process. On demand mounting
-          and unmounting is achieved via the <b><i>cvmfsexec </i></b> utility.
-          The helper scripts are enabled for conditional download based on the
-          GLIDEIN_USE_CVMFSEXEC variable. When the GLIDEIN_USE_CVMFSEXEC
-          variable is set (value of 1), the helper scripts are downloaded for
-          facilitating the mounting of CVMFS.
-        </p>
         <p>
           cvmfsexec can be packaged as self-contained distribution specific to
           an operating system and platform with required configuration and
@@ -2823,21 +2860,30 @@ MAX_STARTD_LOG          I       10000000        +                               
           distribution for use by the worker node. However, rather than having a
           tarball containing multiple cvmfsexec distribution files corresponding
           to a (CVMFS source, system platform, architecture) combination,
-          GlideinWMS dynamically creates and selects the appropriate cvmfsexec
-          distribution from the list of distributions.
+          GlideinWMS allows the dynamic creation and selection of the
+          appropriate cvmfsexec distribution from the list of distributions as
+          explained next.
         </p>
         <p>
-          Specific to a CVMFS source, system platform and architecture,
-          cvmfsexec distribution files are created automatically by the script
-          named <b>create_cvmfsexec_distros.sh</b>. The script is placed in
-          <i>hooks.reconfig.pre</i> directory for dynamic execution. Each of
-          these distributions are packaged as individual tarballs and are added
-          to the default list of uploads at the time of factory reconfiguration
-          and/or upgrade. Another script, <i> cvmfsexec_platform_select.sh</i>,
-          automatically selects the appropriate distribution tarball based on
-          the specifics of the worker node and ships the distribution with the
-          glidein. This script is invoked during the customization of the worker
-          node as part of the glidein setup.
+          cvmfsexec distributions are tied to a CVMFS source, system platform
+          and architecture. As needed for provisioning CVMFS, the distributions
+          can be created as part of the factory reconfiguration and/or upgrade
+          by using the configuration knob &lt;cvmfsexec_distro&gt; tag in the
+          factory configuration file. When this knob is enabled, the script
+          `/bin/create_cvmfsexec_distros.sh` is invoked dynamically. Depending
+          on the CVMFS source ('sources' attribute for the knob) and the
+          platform requirements ('platforms' attribute for the knob), the
+          distributions are packaged as individual tarballs and are added to the
+          default list of uploads during factory reconfiguration and/or upgrade
+          when necessary.
+        </p>
+        <p>
+          Once the cvmfsexec distributions are built, the
+          <i> cvmfsexec_platform_select.sh</i> script then automatically selects
+          the appropriate distribution tarball based on the specifics of the
+          worker node and ships the distribution with the glidein. This script
+          is invoked during the glidein startup process prior to the script that
+          actually performs all the needed steps towards CVMFS setup.
         </p>
       </div>
 
