@@ -34,6 +34,31 @@ Changes since the last release
 
 ### Known Issues
 
+## v3.11.0 \[2024-03-dd\]
+
+This is the very first version in the development series of GlideinWMS releases.
+
+### New features / functionalities
+
+-   Supports all available modes of cvmfsexec when provisioning CVMFS on demand. (PR #372)
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+### Testing / Development
+
+### Known Issues
+
+-   When generating cvmfsexec distribution for EL9 machine type on an EL7 machine, the factory reconfig and/or upgrade fails as a result of an error in `create_cvmfsexec_distros.sh`. This is possibly due to the tools for EL7 being unable to handle EL9 files (as per Dave Dykstra). Please exercise caution if using `rhel9-x86_64` in the `mtypes` list for the `cvmfsexec_distro` tag in factory configuration.
+    -   Our suggested workaround is to remove the EL9 machine type from the default list of machine types supported by the custom distros creation script. Add it back if you are running on an EL9 system and want an EL9 cvmfsexec distribution. (PR #312)
+-   When using on-demand CVMFS, all Glideins after the first one on a node are failing (Issue #287)
+    This happens because mountrepo and umountrepo work at the node level and subsequent Glideins see the mounts done by the first one and abort. To avoid problems use only whole-node Glideins when using on-demand CVMFS. All versions with on-demand CVMFS are affected.
+
 ## v3.10.6 \[2024-01-25\]
 
 Minor new features, mostly a bug fix release
