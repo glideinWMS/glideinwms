@@ -32,14 +32,15 @@ if [[ ! $cvmfs_src =~ ^(osg|egi|default)$ ]]; then
 fi
 
 # TODO: is it possible to reuse cvmfs_helper_funcs.sh by sourcing it during the execution of this file????
-if [ -f '/etc/redhat-release' ]; then
+if [[ -f '/etc/redhat-release' ]]; then
     os_distro=rhel
+    os_ver=$(cat /etc/redhat-release | cut -d " " -f 3 | awk -F'.' '{print $1}')
 else
     os_distro=non-rhel
+    os_ver=$(cat /etc/os-release | egrep "VERSION_ID" | cut -d = -f 2 | tr -d '"' | awk -F "." '{print $1}')
 fi
 
-os_ver=`lsb_release -r | awk -F'\t' '{print $2}' | awk -F"." '{print $1}'`
-krnl_arch=`arch`
+krnl_arch=$(arch)
 mach_type=${os_distro}${os_ver}-${krnl_arch}
 
 cvmfsexec_platform="${cvmfs_src}-${mach_type}"

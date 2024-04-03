@@ -259,60 +259,58 @@ mount_cvmfs_repos () {
     local additional_repos=$3
     local config_repo_mntd num_repos_mntd total_num_repos
 
-    # if using mode 3, config repo should have been mounted already
-    # otherwise if using mode 1, mount the config repo now...
-    if [[ $cvmfsexec_mode -eq 1 ]]; then
-        "$glidein_cvmfsexec_dir/$dist_file" "$config_repository" -- echo "setting up mount utilities..." &> /dev/null
-    fi
     # at this point in the execution flow, it would have been determined that cvmfs is not locally available
-    # this implies no repositories should be mounted. However, only config repo will be mounted if in mode 1 or mode 3 by this point
-    if [[ $(df -h|grep /cvmfs|wc -l) -eq 1 ]]; then
+    # this implies no repositories should have been mounted. However, only config repo will be mounted if in mode 1 or mode 3 by this point
+
+    # if using mode 3/2, config repo should have been mounted already by now
+    if [[ $(cat /proc/$$/mounts | grep /dev/fuse | grep ' /cvmfs' | wc -l) -eq 1 ]]; then
         loginfo "CVMFS config repo already mounted!"
     else
-        # mounting the configuration repo (pre-requisite) in case something went wrong previously
+        # mounting the configuration repo (pre-requisite) in case something went wrong previously or when using mode 1
+        # if using mode 1, first setup the mount utility under .cvmfsexec
+        if [[ $cvmfsexec_mode -eq 1 ]]; then
+            "$glidein_cvmfsexec_dir/$dist_file" "$config_repository" -- echo "setting up mount utilities..." &> /dev/null
+        fi
         loginfo "Mounting CVMFS config repo now..."
         [[ $cvmfsexec_mode -eq 1 ]] && "$glidein_cvmfsexec_dir"/.cvmfsexec/mountrepo "$config_repository"
-        [[ $cvmfsexec_mode -eq 3 ]] && $CVMFSMOUNT "$config_repository"
-    fi
-    # see if the config repository got mounted
-    config_repo_mntd=$(df -h | grep /cvmfs | wc -l)
-    if [[ config_repo_mntd -eq 0 ]]; then
-        logwarn "One or more CVMFS repositories might not be mounted on the worker node"
-        return 1
+        [[ $cvmfsexec_mode -eq 3 || $cvmfsexec_mode -eq 2 ]] && $CVMFSMOUNT "$config_repository"
+        # see if the config repository got mounted this time around
+        if [[ $(cat /proc/$$/mounts | grep /dev/fuse | wc -l) -eq 0 ]]; then
+            logwarn "CVMFS config repository might still not be mounted on the worker node"
+            return 1
+        fi
     fi
 
     # using an array to unpack the names of additional CVMFS repositories
     # from the colon-delimited string
     repos=($(echo $additional_repos | tr ":" "\n"))
-
     loginfo "Mounting additional CVMFS repositories..."
-    # mount every repository that was previously unpacked
-    [[ "$cvmfsexec_mode" -ne 1 && "$cvmfsexec_mode" -ne 3 ]] && { logerror "Invalid cvmfsexec mode: mode $cvmfsexec_mode; aborting!"; return 1; }
+    # mount every repository in the array
     for repo in "${repos[@]}"
     do
-        case $cvmfsexec_mode in
-            1)
-                "$glidein_cvmfsexec_dir"/.cvmfsexec/mountrepo "$repo"
-                ;;
-            3)
-                $CVMFSMOUNT "$repo"
-                ;;
-        esac
+        [[ $cvmfsexec_mode -eq 1 ]] && "$glidein_cvmfsexec_dir"/.cvmfsexec/mountrepo "$repo"
+        [[ $cvmfsexec_mode -eq 3 || $cvmfsexec_mode -eq 2 ]] && $CVMFSMOUNT "$repo"
     done
-
-    # see if all the repositories got mounted
-    num_repos_mntd=$(df -h | grep /cvmfs | wc -l)
+    # verify if all the repositories got mounted
+    if [[ $cvmfsexec_mode -eq 3 || $cvmfsexec_mode -eq 2 ]]; then
+        # since mode 3 mounting shows original mounts as well as the bind mounts, only consider one of those sets for verification
+        num_repos_mntd=$(cat /proc/$$/mounts | grep /dev/fuse | grep ' /cvmfs' | wc -l)
+    else
+        num_repos_mntd=$(cat /proc/$$/mounts | grep /dev/fuse | wc -l)
+    fi
     total_num_repos=$(( ${#repos[@]} + 1 ))
     GWMS_IS_CVMFS=0
     if [[ "$num_repos_mntd" -eq "$total_num_repos" ]]; then
         loginfo "All CVMFS repositories mounted successfully on the worker node"
-        # export this info to the glidein environment after CVMFS is provisioned on demand
+        # export this info to the glidein environment after CVMFS mounting was a success
         gconfig_add GWMS_IS_CVMFS $(print_exit_status $GWMS_IS_CVMFS)
         get_mount_point
         return 0
     else
         logwarn "One or more CVMFS repositories might not be mounted on the worker node"
         GWMS_IS_CVMFS=1
+        # export this info to indicate to the glidein environment that something went wrong during the CVMFS mounting
+        gconfig_add GWMS_IS_CVMFS $(print_exit_status $GWMS_IS_CVMFS)
         return 1
     fi
 }
@@ -549,19 +547,13 @@ prepare_for_cvmfs_mount () {
     arch=$GWMS_OS_KRNL_ARCH
     # construct the name of the cvmfsexec distribution file based on the worker node specs
     dist_file=cvmfsexec-${cvmfs_source}-${os_like}${os_ver}-${arch}
-    # the appropriate distribution file does not have to manually untarred as the glidein setup takes care of this automatically
-
-    if [[ ! -d "$glidein_cvmfsexec_dir" && ! -f "${glidein_cvmfsexec_dir}/${dist_file}" ]]; then
-        # neither the cvmfsexec directory nor the cvmfsexec distribution is found -- this happens when a directory named 'cvmfsexec' does not exist on the glidein because an appropriate distribution tarball is not found in the list of all the available tarballs and was not unpacked [trying to unpack osg-rhel8 on osg-rhel7 worker node]
-        # if use_cvmfsexec is set to 1, then warn that cvmfs will not be mounted and flag an error
-        logerror "Error occured during preparing for cvmfs setup: None of the available cvmfsexec distributions is compatible with the worker node specifications."
-        "$error_gen" -error "$(basename $0)" "WN_Resource" "Error occured during cvmfs setup... no matching cvmfsexec distribution available."
-        exit 1
-    elif [[ -d "$glidein_cvmfsexec_dir" && ! -f "${glidein_cvmfsexec_dir}/${dist_file}" ]]; then
-        # something might have gone wrong during the unpacking of the tarball into the glidein_cvmfsexec_dir
-        logerror "Something went wrong during the unpacking of the cvmfsexec distribution tarball!"
-        "$error_gen" -error "$(basename $0)" "WN_Resource" "Error: Something went wrong during the unpacking of the cvmfsexec distribution tarball"
-        exit 1
+    # the appropriate distribution file does not have to be manually untarred as the glidein setup takes care of this automatically
+    # but check if the unpacking was okay and the distribution file is accessible
+    if [[ ! -d "$glidein_cvmfsexec_dir" || ! -f "${glidein_cvmfsexec_dir}/${dist_file}" ]]; then
+        # 1. the cvmfsexec directory containing platform-specific cvmfsexec distribution does not exist in the glidein -- this happens when (a). cvmfsexec distributions are not built at all with cvmfsexec_distro factory knob (unless they are already existing from a previous reconfig/upgrade that used the knob), or (b). when the build process for the cvmfsexec distributions failed but was requested to be used
+        # 2. the relevant cvmfsexec distribution is not found -- this happens when there may not be a cvmfsexec distribution that is compatible with the worker node system configuration (e., wrong file name)
+        logwarn "Could not find the unpacked cvmfsexec distribution ${dist_file}!"
+        return 1
     fi
 
     loginfo "CVMFS Source = $cvmfs_source"
@@ -615,6 +607,18 @@ perform_cvmfs_mount () {
     fi
 
     prepare_for_cvmfs_mount
+    if [[ $? -ne 0 ]]; then
+        # something went wrong during the prep for mounting
+        # if CVMFS is required, then abort from this and also the glidein setup by flagging an error
+        if [[ $use_cvmfs -eq 1 || "${glidein_cvmfs_require}" == "required" ]]; then
+            logerror "Aborting glidein setup (GLIDEIN_USE_CVMFS: $use_cvmfs, GLIDEIN_CVMFS_REQUIRE: $glidein_cvmfs_require)"
+            "$error_gen" -error "$(basename $0)" "WN_Resource" "Error finding cvmfsexec distribution... aborting glidein setup!"
+            exit 1
+        fi
+        # if CVMFS not required, just warn and continue but without mounting
+        logwarn "Unable to find an appropriate cvmfsexec distribution to mount CVMFS"
+        return 1
+    fi
     if [[ $mode -eq 3 || $mode -eq 2 ]]; then
         return       # only prepare but do not actually mount (later in glidein reinvocation, mounting will be performed)
     fi
