@@ -698,16 +698,16 @@ get_repository_url() {
 #####################
 # Check signature
 check_file_signature() {
-    cfs_id="$1"
-    cfs_fname="$2"
+    local cfs_id="$1"
+    local cfs_fname="$2"
 
-    cfs_work_dir="$(get_work_dir "${cfs_id}")"
+    local cfs_work_dir="$(get_work_dir "${cfs_id}")"
 
-    cfs_desc_fname="${cfs_work_dir}/${cfs_fname}"
-    cfs_signature="${cfs_work_dir}/signature.sha1"
+    local cfs_desc_fname="${cfs_work_dir}/${cfs_fname}"
+    local cfs_signature="${cfs_work_dir}/signature.sha1"
 
-    if [ "${check_signature}" -gt 0 ]; then # check_signature is global for simplicity
-        tmp_signname="${cfs_signature}_$$_$(date +%s)_${RANDOM}"
+    if [[ -z "${disable_check_signature}" ]]; then # disable_check_signature is global for simplicity
+        local tmp_signname="${cfs_signature}_$$_$(date +%s)_${RANDOM}"
         if ! grep " ${cfs_fname}$" "${cfs_signature}" > "${tmp_signname}"; then
             rm -f "${tmp_signname}"
             echo "No signature for ${cfs_desc_fname}." 1>&2
@@ -1845,8 +1845,8 @@ log_write "glidein_startup.sh" "text" "Downloading file from Factory and Fronten
 # Fetch descript and signature files
 
 # disable signature check before I get the signature file itself
-# check_signature is global
-check_signature=0
+# disable_check_signature is global
+disable_check_signature=yes
 
 for gs_id in main entry client client_group
 do
@@ -1887,7 +1887,7 @@ do
 done
 
 # re-enable for everything else
-check_signature=1
+disable_check_signature=
 
 # Now verify the description was not tampered with
 # doing it so late should be fine, since nobody should have been able
