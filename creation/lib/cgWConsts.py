@@ -24,8 +24,8 @@ CVMFSEXEC_DISTRO_FILE = "cvmfsexec_dist_%s.tgz"
 CVMFSEXEC_DIR = "cvmfsexec"
 CVMFSEXEC_ATTR = "CVMFSEXEC_DIR"
 
-# constant that defines the priority values used by the factory/glidein
-PRIORITY_SETTINGS = ["file_list", "precvmfs_file_list", "at_file_list", "after_file_list"]
+# constant defining the priorities of file lists used by the factory/glidein
+FILE_LISTS_PRIORITIES = ("file_list", "precvmfs_file_list", "at_file_list", "after_file_list")
 
 # these are in the submit dir, so they can be changed
 SUBMIT_ATTRS_FILE = "submit_attrs.cfg"
