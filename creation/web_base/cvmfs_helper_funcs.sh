@@ -27,17 +27,16 @@
 #exec &> $LOGFILE
 
 variables_reset() {
-    # DESCRIPTION: This function lists and initializes the common variables
-    # to empty strings. These variables also become available to scripts
-    # that import functions defined in this script.
+    # Initializes the common variables to empty strings. These variables also become available to scripts that import functions defined in this script.
     #
     # INPUT(S): None
     # RETURN(S): Variables initialized to empty strings
 
-    # indicates whether the perform_system_check function has been run
+    # all of the variables in here are initialized to an empty string, where empty means not evaluated
+    # this variable indicates whether the perform_system_check function has been run; when evaluated value would be 'yes', otherwise remains empty
     GWMS_SYSTEM_CHECK=
 
-    # following set of variables used to store operating system and kernel info
+    # these variables are used to store operating system and kernel info
     GWMS_OS_DISTRO=
     GWMS_OS_NAME=
     GWMS_OS_VERSION_FULL=
@@ -50,6 +49,7 @@ variables_reset() {
     GWMS_OS_KRNL_MINOR_REV=
     GWMS_OS_KRNL_PATCH_NUM=
 
+    # the following variables are also initialized to an empty string; when evaluated can take on values 1 (meaning false/no) or 0 (meaning true/yes)
     # indicates whether CVMFS is locally mounted on the worker node (CE)
     GWMS_IS_CVMFS_LOCAL_MNT=
     # to indicate the status of on-demand mounting of CVMFS by the glidein after evaluating the worker node (CE)
@@ -68,8 +68,7 @@ variables_reset() {
 
 
 loginfo() {
-    # DESCRIPTION: This function prints informational messages to STDOUT
-    # along with hostname and date/time.
+    # Prints informational messages to STDOUT along with hostname and date/time.
     #
     # INPUT(S): String containing the message
     # RETURN(S): Prints message to STDOUT
@@ -79,8 +78,7 @@ loginfo() {
 
 
 logwarn(){
-    # DESCRIPTION: This function prints warning messages to STDOUT along
-    # with hostname and date/time.
+    # Prints warning messages to STDOUT along with hostname and date/time.
     #
     # INPUT(S): String containing the message
     # RETURN(S): Prints message to STDOUT
@@ -90,8 +88,7 @@ logwarn(){
 
 
 logerror() {
-    # DESCRIPTION: This function prints error messages to STDOUT along with
-    # hostname and date/time.
+    # Prints error messages to STDOUT along with hostname and date/time.
     #
     # INPUT(S): String containing the message
     # RETURN(S): Prints message to STDOUT
@@ -101,8 +98,7 @@ logerror() {
 
 
 print_exit_status () {
-    # DESCRIPTION: This function prints an appropriate message to the
-    # console to indicate what the exit status means.
+    # Prints an appropriate message to the console to indicate what the exit status means.
     #
     # INPUT(S): Number (exit status of a previously run command)
     # RETURN(S): Prints "yes" or "no" to indicate the result of the command
@@ -112,14 +108,13 @@ print_exit_status () {
 
 
 detect_local_cvmfs() {
-    # DESCRIPTION: This function detects whether CVMFS is natively (aka locally) available on the worker node. The result is stored in a common variable, i.e. GWMS_IS_CVMFS_LOCAL_MNT, and can be used downstream.
+    # Detects whether CVMFS is natively (aka locally) available on the worker node. The result is stored in a common variable, i.e GWMS_IS_CVMFS_LOCAL_MNT, and can be used downstream.
     #
     # INPUT(S): None
     # RETURN(S): None
 
-    CVMFS_ROOT="/cvmfs"
-    repo_name=oasis.opensciencegrid.org
-    # Second check...
+    local CVMFS_ROOT="/cvmfs"
+    local repo_name=oasis.opensciencegrid.org
     GWMS_IS_CVMFS_LOCAL_MNT=0
     if [[ -f $CVMFS_ROOT/$repo_name/.cvmfsdirtab || "$(ls -A $CVMFS_ROOT/$repo_name)" ]] &>/dev/null
     then
@@ -134,9 +129,7 @@ detect_local_cvmfs() {
 
 
 perform_system_check() {
-    # DESCRIPTION: This functions performs required system checks (such as
-    # operating system and kernel info, unprivileged user namespaces, FUSE
-    # status) and stores the results in the common variables for later use.
+    # Performs required system checks (such as operating system and kernel info, unprivileged user namespaces, FUSE status) and stores the results in the common variables for later use.
     #
     # INPUT(S): None
     # RETURN(S):
@@ -200,8 +193,7 @@ perform_system_check() {
 
 
 print_os_info () {
-    # DESCRIPTION: This functions prints operating system and kernel
-    # information to STDOUT.
+    # Prints operating system and kernel information to STDOUT.
     #
     # INPUT(S): None
     # RETURN(S): Prints a message containing OS and kernel details
@@ -211,11 +203,7 @@ print_os_info () {
 
 
 log_all_system_info () {
-    # DESCRIPTION: This function prints all the necessary system information
-    # stored in common and result variables (see perform_system_check
-    # function) for easy debugging. This has been done as collecting
-    # information about the worker node can be useful for troubleshooting
-    # and gathering stats about what is out there.
+    # Prints all the necessary system information stored in common and result variables (see perform_system_check function) for easy debugging. This has been done as collecting information about the worker node can be useful for troubleshooting and gathering stats about what is out there.
     #
     # INPUT(S): None
     # RETURN(S): Prints user-friendly messages to STDOUT
@@ -246,8 +234,7 @@ log_all_system_info () {
 
 
 mount_cvmfs_repos () {
-    # DESCRIPTION: This function mounts all the required and additional
-    # CVMFS repositories that would be needed for user jobs.
+    # Mounts all the required and additional CVMFS repositories that would be needed for user jobs.
     #
     # INPUT(S):
     #    1. cvmfsexec mode (integer)
@@ -317,7 +304,7 @@ mount_cvmfs_repos () {
 
 
 get_mount_point() {
-    # DESCRIPTION: This function is used to obtain the mount point information regarding where CVMFS is mounted on deman (when mounted). By default, CVMFS when mounted is at '/cvmfs'. Otherwise, CVMFS will be mounted at <glidein_work_dir>/.cvmfsexec/dist/cvmfs
+    # Obtain the mount point information regarding where CVMFS is mounted on demand (when mounted). By default, CVMFS when mounted is at '/cvmfs'. Otherwise, CVMFS will be mounted at <glidein_work_dir>/.cvmfsexec/dist/cvmfs
     #
     # INPUT(S): None
     # RETURN(S): None
@@ -335,8 +322,7 @@ get_mount_point() {
 
 
 has_unpriv_userns() {
-    # DESCRIPTION: This function checks the status of unprivileged user
-    # namespaces being supported and enabled on the worker node.
+    # Checks the status of unprivileged user namespaces being supported and enabled on the worker node.
     #
     # INPUT(S): None
     # RETURN(S):
@@ -377,7 +363,7 @@ has_unpriv_userns() {
 
 
 has_fuse() {
-    # DESCRIPTION: This function checks the status of FUSE configuration being available on the worker node.
+    # Check the status of FUSE configuration being available on the worker node.
     #
     # INPUT(S): None
     # RETURN(S):
@@ -444,7 +430,7 @@ has_fuse() {
 
 
 determine_cvmfsexec_mode_usage() {
-    # DESCRIPTION: This function is used to determine the cvmfsexec mode that will be applicable based on the worker node specifications, including the status of unprivileged user namespaces and FUSE configuration.
+    # Determine the cvmfsexec mode that will be applicable based on the worker node specifications, including the status of unprivileged user namespaces and FUSE configuration.
     #
     # INPUT(S): None
     # RETURN(S):
@@ -504,7 +490,7 @@ determine_cvmfsexec_mode_usage() {
 
 
 setup_cvmfsexec_use() {
-    # DESCRIPTION: This function performs the necessary setup prior to using cvmfsexec, if possible. If cvmfsexec can be used in either of the three modes, the specific mode information is written to the glidein configuration file.
+    # Performs the necessary setup prior to using cvmfsexec, if possible. If cvmfsexec can be used in either of the three modes, the specific mode information is written to the glidein configuration file.
     #
     # INPUT(S): None
     # RETURN(S): an integer depicting the cvmfsexec mode that is applicable for the worker node.
@@ -526,7 +512,7 @@ setup_cvmfsexec_use() {
 
 
 prepare_for_cvmfs_mount () {
-    # DESCRIPTION: This function is used to prepare the necessary items and keep them ready/accessible right before mounting CVMFS on demand.
+    # Prepare the necessary items and keep them ready/accessible right before mounting CVMFS on demand.
     #
     # INPUT(S): None
     # RETURN(S): None
@@ -582,7 +568,7 @@ prepare_for_cvmfs_mount () {
 
 
 perform_cvmfs_mount () {
-    # DESCRIPTION: This function serves as a wrapper for performing mounting of CVMFS on demand depending on a few factors.
+    # Wrapper for performing mounting of CVMFS on demand depending on a few factors.
     #
     # INPUT(S): an integer denoting the selected cvmfsexec mode
     # RETURN(S): to stdout one of the following values:
