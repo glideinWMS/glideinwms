@@ -1029,6 +1029,11 @@ MAX_STARTD_LOG          I       10000000        +                               
                   >MEMORY</a
                 >
               </p>
+			<p>
+			Note that HTCondor-CEs ignore RequestMemory. if you like to set the
+			memory or change the default 2GB minimum, you need to set maxMemory, e.g.
+			<tt>+maxMemory=RequestMemory</tt> in the submit_attrs section.
+			</p>
             </td>
           </tr>
           <tr>
