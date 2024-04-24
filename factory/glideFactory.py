@@ -41,7 +41,7 @@ from glideinwms.factory import (
     glideFactoryMonitoring,
     glideFactoryPidLib,
 )
-from glideinwms.lib import cleanupSupport, condorMonitor, glideinWMSVersion, logSupport, util
+from glideinwms.lib import cleanupSupport, condorMonitor, credentials, glideinWMSVersion, logSupport, util
 from glideinwms.lib.condorMonitor import CondorQEdit, QueryError
 from glideinwms.lib.pubCrypto import RSAKey
 
