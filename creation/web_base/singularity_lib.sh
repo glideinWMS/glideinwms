@@ -42,7 +42,7 @@
 # plat1:URL1,plat2:URL2,default:URLd
 # No comma is allowed in platform IDs or URLs, no colon is allowed in platform IDs.
 # A platform is an arbitrary string, could be the OS name, or a dash separated list (os-arch)
-# GWMS will do an exact match with the requested or default ones (rhel7,rhel6,default).
+# GWMS will do an exact match with the requested or default ones (default,rhel9,rhel8,rhel7,rhel6).
 # 'defult' is used for the default platform (no special meaning in reality)
 # The legacy variables SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7 are mapped to rhel6, rhel7
 # GLIDEIN_REQUIRED_OS (Factory - OS are allowed on the entry) and  REQUIRED_OS (Frontend or Job - OSes the job requires)
@@ -1887,8 +1887,8 @@ singularity_prepare_and_invoke() {
             return
         fi
         if [[ "$DESIRED_OS" = any ]]; then
-            # Prefer the platforms default,rhel7,rhel6,rhel8, otherwise pick the first one available
-            GWMS_SINGULARITY_IMAGE=$(singularity_get_image default,rhel7,rhel6,rhel8 ${GWMS_SINGULARITY_IMAGE_RESTRICTIONS:+$GWMS_SINGULARITY_IMAGE_RESTRICTIONS,}any)
+            # Prefer the platforms default,rhel9,rhel8,rhel7,rhel6, otherwise pick the first one available
+            GWMS_SINGULARITY_IMAGE=$(singularity_get_image default,rhel9,rhel8,rhel7,rhel6 ${GWMS_SINGULARITY_IMAGE_RESTRICTIONS:+$GWMS_SINGULARITY_IMAGE_RESTRICTIONS,}any)
         else
             GWMS_SINGULARITY_IMAGE=$(singularity_get_image "$DESIRED_OS" $GWMS_SINGULARITY_IMAGE_RESTRICTIONS)
         fi
