@@ -39,15 +39,15 @@ fi
 # If you set an image for the key 'default', this will be picked if no preference is expressed by the job
 # And also remember that for now, GWMS supports Singularity images under /cvmfs/, preferably under
 # /cvmfs/singularity.opensciencegrid.org/ or at least on a path which existence can be verified (-e test)
-# CVMFS path as /cvmfs, the eventual translation to $CVMFS_MOUNT_DIR will happen later since the value may change
+# If $CVMFS_MOUNT_DIR is set, it is considered the root dir of CVMFS and replaces /cvmfs in the paths.
 
 # Note that you can add SINGULARITY_IMAGES_DICT also as attribute in the Factory or Frontend configuration
 
 # Note the legacy variables/attributes  SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6 and SINGULARITY_IMAGE_DEFAULT7 will override the
-# dictionary values fro 'rhel7', 'rhel6' and 'rhel8' respectively
+# dictionary values for 'default', 'rhel6' and 'rhel7' respectively
 # you have to comment out both export and advertise lines together!!
 
-export SINGULARITY_IMAGES_DICT="rhel7:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest,rhel6:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest,rhel8:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el8:latest"
+export SINGULARITY_IMAGES_DICT="rhel9:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el9:latest,rhel8:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el8:latest,rhel7:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest,rhel6:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest"
 advertise SINGULARITY_IMAGES_DICT "$SINGULARITY_IMAGES_DICT" "S"
 
 exit 0

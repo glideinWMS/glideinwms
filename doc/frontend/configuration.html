@@ -1046,8 +1046,9 @@ SPDX-License-Identifier: Apache-2.0
                     If the users do not specify their own singularity image, the
                     default singularity image will be used.
                     SINGULARITY_IMAGES_DICT will be searched for 'default',
-                    'rhel7' and 'rhel6' images. Users can select a specific
-                    image form SINGULARITY_IMAGES_DICT by using REQUIRED_OS:
+                    'rhel9', 'rhel8', 'rhel7' and 'rhel6' images (in order).
+                    Users can select a specific image form
+                    SINGULARITY_IMAGES_DICT by using REQUIRED_OS:
                     <blockquote>+REQUIRED_OS = &quot;rhel6&quot;.</blockquote>
                     If the users specify a value different from 'any' for
                     <b>REQUIRED_OS</b> (e.g. rhel6, rhel7), the corresponding
