@@ -1211,6 +1211,7 @@ singularity_exec() {
     local singularity_bin="$1"
     local singularity_image="$2"
     local singularity_binds="$3"
+    local singularity_rootdir
     # Keeping --contain. Should not interfere w/ GPUs
     local singularity_opts="--ipc --contain $4"  # extra options added at the end (still before binds)
     # add --pid if not disabled in config
@@ -1237,6 +1238,17 @@ singularity_exec() {
     # TODO: --home or --no-home ? See email from Dave and Mats
     # Dave: In versions 3.x through 3.2.1-1 where --home was being ignored on sites that set "mount home = no"
     # in singularity.conf. This was fixed in 3.2.1-1.1.
+
+    # If not set in the environment, make sure Apptainer temporary directories are in the Glidein directory tree
+    singularity_rootdir=$(gconfig_get GLIDEIN_LOCAL_TMP_DIR)
+    if [[ -n "$singularity_rootdir" ]]; then
+        mkdir -p "$singularity_rootdir/apptainer/cache"
+        mkdir -p "$singularity_rootdir/apptainer/tmp"
+        export APPTAINER_CACHEDIR=${APPTAINER_CACHEDIR-"$singularity_rootdir/apptainer/cache"}
+        export APPTAINER_TMPDIR=${APPTAINER_TMPDIR-"$singularity_rootdir/apptainer/tmp"}
+        export SINGULARITY_CACHEDIR="${APPTAINER_CACHEDIR}"
+        export SINGULARITY_TMPDIR="${APPTAINER_TMPDIR}"
+    fi
 
     info_dbg  "$execution_opt \"$singularity_bin\" $singularity_global_opts exec --home \"$PWD\":/srv --pwd /srv " \
             "$singularity_opts ${singularity_binds:+"--bind" "\"$singularity_binds\""} " \
