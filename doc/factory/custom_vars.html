@@ -2598,6 +2598,35 @@ MAX_STARTD_LOG          I       10000000        +                               
             </td>
           </tr>
           <tr>
+            <td><b>APPTAINER_CACHEDIR</b> b>SINGULARITY_CACHEDIR</b></td>
+            <td>String</td>
+            <td>$GLIDEIN_LOCAL_TMP_DIR/apptainer/cache</td>
+            <td>Frontend Factory</td>
+            <td>
+              <p>
+                Set to control where Apptainer and singularity place their
+                cache directory, default (only if the variable is unset, not if it is set
+                and empty) is $GLIDEIN_LOCAL_TMP_DIR/apptainer/cache.
+                Note that you can set any Apptainer/Singularity variable to
+                affect their behavior.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td><b>APPTAINER_CACHEDIR</b> b>SINGULARITY_CACHEDIR</b></td>
+            <td>String</td>
+            <td>$GLIDEIN_LOCAL_TMP_DIR/apptainer/tmp</td>
+            <td>Frontend Factory</td>
+            <td>
+              <p>
+                Set to control where Apptainer and singularity place their
+                temp directory, default (only if the variable is unset, not if it is set
+                and empty) is $GLIDEIN_LOCAL_TMP_DIR/apptainer/tmp.
+                If set to null (""), Apptainer will search in /tmp and $TMPDIR.
+             </p>
+            </td>
+          </tr>
+          <tr>
             <td><b>GLIDEIN_CONTAINER_ENV</b></td>
             <td>String</td>
             <td></td>
