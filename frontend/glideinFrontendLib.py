@@ -780,7 +780,33 @@ def getCondorStatusNonDynamic(status_dict):
 #
 # Use the output of getCondorStatus
 #
-def getIdleCondorStatus(status_dict):
+def getIdleCondorStatus(status_dict, min_memory=2500):
+    """Return a dictionary of collectors containing idle(unclaimed) vms
+    Each element is a condorStatus
+
+    Exclude partitionable slots with no free memory/cpus
+    Minimum memory required by CMS is 2500 MB
+    If the node had GPUs, there should be at least one available (requested by CMS)
+
+    1. (el.get('PartitionableSlot') != True)
+    Includes static slots irrespective of the free cpu/mem
+
+    2. (el.get('TotalSlots') == 1)
+    p-slots not yet partitioned
+
+    3. (el.get('Cpus', 0) > 0 and
+        el.get('Memory', 2501) > min_memory) and
+        (el.get('TotalGpus', 0) == 0 or el.get('Gpus', 0) > 0))
+    p-slots that have enough idle resources.
+
+    Args:
+        status_dict (dict): all condor status jobs as returned by getCondorStatus
+        min_memory (int): minimum memory in MB for partitionable slots (default=2500)
+
+    Returns:
+        dict: condorStatus with Idle jobs
+
+    """
     out = {}
     for collector_name in list(status_dict.keys()):
         # Exclude partitionable slots with no free memory/cpus
@@ -808,7 +834,7 @@ def getIdleCondorStatus(status_dict):
                     or (el.get("TotalSlots") == 1)
                     or (
                         el.get("Cpus", 0) > 0
-                        and el.get("Memory", 2501) > 2500
+                        and el.get("Memory", 2501) > min_memory
                         and (el.get("TotalGpus", 0) == 0 or el.get("Gpus", 0) > 0)
                     )
                 )

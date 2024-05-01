@@ -339,6 +339,9 @@ SPDX-License-Identifier: Apache-2.0
                     >&lt;glideins_removal margin="0" requests_tracking="False"
                     type="ALL" wait="0"/&gt;</a
                   ><br />
+                  <a href="#group_config"
+                    >&lt;partitionable_glidein min_memory="2500"/&gt;</a
+                  ><br />
                 </blockquote>
                 <a href="#group_config">&lt;/config&gt;</a><br />
                 <a href="#group_match"
@@ -1331,6 +1334,16 @@ SPDX-License-Identifier: Apache-2.0
                 the default NO means no early removal). <b>wait</b> adds a
                 delay, waits for N cycles without requests (or below the margin)
                 before triggering the removal.
+              </li>
+              <li>
+                The <b>partitionable_glidein</b> element is used to set
+                requirements for partitionable Glideins (HTCondor p-slots). If
+                the Glidein has less than <b>min_memory</b> MB of RAM (2500 MB
+                by default), the Glidein and all the remaining cores are not
+                counted as Idle, so new Glidein requests are triggered if
+                needed. NOTE that this requirement is not used for resource
+                (Entry) selection or to filter non-partitionable Glideins
+                (HTCondor static slots).
               </li>
             </ul>
           </li>

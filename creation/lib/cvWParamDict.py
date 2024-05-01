@@ -1,12 +1,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   Frontend creation module
 #   Classes and functions needed to handle dictionary files
@@ -16,7 +10,6 @@
 import os
 import os.path
 import shutil
-import string
 
 from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
 
@@ -310,7 +303,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             if attr_name in ("GLIDECLIENT_Start", "GLIDECLIENT_Group_Start"):
                 if start_expr is None:
                     start_expr = params.attrs[attr_name].value
-                elif not (params.attrs[attr_name].value in (None, "True")):
+                elif params.attrs[attr_name].value not in (None, "True"):
                     start_expr = f"({start_expr})&&({params.attrs[attr_name].value})"
                 # delete from the internal structure... that's legacy only
                 del params.data["attrs"][attr_name]
@@ -544,7 +537,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         # will be in the group section now
         for attr_name in params.attrs.keys():
             if params.attrs[attr_name].value.find("$") != -1 and self.enable_expansion:
-                if not (attr_name in sub_params.attrs.keys()):
+                if attr_name not in sub_params.attrs.keys():
                     add_attr_unparsed(attr_name, params, self.dicts, self.sub_name)
                 # else the group value will override it later on
 
@@ -896,6 +889,8 @@ def populate_group_descript(work_dir, group_descript_dict, sub_name, sub_params)
     group_descript_dict.add("MapFile", os.path.join(work_dir, cvWConsts.GROUP_MAP_FILE))
     group_descript_dict.add("MapFileWPilots", os.path.join(work_dir, cvWConsts.GROUP_WPILOTS_MAP_FILE))
 
+    group_descript_dict.add("PartGlideinMinMemory", sub_params.config.partitionable_glidein.min_memory)
+
     group_descript_dict.add("IgnoreDownEntries", sub_params.config.ignore_down_entries)
     group_descript_dict.add("MaxRunningPerEntry", sub_params.config.running_glideins_per_entry.max)
     group_descript_dict.add("MinRunningPerEntry", sub_params.config.running_glideins_per_entry.min)
@@ -1042,7 +1037,7 @@ def match_attrs_to_array(match_attrs):
 
     for attr_name in list(match_attrs.keys()):
         attr_type = match_attrs[attr_name]["type"]
-        if not (attr_type in MATCH_ATTR_CONV):
+        if attr_type not in MATCH_ATTR_CONV:
             raise RuntimeError(f"match_attr type '{attr_type}' not one of {list(MATCH_ATTR_CONV.keys())}")
         ma_array.append((str(attr_name), MATCH_ATTR_CONV[attr_type]))
 
@@ -1285,13 +1280,13 @@ def populate_gridmap(params, gridmap_dict):
             dn = el.DN
             if dn is None:
                 raise RuntimeError("DN not defined for pool collector or CCB %s" % el.node)
-            if not (dn in collector_dns):  # skip duplicates
+            if dn not in collector_dns:  # skip duplicates
                 collector_dns.append(dn)
                 gridmap_dict.add(dn, "collector%i" % len(collector_dns))
 
     # Add also the frontend DN, so it is easier to debug
     if params.security.proxy_DN is not None:
-        if not (params.security.proxy_DN in collector_dns):
+        if params.security.proxy_DN not in collector_dns:
             gridmap_dict.add(params.security.proxy_DN, "frontend")
 
 

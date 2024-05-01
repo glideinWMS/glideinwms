@@ -9,8 +9,8 @@ Changes since the last release
 
 ### New features / functionalities
 
--   item one of the list
--   item N
+-   Apptainer cache and temporary directory set in the Glidein working directory (Issue #403, PR #404)
+-   Ability to set a minimum required memory for partitionable Glideins. The default is the value used previously, 2500 MB (Issue #405, PR #406)
 
 ### Changed defaults / behaviours
 
@@ -18,9 +18,13 @@ Changes since the last release
 
 ### Security Related Fixes
 
+-   Hardening of HTCondor configuraiton. Restricted authentication to exclude unauthenticated beside anonymous (PR #401)
+
 ### Bug Fixes
 
 -   Fixed Apptainer validation not considering uid_map w/o initial blank (Issue #395, PR #396)
+-   Flattening error message in \_CONDOR_WRAPPER_ERROR_FILE and JobWrapperFailure Ad. This is a workaround for a bug in HTCondor (PR #400)
+-   Fixed problem when check_signature in glidein_startup is not defined (PR #402)
 
 ### Testing / Development
 

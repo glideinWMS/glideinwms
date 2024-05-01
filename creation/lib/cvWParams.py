@@ -1,40 +1,19 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   This module contains the create_frontend params class
-#
-# Author:
-#   Igor Sfiligoi
-#
+"""This module contains the create_frontend params class
+"""
 
 import copy
 import os
-
-# import re
-# import imp
 import os.path
-
-# from .matchPolicy import MatchPolicy
-import pprint
-
-# import imp
-# import string
 import socket
 
-# from glideinwms.lib import xmlParse
 from glideinwms.lib.util import safe_boolcomp
 
 # from collections import OrderedDict
 from glideinwms.lib.xmlParse import OrderedDict
 
-# from glideinwms.lib import condorExe  # not used
 from . import cWParams
 
 
@@ -72,6 +51,15 @@ class VOFrontendParams(cWParams.CommonParams):
 
         # Config section exclusive to frontend group
         group_config_defaults = cWParams.CommentedOrderedDict()
+
+        group_config_partitionable_glidein_defaults = cWParams.CommentedOrderedDict()
+        group_config_partitionable_glidein_defaults["min_memory"] = [
+            "2500",
+            "MB",
+            "Min memory in MB required for partitionable Glideins. If there is less, available (idle) cores are not counted.",
+            None,
+        ]
+        group_config_defaults["partitionable_glidein"] = group_config_partitionable_glidein_defaults
 
         group_config_running_defaults = cWParams.CommentedOrderedDict()
         group_config_running_defaults["max"] = [
@@ -800,7 +788,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
 # return attribute value in the proper python format
 def extract_attr_val(attr_obj):
-    if not attr_obj.type in ("string", "int", "expr"):
+    if attr_obj.type not in ("string", "int", "expr"):
         raise RuntimeError("Wrong attribute type '%s', must be either 'int', 'string' or 'expr'" % attr_obj.type)
 
     if attr_obj.type in ("string", "expr"):

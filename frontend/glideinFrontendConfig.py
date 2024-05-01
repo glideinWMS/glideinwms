@@ -1,12 +1,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   Frontend config related classes
 #
@@ -71,9 +65,24 @@ def get_group_dir(base_dir, group_name):
 # If validate is defined, also defines
 #   self.hash_value
 class ConfigFile:
-    def __init__(
-        self, config_dir, config_file, convert_function=repr, validate=None
-    ):  # if defined, must be (hash_algo,value)
+    """Load a file or URL composed of NAME VAL lines
+    and create the data dictionary
+        self.data[NAME]=VAL
+    Also define:
+        self.config_file="name of file"
+    If validate is defined, also define a variable with the file hash:
+        self.hash_value
+    """
+
+    def __init__(self, config_dir, config_file, convert_function=repr, validate=None):
+        """Define, load and derive a config file
+
+        Args:
+            config_dir (str|bytes): directory of the config file
+            config_file (str|bytes): config file name/URI
+            convert_function: function converting each line value
+            validate (None|tuple): hash algorithm, value tuple  (hash_algo,value)
+        """
         self.config_dir = config_dir
         self.config_file = config_file
         self.data = {}
@@ -81,6 +90,14 @@ class ConfigFile:
         self.derive()
 
     def open(self, fname):
+        """Open the config file/URI. Used in self.load()
+
+        Args:
+            fname (str|bytes): URL or file path
+
+        Returns:
+
+        """
         if (fname[:5] == "http:") or (fname[:6] == "https:") or (fname[:4] == "ftp:"):
             # one of the supported URLs
             return urllib.request.urlopen(fname)
@@ -89,6 +106,16 @@ class ConfigFile:
             return open(fname)
 
     def validate_func(self, data, validate, fname):
+        """Validate the data
+
+        Args:
+            data (str): data to validate
+            validate (None|tuple): hash algorithm, value tuple
+            fname (str): file/URI, used only in the error message
+
+        Raises:
+            OSError: if the hash calculated is different from the provided one
+        """
         if validate is not None:
             vhash = hashCrypto.get_hash(validate[0], data)
             self.hash_value = vhash
@@ -98,7 +125,17 @@ class ConfigFile:
                     % (fname, validate[0], vhash, validate[1])
                 )
 
-    def load(self, fname, convert_function, validate=None):  # if defined, must be (hash_algo,value)
+    def load(self, fname, convert_function, validate=None):
+        """Load the config file/URI.
+        The file/URI is a series of NAME VALUE lines or comment lines (starting with #)
+        The hash algorithm and value are used to validate the file content.
+        The convert_function is used to convert the value of each line
+
+        Args:
+            fname (str|bytes): URL or file path
+            convert_function: function converting the line value
+            validate (None|tuple): if defined, must be (hash_algo,value)
+        """
         self.data = {}
         with self.open(fname) as fd:
             data = fd.read()
@@ -113,6 +150,13 @@ class ConfigFile:
                 self.split_func(line, convert_function)
 
     def split_func(self, line, convert_function):
+        """Loads the file line in the data dictionary
+        The first word is the key, the rest of the line the value, converted by the convert_function
+
+        Args:
+            line (str): line to load
+            convert_function: function converting the line value
+        """
         larr = line.split(None, 1)
         lname = larr[0]
         if len(larr) == 1:
@@ -133,9 +177,18 @@ class ConfigFile:
 
 # load from the group subdir
 class GroupConfigFile(ConfigFile):
-    def __init__(
-        self, base_dir, group_name, config_file, convert_function=repr, validate=None
-    ):  # if defined, must be (hash_algo,value)
+    """Config file from the group subdirectory"""
+
+    def __init__(self, base_dir, group_name, config_file, convert_function=repr, validate=None):
+        """Define, load and derive a config file from the group subdirectory
+
+        Args:
+            base_dir (str|bytes): directory of the config file
+            group_name (str): group name
+            config_file (str|bytes): config file name/URI
+            convert_function: function converting each line value
+            validate (None|tuple): hash algorithm, value tuple  (hash_algo,value)
+        """
         ConfigFile.__init__(self, get_group_dir(base_dir, group_name), config_file, convert_function, validate)
         self.group_name = group_name
 
@@ -145,9 +198,24 @@ class GroupConfigFile(ConfigFile):
 # Also defines:
 #   self.group_hash_value, if group_validate defined
 class JoinConfigFile(ConfigFile):
+    """Joint main and group configuration"""
+
     def __init__(
         self, base_dir, group_name, config_file, convert_function=repr, main_validate=None, group_validate=None
-    ):  # if defined, must be (hash_algo,value)
+    ):
+        """Define, load and derive both the main and group subdir config file and join the results
+        Also define:
+            self.group_hash_value, if group_validate defined
+
+
+        Args:
+            base_dir (str|bytes): directory of the config file
+            group_name (str): group name
+            config_file (str|bytes): config file name/URI
+            convert_function: function converting each line value
+            main_validate (None|tuple): hash algorithm, value tuple  (hash_algo,value)
+            group_validate (None|tuple): hash algorithm, value tuple  (hash_algo,value)
+        """
         ConfigFile.__init__(self, base_dir, config_file, convert_function, main_validate)
         self.group_name = group_name
         group_obj = GroupConfigFile(base_dir, group_name, config_file, convert_function, group_validate)
@@ -166,6 +234,14 @@ class JoinConfigFile(ConfigFile):
 
 
 class FrontendDescript(ConfigFile):
+    """Description of the Frontand
+
+    Only one
+    Content comes from the global configuration
+    File name: frontend.descript
+    cWDictFile.StrDictFile defined in cvWDictFile.get_main_dicts()
+    """
+
     def __init__(self, config_dir):
         global frontendConfig
         ConfigFile.__init__(
@@ -174,6 +250,14 @@ class FrontendDescript(ConfigFile):
 
 
 class ElementDescript(GroupConfigFile):
+    """Description of a Frontend group
+
+    One per group/element
+    Content comes from the group configuration
+    File name: group.descript (in the group subdirectory - group_GROUPNAME)
+    cWDictFile.StrDictFile defined in cvWDictFile.get_group_dicts()
+    """
+
     def __init__(self, base_dir, group_name):
         global frontendConfig
         GroupConfigFile.__init__(
@@ -182,6 +266,14 @@ class ElementDescript(GroupConfigFile):
 
 
 class ParamsDescript(JoinConfigFile):
+    """Global and grup parameters in a Frontend
+
+    One per group/element
+    Content has `parameter="True"` in the <attrs> sections in the global and group configuration
+    Files: params.cfg in the main directory and group subdirectory
+    cvWDictFile.ParamsDictFile defined in cvWDictFile.get_common_dicts()
+    """
+
     def __init__(self, base_dir, group_name):
         global frontendConfig
         JoinConfigFile.__init__(
@@ -210,6 +302,14 @@ class ParamsDescript(JoinConfigFile):
 
 
 class AttrsDescript(JoinConfigFile):
+    """Global and grup attributes in a Frontend
+
+    One per group/element
+    Content comes from the <attrs> sections in the global and group configuration
+    Files: attrs.cfg in the main directory and group subdirectory
+    cWDictFile.ReprDictFile defined in cvWDictFile.get_common_dicts()
+    """
+
     def __init__(self, base_dir, group_name):
         global frontendConfig
         JoinConfigFile.__init__(
@@ -254,26 +354,30 @@ class BaseSignatureDescript(ConfigFile):
 ############################################################
 
 
-# not everything is merged
-# the old element can still be accessed
 class ElementMergedDescript:
+    """Selective merge of global and group configuration
+
+    not everything is merged
+    the old element in the global configuration can still be accessed
+    """
+
     def __init__(self, base_dir, group_name):
         self.frontend_data = FrontendDescript(base_dir).data
-        if not (group_name in self.frontend_data["Groups"].split(",")):
+        if group_name not in self.frontend_data["Groups"].split(","):
             raise RuntimeError("Group '{}' not supported: {}".format(group_name, self.frontend_data["Groups"]))
 
         self.element_data = ElementDescript(base_dir, group_name).data
         self.group_name = group_name
 
-        self.merge()
+        self._merge()
 
     #################
     # Private
-    def merge(self):
+    def _merge(self):
         self.merged_data = {}
 
         for t in ("JobSchedds",):
-            self.merged_data[t] = self.split_list(self.frontend_data[t]) + self.split_list(self.element_data[t])
+            self.merged_data[t] = self._split_list(self.frontend_data[t]) + self._split_list(self.element_data[t])
             if len(self.merged_data[t]) == 0:
                 raise RuntimeError("Found empty %s!" % t)
 
@@ -301,7 +405,7 @@ class ElementMergedDescript:
 
             for el in match_attrs_list:
                 el_name = el[0]
-                if not (el_name in names):
+                if el_name not in names:
                     attributes.append(el)
                     names.append(el_name)
             self.merged_data[t] = attributes
@@ -360,7 +464,8 @@ class ElementMergedDescript:
 
         return
 
-    def split_list(self, val):
+    @staticmethod
+    def _split_list(val):
         if val == "None":
             return []
         elif val == "":
@@ -411,7 +516,7 @@ class StageFiles:
             raise KeyError(f"Unknown list type '{list_type}'; valid typtes are {list(self.stage_descript.data.keys())}")
 
         list_fname = self.stage_descript.data[list_type]
-        return self.get_stage_file(self.stage_descript.data[list_type], lambda x: x.split(None, 4))
+        return self.get_stage_file(list_fname, lambda x: x.split(None, 4))
 
 
 # this class knows how to interpret some of the files in the Stage area
@@ -548,7 +653,7 @@ class HistoryFile:
     def __getitem__(self, keyid):
         try:
             return self.data[keyid]
-        except KeyError as e:
+        except KeyError:
             if self.default_factory is None:
                 raise  # no default initialization, just fail
             # i have the initialization function, use it

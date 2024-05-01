@@ -3,16 +3,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
 # Description:
 #   unit test for glideinwms/lib/util.py
-#
-# Author:
-#   Marco Mascheroni
-#
 
 
 import os
@@ -39,18 +31,18 @@ class TestUtils(unittest.TestCase):
 
     def test_import_module(self):
         # Test import_module with a file path
-        module = import_module("fixtures/test_module.py")
+        module = import_module("fixtures/testing_module.py")
 
         # Test import_module with a file name and a search path
-        import_module("test_module.py", ["fixtures"])
-        import_module("test_module.py", "fixtures")
+        import_module("testing_module.py", ["fixtures"])
+        import_module("testing_module.py", "fixtures")
 
         # Test import_module with a module name and a search path
-        import_module("test_module", ["fixtures"])
-        import_module("test_module", "fixtures")
+        import_module("testing_module", ["fixtures"])
+        import_module("testing_module", "fixtures")
 
         # Test import_module with a module path
-        import_module("fixtures.test_module")
+        import_module("fixtures.testing_module")
 
         # Validate module contents
         self.assertEqual(module.CONSTANT_ONE, "one")
