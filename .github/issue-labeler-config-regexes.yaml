@@ -26,6 +26,8 @@ FEATURE:
 # regular expressions for labeling stakeholders for an issue is listed in this block
 cms:
   - 'Stakeholders: *(?:Concerned stakeholder\(s\) *)?\[?.*(\b(?:CMS|Cms|cms)\b)'
+dune:
+  - 'Stakeholders: *(?:Concerned stakeholder\(s\) *)?\[?.*(\b(?:DUNE|Dune|dune)\b)'
 factoryops:
   - 'Stakeholders: *(?:Concerned stakeholder\(s\) *)?\[?.*(\b[Ff]actory[Oo]ps\b)'
 fermilab:
