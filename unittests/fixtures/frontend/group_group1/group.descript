@@ -14,6 +14,7 @@ MaxIdleVMsTotal 	1000
 CurbIdleVMsTotal 	200
 MaxRunningTotal 	100000
 CurbRunningTotal 	90000
+PartGlideinMinMemory 	2500
 MaxMatchmakers 	3
 FactoryQueryExpr 	True
 FactoryMatchAttrs 	[]

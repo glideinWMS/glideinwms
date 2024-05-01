@@ -4,14 +4,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Project:
-   glideinWMS
-
  Description:
    unit test for glideinwms/frontend/glideinFrontendElement
-
- Author:
-   Burt Holzman <burt@fnal.gov>
 """
 
 
@@ -183,6 +177,7 @@ class FEElementTestCase(unittest.TestCase):
             "FactoryQueryExpr": "True",
             "MatchExpr": "True",
             "CurbIdleVMsTotal": "200",
+            "PartGlideinMinMemory": "2500",
             "GroupName": "group1",
             "MaxMatchmakers": "3",
             "MapFileWPilots": "/var/lib/gwms-frontend/vofrontend/group_main/group_wpilots.mapfile",

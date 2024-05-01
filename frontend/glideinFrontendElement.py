@@ -3,15 +3,16 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This is the main of the glideinFrontend
-#
-# Arguments:
-#   $1 = parent PID
-#   $2 = work dir
-#   $3 = group_name
-#   $4 = operation type (optional, defaults to "run")
-#
+"""
+This is the main of the glideinFrontend
+
+Arguments:
+   $1 = parent PID
+   $2 = work dir
+   $3 = group_name
+   $4 = operation type (optional, defaults to "run")
+
+"""
 
 import copy
 import os
@@ -35,15 +36,7 @@ from glideinwms.frontend import (
 )
 
 # from glideinwms.lib.util import file_tmp2final
-from glideinwms.lib import (
-    cleanupSupport,
-    condorMonitor,
-    logSupport,
-    pubCrypto,
-    servicePerformance,
-    subprocessSupport,
-    token_util,
-)
+from glideinwms.lib import cleanupSupport, condorMonitor, logSupport, pubCrypto, servicePerformance, token_util
 from glideinwms.lib.disk_cache import DiskCache
 from glideinwms.lib.fork import fork_in_bg, ForkManager, wait_for_pids
 from glideinwms.lib.pidSupport import register_sighandler
@@ -129,6 +122,7 @@ class glideinFrontendElement:
 
         self.startup_time = time.time()
 
+        # All the names here must be consistent with the ones in creation/lib
         # self.sleep_time = int(self.elementDescript.frontend_data['LoopDelay'])
         self.frontend_name = self.elementDescript.frontend_data["FrontendName"]
         self.web_url = self.elementDescript.frontend_data["WebURL"]
@@ -163,6 +157,7 @@ class glideinFrontendElement:
         self.global_total_max_vms_idle = int(self.elementDescript.frontend_data["MaxIdleVMsTotalGlobal"])
         self.global_total_curb_vms_idle = int(self.elementDescript.frontend_data["CurbIdleVMsTotalGlobal"])
 
+        self.p_glidein_min_memory = int(self.elementDescript.element_data["PartGlideinMinMemory"])
         self.max_matchmakers = int(self.elementDescript.element_data["MaxMatchmakers"])
 
         self.removal_type = self.elementDescript.element_data["RemovalType"]
@@ -1267,7 +1262,7 @@ class glideinFrontendElement:
         status_dict_non_dynamic = glideinFrontendLib.getCondorStatusNonDynamic(self.status_dict)
 
         # dict with idle static + idle pslot
-        status_dict_idle = glideinFrontendLib.getIdleCondorStatus(self.status_dict)
+        status_dict_idle = glideinFrontendLib.getIdleCondorStatus(self.status_dict, self.p_glidein_min_memory)
 
         # dict with static + dynamic + pslot_with_dyanmic_slot
         status_dict_running = glideinFrontendLib.getRunningCondorStatus(self.status_dict)
@@ -2137,7 +2132,7 @@ class glideinFrontendElement:
                 #       as known to the collector
                 fe_counts = {
                     "Idle": glideinFrontendLib.countCondorStatus(
-                        glideinFrontendLib.getIdleCondorStatus(fe_status_dict)
+                        glideinFrontendLib.getIdleCondorStatus(fe_status_dict, self.p_glidein_min_memory)
                     ),
                     "Total": glideinFrontendLib.countCondorStatus(fe_status_dict),
                 }
@@ -2164,7 +2159,7 @@ class glideinFrontendElement:
                 #                local cluster slots, etc
                 global_counts = {
                     "Idle": glideinFrontendLib.countCondorStatus(
-                        glideinFrontendLib.getIdleCondorStatus(global_status_dict)
+                        glideinFrontendLib.getIdleCondorStatus(global_status_dict, self.p_glidein_min_memory)
                     ),
                     "Total": glideinFrontendLib.countCondorStatus(global_status_dict),
                 }
@@ -2334,7 +2329,7 @@ class glideinFrontendElement:
 
             req_dict_types = {
                 "Total": total_req_dict,
-                "Idle": glideinFrontendLib.getIdleCondorStatus(total_req_dict),
+                "Idle": glideinFrontendLib.getIdleCondorStatus(total_req_dict, self.p_glidein_min_memory),
                 "Running": glideinFrontendLib.getRunningCondorStatus(total_req_dict),
                 "Failed": glideinFrontendLib.getFailedCondorStatus(total_req_dict),
                 "TotalCores": glideinFrontendLib.getCondorStatusNonDynamic(total_req_dict),
