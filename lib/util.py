@@ -3,9 +3,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This is a collection of utilities functions for file handling and other
-
+"""This is a collection of utilities functions for file handling and other
+"""
 
 import contextlib
 import os
@@ -350,7 +349,7 @@ def file_tmp2final(
         # That solution could leave without fname if the program is interrupted right after backup
         try:
             shutil.copy2(fname, bck_fname)
-        except:
+        except Exception:
             pass
     try:
         os.replace(tmp_fname, fname)
@@ -499,9 +498,9 @@ def import_module(module, search_path=None):
     """
 
     if search_path:
-        if type(search_path) is str:
+        if isinstance(search_path, str):
             search_path = [search_path]
-        if type(search_path) is not list:
+        if not isinstance(search_path, list):
             raise ValueError("search_path must be a string or list of strings")
         for path in search_path:
             if not os.path.isdir(path):

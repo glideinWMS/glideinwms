@@ -33,7 +33,7 @@ class Classad:
         """
         try:
             self.adParams
-        except:
+        except Exception:
             self.adParams = {}
         """
         self.adParams["MyType"] = self.adType
@@ -163,7 +163,7 @@ class ClassadAdvertiser:
         try:
             with open(fname, "w") as fd:
                 fd.write("%s" % self.classads[ad])
-        except:
+        except Exception:
             logSupport.log.error("Error creating a classad file %s" % fname)
             return ""
 
@@ -190,7 +190,7 @@ class ClassadAdvertiser:
                     # Condor uses an empty line as classad delimiter
                     # Append an empty line for advertising multiple classads
                     fd.write(self.multiClassadDelimiter)
-        except:
+        except Exception:
             logSupport.log.error("Error creating a classad file %s" % fname)
             return ""
 

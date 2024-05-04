@@ -1,14 +1,12 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This module implements classes and functions to parse
-#   the condor log files.
+"""This module implements classes and functions to parse the condor log files.
 
-# NOTE:
-# Inactive files are log files that have only completed or removed entries
-# Such files will not change in the future
-#
+NOTE:
+Inactive files are log files that have only completed or removed entries
+Such files will not change in the future
+"""
 
 import mmap
 import os
@@ -145,7 +143,7 @@ class logSummary(cachedLogClass):
             for k in list(self.data.keys()):
                 try:
                     other[k] += self.data[k]
-                except:  # missing key
+                except KeyError:  # missing key
                     other[k] = self.data[k]
             return other
 
@@ -258,7 +256,7 @@ class logCompleted(cachedLogClass):
             for k in list(self.data["counts"].keys()):
                 try:
                     other["counts"][k] += self.data["counts"][k]
-                except:  # missing key
+                except KeyError:  # missing key
                     other["counts"][k] = self.data["counts"][k]
             other["completed_jobs"] += self.data["completed_jobs"]
             return other
@@ -355,7 +353,7 @@ class logCounts(cachedLogClass):
             for k in list(self.data.keys()):
                 try:
                     other[k] += self.data[k]
-                except:  # missing key
+                except KeyError:  # missing key
                     other[k] = self.data[k]
             return other
 
@@ -436,7 +434,7 @@ class logSummaryTimings(cachedLogClass):
             for k in list(self.data.keys()):
                 try:
                     other[k] += self.data[k]
-                except:  # missing key
+                except KeyError:  # missing key
                     other[k] = self.data[k]
             return other
 
@@ -1189,7 +1187,7 @@ def countStatuses(jobs):
     for e in list(jobs.values()):
         try:
             counts[e] += 1
-        except:
+        except KeyError:
             # there are only few possible values, so exceptions is faster
             counts[e] = 1
     return counts
@@ -1213,7 +1211,7 @@ def countAndInterpretRawStatuses(jobs_raw):
         i_s = interpretStatus(int(s[1:]))  # ignore flags
         try:
             outc[i_s] += tmpc[s]
-        except:
+        except KeyError:
             # there are only few possible values, using exceptions is faster
             outc[i_s] = tmpc[s]
     return outc
@@ -1235,7 +1233,7 @@ def listStatuses(jobs):
     for k, e in list(jobs.items()):
         try:
             status[e].append(k)
-        except:
+        except KeyError:
             # there are only few possible values, using exceptions is faster
             status[e] = [k]
     return status
@@ -1257,7 +1255,7 @@ def listStatusesTimings(jobs):
     for k, e in list(jobs.items()):
         try:
             status[e[0]].append((k,) + e[1:])
-        except:
+        except KeyError:
             # there are only few possible values, using exceptions is faster
             status[e[0]] = [(k,) + e[1:]]
     return status
@@ -1284,12 +1282,12 @@ def listAndInterpretRawStatuses(jobs_raw, invert_function):
     for s in list(tmpc.keys()):
         try:
             i_s = interpretStatus(int(s[1:]))  # ignore flags
-        except:  # file corrupted, protect
+        except Exception:  # file corrupted, protect
             # print "lairs: Unexpect line: %s"%s
             continue
         try:
             outc[i_s] += tmpc[s]
-        except:
+        except KeyError:
             # there are only few possible values, using exceptions is faster
             outc[i_s] = tmpc[s]
     return outc

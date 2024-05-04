@@ -201,13 +201,13 @@ class LocalScheddCache(NoneScheddCache):
 
         schedd_ip = el["ScheddIpAddr"][1:].split(":")[0]
         if schedd_ip in self.my_ips:  # seems local, go for the dir
-            l = el.get("SPOOL_DIR_STRING", el.get("LOCAL_DIR_STRING"))
-            if os.path.isdir(l):  # making sure the directory exists
+            l_dir = el.get("SPOOL_DIR_STRING", el.get("LOCAL_DIR_STRING"))
+            if os.path.isdir(l_dir):  # making sure the directory exists
                 if "SPOOL_DIR_STRING" in el:
-                    return {"_CONDOR_SPOOL": "%s" % l}
+                    return {"_CONDOR_SPOOL": "%s" % l_dir}
                 else:  # LOCAL_DIR_STRING, assuming spool is LOCAL_DIR_STRING/spool
-                    if os.path.isdir("%s/spool" % l):
-                        return {"_CONDOR_SPOOL": "%s/spool" % l}
+                    if os.path.isdir("%s/spool" % l_dir):
+                        return {"_CONDOR_SPOOL": "%s/spool" % l_dir}
             else:
                 # dir does not exist, not relevant, revert to standard behaviour
                 return None
@@ -373,7 +373,7 @@ class CondorQEdit:
                 j1 = jobid
                 j2 = attr
                 j3 = val
-            except:
+            except Exception:
                 j1 = j2 = j3 = "unknown"
             err_str = (
                 "Error querying schedd %s in pool %s using python bindings (qedit of job/attr/val %s/%s/%s): %s"
@@ -1042,7 +1042,7 @@ def list2dict(list_data, attr_name):
         for a in list_el:
             if a not in attr_list:
                 try:
-                    if USE_HTCONDOR_PYTHON_BINDINGS == True:
+                    if USE_HTCONDOR_PYTHON_BINDINGS:
                         if list_el[a].__class__.__name__ == "ExprTree":
                             # Try to evaluate the condor expr and use its value
                             # If cannot be evaluated, keep the expr as is
@@ -1057,7 +1057,7 @@ def list2dict(list_data, attr_name):
                             dict_el[a] = list_el[a]
                     else:
                         dict_el[a] = list_el[a]
-                except:
+                except Exception:
                     # Do not fail
                     pass
 
