@@ -16,7 +16,6 @@ Author:
 import os
 import unittest
 
-
 import xmlrunner
 
 from glideinwms.creation.lib import factoryXmlConfig

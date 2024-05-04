@@ -30,14 +30,7 @@ from itertools import groupby
 import glideinwms.factory.glideFactorySelectionAlgorithms
 
 from glideinwms.factory import glideFactoryConfig
-from glideinwms.lib import (
-    condorExe,
-    condorManager,
-    condorMonitor,
-    logSupport,
-    timeConversion,
-    x509Support,
-)
+from glideinwms.lib import condorExe, condorManager, condorMonitor, logSupport, timeConversion, x509Support
 from glideinwms.lib.defaults import BINARY_ENCODING
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]

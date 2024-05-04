@@ -9,7 +9,6 @@ Unit test of glideinwms/creation/lib/cgWCreate.py
 
 import unittest
 
-
 from glideinwms.creation.lib.cgWCreate import GlideinSubmitDictFile
 from glideinwms.creation.lib.factoryXmlConfig import parse
 

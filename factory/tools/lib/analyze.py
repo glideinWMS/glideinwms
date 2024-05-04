@@ -7,7 +7,6 @@
 ########################
 
 
-
 # Convert particularly large numbers
 #    into kilo/mega; keeps 3 sig figs
 # Example: km(123456) returns "123 K"

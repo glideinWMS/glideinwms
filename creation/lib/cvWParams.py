@@ -16,6 +16,8 @@ from glideinwms.lib.xmlParse import OrderedDict
 
 from . import cWParams
 
+# from .matchPolicy import MatchPolicy
+
 
 class VOFrontendSubParams(cWParams.CommonSubParams):
     # return attribute value in the proper python format
