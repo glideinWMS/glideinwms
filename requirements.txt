@@ -1,4 +1,5 @@
 # for runtime
+cryptography
 htcondor
 # This is not from the HTCondor team. HTCSS classad is included in the htcondor package (J.Patton,C.Bollig)
 # classad  # pure python 3rd party classad implementation
