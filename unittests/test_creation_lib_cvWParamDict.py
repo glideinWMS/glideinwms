@@ -23,26 +23,19 @@ from glideinwms.creation.lib import xslt
 from glideinwms.creation.lib.cvWParamDict import (
     apply_group_singularity_policy,
     apply_multicore_policy,
-    calc_glidein_ccbs,
-    calc_glidein_collectors,
     derive_and_validate_match,
     frontendDicts,
     frontendGroupDicts,
     frontendMainDicts,
-    get_pool_list,
     populate_common_attrs,
-    populate_common_descript,
-    populate_group_security,
-    populate_main_security,
 )
 from glideinwms.creation.lib.cvWParams import VOFrontendParams, VOFrontendSubParams
 from glideinwms.frontend import glideinFrontendLib
-from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
 
 # pylint: disable=no-member
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
-from glideinwms.unittests.unittest_utils import runTest, TestImportError
+from glideinwms.unittests.unittest_utils import TestImportError
 
 try:
     from glideinwms.creation.lib.cvWParamDict import populate_group_descript

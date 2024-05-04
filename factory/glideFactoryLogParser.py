@@ -17,17 +17,13 @@
 
 
 import copy
-import logging
 import mmap
 import os
 import os.path
 import re
 import stat
-import sys
 import time
-import traceback
 
-from glideinwms.factory import glideFactoryLib
 from glideinwms.lib import condorLogParser, logSupport
 
 rawJobId2Nr = condorLogParser.rawJobId2Nr

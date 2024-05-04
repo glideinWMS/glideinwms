@@ -16,7 +16,6 @@
 
 import os
 import os.path
-import sys
 
 from glideinwms.lib import pidSupport
 

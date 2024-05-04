@@ -12,14 +12,12 @@
 
 
 import fcntl
-import logging
 import os
 import shutil
 import signal
 import subprocess
 import sys
 import time
-import traceback
 
 from glideinwms.frontend import (
     glideinFrontendConfig,
@@ -125,7 +123,7 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active, failure_dict
             for group_name in groups:
                 if childs[group_name]["state"] == "spawned":
                     group_rc = poll_group_process(group_name, childs[group_name]["data"])
-                    if not (group_rc is None):  # None means "still alive"
+                    if group_rc is not None:  # None means "still alive"
                         if group_rc == 0:
                             childs[group_name]["state"] = "finished"
                         else:

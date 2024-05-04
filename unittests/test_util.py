@@ -7,8 +7,6 @@
 #   unit test for glideinwms/lib/util.py
 
 
-import os
-import sys
 import unittest
 
 import xmlrunner

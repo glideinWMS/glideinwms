@@ -11,7 +11,7 @@ import os.path
 import string
 import time
 
-from glideinwms.lib import logSupport, rrdSupport, timeConversion, util, xmlFormat
+from glideinwms.lib import logSupport, rrdSupport, util, xmlFormat
 from glideinwms.lib.defaults import BINARY_ENCODING
 
 ############################################################
@@ -82,7 +82,7 @@ class MonitoringConfig:
             # print "Updating RRD "+fname
             try:
                 self.rrd_obj.update_rrd_multi(fname, time, val_dict)
-            except Exception as e:
+            except Exception:
                 logSupport.log.error("Failed to update %s" % fname)
                 # logSupport.log.exception(traceback.format_exc())
         return
@@ -178,7 +178,7 @@ class groupStats:
 
         factory_or_state_d["Attributes"] = {}
         for attr in attrs:
-            if not attr in blacklist:
+            if attr not in blacklist:
                 factory_or_state_d["Attributes"][attr] = attrs[attr]
 
         self.update = time.time()
@@ -263,7 +263,7 @@ class groupStats:
                         for a in list(tel.keys()):
                             if a not in el:
                                 del tel[a]
-                            elif not (type(el[a]) in numtypes):
+                            elif type(el[a]) not in numtypes:
                                 del tel[a]
 
         for w in list(total.keys()):
@@ -323,7 +323,7 @@ class groupStats:
             factories = self.data["states"]
         else:
             factories = self.data["factories"]
-        if not factory in factories:
+        if factory not in factories:
             factories[factory] = {}
         return factories[factory]
 
@@ -361,9 +361,9 @@ class groupStats:
 
         for tp in data:
             # values (RRD type) - Jobs, Slots
-            if not (tp in list(self.attributes.keys())):
+            if tp not in list(self.attributes.keys()):
                 continue
-            if not (tp in list(type_strings.keys())):
+            if tp not in list(type_strings.keys()):
                 continue
 
             tp_str = type_strings[tp]
@@ -545,7 +545,7 @@ class factoryStats:
                         for a in list(tel.keys()):
                             if a not in el:
                                 del tel[a]
-                            elif not (type(el[a]) in numtypes):
+                            elif type(el[a]) not in numtypes:
                                 del tel[a]
 
         for w in list(total.keys()):
@@ -617,7 +617,7 @@ class factoryStats:
             monitoringConfig.establish_dir(fe_dir)
             for tp in list(fe_el.keys()):
                 # values (RRD type) - Status, Requested or ClientMonitor
-                if not (tp in list(self.attributes.keys())):
+                if tp not in list(self.attributes.keys()):
                     continue
 
                 tp_str = type_strings[tp]

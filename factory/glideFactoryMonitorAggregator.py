@@ -168,7 +168,7 @@ def aggregateStatus(in_downtime):
     val_dict = {}
     for tp in global_total:
         # values (RRD type) - Status or Requested
-        if not (tp in list(status_attributes.keys())):
+        if tp not in list(status_attributes.keys()):
             continue
 
         tp_str = type_strings[tp]
@@ -394,7 +394,7 @@ def aggregateStatus(in_downtime):
     # Total rrd across all frontends and factories
     for tp in global_total:
         # values (RRD type) - Status or Requested
-        if not (tp in list(status_attributes.keys())):
+        if tp not in list(status_attributes.keys()):
             continue
 
         tp_str = type_strings[tp]
@@ -416,7 +416,7 @@ def aggregateStatus(in_downtime):
         glideFactoryMonitoring.monitoringConfig.establish_dir(os.path.join("total", f"frontend_{fe}"))
         for tp in list(status_fe["frontends"][fe].keys()):
             # values (RRD type) - Status or Requested
-            if not (tp in list(type_strings.keys())):
+            if tp not in list(type_strings.keys()):
                 continue
             tp_str = type_strings[tp]
             attributes_tp = status_attributes[tp]
@@ -655,9 +655,9 @@ def aggregateLogSummary():
         # update frontends
         for fe in out_data:
             # compare each to the list of fe's accumulated so far
-            if not (fe in status_fe["frontends"]):
+            if fe not in status_fe["frontends"]:
                 status_fe["frontends"][fe] = {}
-            if not (fe in nr_feentries):
+            if fe not in nr_feentries:
                 nr_feentries[fe] = 1  # already found one
             else:
                 nr_feentries[fe] += 1
@@ -728,12 +728,12 @@ def sumDictInt(indict, outdict):
     for orgi in indict:
         i = str(orgi)  # RRDs don't like unicode, so make sure we use strings
         if isinstance(indict[i], int):
-            if not (i in outdict):
+            if i not in outdict:
                 outdict[i] = 0
             outdict[i] += indict[i]
         else:
             # assume it is a dictionary
-            if not (i in outdict):
+            if i not in outdict:
                 outdict[i] = {}
 
             sumDictInt(indict[i], outdict[i])
@@ -752,7 +752,7 @@ def writeLogSummaryRRDs(fe_dir, status_el):
     val_dict_waste = {}
     val_dict_wastetime = {}
     for s in ("Wait", "Idle", "Running", "Held", "Completed", "Removed"):
-        if not (s in ("Completed", "Removed")):  # I don't have their numbers from inactive logs
+        if s not in ("Completed", "Removed"):  # I don't have their numbers from inactive logs
             count = sdata[s]
             val_dict_counts["Status%s" % s] = count
             val_dict_counts_desc["Status%s" % s] = {"ds_type": "GAUGE"}

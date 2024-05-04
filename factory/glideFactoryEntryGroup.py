@@ -16,7 +16,6 @@
 #   $6 = group_id (str): Group id, normally a number (with the "group_" prefix it forms the group name),
 #             It can change between Factory reconfigurations
 
-import logging
 import os
 import os.path
 import pickle
@@ -654,7 +653,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_names, group
 
     # Check if all the entries in this group are valid
     for entry in entry_names.split(":"):
-        if not (entry in glidein_entries.split(",")):
+        if entry not in glidein_entries.split(","):
             msg = f"Entry '{entry}' not configured: {glidein_entries}"
             logSupport.log.warning(msg)
             raise RuntimeError(msg)

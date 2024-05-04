@@ -127,7 +127,7 @@ class logSummary(cachedLogClass):
     def isActive(self):
         active = False
         for k in list(self.data.keys()):
-            if not (k in ["Completed", "Removed"]):
+            if k not in ["Completed", "Removed"]:
                 if len(self.data[k]) > 0:
                     active = True  # it is enought that at least one non Completed/removed job exist
         return active
@@ -239,7 +239,7 @@ class logCompleted(cachedLogClass):
         active = False
         counts = self.data["counts"]
         for k in list(counts.keys()):
-            if not (k in ["Completed", "Removed"]):
+            if k not in ["Completed", "Removed"]:
                 if counts[k] > 0:
                     # Enough that at least one non Completed/removed job exist
                     active = True
@@ -336,7 +336,7 @@ class logCounts(cachedLogClass):
     def isActive(self):
         active = False
         for k in list(self.data.keys()):
-            if not (k in ["Completed", "Removed"]):
+            if k not in ["Completed", "Removed"]:
                 if self.data[k] > 0:
                     # Enough that at least one non Completed/removed job exist
                     active = True
@@ -417,7 +417,7 @@ class logSummaryTimings(cachedLogClass):
     def isActive(self):
         active = False
         for k in list(self.data.keys()):
-            if not (k in ["Completed", "Removed"]):
+            if k not in ["Completed", "Removed"]:
                 if len(self.data[k]) > 0:
                     # Enough that at least one non Completed/removed job exist
                     active = True
@@ -604,7 +604,7 @@ class cacheDirClass:
             if (
                 (fname[:prefix_len] == self.log_prefix)
                 and (fname[-suffix_len:] == self.log_suffix)
-                and ((not active_only) or (not (fname in self.inactive_files)))
+                and ((not active_only) or (fname not in self.inactive_files))
             ):
                 files.append(fname)
         return files

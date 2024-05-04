@@ -1,6 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+"""Fork a process and run a command
+"""
+
 import os
 import shlex
 import subprocess
@@ -63,7 +66,7 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True, en
         # Add in parent process environment, make sure that env overrides parent
         if child_env:
             for k in os.environ:
-                if not k in child_env:
+                if k not in child_env:
                     child_env[k] = os.environ[k]
         # otherwise just use the parent environment
         else:

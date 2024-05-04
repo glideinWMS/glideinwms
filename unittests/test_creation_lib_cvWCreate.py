@@ -25,7 +25,6 @@ import xmlrunner
 from glideinwms.creation.lib.cvWCreate import (
     create_client_condor_config,
     create_client_mapfile,
-    filter_unwanted_config_attrs,
     get_template,
 )
 
@@ -77,7 +76,7 @@ class Test_cvWCreate(unittest.TestCase):
         try:
             bad = get_template("I-dont-exist", glideinWMS_dir)
             assert False
-        except OSError as ior:
+        except OSError:
             pass
 
     def test_create_client_condor_config(self):

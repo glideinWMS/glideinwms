@@ -19,7 +19,7 @@ if __name__ == "__main__" and __package__ is None:
 
 try:
     from . import ReleaseManagerLib
-except (SystemError, ImportError) as e:
+except (SystemError, ImportError):
     # Try also absolute import. Should not be needed
     import ReleaseManagerLib
 

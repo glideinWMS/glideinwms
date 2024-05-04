@@ -1,21 +1,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   This module implements functions that will act on Condor
-#
-# Author:
-#   Igor Sfiligoi (May 17th 2007)
-#
+"""This module implements functions that will act on Condor
+"""
 
 import re
-import string
 
 from . import condorExe, condorMonitor
 

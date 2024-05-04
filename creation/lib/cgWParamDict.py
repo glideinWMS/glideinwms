@@ -571,7 +571,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
                 for line in monitor_config_line:
                     monitor_config_fd.write(line + "\n")
-            except OSError as e:
+            except OSError:
                 raise RuntimeError("Error writing into file %s" % monitor_config_file)
         finally:
             monitor_config_fd.close()
@@ -707,7 +707,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         # will be in the entry section now
         for attr in self.conf.get_child_list("attrs"):
             if str(attr.get_val()).find("$") != -1 and self.enable_expansion:
-                if not (attr["name"] in [i["name"] for i in entry_attrs]):
+                if attr["name"] not in [i["name"] for i in entry_attrs]:
                     add_attr_unparsed(attr, self.dicts, self.sub_name)
                 # else the entry value will override it later on (here below)
         # put user attributes into config files
@@ -1442,7 +1442,7 @@ def populate_gridmap(conf, gridmap_dict):
     collector_dns = []
     for el in conf.get_child_list("monitoring_collectors"):
         dn = el["DN"]
-        if not (dn in collector_dns):  # skip duplicates
+        if dn not in collector_dns:  # skip duplicates
             collector_dns.append(dn)
             gridmap_dict.add(dn, "fcollector%i" % len(collector_dns))
 

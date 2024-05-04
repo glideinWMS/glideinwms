@@ -420,7 +420,7 @@ def extract_attr_val(attr_obj):
     Returns:
 
     """
-    if not attr_obj.type in ("string", "int", "expr"):
+    if attr_obj.type not in ("string", "int", "expr"):
         raise RuntimeError("Wrong attribute type '%s', must be either 'int' or 'string'" % attr_obj.type)
 
     if attr_obj.type in ("string", "expr"):
@@ -572,7 +572,7 @@ def is_valid_name(name):
     if name == "":
         return False
     for c in name:
-        if not (c in VALID_NAME_CHARS):
+        if c not in VALID_NAME_CHARS:
             return False
     return True
 
@@ -600,7 +600,7 @@ def col_wrap(text, width, indent):
         # print short_text
         org_short_text = short_text[0:]
         # make sure you are not breaking words.
-        while not (next_char in ("", " ", "\t")):
+        while next_char not in ("", " ", "\t"):
             if len(short_text) == 0:
                 # could not break on word boundary, leave as is
                 short_text = org_short_text

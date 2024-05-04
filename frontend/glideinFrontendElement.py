@@ -40,7 +40,7 @@ from glideinwms.lib import cleanupSupport, condorMonitor, logSupport, pubCrypto,
 from glideinwms.lib.disk_cache import DiskCache
 from glideinwms.lib.fork import fork_in_bg, ForkManager, wait_for_pids
 from glideinwms.lib.pidSupport import register_sighandler
-from glideinwms.lib.util import chmod, safe_boolcomp
+from glideinwms.lib.util import safe_boolcomp
 
 # this should not be needed in RPM install: sys.path.append(os.path.join(sys.path[0], "../.."))
 
@@ -70,7 +70,7 @@ class CounterWrapper:
     def __getitem__(self, keyid):
         try:
             return self.dict_el[keyid]
-        except KeyError as e:
+        except KeyError:
             self.dict_el[keyid] = 0
             return self.dict_el[keyid]
 
@@ -406,7 +406,7 @@ class glideinFrontendElement:
             servicePerformance.startPerfMetricEvent(self.group_name, "condor_queries")
             pipe_out = forkm_obj.fork_and_collect()
             servicePerformance.endPerfMetricEvent(self.group_name, "condor_queries")
-        except RuntimeError as e:
+        except RuntimeError:
             # expect all errors logged already
             logSupport.log.info(
                 "Missing schedd, factory entry, and/or current glidein state information. "
@@ -1042,7 +1042,7 @@ class glideinFrontendElement:
                     generator = generators_map[cfname]
                     logSupport.log.debug(f"found credential generator plugin {generator}")
                     try:
-                        if not generator in plugins:
+                        if generator not in plugins:
                             plugins[generator] = import_module(generator)
                         entry = {
                             "name": glidein_el["attrs"].get("EntryName"),
@@ -1130,7 +1130,7 @@ class glideinFrontendElement:
                     with open(tkn_file) as fbuf:
                         for line in fbuf:
                             tkn_str += line
-            except Exception as err:
+            except Exception:
                 logSupport.log.warning("failed to create %s" % tkn_file)
                 logSupport.log.warning("Error details: %s" % traceback.format_exc())
 
@@ -2004,7 +2004,7 @@ class glideinFrontendElement:
                     glidename
                 ]
 
-        except Exception as ex:
+        except Exception:
             logSupport.log.exception("Error in talking to the factory pool:")
 
         return glidein_dict
@@ -2190,7 +2190,7 @@ class glideinFrontendElement:
                 # This is not critical information, do not fail
                 logSupport.log.warning("Error gathering job stats from schedd. Defaulting to %s" % status_schedd_dict)
 
-        except Exception as ex:
+        except Exception:
             logSupport.log.exception("Error talking to the user pool (condor_status):")
 
         return (status_dict, fe_counts, global_counts, status_schedd_dict)

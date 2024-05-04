@@ -14,31 +14,13 @@ Author:
 """
 
 import os
-import sys
 import unittest
 
-from unittest import mock
 
 import xmlrunner
 
 from glideinwms.creation.lib import factoryXmlConfig
-from glideinwms.creation.lib.cgWParamDict import (
-    add_attr_unparsed,
-    add_attr_unparsed_real,
-    add_file_unparsed,
-    calc_monitoring_collectors_string,
-    calc_primary_monitoring_collectors,
-    get_valid_condor_tarballs,
-    iter_to_dict,
-    itertools_product,
-    old_get_valid_condor_tarballs,
-    populate_factory_descript,
-    populate_frontend_descript,
-    populate_gridmap,
-    populate_job_descript,
-    validate_condor_tarball_attrs,
-)
-from glideinwms.creation.lib.cWParamDict import has_file_wrapper, has_file_wrapper_params
+from glideinwms.creation.lib.cWParamDict import has_file_wrapper
 from glideinwms.unittests.unittest_utils import balanced_text, TestImportError
 
 try:

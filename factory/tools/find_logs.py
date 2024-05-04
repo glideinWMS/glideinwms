@@ -19,7 +19,6 @@
 import os
 import os.path
 import sys
-import time
 
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.factory.tools.lib import gWftArgsHelper, gWftLogParser

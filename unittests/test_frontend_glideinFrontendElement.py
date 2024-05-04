@@ -21,10 +21,8 @@ from unittest import mock
 import xmlrunner
 
 import glideinwms
-import glideinwms.lib.condorExe as condorExe
 import glideinwms.lib.condorMonitor as condorMonitor
 
-from glideinwms.frontend import glideinFrontendMonitoring
 from glideinwms.frontend.glideinFrontendElement import (
     check_parent,
     CounterWrapper,
@@ -32,7 +30,6 @@ from glideinwms.frontend.glideinFrontendElement import (
     init_factory_stats_arr,
     log_and_sum_factory_line,
     log_factory_header,
-    write_stats,
 )
 from glideinwms.unittests.unittest_utils import FakeLogger
 

@@ -15,8 +15,6 @@
 #
 
 import os
-import re
-import string
 import sys
 import time
 
@@ -439,21 +437,21 @@ def main(argv):
             comments = opt_dict["comment"]
             if comments == "":
                 raise KeyError
-    except KeyError as e:
+    except KeyError:
         usage()
         print("-cmd -dir and -entry arguments are required.")
         if mandatory_comments:
             print("Mandatory comments are enabled.  add -comment.")
         return 1
     if opt_dict["sec"] != "All":
-        if not (opt_dict["sec"] in get_security_classes(factory_dir)):
+        if opt_dict["sec"] not in get_security_classes(factory_dir):
             print("Invalid security class")
             print("Valid security classes are: ")
             for sec_class in get_security_classes(factory_dir):
                 print(sec_class)
             return 1
     if opt_dict["frontend"] != "All":
-        if not (opt_dict["frontend"] in get_frontends(factory_dir)):
+        if opt_dict["frontend"] not in get_frontends(factory_dir):
             print("Invalid frontend identity:")
             print("Valid frontends are: ")
             for fe in get_frontends(factory_dir):
@@ -474,7 +472,7 @@ def main(argv):
         opt_dict["entry"] = "All"
         entry_name = "All"
     if (opt_dict["entry"] != "All") and (opt_dict["entry"] != "factory"):
-        if not (opt_dict["entry"] in get_entries(factory_dir)):
+        if opt_dict["entry"] not in get_entries(factory_dir):
             print("Invalid entry name")
             print("Valid entries are:")
             for entry in get_entries(factory_dir):

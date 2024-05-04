@@ -59,7 +59,7 @@ def read(fname, raise_on_error=False):
         with open(fname) as fd:
             fcntl.flock(fd, fcntl.LOCK_SH | fcntl.LOCK_NB)
             lines = fd.readlines()
-    except OSError as e:
+    except OSError:
         if raise_on_error:
             raise
         else:

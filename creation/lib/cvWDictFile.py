@@ -15,8 +15,6 @@
 import copy
 import os
 import os.path
-import shutil
-import string
 
 from . import cvWConsts, cWConsts, cWDictFile
 
@@ -40,11 +38,11 @@ class ParamsDictFile(cWDictFile.DictFile):
         return self.vals[key][1]
 
     def add(self, key, val, allow_overwrite=0):
-        if not (type(val) in (type(()), type([]))):
+        if type(val) not in (type(()), type([])):
             raise RuntimeError("Values '%s' not a list or tuple" % val)
         if len(val) != 2:
             raise RuntimeError("Values '%s' not (Type,Val)" % str(val))
-        if not (val[0] in ("EXPR", "CONST")):
+        if val[0] not in ("EXPR", "CONST"):
             raise RuntimeError(f"Invalid var type '{val[0]}', should be either EXPR or CONST val: {str(val)}")
 
         return cWDictFile.DictFile.add(self, key, val, allow_overwrite)
@@ -158,7 +156,7 @@ def load_common_dicts(dicts, description_el):  # update in place
     if "attrs" in dicts:
         try:
             dicts["attrs"].load()
-        except RuntimeError as e:
+        except RuntimeError:
             # to allow for a smooth upgrade path from 2.5.5-, make this file optional
             # in the future, we should remove this try...except block
             dicts["attrs"].erase()

@@ -20,7 +20,7 @@ import unittest
 
 import xmlrunner
 
-from glideinwms.lib.tarSupport import FileDoesNotExist, GlideinTar
+from glideinwms.lib.tarSupport import GlideinTar
 from glideinwms.unittests.unittest_utils import create_random_string, create_temp_file, TestImportError
 
 try:

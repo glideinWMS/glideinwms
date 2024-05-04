@@ -15,7 +15,6 @@ from glideinwms.factory import glideFactoryConfig as gfc
 from glideinwms.factory.glideFactoryCredentials import SubmitCredentials, validate_frontend
 from glideinwms.factory.glideFactoryLib import (
     ClientWeb,
-    escapeParam,
     FactoryConfig,
     set_condor_integrity_checks,
     submitGlideins,

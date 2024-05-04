@@ -4,8 +4,6 @@
 # Description: general purpose XML formatter
 
 
-import string
-import types
 import xml.sax.saxutils
 
 from glideinwms.lib import timeConversion
@@ -83,15 +81,15 @@ def xml_quoteattr(el):
 def complete_class_params(class_params):
     res = class_params.copy()
     res_keys = list(res.keys())
-    if not ("subclass_params" in res_keys):
+    if "subclass_params" not in res_keys:
         res["subclass_params"] = {}
-    if not ("dicts_params" in res_keys):
+    if "dicts_params" not in res_keys:
         res["dicts_params"] = DEFAULT_DICTS_PARAMS
-    if not ("lists_params" in res_keys):
+    if "lists_params" not in res_keys:
         res["lists_params"] = DEFAULT_LISTS_PARAMS
-    if not ("tree_params" in res_keys):
+    if "tree_params" not in res_keys:
         res["tree_params"] = DEFAULT_TREE_PARAMS
-    if not ("text_params" in res_keys):
+    if "text_params" not in res_keys:
         res["text_params"] = DEFAULT_TEXT_PARAMS
     return res
 
@@ -395,11 +393,11 @@ def class2file(
 def complete_dict_params(dict_params):
     res = dict_params.copy()
     res_keys = list(res.keys())
-    if not ("dict_attr_name" in res_keys):
+    if "dict_attr_name" not in res_keys:
         res["dict_attr_name"] = "name"
-    if not ("el_attr_name" in res_keys):
+    if "el_attr_name" not in res_keys:
         res["el_attr_name"] = DEFAULT_EL_ATTR_NAME
-    if not ("subtypes_params" in res_keys):
+    if "subtypes_params" not in res_keys:
         res["subtypes_params"] = {}
     return res
 
@@ -706,9 +704,9 @@ def dict2file(
 def complete_list_params(list_params):
     res = list_params.copy()
     res_keys = list(res.keys())
-    if not ("el_attr_name" in res_keys):
+    if "el_attr_name" not in res_keys:
         res["el_attr_name"] = DEFAULT_EL_ATTR_NAME
-    if not ("subtypes_params" in res_keys):
+    if "subtypes_params" not in res_keys:
         res["subtypes_params"] = {}
     return res
 

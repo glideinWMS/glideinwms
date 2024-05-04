@@ -150,7 +150,7 @@ class DictFile:
         self.changed = True
 
     def remove(self, key, fail_if_missing=False):
-        if not (key in self.keys):
+        if key not in self.keys:
             if not fail_if_missing:
                 raise RuntimeError("Key '%s' does not exist" % key)
             else:
@@ -764,7 +764,7 @@ class SummarySHA1DictFile(DictFile):
         Returns:
 
         """
-        if not (type(val) in (type(()), type([]))):
+        if type(val) not in (type(()), type([])):
             raise DictFileError("Values '%s' not a list or tuple" % val)
         if len(val) != 2:
             raise DictFileError("Values '%s' not (sha1, fname)" % val)
@@ -869,7 +869,7 @@ class SimpleFileDictFile(DictFile):
         # TODO: make sure that DictFile.add() is compatible w/ binary data
         if not isinstance(data, (bytes, bytearray)):
             raise DictFileError(f"Using add_from_bytes to add a string to DictFile ({key}, {data})")
-        if not (type(val) in (type(()), type([]))):
+        if type(val) not in (type(()), type([])):
             DictFile.add(self, key, (val, data), allow_overwrite)
         else:
             DictFile.add(self, key, tuple(val) + (data,), allow_overwrite)
@@ -994,12 +994,12 @@ class SimpleFileDictFile(DictFile):
                 raise DictFileError("File %s already exists" % filepath)
             try:
                 fd = open(filepath, "wb")
-            except OSError as e:
+            except OSError:
                 raise DictFileError("Could not create file %s" % filepath) from None
             try:
                 with fd:
                     fd.write(fdata)
-            except OSError as e:
+            except OSError:
                 raise DictFileError("Error writing into file %s" % filepath) from None
 
 
@@ -1120,7 +1120,7 @@ class FileDictFile(SimpleFileDictFile):
             DictFileError
 
         """
-        if not (type(val) in (type(()), type([]))):
+        if type(val) not in (type(()), type([])):
             raise RuntimeError("Values '%s' not a list or tuple" % val)
 
         if key in self and allow_overwrite_placeholder:
@@ -1367,14 +1367,14 @@ class VarsDictFile(DictFile):
             return None
 
     def add(self, key, val, allow_overwrite=0):
-        if not (type(val) in (type(()), type([]))):
+        if type(val) not in (type(()), type([])):
             raise RuntimeError("Values '%s' not a list or tuple" % val)
         if len(val) != 6:
             raise RuntimeError("Values '%s' not (Type,Default,CondorName,Required,Export,UserName)" % str(val))
-        if not (val[0] in ("C", "S", "I")):
+        if val[0] not in ("C", "S", "I"):
             raise RuntimeError(f"Invalid var type '{val[1]}', should be either C, S or I in val: {str(val)}")
         for i, t in ((3, "Required"), (4, "Export")):
-            if not (val[i] in ("Y", "N")):
+            if val[i] not in ("Y", "N"):
                 raise RuntimeError(f"Invalid var {t} '{val[i]}', should be either Y or N in val: {str(val)}")
 
         return DictFile.add(self, key, val, allow_overwrite)
@@ -2121,7 +2121,7 @@ class FileDicts:
         for sign_key in self.main_dicts.get_summary_signature().keys:
             if sign_key != "main":  # main is special, not an sub
                 sub_name = self.get_sub_name_from_sub_stage_dir(sign_key)
-                if not (sub_name in self.sub_list):
+                if sub_name not in self.sub_list:
                     self.sub_list.append(sub_name)
                 self.sub_dicts[sub_name] = self.new_SubDicts(sub_name)
                 self.sub_dicts[sub_name].load()
@@ -2313,7 +2313,7 @@ class MonitorFileDicts:
         for sign_key in self.main_dicts.get_summary_signature().keys:
             if sign_key != "main":  # main is special, not an sub
                 sub_name = self.get_sub_name_from_sub_stage_dir(sign_key)
-                if not (sub_name in self.sub_list):
+                if sub_name not in self.sub_list:
                     self.sub_list.append(sub_name)
                 self.sub_dicts[sub_name] = self.new_SubDicts(sub_name)
                 self.sub_dicts[sub_name].load()

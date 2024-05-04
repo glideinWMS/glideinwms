@@ -3,7 +3,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import os
 import sys
 
 from subprocess import PIPE, Popen

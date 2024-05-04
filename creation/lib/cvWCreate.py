@@ -16,7 +16,6 @@
 import os
 import re
 import stat
-import string
 
 from glideinwms.lib import condorExe, condorSecurity
 from glideinwms.lib.util import chmod

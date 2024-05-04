@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This module implements the functions needed
-#   to monitor the glidein factory
+"""
+This module implements the functions needed to monitor the glidein factory
+"""
 
 import copy
 import json
@@ -218,7 +218,7 @@ class MonitoringConfig:
             # print "Updating RRD "+fname
             try:
                 self.rrd_obj.update_rrd_multi(fname, time, val_dict)
-            except Exception as e:  # @UnusedVariable
+            except Exception:
                 self.log.exception("Failed to update %s: " % fname)
         return
 
@@ -256,7 +256,7 @@ class MonitoringConfig:
             # print "Updating RRD "+fname
             try:
                 self.rrd_obj.update_rrd_multi(fname, time, val_dict)
-            except Exception as e:  # @UnusedVariable
+            except Exception:
                 self.log.exception("Failed to update %s: " % fname)
         return
 
@@ -695,7 +695,7 @@ class condorQStats:
             monitoringConfig.establish_dir(fe_dir)
             for tp in list(fe_el.keys()):
                 # values (RRD type) - Status, Requested or ClientMonitor
-                if not (tp in list(self.attributes.keys())):
+                if tp not in list(self.attributes.keys()):
                     continue
 
                 tp_str = type_strings[tp]
@@ -862,7 +862,7 @@ class condorLogSummary:
         for client_name in list(self.current_stats_data.keys()):
             out_el = {}
             for s in self.job_statuses:
-                if not (s in ("Completed", "Removed")):  # I don't have their numbers from inactive logs
+                if s not in ("Completed", "Removed"):  # I don't have their numbers from inactive logs
                     count = 0
                     for username in list(self.current_stats_data[client_name].keys()):
                         client_el = self.current_stats_data[client_name][username].data
@@ -1105,7 +1105,7 @@ class condorLogSummary:
                         exited -= len(diff_el[s]["Exited"])
 
                 out_el["Entered"][s] = entered
-                if not (s in ("Completed", "Removed")):  # I don't have their numbers from inactive logs
+                if s not in ("Completed", "Removed"):  # I don't have their numbers from inactive logs
                     count = 0
                     for username in list(self.current_stats_data[client_name].keys()):
                         stats_el = self.current_stats_data[client_name][username].data
@@ -1278,7 +1278,7 @@ class condorLogSummary:
             val_dict_waste = {}
             val_dict_wastetime = {}
             for s in self.job_statuses:
-                if not (s in ("Completed", "Removed")):  # I don't have their numbers from inactive logs
+                if s not in ("Completed", "Removed"):  # I don't have their numbers from inactive logs
                     count = sdata[s]
                     val_dict_counts["Status%s" % s] = count
                     val_dict_counts_desc["Status%s" % s] = {"ds_type": "GAUGE"}
@@ -1294,7 +1294,7 @@ class condorLogSummary:
 
                 val_dict_counts["Entered%s" % s] = entered
                 val_dict_counts_desc["Entered%s" % s] = {"ds_type": "ABSOLUTE"}
-                if not (s in ("Completed", "Removed")):  # Always 0 for them
+                if s not in ("Completed", "Removed"):  # Always 0 for them
                     val_dict_counts["Exited%s" % s] = exited
                     val_dict_counts_desc["Exited%s" % s] = {"ds_type": "ABSOLUTE"}
                 elif s == "Completed":

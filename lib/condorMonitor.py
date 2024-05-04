@@ -1,25 +1,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   This module implements classes to query the condor daemons
-#   and manipulate the results
-#   Please notice that it also converts \" into "
-#
-# Author:
-#   Igor Sfiligoi (Aug 30th 2006)
-#
+"""This module implements classes to query the condor daemons and manipulate the results
+Please notice that it also converts \" into "
+"""
 
 import copy
 import os
 import socket
-import sys
 import xml.parsers.expat
 
 from itertools import groupby
@@ -146,7 +134,7 @@ class LocalScheddCache(NoneScheddCache):
         self.my_ips = socket.gethostbyname_ex(socket.gethostname())[2]
         try:
             self.my_ips += socket.gethostbyname_ex("localhost")[2]
-        except socket.gaierror as e:
+        except socket.gaierror:
             pass  # localhost not defined, ignore
 
     def enable(self):
@@ -1052,7 +1040,7 @@ def list2dict(list_data, attr_name):
         # dict_el will have all the elements but those in attr_list
         dict_el = {}
         for a in list_el:
-            if not (a in attr_list):
+            if a not in attr_list:
                 try:
                     if USE_HTCONDOR_PYTHON_BINDINGS == True:
                         if list_el[a].__class__.__name__ == "ExprTree":

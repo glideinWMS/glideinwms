@@ -23,7 +23,6 @@ from glideinwms.creation.lib.factoryXmlConfig import (
     CondTarElement,
     Config,
     EntryElement,
-    EntrySetElement,
     FactAttrElement,
     FactFileElement,
     FrontendElement,
@@ -73,7 +72,7 @@ class TestCondTarElement(unittest.TestCase):
             del cte["base_dir"]
             try:
                 cte.validate()
-            except RuntimeError as err:
+            except RuntimeError:
                 pass
 
 

@@ -1,11 +1,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description: This module describes base classes for classads and advertisers
-
+"""This module describes base classes for classads and advertisers
+"""
 
 import os
-import string
 import time
 
 from . import condorManager, logSupport

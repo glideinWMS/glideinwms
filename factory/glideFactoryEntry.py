@@ -9,7 +9,6 @@
 
 
 import copy
-import logging
 import os
 import os.path
 import signal
@@ -19,7 +18,7 @@ import traceback
 
 from glideinwms.factory import glideFactoryConfig, glideFactoryCredentials, glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryInterface as gfi
-from glideinwms.factory import glideFactoryLib, glideFactoryLogParser, glideFactoryMonitoring, glideFactoryPidLib
+from glideinwms.factory import glideFactoryLib, glideFactoryLogParser, glideFactoryMonitoring
 from glideinwms.lib import classadSupport, cleanupSupport, defaults, glideinWMSVersion, logSupport, token_util, util
 from glideinwms.lib.util import chmod
 
@@ -352,7 +351,7 @@ class Entry:
 
         try:
             return glideFactoryLib.getCondorQData(self.name, None, self.scheddName, factoryConfig=self.gflFactoryConfig)
-        except Exception as e:
+        except Exception:
             self.log.info("Schedd %s not responding, skipping" % self.scheddName)
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             self.log.warning("getCondorQData failed, traceback: %s" % "".join(tb))
@@ -1114,7 +1113,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         try:
             # returned data is not used, function called only to trigger RRD update via side effect
             entry.gflFactoryConfig.rrd_stats.getData("%s_%s" % sec_el, monitoringConfig=entry.monitoringConfig)
-        except glideFactoryLib.condorExe.ExeError as e:
+        except glideFactoryLib.condorExe.ExeError:
             # Never fail for monitoring. Just log
             entry.log.exception("get_RRD_data failed with HTCondor error: ")
         except:
@@ -1576,7 +1575,7 @@ def unit_work_v3(
 
     try:
         idle_glideins = int(work["requests"]["IdleGlideins"])
-    except ValueError as e:
+    except ValueError:
         entry.log.warning(
             "Client %s provided an invalid ReqIdleGlideins: '%s' not a number. Skipping request"
             % (client_int_name, work["requests"]["IdleGlideins"])
@@ -1586,7 +1585,7 @@ def unit_work_v3(
     if "MaxGlideins" in work["requests"]:
         try:
             max_glideins = int(work["requests"]["MaxGlideins"])
-        except ValueError as e:
+        except ValueError:
             entry.log.warning(
                 "Client %s provided an invalid ReqMaxGlideins: '%s' not a number. Skipping request."
                 % (client_int_name, work["requests"]["MaxGlideins"])
@@ -1595,7 +1594,7 @@ def unit_work_v3(
     else:
         try:
             max_glideins = int(work["requests"]["MaxRunningGlideins"])
-        except ValueError as e:
+        except ValueError:
             entry.log.warning(
                 "Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request"
                 % (client_int_name, work["requests"]["MaxRunningGlideins"])
