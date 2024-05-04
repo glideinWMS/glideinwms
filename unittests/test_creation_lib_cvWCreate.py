@@ -22,11 +22,7 @@ from unittest import mock
 
 import xmlrunner
 
-from glideinwms.creation.lib.cvWCreate import (
-    create_client_condor_config,
-    create_client_mapfile,
-    get_template,
-)
+from glideinwms.creation.lib.cvWCreate import create_client_condor_config, create_client_mapfile, get_template
 
 
 class Test_cvWCreate(unittest.TestCase):
