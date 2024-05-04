@@ -1,8 +1,31 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description: general purpose XML formatter
+"""Ggeneral purpose XML formatter
 
+#########################################################################################
+#
+# This module is a generic purpose XML formatter
+#
+# Six functions are defined:
+#  class2string - converts a class or a dictionary into an XML string
+#                 class fields or dictionary keys are used as XML tags
+#  dict2string  - converts a dictionary or a list (or tuple) into an XML string
+#                 keys or indexes are used as parameters, not tags
+#  list2string  - converts a list or a dictionary into an XML string
+#                 no indexes here, only the values are used
+#                 in case of a dictionary, keys are used and the values are ignored
+#
+#  class2file - write a class or a dictionary into an open file as an XML string
+#               class fields or dictionary keys are used as XML tags
+#  dict2file  - write a dictionary or a list (or tuple) into an open file as an XML string
+#               keys or indexes are used as parameters, not tags
+#  list2file  - write a list or a dictionary into an open file as an XML string
+#               no indexes here, only the values are used
+#               in case of a dictionary, keys are used and the values are ignored
+#
+#########################################################################################
+"""
 
 import xml.sax.saxutils
 
@@ -209,7 +232,7 @@ def class2string(
         tree_params = DEFAULT_TREE_PARAMS
     if text_params is None:
         text_params = DEFAULT_TEXT_PARAMS
-    if override_dictionary_type != None:
+    if override_dictionary_type is not None:
         DEFAULT_OVERRIDE_DICT.update({"TypeDict": override_dictionary_type})
 
     head_str, is_complete, inst_attrs, dict_attrs, list_attrs, tree_attrs, text_attrs = class2head(

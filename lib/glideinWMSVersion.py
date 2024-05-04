@@ -3,23 +3,11 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-###############################################################################
-# glideinWMSVersion.py
-#
-# Description:
-#   Execute a ls command on a condor job working directory
-#
-# Usage:
-#  glideinWMSVersion.py <Path to glideinWMS distribution> [<Checksum file>]
-#
-# Author:
-#   Parag Mhashilkar (August 2010)
-#
-# License:
-#  Fermitools
-#
-###############################################################################
+"""Execute a ls command on a condor job working directory
 
+Usage:
+    glideinWMSVersion.py <Path to glideinWMS distribution> [<Checksum file>]
+"""
 
 import os
 import sys
@@ -50,7 +38,7 @@ class GlideinWMSDistro:
 
             try:
                 self.createVersionString()
-            except:
+            except Exception:
                 self._version = "glideinWMS UNKNOWN"
 
         def createVersionString(self):
@@ -75,7 +63,6 @@ class GlideinWMSDistro:
 
             if ver != "UNKNOWN":
                 # Read the dir contents of distro and compute the md5sum
-                computedFileHash = {}
                 for file in list(distroFileHash.keys()):
                     fd = None
                     try:
@@ -87,7 +74,7 @@ class GlideinWMSDistro:
                         if chksum != distroFileHash[file]:
                             modifiedFiles.append(file)
                             patch = "PATCHED"
-                    except:  # ignore missing files
+                    except Exception:  # ignore missing files
                         pass
                     if fd:
                         fd.close()

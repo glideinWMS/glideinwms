@@ -11,7 +11,7 @@ import platform
 
 try:
     import distro  # pylint: disable=import-error
-except:
+except ImportError:
     distro = None
 
 
@@ -44,7 +44,7 @@ class Release:
             self.buildRPMs = bool(which("rpmbuild"))
             if not self.buildRPMs:
                 print("'rpmbuild' not found, skipping RPM build")
-        except:
+        except Exception:
             print("RPMs will not be build for this platform")
 
     def createTarballVersionString(self, ver, rc):
@@ -368,7 +368,7 @@ class TaskRPM(TaskTar):
         execute_cmd(cmd)
 
     def execute(self):
-        if self.release.buildRPMs == False:
+        if not self.release.buildRPMs:
             self.status = "SKIPPED"
         else:
             # First build the source tarball
@@ -498,7 +498,7 @@ def execute_cmd(cmd, stdin_data=None):
         ExeError: when the command fails. The message is the command stderr
     """
     child = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if stdin_data != None:
+    if stdin_data is not None:
         child.stdin.write(stdin_data)
 
     tempOut = child.stdout.readlines()

@@ -69,7 +69,7 @@ def fork_in_bg(function_torun, *args):
         try:
             out = function_torun(*args)
             os.write(w, pickle.dumps(out))
-        except:
+        except Exception:
             logSupport.log.warning("Forked process '%s' failed" % str(function_torun))
             logSupport.log.exception("Forked process '%s' failed" % str(function_torun))
         finally:

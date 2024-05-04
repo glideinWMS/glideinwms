@@ -13,7 +13,7 @@ from . import defaults, subprocessSupport
 
 try:
     import rrdtool  # pylint: disable=import-error
-except:
+except ImportError:
     # Will use the binary tools if the Python library is not available
     pass
 
@@ -87,7 +87,7 @@ class BaseRRDSupport:
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
-        if None == self.rrd_obj:
+        if self.rrd_obj is None:
             return  # nothing to do in this case
 
         # make the start time to be aligned on the rrd_step boundary
@@ -117,7 +117,7 @@ class BaseRRDSupport:
           time     - When was the value taken
           val      - What vas the value
         """
-        if None == self.rrd_obj:
+        if self.rrd_obj is None:
             # nothing to do in this case
             return
 
@@ -213,7 +213,7 @@ class BaseRRDSupport:
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
-        if None == self.rrd_obj:
+        if self.rrd_obj is None:
             return  # nothing to do in this case
 
         multi_rrd_files = []
@@ -307,7 +307,7 @@ class BaseRRDSupport:
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
-        if None == self.rrd_obj:
+        if self.rrd_obj is None:
             return  # nothing to do in this case
 
         args = [
@@ -374,7 +374,7 @@ class BaseRRDSupport:
                 self.rrd_obj.graph(*args)
             finally:
                 lck.close()
-        except:
+        except Exception:
             print("Failed graph: %s" % str(args))
 
         return args
@@ -442,7 +442,7 @@ class BaseRRDSupport:
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
-        if None == self.rrd_obj:
+        if self.rrd_obj is None:
             return  # nothing to do in this case
 
         if CF in ("AVERAGE", "MIN", "MAX", "LAST"):
@@ -524,7 +524,7 @@ class rrdSupport(BaseRRDSupport):
         except NameError:
             try:
                 rrd_obj = rrdtool_exe()
-            except:
+            except Exception:
                 rrd_obj = None
         BaseRRDSupport.__init__(self, rrd_obj)
 
@@ -567,12 +567,12 @@ class rrdtool_exe:
 
     def create(self, *args):
         cmdline = f"{self.rrd_bin} create {string_quote_join(args)}"
-        outstr = subprocessSupport.iexe_cmd(cmdline)
+        outstr = subprocessSupport.iexe_cmd(cmdline)  # noqa: F841
         return
 
     def update(self, *args):
         cmdline = f"{self.rrd_bin} update {string_quote_join(args)}"
-        outstr = subprocessSupport.iexe_cmd(cmdline)
+        outstr = subprocessSupport.iexe_cmd(cmdline)  # noqa: F841
         return
 
     def info(self, *args):
@@ -606,12 +606,12 @@ class rrdtool_exe:
 
     def restore(self, *args):
         cmdline = f"{self.rrd_bin} restore {string_quote_join(args)}"
-        outstr = subprocessSupport.iexe_cmd(cmdline)
+        outstr = subprocessSupport.iexe_cmd(cmdline)  # noqa: F841
         return
 
     def graph(self, *args):
         cmdline = f"{self.rrd_bin} graph {string_quote_join(args)}"
-        outstr = subprocessSupport.iexe_cmd(cmdline)
+        outstr = subprocessSupport.iexe_cmd(cmdline)  # noqa: F841
         return
 
     def fetch(self, *args):

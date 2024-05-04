@@ -67,7 +67,7 @@ def token_str_expired(token_str):
         return True
     expired = True
     try:
-        decoded = jwt.decode(
+        decoded = jwt.decode(  # noqa: F841
             token_str.strip(),
             options={"verify_signature": False, "verify_aud": False, "verify_exp": True, "verify_nbf": True},
         )

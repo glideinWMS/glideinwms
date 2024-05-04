@@ -101,7 +101,7 @@ class DirCleanup:
                 try:
                     self.delete_file(fpath)
                     count_removes += 1
-                except:
+                except Exception:
                     if self.should_log_warnings:
                         logSupport.log.warning("Could not remove %s" % fpath)
 
@@ -181,7 +181,7 @@ class DirCleanupWSpace(DirCleanup):
                     count_removes += 1
                     count_removes_bytes += fsize
                     used_space -= fsize
-                except:
+                except Exception:
                     if self.should_log_warnings:
                         logSupport.log.warning("Could not remove %s" % fpath)
 
@@ -219,7 +219,7 @@ class DirCleanupCredentials(DirCleanup):
                 try:
                     os.unlink(fpath)
                     count_removes += 1
-                except:
+                except Exception:
                     logSupport.log.warning("Could not remove credential %s" % fpath)
 
         if count_removes > 0:
