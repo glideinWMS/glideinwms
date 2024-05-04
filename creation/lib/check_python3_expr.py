@@ -245,7 +245,7 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
                     if enforce_2to3:
                         passed = False
                 else:
-                    _log(f" none\n", silent)
+                    _log(" none\n", silent)
                     result["2to3"] = None
             report.append(result)
         # validates policy files
@@ -288,7 +288,7 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
                     if enforce_2to3:
                         passed = False
                 else:
-                    _log(f" none\n", silent)
+                    _log(" none\n", silent)
                     result["2to3"] = None
             report.append(result)
 

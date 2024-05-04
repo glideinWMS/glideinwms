@@ -5,8 +5,6 @@
 
 import os
 import os.path
-import re
-import string
 import sys
 import time
 
@@ -195,7 +193,7 @@ def main(argv):
     try:
         frontend_dir = opt_dict["dir"]
         cmd = opt_dict["cmd"]
-    except KeyError as e:
+    except KeyError:
         usage()
         print("-cmd -dir argument is required.")
         return 1

@@ -35,7 +35,6 @@ from glideinwms.lib import (
     condorManager,
     condorMonitor,
     logSupport,
-    subprocessSupport,
     timeConversion,
     x509Support,
 )
@@ -1300,7 +1299,7 @@ def diffList(base_list, subtract_list):
 
     out_list = []
     for i in base_list:
-        if not (i in subtract_list):
+        if i not in subtract_list:
             out_list.append(i)
 
     return out_list
@@ -1752,7 +1751,7 @@ def removeGlideins(schedd_name, jid_list, force=False, log=logSupport.log, facto
                 try:
                     log.info("Forcing the removal of glideins in X state")
                     condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name, do_forcex=True)
-                except condorExe.ExeError as e:
+                except condorExe.ExeError:
                     log.warning(f"Forcing the removal of glideins in {jid[0]}.{jid[1]} state failed")
 
         except condorExe.ExeError as e:
@@ -2225,7 +2224,7 @@ def isGlideinHeldNTimes(jobInfo, factoryConfig=None, n=20):
 # only allow simple strings
 def is_str_safe(s):
     for c in s:
-        if not c in ("._-@" + string.ascii_letters + string.digits):
+        if c not in ("._-@" + string.ascii_letters + string.digits):
             return False
     return True
 

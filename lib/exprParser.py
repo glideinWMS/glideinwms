@@ -1,24 +1,15 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description: general purpose python expression parser and unparser
-#
-# Author:
-#  Igor Sfiligoi
-#
-
+"""
+Description: general purpose python expression parser and unparser
+"""
 
 import ast
 import itertools
 
 # These are used in modules importing exprParser, like frontend_match_ana
-from ast import And, Not, Or
+from ast import And, Not, Or  # noqa: F401
 from io import StringIO
 
 from .unparser import Unparser

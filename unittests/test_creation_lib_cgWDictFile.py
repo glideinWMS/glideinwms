@@ -43,7 +43,6 @@ from glideinwms.creation.lib.cgWDictFile import (
     load_entry_dicts,
     load_main_dicts,
     save_common_dicts,
-    save_entry_dicts,
     save_main_dicts,
 )
 from glideinwms.creation.lib.factoryXmlConfig import parse
@@ -502,7 +501,7 @@ class TestGlideinEntryDicts(unittest.TestCase):
         for nm in self.edicts:
             try:
                 self.edicts[nm].reuse(other)
-            except RuntimeError as e:
+            except RuntimeError:
                 if nm != ent:
                     pass
                 else:

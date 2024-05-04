@@ -43,9 +43,6 @@ mongroup (MonitorGroupDictFile, cgWConsts.MONITOR_CONFIG_FILE)
 import copy
 import os
 import os.path
-import pwd
-import shutil
-import string
 
 import glideinwms.lib.subprocessSupport
 
@@ -68,7 +65,7 @@ class MonitorGroupDictFile(cWDictFile.DictFile):
     # key can be None
     # in that case it will be composed out of value
     def add(self, key, val, allow_overwrite=0):
-        if not (type(val) in (type(()), type([]))):
+        if type(val) not in (type(()), type([])):
             raise RuntimeError("Values '%s' not a list or tuple" % val)
         if len(val) != 1:
             raise RuntimeError("Values '%s' not (group_name)" % str(val))
@@ -117,7 +114,7 @@ class InfoSysDictFile(cWDictFile.DictFile):
     # key can be None
     # in that case it will be composed out of value
     def add(self, key, val, allow_overwrite=0):
-        if not (type(val) in (type(()), type([]))):
+        if type(val) not in (type(()), type([])):
             raise RuntimeError("Values '%s' not a list or tuple" % val)
         if len(val) != 3:
             raise RuntimeError("Values '%s' not (Type,System,Ref)" % str(val))

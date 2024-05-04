@@ -8,7 +8,7 @@
 def str2int_range(str, min, max):
     try:
         val = int(str)
-    except ValueError as e:
+    except ValueError:
         raise ValueError("Must be a number.") from None
     if (val < min) or (val > max):
         raise ValueError("Must be in the range %i-%i." % (min, max))
@@ -21,7 +21,7 @@ def parse_date(str):
         raise ValueError("Invalid date '%s'. Expected YY/MM/DD." % str)
     try:
         year = int(arr[0])
-    except ValueError as e:
+    except ValueError:
         raise ValueError("Invalid year '%s'. Must be a number." % arr[0])
     if year < 100:
         year = year + 2000

@@ -10,7 +10,7 @@ import os.path
 import time
 
 from glideinwms.frontend import glideinFrontendMonitoring
-from glideinwms.lib import logSupport, rrdSupport, timeConversion, xmlFormat, xmlParse
+from glideinwms.lib import logSupport, rrdSupport, xmlFormat, xmlParse
 
 ############################################################
 #
@@ -149,9 +149,9 @@ def write_one_rrd(name, updated, data, fact=0):
 
     for tp in list(data.keys()):
         # values (RRD type) - Status or Requested
-        if not (tp in list(frontend_status_attributes.keys())):
+        if tp not in list(frontend_status_attributes.keys()):
             continue
-        if not (tp in list(type_strings.keys())):
+        if tp not in list(type_strings.keys()):
             continue
 
         tp_str = type_strings[tp]
@@ -205,7 +205,7 @@ def aggregateStatus():
         )
         try:
             group_data = xmlParse.xmlfile2dict(status_fname)
-        except xmlParse.CorruptXML as e:
+        except xmlParse.CorruptXML:
             logSupport.log.error("Corrupt XML in %s; deleting (it will be recreated)." % (status_fname))
             os.unlink(status_fname)
             continue
@@ -225,7 +225,7 @@ def aggregateStatus():
         for fos in ("factories", "states"):
             for fact in list(this_group[fos].keys()):
                 this_fact = this_group[fos][fact]
-                if not fact in list(global_fact_totals[fos].keys()):
+                if fact not in list(global_fact_totals[fos].keys()):
                     # first iteration through, set fact totals equal to the first group's fact totals
                     global_fact_totals[fos][fact] = {}
                     for attribute in list(type_strings.keys()):

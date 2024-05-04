@@ -372,7 +372,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name,
 
         elif "auth_file" in auth_method_list:
             # Validate auth_file is passed
-            if not ("AuthFile" in params):
+            if "AuthFile" not in params:
                 # auth_file is required, cannot service request
                 raise CredentialError(
                     "Client '%s' did not specify the auth_file in the request, this is required by entry %s, skipping "

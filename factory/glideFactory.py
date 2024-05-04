@@ -13,7 +13,6 @@ import copy
 import fcntl
 import glob
 import json
-import logging
 import math
 import os
 import resource
@@ -953,7 +952,7 @@ def main(startup_dir):
         # It is not in Exception so it will remain un-handled
         # except KeyboardInterrupt as e:
         #   raise e  # raise e is re-raising a different exceptoin from here? Use raise instead?
-        except HUPException as e:
+        except HUPException:
             # inside spawn(), outermost try will catch HUPException,
             # then the code within the finally clouse of spawn() will run
             # which will terminate glideFactoryEntryGroup children processes

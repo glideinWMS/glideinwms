@@ -20,15 +20,13 @@
 #
 
 
-import fcntl
 import os
 import signal
-import string
 import subprocess
 import sys
 import time
 
-from glideinwms.factory import glideFactoryConfig, glideFactoryPidLib
+from glideinwms.factory import glideFactoryPidLib
 
 
 def all_pids_in_pgid_dead(pgid):

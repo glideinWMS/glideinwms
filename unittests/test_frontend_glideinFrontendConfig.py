@@ -16,7 +16,6 @@ Author:
 
 
 import os
-import string
 import unittest
 
 import xmlrunner
@@ -26,14 +25,10 @@ from glideinwms.frontend.glideinFrontendConfig import (
     ConfigFile,
     ElementDescript,
     ElementMergedDescript,
-    ExtStageFiles,
     FrontendConfig,
     FrontendDescript,
     get_group_dir,
-    GroupConfigFile,
     GroupSignatureDescript,
-    HistoryFile,
-    MergeStageFiles,
     ParamsDescript,
     SignatureDescript,
     StageFiles,
@@ -96,7 +91,7 @@ class TestStageFiles(unittest.TestCase):
         try:
             fll = self.stage_files.get_file_list("schmoo")
             assert False  # raise error if found schmoo files
-        except KeyError as ker:
+        except KeyError:
             # print('%s' % ker)
             pass
         fll = self.stage_files.get_file_list("file_list")

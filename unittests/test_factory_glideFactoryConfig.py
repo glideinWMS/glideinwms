@@ -19,15 +19,12 @@ import unittest
 import xmlrunner
 
 from glideinwms.factory.glideFactoryConfig import (
-    ConfigFile,
     EntryConfigFile,
     FrontendDescript,
     GlideinDescript,
-    GlideinKey,
     JobAttributes,
     JobDescript,
     JobParams,
-    JoinConfigFile,
     SignatureFile,
 )
 from glideinwms.unittests.unittest_utils import TestImportError

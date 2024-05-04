@@ -1,19 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   This module implements classes that will setup
-#   the Condor security as needed
-#
-# Author:
-#   Igor Sfiligoi @ UCSD (Apr 2010)
-#
+"""This module implements classes that will setup the Condor security as needed
+"""
 
 import copy
 import os
@@ -204,10 +193,10 @@ class EnvProtoState(SecEnvState):
         if filter is not None:
             # validate filter
             for c in list(filter.keys()):
-                if not (c in CONDOR_CONTEXT_LIST):
+                if c not in CONDOR_CONTEXT_LIST:
                     raise ValueError(f"Invalid contex '{c}'. Must be one of {CONDOR_CONTEXT_LIST}")
                 for f in filter[c]:
-                    if not (f in CONDOR_PROTO_FEATURE_LIST):
+                    if f not in CONDOR_PROTO_FEATURE_LIST:
                         raise ValueError(f"Invalid feature '{f}'. Must be one of {CONDOR_PROTO_FEATURE_LIST}")
         else:
             # do not filter anything out... add all
@@ -227,18 +216,18 @@ class EnvProtoState(SecEnvState):
 # to the Condor protocol handling
 class ProtoRequest(SecEnvRequest):
     def set(self, context, feature, value):  # if value is None, remove the request
-        if not (context in CONDOR_CONTEXT_LIST):
+        if context not in CONDOR_CONTEXT_LIST:
             raise ValueError("Invalid security context '%s'." % context)
-        if not (feature in CONDOR_PROTO_FEATURE_LIST):
+        if feature not in CONDOR_PROTO_FEATURE_LIST:
             raise ValueError("Invalid authentication feature '%s'." % feature)
-        if not (value in (CONDOR_PROTO_VALUE_LIST + (UNSET_VALUE,))):
+        if value not in (CONDOR_PROTO_VALUE_LIST + (UNSET_VALUE,)):
             raise ValueError("Invalid value type '%s'." % value)
         SecEnvRequest.set(self, context, feature, value)
 
     def get(self, context, feature):
-        if not (context in CONDOR_CONTEXT_LIST):
+        if context not in CONDOR_CONTEXT_LIST:
             raise ValueError("Invalid security context '%s'." % context)
-        if not (feature in CONDOR_PROTO_FEATURE_LIST):
+        if feature not in CONDOR_PROTO_FEATURE_LIST:
             raise ValueError("Invalid authentication feature '%s'." % feature)
         return SecEnvRequest.get(self, context, feature)
 
@@ -271,8 +260,8 @@ class GSIRequest(ProtoRequest):
                 proto_requests[context] = {}
             if "AUTHENTICATION" in proto_requests[context]:
                 auth_list = proto_requests[context]["AUTHENTICATION"].split(",")
-                if not ("GSI" in auth_list):
-                    if not ("IDTOKENS" in auth_list):
+                if "GSI" not in auth_list:
+                    if "IDTOKENS" not in auth_list:
                         raise ValueError("Must specify either IDTOKENS or GSI as one of the options")
             else:
                 proto_requests[context]["AUTHENTICATION"] = auth_str

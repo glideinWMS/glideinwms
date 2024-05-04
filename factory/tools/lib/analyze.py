@@ -6,14 +6,6 @@
 #   analyze_queues and analyze_frontends.
 ########################
 
-import datetime
-import getopt
-import os
-import re
-import sys
-import urllib.error
-import urllib.parse
-import urllib.request
 
 
 # Convert particularly large numbers

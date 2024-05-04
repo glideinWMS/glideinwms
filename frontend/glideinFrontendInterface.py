@@ -510,7 +510,7 @@ class CredentialCache:
 
     def file_id(self, credential_el, filename):
         k = (credential_el.type, filename)
-        if not (k in self.file_id_cache):
+        if k not in self.file_id_cache:
             self.file_id_cache[k] = credential_el.file_id(filename)
         return self.file_id_cache[k]
 
@@ -718,7 +718,7 @@ class AdvertizeParams:
         self.idle_lifetime = idle_lifetime
         if remove_excess_str is None:
             remove_excess_str = "NO"
-        elif not (remove_excess_str in ("NO", "WAIT", "IDLE", "ALL", "UNREG")):
+        elif remove_excess_str not in ("NO", "WAIT", "IDLE", "ALL", "UNREG"):
             raise RuntimeError(
                 'Invalid remove_excess_str(%s), valid values are "NO","WAIT","IDLE","ALL","UNREG"' % remove_excess_str
             )
@@ -930,7 +930,7 @@ class MultiAdvertizeWork:
         Returns the list of files that still need to be advertised.
         Expects that the credentials have been already loaded.
         """
-        if not (factory_pool in self.global_pool):
+        if factory_pool not in self.global_pool:
             # nothing to be done, prevent failure
             return []
 
@@ -1050,7 +1050,7 @@ class MultiAdvertizeWork:
         """
         # the different indentation is due to code refactoring
         # this way the diff was minimized
-        if not (factory_pool in list(self.factory_queue.keys())):
+        if factory_pool not in list(self.factory_queue.keys()):
             # nothing to be done, prevent failure
             return []
 

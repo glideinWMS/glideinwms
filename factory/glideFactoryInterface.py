@@ -7,7 +7,6 @@
 
 import fcntl
 import os
-import string
 import time
 
 from glideinwms.lib import classadSupport, condorExe, condorManager, condorMonitor, logSupport
@@ -366,7 +365,7 @@ def workGroupByEntries(work):
         req_name = work[w]["internals"]["ReqName"]
         try:
             entry = (req_name.split("@"))[0]
-            if not (entry in grouped_work):
+            if entry not in grouped_work:
                 grouped_work[entry] = {}
             grouped_work[entry][w] = work[w]
         except:

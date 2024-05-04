@@ -162,7 +162,7 @@ def read(fname, raise_on_error=False):
         with open(fname) as fd:
             fcntl.flock(fd, fcntl.LOCK_SH)
             lines = fd.readlines()
-    except OSError as e:
+    except OSError:
         if raise_on_error:
             raise  # re-rise the exact same exception like no except
         else:
@@ -376,7 +376,7 @@ def purgeOldPeriods(fname, cut_time=None, raise_on_error=False):
 
     try:
         fd = open(fname, "r+")
-    except OSError as e:
+    except OSError:
         if raise_on_error:
             raise  # re-rise the exact same exception like no except
         else:

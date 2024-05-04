@@ -212,7 +212,7 @@ class PubRSAKey:
         bio = M2Crypto.BIO.openfile(key_fname, "wb")
         try:
             return self._save_to_bio(bio)
-        except Exception as e:
+        except Exception:
             # need to remove the file in case of error
             bio.close()
             del bio

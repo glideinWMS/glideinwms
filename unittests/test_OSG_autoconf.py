@@ -23,7 +23,7 @@ import xmlrunner
 
 try:
     from glideinwms.unittests.unittest_utils import TestImportError
-except ImportError as err:
+except ImportError:
 
     class TestImportError(Exception):
         pass

@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This module implements the functions needed to keep the
-#   required number of idle glideins
-#   plus other miscelaneous functions
+"""
+This module implements the functions needed to keep the
+required number of idle glideins plus other miscelaneous functions
+"""
 
 import math
 import os
@@ -15,7 +15,7 @@ import traceback
 
 from glideinwms.lib import condorMonitor, logSupport
 from glideinwms.lib.util import safe_boolcomp
-from glideinwms.lib.xmlParse import OrderedDict  # needed for eval
+from glideinwms.lib.xmlParse import OrderedDict  # noqa: F401   # needed for eval
 
 
 #############################################################################################
@@ -421,12 +421,12 @@ def countMatch(
                         first_t = (first_jid[0] * procid_mul + first_jid[1]) * nr_schedds + scheddIdx
                         all_jobs_clusters[first_t] = cluster_arr
                         sjobs_arr += [first_t]
-                except KeyError as e:
+                except KeyError:
                     tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
                     key = ((tb[-1].split(":"))[1]).strip()
                     missing_keys.add(key)
 
-                except Exception as e:
+                except Exception:
                     tb_count = tb_count + 1
                     recent_tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
 
@@ -666,11 +666,11 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_m
                                 # the job is running in a glidein with 1 slot
                                 glidein_id = "%d %s" % (scheddIdx, jid)
                             glidein_ids.add(glidein_id)
-                except KeyError as e:
+                except KeyError:
                     tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
                     key = ((tb[-1].split(":"))[1]).strip()
                     missing_keys.add(key)
-                except Exception as e:
+                except Exception:
                     tb_count = tb_count + 1
                     recent_tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             if missing_keys:

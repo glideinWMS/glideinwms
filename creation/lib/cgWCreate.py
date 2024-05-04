@@ -14,7 +14,7 @@ import tarfile
 
 from glideinwms.lib.util import chmod
 
-from . import cgWDictFile, cWDictFile
+from . import cgWDictFile
 
 
 # Create condor tarball and store it into a StringIO

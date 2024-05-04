@@ -1,9 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This module implements the basic functions needed
-#   to interface to rrdtool
+"""This module implements the basic functions needed to interface to rrdtool
+"""
 
 import os
 import shutil
@@ -468,7 +467,7 @@ class BaseRRDSupport:
             try:
                 return self.rrd_obj.fetch(*args)
             except Exception as e:
-                raise RuntimeError(f"Error when running rrdtool.fetch") from e
+                raise RuntimeError("Error when running rrdtool.fetch") from e
         else:
             raise RuntimeError(f"RRD file '{filename}' does not exist. Failing fetch_rrd.")
 

@@ -4,32 +4,19 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Project:
-    glideinwms
-Purpose:
-    unit test for glideinwms/factory/glideFactoryDowntimeLib.py
-Author:
-    Doug Strain <dstrain@fnal.gov>
+Unit test for glideinwms/factory/glideFactoryDowntimeLib.py
 """
 
 import os
-import shutil
-import sys
-import tarfile
-import tempfile
 import time
 import unittest
 
 import xmlrunner
 
 from glideinwms.factory import glideFactoryDowntimeLib
-from glideinwms.lib import condorMonitor, logSupport
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
-from glideinwms.unittests.unittest_utils import create_random_string, create_temp_file, FakeLogger, runTest
-
-# from glideinwms.frontend.glideinFrontendInterface import Credential
 
 
 class TestDowntimes(unittest.TestCase):

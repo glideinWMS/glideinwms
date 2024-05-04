@@ -4,27 +4,14 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-   Project: glideinwms
-   File: test_creation_lib_cgWCreate.py
-   Purpose: unit test of glideinwms/creation/lib/cgWCreate.py
-   Author: Dennis Box, dbox@fnal.gov
+Unit test of glideinwms/creation/lib/cgWCreate.py
 """
 
 import unittest
 
-import glideinwms.creation.lib.cgWCreate
 
 from glideinwms.creation.lib.cgWCreate import GlideinSubmitDictFile
-from glideinwms.creation.lib.factoryXmlConfig import (
-    CondTarElement,
-    Config,
-    EntryElement,
-    EntrySetElement,
-    FactAttrElement,
-    FactFileElement,
-    FrontendElement,
-    parse,
-)
+from glideinwms.creation.lib.factoryXmlConfig import parse
 
 XML = "fixtures/factory/glideinWMS.xml"
 
@@ -54,7 +41,7 @@ class TestGlideinSubmitDictFile(unittest.TestCase):
         try:
             self.gsdf.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, self.entry_name)
             assert False  # Should have thrown RunTimeError!!
-        except RuntimeError as err:
+        except RuntimeError:
             pass
 
 
