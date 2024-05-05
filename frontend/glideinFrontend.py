@@ -3,12 +3,11 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This is the main of the glideinFrontend
-#
-# Arguments:
-#   $1 = work_dir
-#
+"""This is the main of the glideinFrontend
+
+Arguments:
+   $1 = work_dir
+"""
 
 
 import fcntl
@@ -203,7 +202,7 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active, failure_dict
                 pfm.metric = history_obj["perf_metrics"].metric
 
                 fm_classad.setPerfMetrics(servicePerformance.getPerfMetric(gname))
-            except:
+            except Exception:
                 pass  # Do not fail for non-critical actions
 
         fm_advertiser.addClassad(fm_classad.adParams["Name"], fm_classad)
@@ -220,7 +219,7 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active, failure_dict
             logSupport.log.error(
                 "Exception occurred trying to advertise %s classad(s) to the user pool" % fm_advertiser.adType
             )
-        except:
+        except Exception:
             # Rethrow any other exception including stop signal
             raise
         finally:
@@ -261,7 +260,7 @@ def spawn_cleanup(work_dir, frontendDescript, groups, frontend_name, ha_mode):
         fm_advertiser = glideinFrontendInterface.FrontendMonitorClassadAdvertiser()
         constraint = f'(GlideFrontendName=="{frontend_name}")&&(GlideFrontendHAMode=?="{ha_mode}")'
         fm_advertiser.invalidateConstrainedClassads(constraint)
-    except:
+    except Exception:
         # Do not fail in case of errors.
         logSupport.log.warning("Failed to deadvertise glidefrontendmonitor classad")
 
@@ -286,7 +285,7 @@ def spawn_cleanup(work_dir, frontendDescript, groups, frontend_name, ha_mode):
             while poll_group_process(group_name, child) is None:
                 # None means "still alive"
                 time.sleep(0.01)
-        except:
+        except Exception:
             # never fail on cleanup
             pass
 
@@ -341,12 +340,12 @@ def spawn(
 
             while (mode == "master") or ((mode == "slave") and active):
                 servicePerformance.startPerfMetricEvent("frontend", "iteration")
-                start_time = time.time()
+                # start_time = time.time()
                 timings = spawn_iteration(
                     work_dir, frontendDescript, groups, max_parallel_workers, failure_dict, restart_attempts, "run"
                 )
                 servicePerformance.endPerfMetricEvent("frontend", "iteration")
-                end_time = time.time()
+                # end_time = time.time()
                 elapsed_time = servicePerformance.getPerfMetricEventLifetime("frontend", "iteration")
                 if elapsed_time < sleep_time:
                     real_sleep_time = sleep_time - elapsed_time
@@ -540,7 +539,7 @@ def main(work_dir, action):
         glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(
             os.path.join(work_dir, "monitor"), groups
         )
-    except:
+    except Exception:
         logSupport.log.exception("Exception occurred configuring monitoring: ")
         raise
 
@@ -595,7 +594,7 @@ def main(work_dir, action):
                 os.path.join(glideinFrontendLib.__file__, "../creation/reconfig_frontend"),
                 ["reconfig_frontend", "-sighupreload", "-xml", "/etc/gwms-frontend/frontend.xml"],
             )
-        except:
+        except Exception:
             logSupport.log.exception("Exception occurred trying to spawn: ")
     finally:
         pid_obj.relinquish()

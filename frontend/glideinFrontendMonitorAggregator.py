@@ -1,9 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This module implements the functions needed
-#   to aggregate the monitoring fo the frontend
+"""This module implements the functions needed to aggregate the monitoring fo the frontend
+"""
 
 import os
 import os.path
@@ -235,7 +234,7 @@ def aggregateStatus():
                                 this_type_attribute = this_fact[attribute][type_attribute]
                                 try:
                                     global_fact_totals[fos][fact][attribute][type_attribute] = int(this_type_attribute)
-                                except:
+                                except Exception:
                                     pass
                 else:
                     # next iterations, factory already present in global fact totals, add the new factory values to the previous ones
