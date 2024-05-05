@@ -3,15 +3,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-This is the main of the glideinFrontend
+"""This is the main of the glideinFrontend
 
 Arguments:
    $1 = parent PID
    $2 = work dir
    $3 = group_name
    $4 = operation type (optional, defaults to "run")
-
 """
 
 import copy
@@ -280,7 +278,7 @@ class glideinFrontendElement:
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
             rc = 1
-        except:
+        except Exception:
             # TODO is tb needed? Don't we print the exception twice?
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             logSupport.log.exception("Unhandled exception, dying: %s" % tb)
@@ -313,7 +311,7 @@ class glideinFrontendElement:
                 servicePerformance.endPerfMetricEvent(self.group_name, "write_monitoring_stats")
             except KeyboardInterrupt:
                 raise  # this is an exit signal, pass through
-            except:
+            except Exception:
                 # never fail for stats reasons!
                 logSupport.log.exception("Exception occurred writing stats: ")
             finally:
@@ -360,14 +358,14 @@ class glideinFrontendElement:
                 glideinFrontendInterface.deadvertizeAllWork(
                     factory_pool_node, self.published_frontend_name, ha_mode=self.ha_mode
                 )
-            except:
+            except Exception:
                 logSupport.log.warning("Failed to deadvertise work on %s" % factory_pool_node)
 
             try:
                 glideinFrontendInterface.deadvertizeAllGlobals(
                     factory_pool_node, self.published_frontend_name, ha_mode=self.ha_mode
                 )
-            except:
+            except Exception:
                 logSupport.log.warning("Failed to deadvertise globals on %s" % factory_pool_node)
 
         # Invalidate all glideresource classads
@@ -376,12 +374,10 @@ class glideinFrontendElement:
             resource_advertiser.invalidateConstrainedClassads(
                 f'(GlideClientName=="{self.published_frontend_name}")&&(GlideFrontendHAMode=?="{self.ha_mode}")'
             )
-        except:
+        except Exception:
             logSupport.log.warning("Failed to deadvertise resources classads")
 
     def iterate_one(self):
-        pipe_ids = {}
-
         logSupport.log.info("Querying schedd, entry, and glidein status using child processes.")
 
         forkm_obj = ForkManager()
@@ -1072,8 +1068,6 @@ class glideinFrontendElement:
         tkn_file = ""
         tkn_str = ""
 
-        tmpnm = ""  # TODO: This variable is not used. Should we remove it?
-
         # does condor version of entry point support condor token auth
         condor_version = glidein_el["params"].get("CONDOR_VERSION")
         if condor_version:
@@ -1148,7 +1142,7 @@ class glideinFrontendElement:
                 logSupport.log.exception(f"Factory Globals '{globalid}', invalid RSA key: {e}")
                 # but mark it for removal from the dictionary
                 bad_id_list.append(globalid)
-            except:
+            except Exception:
                 # Catch all to be more robust, was there, probably should be removed
                 logSupport.log.warning("Factory Globals '%s', unknown error, probably invalid RSA key" % globalid)
                 logSupport.log.exception("Factory Globals '%s', unknown error, probably invalid RSA key" % globalid)
@@ -1220,7 +1214,7 @@ class glideinFrontendElement:
                         logSupport.log.warning(
                             "Ignoring schedd %s since CurbMatchmaking in its classad evaluated to 'True'" % (schedd)
                         )
-                except:
+                except Exception:
                     logSupport.log.exception("Unexpected exception checking schedd %s for limit" % schedd)
 
     def populate_condorq_dict_types(self):
@@ -1327,7 +1321,7 @@ class glideinFrontendElement:
             key = (factory_pool_node, resource_classad.adParams["Name"], my_identity)
             if key in self.factoryclients_dict:
                 resource_classad.setGlideFactoryMonitorInfo(self.factoryclients_dict[key]["monitor"])
-        except:
+        except Exception:
             # Ignore errors. Just log them.
             logSupport.log.exception("Populating GlideFactoryMonitor info in resource classad failed: ")
 
@@ -1902,7 +1896,7 @@ class glideinFrontendElement:
                         # Do we want all globals even if there is no key?
                         # May resolve other issues with checking later on
                         globals_dict[globalid] = globals_el
-                    except:
+                    except KeyError:
                         # if no valid key, just notify...
                         # if key needed, will handle the error later on
                         logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
@@ -2137,7 +2131,7 @@ class glideinFrontendElement:
                     "Total": glideinFrontendLib.countCondorStatus(fe_status_dict),
                 }
                 del fe_status_dict
-            except:
+            except Exception:
                 # This is not critical information, do not fail
                 logSupport.log.warning("Error computing slot stats at frontend level. Defaulting to %s" % fe_counts)
 
@@ -2164,7 +2158,7 @@ class glideinFrontendElement:
                     "Total": glideinFrontendLib.countCondorStatus(global_status_dict),
                 }
                 del global_status_dict
-            except:
+            except Exception:
                 # This is not critical information, do not fail
                 logSupport.log.warning("Error computing slot stats at global level. Defaulting to %s" % global_counts)
 
@@ -2186,7 +2180,7 @@ class glideinFrontendElement:
                         if schedd in status_schedd_dict[c].fetchStored():
                             status_schedd_dict[c].stored_data[schedd]["CurbMatchmaking"] = "True"
 
-            except:
+            except Exception:
                 # This is not critical information, do not fail
                 logSupport.log.warning("Error gathering job stats from schedd. Defaulting to %s" % status_schedd_dict)
 

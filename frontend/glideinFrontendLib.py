@@ -256,7 +256,7 @@ def countMatch(
         mydir = "/tmp/frontend_dump/" + group_name
         try:
             os.mkdir(mydir)
-        except:
+        except (FileExistsError, FileNotFoundError):
             pass
         with open(mydir + "/glidein_dict.pickle", "wb") as fd:
             pickle.dump(glidein_dict, fd)
@@ -274,7 +274,7 @@ def countMatch(
     # keys: are site indexes(numbers)
     # elements: number of real idle jobs associated with each site
     new_out_counts = {}
-    glideindex = 0
+    # glideindex = 0
 
     #
     # To speed up dictionary lookup
@@ -394,7 +394,7 @@ def countMatch(
                                 # Policies are supposed to be ANDed: match AND policy == policy because match is True
                                 match = policy.pyObject.match(job, glidein)
                             else:
-                                if match != False:
+                                if match != False:  # noqa: E712
                                     # Non boolean results should be discarded
                                     # and logged
                                     logSupport.log.warning(
@@ -403,7 +403,7 @@ def countMatch(
                                     )
                                 break
 
-                    if match == True:
+                    if match == True:  # noqa: E712
                         # The lines inside this 'if' can be replaced with the following three commented lines for profiling
                         # sc, csc, first_t = do_match(cq_dict_clusters_el, procid_mul, nr_schedds, scheddIdx, first_jid, sjobs_arr, all_jobs_clusters, jh, job)
                         # schedd_count += sc
@@ -627,11 +627,11 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_m
                     # Evaluation order does not really matter.
                     match = (job["RunningOn"] == glide_str) and eval(match_obj)
                     for policy in match_policies:
-                        if match == True:
+                        if match == True:  # noqa: E712
                             # Policies are supposed to be ANDed
                             match = match and policy.pyObject.match(job, glidein)
                         else:
-                            if match != False:
+                            if match != False:  # noqa: E712
                                 # Non boolean results should be discarded
                                 # and logged
                                 logSupport.log.warning(
@@ -640,7 +640,7 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_m
                                 )
                             break
 
-                    if match == True:
+                    if match == True:  # noqa: E712
                         schedd_count += len(cq_dict_clusters_el[jh])
                         for jid in cq_dict_clusters_el[jh]:
                             job = condorq_data[jid]
@@ -830,7 +830,7 @@ def getIdleCondorStatus(status_dict, min_memory=2500):
                 (el.get("State") == "Unclaimed")
                 and (el.get("Activity") == "Idle")
                 and (
-                    (el.get("PartitionableSlot") != True)
+                    not el.get("PartitionableSlot")
                     or (el.get("TotalSlots") == 1)
                     or (
                         el.get("Cpus", 0) > 0
@@ -864,7 +864,7 @@ def getRunningCondorStatus(status_dict):
             status_dict[collector_name],
             lambda el: (
                 ((el.get("State") == "Claimed") and (el.get("Activity") in ("Busy", "Retiring")))
-                or ((el.get("PartitionableSlot") == True) and (el.get("TotalSlots", 1) > 1))
+                or (el.get("PartitionableSlot") and (el.get("TotalSlots", 1) > 1))
             ),
         )
         sq.load()
@@ -884,7 +884,7 @@ def getRunningPSlotCondorStatus(status_dict):
         # Get p-slot where there is atleast one dynamic slot
         sq = condorMonitor.SubQuery(
             status_dict[collector_name],
-            lambda el: ((el.get("PartitionableSlot") == True) and (el.get("TotalSlots", 1) > 1)),
+            lambda el: (el.get("PartitionableSlot") and (el.get("TotalSlots", 1) > 1)),
         )
 
         sq.load()

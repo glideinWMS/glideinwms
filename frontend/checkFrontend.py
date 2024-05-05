@@ -3,24 +3,17 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   Check if a glideinFrontend is running
-#
-# Arguments:
-#   $1 = work_dir
-#   $2 = (optional) run mode (defaults to "run")
-#
-# Exit code:
-#   0 - Running
-#   1 - Not running anything
-#   2 - Not running my types, but another type is indeed running
-#
+"""Check if a glideinFrontend is running
+
+Arguments:
+   $1 = work_dir
+   $2 = (optional) run mode (defaults to "run")
+
+Exit code:
+   0 - Running
+   1 - Not running anything
+   2 - Not running my types, but another type is indeed running
+"""
 
 import sys
 
@@ -30,7 +23,7 @@ if __name__ == "__main__":
     try:
         work_dir = sys.argv[1]
         action_type = glideinFrontendPidLib.get_frontend_action_type(work_dir)
-    except:
+    except Exception:
         print("Not running")
         sys.exit(1)
 

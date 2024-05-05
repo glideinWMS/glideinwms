@@ -1,10 +1,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This module implements the functions needed to advertise
-#   and get resources from the Collector
-
 """
 This module implements the functions needed to advertise and get resources from the Collector
 """
@@ -51,7 +47,7 @@ class FrontendConfig:
         self.glideinwms_version = "glideinWMS UNKNOWN"
         try:
             self.glideinwms_version = glideinWMSVersion.GlideinWMSDistro("checksum.frontend").version()
-        except:
+        except Exception:
             logSupport.log.exception("Exception occurred while trying to retrieve the glideinwms version: ")
 
         # String to prefix for the attributes
@@ -381,7 +377,7 @@ class Credential:
             logSupport.log.debug("Creating credential using %s" % (self.creation_script))
             try:
                 condorExe.iexe_cmd(self.creation_script)
-            except:
+            except Exception:
                 logSupport.log.exception("Creating credential using %s failed" % (self.creation_script))
                 self.advertize = False
 
@@ -411,7 +407,7 @@ class Credential:
         try:
             with open(cred_file) as data_fd:
                 cred_data = data_fd.read()
-        except:
+        except Exception:
             # This credential should not be advertised
             self.advertize = False
             logSupport.log.exception("Failed to read credential %s: " % cred_file)
@@ -490,7 +486,7 @@ class Credential:
             # output += "key_data = %s\n" % self.key_data
             output += "pilot_fname = %s\n" % self.pilot_fname
             # output += "pilot_data = %s\n" % self.getString(cred_file=self.pilot_fname)
-        except:
+        except Exception:
             pass
         output += "vm_id = %s\n" % self.vm_id
         output += "vm_type = %s\n" % self.vm_type
@@ -847,7 +843,7 @@ class MultiAdvertizeWork:
         else:
             nr_credentials = 0
 
-        nr_good_credentials = nr_credentials
+        # nr_good_credentials = nr_credentials
         for i in range(nr_credentials):
             cred_el = self.x509_proxies_data[i]
             cred_el.advertize = True
@@ -987,7 +983,7 @@ class MultiAdvertizeWork:
             fd.write('ClientName = "%s"\n' % self.descript_obj.my_name)
             for i in range(nr_credentials):
                 cred_el = self.x509_proxies_data[i]
-                if cred_el.advertize == False:
+                if not cred_el.advertize:
                     continue  # we already determined it cannot be used
                 for ld_el in cred_el.loaded_data:
                     ld_fname, ld_data = ld_el
@@ -1066,7 +1062,7 @@ class MultiAdvertizeWork:
 
         # this should be done in parallel, but keep it serial for now
         filename_arr = []
-        if frontendConfig.advertise_use_multi == True:
+        if frontendConfig.advertise_use_multi:
             filename_arr.append(self.adname)
         for el in self.factory_queue[factory_pool]:
             params_obj, key_obj = el
@@ -1129,7 +1125,7 @@ class MultiAdvertizeWork:
                         value = (line[sep_idx + 1 :]).strip()
                         if value != "":
                             values.append(value)
-        except:
+        except Exception:
             logSupport.log.exception("Failed to read the file %s" % (filename))
             raise NoCredentialException
 
@@ -1198,7 +1194,7 @@ class MultiAdvertizeWork:
                 # credential_el (Credebtial())
                 credential_el = credentials_with_requests[i]
                 logSupport.log.debug(f"Checking Credential file {credential_el.filename} ...")
-                if credential_el.advertize == False:
+                if not credential_el.advertize:
                     # We already determined it cannot be used
                     # if hasattr(credential_el,'filename'):
                     #    filestr=credential_el.filename
@@ -1367,7 +1363,7 @@ class MultiAdvertizeWork:
                 # add a final empty line... useful when appending
                 fd.write("\n")
                 fd.close()
-            except:
+            except Exception:
                 logSupport.log.exception("Exception writing advertisement file: ")
                 # remove file in case of problems
                 if fd is not None:

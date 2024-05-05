@@ -1,9 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   Frontend config related classes
-#
+"""Frontend config related classes
+"""
 
 import os.path
 import urllib.error
@@ -617,7 +616,7 @@ class HistoryFile:
         try:
             # using it only for convenience (expiration, ... not used)
             data = util.file_pickle_load(self.fname)
-        except:
+        except Exception:
             if raise_on_error:
                 raise
             else:
@@ -639,7 +638,7 @@ class HistoryFile:
         # saved state because of an exception
         try:
             util.file_pickle_dump(self.fname, self.data)
-        except:
+        except Exception:
             if raise_on_error:
                 raise
             # else, just ignore
