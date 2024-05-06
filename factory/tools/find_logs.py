@@ -3,17 +3,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   Find the logs for a certain date
-#
-# Usage: find_logs.py <factory> YY/MM/DD [hh:mm:ss]
-#
+"""Find the logs for a certain date
+
+Usage: find_logs.py <factory> YY/MM/DD [hh:mm:ss]
+"""
 
 
 import os
@@ -42,7 +35,7 @@ def parse_args():
             factory_dir, glideFactoryConfig.factoryConfig.glidein_descript_file
         )
         glideinDescript = glideFactoryConfig.GlideinDescript()
-    except:
+    except Exception:
         raise ValueError("%s is not a factory!" % factory_dir)
 
     glideinDescript.factory_dir = factory_dir

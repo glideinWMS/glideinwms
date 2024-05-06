@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This module implements the functions needed to advertize
-#   and get commands from the Collector
+"""This module implements the functions needed to advertize
+   and get commands from the Collector
+"""
 
 import fcntl
 import os
@@ -230,7 +230,7 @@ def findGroupWork(
         try:
             fd = open(lock_fname, "w")
             fd.close()
-        except:
+        except Exception:
             # could be a race condition
             pass
 
@@ -287,7 +287,7 @@ def findGroupWork(
         if (pub_key_obj is not None) and ("ReqPubKeyID" in kel):
             try:
                 sym_key_obj = pub_key_obj.extract_sym_key(kel["ReqEncKeyCode"])
-            except:
+            except Exception:
                 continue
 
         if sym_key_obj is not None:
@@ -295,7 +295,7 @@ def findGroupWork(
             # identity that Condor thinks it is
             try:
                 enc_identity = sym_key_obj.decrypt_hex(kel["ReqEncIdentity"]).decode("utf-8")
-            except:
+            except Exception:
                 logSupport.log.warning(
                     "Client %s provided invalid ReqEncIdentity, could not decode. Skipping for security reasons." % k
                 )
@@ -323,7 +323,7 @@ def findGroupWork(
                     if sym_key_obj is not None:
                         try:
                             el[key][attr[plen:]] = sym_key_obj.decrypt_hex(kel[attr])
-                        except:
+                        except Exception:
                             # I don't understand it -> invalid
                             invalid_classad = True
                             break
@@ -368,7 +368,7 @@ def workGroupByEntries(work):
             if entry not in grouped_work:
                 grouped_work[entry] = {}
             grouped_work[entry][w] = work[w]
-        except:
+        except Exception:
             logSupport.log.warning(
                 "Unable to group work for '%s' based on ReqName '%s'. This work item will not be processed."
                 % (w, req_name)
@@ -447,7 +447,7 @@ def findWork(
         try:
             fd = open(lock_fname, "w")
             fd.close()
-        except:
+        except Exception:
             # could be a race condition
             pass
 
@@ -494,7 +494,7 @@ def findWork(
             if "ReqPubKeyID" in kel:
                 try:
                     sym_key_obj = pub_key_obj.extract_sym_key(kel["ReqEncKeyCode"])
-                except:
+                except Exception:
                     continue  # bad key, ignore entry
             else:
                 sym_key_obj = None  # no key used, will not decrypt
@@ -505,7 +505,7 @@ def findWork(
             # this is verifying that the identity that the client claims to be is the identity that Condor thinks it is
             try:
                 enc_identity = sym_key_obj.decrypt_hex(kel["ReqEncIdentity"])
-            except:
+            except Exception:
                 logSupport.log.warning(
                     "Client %s provided invalid ReqEncIdentity, could not decode. Skipping for security reasons." % k
                 )
@@ -528,7 +528,7 @@ def findWork(
                     if sym_key_obj is not None:
                         try:
                             el[key][attr[plen:]] = sym_key_obj.decrypt_hex(kel[attr])
-                        except:
+                        except Exception:
                             invalid_classad = True
                             break  # I don't understand it -> invalid
         if invalid_classad:
@@ -1037,7 +1037,7 @@ def createGlideinClientMonitoringFile(
                         fd.write(f'{prefix}{attr} = "{escaped_el}"\n')
             # add a final empty line... useful when appending
             fd.write("\n")
-    except:
+    except Exception:
         # remove file in case of problems
         if os.path.exists(fname):
             os.remove(fname)
@@ -1051,7 +1051,7 @@ def advertizeGlideinClientMonitoringFromFile(fname, remove_file=True, is_multi=F
         try:
             logSupport.log.info("Advertising glidefactoryclient classads")
             exe_condor_advertise(fname, "UPDATE_LICENSE_AD", is_multi=is_multi, factory_collector=factory_collector)
-        except:
+        except Exception:
             logSupport.log.warning("Advertising glidefactoryclient classads failed")
             logSupport.log.exception("Advertising glidefactoryclient classads failed: ")
         if remove_file:
@@ -1068,7 +1068,7 @@ def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False, factory_co
         try:
             logSupport.log.info("Advertising glidefactory classads")
             exe_condor_advertise(fname, "UPDATE_AD_GENERIC", is_multi=is_multi, factory_collector=factory_collector)
-        except:
+        except Exception:
             logSupport.log.warning("Advertising glidefactory classads failed")
             logSupport.log.exception("Advertising glidefactory classads failed: ")
         if remove_file:
@@ -1153,7 +1153,7 @@ def exe_condor_advertise(fname, command, is_multi=False, factory_collector=None)
         try:
             fd = open(lock_fname, "w")
             fd.close()
-        except:
+        except Exception:
             # could be a race condition
             pass
 

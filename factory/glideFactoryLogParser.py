@@ -1,19 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   This module implements classes to track
-#   changes in glidein status logs
-#
-# Author:
-#   Igor Sfiligoi (Feb 2nd 2007)
-#
+"""This module implements classes to track
+   changes in glidein status logs
+"""
 
 
 import copy
@@ -101,7 +91,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
             if file_ok:
                 # try:
                 #    fdata=extractLogData(job_fullname)
-                # except:
+                # except Exception:
                 #    fdata=None # just protect
                 new_completed.append(el)
             else:
@@ -218,7 +208,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
 
                 try:
                     fdata = extractLogData(job_fullname)
-                except:
+                except Exception:
                     fdata = copy.deepcopy(EMPTY_LOG_DATA)  # just protect
 
                 entered[i] = sel_e[:-1] + (fdata, sel_e[-1])
@@ -289,7 +279,7 @@ class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
     def get_simple(self):
         try:
             obj = dirSummarySimple(self)
-        except:
+        except Exception:
             logSupport.log.exception("dirSummarySimple failed")
             raise
 
@@ -375,10 +365,9 @@ def extractLogData(fname):
             if validate_re is not None:
                 try:
                     validation_duration = int(validate_re.group("secs"))
-                except:
+                except (ValueError, TypeError):
                     validation_duration = None
-                # KEL unused variable - do we need to use this?
-                bux_idx = validate_re.end() + 1
+                # bux_idx = validate_re.end() + 1
 
             start_re = ELD_RC_CONDOR_START.search(buf, buf_idx)
             if start_re is not None:
@@ -388,7 +377,7 @@ def extractLogData(fname):
                 if end_re is not None:
                     try:
                         condor_duration = int(end_re.group("secs"))
-                    except:
+                    except (ValueError, TypeError):
                         condor_duration = None
                     buf_idx = end_re.end() + 1
                     slot_re = ELD_RC_CONDOR_SLOT.search(buf, buf_idx)
@@ -409,7 +398,7 @@ def extractLogData(fname):
                                 try:
                                     jobsnr = int(count_re.group("jobsnr"))
                                     secs = int(count_re.group("secs"))
-                                except:
+                                except (ValueError, TypeError):
                                     jobsnr = None
 
                                 if jobsnr is not None:  # check I had no errors in integer conversion
@@ -426,9 +415,9 @@ def extractLogData(fname):
             if activations_re is not None:
                 try:
                     num_activations = int(activations_re.group("nr"))
-                except:
+                except (ValueError, TypeError):
                     num_activations = None
-                bux_idx = activations_re.end() + 1
+                # bux_idx = activations_re.end() + 1
             else:
                 num_activations = None
 
@@ -436,10 +425,9 @@ def extractLogData(fname):
             if glidein_end_re is not None:
                 try:
                     glidein_duration = int(glidein_end_re.group("secs"))
-                except:
+                except (ValueError, TypeError):
                     glidein_duration = None
-                # KEL - unused variable - do we need to use this?
-                bux_idx = glidein_end_re.end() + 1
+                # bux_idx = glidein_end_re.end() + 1
             else:
                 glidein_duration = None
 

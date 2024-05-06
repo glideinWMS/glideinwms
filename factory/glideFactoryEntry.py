@@ -3,10 +3,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   Entry class
-#   Model and behavior of a Factory Entry (element describing a resource)
-
+"""Entry class
+   Model and behavior of a Factory Entry (element describing a resource)
+"""
 
 import copy
 import os
@@ -97,7 +96,7 @@ class Entry:
 
         try:
             self.gfiFactoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro("checksum.factory").version()
-        except:
+        except Exception:
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             self.log.warning(
                 "Exception occured while trying to retrieve the glideinwms version. See debug log for more details."
@@ -478,13 +477,13 @@ class Entry:
                 #        tokens = fe_sec.split(';')
                 #        k = '%s_%s' % (limit, tokens[0].replace(':', '__'))
                 #        configured_limits[k] = int(tokens[1])
-                #    except:
+                #    except Exception:
                 #        logSupport.log.warning('Error extracting %s for %s from %s' % (limit, fe_sec, self.jobDescript.data[limit]))
             else:
                 try:
                     # Default and per entry limits are numeric
                     configured_limits[limit] = int(self.jobDescript.data[limit])
-                except:
+                except (KeyError, ValueError):
                     logSupport.log.warning(f"{limit} (value={self.jobDescript.data[limit]}) is not an int")
 
         return configured_limits
@@ -509,7 +508,7 @@ class Entry:
 
         self.loadContext()
 
-        classads = {}
+        # classads = {}
         trust_domain = self.jobDescript.data["TrustDomain"]
         auth_method = self.jobDescript.data["AuthMethod"]
         pub_key_obj = self.glideinDescript.data["PubKeyObj"]
@@ -588,7 +587,7 @@ class Entry:
         )
         try:
             gf_classad.writeToFile(gf_filename, append=append)
-        except:
+        except Exception:
             self.log.warning("Error writing classad to file %s" % gf_filename)
             self.log.exception("Error writing classad to file %s: " % gf_filename)
 
@@ -624,7 +623,7 @@ class Entry:
 
             try:
                 fparams = current_qc_data[client_name]["Requested"]["Parameters"]
-            except:
+            except KeyError:
                 fparams = {}
             params = self.jobParams.data.copy()
             for p in list(fparams.keys()):
@@ -643,7 +642,7 @@ class Entry:
 
         try:
             advertizer.writeToMultiClassadFile(gfc_filename)
-        except:
+        except Exception:
             self.log.warning("Writing monitoring classad to file %s failed" % gfc_filename)
 
         return
@@ -969,7 +968,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
     # Query glidein queue
     try:
         condorQ = entry.queryQueuedGlideins()
-    except:
+    except Exception:
         # Protect and exit
         entry.log.debug("Failed condor_q for entry %s, skipping stats update and work" % entry.name)
         return 0
@@ -1006,7 +1005,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         try:
             client_int_name = work[work_key]["internals"]["ClientName"]
             client_int_req = work[work_key]["internals"]["ReqName"]
-        except:
+        except KeyError:
             entry.log.warning("Request %s did not provide the client and/or request name. Skipping request" % work_key)
             continue
 
@@ -1116,7 +1115,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         except glideFactoryLib.condorExe.ExeError:
             # Never fail for monitoring. Just log
             entry.log.exception("get_RRD_data failed with HTCondor error: ")
-        except:
+        except Exception:
             # Never fail for monitoring. Just log
             entry.log.exception("get_RRD_data failed with unknown error: ")
 
@@ -1632,7 +1631,7 @@ def unit_work_v3(
             client_group_descript,
             client_group_sign,
         )
-    except:
+    except Exception:
         # malformed classad, skip
         entry.log.warning("Malformed classad for client %s, missing web parameters, skipping request." % client_name)
         return return_dict
@@ -1860,7 +1859,7 @@ def update_entries_stats(factory_in_downtime, entry_list):
         # Query glidein queue
         try:
             condorQ = entry.queryQueuedGlideins()
-        except:
+        except Exception:
             # Protect and exit
             logSupport.log.warning("Failed condor_q for entry %s, skipping stats update" % entry.name)
             continue

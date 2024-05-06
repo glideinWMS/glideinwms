@@ -3,18 +3,18 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This is the glideinFactoryEntryGroup. Common Tasks like querying collector
-#   and advertizing the work done by group are done here
-#
-# Arguments:
-#   $1 = parent_pid (int): The pid for the Factory daemon
-#   $2 = sleep_time (int): The number of seconds to sleep between iterations
-#   $3 = advertize_rate (int): The rate at which advertising should occur (every $3 loops)
-#   $4 = startup_dir (str|Path): The "home" directory for the entry.
-#   $5 = entry_names (str): Colon separated list with the names of the entries this process should work on
-#   $6 = group_id (str): Group id, normally a number (with the "group_" prefix it forms the group name),
-#             It can change between Factory reconfigurations
+"""This is the glideinFactoryEntryGroup. Common Tasks like querying collector
+   and advertizing the work done by group are done here
+
+Arguments:
+   $1 = parent_pid (int): The pid for the Factory daemon
+   $2 = sleep_time (int): The number of seconds to sleep between iterations
+   $3 = advertize_rate (int): The rate at which advertising should occur (every $3 loops)
+   $4 = startup_dir (str|Path): The "home" directory for the entry.
+   $5 = entry_names (str): Colon separated list with the names of the entries this process should work on
+   $6 = group_id (str): Group id, normally a number (with the "group_" prefix it forms the group name),
+             It can change between Factory reconfigurations
+"""
 
 import os
 import os.path
@@ -75,7 +75,7 @@ def check_parent(parent_pid, glideinDescript, my_entries):
         # Deadvertise glidefactory classad
         try:
             gfi.deadvertizeGlidein(glideinDescript.data["FactoryName"], glideinDescript.data["GlideinName"], entry.name)
-        except:
+        except Exception:
             logSupport.log.warning("Failed to deadvertize entry '%s'" % entry.name)
 
         # Deadvertise glidefactoryclient classad
@@ -83,7 +83,7 @@ def check_parent(parent_pid, glideinDescript, my_entries):
             gfi.deadvertizeAllGlideinClientMonitoring(
                 glideinDescript.data["FactoryName"], glideinDescript.data["GlideinName"], entry.name
             )
-        except:
+        except Exception:
             logSupport.log.warning("Failed to deadvertize monitoring for entry '%s'" % entry.name)
 
     raise KeyboardInterrupt("Parent died. Quiting.")
@@ -161,7 +161,7 @@ def find_work(factory_in_downtime, glideinDescript, frontendDescript, group_name
 
 
 def log_work_info(work, key=""):
-    keylogstr = ""
+    # keylogstr = ""
     if key.strip() != "":
         logSupport.log.info("Work tasks grouped by entries using %s factory key" % (key))
     else:
@@ -401,7 +401,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript, frontendDesc
         groupwork_done = find_and_perform_work(
             do_advertize, factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries
         )
-    except:
+    except Exception:
         logSupport.log.warning("Error occurred while trying to find and do work.")
         logSupport.log.exception("Exception: ")
 
@@ -504,7 +504,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDes
         # Why do we want to execute this if we are in downtime?
         # Or do we want to execute only few steps here but code prevents us?
         try:
-            done_something = iterate_one(
+            done_something = iterate_one(  # noqa: F841
                 count == 0, factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries
             )
 
@@ -544,13 +544,13 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDes
                             try:
                                 entry.writeStats()
                                 return_dict[entry.name] = entry.getState()
-                            except:
+                            except Exception:
                                 entry.log.warning(f"Error writing stats for entry '{entry.name}'")
                                 entry.log.exception(f"Error writing stats for entry '{entry.name}': ")
 
                         try:
                             os.write(w, pickle.dumps(return_dict))
-                        except:
+                        except Exception:
                             # Catch and log exceptions if any to avoid
                             # runaway processes.
                             logSupport.log.exception(f"Error writing pickled state for entries '{entrylists[cpu]}': ")
@@ -562,7 +562,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDes
                 try:
                     logSupport.log.info("Processing response from children after write stats")
                     post_writestats_info = fetch_fork_result_list(pipe_ids)
-                except:
+                except Exception:
                     logSupport.log.exception("Error processing response from one or more children after write stats")
 
                 logSupport.roll_all_logs()
@@ -572,12 +572,12 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDes
                         (my_entries[ent]).setState(post_writestats_info[i][ent])
             except KeyboardInterrupt:
                 raise  # this is an exit signal, pass through
-            except:
+            except Exception:
                 # never fail for stats reasons!
                 logSupport.log.exception("Error writing stats: ")
         except KeyboardInterrupt:
             raise  # this is an exit signal, pass through
-        except:
+        except Exception:
             if is_first:
                 raise
             else:
@@ -673,7 +673,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_names, group
                 )
             except KeyboardInterrupt:
                 logSupport.log.info("Received signal...exit")
-            except:
+            except Exception:
                 logSupport.log.exception("Exception occurred in iterate: ")
                 raise
         finally:

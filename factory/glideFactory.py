@@ -3,11 +3,11 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This is the main of the glideinFactory
-#
-# Arguments:
-#   $1 = glidein submit_dir
+"""This is the main of the glideinFactory
+
+Arguments:
+   $1 = glidein submit_dir
+"""
 
 import copy
 import fcntl
@@ -59,17 +59,17 @@ def aggregate_stats(in_downtime):
     stats = {}
     try:
         _ = glideFactoryMonitorAggregator.aggregateStatus(in_downtime)
-    except:
+    except Exception:
         # protect and report
         logSupport.log.exception("aggregateStatus failed: ")
     try:
         stats["LogSummary"] = glideFactoryMonitorAggregator.aggregateLogSummary()
-    except:
+    except Exception:
         # protect and report
         logSupport.log.exception("aggregateLogStatus failed: ")
     try:
         glideFactoryMonitorAggregator.aggregateRRDStats(log=logSupport.log)
-    except:
+    except Exception:
         # protect and report
         logSupport.log.exception("aggregateRRDStats failed: ")
     return stats
@@ -506,7 +506,7 @@ def spawn(
             try:
                 new_lim = [soft_l, hard_l]
                 resource.setrlimit(resource.RLIMIT_NOFILE, new_lim)
-            except:
+            except Exception:
                 resource.setrlimit(resource.RLIMIT_NOFILE, lim)
 
     try:
@@ -617,7 +617,7 @@ def spawn(
                     logSupport.log.info(
                         "Removed the old public key after its grace time of %s seconds" % oldkey_gracetime
                     )
-                except:
+                except Exception:
                     # Do not crash if delete fails. Just log it.
                     logSupport.log.warning("Failed to remove the old public key after its grace time")
 
@@ -631,7 +631,7 @@ def spawn(
                 try:
                     in_use_creds = glideFactoryLib.getCondorQCredentialList()
                     cleanupSupport.cred_cleaners.cleanup(in_use_creds)
-                except:
+                except Exception:
                     logSupport.log.exception("Unable to cleanup old credentials")
 
                 update_time = curr_time + remove_old_cred_freq
@@ -653,7 +653,7 @@ def spawn(
                 classad = classads[classad_key]
                 try:
                     glideFactoryCredentials.process_global(classad, glideinDescript, frontendDescript)
-                except:
+                except Exception:
                     logSupport.log.exception("Error occurred processing the globals classads: ")
 
             logSupport.log.info("Checking EntryGroups %s" % list(childs.keys()))
@@ -763,7 +763,7 @@ def spawn(
         try:
             try:
                 clean_exit(childs)
-            except:
+            except Exception:
                 # if anything goes wrong, hardkill the rest
                 for group in childs:
                     logSupport.log.info("Hard killing EntryGroup %s" % group)
@@ -777,13 +777,13 @@ def spawn(
                 glideFactoryInterface.deadvertizeFactory(
                     glideinDescript.data["FactoryName"], glideinDescript.data["GlideinName"]
                 )
-            except:
+            except Exception:
                 logSupport.log.exception("Factory deadvertize failed!")
             try:
                 glideFactoryInterface.deadvertizeFactoryClientMonitoring(
                     glideinDescript.data["FactoryName"], glideinDescript.data["GlideinName"]
                 )
-            except:
+            except Exception:
                 logSupport.log.exception("Factory Monitoring deadvertize failed!")
         logSupport.log.info("All EntryGroups should be terminated")
 
@@ -852,7 +852,7 @@ def main(startup_dir):
 
     try:
         os.chdir(startup_dir)
-    except:
+    except Exception:
         logSupport.log.exception("Failed starting Factory. Unable to change to startup_dir: ")
         raise
 
@@ -885,7 +885,7 @@ def main(startup_dir):
         if ioe.filename == "rsa.key" and ioe.errno == 2:
             logSupport.log.error("Missing rsa.key file. Please, reconfigure the factory to recreate it")
         raise
-    except:
+    except Exception:
         logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
         raise
 
@@ -908,7 +908,7 @@ def main(startup_dir):
         glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(
             "checksum.factory"
         ).version()
-    except:
+    except Exception:
         logSupport.log.exception(
             "Non critical Factory error. Exception occurred while trying to retrieve the glideinwms version: "
         )

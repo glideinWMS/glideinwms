@@ -1,20 +1,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   This module implements the functions needed to keep the
-#   required number of idle glideins
-#   It also has support for glidein sanitizing
-#
-# Author:
-#   Igor Sfiligoi (Sept 7th 2006)
-#
+"""This module implements the functions needed to keep the
+   required number of idle glideins
+   It also has support for glidein sanitizing
+"""
 
 import base64
 import glob
@@ -22,7 +12,8 @@ import os
 import pwd
 import re
 import string
-import tempfile
+
+# in codice commentato: import tempfile
 import time
 
 from itertools import groupby
@@ -30,7 +21,13 @@ from itertools import groupby
 import glideinwms.factory.glideFactorySelectionAlgorithms
 
 from glideinwms.factory import glideFactoryConfig
-from glideinwms.lib import condorExe, condorManager, condorMonitor, logSupport, timeConversion, x509Support
+from glideinwms.lib import (  # in codice commentato:, x509Support
+    condorExe,
+    condorManager,
+    condorMonitor,
+    logSupport,
+    timeConversion,
+)
 from glideinwms.lib.defaults import BINARY_ENCODING
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
@@ -235,7 +232,7 @@ def getCondorQCredentialList(factoryConfig=None):
         q_cred_list = condorMonitor.condorq_attrs(
             q_glidein_constraint, ["x509userproxy", "EC2AccessKeyId", "EC2SecretAccessKey"]
         )
-    except:
+    except Exception:
         msg = "Unable to query condor for credential list.  The queue may just be empty (Condor bug)."
         logSupport.log.warning(msg)
         logSupport.log.exception(msg)
@@ -466,37 +463,37 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data, factoryC
     if factoryConfig is None:
         factoryConfig = globals()["factoryConfig"]
 
-    # TODO: This whole section seems to do nothing and should be removed (MM):
-    #  gets the DN, gets the voms exception and does nothing w/ those variables.
-    #  It is also silently protected for any failure, so not even the verification is important
-    #  Since dn and voms are extracted, should they be used in a log message or the file name?
-    dn = ""
-    voms = ""
-    tempfilename = ""
-    try:
-        (f, tempfilename) = tempfile.mkstemp()
-        os.write(f, proxy_data)
-        os.close(f)
-    except:
-        logSupport.log.error(f"Unable to create tempfile '{tempfilename}'!")
-
-    try:
-        dn = x509Support.extract_DN(tempfilename)  # not really used
-
-        voms_proxy_info = which("voms-proxy-info")
-        if voms_proxy_info is not None:
-            voms_list = condorExe.iexe_cmd(f"{voms_proxy_info} -fqan -file {tempfilename}")
-            # sort output in case order of voms fqan changed
-            voms = "\n".join(sorted(voms_list))
-    except:
-        # If voms-proxy-info doesn't exist or errors out, just hash on dn
-        voms = ""
-
-    try:
-        os.unlink(tempfilename)
-    except:
-        logSupport.log.error("Unable to delete tempfile %s!" % tempfilename)
-    # TODO: end of the section to remove
+    # # TODO: This whole section seems to do nothing and should be removed (MM):
+    # #  gets the DN, gets the voms exception and does nothing w/ those variables.
+    # #  It is also silently protected for any failure, so not even the verification is important
+    # #  Since dn and voms are extracted, should they be used in a log message or the file name?
+    # dn = ""
+    # voms = ""
+    # tempfilename = ""
+    # try:
+    #     (f, tempfilename) = tempfile.mkstemp()
+    #     os.write(f, proxy_data)
+    #     os.close(f)
+    # except:
+    #     logSupport.log.error(f"Unable to create tempfile '{tempfilename}'!")
+    #
+    # try:
+    #     dn = x509Support.extract_DN(tempfilename)  # not really used
+    #
+    #     voms_proxy_info = which("voms-proxy-info")
+    #     if voms_proxy_info is not None:
+    #         voms_list = condorExe.iexe_cmd(f"{voms_proxy_info} -fqan -file {tempfilename}")
+    #         # sort output in case order of voms fqan changed
+    #         voms = "\n".join(sorted(voms_list))
+    # except:
+    #     # If voms-proxy-info doesn't exist or errors out, just hash on dn
+    #     voms = ""
+    #
+    # try:
+    #     os.unlink(tempfilename)
+    # except:
+    #     logSupport.log.error("Unable to delete tempfile %s!" % tempfilename)
+    # # TODO: end of the section to remove
 
     # proxy_dir = factoryConfig.get_client_proxies_dir(username)
     # Have to hack this since the above code was modified to support v3plus going forward
@@ -534,7 +531,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data, factoryC
     # remove any previous backup file
     try:
         os.remove(fname + ".old")
-    except:
+    except Exception:
         pass  # just protect
 
     # create new file
@@ -683,10 +680,11 @@ def keepIdleGlideins(
     # Count by status and group by submit file glideins for this request credential
     qc_status_sf = getQStatusSF(condorq)
 
-    # Held==JobStatus(5)
-    q_held_glideins = 0
-    if 5 in qc_status:
-        q_held_glideins = qc_status[5]
+    # Held Glidein seem not to be used later
+    # # Held==JobStatus(5)
+    # q_held_glideins = 0
+    # if 5 in qc_status:
+    #     q_held_glideins = qc_status[5]
     # Idle==Jobstatus(1)
     sum_idle_count(qc_status)
     q_idle_glideins = qc_status[1]
@@ -803,7 +801,7 @@ def keepIdleGlideins(
     except RuntimeError as e:
         log.warning("%s" % e)
         return 0  # something is wrong... assume 0 and exit
-    except:
+    except Exception:
         log.warning("Unexpected error submiting glideins")
         log.exception("Unexpected error submiting glideins")
         return 0  # something is wrong... assume 0 and exit
@@ -1740,7 +1738,7 @@ def removeGlideins(schedd_name, jid_list, force=False, log=logSupport.log, facto
             removed_jids.append(jid)
 
             # Force the removal if requested
-            if force == True:
+            if force is True:
                 try:
                     log.info("Forcing the removal of glideins in X state")
                     condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name, do_forcex=True)
@@ -1982,7 +1980,7 @@ def get_submit_environment(
 
                 try:
                     vm_max_lifetime = str(params["VM_MAX_LIFETIME"])
-                except:
+                except Exception:
                     # if no lifetime is specified, then default to 12 hours
                     # we can change this to a more "sane" default if we can
                     # agree to what is "sane"
@@ -2280,7 +2278,7 @@ class GlideinTotals:
                     el_list = el.split(";")
                     try:
                         self.frontend_limits[el_list[0]][max_glideinstatus_key] = int(el_list[1])
-                    except:
+                    except Exception:
                         log.warning(
                             "Invalid FrontendName:SecurityClassName combo '%s' encountered while finding '%s' from max_job_frontend"
                             % (el_list[0], max_glideinstatus_key)
