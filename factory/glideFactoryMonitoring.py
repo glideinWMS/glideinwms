@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-This module implements the functions needed to monitor the glidein factory
+"""This module implements the functions needed to monitor the glidein factory
 """
 
 import copy
@@ -104,7 +103,8 @@ class MonitoringConfig:
                             ('username="%s"' % username),
                             ('id="%s"' % job_id),
                             ('duration="%i"' % el["duration"]),
-                            ('condor_started="%s"' % (el["condor_started"] == True)),
+                            # Keep comparison, may be None
+                            ('condor_started="%s"' % (el["condor_started"] == True)),  # noqa: E712
                             ('condor_duration="%i"' % el["condor_duration"]),
                         )
                     )
@@ -138,7 +138,7 @@ class MonitoringConfig:
         """
         # TODO: Fix str/bytes confusion in the pathname
         fname = os.path.join(self.monitor_dir, relative_fname)
-        if type(fname) is bytes:
+        if isinstance(fname, bytes):
             fname = fname.decode("utf-8")
 
         # print "Writing "+fname
@@ -1495,7 +1495,7 @@ class FactoryStatusData:
         baseRRDSupport = rrdSupport.rrdSupport()
         try:
             fetched = baseRRDSupport.fetch_rrd(pathway + rrd_file, "AVERAGE", resolution=res, start=start, end=end)
-        except:
+        except Exception:
             # probably not created yet
             self.log.debug("Failed to load %s" % (pathway + rrd_file))
             return {}
@@ -1609,7 +1609,7 @@ class FactoryStatusData:
         # create a string containing the total data
         total_xml_str = self.tab + "<total>\n"
         # this is invoked to trigger the side effect but the data is retrieved directly from self.data dict below
-        get_data_total = self.getData(self.total)
+        get_data_total = self.getData(self.total)  # noqa: F841  # keep, side effect needed
         try:
             total_data = self.data[rrd][self.total]
             total_xml_str += (

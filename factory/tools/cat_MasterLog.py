@@ -3,17 +3,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   Print out the MasterLog for a glidein output file
-#
-# Usage: cat_MasterLog.py logname
-#
+""" Print out the MasterLog for a glidein output file
+
+ Usage: cat_MasterLog.py logname
+"""
 
 
 import os.path
@@ -37,7 +30,7 @@ def main():
 
     try:
         print(gWftLogParser.get_CondorLog(fname, condor_log_id))
-    except:
+    except Exception:
         sys.stderr.write("%s\n" % USAGE)
         sys.exit(1)
 

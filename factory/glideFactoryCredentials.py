@@ -169,7 +169,7 @@ def process_global(classad, glidein_descript, frontend_descript):
             cred_data = sym_key_obj.decrypt_hex(classad["GlideinEncParam%s" % cred_id])
             security_class = sym_key_obj.decrypt_hex(classad[key]).decode("utf-8")
             username = frontend_descript.get_username(frontend_sec_name, security_class)
-            if username == None:
+            if username is None:
                 logSupport.log.error(
                     (
                         "Cannot find a mapping for credential %s of client %s. Skipping it. The security"
@@ -238,7 +238,7 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
     # verify that the identity that the client claims to be is the identity that Condor thinks it is
     try:
         enc_identity = sym_key_obj.decrypt_hex(classad["ReqEncIdentity"]).decode("utf-8")
-    except:
+    except Exception:
         error_str = "Cannot decrypt ReqEncIdentity."
         logSupport.log.exception(error_str)
         raise CredentialError(error_str)
@@ -251,7 +251,7 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
         raise CredentialError(error_str)
     try:
         frontend_sec_name = sym_key_obj.decrypt_hex(classad["GlideinEncParamSecurityName"]).decode("utf-8")
-    except:
+    except Exception:
         error_str = "Cannot decrypt GlideinEncParamSecurityName."
         logSupport.log.exception(error_str)
         raise CredentialError(error_str)

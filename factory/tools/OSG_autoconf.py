@@ -104,7 +104,7 @@ def get_bestfit_pilot(celem, resource):
             else:
                 walltime = min(walltime, osg_catalog["MaxWallTime"])
         if "CPUs" in osg_catalog:
-            if cpus == None:
+            if cpus is None:
                 cpus = osg_catalog["CPUs"]
             else:
                 cpus = math.gcd(cpus, osg_catalog["CPUs"])
@@ -158,14 +158,14 @@ def get_entry_dictionary(resource, vos, cpus, walltime, memory):
     if len(vos) > 0:
         edict["attrs"]["GLIDEIN_Supported_VOs"] = {"value": ",".join(sorted(vos))}
     edict["submit_attrs"] = {}
-    if cpus != None:
+    if cpus is not None:
         edict["attrs"]["GLIDEIN_CPUS"] = {"value": cpus}
         edict["submit_attrs"]["+xcount"] = cpus
-    if walltime != None:
+    if walltime is not None:
         glide_walltime = walltime * 60 - 1800
         edict["attrs"]["GLIDEIN_Max_Walltime"] = {"value": glide_walltime}
         edict["submit_attrs"]["+maxWallTime"] = walltime
-    if memory != None:
+    if memory is not None:
         edict["attrs"]["GLIDEIN_MaxMemMBs"] = {"value": memory}
         edict["submit_attrs"]["+maxMemory"] = memory
     return edict
@@ -211,7 +211,8 @@ def get_information_internal(ces):
     for celem in ces:
         if "OSG_ResourceGroup" in celem:
             resource = celem["OSG_ResourceGroup"] or celem["OSG_Resource"]
-            site = celem["OSG_Resource"]  # not used for now, but factory ops will add a new attribute 1in the future
+            # not used for now, but factory ops will add a new attribute in the future
+            site = celem["OSG_Resource"]   # noqa: F841
             gatekeeper = celem["Name"].lower()
             if resource:
                 result.setdefault(resource, {})[gatekeeper] = {}
@@ -270,7 +271,7 @@ def get_entries_configuration(data):
                         entry_configuration["submit_attrs"] = ""
                     num_factories = entry_configuration.get("num_factories")
                     entry_configuration["num_factories"] = (
-                        "" if num_factories == None else f'num_factories="{num_factories}"'
+                        "" if num_factories is None else f'num_factories="{num_factories}"'
                     )
                     entry_configuration["limits"] = get_limits_str(entry_configuration["limits"])
                     entry_configuration["submission_speed"] = get_submission_speed(
@@ -650,7 +651,7 @@ def main(args):
         # Convert the resoruce dictionary obtained this way into a string (xml)
         entries_configuration = get_entries_configuration(result)
         # Write the factory configuration file on the disk
-        xmloutdir = os.path.dirname(white_list) if xmloutdir == None else xmloutdir
+        xmloutdir = os.path.dirname(white_list) if xmloutdir is None else xmloutdir
         filename = os.path.basename(white_list.replace("yml", "xml"))
         write_to_xml_file(os.path.join(xmloutdir, filename), entries_configuration)
 

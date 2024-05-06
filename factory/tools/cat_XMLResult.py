@@ -3,19 +3,12 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   Print out the XML Result for a glidein output file
-#
-# Usage: cat_XMLResult.py [-raw] [-forcemulti] logname+
-#        If -raw is present, do not wrap multiple XMLs into a ResultSet
-#        If -forcemulti is present, make it a ResultSet even if only one file present
-#
+"""Print out the XML Result for a glidein output file
+
+Usage: cat_XMLResult.py [-raw] [-forcemulti] logname+
+        If -raw is present, do not wrap multiple XMLs into a ResultSet
+        If -forcemulti is present, make it a ResultSet even if only one file present
+"""
 
 
 import os.path
@@ -64,13 +57,13 @@ def main(args):
             sys.stderr.write("%s\n" % USAGE)
             sys.exit(1)
 
-        for l in out.split("\n"):
+        for l in out.split("\n"):  # noqa: E741
             if raw_out and (l[:2] == "<?"):
                 # skip comments for raw output
                 continue
             if l[:15] == "<OSGTestResult ":
                 # insert file name
-                l = l[:15] + ('logname="%s" ' % fname) + l[15:]
+                l = l[:15] + ('logname="%s" ' % fname) + l[15:]  # noqa: E741
             print(l)
     else:
         # multiple files, combine in a set
@@ -85,14 +78,14 @@ def main(args):
                     continue
 
                 x = []
-                for l in rawx.split("\n"):
-                    if l[:2] == "<?":
+                for line in rawx.split("\n"):
+                    if line[:2] == "<?":
                         # skip comments
                         continue
-                    if l[:15] == "<OSGTestResult ":
+                    if line[:15] == "<OSGTestResult ":
                         # insert file name
-                        l = l[:15] + ('logname="%s" ' % fname) + l[15:]
-                    x.append("  " + l)
+                        line = line[:15] + ('logname="%s" ' % fname) + line[15:]
+                    x.append("  " + line)
                 if x[-1] == "  ":
                     x = x[:-1]
                 xmls.append("\n".join(x))
@@ -111,8 +104,8 @@ def main(args):
             sys.stdout.write('<?xml version="1.0"?>\n')
             sys.stdout.write("<OSGTestResultSet>\n")
 
-        for l in xmls:
-            sys.stdout.write(l + "\n")
+        for line in xmls:
+            sys.stdout.write(line + "\n")
 
         if not raw_out:
             sys.stdout.write("</OSGTestResultSet>\n")

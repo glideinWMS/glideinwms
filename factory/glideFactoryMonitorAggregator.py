@@ -1,11 +1,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This module implements the functions needed
-#   to aggregate the monitoring fo the glidein factory
+"""This module implements the functions needed
+   to aggregate the monitoring fo the glidein factory
+"""
 
-import copy
 import json
 import os.path
 import pickle
@@ -276,7 +275,7 @@ def aggregateStatus(in_downtime):
                                 tela[a] = tela[a] and ela_val
                             except KeyError:
                                 tela[a] = ela_val
-                            except:
+                            except Exception:
                                 pass  # just protect
                         else:
                             # All other fields could be numbers or something else
@@ -287,7 +286,7 @@ def aggregateStatus(in_downtime):
                                 else:
                                     if fe_first:  # to avoid adding back attributes that were not in other frontends
                                         tela[a] = int(ela[a])
-                            except:
+                            except Exception:
                                 pass  # not an int, not Downtime, so do nothing
                     # if any attribute from prev. frontends is not in the current one, remove from total
                     if not fe_first and w != "Downtime":
@@ -535,9 +534,6 @@ def aggregateLogSummary():
         "CondorLasted": 0,
     }
 
-    fe_total = copy.deepcopy(global_total)  # same as above but for frontend totals
-
-    #
     status = {"entries": {}, "total": global_total}
     status_fe = {"frontends": {}}  # analogous to above but for frontend totals
 
@@ -821,7 +817,7 @@ def aggregateRRDStats(log=logSupport.log):
     """
 
     global monitorAggregatorConfig
-    factoryStatusData = glideFactoryMonitoring.FactoryStatusData()
+    # not-used, no side effect: factoryStatusData = glideFactoryMonitoring.FactoryStatusData()
     rrdstats_relname = glideFactoryMonitoring.RRD_LIST
     tab = xmlFormat.DEFAULT_TAB
 

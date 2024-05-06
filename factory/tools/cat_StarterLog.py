@@ -3,17 +3,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   Print out the StarterLog for a glidein output file
-#
-# Usage: cat_StarterLog.py logname
-#
+"""Print out the StarterLog for a glidein output file
+
+ Usage: cat_StarterLog.py logname
+"""
 
 
 import os.path
@@ -49,7 +42,7 @@ def main():
             logs = ", ".join(matches)
             print("StarterLogs available for slots: %s" % logs.replace("StarterLog.", ""))
         print(gWftLogParser.get_CondorLog(fname, condor_log_id))
-    except:
+    except Exception:
         sys.stderr.write("%s\n" % USAGE)
         sys.exit(1)
 

@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-########################
-# Library for analyze_entries,
-#   analyze_queues and analyze_frontends.
-########################
+"""Library for analyze_entries,
+   analyze_queues and analyze_frontends.
+"""
 
 
 # Convert particularly large numbers
@@ -61,6 +60,6 @@ def printline(x, div, period):
     else:
         try:
             sp = " - %2d%%" % ((float(x) / float(div)) * 100)
-        except:
+        except Exception:
             sp = " - NA%"
     return "%6s (%6s hours - %5s slots%s)" % (km(x), km(float(x) / 3600.0), km(float(x) / float(period)), sp)
