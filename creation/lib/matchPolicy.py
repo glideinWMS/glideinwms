@@ -1,18 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   This module contains the Match Policy related class
-#
-# Author:
-#   Parag Mhashilkar
-#
+"""This module contains the Match Policy related class
+"""
 
 import os
 import os.path
@@ -82,7 +72,7 @@ class MatchPolicy:
             self.searchPath = search_path
             try:
                 self.pyObject = import_module(self.name, self.searchPath)
-            except:
+            except Exception:
                 raise MatchPolicyLoadError(file=file, search_path=self.searchPath)
         else:
             raise MatchPolicyLoadError()

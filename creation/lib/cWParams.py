@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This module contains the generic params classes
+"""This module contains the generic params classes
+"""
 
 import copy
 import os
@@ -362,7 +362,7 @@ class Params:
         tmp_name = "%s.tmp" % fname
         try:
             os.unlink(tmp_name)
-        except:
+        except Exception:
             pass  # just protect
         self.save_into_file(tmp_name)
 
@@ -370,13 +370,13 @@ class Params:
         backup_name = "%s~" % fname
         try:
             os.unlink(backup_name)
-        except:
+        except Exception:
             pass  # just protect
         try:
             os.rename(fname, backup_name)
             # make it user writable
             chmod(backup_name, (os.stat(backup_name)[0] & 0o666) | 0o200)
-        except:
+        except Exception:
             pass  # just protect
 
         # finally rename to the proper name

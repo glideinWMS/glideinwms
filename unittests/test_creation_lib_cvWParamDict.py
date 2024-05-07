@@ -3,13 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-Project:
-    glideinWMS
-Purpose:
-    unit test for glideinwms/creation/lib/cvWParamDict.py
-Author:
-    Dennis Box, dbox@fnal.gov
+"""Unit test for glideinwms/creation/lib/cvWParamDict.py
 """
 
 
@@ -38,7 +32,8 @@ from glideinwms.frontend import glideinFrontendLib
 from glideinwms.unittests.unittest_utils import TestImportError
 
 try:
-    from glideinwms.creation.lib.cvWParamDict import populate_group_descript
+    # In temporarlily commented code
+    from glideinwms.creation.lib.cvWParamDict import populate_group_descript  # noqa: F401
 except ImportError as err:
     raise TestImportError(str(err))
 

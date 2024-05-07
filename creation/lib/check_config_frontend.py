@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Script to check that /etc/gwms-frontend/frontend.xml is compatible w/ connected Factories
+"""Script to check that /etc/gwms-frontend/frontend.xml is compatible w/ connected Factories"""
 
 
 import sys
@@ -89,7 +89,7 @@ def main(config_file):
         tree = ET.parse(config_file)
     except OSError:
         return "Config file not readable: %s" % config_file
-    except:
+    except Exception:
         return "Error parsing config file: %s" % config_file
     root = tree.getroot()
     fc_list = []

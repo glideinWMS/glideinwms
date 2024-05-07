@@ -3,15 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-Project:
-   glideinWMS
-
- Description:
-   unit tests for glideinwms/lib/condorExe.py
-
- Author:
-   tiradani <tiradani>
+"""Unit tests for glideinwms/lib/condorExe.py
 """
 
 
@@ -63,7 +55,7 @@ class TestCondorExe(unittest.TestCase):
         try:
             for script in self.normal_exit_scripts:
                 cmd = os.path.join(condorExe.condor_bin_path, script)
-                output = iexe_cmd(cmd)
+                output = iexe_cmd(cmd)  # noqa: F841  # test execution
         except Exception as e:
             self.fail("Exception Occurred: %s" % str(e))
 
@@ -80,7 +72,7 @@ class TestCondorExe(unittest.TestCase):
         # Execution should proceed normally and exit with no exceptions.
         try:
             for script in self.normal_exit_scripts:
-                output = exe_cmd(script, self.dummy_args)
+                output = exe_cmd(script, self.dummy_args)  # noqa: F841  # test execution
         except Exception as e:
             self.fail("Exception Occurred: %s" % str(e))
 
@@ -96,7 +88,7 @@ class TestCondorExe(unittest.TestCase):
         # Execution should proceed normally and exit with no exceptions.
         try:
             for script in self.normal_exit_scripts:
-                output = exe_cmd_sbin(script, self.dummy_args)
+                output = exe_cmd_sbin(script, self.dummy_args)  # noqa: F841  # test execution
         except Exception as e:
             self.fail("Exception Occurred: %s" % str(e))
 

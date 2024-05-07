@@ -3,9 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
- Description:
-   unit test for glideinwms/lib/fork.py
+"""Unit test for glideinwms/lib/fork.py
 """
 
 import os
@@ -167,7 +165,7 @@ class TestForkManager(unittest.TestCase):
         self.assertEqual(expected, results)
 
     def test_fork_and_wait(self):
-        expected = self.load_forks()
+        expected = self.load_forks()  # noqa: F841  # Keep to evaluate function
         results = self.fork_manager.fork_and_wait()  # pylint: disable=assignment-from-no-return
         self.assertEqual(None, results)
         return

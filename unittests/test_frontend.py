@@ -3,15 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-Project:
-   glideinWMS
-
- Description:
-   unit test for glideinwms/creation/lib/cgWConsts.py
-
- Author:
-   Burt Holtzman <burt@fnal.gov>
+"""Unit test for glideinwms/creation/lib/cgWConsts.py
 """
 
 #   [for rrdtool: pip install git+https://github.com/holzman/python-rrdtool]
@@ -112,7 +104,7 @@ class FETestCaseBase(unittest.TestCase):
         }
 
     def prepare_condorq_dict(self):
-        with mock.patch("glideinwms.lib.condorMonitor.LocalScheddCache.iGetEnv") as m_iGetEnv:
+        with mock.patch("glideinwms.lib.condorMonitor.LocalScheddCache.iGetEnv") as m_iGetEnv:  # noqa: F841
             cq = condorMonitor.CondorQ(schedd_name="sched1", pool_name="pool1")
 
         with mock.patch("glideinwms.lib.condorExe.exe_cmd") as m_exe_cmd:
@@ -130,7 +122,7 @@ class FETestCaseCount(FETestCaseBase):
     def test_countMatch_missingKey(self):
         with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, "debug") as m_debug:
             match_obj = compile('glidein["attrs"]["FOO"] == 3', "<string>", "eval")
-            match_counts = glideinFrontendLib.countMatch(match_obj, self.condorq_dict, self.glidein_dict, {}, False)
+            match_counts = glideinFrontendLib.countMatch(match_obj, self.condorq_dict, self.glidein_dict, {}, False)  # noqa: F841
             m_debug.assert_called_with(
                 "Failed to evaluate resource match in countMatch. Possibly match_expr has "
                 "errors and trying to reference job or site attribute(s) ''FOO'' in an inappropriate way."
@@ -139,7 +131,7 @@ class FETestCaseCount(FETestCaseBase):
     def test_countMatch_otherException(self):
         with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, "debug") as m_debug:
             match_obj = compile("3//0", "<string>", "eval")
-            match_counts = glideinFrontendLib.countMatch(match_obj, self.condorq_dict, self.glidein_dict, {}, False)
+            match_counts = glideinFrontendLib.countMatch(match_obj, self.condorq_dict, self.glidein_dict, {}, False)  # noqa: F841
             log_msg = m_debug.call_args[0]
 
             self.assertTrue("Most recent traceback" in str(log_msg), log_msg)
@@ -246,7 +238,7 @@ class FETestCaseCount(FETestCaseBase):
 
         with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, "debug") as m_debug:
             match_obj = compile('glidein["attrs"]["FOO"] == 3', "<string>", "eval")
-            actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})
+            actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})  # noqa: F841
             m_debug.assert_any_call(
                 "Failed to evaluate resource match in countRealRunning. Possibly match_expr has "
                 "errors and trying to reference job or site attribute(s) ''FOO'' in an inappropriate way."
@@ -257,7 +249,7 @@ class FETestCaseCount(FETestCaseBase):
         glideinFrontendLib.appendRealRunning(cq_run_dict, self.status_dict)
         with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, "debug") as m_debug:
             match_obj = compile("3/0", "<string>", "eval")
-            actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})
+            actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})  # noqa: F841
             log_msg = m_debug.call_args[0]
 
             self.assertTrue("Running glidein ids at " in str(log_msg), log_msg)

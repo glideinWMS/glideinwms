@@ -1,9 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   Functions needed to create files used by the glidein entry points
-
+"""Functions needed to create files used by the glidein entry points
+"""
 
 import io
 import os
@@ -497,14 +496,14 @@ def get_link_chain(link):
     """
 
     rlist = set()
-    l = link
-    while os.path.islink(l):
-        if l in rlist:
+    link_p = link
+    while os.path.islink(link_p):
+        if link_p in rlist:
             # Cycle detected. Break
             break
-        rlist.add(l)
-        l = os.path.join(os.path.dirname(l), os.readlink(l))
-    rlist.add(l)
+        rlist.add(link_p)
+        link_p = os.path.join(os.path.dirname(link_p), os.readlink(link_p))
+    rlist.add(link_p)
     return list(rlist)
 
 

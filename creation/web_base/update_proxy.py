@@ -3,24 +3,19 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Description:
-#  This file is specialized in updating a proxy file
-#
-# All information is passed via the environment;
-#  so it has no arguments
-#
-# Env variables used:
-#  HEXDATA - b2a_hex(proxy_data)
-#  FNAME   - file name to update
-#
-# The python-related environment variables must also
-#  be properly set
-#  PATH, LD_LIBRARY_PATH, PYTHON_PATH
-#
-# Author:
-#  Igor Sfiligoi (Mar 18th, 2010) @UCSD
-#
+"""This file is specialized in updating a proxy file
+
+All information is passed via the environment;
+  so it has no arguments
+
+Env variables used:
+  HEXDATA - b2a_hex(proxy_data)
+  FNAME   - file name to update
+
+The python-related environment variables must also
+  be properly set
+  PATH, LD_LIBRARY_PATH, PYTHON_PATH
+"""
 
 import base64
 import binascii
@@ -47,7 +42,7 @@ def compress_credential(credential_data):
         f.write(credential_data)
         f.close()
         return base64.b64encode(cfile.getvalue())
-    except:
+    except Exception:
         tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
         msg = "Error compressing credential: \n%s" % tb
         raise CompressionError(msg)
@@ -72,7 +67,7 @@ def update_credential(fname, credential_data):
             # remove any previous backup file, if it exists
             try:
                 os.remove(fname + ".old")
-            except:
+            except Exception:
                 pass  # just protect
 
             # create new file
@@ -85,7 +80,7 @@ def update_credential(fname, credential_data):
             # copy the old file to a tmp and rename new one to the official name
             try:
                 shutil.copy2(fname, fname + ".old")
-            except:
+            except Exception:
                 pass  # just protect
 
             os.rename(fname + ".new", fname)

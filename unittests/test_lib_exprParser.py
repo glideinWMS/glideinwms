@@ -3,15 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-Project:
-   glideinWMS
-
- Description:
-   unit test for glideinwms/lib/exprParser.py
-
- Author:
-   Dennis Box dbox@fnal.gov
+"""Unit test for glideinwms/lib/exprParser.py
 """
 
 
@@ -69,10 +61,11 @@ class TestExprParserSymmetric(unittest.TestCase):
             self.assertTrue(isinstance(ep.exp_unparse(ep.exp_parse(itm)), str))
 
     def test__compile(self):
-        a = 3
-        b = 4
-        x = [a, b]
-        d = {a: b}
+        # Keep these variables, are used in the eval expressions
+        a = 3  # noqa: F841
+        b = 4  # noqa: F841
+        x = [a, b]  # noqa: F841
+        d = {a: b}  # noqa: F841
 
         # just test that nothing in TEST_LIST throws an exception when compiled
         for itm in TEST_LIST:

@@ -1,24 +1,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   This module implements helper functions
-#   used to perform pseudo-interactive monitoring
-#
-# Prerequisites:
-#   The startd must be configured with exactly 2 slots, called vm
-#   It must have cross-vm expressions State and RemoteUser enabled.
-#   It also must advertize that has the monitor vm.
-#
-# Author:
-#   Igor Sfiligoi (May 2007)
-#
+"""This module implements helper functions used to perform pseudo-interactive monitoring
+
+Prerequisites:
+   The startd must be configured with exactly 2 slots, called vm
+   It must have cross-vm expressions State and RemoteUser enabled.
+   It also must advertize that has the monitor vm.
+"""
 
 import os
 import os.path
@@ -72,7 +61,7 @@ def parseArgs(argv):
 def monitor(jid, schedd_name, pool_name, timeout, createMonitorFile, argv, stdout_fd=sys.stdout, stderr_fd=sys.stderr):
     try:
         jid_cluster, jid_proc = jid.split(".", 1)
-    except:
+    except Exception:
         raise RuntimeError("Invalid JID %s, expected Cluster.Proc" % jid)
 
     constraint = f"(ClusterId=?={jid_cluster}) && (ProcId=?={jid_proc})"
@@ -137,9 +126,9 @@ def getMonitorVM(pool_name, jobVM):
     job_data = data[jobVM]
     if ("HAS_MONITOR_VM" not in job_data) or ("IS_MONITOR_VM" not in job_data):
         raise RuntimeError("Slot %s does not support monitoring!" % jobVM)
-    if not (job_data["HAS_MONITOR_VM"] == True):
+    if not job_data["HAS_MONITOR_VM"]:
         raise RuntimeError("Slot %s does not support monitoring! HAS_MONITOR_VM not True." % jobVM)
-    if not (job_data["IS_MONITOR_VM"] == False):
+    if job_data["IS_MONITOR_VM"]:
         raise RuntimeError("Slot %s is a monitoring slot itself! Cannot monitor." % jobVM)
     if "Monitoring_Name" not in job_data:
         raise RuntimeError("Slot %s does not publish the monitoring slot!" % jobVM)
@@ -168,9 +157,9 @@ def getMonitorVMStatus(pool_name, monitorVM):
 
 
 def validateMonitorVMStatus(condor_status, monitorVM):
-    if ("HAS_MONITOR_VM" not in condor_status) or (condor_status["HAS_MONITOR_VM"] != True):
+    if ("HAS_MONITOR_VM" not in condor_status) or not condor_status["HAS_MONITOR_VM"]:
         raise RuntimeError("Monitor slot %s does not allow monitoring" % monitorVM)
-    if not (condor_status["IS_MONITOR_VM"] == True):
+    if not condor_status["IS_MONITOR_VM"]:
         raise RuntimeError("Slot %s is not a monitoring slot!" % monitorVM)
 
     # Since we will be queueing anyhow, do not check if it is ready right now

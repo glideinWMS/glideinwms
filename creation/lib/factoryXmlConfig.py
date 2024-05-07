@@ -160,7 +160,7 @@ class EntrySetElement(EntryElement):
             val = self.selected_entry[attrname]
         else:
             val = self.attrs.get(attrname)
-        if val == None and attrname in self.get_child_list("entries")[0]:
+        if val is None and attrname in self.get_child_list("entries")[0]:
             val = self.get_child_list("entries")[0][attrname]
         #            val = [ x[attrname] for x in self.get_child_list(u'entries') ]
         return val
