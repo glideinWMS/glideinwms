@@ -44,6 +44,16 @@ repos:
         additional_dependencies:
           - "prettier"
           - "prettier-plugin-toml@0.3.1"
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.4.3
+    hooks:
+      # Run the linter.
+      - id: ruff
+        #  No auto-fix
+        # args: [ --fix ]
+      # Don't Run the formatter.
+      # - id: ruff-format
   - repo: "https://github.com/asottile/pyupgrade"
     rev: e695ecd365119ab4e5463f6e49bea5f4b7ca786b
     # lock to v2.31.0 (must specify the git hash), v2.32.0 requires python >= 3.7

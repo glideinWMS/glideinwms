@@ -35,3 +35,14 @@ dedup_headings = "True"
 known_first_party = ["glideinwms"]
 lines_between_types = 1
 force_alphabetical_sort_within_sections = "True"
+
+[tool.ruff]
+line-length = 120
+# indent-width = 4
+target-version = "py37"
+# Gives an error w/ format
+extend-exclude = ["creation/lib/factory_defaults.xml"]
+
+[tool.ruff.format]
+#exclude = ["creation/lib/factory_defaults.xml"]
+
