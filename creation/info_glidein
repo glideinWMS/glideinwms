@@ -38,7 +38,7 @@ def main(params, flags):
                 enable_str = "disabled"
             else:
                 enable_str = "enabled"
-            if not ("all" in flags):
+            if "all" not in flags:
                 if enable_str != "enabled":
                     continue
             outstr = "%8s" % enable_str

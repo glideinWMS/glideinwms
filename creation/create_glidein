@@ -10,12 +10,11 @@
 
 import os
 import shutil
-import string
 import sys
 import tarfile
 import traceback
 
-from glideinwms.creation.lib import cgWConsts, cgWCreate, cgWParamDict, cWConsts, factoryXmlConfig
+from glideinwms.creation.lib import cgWConsts, cgWCreate, cgWParamDict, factoryXmlConfig
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../.."))
@@ -119,7 +118,7 @@ if __name__ == "__main__":
     xml = argv[1]
     conf = factoryXmlConfig.parse(xml)
 
-    if not (writeback in ("yes", "no")):
+    if writeback not in ("yes", "no"):
         print(usage)
         print("")
         print("-writeback must be yes or no, found '%s'" % writeback)

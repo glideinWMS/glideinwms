@@ -254,7 +254,7 @@ def main(argv):
 
     command = options.glidein_startup
     for arg in glidein_startup_args:
-        if not (glidein_startup_args[arg] in (None, "")):
+        if glidein_startup_args[arg] not in (None, ""):
             command = f"{command} {arg} {glidein_startup_args[arg]}"
 
     if options.cmd_out_file:

@@ -20,7 +20,6 @@ import optparse
 import os
 import sys
 
-from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend.tools.lib import frontenvparse
 from glideinwms.lib import condorExe
 
