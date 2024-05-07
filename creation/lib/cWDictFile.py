@@ -52,11 +52,11 @@ class DictFile:
     bytes (0x80...0xff) through round-tripping from byte streams to Unicode and back
     """
 
-    def __init__(self, fdir, fname, sort_keys=False, order_matters=False, fname_idx=None):
+    def __init__(self, dir, fname, sort_keys=False, order_matters=False, fname_idx=None):
         """DictFile Constructor
 
         Args:
-            fdir (str): folder containing the dictionary file
+            dir (str): folder containing the dictionary file
             fname (str): file name (the file path is the concatenation of dir and fname)
             sort_keys (bool): True if keys should be sorted
             order_matters (bool): True if it should remember the insertion order
@@ -66,7 +66,7 @@ class DictFile:
             DictFileError: if both sort_keys and order_matters are True
 
         """
-        self.dir = fdir
+        self.dir = dir
         self.fname = fname
 
         if fname_idx is None:
