@@ -45,4 +45,3 @@ extend-exclude = ["creation/lib/factory_defaults.xml"]
 
 [tool.ruff.format]
 #exclude = ["creation/lib/factory_defaults.xml"]
-

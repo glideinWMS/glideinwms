@@ -105,7 +105,8 @@ def validate_match(loc_str, match_str, factory_attrs, job_attrs, attr_dict, poli
     for pmodule in policy_modules:
         try:
             if "match" in dir(pmodule.pyObject):
-                match_result = pmodule.pyObject.match(env["job"], env["glidein"])  # noqa: F841  # Done to test errors, OK not to assign
+                # Done to test errors, OK not to assign
+                match_result = pmodule.pyObject.match(env["job"], env["glidein"])  # noqa: F841
         except KeyError as e:
             raise RuntimeError(
                 f"Error in {loc_str} policy module's {pmodule.name}.match(job, glidein): Missing attribute {e}"

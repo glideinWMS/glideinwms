@@ -1417,7 +1417,7 @@ class VarsDictFile(DictFile):
 
         if (user_name is None) or (user_name == False):  # noqa: E712  # Keep, could be "", empty string user name
             user_name = "-"
-        elif user_name == True:  # noqa: E712  # Keep, could be a string (var name) which should evaluate to False 
+        elif user_name == True:  # noqa: E712  # Keep, could be a string (var name) which should evaluate to False
             user_name = "+"
 
         # TODO: check .add and set allow_overwrite=False above instead allow_overwrite=0
