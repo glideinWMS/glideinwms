@@ -92,7 +92,7 @@ if __name__ == "__main__":
     Create or replace the FRONTEND_STARTUP FACTORY_STARTUP files in GWMS_DIR using the templates.
     Both startup and template file names are relative to GWMS_DIR"""
     argv = sys.argv[1:]
-    if len(argv) == 5 and not argv[0] in ["-h", "--help", "-help"]:
+    if len(argv) == 5 and argv[0] not in ["-h", "--help", "-help"]:
         if os.path.isdir(argv[0]):
             main(argv[0], argv[1], argv[2], argv[3], argv[4])
             sys.exit(0)

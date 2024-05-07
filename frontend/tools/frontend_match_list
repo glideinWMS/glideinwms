@@ -24,7 +24,7 @@ from glideinwms.frontend import glideinFrontendConfig, glideinFrontendInterface,
 # int(job.get("RequestCpus", 1)))
 # and this script fails to find getGlideinCpusNum() unless we import it
 # from glideinFrontendLib explicitly
-from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
+from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum  # noqa: F401
 
 
 ############################################################

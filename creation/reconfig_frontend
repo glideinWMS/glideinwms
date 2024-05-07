@@ -22,7 +22,6 @@ from glideinwms.creation.lib import (
     check_python3_expr,
     cvWConsts,
     cvWCreate,
-    cvWDictFile,
     cvWParamDict,
     cvWParams,
     cWConsts,
@@ -230,13 +229,13 @@ if __name__ == "__main__":
             print2(f"This is not a '{force_name}' config file ('{params.frontend_name}' found)")
             sys.exit(1)
 
-    if not (writeback in ("yes", "no")):
+    if writeback not in ("yes", "no"):
         print2(usage)
         print("")
         print2("-writeback must be yes or no, found '%s'" % writeback)
         sys.exit(1)
 
-    if not (update_def_cfg in ("yes", "no")):
+    if update_def_cfg not in ("yes", "no"):
         print2(usage)
         print("")
         print2("-update_def_cfg must be yes or no, found '%s'" % update_def_cfg)
@@ -249,7 +248,7 @@ if __name__ == "__main__":
         if os.path.exists(old_config_file):
             try:
                 old_params = cvWParams.VOFrontendParams(usage, WEB_BASE_DIR, [argv[0], old_config_file])
-            except RuntimeError as e:
+            except RuntimeError:
                 raise RuntimeError("Failed to load %s" % old_config_file)
         else:
             print2("Warning: Cannot find %s" % old_config_file)

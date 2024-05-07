@@ -8,7 +8,6 @@
 #  based on a configuration file
 
 
-import logging
 import os
 import os.path
 import shutil
@@ -255,10 +254,10 @@ if __name__ == "__main__":
             if glidein_name != force_name:
                 raise UsageError(f"This is not a '{force_name}' config file ('{glidein_name}' found)")
 
-        if not (writeback in ("yes", "no")):
+        if writeback not in ("yes", "no"):
             raise UsageError("-writeback must be yes or no, found '%s'" % writeback)
 
-        if not (update_def_cfg in ("yes", "no")):
+        if update_def_cfg not in ("yes", "no"):
             raise UsageError("-update_def_cfg must be yes or no, found '%s'" % update_def_cfg)
 
         try:

@@ -41,13 +41,11 @@
 #   -p N, --parallel=N    Number of commands to send in parallel (default: 10)
 
 import optparse
-import os
 import random
 import sys
 import threading
 import time
 
-from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend.tools.lib import frontenvparse
 from glideinwms.lib import condorExe, condorMonitor
 

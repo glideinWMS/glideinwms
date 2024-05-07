@@ -92,7 +92,7 @@ if __name__ == "__main__":
         print(e)
         sys.exit(1)
 
-    if not (writeback in ("yes", "no")):
+    if writeback not in ("yes", "no"):
         print(usage)
         print("")
         print("-writeback must be yes or no, found '%s'" % writeback)

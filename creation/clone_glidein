@@ -156,7 +156,7 @@ def main(params, other_params, merge_opt, preserve_enable, disable_old, preserve
         for e in params.entries.keys():
             if not match_list(params, e, include_list, exlude_list):
                 continue  # filtered out
-            if not (e in other_entry_list):
+            if e not in other_entry_list:
                 if params.entries[e].enabled == "True":
                     print("Disabling %s" % e)
                     disable_entry(params, e)
@@ -194,7 +194,7 @@ def load():
             argv = argv[0:1] + argv[4:]
         elif argv[1] == "-merge":
             merge_opt = argv[2]
-            if not (merge_opt in ("yes", "no", "only")):
+            if merge_opt not in ("yes", "no", "only"):
                 print("Merge must be yes, no or only, got %s" % merge_opt)
                 sys.exit(1)
             argv = argv[0:1] + argv[3:]

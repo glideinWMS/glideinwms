@@ -122,7 +122,7 @@ def parse_args(args):
                 arg = args[i]
                 i += 1
                 modargs.append(arg)
-    except IndexError as e:
+    except IndexError:
         raise ArgError("Expected to find another argument at %i" % i)
 
     if "-h" in opts:
@@ -137,7 +137,7 @@ def parse_args(args):
         raise ArgError("Could not find with mode to use")
 
     QUIET_OPS = "-q" in opts
-    ENABLE_CHECKS = not ("-disable-checks" in opts)
+    ENABLE_CHECKS = "-disable-checks" not in opts
     RECREATE = "-recreate" in opts
     ALLOW_OTHERS = "-allow-others" in opts
     ALLOW_ALTERNATE = "-allow-alternate" in opts
@@ -225,7 +225,7 @@ def parse_import_args(args, QUIET_OPS):
             if len(larr) != 3:
                 # Use IOError to simplify the exception handling
                 raise OSError(errno.EPROTO, "Expected 3 tokens, got %i: %s:%i" % (len(larr), importfname, count))
-            if not (larr[1] in ("daemon", "nodaemon", "client")):
+            if larr[1] not in ("daemon", "nodaemon", "client"):
                 raise OSError(
                     errno.EPROTO,
                     "Unexpected dn type '%s', should be either 'daemon' or 'client' :%s:%i"
@@ -421,7 +421,7 @@ def main(args):
             # make sure we can access the files to be changed
             try:
                 condor_mapfile = condorExe.iexe_cmd("condor_config_val CERTIFICATE_MAPFILE")[0].rstrip("\n")
-            except condorExe.ExeError as e:
+            except condorExe.ExeError:
                 raise OSError(errno.ENOENT, "Path to CERTIFICATE_MAPFILE not found")
         else:
             condor_mapfile = opts["mapfile"]
@@ -433,7 +433,7 @@ def main(args):
             try:
                 condor_config_dir = condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_DIR")[0].rstrip("\n")
                 has_dir = os.path.exists(condor_config_dir)
-            except condorExe.ExeError as e:
+            except condorExe.ExeError:
                 has_dir = False
 
             if has_dir:
@@ -448,13 +448,13 @@ def main(args):
                 # dir not found, see if it uses a config dir
                 try:
                     condor_config = condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_FILE")[0].rstrip("\n")
-                except condorExe.ExeError as e:
+                except condorExe.ExeError:
                     # nope, go with the main config file
                     try:
                         condor_config = condorExe.iexe_cmd("condor_config_val -config")[
                             1
                         ].strip()  # it is in the second line, and it is indented
-                    except condorExe.ExeError as e:
+                    except condorExe.ExeError:
                         raise OSError(errno.ENOENT, "No alternate CONFIG_FILE found")
         else:
             condor_config = opts["dnsfile"]
