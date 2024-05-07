@@ -3,10 +3,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#  This program clones (a subset of) entries
-#  from a remote xml config into a local one
-
+"""This program clones (a subset of) entries from a remote xml config into a local one
+"""
 
 import copy
 import os
@@ -83,10 +81,10 @@ def preserve_el_comments(new_arr, old_arr):
                 new_arr[k] = copy.deepcopy(old_arr[k])
             else:
                 try:
-                    dummy = new_arr[k].keys()
+                    dummy = new_arr[k].keys()  # noqa: F841  # To trigger exception
                     # dictionary-like, climb the tree, recurse
                     preserve_el_comments(new_arr[k], old_arr[k])
-                except:
+                except Exception:
                     pass  # not a dictionary-like object
         else:
             if k == "comment":
@@ -102,7 +100,7 @@ def add_entry(params, other_params, entry_name):
     for e in ("schedd_name", "allow_frontends"):
         # these are likely different between installations
         if e in params.subparams.data["entries"][entry_name]:
-            if type(params.entry_defaults[e]) == type(()):
+            if type(params.entry_defaults[e]) == type(()):  # noqa: E721
                 params.subparams.data["entries"][entry_name][e] = copy.deepcopy(params.entry_defaults[e][0])
             else:
                 params.subparams.data["entries"][entry_name][e] = copy.deepcopy(params.entry_defaults[e])

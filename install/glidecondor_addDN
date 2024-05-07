@@ -3,8 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This tool adds a DN to the Condor security configuration
+"""This tool adds a DN to the Condor security configuration"""
 
 
 import errno
@@ -192,7 +191,7 @@ def parse_one_args(args, QUIET_OPS):
 
     return [
         {
-            "is_daemon_dn": (daemon_comment != None),
+            "is_daemon_dn": (daemon_comment is not None),
             "daemon_comment": daemon_comment,
             "dn": expand_dn(dn, QUIET_OPS),
             "user": user,

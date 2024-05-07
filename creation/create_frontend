@@ -3,9 +3,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#  This program creates a frontend directory structure
-#  based on a configuration file
+"""This program creates a frontend directory structure based on a configuration file
+"""
 
 
 import os
@@ -46,7 +45,7 @@ def main(params):
             os.path.realpath(os.path.join(STARTUP_DIR, "..")),
             params.cfg_name,
         )
-    except:
+    except Exception:
         frontend_dicts_obj.delete_dirs()
         raise
 
@@ -114,7 +113,7 @@ if __name__ == "__main__":
     try:
         if writeback == "yes":
             params.save_into_file_wbackup(params.cfg_name)
-    except:
+    except Exception:
         if debug:
             import traceback
 

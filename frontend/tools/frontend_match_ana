@@ -3,13 +3,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This tool analyzes the matches between jobs and factory entries
-#
-# Arguments:
-#   $1 = work dir
-#   $2 = group_name
-#   $3 = job search pattern (e.g. '234\.3')
+r"""This tool analyzes the matches between jobs and factory entries
+
+Arguments:
+   $1 = work dir
+   $2 = group_name
+   $3 = job search pattern (e.g. '234\.3')
+"""
 
 import os
 import os.path
@@ -17,7 +17,6 @@ import re
 
 # import signal
 import sys
-import time
 import traceback
 
 from glideinwms.frontend import glideinFrontendConfig, glideinFrontendInterface, glideinFrontendLib
@@ -28,7 +27,7 @@ from glideinwms.lib import exprParser
 
 def print_match(job, glidein, match_ast, counts, level, countid):
     prefix = ""
-    for l in range(level):
+    for lev in range(level):
         prefix += "  "
 
     match_obj = exprParser.exp_compile(match_ast)
@@ -46,7 +45,7 @@ def print_match(job, glidein, match_ast, counts, level, countid):
         for n in match_ast.nodes:
             r = print_match(job, glidein, n, counts, level + 2, c + ".OR%i" % i)
             i += 1
-            if r == True:
+            if r == True:  # noqa: E712  # Coming form eval
                 break  # partial eval, exit at first True
     elif isinstance(match_ast, exprParser.And):
         # print
@@ -55,7 +54,7 @@ def print_match(job, glidein, match_ast, counts, level, countid):
         for n in match_ast.nodes:
             r = print_match(job, glidein, n, counts, level + 2, c + ".AND%i" % i)
             i += 1
-            if r == False:
+            if r == False:  # noqa: E712  # Coming form eval
                 break  # partial eval, exit at first False
     elif isinstance(match_ast, exprParser.Not):
         # print
@@ -118,7 +117,6 @@ def do_work(elementDescript, paramsDescript, signatureDescript, job_filter):
 
     # Match
     match_ast = exprParser.exp_parse(elementDescript.merged_data["MatchExpr"])
-    jobs = []
     sk = condorq_dict.keys()
     sk.sort()
     for schedd in sk:
@@ -171,8 +169,6 @@ def do_work(elementDescript, paramsDescript, signatureDescript, job_filter):
 
 ############################################################
 def main(work_dir, group_name, job_filter):
-    startup_time = time.time()
-
     elementDescript = glideinFrontendConfig.ElementMergedDescript(work_dir, group_name)
 
     paramsDescript = glideinFrontendConfig.ParamsDescript(work_dir, group_name)
@@ -187,7 +183,7 @@ def main(work_dir, group_name, job_filter):
         do_work(elementDescript, paramsDescript, signatureDescript, job_filter)
     except KeyboardInterrupt:
         print("Received signal...exit")
-    except:
+    except Exception:
         tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
         print("Exception occurred: %s" % tb)
 

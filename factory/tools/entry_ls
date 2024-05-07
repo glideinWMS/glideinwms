@@ -62,7 +62,7 @@ gwms factory instance location (or to be run in that directory)
 if __name__ == "__main__":
     try:
         opts, args = getopt.getopt(sys.argv[1:], "holtfe:E:d:D:")
-    except:
+    except Exception:
         print_help()
         sys.exit(1)
 
@@ -142,9 +142,9 @@ if __name__ == "__main__":
     completed_fname = os.path.join(gfactory_entry_dir, "completed_jobs_%s.log" % (date))
     try:
         fin = open(completed_fname)
-    except OSError as e:
+    except OSError:
         sys.stderr.write(
-            "WARNING: %s did not exist.  No jobs completed yet (or this is the wrong directory).\n" % completed_fname
+            f"WARNING: {completed_fname} did not exist.  No jobs completed yet (or this is the wrong directory).\n"
         )
         sys.exit(1)
 

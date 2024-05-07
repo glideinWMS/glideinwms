@@ -168,7 +168,7 @@ def main():
     # Condor side
     if not options.skipfixqueue:
         spooldir = htcondor.param["SPOOL"]
-        if not "JOBQUEUE" in htcondor.param:
+        if "JOBQUEUE" not in htcondor.param:
             jobqueue_file = os.path.join(spooldir, "job_queue.log")
         else:
             jobqueue_file = htcondor.param["JOBQUEUE"]

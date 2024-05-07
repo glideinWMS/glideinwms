@@ -3,9 +3,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#  This program creates a condor tarball
-#  suitable to be used in the glideins
+"""This program creates a condor tarball suitable to be used in the glideins
+"""
 
 
 import os
@@ -74,7 +73,7 @@ def main(argv):
                     if f.islnk():
                         os.link(os.path.join(tmpdir, f.linkname), os.path.join(tmpdir, f.name))
                 in_dir = os.path.join(tmpdir, os.listdir(tmpdir)[0])  # there is a condor* subdir there
-            except:
+            except Exception:
                 shutil.rmtree(tmpdir)
                 raise
     elif os.path.isdir(in_dir):
@@ -92,7 +91,7 @@ def main(argv):
 
         try:
             out_fd = open(out_fname, "w")
-        except:
+        except Exception:
             usage()
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             print("\n".join(tb))
@@ -109,7 +108,7 @@ def main(argv):
                 try:
                     os.unlink(out_fname)
                     print("Tarball %s deleted" % out_fname)
-                except:
+                except Exception:
                     # never throw an error in the file deletion
                     pass
     finally:

@@ -3,10 +3,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#  This program updates a frontend directory structure
-#  based on a configuration file
-
+"""This program updates a frontend directory structure based on a configuration file
+"""
 
 import os
 import os.path
@@ -269,7 +267,7 @@ if __name__ == "__main__":
             # Only writeback the config in the .cfg directly if explicitly asked to
             params.save_into_file_wbackup(params.cfg_name)
             print2("...Overriding the frontend config file in %s to the current configuration " % params.cfg_name)
-    except:
+    except Exception:
         print2("Writing back config file failed")
         sys.exit(1)
 
