@@ -3,15 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-Project:
-   glideinWMS
-
- Description:
-   unit test for DictFile object from glideinwms/creation/lib/cWDictFile.py
-
- Author:
-   Dennis Box dbox@fnal.gov
+"""Unit test for DictFile object from glideinwms/creation/lib/cWDictFile.py
 """
 
 
@@ -49,7 +41,7 @@ class TestDictFile(unittest.TestCase):
 
     def test_bad_init(self):
         try:
-            df = DictFile(
+            df = DictFile(  # noqa: F841  # checking obj creation
                 dir="fixtures/frontend", fname="attrs.cfg", sort_keys=True, order_matters=True, fname_idx=None
             )
             self.assertTrue(False, "DictFile init succeeded with " + "sort_keys=True and order_matters=True")

@@ -3,13 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-Project:
-    glideinWMS
-Purpose:
-    unit test for glideinwms/factory/glideFactoryLib.py
-Author:
-    Dennis Box, dbox@fnal.gov
+"""Unit test for glideinwms/factory/glideFactoryLib.py
 """
 
 
@@ -156,7 +150,7 @@ class TestFactoryConfig(unittest.TestCase):
         self.assertEqual(expected, cldr)
 
     def test_get_client_proxies_dir(self):
-        entry_name = "entry_name"
+        # entry_name = "entry_name"
         username = "username"
         submit_dir = "submit_dir"
         log_base_dir = "log_base_dir"
@@ -257,13 +251,13 @@ class TestFactoryConfig(unittest.TestCase):
         glideinwms.factory.glideFactoryLib.logSupport.log = FakeLogger()
         condorq = mock.Mock()
         condorq.stored_data = {}
-        qs = getQStatus(condorq)
+        qs = getQStatus(condorq)  # noqa: F841  # To test function
 
     def test_get_q_status_stale(self):
         glideinwms.factory.glideFactoryLib.logSupport.log = FakeLogger()
         condorq = mock.Mock()
         condorq.stored_data = {}
-        qs = getQStatusStale(condorq)
+        qs = getQStatusStale(condorq)  # noqa: F841  # To test function
 
     def test_get_condor_status_data(self):
         glideinwms.factory.glideFactoryLib.logSupport.log = FakeLogger()

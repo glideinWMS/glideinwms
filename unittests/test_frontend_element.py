@@ -3,9 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
- Description:
-   unit test for glideinwms/frontend/glideinFrontendElement
+"""Unit test for glideinwms/frontend/glideinFrontendElement
 """
 
 
@@ -126,7 +124,7 @@ class FEElementTestCase(unittest.TestCase):
         condorMonitor.USE_HTCONDOR_PYTHON_BINDINGS = False
         self.frontendDescript = glideinwms.frontend.glideinFrontendConfig.FrontendDescript("fixtures/frontend")
 
-        with mock.patch.object(glideinFrontendConfig.ConfigFile, "load") as m_load:
+        with mock.patch.object(glideinFrontendConfig.ConfigFile, "load") as m_load:  # noqa: F841
             # simpler data structures
             self.attrDescript = glideinwms.frontend.glideinFrontendConfig.AttrsDescript("", "")
             self.paramsDescript = glideinwms.frontend.glideinFrontendConfig.ParamsDescript("", "")
@@ -319,21 +317,10 @@ class FEElementTestCase(unittest.TestCase):
                 state = fmt_str % (gid, in_downtime[gid], req_voms[gid], LOG_INFO_DATA[idx - 1])
                 if self.debug_output:
                     print("%s" % state)
-                use_voms = req_voms[gid]
-
                 if in_downtime[gid]:
                     self.assertTrue(upordown == "Down", f"{gid} logs this as {upordown}")
                 else:
                     self.assertTrue(upordown == "Up", f"{gid} logs this as {upordown}")
-
-                # GLIDEIN_REQUIRE_VOMS checks were done only when GlExec was enabled
-                # if use_voms:
-                #     self.assertTrue(
-                #         'Voms proxy required,' in LOG_INFO_DATA[idx - 1], state)
-                # else:
-                #     self.assertFalse(
-                #         'Voms proxy required,' in LOG_INFO_DATA[idx - 1], state)
-
             idx += 1
 
     def test_populate_pubkey(self):

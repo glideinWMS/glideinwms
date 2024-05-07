@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   Classes needed to handle dictionary files
-#   And other support functions
+"""Classes needed to handle dictionary files
+   And other support functions
+"""
 
 # TODO: in this file there are several directory creation functions. Use what's available in
 #  Python 3 and reduce custom code
@@ -52,11 +52,11 @@ class DictFile:
     bytes (0x80...0xff) through round-tripping from byte streams to Unicode and back
     """
 
-    def __init__(self, dir, fname, sort_keys=False, order_matters=False, fname_idx=None):
+    def __init__(self, fdir, fname, sort_keys=False, order_matters=False, fname_idx=None):
         """DictFile Constructor
 
         Args:
-            dir (str): folder containing the dictionary
+            fdir (str): folder containing the dictionary file
             fname (str): file name (the file path is the concatenation of dir and fname)
             sort_keys (bool): True if keys should be sorted
             order_matters (bool): True if it should remember the insertion order
@@ -66,7 +66,7 @@ class DictFile:
             DictFileError: if both sort_keys and order_matters are True
 
         """
-        self.dir = dir
+        self.dir = fdir
         self.fname = fname
 
         if fname_idx is None:
@@ -986,7 +986,7 @@ class SimpleFileDictFile(DictFile):
             # The file content should be already a binary blob (bytes); if it is a string,
             # then raise an error or convert it
             if isinstance(fdata, str):
-                raise DictFileError(f"File content received as str instead of bytes: {key} (in {filepath})")
+                raise DictFileError(f"File content received as str instead of bytes: {key} (in {self.get_filepath()})")
                 # Use this instead of 'raise' to silently change the data and be more tolerant
                 # fdata = bytes(fdata, encoding=BINARY_ENCODING)
             filepath = os.path.join(self.dir, fname)
@@ -1385,10 +1385,10 @@ class VarsDictFile(DictFile):
         key,
         type,
         val_default,  # None or False==No default (i.e. -)
-        condor_name,  # if None or false, Varname (i.e. +)
+        condor_name,  # if None or False, Varname (i.e. +)
         required,
         export_condor,
-        user_name,  # If None or false, do not export (i.e. -)
+        user_name,  # If None or False, do not export (i.e. -)
         # if True, set to VarName (i.e. +)
         allow_overwrite=0,
     ):
@@ -1399,10 +1399,10 @@ class VarsDictFile(DictFile):
         else:
             type_str = "I"
 
-        if (val_default is None) or (val_default == False):
+        if (val_default is None) or (val_default == False):  # noqa: E712  # Keep, could be "", empty string default
             val_default = "-"
 
-        if (condor_name is None) or (condor_name == False):
+        if (condor_name is None) or (condor_name == False):  # noqa: E712  # Keep, could be "", empty string condor name
             condor_name = "+"
 
         if required:
@@ -1415,9 +1415,9 @@ class VarsDictFile(DictFile):
         else:
             export_condor_str = "N"
 
-        if (user_name is None) or (user_name == False):
+        if (user_name is None) or (user_name == False):  # noqa: E712  # Keep, could be "", empty string user name
             user_name = "-"
-        elif user_name == True:
+        elif user_name == True:  # noqa: E712  # Keep, could be a string (var name) which should evaluate to False 
             user_name = "+"
 
         # TODO: check .add and set allow_overwrite=False above instead allow_overwrite=0

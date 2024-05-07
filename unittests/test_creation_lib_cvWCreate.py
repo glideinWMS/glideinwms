@@ -3,17 +3,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+"""Unit test for glideinwms/creation/lib/cvWCreate.py
 """
-Project:
-   glideinWMS
-
-Description:
-   unit test for glideinwms/creation/lib/cvWCreate.py
-
-Author:
-   Dennis Box <dbox@fnal.gov>
-"""
-
 
 import os
 import unittest
@@ -70,7 +61,7 @@ class Test_cvWCreate(unittest.TestCase):
         # test that fetching a nonexistent template throws
         # the correct Exception
         try:
-            bad = get_template("I-dont-exist", glideinWMS_dir)
+            bad = get_template("I-dont-exist", glideinWMS_dir)  # noqa: F841  # checking exception
             assert False
         except OSError:
             pass

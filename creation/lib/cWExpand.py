@@ -1,17 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   Contains the algorithms needed for attribute expansion
-#
-# Author: Igor Sfiligoi
-#
+"""Contains the algorithms needed for attribute expansion
+"""
 
 import re
 
@@ -30,7 +21,7 @@ def expand_DD(qstr, attr_dict):
         if attr_name not in attr_dict:
             raise KeyError("Missing attribute %s" % attr_name)
         attr_val = attr_dict[attr_name]
-        if type(attr_val) == int:
+        if isinstance(attr_val, int):
             attr_str = str(attr_val)
         else:  # assume it is a string for all other purposes... quote and escape existing quotes
             attr_str = '"%s"' % attr_val.replace('"', '\\"')

@@ -3,8 +3,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   Equivalent to condor_status, but with glidein specific info
+"""Equivalent to condor_status, but with glidein specific info
+"""
 
 import argparse
 import os.path
@@ -323,14 +323,14 @@ def main():
             gflops = el["KFlops"] * 1.0e-6
             mflops_str = "%i" % (el["KFlops"] // 1000)
         else:
-            mflops = 0.0
+            gflops = 0.0
             mflops_str = "???"
 
         if "Mips" in el:
             gips = el["Mips"] * 1.0e-3
             mips_str = el["Mips"]
         else:
-            mips = 0.0
+            gips = 0.0
             mips_str = "???"
 
         if summarize == "site":

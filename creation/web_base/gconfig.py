@@ -197,11 +197,11 @@ class GlideinConfig:
             # conf_dir, conf_file = os.path.split(self.file_name)
             # with tempfile.NamedTemporaryFile(dir=conf_dir, prefix=conf_file, delete=False) as tempfd:
             with open(tmp_fname) as temp_fd:
-                temp_fd.writelines([l.encode(BINARY_ENCODING) for l in outlines])
+                temp_fd.writelines([line.encode(BINARY_ENCODING) for line in outlines])
                 temp_fd.flush()
                 os.fsync(temp_fd.fileno())
             os.rename(tmp_fname, self.file_name)  # if only Py3.3+ os.replace(tmp_fname, self.file_name)
-        except:
+        except Exception:
             # Make sure the temp file is deleted
             # Python 3.8+   my_file.unlink(missing_ok=True)
             try:
@@ -317,7 +317,7 @@ def add_condor_config_var(name, value, kind="C", publish=True, condor_name=None,
                     continue
                 tempfd.write(line.encode("utf8"))
             tempfd.write(("%s %s %s %s N %s -\n" % (name, kind, value, condor_name, exp_condor)).encode())
-    except:
+    except Exception:
         _log(verbose, "Failed to read and update the condor variables file")
         os.unlink(tempfd.name)
         raise

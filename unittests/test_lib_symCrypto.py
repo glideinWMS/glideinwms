@@ -3,15 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-Project:
-   glideinWMS
-
- Description:
-   unit test for glideinwms/lib/symCrypto.py
-
- Author:
-   Dennis Box dbox@fnal.gov
+"""Unit test for glideinwms/lib/symCrypto.py
 """
 
 
@@ -67,7 +59,7 @@ class TestParametrizedSymKey(unittest.TestCase):
         self.assertTrue(isinstance(psk, ParametrizedSymKey))
         self.assertTrue(isinstance(psk, SymKey))
         try:
-            psk2 = ParametrizedSymKey("bad_parameter")
+            psk2 = ParametrizedSymKey("bad_parameter")  # noqa: F841  # keep, triggers exception
             assert False
         except KeyError:
             pass
@@ -82,7 +74,7 @@ class TestAutoSymKey(unittest.TestCase):
         self.assertTrue(self.key.cypher_name is None)
         self.assertTrue(self.key.key_str is None)
         try:
-            key2 = AutoSymKey("bogus,bogus,bogus")
+            key2 = AutoSymKey("bogus,bogus,bogus")  # noqa: F841  # keep, triggers exception
             assert False
         except ValueError:
             pass

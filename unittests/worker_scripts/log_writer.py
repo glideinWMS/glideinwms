@@ -59,7 +59,7 @@ def main():
         log.info(f"{create_random_string(length=2048)}\n")
 
         return 0
-    except:
+    except Exception:
         return 1
 
 

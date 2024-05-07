@@ -1,11 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   Frontend creation module
-#   Classes and functions needed to handle dictionary files
-#   created out of the parameter object
-#
+"""Frontend creation module
+   Classes and functions needed to handle dictionary files created out of the parameter object
+"""
 
 import os
 import os.path
@@ -107,7 +105,7 @@ def validate_match(loc_str, match_str, factory_attrs, job_attrs, attr_dict, poli
     for pmodule in policy_modules:
         try:
             if "match" in dir(pmodule.pyObject):
-                match_result = pmodule.pyObject.match(env["job"], env["glidein"])
+                match_result = pmodule.pyObject.match(env["job"], env["glidein"])  # noqa: F841  # Done to test errors, OK not to assign
         except KeyError as e:
             raise RuntimeError(
                 f"Error in {loc_str} policy module's {pmodule.name}.match(job, glidein): Missing attribute {e}"
@@ -1148,7 +1146,6 @@ def populate_common_descript(descript_dict, params):
         proxy_descript_values = {}
         for attr in proxy_attrs:
             proxy_descript_values[attr] = {}
-        proxy_trust_domains = {}  # TODO: not used, remove
         # print params.security.credentials
         for pel in params.security.credentials:
             validate_credential_type(pel["type"])
@@ -1194,7 +1191,7 @@ def populate_common_descript(descript_dict, params):
 def validate_credential_type(cred_type):
     mutually_exclusive = {"grid_proxy", "cert_pair", "key_pair", "username_password", "auth_file"}
     types_set = set(cred_type.split("+"))
-    common_types = mutually_exclusive.intersection(types_set)
+    common_types = mutually_exclusive.intersection(types_set)  # noqa: F841  # used in temporarly commented code below
 
     # turn this off temporarily while we figure out how to include tokens
     # in auth_file with grid_proxy

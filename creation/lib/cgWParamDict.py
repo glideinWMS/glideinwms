@@ -1,11 +1,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   Glidein creation module
-#   Classes and functions needed to handle dictionary files
-#   created out of the parameter object
-#
+"""Glidein creation module
+   Classes and functions needed to handle dictionary files
+   created out of the parameter object
+"""
 
 import os
 import os.path
@@ -368,7 +367,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 for cvmfsexec_idx in range(len(distros)):  # TODO: os.scandir() is more efficient with python 3.x
                     try:
                         distro_info = distros[cvmfsexec_idx].split(".")[0].split("_", 3)
-                    except:
+                    except Exception:
                         print(f"Problem parsing the cvmfsexec distro name: {distros[cvmfsexec_idx]}! Ignoring it.")
                         continue
                     platform = "-".join(distro_info[1:])
@@ -1532,7 +1531,7 @@ def validate_condor_tarball_attrs(conf):
             if tarball in valid_tarballs:
                 match_found = True
 
-        if match_found == False:
+        if not match_found:
             raise RuntimeError(
                 "Condor (version=%s, os=%s, arch=%s) for entry %s could not be resolved from <glidein><condor_tarballs>...</condor_tarballs></glidein> configuration."
                 % (my_version, my_os, my_arch, entry["name"])
@@ -1554,7 +1553,6 @@ def old_get_valid_condor_tarballs(params):
 
 def get_valid_condor_tarballs(condor_tarballs):
     valid_tarballs = []
-    tarball_matrix = []
 
     for tar in condor_tarballs:
         # Each condor_tarball entry is a comma-separated list of possible

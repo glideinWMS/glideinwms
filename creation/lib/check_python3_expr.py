@@ -3,8 +3,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   Validate expressions in frontend.xml for compatibility with Python 3
+"""Validate expressions in frontend.xml for compatibility with Python 3
+"""
 
 import argparse
 import ast
@@ -21,7 +21,7 @@ try:
     fixer_pkg = "lib2to3.fixes"
     avail_fixes = set(refactor.get_fixers_from_package(fixer_pkg))
     rt = refactor.RefactoringTool(avail_fixes)
-except:
+except Exception:
     rt = None
 
 CONFIG_FILE = "/etc/gwms-frontend/frontend.xml"
@@ -62,8 +62,9 @@ def check_types(expression, factory_attrs, job_attrs):
     default_value = {"string": "", "int": 0, "real": 0.0, "bool": False, "Expr": ""}
 
     try:
-        job = {attr: default_value[a_type] for (attr, a_type) in job_attrs}
-        glidein = {"attrs": {attr: default_value[a_type] for (attr, a_type) in factory_attrs}}
+        # Variables job and glidein are defined to check the mechanism and the attributes. OK that are not used
+        job = {attr: default_value[a_type] for (attr, a_type) in job_attrs}  # noqa: F841
+        glidein = {"attrs": {attr: default_value[a_type] for (attr, a_type) in factory_attrs}}  # noqa: F841
     except KeyError as e:
         return f"Invalid match_attr type: {e.args[0]}"
 
@@ -99,7 +100,7 @@ def check_2to3(code, patch=False, refactoring_tool=rt):
                     suggestion = diff
                 else:
                     suggestion = suggested_code
-        except:
+        except Exception:
             suggested_code = "could not parse the expression"
 
     return suggestion
@@ -205,7 +206,7 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
         tree = ET.parse(config_file)
     except OSError:
         return False, "Config file not readable: %s" % config_file
-    except:
+    except Exception:
         return False, "Error parsing config file: %s" % config_file
 
     # Recursively finds all <match> elements in the XML

@@ -3,13 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-Project:
-    glideinWMS
-Purpose:
-    unit test for glideinwms/frontend/glideinFrontendElement.py
-Author:
-    Dennis Box, dbox@fnal.gov
+"""Unit test for glideinwms/frontend/glideinFrontendElement.py
 """
 
 
@@ -102,7 +96,7 @@ class TestCounterWrapper(unittest.TestCase):
 
 class TestGlideinFrontendElement(unittest.TestCase):
     def setUp(self):
-        parent_pid = 0
+        parent_pid = 0  # noqa: F841  # used in temporarly commented code
         work_dir = "fixtures/frontend"
         group_name = "group1"
         action = "yada yada"

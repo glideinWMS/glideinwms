@@ -3,17 +3,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# Description:
-#   unit test for glideinwms/lib/pubCrypto.py
-#
-# Author:
-#   Dennis Box dbox@fnal.gov
-#
-
+"""Unit test for glideinwms/lib/pubCrypto.py
+"""
 
 import os
 import unittest
@@ -23,7 +14,7 @@ import xmlrunner
 from glideinwms.unittests.unittest_utils import TestImportError
 
 try:
-    from glideinwms.lib.pubCrypto import PubRSAKey, RSAKey
+    from glideinwms.lib.pubCrypto import RSAKey
 except ImportError as err:
     raise TestImportError(str(err))
 
