@@ -212,7 +212,7 @@ def get_information_internal(ces):
         if "OSG_ResourceGroup" in celem:
             resource = celem["OSG_ResourceGroup"] or celem["OSG_Resource"]
             # not used for now, but factory ops will add a new attribute in the future
-            site = celem["OSG_Resource"]   # noqa: F841
+            site = celem["OSG_Resource"]  # noqa: F841
             gatekeeper = celem["Name"].lower()
             if resource:
                 result.setdefault(resource, {})[gatekeeper] = {}

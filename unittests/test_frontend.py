@@ -122,7 +122,9 @@ class FETestCaseCount(FETestCaseBase):
     def test_countMatch_missingKey(self):
         with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, "debug") as m_debug:
             match_obj = compile('glidein["attrs"]["FOO"] == 3', "<string>", "eval")
-            match_counts = glideinFrontendLib.countMatch(match_obj, self.condorq_dict, self.glidein_dict, {}, False)  # noqa: F841
+            match_counts = glideinFrontendLib.countMatch(  # noqa: F841
+                match_obj, self.condorq_dict, self.glidein_dict, {}, False
+            )
             m_debug.assert_called_with(
                 "Failed to evaluate resource match in countMatch. Possibly match_expr has "
                 "errors and trying to reference job or site attribute(s) ''FOO'' in an inappropriate way."
@@ -131,7 +133,9 @@ class FETestCaseCount(FETestCaseBase):
     def test_countMatch_otherException(self):
         with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, "debug") as m_debug:
             match_obj = compile("3//0", "<string>", "eval")
-            match_counts = glideinFrontendLib.countMatch(match_obj, self.condorq_dict, self.glidein_dict, {}, False)  # noqa: F841
+            match_counts = glideinFrontendLib.countMatch(  # noqa: F841
+                match_obj, self.condorq_dict, self.glidein_dict, {}, False
+            )
             log_msg = m_debug.call_args[0]
 
             self.assertTrue("Most recent traceback" in str(log_msg), log_msg)
