@@ -3,14 +3,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   Setup the environment so that all condor commands behave
-#   like they would if executed by the frontend
-#
-# Arguments:
-#  -d DIR, --work-dir=DIR                  Frontend work dir (default: $FE_WORK_DIR)
-#  -g GROUP_NAME, --group-name=GROUP_NAME  Frontend group name (default: $FE_GROUP_NAME)
-#  -n, --no-pilots                         Do not include pilot DNs in mapfile
+"""Setup the environment so that all condor commands behave like they would if executed by the frontend
+
+Arguments:
+  -d DIR, --work-dir=DIR                  Frontend work dir (default: $FE_WORK_DIR)
+  -g GROUP_NAME, --group-name=GROUP_NAME  Frontend group name (default: $FE_GROUP_NAME)
+  -n, --no-pilots                         Do not include pilot DNs in mapfile
+"""
 
 import optparse
 import os
@@ -36,13 +35,13 @@ def main(argv):
     (options, other_args) = argparser.parse_args(argv[1:])
 
     feconfig.load_frontend_config(options)
-    feconfig.set_environment(wpilots=(options.nopilots != True))
+    feconfig.set_environment(wpilots=(not options.nopilots))
 
-    if options.quiet != True:
+    if not options.quiet:
         sys.stdout.write("Set the environment variables needed to emulate the environment of\n")
         sys.stdout.write("frontend\t%s\n" % options.work_dir)
         sys.stdout.write("group\t\t%s\n\n" % options.group_name)
-        if options.nopilots == True:
+        if options.nopilots:
             sys.stdout.write("Pilot DNs will not be trusted, so you cannot contact the glideins.\n")
             sys.stdout.write("This is analogous to what happens in the frontend processes themselves.\n\n")
         else:

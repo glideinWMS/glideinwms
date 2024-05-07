@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# analyze_queues
-# focuses on statuses (less on client stats)
+"""analyze_queues
+focuses on statuses (less on client stats)
+"""
 
-# import re
 import datetime
 import getopt
 import os
@@ -253,7 +253,7 @@ USAGE:
     try:
         u = urlopen(file_dir)
         rrd_data = xmlParse.xmlfile2dict(u)
-    except:
+    except Exception:
         print("\nCannot open", file_dir, "\n\tor", rrd, "was not found there.\n")
         print("Please set --source to the factory work dir and try again.")
         sys.exit(1)
@@ -304,7 +304,7 @@ USAGE:
                         data[int(period)][frontend][entry][a] = 0
                     try:
                         data[int(period)][frontend][entry][a] += int(float(elements[a]) * int(period))
-                    except:
+                    except Exception:
                         pass
 
     # data[period[frontend[entry[element[value]]]]]

@@ -473,7 +473,7 @@ if __name__ == "__main__":
         except IndexError:
             try:
                 action_in, action_out = action.split("2")
-            except:
+            except Exception:
                 raise ParameterException("Invalid argument %s" % action)
             main_outfile += action_out
             if arg_len < 3:

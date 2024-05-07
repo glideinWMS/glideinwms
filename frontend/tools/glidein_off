@@ -98,7 +98,7 @@ def build_glidein_constraint(options, other_args):
         constraint_list.append('(MyAddress=?="%s")' % options.glidein_addr)
     if options.constr is not None:
         constraint_list.append("(%s)" % options.constr)
-    if options.off_all == True:
+    if options.off_all:
         constraint_list.append("True")
 
     if len(constraint_list) == 0:
@@ -123,7 +123,7 @@ def lookup_addrs(constr):
     sts.require_integrity(True)  # we do not want to get tricked into shutting down unrelated masters
     try:
         data = sts.fetch(constr, [("GLIDEIN_MASTER_NAME", "s"), ("GLIDEIN_COLLECTOR_NAME", "s")])
-    except:
+    except Exception:
         time.sleep(1)  # retry once
         data = sts.fetch(constr, [("GLIDEIN_MASTER_NAME", "s"), ("GLIDEIN_COLLECTOR_NAME", "s")])
     del sts
@@ -163,7 +163,7 @@ def lookup_addrs(constr):
                 data = sts.fetch(master_constr, [("MyAddress", "s")])
                 coll_error = None
                 break
-            except:
+            except Exception:
                 time.sleep(1)  # retry once
                 try:
                     data = sts.fetch(master_constr, [("MyAddress", "s")])
@@ -181,7 +181,7 @@ def lookup_addrs(constr):
             for master_name in data:
                 try:
                     addrs.append(data[master_name]["MyAddress"])
-                except:
+                except Exception:
                     # just protect
                     sys.stderr.write(
                         "Classad for %s@%s is missing the MyAddress attribute!\n"
@@ -202,7 +202,7 @@ TP_FAIL = False
 def run_off(addr, off_type):
     global TP_FAIL
     try:
-        out = condorExe.exe_cmd_sbin("condor_off", f"-master -{off_type} -addr {addr}")
+        out = condorExe.exe_cmd_sbin("condor_off", f"-master -{off_type} -addr {addr}")  # noqa: F841  # Side effect
     except condorExe.ExeError as e:
         sys.stderr.write("%s\n" % e)
         TP_FAIL = True  # setting the value should be thread safe
@@ -274,7 +274,7 @@ def main(argv):
     if off_type not in ("graceful", "fast", "peaceful", "force-graceful"):
         raise ValueError("Unknown off type '%s'" % off_type)
 
-    feconf = feconfig.load_frontend_config(options)
+    feconf = feconfig.load_frontend_config(options)  # noqa: F841  # Side effect
     feconfig.set_environment(wpilots=True)
 
     TP_FAIL = False
@@ -292,7 +292,7 @@ def main(argv):
                 started_threads[tk].join()  # this should return immediately
                 del started_threads[tk]
 
-        if options.quiet != True:
+        if not options.quiet:
             sys.stdout.write("Sending off to glidein master at %s\n" % addr)
         thr = threading.Thread(target=run_off, args=(addr, off_type))
         started_threads[addr] = thr
@@ -309,12 +309,12 @@ def main(argv):
         del started_threads[tk]
 
     if TP_FAIL:
-        if options.quiet != True:
+        if not options.quiet:
             sys.stderr.write("\nAt least one off command failed\n")
         return 1
 
     if failures:
-        if options.quiet != True:
+        if not options.quiet:
             sys.stderr.write(
                 "\nCould not find the masters for all the requested glidein\n"
                 + "You may need to issue the command again\n"

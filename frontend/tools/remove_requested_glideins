@@ -3,12 +3,12 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   Remove glideins that were requested in the past
-#
-# Arguments:
-#  -d DIR, --work-dir=DIR         Frontend work dir (default: $FE_WORK_DIR)
-#  -t TYPE, --removal-type=TYPE   Type of removal request (defalt: IDLE)
+"""Remove glideins that were requested in the past
+
+Arguments:
+  -d DIR, --work-dir=DIR         Frontend work dir (default: $FE_WORK_DIR)
+  -t TYPE, --removal-type=TYPE   Type of removal request (defalt: IDLE)
+"""
 
 import fcntl
 import optparse
@@ -78,7 +78,7 @@ def main(argv):
     action_type = None
     try:
         action_type = glideinFrontendPidLib.get_frontend_action_type(options.work_dir)
-    except:
+    except Exception:
         running = False
 
     if running:

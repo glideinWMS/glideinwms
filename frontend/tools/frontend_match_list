@@ -3,18 +3,17 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This tool print outs the matches between jobs and factory entries
-#
-# Arguments:
-#   $1 = work dir
-#   $2 = group_name
+"""This tool print outs the matches between jobs and factory entries
+
+Arguments:
+   $1 = work dir
+   $2 = group_name
+"""
 
 
 import os
 import os.path
 import sys
-import time
 import traceback
 
 from glideinwms.frontend import glideinFrontendConfig, glideinFrontendInterface, glideinFrontendLib
@@ -83,7 +82,6 @@ def do_work(elementDescript, paramsDescript, signatureDescript):
     job_glideins_dict = {}
     glidein_jobs_dict = {}
     for glidename in glidein_dict:
-        glidein = glidein_dict[glidename]
         jobs = []
         sk = condorq_dict.keys()
         sk.sort()
@@ -126,8 +124,6 @@ def do_work(elementDescript, paramsDescript, signatureDescript):
 
 ############################################################
 def main(work_dir, group_name):
-    startup_time = time.time()
-
     elementDescript = glideinFrontendConfig.ElementMergedDescript(work_dir, group_name)
 
     paramsDescript = glideinFrontendConfig.ParamsDescript(work_dir, group_name)
@@ -142,7 +138,7 @@ def main(work_dir, group_name):
         do_work(elementDescript, paramsDescript, signatureDescript)
     except KeyboardInterrupt:
         print("Received signal...exit")
-    except:
+    except Exception:
         tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
         print("Exception occurred: %s" % tb)
 

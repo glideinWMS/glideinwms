@@ -5,8 +5,6 @@
 
 import datetime
 import getopt
-
-# from __future__ import print_function
 import os
 import re
 import sys
@@ -155,7 +153,7 @@ def lineprint(entry_name, entry, g_entry, g, to_be_printed, attr_list, sort_attr
     else:
         sorter = int((float(list[attr_list[sort_attribute]]) / div) * 100)
 
-    if not (totals is None):
+    if totals is not None:
         ekeys = ("FailedNr", "validation_All", "JobsNr_None", s)
         gkeys = ("glideins", "validation", "idle", "waste", "badput")
 
@@ -381,7 +379,7 @@ USAGE:
             file_loc = os.path.join(file_dir, xml)
             u = urlopen("file://" + file_loc)
             data[name] = xmlParse.xmlfile2dict(u)
-        except:
+        except Exception:
             print("\nCannot open", file_loc)
             print("Please set --source to the factory work dir and try again.")
             sys.exit(1)
@@ -433,7 +431,7 @@ USAGE:
                     try:
                         for a, b in x_data["entries"][entry]["frontends"][frontend]["periods"][period].items():
                             data[int(period)][frontend][entry][a] = int(float(b) * int(period))
-                    except:
+                    except Exception:
                         print(f"\nEntry {entry} in {rrd_name_list[i]} is missing {frontend}; continuing\n")
                     i = i + 1
 
@@ -491,27 +489,27 @@ Glidein log analysis for frontend %s - %s
                 #     sometimes loses them at random. Example: <period name="7200"/>
                 try:
                     attributes["glideins"] = elements["Glideins"]
-                except:
+                except KeyError:
                     attributes["glideins"] = 0
                 try:
                     attributes["jobs"] = elements["JobsNr"]
-                except:
+                except KeyError:
                     attributes["jobs"] = 0
                 try:
                     attributes["used"] = elements["JobsLasted"]
-                except:
+                except KeyError:
                     attributes["used"] = 0
                 try:
                     attributes["total_time"] = elements["Lasted"]
-                except:
+                except KeyError:
                     attributes["total_time"] = 0
                 try:
                     attributes["waste"] = elements["Lasted"] - elements["JobsLasted"]
-                except:
+                except KeyError:
                     attributes["waste"] = 0
                 try:
                     attributes["badput"] = elements["Lasted"] - elements["JobsGoodput"]
-                except:
+                except KeyError:
                     attributes["badput"] = 0
                 attributes["validation"] = 0
                 attributes["idle"] = 0
@@ -546,12 +544,12 @@ Glidein log analysis for frontend %s - %s
                     if a not in entry_data_all_frontends[period][entry]:
                         try:
                             entry_data_all_frontends[period][entry][a] = data[period][frontend][entry][a]
-                        except:
+                        except KeyError:
                             entry_data_all_frontends[period][entry][a] = 0
                     else:
                         try:
                             entry_data_all_frontends[period][entry][a] += data[period][frontend][entry][a]
-                        except:
+                        except KeyError:
                             entry_data_all_frontends[period][entry][a] = 0
 
     ######################################################################

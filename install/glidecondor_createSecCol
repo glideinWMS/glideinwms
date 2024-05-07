@@ -3,9 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This tool creates the configuration file containing
-#   the secondary collectors
+"""This tool creates the configuration file containing the secondary collectors"""
 
 
 import os
@@ -133,7 +131,7 @@ def parse_args(args):
     try:
         port_min = int(port_range_arr[0])
         port_max = int(port_range_arr[1])
-    except:
+    except Exception:
         print("Invalid port range '%s', not numbers" % port_range_str)
         usage()
         sys.exit(1)
