@@ -11,6 +11,7 @@ Changes since the last release
 
 -   Apptainer cache and temporary directory set in the Glidein working directory (Issue #403, PR #404)
 -   Ability to set a minimum required memory for partitionable Glideins. The default is the value used previously, 2500 MB (Issue #405, PR #406)
+-   Blackhole Detection: stop accepting jobs if they are consumed at a rate higher than the configured limit and declare the Glidein a blackhole (Issue #331, PR #399)
 
 ### Changed defaults / behaviours
 
