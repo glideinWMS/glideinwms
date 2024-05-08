@@ -28,6 +28,8 @@ Changes since the last release
 
 ### Testing / Development
 
+-   Added Ruff to the linters in pre-commit and fixed all the flagged errors (PR #407)
+
 ### Known Issues
 
 ## v3.10.6 \[2024-01-25\]
