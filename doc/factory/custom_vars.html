@@ -2639,32 +2639,32 @@ MAX_STARTD_LOG          I       10000000        +                               
             </td>
           </tr>
           <tr>
-            <td><b>APPTAINER_CACHEDIR</b> b>SINGULARITY_CACHEDIR</b></td>
+            <td><b>APPTAINER_CACHEDIR</b> <b>SINGULARITY_CACHEDIR</b></td>
             <td>String</td>
             <td>$GLIDEIN_LOCAL_TMP_DIR/apptainer/cache</td>
             <td>Frontend Factory</td>
             <td>
               <p>
-                Set to control where Apptainer and singularity place their
-                cache directory, default (only if the variable is unset, not if it is set
-                and empty) is $GLIDEIN_LOCAL_TMP_DIR/apptainer/cache.
-                Note that you can set any Apptainer/Singularity variable to
-                affect their behavior.
+                Set to control where Apptainer and singularity place their cache
+                directory, default (only if the variable is unset, not if it is
+                set and empty) is $GLIDEIN_LOCAL_TMP_DIR/apptainer/cache. Note
+                that you can set any Apptainer/Singularity variable to affect
+                their behavior.
               </p>
             </td>
           </tr>
           <tr>
-            <td><b>APPTAINER_CACHEDIR</b> b>SINGULARITY_CACHEDIR</b></td>
+            <td><b>APPTAINER_CACHEDIR</b> <b>SINGULARITY_CACHEDIR</b></td>
             <td>String</td>
             <td>$GLIDEIN_LOCAL_TMP_DIR/apptainer/tmp</td>
             <td>Frontend Factory</td>
             <td>
               <p>
-                Set to control where Apptainer and singularity place their
-                temp directory, default (only if the variable is unset, not if it is set
-                and empty) is $GLIDEIN_LOCAL_TMP_DIR/apptainer/tmp.
-                If set to null (""), Apptainer will search in /tmp and $TMPDIR.
-             </p>
+                Set to control where Apptainer and singularity place their temp
+                directory, default (only if the variable is unset, not if it is
+                set and empty) is $GLIDEIN_LOCAL_TMP_DIR/apptainer/tmp. If set
+                to null (""), Apptainer will search in /tmp and $TMPDIR.
+              </p>
             </td>
           </tr>
           <tr>
@@ -3129,27 +3129,27 @@ MAX_STARTD_LOG          I       10000000        +                               
           will help to recognise this event. Whenever too many jobs complete too
           quickly and both variables are matched, the glidein will retire and
           add all the preventive measures to avoid blackhole effects (e.g.
-          holding the node for an additional 20min) like when tests are failing.
-          The two variables are:
+          holding the node for an additional 20 minutes) like when tests are
+          failing. The two attributes are:
         </p>
         <ul>
           <li>
             GLIDEIN_BLACKHOLE_NUMJOBS (int): Number of jobs limit allowed to
-            complete very quickly. The flag will be raise when corresponding
-            stats are equal or greater than this variable.
+            complete very quickly. The glidein will be flagged as a blackhole
+            when corresponding stats are equal or greater than this variable.
           </li>
           <li>
-            GLIDEIN_BLACKHOLE_RATE(int): Number of jobs divided by time - in
-            seconds, to be completed. The flag will be raise when corresponding
-            stats are lower than 1/ GLIDEIN_BLACKHOLE_RATE.
+            GLIDEIN_BLACKHOLE_RATE (int): Number of jobs divided by time - in
+            seconds, to be completed. The glidein will be flagged as a blackhole
+            when corresponding stats are lower than 1/GLIDEIN_BLACKHOLE_RATE.
           </li>
           <p>
-            We strongly recommend to set these two variables attributes to True
+            We strongly recommend to set these two attributes to True
             (parameter, glidein_publish and job_publish). This way both
-            attributes will be available in the condor_startd and glideinclient
+            attributes will be available in the condor_startd and glideclient
             ClassAd, in the glidein condor_configuration and in the user job's
             environment. Moreover, there is an internal (and dynamic) variable
-            named GLIDEIN_BLACKHOLE(boolean), which will be TRUE when it detect
+            named GLIDEIN_BLACKHOLE (boolean), which will be TRUE when it detect
             that stats from the STARTD beat these two variables as explained
             previously. For more information, check the condor vars list. The
             stats are coming from two probes that will generate 16 attributes in

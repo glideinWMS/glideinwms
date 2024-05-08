@@ -43,12 +43,6 @@ metrics=""
 # put in place a reasonable default
 GLIDEIN_CPUS=1
 
-# Blackhole variables coming from Frontend configuration (GLIDEIN_BLACKHOLE_NUMJOBS and GLIDEIN_BLACKHOLE_RATE)
-# and from the condor_vars.lst (GLIDEIN_BLACKHOLE, dynamic variable)
-glidein_blackhole_numjobs= "$(gconfig_get GLIDEIN_BLACKHOLE_NUMJOBS "$config_file")"
-glidein_blackhole_rate= "$(gconfig_get GLIDEIN_BLACKHOLE_RATE "$config_file")"
-glidein_blackhole= "$(gconfig_get GLIDEIN_BLACKHOLE "$config_file")"
-
 # first of all, clean up any CONDOR variable
 condor_vars=$(env |awk '/^_[Cc][Oo][Nn][Dd][Oo][Rr]_/{split($1,a,"=");print a[1]}')
 for v in $condor_vars; do
@@ -76,6 +70,11 @@ add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$config_file" | cu
 # shellcheck source=add_config_line.source
 . "$add_config_line_source"
 error_gen=$(gconfig_get ERROR_GEN_PATH "$config_file")
+
+# Read the knobs coming from the frontend configuration for blackhole detection (GLIDEIN_BLACKHOLE_NUMJOBS and GLIDEIN_BLACKHOLE_RATE)
+# and from the condor_vars.lst (GLIDEIN_BLACKHOLE, dynamic variable)
+glidein_blackhole_numjobs="$(gconfig_get GLIDEIN_BLACKHOLE_NUMJOBS "$config_file")"
+glidein_blackhole_rate="$(gconfig_get GLIDEIN_BLACKHOLE_RATE "$config_file")"
 
 glidein_startup_pid=$(gconfig_get GLIDEIN_STARTUP_PID "$config_file")
 # DO NOT USE PID FOR DAEMON NAMES
@@ -457,6 +456,8 @@ exec "$GLIDEIN_WRAPPER_EXEC"
 EOF
 chmod a+x "$condor_job_wrapper"
 
+# read the value of GLIDEIN_BLACKHOLE variable from condor_config (serves as the default value for this variable)
+glidein_blackhole=$(grep -i "^GLIDEIN_BLACKHOLE=" "$CONDOR_CONFIG" | awk -F"=" '{print $2}')
 
 now=$(date +%s)
 # If not an integer reset to 0 (a string could cause errors [#7899])
@@ -663,7 +664,7 @@ MASTER_NAME = glidein_${glidein_startup_pid}_${random_name_str}
 STARTD_NAME = glidein_${glidein_startup_pid}_${random_name_str}
 
 #Stats that make detection of black-hole slots
-STARTD.STATISTICS_TO_PUBLISH_LIST = $(STATISTICS_TO_PUBLISH_LIST) JobBusyTime JobDuration
+STARTD.STATISTICS_TO_PUBLISH_LIST = \$(STATISTICS_TO_PUBLISH_LIST) JobBusyTime JobDuration
 
 #This can be used for locating the proper PID for monitoring
 GLIDEIN_PARENT_PID = $$
@@ -759,7 +760,7 @@ EOF
         # glidein_disk empty is the same as auto, used in the slot_type definitions
         glidein_disk=$(gconfig_get GLIDEIN_DISK "$config_file")
         # set up the slots based on the slots_layout entry parameter
-	slots_layout=$(gconfig_get SLOTS_LAYOUT "$config_file")
+	    slots_layout=$(gconfig_get SLOTS_LAYOUT "$config_file")
         if [[ "X$slots_layout" = "Xpartitionable" ]]; then
             echo "NUM_SLOTS = 1" >> "$CONDOR_CONFIG"
             echo "SLOT_TYPE_1 = cpus=\$(GLIDEIN_CPUS) ${glidein_disk:+disk=${glidein_disk}}" >> "$CONDOR_CONFIG"
@@ -767,23 +768,25 @@ EOF
             echo "SLOT_TYPE_1_PARTITIONABLE = True" >> "$CONDOR_CONFIG"
             num_slots_for_shutdown_expr=1
             #Blackhole calculation based on the parent startd stats (child slots will have the same stats).
-            echo "STARTD_PARTITIONABLE_SLOT_ATTRS = RecentJobBusyTimeAvg, RecentJobBusyTimeCount" >> "$CONDOR_CONFIG"
-            echo "BLACKHOLE_TRIGGERED_P = (RecentJobBusyTimeAvg < (1/\$(glidein_blackhole_rate))) && (RecentJobBusyTimeCount >= \$(glidein_blackhole_numjobs))" >> "$CONDOR_CONFIG"
+            echo "STARTD_LATCH_EXPRS = GLIDEIN_BLACKHOLE" >> "$CONDOR_CONFIG"
+            echo "BLACKHOLE_TRIGGERED_P = (RecentJobBusyTimeAvg < (1.0/\$(glidein_blackhole_rate))) && (RecentJobBusyTimeCount >= \$(glidein_blackhole_numjobs))" >> "$CONDOR_CONFIG"
             echo "GLIDEIN_BLACKHOLE = \$(glidein_blackhole) || ifThenElse(isUndefined(\$(BLACKHOLE_TRIGGERED_P)), False, \$(BLACKHOLE_TRIGGERED_P))" >> "$CONDOR_CONFIG"
-            echo "STARTD_ATTRS = GLIDEIN_BLACKHOLE, glidein_blackhole_numjobs, glidein_blackhole_rate" >> "$CONDOR_CONFIG"
+            echo "STARTD_ATTRS = \$(STARTD_ATTRS), GLIDEIN_BLACKHOLE, glidein_blackhole_numjobs, glidein_blackhole_rate" >> "$CONDOR_CONFIG"
+            echo "START = (\$(START)) && (\$(GLIDEIN_BLACKHOLE) =?= False)" >> "$CONDOR_CONFIG"
         else
             # fixed slot
-	    [[ -n "$glidein_disk" ]] && glidein_disk=$(unit_division $glidein_disk $GLIDEIN_CPUS)
+	        [[ -n "$glidein_disk" ]] && glidein_disk=$(unit_division $glidein_disk $GLIDEIN_CPUS)
             echo "SLOT_TYPE_1 = cpus=1 ${glidein_disk:+disk=${glidein_disk}}" >> "$CONDOR_CONFIG"
             echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
             num_slots_for_shutdown_expr=$GLIDEIN_CPUS
             #Blackhole calculation based on the startd stats for fixed slots
-            echo "STARTD_SLOT_ATTRS = RecentJobBusyTimeAvg, RecentJobBusyTimeCount" >> "$CONDOR_CONFIG"
+            echo "STARTD_LATCH_EXPRS = GLIDEIN_BLACKHOLE" >> "$CONDOR_CONFIG"
             for I in `seq 1 $num_slots_for_shutdown_expr`; do
                 cat >> "$CONDOR_CONFIG" <<EOF
-BLACKHOLE_TRIGGERED_${I} = (Slot${I}_RecentJobBusyTimeAvg < (1/\$(glidein_blackhole_rate))) && (Slot${I}_RecentJobBusyTimeCount >= \$(glidein_blackhole_numjobs))
+BLACKHOLE_TRIGGERED_${I} = (RecentJobBusyTimeAvg < (1.0/\$(glidein_blackhole_rate))) && (RecentJobBusyTimeCount >= \$(glidein_blackhole_numjobs))
 GLIDEIN_BLACKHOLE = \$(glidein_blackhole) || ifThenElse(isUndefined(\$(BLACKHOLE_TRIGGERED_${I})), False, \$(BLACKHOLE_TRIGGERED_${I}))
-STARTD_ATTRS = GLIDEIN_BLACKHOLE,  glidein_blackhole_numjobs, glidein_blackhole_rate
+STARTD_ATTRS = \$(STARTD_ATTRS), GLIDEIN_BLACKHOLE, glidein_blackhole_numjobs, glidein_blackhole_rate
+START = (\$(START)) && (\$(GLIDEIN_BLACKHOLE) =?= False)
 EOF
             done
         fi
