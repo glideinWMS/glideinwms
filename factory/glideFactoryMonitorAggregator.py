@@ -812,12 +812,14 @@ def writeLogSummaryRRDs(fe_dir, status_el):
 
 
 def aggregateRRDStats(log=logSupport.log):
-    """
-    Create an aggregate of RRD stats, write it files
+    """Create an aggregate of RRD stats, write it files
+
+    Args:
+        log (logging.Logger): logger to use
     """
 
     global monitorAggregatorConfig
-    # not-used, no side effect: factoryStatusData = glideFactoryMonitoring.FactoryStatusData()
+    # not-used, no side effect. Leave in case want to add more monitoring: factoryStatusData = glideFactoryMonitoring.FactoryStatusData()
     rrdstats_relname = glideFactoryMonitoring.RRD_LIST
     tab = xmlFormat.DEFAULT_TAB
 

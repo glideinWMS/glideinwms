@@ -150,7 +150,6 @@ class TestFactoryConfig(unittest.TestCase):
         self.assertEqual(expected, cldr)
 
     def test_get_client_proxies_dir(self):
-        # entry_name = "entry_name"
         username = "username"
         submit_dir = "submit_dir"
         log_base_dir = "log_base_dir"

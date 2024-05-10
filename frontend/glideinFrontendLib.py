@@ -274,9 +274,7 @@ def countMatch(
     # keys: are site indexes(numbers)
     # elements: number of real idle jobs associated with each site
     new_out_counts = {}
-    # glideindex = 0
 
-    #
     # To speed up dictionary lookup
     # we will convert Schedd_Name#ClusterId.ProcID into a number
     # Since we have to convert a 3 dimensional entity into a linear number

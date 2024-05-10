@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Ggeneral purpose XML formatter
+"""General purpose XML formatter
 
 #########################################################################################
 #

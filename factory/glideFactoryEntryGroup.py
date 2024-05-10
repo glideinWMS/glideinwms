@@ -161,9 +161,8 @@ def find_work(factory_in_downtime, glideinDescript, frontendDescript, group_name
 
 
 def log_work_info(work, key=""):
-    # keylogstr = ""
     if key.strip() != "":
-        logSupport.log.info("Work tasks grouped by entries using %s factory key" % (key))
+        logSupport.log.info(f"Work tasks grouped by entries using {key} factory key")
     else:
         logSupport.log.info("Work tasks grouped by entries")
 

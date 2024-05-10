@@ -29,7 +29,9 @@ from . import defaults
 
 
 def passphrase_callback(v: bool, prompt1: str = "Enter passphrase:", prompt2: str = "Verify passphrase:"):
+    # Example callback (uncomment for manual testing)
     # str3 = prompt1 + prompt2
+    # return str3  # Optional return
     pass
 
 
