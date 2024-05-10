@@ -30,6 +30,7 @@ Changes since the last release
 ### Testing / Development
 
 -   Added Ruff to the linters in pre-commit and fixed all the flagged errors (PR #407)
+-   Switched GitHub actions from SL7 to AlmaLinux9 and OSG23 (PR #408)
 
 ### Known Issues
 

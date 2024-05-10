@@ -9,6 +9,9 @@ import subprocess
 import shutil
 import platform
 
+# platform.linux_distribution() was deprecated in 3.5 and removed in 3.8
+# distro.linux_distribution() is a drop-in replacement but is deprecated and will be removed in distro 2.0
+# The recommendation is to use distro.id(), distro.version(), distro.name()
 try:
     import distro  # pylint: disable=import-error
 except ImportError:
@@ -75,9 +78,13 @@ class Release:
             raise Exception("Unsupported OS: %s" % platform.system())
         el_string = "el"
         if distro:
-            distname, version, id = distro.linux_distribution()
+            # Deprecated - distname, version, id = distro.linux_distribution()
+            distname = distro.name()  # If full_distribution_name is false, the result of distro.id()
+            version = distro.version()
+            id = distro.codename()
         else:
-            distname, version, id = platform.linux_distribution()
+            # TODO: remove the else branch once Py3.6 is no more supported
+            distname, version, id = platform.linux_distribution()  # pylint: disable=no-member
         distmap = {"Fedora": "fc", "Scientific Linux": "el", "Red Hat": "el", "CentOS Stream": "el"}
         dist = None
         for d in distmap:

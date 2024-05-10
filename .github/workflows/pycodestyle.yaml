@@ -27,7 +27,7 @@ jobs:
     # job fails if a step fails (unless continue-on-error is in the step)
     steps:
       - name: Download previous pycodestyle warnings count
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         id: download
         with:
           name: pycodestyle # includes a file pycodestyle-warnings.txt
@@ -53,7 +53,7 @@ jobs:
           git checkout --progress --force -B ${BRANCH} refs/remotes/origin/${BRANCH}
         id: sparse-checkout
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: "glideinwms"
         id: checkout
@@ -63,7 +63,7 @@ jobs:
       #          python-version: '3.6' # was 3.x, Version range or exact version of a Python version to use, using SemVer's version range syntax
       #          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
       - name: pycodestyle action step
-        uses: ./.github/actions/pycodestyle-in-sl7-docker
+        uses: ./.github/actions/pycodestyle-in-docker
         id: pycodestyle
       - name: Check pycodestyle results
         id: pycodestyle_check
@@ -91,13 +91,13 @@ jobs:
           $test_ok
       - name: Upload pycodestyle warnings count if improved
         if: steps.pycodestyle_check.outputs.warnings_updated == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pycodestyle
           path: pycodestyle-warnings.txt
       - name: Archive reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: reports
           path: |

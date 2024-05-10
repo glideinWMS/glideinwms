@@ -505,7 +505,9 @@ def endDowntime(fname, end_time=None, entry="All", frontend="All", security_clas
             if arr[1] != "None":
                 cur_end_time = timeConversion.extractISO8601_Local(arr[1])
             # logic short circuit guarantees that cur_end_time is defined (arr[1] != 'None')
-            if arr[1] == "None" or ((cur_start_time < int(time.time())) and (cur_end_time > end_time)):
+            if arr[1] == "None" or (
+                (cur_start_time < int(time.time())) and (cur_end_time > end_time)  # pylint: disable=E0606
+            ):
                 # open period -> close
                 outlines.append("%-30s %-30s" % (arr[0], timeConversion.getISO8601_Local(end_time)))
                 if len(arr) > 2:

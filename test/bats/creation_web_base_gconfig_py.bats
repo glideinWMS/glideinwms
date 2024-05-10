@@ -78,6 +78,9 @@ EOF
 
 @test "Test gconfig get w/ python2" {
     PYTHON=python2
+    if ! $PYTHON --version >/dev/null; then
+        skip "No python2 ($PYTHON). Skipping gconfig get w/ python2"
+    fi
     # Without variable
     run $PYTHON "$gconfig_path" get ATTR
     echo "Test 00 ($($PYTHON "$gconfig_path" get ATTR))("$output")" >&3

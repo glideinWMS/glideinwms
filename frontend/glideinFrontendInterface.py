@@ -445,9 +445,8 @@ class Credential:
             if "notAfter=" in time_list[0]:
                 time_str = time_list[0].split("=")[1].strip()
                 timeleft = calendar.timegm(time.strptime(time_str, "%b %d %H:%M:%S %Y %Z")) - int(time.time())
-            return timeleft
-        else:
-            return -1
+                return timeleft
+        return -1
 
     def renew(self):
         """
@@ -1383,7 +1382,7 @@ def writeTypedClassadAttrToFile(fd, attr_name, attr_value):
     """
     Given the FD, type check the value and write the info the classad file
     """
-    if isinstance(attr_value, (int, int, float)):
+    if isinstance(attr_value, (int, float)):
         # don't quote numeric values
         fd.write(f"{attr_name} = {attr_value}\n")
     else:

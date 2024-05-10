@@ -530,7 +530,7 @@ class CondorQuery(StoredQuery):
                 # format_str is defined because full_xml False means (format_list is not None)
                 xml_data = condorExe.exe_cmd(
                     self.exe_name,
-                    f"{self.resource_str} {format_str} -xml {self.pool_str} {constraint_str}",
+                    f"{self.resource_str} {format_str} -xml {self.pool_str} {constraint_str}",  # pylint: disable=E0606
                     env=self.env,
                 )
         finally:

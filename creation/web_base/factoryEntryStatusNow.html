@@ -884,9 +884,9 @@ SPDX-License-Identifier: Apache-2.0
             ) {
               document
                 .getElementsByTagName("div")
-                [
-                  index
-                ].removeChild(document.getElementsByTagName("div")[index].firstChild);
+                [index].removeChild(
+                  document.getElementsByTagName("div")[index].firstChild,
+                );
             }
             /* REMOVE ALL CHILDNODES (PARAM TABLE) */
             while (
@@ -894,9 +894,9 @@ SPDX-License-Identifier: Apache-2.0
             ) {
               document
                 .getElementsByTagName("div")
-                [
-                  index + 1
-                ].removeChild(document.getElementsByTagName("div")[index + 1].firstChild);
+                [index + 1].removeChild(
+                  document.getElementsByTagName("div")[index + 1].firstChild,
+                );
             }
             index++;
           }
@@ -927,9 +927,9 @@ SPDX-License-Identifier: Apache-2.0
             ) {
               document
                 .getElementsByTagName("div")
-                [
-                  index
-                ].removeChild(document.getElementsByTagName("div")[index].firstChild);
+                [index].removeChild(
+                  document.getElementsByTagName("div")[index].firstChild,
+                );
             }
             /* REMOVE ALL CHILDNODES (PARAM TABLE) */
             while (
@@ -937,9 +937,9 @@ SPDX-License-Identifier: Apache-2.0
             ) {
               document
                 .getElementsByTagName("div")
-                [
-                  index + 1
-                ].removeChild(document.getElementsByTagName("div")[index + 1].firstChild);
+                [index + 1].removeChild(
+                  document.getElementsByTagName("div")[index + 1].firstChild,
+                );
             }
             index++;
           }
