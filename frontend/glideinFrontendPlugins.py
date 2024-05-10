@@ -291,7 +291,6 @@ class ProxyUserRR:
 
         # users changed
         removed_users = old_users_set - new_users_set
-        # added_users = new_users_set - old_users_set
 
         if len(removed_users) > 0:
             self.shuffle_proxies(len(removed_users))
@@ -328,7 +327,6 @@ class ProxyUserRR:
         if the file does not exist, create a new config_data
         """
         if not os.path.isfile(self.config_fname):
-            # nr_proxies = len(self.proxy_list)
             self.config_data = {"users_set": set(), "proxy_list": self.proxy_list}
         else:
             self.config_data = util.file_pickle_load(self.config_fname)
@@ -530,12 +528,10 @@ class ProxyUserMapWRecycling:
             user_map = self.config_data["user_map"]
 
             # need to iterate, since not indexed by proxy name
-            # keys = list(user_map.keys())
             for type in list(user_map.keys()):
                 for trust_domain in list(user_map[type].keys()):
                     for k in list(user_map[type][trust_domain].keys()):
                         el = user_map[type][trust_domain][k]
-                        # el_proxy = el["proxy"]
                         el_proxyname = el["proxy"].filename
                         found = False
                         for p in self.proxy_list:

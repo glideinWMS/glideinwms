@@ -508,7 +508,6 @@ class Entry:
 
         self.loadContext()
 
-        # classads = {}
         trust_domain = self.jobDescript.data["TrustDomain"]
         auth_method = self.jobDescript.data["AuthMethod"]
         pub_key_obj = self.glideinDescript.data["PubKeyObj"]

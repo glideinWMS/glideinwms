@@ -367,7 +367,8 @@ def extractLogData(fname):
                     validation_duration = int(validate_re.group("secs"))
                 except (ValueError, TypeError):
                     validation_duration = None
-                # bux_idx = validate_re.end() + 1
+                # Continue search after validate RE
+                buf_idx = validate_re.end() + 1
 
             start_re = ELD_RC_CONDOR_START.search(buf, buf_idx)
             if start_re is not None:
@@ -417,7 +418,8 @@ def extractLogData(fname):
                     num_activations = int(activations_re.group("nr"))
                 except (ValueError, TypeError):
                     num_activations = None
-                # bux_idx = activations_re.end() + 1
+                # Continue search after activations RE
+                buf_idx = activations_re.end() + 1
             else:
                 num_activations = None
 
@@ -427,7 +429,8 @@ def extractLogData(fname):
                     glidein_duration = int(glidein_end_re.group("secs"))
                 except (ValueError, TypeError):
                     glidein_duration = None
-                # bux_idx = glidein_end_re.end() + 1
+                # Continue search after glidein_end RE
+                buf_idx = glidein_end_re.end() + 1
             else:
                 glidein_duration = None
 

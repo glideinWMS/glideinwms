@@ -843,7 +843,6 @@ class MultiAdvertizeWork:
         else:
             nr_credentials = 0
 
-        # nr_good_credentials = nr_credentials
         for i in range(nr_credentials):
             cred_el = self.x509_proxies_data[i]
             cred_el.advertize = True

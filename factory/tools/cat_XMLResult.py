@@ -57,14 +57,14 @@ def main(args):
             sys.stderr.write("%s\n" % USAGE)
             sys.exit(1)
 
-        for l in out.split("\n"):  # noqa: E741
-            if raw_out and (l[:2] == "<?"):
+        for line in out.split("\n"):
+            if raw_out and (line[:2] == "<?"):
                 # skip comments for raw output
                 continue
-            if l[:15] == "<OSGTestResult ":
+            if line[:15] == "<OSGTestResult ":
                 # insert file name
-                l = l[:15] + ('logname="%s" ' % fname) + l[15:]  # noqa: E741
-            print(l)
+                line = line[:15] + ('logname="%s" ' % fname) + line[15:]
+            print(line)
     else:
         # multiple files, combine in a set
         xmls = []

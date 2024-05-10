@@ -1192,7 +1192,7 @@ def populate_common_descript(descript_dict, params):
 def validate_credential_type(cred_type):
     mutually_exclusive = {"grid_proxy", "cert_pair", "key_pair", "username_password", "auth_file"}
     types_set = set(cred_type.split("+"))
-    common_types = mutually_exclusive.intersection(types_set)  # noqa: F841  # used in temporarly commented code below
+    common_types = mutually_exclusive.intersection(types_set)  # noqa: F841  # used in temporarily commented code below
 
     # turn this off temporarily while we figure out how to include tokens
     # in auth_file with grid_proxy

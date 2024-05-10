@@ -96,7 +96,7 @@ class TestCounterWrapper(unittest.TestCase):
 
 class TestGlideinFrontendElement(unittest.TestCase):
     def setUp(self):
-        parent_pid = 0  # noqa: F841  # used in temporarly commented code
+        parent_pid = 0  # noqa: F841  # used in temporarily commented code
         work_dir = "fixtures/frontend"
         group_name = "group1"
         action = "yada yada"
