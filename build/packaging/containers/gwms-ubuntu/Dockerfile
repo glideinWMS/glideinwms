@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Selecting Ubuntu 18:04 as the base OS, current default in GitHub (evaluate switching to 20.04)
-FROM ubuntu:18.04
+# Selecting Ubuntu 22.04 as the base OS, current default in GitHub
+FROM ubuntu:22.04
 MAINTAINER The GlideinWMS team "glideinwms-support@fnal.gov"
-LABEL description="This is custom Docker Image for running GitHub actions locally"
+LABEL description="Custom Docker Image for running GitHub actions locally"
 
 # Install the required packages to be a runner for GitHub actions
 # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu1804-README.md
@@ -52,4 +52,4 @@ CMD ["/bin/bash"]
 
 # build info
 RUN echo "Source: glideinwms/gwms-actions" > /image-source-info.txt
-RUN echo "Timestamp:" `date --utc` | tee /image-build-info.txt
+RUN echo "Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" | tee /image-build-info.txt

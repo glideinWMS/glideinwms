@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+name: "BATS Tests"
+description: "Run BATS tests in preconfigured GlideinWMS CI AlmaLinux9 docker image"
+runs:
+  using: "docker"
+  image: "docker://glideinwms/gwms-ci-el9"
+  entrypoint: "/gha_ci_runner.sh"
+  args: ["bats", "runtest", "-vi", "bats", "-a", "-k", "1200"]

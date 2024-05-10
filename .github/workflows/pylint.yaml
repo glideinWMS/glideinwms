@@ -28,16 +28,16 @@ jobs:
           git checkout --progress --force -B ${BRANCH} refs/remotes/origin/${BRANCH}
         id: sparse-checkout
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: "glideinwms"
         id: checkout
       - name: pylint action step
-        uses: ./.github/actions/pylint-in-sl7-docker
+        uses: ./.github/actions/pylint-in-docker
         id: pylint
       - name: Archive reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: reports
           path: logs.tar.bz2

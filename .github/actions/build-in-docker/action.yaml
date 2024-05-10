@@ -2,9 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 name: "RPM Build"
-description: "Build RPMs in preconfigured SL7 docker image"
+description: "Build RPMs in preconfigured docker image"
 runs:
   using: "docker"
   image: "Dockerfile"
+  #image: "docker://glideinwms/gwms-ci-el9"
+  #entrypoint: "entrypoint.sh"
   #Need to add the following to the docker-run invocation not to fail mock:
   #options: --cap-add=SYS_ADMIN

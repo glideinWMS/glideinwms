@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-FROM glideinwms/gwms-ci-sl7
+FROM glideinwms/gwms-ci-el9
 COPY entrypoint.sh /entrypoint.sh
 RUN groupadd -g 500 glideinwms-ci
 RUN useradd -u 500 -g 500 glideinwms-ci

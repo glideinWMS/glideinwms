@@ -376,20 +376,12 @@ class SymAES256Key(ParametrizedSymKey):
         ParametrizedSymKey.__init__(self, "aes_256_cbc", key_str, iv_str, key_iv_code)
 
 
-class SymBlowfishKey(ParametrizedSymKey):
-    def __init__(self, key_str=None, iv_str=None, key_iv_code=None):
-        ParametrizedSymKey.__init__(self, "bf_cbc", key_str, iv_str, key_iv_code)
-
-
 class Sym3DESKey(ParametrizedSymKey):
     def __init__(self, key_str=None, iv_str=None, key_iv_code=None):
         ParametrizedSymKey.__init__(self, "des3", key_str, iv_str, key_iv_code)
 
 
-class SymDESKey(ParametrizedSymKey):
-    def __init__(self, key_str=None, iv_str=None, key_iv_code=None):
-        ParametrizedSymKey.__init__(self, "des_cbc", key_str, iv_str, key_iv_code)
-
+# Removed SymBlowfishKey, bf_cbc and SymDESKey, des_cbc, because not supported in openssl3 (EL9)
 
 # def debug_print(description, text):
 #    print "<%s>\n%s\n</%s>\n" % (description,text,description)

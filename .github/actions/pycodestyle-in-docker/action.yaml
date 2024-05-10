@@ -10,4 +10,7 @@ outputs:
     description: "Number of warning messages in pycodestyle"
 runs:
   using: "docker"
-  image: "Dockerfile"
+  # image: "Dockerfile"
+  image: "docker://glideinwms/gwms-ci-el9"
+  entrypoint: "/gha_ci_runner.sh"
+  args: ["pycodestyle", "runtest", "-vi", "pylint", "-t2", "-a"]

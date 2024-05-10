@@ -32,7 +32,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: set label
         continue-on-error: true
@@ -51,19 +51,19 @@ jobs:
           echo "DH_LABEL=$DH_LABEL-${{ steps.mkdatetag.outputs.dtag }}" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push
         id: docker_build
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           push: true
           context: build/packaging/containers
-          file: build/packaging/containers/gwms-ci-sl7/Dockerfile
-          tags: glideinwms/gwms-ci-sl7:${{env.DH_LABEL}}
+          file: build/packaging/containers/gwms-ci-el9/Dockerfile
+          tags: glideinwms/gwms-ci-el9:${{env.DH_LABEL}}

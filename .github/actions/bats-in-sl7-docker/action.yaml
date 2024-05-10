@@ -1,8 +1,0 @@
-# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
-# SPDX-License-Identifier: Apache-2.0
-
-name: "BATS Tests"
-description: "Run BATS tests in preconfigured SL7 docker image"
-runs:
-  using: "docker"
-  image: "Dockerfile"

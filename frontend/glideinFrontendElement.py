@@ -2348,16 +2348,16 @@ class glideinFrontendElement:
                     cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict, cred_id)
 
                     if st in ("TotalCores", "IdleCores", "RunningCores"):
-                        count_status_multi_per_cred[request_name][cred_id][
-                            st
-                        ] = glideinFrontendLib.countCoresCondorStatus(cred_dict, st)
+                        count_status_multi_per_cred[request_name][cred_id][st] = (
+                            glideinFrontendLib.countCoresCondorStatus(cred_dict, st)
+                        )
                     elif st == "Running":
                         # Running counts are computed differently because of
                         # the dict composition. Dict also has p-slots
                         # corresponding to the dynamic slots
-                        count_status_multi_per_cred[request_name][cred_id][
-                            st
-                        ] = glideinFrontendLib.countRunningCondorStatus(cred_dict)
+                        count_status_multi_per_cred[request_name][cred_id][st] = (
+                            glideinFrontendLib.countRunningCondorStatus(cred_dict)
+                        )
                     else:
                         count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCondorStatus(
                             cred_dict
