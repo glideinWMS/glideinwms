@@ -1707,8 +1707,8 @@ MAX_STARTD_LOG          I       10000000        +                               
             <td>
               <p>
                 This attribute represents number of jobs completed too quickly
-                before raising the blackhole detection flag. More details in
-                blackhole detection section, on the bottom of who webpage
+                before raising the black hole detection flag. More details in
+                black hole detection section, on the bottom of who webpage
                 (Lifetime of a Glidein).
               </p>
             </td>
@@ -1718,12 +1718,14 @@ MAX_STARTD_LOG          I       10000000        +                               
             <td>Int</td>
             <td>
               <p>
-                The variable indicates if the glidein have been detected as a
-                blackhole based on the stats obtained from the STARTD. The stats
-                are always the same for all slots as it’s a global statistic
-                about the whole startd. By default is False. More details in
-                blackhole detection section, on the bottom of who webpage
-                (Lifetime of a Glidein).
+                Rate at which a Glidein is flagged as a black hole and retired.
+                If a Glidein consumes more than GLIDEIN_BLACKHOLE_RATE jobs per
+                second, then it will become a black hole, and stop accepting new
+                jobs. This is a float value represented as string, i.e. string
+                type for the shell, but used as floating point number in condor
+                configuration. When undefined or set to 0.0, the black hole
+                mechanism is disabled. See the blackhole detection section below
+                (Lifetime of a Glidein) for more details.
               </p>
             </td>
           </tr>
@@ -1878,12 +1880,13 @@ MAX_STARTD_LOG          I       10000000        +                               
             <td>Expr (Bool)</td>
             <td>
               <p>
-                The variable indicates if the glidein have been detected as a
-                blackhole based on the stats obtained from the STARTD. The stats
-                are always the same for all slots as it is a global statistic
-                about the whole startd. By default is False. More details in
-                blackhole detection section, on the bottom of who webpage
-                (Lifetime of a Glidein).
+                True if the Glidein has been detected as a black hole, False
+                otherwise. The black hole condition is evaluated using
+                GLIDEIN_BLACKHOLE_NUMJOBS, GLIDEIN_BLACKHOLE_RATE, and HTCondor
+                statistics about jobs completing in the Glidein, and it affects
+                the whole Glidein (all its static or partitionable slots). See
+                the blackhole detection section below (Lifetime of a Glidein)
+                for more details.
               </p>
             </td>
           </tr>
@@ -3082,9 +3085,9 @@ MAX_STARTD_LOG          I       10000000        +                               
 
         <p>
           Note: This information above applies when normal execution. When a
-          blackhole is detected, START will evaluate to False, meaning that no
+          black hole is detected, START will evaluate to False, meaning that no
           new jobs will start and the glidein will eventually retire. For more
-          details, check out the blackhole detection section, on the bottom of
+          details, check out the black hole detection section, on the bottom of
           this webpage.
         </p>
       </div>
@@ -3122,26 +3125,27 @@ MAX_STARTD_LOG          I       10000000        +                               
         <a name="blackhole" />
         <h2>Draining glideins</h2>
         <p>
-          Sometimes a worker node passes all the tests, the glidein starts OK
+          Sometimes a worker node passes all the tests, the Glidein starts OK
           but all jobs keep failing for some internal reason (for example,
           something VO specific, not tested by the tests). In order to identify
           this case, the Frontend operator can now set up two variables which
           will help to recognise this event. Whenever too many jobs complete too
-          quickly and both variables are matched, the glidein will retire and
-          add all the preventive measures to avoid blackhole effects (e.g.
+          quickly and both variables are matched, the Glidein will retire and
+          add all the preventive measures to avoid black hole effects (e.g.
           holding the node for an additional 20 minutes) like when tests are
           failing. The two attributes are:
         </p>
         <ul>
           <li>
             GLIDEIN_BLACKHOLE_NUMJOBS (int): Number of jobs limit allowed to
-            complete very quickly. The glidein will be flagged as a blackhole
-            when corresponding stats are equal or greater than this variable.
+            complete very quickly. The glidein will be flagged as a black hole
+            when corresponding stats are equal to or greater than this variable.
           </li>
           <li>
             GLIDEIN_BLACKHOLE_RATE (int): Number of jobs divided by time - in
-            seconds, to be completed. The glidein will be flagged as a blackhole
-            when corresponding stats are lower than 1/GLIDEIN_BLACKHOLE_RATE.
+            seconds, to be completed. The Glidein will be flagged as a black
+            hole when corresponding stats are lower than
+            1/GLIDEIN_BLACKHOLE_RATE.
           </li>
           <p>
             We strongly recommend to set these two attributes to True
@@ -3153,15 +3157,14 @@ MAX_STARTD_LOG          I       10000000        +                               
             that stats from the STARTD beat these two variables as explained
             previously. For more information, check the condor vars list. The
             stats are coming from two probes that will generate 16 attributes in
-            each slot ad when enabled. Because that's a lot, they will not be
+            each slot ad when enabled (which is a lot), so they are not
             published by default. We enable them for publication by adding this
             to the configuration of execute nodes (condor_startup.sh). The
             values are available immediately if the schedd is queried directly
             (START expression, direct query from client or startd cron script).
-            The start expression is updated everytime that job starts. Note:
-            Notice that the mentioned probes were introduced in HTCondor 8.7.8,
-            so make sure you have that version or newer in order to get the
-            STARTD stats.
+            The start expression is updated everytime that job starts. Note that
+            the mentioned probes were introduced in HTCondor 8.7.8, so make sure
+            you have that version or newer in order to get the STARTD stats.
           </p>
         </ul>
       </div>
