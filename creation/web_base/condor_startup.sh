@@ -72,7 +72,6 @@ add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$config_file" | cu
 error_gen=$(gconfig_get ERROR_GEN_PATH "$config_file")
 
 # Read the knobs coming from the frontend configuration for blackhole detection (GLIDEIN_BLACKHOLE_NUMJOBS and GLIDEIN_BLACKHOLE_RATE)
-# and from the condor_vars.lst (GLIDEIN_BLACKHOLE, dynamic variable)
 glidein_blackhole_numjobs="$(gconfig_get GLIDEIN_BLACKHOLE_NUMJOBS "$config_file")"
 glidein_blackhole_rate="$(gconfig_get GLIDEIN_BLACKHOLE_RATE "$config_file")"
 
@@ -766,11 +765,8 @@ EOF
             num_slots_for_shutdown_expr=1
             #Blackhole calculation based on the parent startd stats (child slots will have the same stats).
             cat >> "$CONDOR_CONFIG" <<EOF
-STARTD_LATCH_EXPRS = GLIDEIN_BLACKHOLE
 BLACKHOLE_TRIGGERED_P = (RecentJobBusyTimeAvg < (1.0/$glidein_blackhole_rate)) && (RecentJobBusyTimeCount >= $glidein_blackhole_numjobs)
 GLIDEIN_BLACKHOLE = ifThenElse(isUndefined(\$(BLACKHOLE_TRIGGERED_P)), False, \$(BLACKHOLE_TRIGGERED_P))
-STARTD_ATTRS = \$(STARTD_ATTRS), GLIDEIN_BLACKHOLE, glidein_blackhole_numjobs, glidein_blackhole_rate
-START = (\$(START)) && (\$(GLIDEIN_BLACKHOLE) =?= False)
 EOF
         else
             # fixed slot
@@ -779,16 +775,20 @@ EOF
             echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
             num_slots_for_shutdown_expr=$GLIDEIN_CPUS
             #Blackhole calculation based on the startd stats for fixed slots
-            echo "STARTD_LATCH_EXPRS = GLIDEIN_BLACKHOLE" >> "$CONDOR_CONFIG"
             for I in `seq 1 $num_slots_for_shutdown_expr`; do
                 cat >> "$CONDOR_CONFIG" <<EOF
 BLACKHOLE_TRIGGERED_${I} = (RecentJobBusyTimeAvg < (1.0/$glidein_blackhole_rate)) && (RecentJobBusyTimeCount >= $glidein_blackhole_numjobs)
 GLIDEIN_BLACKHOLE = ifThenElse(isUndefined(\$(BLACKHOLE_TRIGGERED_${I})), False, \$(BLACKHOLE_TRIGGERED_${I}))
-STARTD_ATTRS = \$(STARTD_ATTRS), GLIDEIN_BLACKHOLE, glidein_blackhole_numjobs, glidein_blackhole_rate
-START = (\$(START)) && (\$(GLIDEIN_BLACKHOLE) =?= False)
 EOF
             done
         fi
+        cat >> "$CONDOR_CONFIG" <<EOF
+GLIDEIN_BLACKHOLE_NUMJOBS = $glidein_blackhole_numjobs
+GLIDEIN_BLACKHOLE_RATE = $glidein_blackhole_rate
+STARTD_LATCH_EXPRS = GLIDEIN_BLACKHOLE
+STARTD_ATTRS = \$(STARTD_ATTRS), GLIDEIN_BLACKHOLE, GLIDEIN_BLACKHOLE_NUMJOBS, GLIDEIN_BLACKHOLE_RATE
+START = (\$(START)) && (\$(GLIDEIN_BLACKHOLE) =?= False)
+EOF
 
 
         # check for resource slots
