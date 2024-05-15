@@ -111,7 +111,6 @@ PUBLISH_OBITUARIES      C       False           +                               
 SiteWMS_WN_Draining C   False       +   N   Y   -
 SiteWMS_WN_Preempt  C   False       +   N   Y   -
 GLIDEIN_PROVIDES    S	-			+   N	Y	+
-GLIDEIN_PROVIDES    S	-           +   N   Y   +
 GLIDEIN_BLACKHOLE   C   False       +   N   Y   +
 GLIDEIN_CONDOR_TOKEN        S   -               +   N   Y   @
 TRUST_DOMAIN                C   -               +   N   Y   @
