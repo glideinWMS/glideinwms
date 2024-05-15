@@ -72,8 +72,8 @@ add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$config_file" | cu
 error_gen=$(gconfig_get ERROR_GEN_PATH "$config_file")
 
 # Read the knobs coming from the frontend configuration for blackhole detection (GLIDEIN_BLACKHOLE_NUMJOBS and GLIDEIN_BLACKHOLE_RATE)
-glidein_blackhole_numjobs="$(gconfig_get GLIDEIN_BLACKHOLE_NUMJOBS "$config_file")"
-glidein_blackhole_rate="$(gconfig_get GLIDEIN_BLACKHOLE_RATE "$config_file")"
+glidein_blackhole_numjobs=$(gconfig_get GLIDEIN_BLACKHOLE_NUMJOBS "$config_file")
+glidein_blackhole_rate=$(gconfig_get GLIDEIN_BLACKHOLE_RATE "$config_file")
 
 glidein_startup_pid=$(gconfig_get GLIDEIN_STARTUP_PID "$config_file")
 # DO NOT USE PID FOR DAEMON NAMES
@@ -659,9 +659,6 @@ GLIDEIN_VARIABLES = $glidein_variables
 MASTER_NAME = glidein_${glidein_startup_pid}_${random_name_str}
 STARTD_NAME = glidein_${glidein_startup_pid}_${random_name_str}
 
-#Stats that make detection of black-hole slots
-STARTD.STATISTICS_TO_PUBLISH_LIST = \$(STATISTICS_TO_PUBLISH_LIST) JobBusyTime JobDuration
-
 #This can be used for locating the proper PID for monitoring
 GLIDEIN_PARENT_PID = $$
 
@@ -783,6 +780,8 @@ EOF
             done
         fi
         cat >> "$CONDOR_CONFIG" <<EOF
+#Stats that make detection of black-hole slots
+STARTD.STATISTICS_TO_PUBLISH_LIST = \$(STATISTICS_TO_PUBLISH_LIST) JobBusyTime JobDuration
 GLIDEIN_BLACKHOLE_NUMJOBS = $glidein_blackhole_numjobs
 GLIDEIN_BLACKHOLE_RATE = $glidein_blackhole_rate
 STARTD_LATCH_EXPRS = GLIDEIN_BLACKHOLE
