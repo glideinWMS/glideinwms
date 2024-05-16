@@ -6,9 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
-# ci byproducts (tox, sphinx)
+# ci byproducts (ruff, tox, sphinx)
 doc/api/code
 doc/api/html
+.ruff_cache
 .tox
 unittests/unittests-reports/
 

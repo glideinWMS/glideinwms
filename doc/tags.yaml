@@ -507,3 +507,17 @@ v3_10_6:
     - Fixed writing of missing dict files during upgrade (Issue#388, PR#391)
   NOTE-FACTORY:
     - The submit attributes (submit/submit_attrs) are now published in the glidefactory classad with the GlideinSubmit prefix followed by the attribute name and same value. If the attribute name starts with "+" this will be replaced by "_PLUS_", since only alphanumeric characters and "_" are valid in ClassAd attribute names.
+
+v3_10_7:
+  Date: January 16, 2024
+  Series: Stable
+  Tarball: false
+  Feature:
+    - Apptainer cache and temporary directory set in the Glidein working directory (Issue#403, PR#404)
+    - Ability to set a minimum required memory for partitionable Glideins. The default is the value used previously, 2500 MB (Issue#405, PR#406)
+    - Blackhole Detection. Stop accepting jobs if they are consumed at a rate higher than the configured limit and declare the Glidein a blackhole (Issue#331, PR#399)
+  Bug fix:
+    - Fixed Apptainer validation not considering uid_map w/o initial blank (Issue#395, PR#396)
+    - Flattening error message in \_CONDOR_WRAPPER_ERROR_FILE and JobWrapperFailure Ad. This is a workaround for a bug in HTCondor (PR#400)
+    - Fixed problem when check_signature in glidein_startup is not defined (PR#402)
+    - Hardening of HTCondor configuraiton. Restricted authentication to exclude unauthenticated beside anonymous (PR#401)
