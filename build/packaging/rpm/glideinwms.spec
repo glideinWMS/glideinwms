@@ -115,6 +115,7 @@ Requires: rrdtool
 # Remove the line below for the OSG 3.5 build (no python3-rrdtool there)
 Requires: python3-rrdtool
 %if 0%{?rhel} >= 8
+Requires: initscripts
 Requires: python3-m2crypto
 %else
 Requires: python36-m2crypto
@@ -254,6 +255,7 @@ Requires: python3 >= 3.6
 # Is this the same? Requires: python36-configargparse
 Requires: javascriptrrd >= 1.1.0
 %if 0%{?rhel} >= 8
+Requires: initscripts
 Requires: python3-m2crypto
 Requires: python3-requests
 Requires: python3-jwt
