@@ -26,8 +26,6 @@ IFS=$' \t\n'
 # Some sites empty PATH. Setting a reasonable default
 if [[ -z "$PATH" ]]; then
     export PATH="/bin:/usr/bin"
-elif [[ -z "$gwms_cvmfs_reexec" ]]; then
-    export PATH="/usr/sbin:$PATH"
 fi
 
 global_args="$*"
@@ -1676,7 +1674,7 @@ else
     fi
 fi
 work_dir_created=1
-export GWMS_GLIDEIN_WORK_DIR=${GLIDEIN_WORK_DIR}     # for glidein reinvocation
+export GWMS_GLIDEIN_WORK_DIR=${work_dir}     # for glidein reinvocation
 
 # GWMS_SUBDIR defined on top
 GWMS_DIR="${work_dir}/$GWMS_SUBDIR"
@@ -2068,8 +2066,6 @@ if [[ -n "$gwms_cvmfs_reexec" && "$gwms_cvmfs_reexec" == "yes" ]]; then
     # re-sourcing the helper script inside of cvmfsexec environment
     . "$work_dir"/cvmfs_helper_funcs.sh
     mount_cvmfs_repos $gwms_cvmfsexec_mode $cvmfs_config_repo $cvmfs_add_repos
-    # check if the cvmfs repos are still mounted inside of reinvocation
-    df -h
 
     # re-source all the scripts as it'd have been done during the first invocation of this script
     extract_all_data

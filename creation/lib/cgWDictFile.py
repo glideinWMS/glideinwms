@@ -463,7 +463,7 @@ def refresh_file_list(dicts, is_main, files_set_readonly=True, files_reset_chang
 # dictionaries must have been written to disk before using this
 def refresh_signature(dicts):  # update in place
     signature_dict = dicts["signature"]
-    for k in ("consts", "vars", "untar_cfg", "gridmap") + cgWConsts.FILE_LISTS_PRIORITIES + ("description"):
+    for k in ("consts", "vars", "untar_cfg", "gridmap") + cgWConsts.FILE_LISTS_PRIORITIES + ("description",):
         if k in dicts:
             signature_dict.add_from_file(dicts[k].get_filepath(), allow_overwrite=True)
     # add signatures of all the files linked in the lists
