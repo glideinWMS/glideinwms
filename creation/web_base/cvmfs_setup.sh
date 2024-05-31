@@ -115,9 +115,10 @@ if [[ $? -eq 0 ]]; then
         export GLIDEIN_WORKSPACE=$original_workspace
         export GWMS_CVMFS_REEXEC=$gwms_cvmfs_reexec
         export GWMS_CVMFSEXEC_MODE=$cvmfsexec_mode
-        export GLIDEIN_WORK_DIR="$work_dir"
+        export GWMS_GLIDEIN_WORK_DIR="$work_dir"
         export GLIDEIN_CVMFS_CONFIG_REPO="$GLIDEIN_CVMFS_CONFIG_REPO"
         export GLIDEIN_CVMFS_REPOS="$GLIDEIN_CVMFS_REPOS"
+        export PATH=$PATH
         echo "Reinvoking glidein now..."
         exec "$glidein_cvmfsexec_dir"/"$dist_file" -- "$GWMS_STARTUP_SCRIPT"
         echo "!!WARNING!! Outside of reinvocation of glidein_startup"
