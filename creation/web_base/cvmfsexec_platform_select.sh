@@ -34,12 +34,13 @@ fi
 # TODO: is it possible to reuse cvmfs_helper_funcs.sh by sourcing it during the execution of this file????
 if [[ -f '/etc/redhat-release' ]]; then
     os_distro=rhel
-    os_ver=$(cat /etc/redhat-release | cut -d " " -f 3 | awk -F'.' '{print $1}')
 else
     os_distro=non-rhel
-    os_ver=$(cat /etc/os-release | egrep "VERSION_ID" | cut -d = -f 2 | tr -d '"' | awk -F "." '{print $1}')
 fi
-
+# using os-release file to get OS-related info
+. /etc/os-release
+os_ver_full=$VERSION_ID
+os_ver=$(echo "$os_ver_full" | awk -F'.' '{print $1}')
 krnl_arch=$(arch)
 mach_type=${os_distro}${os_ver}-${krnl_arch}
 

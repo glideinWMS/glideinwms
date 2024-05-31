@@ -150,7 +150,7 @@ perform_system_check() {
         GWMS_OS_DISTRO="rhel"
         # GWMS_OS_DISTRO="non-rhel"
         #GWMS_OS_VERSION_FULL=$(cat /etc/redhat-release | cut -d " " -f 3)
-        else
+    else
         # not a rhel derivative; use /etc/os-release instead [fallback option]
         GWMS_OS_DISTRO="non-rhel"
         #GWMS_OS_VERSION_FULL=$(cat /etc/os-release | egrep "VERSION_ID" | cut -d = -f 2 | tr -d '"')
