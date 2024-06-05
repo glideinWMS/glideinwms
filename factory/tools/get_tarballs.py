@@ -126,7 +126,7 @@ class TarballManager(HTMLParser):
             if err.getcode() != 404:
                 raise
         else:
-            version = version[:-1] # -1 to remove trailing
+            version = version[:-1]  # -1 to remove trailing
             self.releases.append(version)
             self.release_dirs[version] = release_dir
             return True
