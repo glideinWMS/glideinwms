@@ -73,7 +73,7 @@ def get_vos(allowed_vos):
     return vos
 
 
-def get_bestfit_pilot(celem, resource):
+def get_bestfit_pilot(celem, resource, site):
     """Site admins did not specify a pilot section. Let's go through the resource catalog sections
     and find the pilot parameters that best fit the CE.
 
@@ -88,6 +88,8 @@ def get_bestfit_pilot(celem, resource):
     walltime = None
     cpus = None
     for osg_catalog in celem["OSG_ResourceCatalog"]:
+        if "IsPilotEntry" in osg_catalog:
+            continue
         if "AllowedVOs" in osg_catalog:
             if len(vos) == 0:
                 vos = get_vos(osg_catalog["AllowedVOs"])
@@ -109,27 +111,29 @@ def get_bestfit_pilot(celem, resource):
             else:
                 cpus = math.gcd(cpus, osg_catalog["CPUs"])
 
-    return get_entry_dictionary(resource, vos, cpus, walltime, memory)
+    return get_entry_dictionary(resource, site, vos, cpus, walltime, memory)
 
 
-def get_pilot(resource, pilot_entry):
+def get_pilot(resource, site, pilot_entry):
     """Site admins specified a pilot entry section in the OSG configure file. Prepare
     the xml pilot dictionary based on the OSG collector information
 
     Returns:
         dict: A dictionary to be used to generate the xml for this pilot entry
     """
-    vos = pilot_entry.get("AllowedVOs", set())
+    vos = get_vos(pilot_entry.get("AllowedVOs", set()))
     cpus = pilot_entry.get("CPUs", None)
     walltime = pilot_entry.get("MaxWallTime", None)
     memory = pilot_entry.get("Memory", None)
 
-    res = get_entry_dictionary(resource, vos, cpus, walltime, memory)
+    res = get_entry_dictionary(resource, site, vos, cpus, walltime, memory)
 
     if "MaxPilots" in pilot_entry:
         res["limits"] = {"entry": {"glideins": pilot_entry["MaxPilots"]}}
     if "GPUs" in pilot_entry:
         res["submit_attrs"]["Request_GPUs"] = pilot_entry["GPUs"]
+    if "queue" in pilot_entry:
+        res["submit_attrs"]["batch_queue"] = pilot_entry["queue"]
     if pilot_entry.get("RequireSingularity") is False and "OS" in pilot_entry:
         res["attrs"]["GLIDEIN_REQUIRED_OS"] = {"value": pilot_entry["OS"]}
     if "WholeNode" in pilot_entry and pilot_entry["WholeNode"]:
@@ -146,7 +150,7 @@ def get_pilot(resource, pilot_entry):
     return res
 
 
-def get_entry_dictionary(resource, vos, cpus, walltime, memory):
+def get_entry_dictionary(resource, site, vos, cpus, walltime, memory):
     """Utility function that converts some variable into an xml pilot dictionary"""
     # Assigning this to an entry dict variable to shorten the line
     edict = {}  # Entry dict
@@ -154,7 +158,7 @@ def get_entry_dictionary(resource, vos, cpus, walltime, memory):
     edict["attrs"] = {}
     edict["attrs"]["GLIDEIN_Site"] = {"value": resource}
     if resource:
-        edict["attrs"]["GLIDEIN_ResourceName"] = {"value": resource}
+        edict["attrs"]["GLIDEIN_ResourceName"] = {"value": site}
     if len(vos) > 0:
         edict["attrs"]["GLIDEIN_Supported_VOs"] = {"value": ",".join(sorted(vos))}
     edict["submit_attrs"] = {}
@@ -210,9 +214,8 @@ def get_information_internal(ces):
     entry = "DEFAULT_ENTRY"
     for celem in ces:
         if "OSG_ResourceGroup" in celem:
-            resource = celem["OSG_ResourceGroup"] or celem["OSG_Resource"]
-            # not used for now, but factory ops will add a new attribute in the future
-            site = celem["OSG_Resource"]  # noqa: F841
+            resource = celem["OSG_ResourceGroup"]
+            site = celem["OSG_Resource"]
             gatekeeper = celem["Name"].lower()
             if resource:
                 result.setdefault(resource, {})[gatekeeper] = {}
@@ -222,16 +225,16 @@ def get_information_internal(ces):
                         for osg_catalog in celem["OSG_ResourceCatalog"]
                         if osg_catalog.get("IsPilotEntry") is True
                     ]
-                    requires_bestfit = pilot_entries == []
-                    if requires_bestfit:
-                        result[resource][gatekeeper].setdefault(BEST_FIT_TAG, {})[entry] = get_bestfit_pilot(
-                            celem, resource
+#                    requires_bestfit = pilot_entries == []
+#                    if requires_bestfit:
+                    result[resource][gatekeeper].setdefault(BEST_FIT_TAG, {})[entry] = get_bestfit_pilot(
+                        celem, resource, site
+                    )
+#                    else:
+                    for pentry in pilot_entries:
+                        result[resource][gatekeeper].setdefault(pentry["Name"], {})[entry] = get_pilot(
+                            resource, site, pentry
                         )
-                    else:
-                        for pentry in pilot_entries:
-                            result[resource][gatekeeper].setdefault(pentry["Name"], {})[entry] = get_pilot(
-                                resource, pentry
-                            )
                 else:
                     print(gatekeeper + " CE does not have OSG_ResourceCatalog attribute")
             else:

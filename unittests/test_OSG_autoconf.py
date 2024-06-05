@@ -30,13 +30,47 @@ except ImportError:
 
 
 try:
-    from glideinwms.factory.tools.OSG_autoconf import create_missing_file_internal, get_information_internal
+    from glideinwms.factory.tools.OSG_autoconf import create_missing_file_internal, get_information_internal, get_pilot
     from glideinwms.lib.config_util import BEST_FIT_TAG
 except ImportError as err:
     raise TestImportError(str(err))
 
 
 class TestOSGAutoconf(unittest.TestCase):
+    def setUp(self):
+        self.input_info = [
+            {
+                "Name": "hosted-ce36.opensciencegrid.org",
+                "OSG_Resource": "AMNH-HEL",  # Currently not used, an attribute will be added in the future
+                "OSG_ResourceGroup": "AMNH",
+                "OSG_ResourceCatalog": [{"Memory": 65536, "MaxWallTime": 2880, "CPUs": 8}],
+            }
+        ]
+        self.out_data = {
+            "AMNH": {
+                "hosted-ce36.opensciencegrid.org": {
+                    BEST_FIT_TAG: {
+                        "DEFAULT_ENTRY": {
+                            "gridtype": "condor",
+                            "attrs": {
+                                "GLIDEIN_Site": {"value": "AMNH"},
+                                "GLIDEIN_CPUS": {"value": 8},
+                                "GLIDEIN_Max_Walltime": {"value": 171000},
+                                "GLIDEIN_ResourceName": {"value": "AMNH"},
+                                "GLIDEIN_MaxMemMBs": {"value": 65536},
+                            },
+                            "submit_attrs": {"+maxWallTime": 2880, "+xcount": 8, "+maxMemory": 65536},
+                        }
+                    }
+                }
+            }
+        }
+
+    def test_get_pilot(self):
+        print(get_pilot("vvv", self.input_info))
+
+
+
     def test_get_information_internal(self):
         # The infotmation as retrieved from the OSG_Collector
         info = [
