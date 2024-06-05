@@ -93,6 +93,7 @@ class TarballManager(HTMLParser):
         """
         super().__init__()
         self.releases = []
+        self.release_dirs = {}
         self.filenames = filenames
         self.release_url = release_url
         self.destination = destination
@@ -109,16 +110,34 @@ class TarballManager(HTMLParser):
             self.releases.sort(key=StrictVersion)
             self.latest_version = self.releases[-1]
 
+    def _add_release(self, version, release_dir):
+        """Internal function that downloads a release and adds it to self.releases
+
+        Args:
+          version: The condor version to download among this major release. E.g.: "23.0.1"
+          release_dir: Which release dir to look into (e.g.: "release", "update"
+
+        Returns:
+          True if successful, False if the release is not found
+        """
+        try:
+            request.urlopen(self.release_url + "/" + version + release_dir)
+        except HTTPError as err:
+            if err.getcode() != 404:
+                raise
+        else:
+            version = version[:-1] # -1 to remove trailing
+            self.releases.append(version)
+            self.release_dirs[version] = release_dir
+            return True
+        return False
+
     def handle_data(self, data):
         """Internal method. Override the base class handle_data"""
         if re.match(r"\d+\.\d+\.\d+/", data):
-            try:
-                request.urlopen(self.release_url + "/" + data + "release")
-            except HTTPError as err:
-                if err.getcode() != 404:
-                    raise
-            else:
-                self.releases.append(data[:-1])
+            added = self._add_release(data, "release")
+            if not added and data.split(".")[1] != "0":
+                self._add_release(data, "update")
 
     def download_tarballs(self, version):
         """Download a specific set of condor tarballs from the release_url link
@@ -134,7 +153,7 @@ class TarballManager(HTMLParser):
           version: The condor version to download among this major release. E.g.: "23.0.1"
         """
         desturl = os.path.join(
-            self.release_url, version, "release/"
+            self.release_url, version, self.release_dirs[version] + "/"
         )  # urljoin needs nested call and manual adding of "/".. It sucks.
         checksums = {}
         with tempfile.TemporaryDirectory() as tmp_dir:
