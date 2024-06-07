@@ -426,11 +426,11 @@ DEFRAG_WHOLE_MACHINE_EXPR = Cpus == TotalCpus && Offline=!=True
 DELEGATE_JOB_GSI_CREDENTIALS = true
 DELEGATE_JOB_GSI_CREDENTIALS_LIFETIME = 86400
 DELEGATE_JOB_GSI_CREDENTIALS_REFRESH = 0.25
-DENY_ADMINISTRATOR = anonymous@* unauthenticated@*
-DENY_CLIENT = anonymous@* unauthenticated@*
-DENY_DAEMON = anonymous@* unauthenticated@*
-DENY_NEGOTIATOR = anonymous@* unauthenticated@*
-DENY_WRITE = anonymous@* unauthenticated@*
+DENY_ADMINISTRATOR = anonymous@*
+DENY_CLIENT = anonymous@*
+DENY_DAEMON = anonymous@*
+DENY_NEGOTIATOR = anonymous@*
+DENY_WRITE = anonymous@*
 DETECTED_CORES = 1
 DETECTED_CPUS = 1
 DETECTED_MEMORY = 1858
@@ -1281,18 +1281,18 @@ CERTIFICATE_MAPFILE=/var/lib/gwms-frontend/vofrontend/frontend.mapfile
 # Specify that we trust anyone but not anonymous
 # I.e. we only talk to servers that have
 #  a DN mapped in our mapfile
-DENY_DEFAULT = anonymous@* unauthenticated@*
-DENY_ADMINISTRATOR = anonymous@* unauthenticated@*
-DENY_NEGOTIATOR = anonymous@* unauthenticated@*
-DENY_CLIENT = anonymous@* unauthenticated@*
-DENY_OWNER = anonymous@* unauthenticated@*
-DENY_READ = anonymous@* unauthenticated@*
-DENY_WRITE = anonymous@* unauthenticated@*
-DENY_DAEMON = anonymous@* unauthenticated@*
-DENY_CONFIG = anonymous@* unauthenticated@*
-DENY_ADVERTISE_MASTER = anonymous@* unauthenticated@*
-DENY_ADVERTISE_STARTD = anonymous@* unauthenticated@*
-DENY_ADVERTISE_SCHEDD = anonymous@* unauthenticated@*
+DENY_DEFAULT = anonymous@*
+DENY_ADMINISTRATOR = anonymous@*
+DENY_NEGOTIATOR = anonymous@*
+DENY_CLIENT = anonymous@*
+DENY_OWNER = anonymous@*
+DENY_READ = anonymous@*
+DENY_WRITE = anonymous@*
+DENY_DAEMON = anonymous@*
+DENY_CONFIG = anonymous@*
+DENY_ADVERTISE_MASTER = anonymous@*
+DENY_ADVERTISE_STARTD = anonymous@*
+DENY_ADVERTISE_SCHEDD = anonymous@*
 
 ALLOW_DEFAULT = *@*
 ALLOW_ADMINISTRATOR = *@*
