@@ -19,13 +19,12 @@ Added black hole detection and ability to set jobs minimum memory for resource p
 
 ### Security Related Fixes
 
--   Hardening of HTCondor configuraiton. Restricted authentication to exclude unauthenticated beside anonymous (PR #401)
-
 ### Bug Fixes
 
 -   Fixed Apptainer validation not considering uid_map w/o initial blank (Issue #395, PR #396)
 -   Flattening error message in \_CONDOR_WRAPPER_ERROR_FILE and JobWrapperFailure Ad. This is a workaround for a bug in HTCondor (PR #400)
 -   Fixed problem when check_signature in glidein_startup is not defined (PR #402)
+-   get_tarballs look for HTCondor releases also in the update directory (Issue #412, PR #413)
 
 ### Testing / Development
 
@@ -33,6 +32,8 @@ Added black hole detection and ability to set jobs minimum memory for resource p
 -   Switched GitHub actions from SL7 to AlmaLinux9 and OSG23 (PR #408)
 
 ### Known Issues
+
+-   We needed to revert PR #401, "Hardening of HTCondor configuraiton. Restricted authentication to exclude unauthenticated beside anonymous (PR #401)" because it broke authentication for normal functionalities
 
 ## v3.10.6 \[2024-01-25\]
 

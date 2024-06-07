@@ -1,8 +1,8 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_7_RC1
+# GLIDEINWMS_VERSION v3_10_7_RC2
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-1d4ec216fb487de5eb1771f3a8471667  ./CHANGELOG.md
+65bcd24bda566a20a9eaab6f82ea3817  ./CHANGELOG.md
 8e7d1957a094cc33c89f5b2c935666ff  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
@@ -54,7 +54,7 @@ a863aa7a52e48d290965fa884cfde40d  ./creation/web_base/check_blacklist.sh
 8736a986cc672dd6875f4a95224033f3  ./creation/web_base/check_wn_drainstate.sh
 18749c10ccd99d4c37bc9cb20a465561  ./creation/web_base/collector_setup.sh
 d5274316b84121e0e1adf1720a6b2429  ./creation/web_base/condor_chirp
-00096c9fc46e64b2c392bbc3f361cd42  ./creation/web_base/condor_config
+fe8e2d340388fd04275fc55c36c619ae  ./creation/web_base/condor_config
 65cbb3597c49cc41b4f562e4011b3470  ./creation/web_base/condor_config.check.include
 9f7b7baf914ac308b3135eeae6a94bef  ./creation/web_base/condor_config.dedicated_starter.include
 398ed8f77802893eb270251cc81c7443  ./creation/web_base/condor_config.monitor.include
@@ -159,7 +159,7 @@ eccf2911f4a3334d2d1830d927ecd8c6  ./factory/tools/entry_q
 3dd0fa7420b40574fc39e6336c4f1fc1  ./factory/tools/fact_chown_check
 11057620e23984e5fa0bc47d8b2d4411  ./factory/tools/find_StartdLogs.py
 dfbd50c4162b30fe8bd0d6979926e27f  ./factory/tools/find_logs.py
-4d1d200abdf57bf450f1bc92b8be1dc0  ./factory/tools/get_tarballs.py
+f45536a9bb5c7247c88b9fc89e67551f  ./factory/tools/get_tarballs.py
 025fe563c98909ed173dbe3458438ca5  ./factory/tools/gfdiff.py
 cefd2e4ede8e788db23be256c447f7e6  ./factory/tools/gwms-logcat.sh
 d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/lib/__init__.py

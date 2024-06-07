@@ -5,7 +5,7 @@ v3_10_7
 	Bug fix: Fixed Apptainer validation not considering uid_map w/o initial blank (Issue#395, PR#396)
 	Bug fix: Flattening error message in \_CONDOR_WRAPPER_ERROR_FILE and JobWrapperFailure Ad. This is a workaround for a bug in HTCondor (PR#400)
 	Bug fix: Fixed problem when check_signature in glidein_startup is not defined (PR#402)
-	Bug fix: Hardening of HTCondor configuraiton. Restricted authentication to exclude unauthenticated beside anonymous (PR#401)
+	Bug fix: get_tarballs look for HTCondor releases also in the update directory (Issue#412, PR#413)
 
 v3_10_6
 	Add knobs to allow overloading of memory, GLIDEIN_OVERLOAD_MEMORY, and CPU, GLIDEIN_OVERLOAD_CPUS. (Issue#370, PR#374)
