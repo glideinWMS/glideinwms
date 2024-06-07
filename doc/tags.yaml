@@ -520,4 +520,4 @@ v3_10_7:
     - Fixed Apptainer validation not considering uid_map w/o initial blank (Issue#395, PR#396)
     - Flattening error message in \_CONDOR_WRAPPER_ERROR_FILE and JobWrapperFailure Ad. This is a workaround for a bug in HTCondor (PR#400)
     - Fixed problem when check_signature in glidein_startup is not defined (PR#402)
-    - Hardening of HTCondor configuraiton. Restricted authentication to exclude unauthenticated beside anonymous (PR#401)
+    - get_tarballs look for HTCondor releases also in the update directory (Issue#412, PR#413)
