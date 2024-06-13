@@ -74,6 +74,11 @@ error_gen=$(gconfig_get ERROR_GEN_PATH "$config_file")
 # Read the knobs coming from the frontend configuration for blackhole detection (GLIDEIN_BLACKHOLE_NUMJOBS and GLIDEIN_BLACKHOLE_RATE)
 glidein_blackhole_numjobs=$(gconfig_get GLIDEIN_BLACKHOLE_NUMJOBS "$config_file")
 glidein_blackhole_rate=$(gconfig_get GLIDEIN_BLACKHOLE_RATE "$config_file")
+if [[ -z "$GLIDEIN_BLACKHOLE_RATE" || "$GLIDEIN_BLACKHOLE_RATE" =~ ^0(\.0*)?$ ]]; then
+    use_blackhole_prevention=false
+else
+    use_blackhole_prevention=true
+fi
 
 glidein_startup_pid=$(gconfig_get GLIDEIN_STARTUP_PID "$config_file")
 # DO NOT USE PID FOR DAEMON NAMES
@@ -753,33 +758,38 @@ EOF
         # glidein_disk empty is the same as auto, used in the slot_type definitions
         glidein_disk=$(gconfig_get GLIDEIN_DISK "$config_file")
         # set up the slots based on the slots_layout entry parameter
-	    slots_layout=$(gconfig_get SLOTS_LAYOUT "$config_file")
+        slots_layout=$(gconfig_get SLOTS_LAYOUT "$config_file")
         if [[ "X$slots_layout" = "Xpartitionable" ]]; then
             echo "NUM_SLOTS = 1" >> "$CONDOR_CONFIG"
             echo "SLOT_TYPE_1 = cpus=\$(GLIDEIN_CPUS) ${glidein_disk:+disk=${glidein_disk}}" >> "$CONDOR_CONFIG"
             echo "NUM_SLOTS_TYPE_1 = 1" >> "$CONDOR_CONFIG"
             echo "SLOT_TYPE_1_PARTITIONABLE = True" >> "$CONDOR_CONFIG"
             num_slots_for_shutdown_expr=1
-            #Blackhole calculation based on the parent startd stats (child slots will have the same stats).
-            cat >> "$CONDOR_CONFIG" <<EOF
+            # Blackhole calculation based on the parent startd stats (child slots will have the same stats).
+            if $use_blackhole_prevention; then
+                cat >> "$CONDOR_CONFIG" <<EOF
 BLACKHOLE_TRIGGERED_P = (RecentJobBusyTimeAvg < (1.0/$glidein_blackhole_rate)) && (RecentJobBusyTimeCount >= $glidein_blackhole_numjobs)
 GLIDEIN_BLACKHOLE = ifThenElse(isUndefined(\$(BLACKHOLE_TRIGGERED_P)), False, \$(BLACKHOLE_TRIGGERED_P))
 EOF
+            fi
         else
             # fixed slot
-	        [[ -n "$glidein_disk" ]] && glidein_disk=$(unit_division $glidein_disk $GLIDEIN_CPUS)
+            [[ -n "$glidein_disk" ]] && glidein_disk=$(unit_division $glidein_disk $GLIDEIN_CPUS)
             echo "SLOT_TYPE_1 = cpus=1 ${glidein_disk:+disk=${glidein_disk}}" >> "$CONDOR_CONFIG"
             echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
             num_slots_for_shutdown_expr=$GLIDEIN_CPUS
             #Blackhole calculation based on the startd stats for fixed slots
-            for I in `seq 1 $num_slots_for_shutdown_expr`; do
-                cat >> "$CONDOR_CONFIG" <<EOF
+            if $use_blackhole_prevention; then
+                for I in `seq 1 $num_slots_for_shutdown_expr`; do
+                    cat >> "$CONDOR_CONFIG" <<EOF
 BLACKHOLE_TRIGGERED_${I} = (RecentJobBusyTimeAvg < (1.0/$glidein_blackhole_rate)) && (RecentJobBusyTimeCount >= $glidein_blackhole_numjobs)
 GLIDEIN_BLACKHOLE = ifThenElse(isUndefined(\$(BLACKHOLE_TRIGGERED_${I})), False, \$(BLACKHOLE_TRIGGERED_${I}))
 EOF
-            done
+                done
+            fi
         fi
-        cat >> "$CONDOR_CONFIG" <<EOF
+        if $use_blackhole_prevention; then
+            cat >> "$CONDOR_CONFIG" <<EOF
 #Stats that make detection of black-hole slots
 STARTD.STATISTICS_TO_PUBLISH_LIST = \$(STATISTICS_TO_PUBLISH_LIST) JobBusyTime JobDuration
 GLIDEIN_BLACKHOLE_NUMJOBS = $glidein_blackhole_numjobs
@@ -788,7 +798,7 @@ STARTD_LATCH_EXPRS = GLIDEIN_BLACKHOLE
 STARTD_ATTRS = \$(STARTD_ATTRS), GLIDEIN_BLACKHOLE, GLIDEIN_BLACKHOLE_NUMJOBS, GLIDEIN_BLACKHOLE_RATE
 START = (\$(START)) && (\$(GLIDEIN_BLACKHOLE) =?= False)
 EOF
-
+        fi
 
         # check for resource slots
         # resource_name GPUs has special meaning, enables GPUs (including monitoring and autodetection if desired)
@@ -823,7 +833,7 @@ EOF
                 if [[ -z "$res_name" ]]; then
                     continue
                 fi
-		[[ "$(echo "$res_name" | tr -s '[:upper:]' '[:lower:]')" = "gpus" ]] && GPU_USE=True
+        [[ "$(echo "$res_name" | tr -s '[:upper:]' '[:lower:]')" = "gpus" ]] && GPU_USE=True
                 if [[ -z "$res_num" ]]; then
                     if [[ -n "$GPU_USE" ]]; then
                         # GPUs auto-discovery: https://htcondor-wiki.cs.wisc.edu/index.cgi/wiki?p=HowToManageGpus
