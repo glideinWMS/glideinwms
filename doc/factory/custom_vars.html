@@ -1709,13 +1709,14 @@ MAX_STARTD_LOG          I       10000000        +                               
                 This attribute represents number of jobs completed too quickly
                 before raising the black hole detection flag. More details in
                 black hole detection section, on the bottom of who webpage
-                (Lifetime of a Glidein).
+                (Lifetime of a Glidein). When defined, must be an integer bigger
+                than 0.
               </p>
             </td>
           </tr>
           <tr>
             <td><b>GLIDEIN_BLACKHOLE_RATE</b></td>
-            <td>Int</td>
+            <td>Float</td>
             <td>
               <p>
                 Rate at which a Glidein is flagged as a black hole and retired.
