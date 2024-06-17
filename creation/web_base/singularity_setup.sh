@@ -325,6 +325,11 @@ glidein_provides=$(gconfig_get GLIDEIN_PROVIDES "$glidein_config")
 # TODO: Add CONTAINERSW, GWMS_CONTAINERSW_MODE once discovery, negotiation and use are defined
 #       maybe "containersw/NAME/MODE" define use of GLIDEIN_PROVIDES. should move to dictionaries?
 advertise GLIDEIN_PROVIDES "${glidein_provides:+"$glidein_provides,"}singularity/$GWMS_SINGULARITY_MODE" "S"
+# adding system information about unprivileged user namespaces to the glidein classad
+glidein_work_dir=$(gconfig_get GLIDEIN_WORK_DIR "$glidein_config")
+. "$glidein_work_dir"/cvmfs_helper_funcs.sh
+unprivileged_user_namespaces=$(has_unpriv_userns)
+advertise HAS_UNPRIVILEGED_USER_NAMESPACES "$unprivileged_user_namespaces" "S"
 info_stdout "`date` Decided to use Singularity ($gwms_singularity_status)"
 
 "$error_gen" -ok "singularity_setup.sh"  "use_singularity" "True"
