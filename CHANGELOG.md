@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.10.7 \[2024-05-17\]
+## v3.10.7 \[2024-06-21\]
 
 Added black hole detection and ability to set jobs minimum memory for resource provisioning.
 
