@@ -509,7 +509,7 @@ v3_10_6:
     - The submit attributes (submit/submit_attrs) are now published in the glidefactory classad with the GlideinSubmit prefix followed by the attribute name and same value. If the attribute name starts with "+" this will be replaced by "_PLUS_", since only alphanumeric characters and "_" are valid in ClassAd attribute names.
 
 v3_10_7:
-  Date: January 16, 2024
+  Date: June 21, 2024
   Series: Stable
   Tarball: false
   Feature:
