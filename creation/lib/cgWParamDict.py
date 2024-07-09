@@ -297,7 +297,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts["file_list"].add_from_file(
             cvmfs_helper,
             cWDictFile.FileDictFile.make_val_tuple(
-                cWConsts.insert_timestr(cvmfs_helper), "exec", cond_download="GLIDEIN_USE_CVMFSEXEC"
+                cWConsts.insert_timestr(cvmfs_helper),
+                "exec",
             ),
             os.path.join(cgWConsts.WEB_BASE_DIR, cvmfs_helper),
         )
@@ -307,7 +308,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts["file_list"].add_from_file(
             dist_select_script,
             cWDictFile.FileDictFile.make_val_tuple(
-                cWConsts.insert_timestr(dist_select_script), "exec", cond_download="GLIDEIN_USE_CVMFSEXEC"
+                cWConsts.insert_timestr(dist_select_script),
+                "exec",
             ),
             os.path.join(cgWConsts.WEB_BASE_DIR, dist_select_script),
         )
