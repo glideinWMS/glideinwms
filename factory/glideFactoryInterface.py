@@ -211,7 +211,7 @@ def findGroupWork(
         # Any other key will not work
         status_constraint += (
             ' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined)) || (ReqPubKeyID=?=Undefined))'
-            % pub_key_obj.get_pub_key_id()
+            % pub_key_obj.pub_key_id
         )
 
     if additional_constraints is not None:
@@ -623,10 +623,10 @@ class EntryClassad(classadSupport.Classad):
         self.adParams["GlideinWMSVersion"] = factoryConfig.glideinwms_version
 
         if pub_key_obj is not None:
-            self.adParams["PubKeyID"] = "%s" % pub_key_obj.get_pub_key_id()
-            self.adParams["PubKeyType"] = "%s" % pub_key_obj.get_pub_key_type()
-            self.adParams["PubKeyValue"] = "%s" % pub_key_obj.get_pub_key_value().decode("ascii").replace("\n", "\\n")
-        if "grid_proxy" in auth_method:
+            self.adParams["PubKeyID"] = "%s" % pub_key_obj.pub_key_id
+            self.adParams["PubKeyType"] = "%s" % pub_key_obj.key_type
+            self.adParams["PubKeyValue"] = "%s" % pub_key_obj.pub_key.get().decode("ascii").replace("\n", "\\n")
+        if "grid_proxy" in auth_method:  # TODO: Check for credentials refactoring impact
             self.adParams["GlideinAllowx509_Proxy"] = "%s" % True
             self.adParams["GlideinRequirex509_Proxy"] = "%s" % True
             self.adParams["GlideinRequireGlideinProxy"] = "%s" % False
@@ -707,9 +707,9 @@ class FactoryGlobalClassad(classadSupport.Classad):
         self.adParams["UpdateSequenceNumber"] = advertizeGlobalCounter
         advertizeGlobalCounter += 1
         self.adParams["GlideinWMSVersion"] = factoryConfig.glideinwms_version
-        self.adParams["PubKeyID"] = "%s" % pub_key_obj.get_pub_key_id()
-        self.adParams["PubKeyType"] = "%s" % pub_key_obj.get_pub_key_type()
-        self.adParams["PubKeyValue"] = "%s" % pub_key_obj.get_pub_key_value().decode("ascii").replace("\n", "\\n")
+        self.adParams["PubKeyID"] = "%s" % pub_key_obj.pub_key_id
+        self.adParams["PubKeyType"] = "%s" % pub_key_obj.key_type
+        self.adParams["PubKeyValue"] = "%s" % pub_key_obj.pub_key.get().decode("ascii").replace("\n", "\\n")
 
 
 def advertizeGlobal(
