@@ -25,6 +25,7 @@ from glideinwms.frontend.glideinFrontendElement import (
     log_and_sum_factory_line,
     log_factory_header,
 )
+from glideinwms.lib.credentials import X509Cert
 from glideinwms.unittests.unittest_utils import FakeLogger
 
 LOG_DATA = []
@@ -129,7 +130,9 @@ class TestGlideinFrontendElement(unittest.TestCase):
         b_ccm = os.environ.get(v)
         v = "X509_USER_PROXY"
         b_xup = os.environ.get(v)
-        self.gfe.configure()
+        with mock.patch("glideinwms.lib.credentials.create_credential") as mock_create_credential:
+            mock_create_credential.return_value = X509Cert()
+            self.gfe.configure()
         if self.verbose:
             print("\nc.glideinFrontendElement=%s" % self.gfe)
             print("\nc.dir glideinFrontendElement=%s" % dir(self.gfe))
@@ -197,7 +200,9 @@ class TestGlideinFrontendElement(unittest.TestCase):
         assert False  # TODO: implement your test here
 
     def test_deadvertiseAllClassads(self):
-        self.gfe.configure()
+        with mock.patch("glideinwms.lib.credentials.create_credential") as mock_create_credential:
+            mock_create_credential.return_value = X509Cert()
+            self.gfe.configure()
         self.gfe.deadvertiseAllClassads()
 
     @unittest.skip("for now")

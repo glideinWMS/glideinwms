@@ -10,9 +10,24 @@ import os
 import random
 import time
 
-from glideinwms.lib import logSupport, util
+from abc import ABC, abstractmethod
+from typing import Iterable, List, Mapping, Optional, Union
 
-from . import glideinFrontendInterface, glideinFrontendLib
+from glideinwms.frontend import glideinFrontendLib
+from glideinwms.frontend.glideinFrontendInterface import AdvertizeParams
+from glideinwms.lib import logSupport, util
+from glideinwms.lib.credentials import (
+    AuthenticationSet,
+    Credential,
+    CredentialGenerator,
+    CredentialPurpose,
+    CredentialType,
+    Parameter,
+    ParameterGenerator,
+    ParameterName,
+    RequestCredential,
+    SecurityBundle,
+)
 
 ################################################################################
 #                                                                              #
@@ -41,6 +56,158 @@ from . import glideinFrontendInterface, glideinFrontendLib
 #     trust_domain will limit the returned credentials to a particular domain  #
 #                                                                              #
 ################################################################################
+
+
+# TODO: Add type annotations to this class
+class CredentialsPlugin(ABC):
+    """Base class for all credential plugins"""
+
+    def __init__(self, config_dir: str, security_bundle: SecurityBundle):
+        self.security_bundle = security_bundle
+
+    @property
+    def cred_list(self) -> List[Credential]:
+        return list(self.security_bundle.credentials.values())
+
+    @property
+    def params_dict(self) -> Mapping[ParameterName, Parameter]:
+        return self.security_bundle.parameters
+
+    def get_required_job_attributes(self):
+        """what job attributes are used by this plugin
+
+        Returns:
+            list: used job attributes, none
+        """
+        return []
+
+    def get_required_classad_attributes(self):
+        """what glidein attributes are used by this plugin
+
+        Returns:
+            list: used glidein attributes, none
+        """
+        return []
+
+    def renew_credentials(self):
+        """Renew all credentials that are generators"""
+
+        for cred in self.cred_list:
+            cred.renew()
+
+    def generate_credentials(self, **kwargs):
+        """
+        Generate all credentials that are generators
+
+        Args:
+            **kwargs: keyword arguments to be passed to the generator
+        """
+
+        for cred in self.cred_list:
+            if isinstance(cred, CredentialGenerator):
+                cred.generate(**kwargs)
+
+    def generate_parameters(self, **kwargs):
+        """
+        Generate all parameters that are generators
+
+        Args:
+            **kwargs: keyword arguments to be passed to the generator
+        """
+
+        for param in self.params_dict.values():
+            if isinstance(param, ParameterGenerator):
+                param.generate(**kwargs)
+
+    def update_usermap(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
+        return
+
+    @abstractmethod
+    def get_credentials(self, credential_type=None, trust_domain=None, credential_purpose=None) -> List[Credential]:
+        pass
+
+    @abstractmethod
+    def get_request_credentials(self) -> List[RequestCredential]:
+        pass
+
+    @abstractmethod
+    def assign_work(
+        self, req_creds: Iterable[RequestCredential], params_obj: AdvertizeParams, auth_set: AuthenticationSet
+    ):
+        pass
+
+
+class CredentialsBasic(CredentialsPlugin):
+    """This plugin returns all credentials
+
+    This is can be a very useful default policy
+    """
+
+    def get_credentials(
+        self,
+        credential_type: Optional[Union[CredentialType, List[CredentialType]]] = None,
+        trust_domain: Optional[str] = None,
+        credential_purpose: Optional[Union[CredentialPurpose, List[CredentialPurpose]]] = None,
+    ) -> List[Credential]:
+        """Get the credentials, given the condor_q and condor_status data
+
+        Args:
+            credential_type (CredentialType, List(CredentialType)): optional credential type to match with a supported auth_metod
+            trust_domain (str): optional trust domain
+            credential_purpose (CredentialPurpose, List(CredentialPurpose)): optional credential purpose
+
+        Returns:
+            list: list of credentials
+        """
+
+        if credential_type and not isinstance(credential_type, list):
+            credential_type = [credential_type]
+        if credential_purpose and not isinstance(credential_purpose, list):
+            credential_purpose = [credential_purpose]
+
+        rtnlist = []
+        for cred in self.cred_list:
+            if trust_domain and cred.trust_domain != trust_domain:
+                continue
+            if credential_type and cred.cred_type not in credential_type:
+                continue
+            if credential_purpose and cred.purpose not in credential_purpose:
+                continue
+            rtnlist.append(cred)
+        return rtnlist
+
+    def get_request_credentials(self) -> List[RequestCredential]:
+        """Get the request credentials
+
+        Returns:
+            list: list of request credentials
+        """
+        req_creds = self.get_credentials(credential_purpose=CredentialPurpose.REQUEST)
+        req_creds = [RequestCredential(cred) for cred in req_creds]
+        return req_creds
+
+    def assign_work(
+        self, req_creds: Iterable[RequestCredential], params_obj: AdvertizeParams, auth_set: AuthenticationSet
+    ):
+        """Assign work to the request credentials
+
+        Args:
+            req_creds (Iterable[RequestCredential]): request credentials to be assigned work
+            params_obj (AdvertizeParams): parameters to be considered in work assignment
+            auth_set (AuthenticationSet): authentication set to be considered in work assignment
+        """
+
+        for req_cred in req_creds:
+            if not req_cred.credential.cred_type:
+                continue
+            if auth_set.supports(req_cred.credential.cred_type):
+                req_cred.add_usage_details(params_obj.min_nr_glideins, params_obj.max_run_glideins)
+                return
+
+
+###########################################################
+### Proxy plugins are deprecated and should not be used ###
+###########################################################
 
 
 class ProxyFirst:
@@ -570,14 +737,19 @@ def list2ilist(lst):
     return out
 
 
+# TODO: Deprecate in favor of createRequestBundle
 def createCredentialList(elementDescript):
     """Creates a list of Credentials for a proxy plugin"""
-    credential_list = []
-    num = 0
-    for proxy in elementDescript.merged_data["Proxies"]:
-        credential_list.append(glideinFrontendInterface.Credential(num, proxy, elementDescript))
-        num += 1
-    return credential_list
+    security_bundle = SecurityBundle()
+    security_bundle.load_from_element(elementDescript)
+    return security_bundle
+
+
+def createRequestBundle(elementDescript):
+    """Creates a list of Credentials for a proxy plugin"""
+    security_bundle = SecurityBundle()
+    security_bundle.load_from_element(elementDescript)
+    return security_bundle
 
 
 def fair_split(i, n, p):
@@ -622,10 +794,10 @@ def fair_assign(cred_list, params_obj):
     # TODO: Remove this block when we stop sending scitokens with proxies automatically
     # This is a special case to send a scitoken as a secondary credential alongside a proxy
     if num_cred == 2:
-        cred_pair = {cred.type: cred for cred in cred_list}
-        if set(cred_pair.keys()) == {"grid_proxy", "scitoken"}:
-            cred_pair["grid_proxy"].add_usage_details(total_idle, total_max)
-            cred_pair["scitoken"].add_usage_details(0, 0)
+        cred_pair = {cred.credential.cred_type: cred for cred in cred_list}
+        if set(cred_pair.keys()) == {CredentialType.X509_CERT, CredentialType.TOKEN}:
+            cred_pair[CredentialType.X509_CERT].add_usage_details(total_idle, total_max)
+            cred_pair[CredentialType.TOKEN].add_usage_details(0, 0)
             return cred_list
     # End of special case
 
@@ -647,6 +819,7 @@ def fair_assign(cred_list, params_obj):
 # They should go throug the dictionaries below to find the appropriate plugin
 
 proxy_plugins = {
+    "CredentialsBasic": CredentialsBasic,
     "ProxyAll": ProxyAll,
     "ProxyUserRR": ProxyUserRR,
     "ProxyFirst": ProxyFirst,
