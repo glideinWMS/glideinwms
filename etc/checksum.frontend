@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_7
+# GLIDEINWMS_VERSION v3_11_0_rc2
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
 30917a8fc5f5a473f8a0280114c72d28  ./CHANGELOG.md
@@ -29,8 +29,8 @@ f3e8c0c2d0bf76c4f1d09030393ee1fc  ./creation/lib/check_python3_expr.py
 2df1408de2ab12cd70612bd7bce3f5d4  ./creation/lib/cvWConsts.py
 5d95dc79c47ced14653ebaaa0e619723  ./creation/lib/cvWCreate.py
 8c9c35ce1cb6c7dc2720fa198bb93598  ./creation/lib/cvWDictFile.py
-7528cab3d16bb672174bedea91af3924  ./creation/lib/cvWParamDict.py
-5b8e774102d0caad63b7ff8a5ec4bc5a  ./creation/lib/cvWParams.py
+de6a146250f32179b073a119ba631e55  ./creation/lib/cvWParamDict.py
+601f5f8386420aaf88bcdb0a3bd0a048  ./creation/lib/cvWParams.py
 9dd5e2f0870e564ce3c82b48648c8fbe  ./creation/lib/matchPolicy.py
 b6a841c39ce1adf0f150b8a994922961  ./creation/lib/xmlConfig.py
 685fa8cf99ece27f96064254692e0150  ./creation/lib/xslt.py
@@ -107,16 +107,16 @@ b6e8b47e95d9342a41002034336bdee0  ./creation/web_base/setup_network.sh
 ef537648a0a96e9fceeffd94f09782e7  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 131befdda3e818f83965184e1ae5fbb6  ./frontend/checkFrontend.py
-5b2bfb0b8d04d1feea9981b9ef9b93d4  ./frontend/glideinFrontend.py
-f6f210e5ae77ebfca9182952d8a7c0b0  ./frontend/glideinFrontendConfig.py
+52104ddb5ab7f3a0deff215bef1a0f20  ./frontend/glideinFrontend.py
+e775956f000040ed12e561ef45c5023e  ./frontend/glideinFrontendConfig.py
 3f4d29b267c91bba6835d40776c7b640  ./frontend/glideinFrontendDowntimeLib.py
-8a2373a525b78ddb61545865b643c9dd  ./frontend/glideinFrontendElement.py
-1464594f619c594042d920669f46385a  ./frontend/glideinFrontendInterface.py
+cd82183b1e3c0959ad2da6780b1de622  ./frontend/glideinFrontendElement.py
+9af00029a0c42d0d3e7cb76a12757812  ./frontend/glideinFrontendInterface.py
 300fb5e6450cfc4e96b445545f40fecf  ./frontend/glideinFrontendLib.py
 493c902e4e6ae8de032d7bb223c45290  ./frontend/glideinFrontendMonitorAggregator.py
 00bf93ddea651a43143154b8d9f300f8  ./frontend/glideinFrontendMonitoring.py
 3b4e2c250d66da9c81c67681bcdb5d2b  ./frontend/glideinFrontendPidLib.py
-0986ef774e5afd0950f787551ce8c1ef  ./frontend/glideinFrontendPlugins.py
+8af9dddf4d1ad04225ae57ea20d250b8  ./frontend/glideinFrontendPlugins.py
 0333b657d1aca1840f5521065d33e7a0  ./frontend/gwms_renew_proxies.py
 c8df058cbee3c7227ecd6a47cdfa3210  ./frontend/manageFrontendDowntimes.py
 38e554fd4994690888f1bf23e532701b  ./frontend/stopFrontend.py
@@ -145,13 +145,16 @@ a983e3312e16944d254dfcc16c237ee5  ./lib/condorManager.py
 a47138c4f995d39943f0d9e8eb7d4f81  ./lib/condorMonitor.py
 e6da27f897e8bfd59d873fa3dbdc27bb  ./lib/condorSecurity.py
 dcd1c271a07f6bbd8d7f2de29f954547  ./lib/config_util.py
-ba9d95ed03bd7c3a2531a7337cc8198d  ./lib/defaults.py
+b751009ea4d580df80ae59f94e623be2  ./lib/credentials.py
+a2b615c18a2a4d04dd63e82f11c1d695  ./lib/credentialsLegacy.py
+57a99728fdc7446216cfd2588cea9406  ./lib/defaults.py
 e0c681cd88c2b729b1c355de3d5fddb0  ./lib/disk_cache.py
 3d99f638220e31e204b1df375320b9cb  ./lib/exprParser.py
 79081abbf5ad518e7434056048c2a3fc  ./lib/fork.py
+e7f392bcd0616cf812bfe10b00ab5e2e  ./lib/generators.py
 19864859185d7c752600bae03645ecde  ./lib/glideinWMSVersion.py
 bc9ae2f058e2ad1e8ca410ff9897efb0  ./lib/hashCrypto.py
-9237acaa0fc8c11c11198ae47574e383  ./lib/logSupport.py
+67cd2cb2ede0cf2d5955ee352127768c  ./lib/logSupport.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
 8870d3293bbbf47d47fc5554847f9cc1  ./lib/pidSupport.py
 637f64d73772c3a614314255fe0d40cd  ./lib/pubCrypto.py
@@ -163,10 +166,11 @@ d5775b2770e9ff788d7adc5c87cfcc06  ./lib/symCrypto.py
 b48743c10b47158a13d9a57b2b2814d6  ./lib/timeConversion.py
 790d78c87dec1eba0502f2da67a31a6e  ./lib/token_util.py
 8e22db523d42671f93d5852c7757401d  ./lib/unparser.py
-aa63b8d07809f43da98ea6b81af3f730  ./lib/util.py
+4d397b11cc1c41186a7292577233e479  ./lib/util.py
 a08fd26eb637192453ce84d4d045cf70  ./lib/x509Support.py
 97207b40b4ea7103444e63cfe843da4c  ./lib/xmlFormat.py
 cf788a094015c51afd8d9615a2f75359  ./lib/xmlParse.py
+32614c10594e81450cd864fd5db01a9e  ./plugins/RoundRobinGenerator.py
 ae4540ac3e790a02867cfa22291f48d6  ./plugins/scitokens_callout.py
 762e30b1c873f9e44fc786f7e57a9d93  ./pyproject.toml
 5a1a5310c002fd6a92e338b9ed564bf8  ./requirements.txt
