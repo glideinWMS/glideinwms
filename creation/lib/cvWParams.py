@@ -297,6 +297,18 @@ class VOFrontendParams(cWParams.CommonParams):
             "Type of credential: grid_proxy,cert_pair,key_pair,username_password,auth_file",
             None,
         )
+        proxy_defaults["purpose"] = (
+            "request",
+            "credential purpose",
+            "Purpose of credential: request,payload",
+            None,
+        )
+        proxy_defaults["context"] = (
+            None,
+            "PythonExpr",
+            "Python mapping with a context for credential generators",
+            None,
+        )
         proxy_defaults["trust_domain"] = ("OSG", "grid_type", "Trust Domain", None)
         proxy_defaults["creation_script"] = (None, "command", "Script to re-create credential", None)
         proxy_defaults["update_frequency"] = (None, "int", "Update proxy when there is this much time left", None)
@@ -332,6 +344,23 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults["vm_type_fname"] = (None, "fname", "to specify a vm type without reconfig", None)
         proxy_defaults["project_id"] = (None, "string", "OSG Project ID. Ex TG-12345", None)
 
+        # Parameter settings
+        parameter_defaults = cWParams.CommentedOrderedDict()
+        parameter_defaults["name"] = (None, "string", "parameter name", None)
+        parameter_defaults["value"] = (None, "string", "parameter value", None)
+        parameter_defaults["type"] = (
+            None,
+            "string",
+            "parameter type (int, string, expr)",
+            None,
+        )
+        parameter_defaults["context"] = (
+            None,
+            "PythonExpr",
+            "Python mapping with a context for parameter generators",
+            None,
+        )
+
         security_defaults = cWParams.CommentedOrderedDict()
         security_defaults["proxy_selection_plugin"] = (
             None,
@@ -344,6 +373,12 @@ class VOFrontendParams(cWParams.CommonParams):
             "List of credentials",
             "Each credential element contains",
             proxy_defaults,
+        )
+        security_defaults["parameters"] = (
+            OrderedDict(),
+            "List of parameters",
+            "Each parameter element contains",
+            parameter_defaults,
         )
         security_defaults["security_name"] = (
             None,
@@ -715,6 +750,7 @@ class VOFrontendParams(cWParams.CommonParams):
                 "attrs": {"el_name": "attr", "subtypes_params": {"class": {}}},
                 "groups": {"el_name": "group", "subtypes_params": {"class": {}}},
                 "match_attrs": {"el_name": "match_attr", "subtypes_params": {"class": {}}},
+                "parameters": {"el_name": "parameter", "subtypes_params": {"class": {}}},
             },
         }
 
