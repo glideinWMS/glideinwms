@@ -348,6 +348,32 @@ copy_idtokens() {
     return
 }
 
+# Copy non-idtoken credentials from the start directory to the credentials directory
+# Credentials must match: ^credential_.*\.(scitoken|jwt|pem|rsa|txt)$
+copy_credentials() {
+    local start_dir from_dir=$1 to_dir=$2
+    start_dir=$(pwd)
+    if ! cd "$from_dir"; then
+        ERROR="Cannot cd to from_dir ($from_dir)"
+        # did not change directory, OK to just return
+        return 1
+    fi
+    for cred in credential_*; do
+        [[ -e "$cred" ]] || continue  # protect against nullglob (no match)
+        if [[ "$cred" =~ ^credential_.*\.(scitoken|jwt|pem|rsa|txt)$ ]]; then
+            if cp "$cred" "$to_dir/$cred"; then
+                warn "Copied credential '${cred}' to '${to_dir}/'"
+            else
+                warn "Failed to copy credential '${cred}'"
+            fi
+        else
+            warn "Skipping credential '${cred}'"
+        fi
+    done
+    cd "$start_dir" || true
+    return
+}
+
 # Retrieve trust domain
 # Uses TRUST_DOMAIN, GLIDEIN_Collector and CCB_ADDRESS from glidein_config
 # Return only the first Collector if more are in the list (separators:,\ \t)
@@ -454,6 +480,13 @@ _main() {
                 warn "$out"
             fi
         fi
+    else
+        warn "$ERROR"
+    fi
+    # TODO: Initial copy. Evaluate separately credentials refresh.
+    # PAYLOAD CREDENTIALS
+    if copy_credentials "$GLIDEIN_START_DIR_ORIG" "${gwms_credentials_dir}"; then
+        cred_updated+=credentials,
     else
         warn "$ERROR"
     fi

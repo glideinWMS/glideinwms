@@ -1121,6 +1121,8 @@ def populate_common_descript(descript_dict, params):
             "security_class": "ProxySecurityClasses",
             "trust_domain": "ProxyTrustDomains",
             "type": "ProxyTypes",
+            "purpose": "CredentialPurposes",
+            "context": "CredentialContexts",
             # credential files probably should be handles as a list, each w/ name and path
             # or the attributes ending in _file are files
             # "file": "CredentialFiles",  # placeholder for when name will not be absfname
@@ -1186,6 +1188,7 @@ def populate_common_descript(descript_dict, params):
                 descript_dict.add(proxy_attr_names[attr], repr(proxy_descript_values[attr]))
 
     match_expr = params.match.match_expr
+    descript_dict.add("Parameters", repr(params.security.parameters))
     descript_dict.add("MatchExpr", match_expr)
 
 
@@ -1345,7 +1348,7 @@ def populate_group_security(client_security, params, sub_params, group_name):
     client_security["schedd_DNs"] = schedd_dns
 
     pilot_dns = []
-    exclude_from_pilot_dns = ["SCITOKEN", "IDTOKEN"]
+    exclude_from_pilot_dns = ["SCITOKEN", "IDTOKEN", "GENERATOR"]
     for credentials in (params.security.credentials, sub_params.security.credentials):
         if is_true(params.groups[group_name].enabled):
             for pel in credentials:
