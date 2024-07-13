@@ -132,8 +132,8 @@ def get_pilot(resource, site, pilot_entry):
         res["limits"] = {"entry": {"glideins": pilot_entry["MaxPilots"]}}
     if "GPUs" in pilot_entry:
         res["submit_attrs"]["Request_GPUs"] = pilot_entry["GPUs"]
-    if "queue" in pilot_entry:
-        res["submit_attrs"]["batch_queue"] = pilot_entry["queue"]
+    if "Queue" in pilot_entry:
+        res["submit_attrs"]["batch_queue"] = pilot_entry["Queue"]
     if pilot_entry.get("RequireSingularity") is False and "OS" in pilot_entry:
         res["attrs"]["GLIDEIN_REQUIRED_OS"] = {"value": pilot_entry["OS"]}
     if "WholeNode" in pilot_entry and pilot_entry["WholeNode"]:
@@ -225,12 +225,12 @@ def get_information_internal(ces):
                         for osg_catalog in celem["OSG_ResourceCatalog"]
                         if osg_catalog.get("IsPilotEntry") is True
                     ]
-#                    requires_bestfit = pilot_entries == []
-#                    if requires_bestfit:
+                    #                    requires_bestfit = pilot_entries == []
+                    #                    if requires_bestfit:
                     result[resource][gatekeeper].setdefault(BEST_FIT_TAG, {})[entry] = get_bestfit_pilot(
                         celem, resource, site
                     )
-#                    else:
+                    #                    else:
                     for pentry in pilot_entries:
                         result[resource][gatekeeper].setdefault(pentry["Name"], {})[entry] = get_pilot(
                             resource, site, pentry
