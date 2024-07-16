@@ -513,8 +513,6 @@ add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" |
 . "$add_config_line_source"
 
 # adding system information about unprivileged user namespaces to the glidein classad
-glidein_work_dir=$(gconfig_get GLIDEIN_WORK_DIR "$glidein_config")
-unprivileged_user_namespaces=$(has_unpriv_userns)
-gconfig_add "HAS_UNPRIVILEGED_USER_NAMESPACES" "$unprivileged_user_namespaces"
+gconfig_add "HAS_UNPRIVILEGED_USER_NAMESPACES" "$(has_unpriv_userns)"
 condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "${glidein_config}" "-i")
 add_condor_vars_line "HAS_UNPRIVILEGED_USER_NAMESPACES" "S" "-" "+" "Y" "Y" "+"
