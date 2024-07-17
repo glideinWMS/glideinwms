@@ -160,8 +160,9 @@ perform_system_check() {
 	# call function to detect local CVMFS only if the GWMS_IS_CVMFS_MNT variable is not set; if the variable is not empty, do nothing
 	[[ -z "${GWMS_IS_CVMFS_MNT}" ]] && detect_local_cvmfs || :
 
-	sysctl user.max_user_namespaces &>/dev/null
-	GWMS_IS_UNPRIV_USERNS_SUPPORTED=$?
+    max_user_namespaces=$(cat /proc/sys/user/max_user_namespaces)
+	[[ $max_user_namespaces -gt 0 ]] && true || false
+    GWMS_IS_UNPRIV_USERNS_SUPPORTED=$?
 
 	unshare -U true &>/dev/null
 	GWMS_IS_UNPRIV_USERNS_ENABLED=$?
@@ -170,7 +171,7 @@ perform_system_check() {
 	GWMS_IS_FUSE_INSTALLED=$?
 
 	fusermount -V &>/dev/null
-        GWMS_IS_FUSERMOUNT=$?
+    GWMS_IS_FUSERMOUNT=$?
 
 	getent group fuse | grep $USER &>/dev/null
 	GWMS_IS_USR_IN_FUSE_GRP=$?
@@ -503,3 +504,15 @@ perform_cvmfs_mount () {
 
         #loginfo "End log for mounting CVMFS"
 }
+
+glidein_config="$1"
+
+# import add_config_line function
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
+# shellcheck source=./add_config_line.source
+. "$add_config_line_source"
+
+# adding system information about unprivileged user namespaces to the glidein classad
+gconfig_add "HAS_UNPRIVILEGED_USER_NAMESPACES" "$(has_unpriv_userns)"
+condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "${glidein_config}" "-i")
+add_condor_vars_line "HAS_UNPRIVILEGED_USER_NAMESPACES" "S" "-" "+" "Y" "Y" "+"
