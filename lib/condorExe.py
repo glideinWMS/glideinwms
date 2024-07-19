@@ -6,7 +6,9 @@ This module implements the functions to execute condor commands.
 """
 
 import os
+
 from subprocess import CalledProcessError
+
 from . import logSupport, subprocessSupport
 
 

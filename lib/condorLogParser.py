@@ -1074,13 +1074,13 @@ def parseSubmitLogFastRaw(fname):
             # 023 (123.2332.000) Bla
 
             # first 3 chars are status
-            status = buf[idx:idx + 3]
+            status = buf[idx : idx + 3]
             idx += 5
             # extract job id
             i1 = buf.find(b")", idx)
             if i1 < 0:
                 break
-            jobid = buf[idx:i1 - 4]
+            jobid = buf[idx : i1 - 4]
             idx = i1 + 1
 
             if jobid in jobs:
@@ -1133,16 +1133,16 @@ def parseSubmitLogFastRawTimings(fname):
             # 023 (123.2332.000) MM/DD HH:MM:SS
 
             # first 3 chars are status
-            status = buf[idx:idx + 3]
+            status = buf[idx : idx + 3]
             idx += 5
             # extract job id
             i1 = buf.find(b")", idx)
             if i1 < 0:
                 break
-            jobid = buf[idx:i1 - 4]
+            jobid = buf[idx : i1 - 4]
             idx = i1 + 2
             # extract time
-            line_time = buf[idx:idx + 14]
+            line_time = buf[idx : idx + 14]
             idx += 16
 
             if first_time is None:
@@ -1198,16 +1198,16 @@ def parseSubmitLogFastRawCallback(fname, callback):
             # 023 (123.2332.000) MM/DD HH:MM:SS
 
             # first 3 chars are status
-            status = buf[idx:idx + 3]
+            status = buf[idx : idx + 3]
             idx += 5
             # extract job id
             i1 = buf.find(b")", idx)
             if i1 < 0:
                 break
-            jobid = buf[idx:i1 - 4]
+            jobid = buf[idx : i1 - 4]
             idx = i1 + 2
             # extract time
-            line_time = buf[idx:idx + 14]
+            line_time = buf[idx : idx + 14]
             idx += 16
 
             if jobid in jobs:
@@ -1262,7 +1262,17 @@ def rawTime2cTime(time_str, year):
     """
     try:
         ctime = time.mktime(
-            (year, int(time_str[0:2]), int(time_str[3:5]), int(time_str[6:8]), int(time_str[9:11]), int(time_str[12:14]), 0, 0, -1)
+            (
+                year,
+                int(time_str[0:2]),
+                int(time_str[3:5]),
+                int(time_str[6:8]),
+                int(time_str[9:11]),
+                int(time_str[12:14]),
+                0,
+                0,
+                -1,
+            )
         )
     except ValueError:
         return -1  # invalid

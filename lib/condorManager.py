@@ -91,10 +91,10 @@ def condorSubmitOne(
 
     # extract 'submitted to cluster xxx.' part
     j = re.search(r"submitted to cluster [0-9]+\.", " ".join(outstr))
-    sstr = j.string[j.start(0): j.end(0)]
+    sstr = j.string[j.start(0) : j.end(0)]
     # extract the number
     j = re.search(r"[0-9]+", sstr)
-    idstr = j.string[j.start(0): j.end(0)]
+    idstr = j.string[j.start(0) : j.end(0)]
     return int(idstr)
 
 
