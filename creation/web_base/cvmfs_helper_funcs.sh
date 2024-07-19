@@ -42,7 +42,10 @@ variables_reset() {
 
 	# following set of variables used to store operating system and kernel info
 	GWMS_OS_DISTRO=
-	GWMS_OS_VERSION=
+	GWMS_OS_NAME=
+	GWMS_OS_VERSION_FULL=
+	GWMS_OS_VERSION_MAJOR=
+	GWMS_OS_VERSION_MINOR=
 	GWMS_OS_KRNL_ARCH=
 	GWMS_OS_KRNL_NUM=
 	GWMS_OS_KRNL_VER=
@@ -141,36 +144,42 @@ perform_system_check() {
 	# 	-> assigns "yes" to GWMS_SYSTEM_CHECK to indicate this function
 	# 	has been run.
 
-	if [ -f '/etc/redhat-release' ]; then
+	if [[ -f "/etc/redhat-release" ]]; then
 		GWMS_OS_DISTRO=rhel
 	else
 		GWMS_OS_DISTRO=non-rhel
 	fi
 
-	GWMS_OS_VERSION=`lsb_release -r | awk -F'\t' '{print $2}'`
-	GWMS_OS_KRNL_ARCH=`arch`
-	GWMS_OS_KRNL_NUM=`uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " `
-	GWMS_OS_KRNL_VER=`uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " | awk -F'.' '{print $1}'`
-	GWMS_OS_KRNL_MAJOR_REV=`uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " | awk -F'.' '{print $2}'`
-	GWMS_OS_KRNL_MINOR_REV=`uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " | awk -F'.' '{print $3}'`
-	GWMS_OS_KRNL_PATCH_NUM=`uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 2 -d " "`
+	# source the os-release file to access the variables defined
+	. /etc/os-release
+	GWMS_OS_VERSION_FULL=$VERSION_ID
+	GWMS_OS_VERSION_MAJOR=$(echo "$GWMS_OS_VERSION_FULL" | awk -F'.' '{print $1}')
+	GWMS_OS_VERSION_MINOR=$(echo "$GWMS_OS_VERSION_FULL" | awk -F'.' '{print $2}')
+	GWMS_OS_NAME=${NAME,,}
+	GWMS_OS_KRNL_ARCH=$(arch)
+	GWMS_OS_KRNL_NUM=$(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " )
+	GWMS_OS_KRNL_VER=$(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " | awk -F'.' '{print $1}')
+	GWMS_OS_KRNL_MAJOR_REV=$(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " | awk -F'.' '{print $2}')
+	GWMS_OS_KRNL_MINOR_REV=$(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " | awk -F'.' '{print $3}')
+	GWMS_OS_KRNL_PATCH_NUM=$(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 2 -d " ")
 
 	#df -h | grep /cvmfs &>/dev/null
 	#GWMS_IS_CVMFS_MNT=$?
 	# call function to detect local CVMFS only if the GWMS_IS_CVMFS_MNT variable is not set; if the variable is not empty, do nothing
 	[[ -z "${GWMS_IS_CVMFS_MNT}" ]] && detect_local_cvmfs || :
 
-	sysctl user.max_user_namespaces &>/dev/null
+	max_user_namespaces=$(cat /proc/sys/user/max_user_namespaces)
+	[[ $max_user_namespaces -gt 0 ]] && true || false
 	GWMS_IS_UNPRIV_USERNS_SUPPORTED=$?
 
 	unshare -U true &>/dev/null
 	GWMS_IS_UNPRIV_USERNS_ENABLED=$?
 
-	yum list installed *fuse* &>/dev/null
+	[[ $GWMS_OS_VERSION_MAJOR -ge 9 ]] && dnf list installed fuse3* &>/dev/null || yum list installed fuse &>/dev/null
 	GWMS_IS_FUSE_INSTALLED=$?
 
-	fusermount -V &>/dev/null
-        GWMS_IS_FUSERMOUNT=$?
+	[[ $GWMS_OS_VERSION_MAJOR -ge 9 ]] && fusermount3 -V &>/dev/null || fusermount -V &>/dev/null
+	GWMS_IS_FUSERMOUNT=$?
 
 	getent group fuse | grep $USER &>/dev/null
 	GWMS_IS_USR_IN_FUSE_GRP=$?
@@ -188,7 +197,7 @@ print_os_info () {
         # INPUT(S): None
         # RETURN(S): Prints a message containing OS and kernel details
 
-        loginfo "Found $GWMS_OS_DISTRO${GWMS_OS_VERSION}-${GWMS_OS_KRNL_ARCH} with kernel $GWMS_OS_KRNL_NUM-$GWMS_OS_KRNL_PATCH_NUM"
+        loginfo "Found $GWMS_OS_NAME [$GWMS_OS_DISTRO] ${GWMS_OS_VERSION_FULL}-${GWMS_OS_KRNL_ARCH} with kernel $GWMS_OS_KRNL_NUM-$GWMS_OS_KRNL_PATCH_NUM"
 }
 
 
@@ -204,8 +213,10 @@ log_all_system_info () {
 
 	loginfo "..."
 	loginfo "Worker node details: "
+	loginfo "Hostname: $(hostname)"
 	loginfo "Operating system distro: $GWMS_OS_DISTRO"
-	loginfo "Operating System version: $GWMS_OS_VERSION"
+	loginfo "Operating system name: $GWMS_OS_NAME"
+	loginfo "Operating System version: $GWMS_OS_VERSION_FULL"
 	loginfo "Kernel Architecture: $GWMS_OS_KRNL_ARCH"
 	loginfo "Kernel version: $GWMS_OS_KRNL_VER"
 	loginfo "Kernel major revision: $GWMS_OS_KRNL_MAJOR_REV"
@@ -503,3 +514,15 @@ perform_cvmfs_mount () {
 
         #loginfo "End log for mounting CVMFS"
 }
+
+glidein_config="$1"
+
+# import add_config_line function
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
+# shellcheck source=./add_config_line.source
+. "$add_config_line_source"
+
+# adding system information about unprivileged user namespaces to the glidein classad
+gconfig_add "HAS_UNPRIVILEGED_USER_NAMESPACES" "$(has_unpriv_userns)"
+condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "${glidein_config}" "-i")
+add_condor_vars_line "HAS_UNPRIVILEGED_USER_NAMESPACES" "S" "-" "+" "Y" "Y" "+"

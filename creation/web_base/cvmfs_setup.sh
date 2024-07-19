@@ -59,7 +59,7 @@ perform_system_check
 
 # gather the worker node information; perform_system_check sets a few variables that can be helpful here
 os_like=$GWMS_OS_DISTRO
-os_ver=$(echo $GWMS_OS_VERSION | awk -F'.' '{print $1}')
+os_ver=$GWMS_OS_VERSION_MAJOR
 arch=$GWMS_OS_KRNL_ARCH
 # construct the name of the cvmfsexec distribution file based on the worker node specs
 dist_file=cvmfsexec-${cvmfs_source}-${os_like}${os_ver}-${arch}

@@ -30,13 +30,44 @@ except ImportError:
 
 
 try:
-    from glideinwms.factory.tools.OSG_autoconf import create_missing_file_internal, get_information_internal
+    from glideinwms.factory.tools.OSG_autoconf import create_missing_file_internal, get_information_internal, get_pilot
     from glideinwms.lib.config_util import BEST_FIT_TAG
 except ImportError as err:
     raise TestImportError(str(err))
 
 
 class TestOSGAutoconf(unittest.TestCase):
+    def setUp(self):
+        self.maxDiff = 1000000000
+        self.input_info = {
+            "Name": "hosted-ce36.opensciencegrid.org",
+            "OSG_Resource": "AMNH-HEL",
+            "OSG_ResourceGroup": "AMNH",
+            "OSG_ResourceCatalog": [{"Memory": 65536, "MaxWallTime": 2880, "CPUs": 8}],
+        }
+        self.out_data = {
+            "AMNH": {
+                "hosted-ce36.opensciencegrid.org": {
+                    BEST_FIT_TAG: {
+                        "DEFAULT_ENTRY": {
+                            "gridtype": "condor",
+                            "attrs": {
+                                "GLIDEIN_Site": {"value": "AMNH"},
+                                "GLIDEIN_CPUS": {"value": 8},
+                                "GLIDEIN_Max_Walltime": {"value": 171000},
+                                "GLIDEIN_ResourceName": {"value": "AMNH"},
+                                "GLIDEIN_MaxMemMBs": {"value": 65536},
+                            },
+                            "submit_attrs": {"+maxWallTime": 2880, "+xcount": 8, "+maxMemory": 65536},
+                        }
+                    }
+                }
+            }
+        }
+
+    def test_get_pilot(self):
+        print(get_pilot("AMNH", self.input_info, self.out_data))
+
     def test_get_information_internal(self):
         # The infotmation as retrieved from the OSG_Collector
         info = [
@@ -57,7 +88,7 @@ class TestOSGAutoconf(unittest.TestCase):
                                 "GLIDEIN_Site": {"value": "AMNH"},
                                 "GLIDEIN_CPUS": {"value": 8},
                                 "GLIDEIN_Max_Walltime": {"value": 171000},
-                                "GLIDEIN_ResourceName": {"value": "AMNH"},
+                                "GLIDEIN_ResourceName": {"value": "AMNH-HEL"},
                                 "GLIDEIN_MaxMemMBs": {"value": 65536},
                             },
                             "submit_attrs": {"+maxWallTime": 2880, "+xcount": 8, "+maxMemory": 65536},
@@ -86,7 +117,7 @@ class TestOSGAutoconf(unittest.TestCase):
                         "GLIDEIN_Site": {"value": "AMNH"},
                         "GLIDEIN_CPUS": {"value": 4},
                         "GLIDEIN_Max_Walltime": {"value": 84600},
-                        "GLIDEIN_ResourceName": {"value": "AMNH"},
+                        "GLIDEIN_ResourceName": {"value": "AMNH-ARES"},
                         "GLIDEIN_MaxMemMBs": {"value": 32768},
                     },
                     "submit_attrs": {"+maxWallTime": 1440, "+xcount": 4, "+maxMemory": 32768},
@@ -177,12 +208,12 @@ class TestOSGAutoconf(unittest.TestCase):
         expected_out["LSU"]["hosted-ce29.grid.uchicago.edu"]["GPU"]["DEFAULT_ENTRY"] = {
             "gridtype": "condor",
             "attrs": {
-                "GLIDEIN_ResourceName": {"value": "LSU"},
+                "GLIDEIN_ResourceName": {"value": "OSG_US_LSU_QB2"},
                 "GLIDEIN_Site": {"value": "LSU"},
                 "GLIDEIN_MaxMemMBs": {"value": 8192},
                 "GLIDEIN_Max_Walltime": {"value": 171000},
                 "GLIDEIN_CPUS": {"value": 1},
-                "GLIDEIN_Supported_VOs": {"value": "icecube"},
+                "GLIDEIN_Supported_VOs": {"value": "IceCube"},
             },
             "submit_attrs": {"+maxWallTime": 2880, "+xcount": 1, "+maxMemory": 8192, "Request_GPUs": 2},
             "limits": {"entry": {"glideins": 1000}},
@@ -191,10 +222,10 @@ class TestOSGAutoconf(unittest.TestCase):
         expected_out["LSU"]["hosted-ce29.grid.uchicago.edu"]["WholeNode"]["DEFAULT_ENTRY"] = {
             "gridtype": "condor",
             "attrs": {
-                "GLIDEIN_ResourceName": {"value": "LSU"},
+                "GLIDEIN_ResourceName": {"value": "OSG_US_LSU_QB2"},
                 "GLIDEIN_Site": {"value": "LSU"},
                 "GLIDEIN_Max_Walltime": {"value": 84600},
-                "GLIDEIN_Supported_VOs": {"value": "atlas"},
+                "GLIDEIN_Supported_VOs": {"value": "ATLAS"},
             },
             "submit_attrs": {"+WantWholeNode": True},
             "limits": {"entry": {"glideins": 1000}},
@@ -203,18 +234,30 @@ class TestOSGAutoconf(unittest.TestCase):
         expected_out["LSU"]["hosted-ce29.grid.uchicago.edu"]["default"]["DEFAULT_ENTRY"] = {
             "gridtype": "condor",
             "attrs": {
-                "GLIDEIN_ResourceName": {"value": "LSU"},
+                "GLIDEIN_ResourceName": {"value": "OSG_US_LSU_QB2"},
                 "GLIDEIN_Site": {"value": "LSU"},
                 "GLIDEIN_MaxMemMBs": {"value": 32768},
                 "GLIDEIN_Max_Walltime": {"value": 84600},
                 "GLIDEIN_CPUS": {"value": 8},
-                "GLIDEIN_Supported_VOs": {"value": "cms,osg"},
+                "GLIDEIN_Supported_VOs": {"value": "CMS,OSGVO"},
                 "GLIDEIN_REQUIRED_OS": {"value": "rhel6"},
             },
             "submit_attrs": {"+maxWallTime": 1440, "+xcount": 8, "+maxMemory": 32768},
             "limits": {"entry": {"glideins": 1000}},
         }
-        self.maxDiff = None
+        expected_out["LSU"]["hosted-ce29.grid.uchicago.edu"]["BEST_FIT"] = {}
+        expected_out["LSU"]["hosted-ce29.grid.uchicago.edu"]["BEST_FIT"]["DEFAULT_ENTRY"] = {
+            "gridtype": "condor",
+            "attrs": {
+                "GLIDEIN_CPUS": {"value": 20},
+                "GLIDEIN_MaxMemMBs": {"value": 65536},
+                "GLIDEIN_Max_Walltime": {"value": 84600},
+                "GLIDEIN_ResourceName": {"value": "OSG_US_LSU_QB2"},
+                "GLIDEIN_Site": {"value": "LSU"},
+                "GLIDEIN_Supported_VOs": {"value": "LIGO"},
+            },
+            "submit_attrs": {"+maxMemory": 65536, "+maxWallTime": 1440, "+xcount": 20},
+        }
         self.assertEqual(get_information_internal(info), expected_out)
 
     def test_create_missing_file_internal(self):
