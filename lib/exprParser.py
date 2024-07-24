@@ -2,62 +2,49 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Description: general purpose python expression parser and unparser
+Description: General purpose Python expression parser and unparser.
 """
 
 import ast
 import itertools
-
-# These are used in modules importing exprParser, like frontend_match_ana
 from ast import And, Not, Or  # noqa: F401
 from io import StringIO
-
 from .unparser import Unparser
-
-# Keeping this line from the Python 2 version to have a list of the objects supported
-# NOTE: compiler.ast is slightly different from the concrete tree in ast
-# from compiler.ast import Name, Const, Keyword, List, Tuple, And, Or, Not, UnaryAdd, UnarySub, Compare, Add, Sub, Mul, FloorDiv, Div, Mod, Power, LeftShift, RightShift, Bitand, Bitor, Bitxor, CallFunc, Getattr, Subscript, Slice, Lambda
 
 
 def exp_parse(expression):
-    """Convert an expression string into an ast object
+    """Convert an expression string into an AST object.
 
     Args:
-        expression (str): expression string
+        expression (str): The expression string.
 
     Returns:
-        ast.AST: ast tree from the expression, starting from ast.Expression node
-
+        ast.AST: AST tree from the expression, starting from ast.Expression node.
     """
-    # mode='exec' (default) for sequence of statements
-    # eval - single expression
-    # single - single interactive statement
     return ast.parse(expression, "<string>", mode="eval")
 
 
 def exp_compile(obj):
-    """Convert an ast object into a code object
+    """Convert an AST object into a code object.
 
     Args:
-        obj (ast.AST): AST object to compile
+        obj (ast.AST): AST object to compile.
 
     Returns:
-        code object
-
+        code: Compiled code object.
     """
     return compile(obj, "<string>", mode="eval")
 
 
 def exp_unparse(obj, raise_on_unknown=False):
-    """Convert an ast object back into a string
+    """Convert an AST object back into a string.
 
     Args:
-        obj (ast.AST): ast object to convert back to string
-        raise_on_unknown (bool):
+        obj (ast.AST): AST object to convert back to string.
+        raise_on_unknown (bool): Flag to raise an error on unknown nodes.
 
     Returns:
-        str: string with the expression
-
+        str: String with the expression.
     """
     with StringIO() as output:
         Unparser(obj, output)
@@ -66,15 +53,14 @@ def exp_unparse(obj, raise_on_unknown=False):
 
 
 def exp_compare(node1, node2):
-    """Compare 2 AST trees to verify if they are the same
+    """Compare two AST trees to verify if they are the same.
 
     Args:
-        node1 (ast.AST): AST tree
-        node2 (ast.AST): AST tree
+        node1 (ast.AST): First AST tree.
+        node2 (ast.AST): Second AST tree.
 
     Returns:
-        bool: True if node1 and node2 are the same expression
-
+        bool: True if node1 and node2 represent the same expression, False otherwise.
     """
     if type(node1) is not type(node2):
         return False
