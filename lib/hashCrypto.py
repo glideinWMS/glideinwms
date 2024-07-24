@@ -19,7 +19,9 @@ Other class methods and functions use bytes for input and output.
 """
 
 import binascii
+
 import M2Crypto.EVP
+
 from . import defaults
 
 ######################
