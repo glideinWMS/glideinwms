@@ -1,14 +1,12 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This module contains a list of shared utility function used by the both OSG collector and CRIC
-configuration generation helper tools
+"""This module contains a list of shared utility functions used by both OSG collector and CRIC
+configuration generation helper tools.
 """
-
 
 import collections
 import os
-
 import yaml
 
 BEST_FIT_TAG = "BEST_FIT"
@@ -99,11 +97,16 @@ SUBMISSION_SPEED_MAP = {
     "super fast": {"cluster_size": 20, "max_per_cycle": 20, "sleep": 2, "slots_layout": "fixed"},
 }
 
-
-# Class to handle error in the merge script
 class ProgramError(Exception):
-    """Simple collection of program error codes and related short messages"""
+    """Simple collection of program error codes and related short messages.
 
+    Args:
+        code (int): Error code.
+
+    Attributes:
+        code (int): Exception error code.
+    """
+    
     codes_map = {
         1: "File not found",
         2: "Site not found",
@@ -118,15 +121,16 @@ class ProgramError(Exception):
 
 
 def get_yaml_file_info(file_name):
-    """Loads a yaml file into a dictionary
+    """Loads a yaml file into a dictionary.
 
     Args:
-        file_name (str): The file to load
+        file_name (str): The file to load.
 
     Returns:
+        dict: The loaded yaml file content.
 
     Raises:
-        ProgramError
+        ProgramError: If the file is not found.
     """
     if not os.path.isfile(file_name):
         print("Cannot find file %s" % file_name)
@@ -138,11 +142,11 @@ def get_yaml_file_info(file_name):
 
 
 def write_to_yaml_file(file_name, information):
-    """Auxiliary function used to write a python dictionary into a yaml file
+    """Auxiliary function used to write a python dictionary into a yaml file.
 
     Args:
-        file_name (string): The yaml filename that will be written out
-        information (dict):
+        file_name (str): The yaml filename that will be written out.
+        information (dict): The dictionary to write.
     """
     with open(file_name, "w") as outfile:
         noalias_dumper = yaml.dumper.SafeDumper
@@ -151,13 +155,13 @@ def write_to_yaml_file(file_name, information):
 
 
 def get_attr_str(attrs):
-    """Convert attributes from a dictionary form to the corresponding configuration string
+    """Convert attributes from a dictionary form to the corresponding configuration string.
 
     Args:
-        attrs (dict): the dictionary containing the attributes
+        attrs (dict): The dictionary containing the attributes.
 
     Returns:
-        string: the string representing the xml attributes section for a single entry
+        str: The string representing the xml attributes section for a single entry.
     """
     out = ""
     for name, data in sorted(attrs.items()):
@@ -170,7 +174,6 @@ def get_attr_str(attrs):
         else:
             data["comment"] = ' comment="' + data["comment"] + '"'
         if "value" in data:
-            # pylint: disable=line-too-long
             out += (
                 '            <attr name="%(name)s"%(comment)s const="%(const)s" glidein_publish="%(glidein_publish)s" job_publish="%(job_publish)s" parameter="%(parameter)s" publish="%(publish)s" type="%(type)s" value="%(value)s"/>\n'
                 % data
@@ -179,15 +182,14 @@ def get_attr_str(attrs):
     return out[:-1]
 
 
-# Collect all submit attributes
 def get_submit_attr_str(submit_attrs):
-    """Convert submit attributes from a dictionary form to the corresponding configuration string
+    """Convert submit attributes from a dictionary form to the corresponding configuration string.
 
     Args:
-        submit_attrs (dict): the dictionary containing the submit attributes
+        submit_attrs (dict): The dictionary containing the submit attributes.
 
     Returns:
-        string: the string representing the xml submit attributes section for a single entry
+        str: The string representing the xml submit attributes section for a single entry.
     """
     out = ""
     if submit_attrs:
@@ -198,15 +200,14 @@ def get_submit_attr_str(submit_attrs):
     return out
 
 
-# Collect all pilots limits
 def get_limits_str(limits):
-    """Convert pilots limits from a dictionary form to the corresponding configuration string
+    """Convert pilots limits from a dictionary form to the corresponding configuration string.
 
     Args:
-        limits (dict): the dictionary containing the pilots limits
+        limits (dict): The dictionary containing the pilots limits.
 
     Returns:
-        string: the string representing the xml pilots limits section for a single entry
+        str: The string representing the xml pilots limits section for a single entry.
     """
     out = ""
     if limits is not None:
@@ -232,15 +233,14 @@ def get_limits_str(limits):
     return out
 
 
-# Collect submission speed
 def get_submission_speed(submission_speed):
-    """Convert submission speed from a name to the corresponding configuration string
+    """Convert submission speed from a name to the corresponding configuration string.
 
     Args:
-        submission_speed (string): the string containing the submission speed name
+        submission_speed (str): The string containing the submission speed name.
 
     Returns:
-        string: the string representing the xml submission speed section for a single entry
+        str: The string representing the xml submission speed section for a single entry.
     """
     out = ""
     if submission_speed:
@@ -262,12 +262,15 @@ def get_submission_speed(submission_speed):
 
 
 def update(data, update_data, overwrite=True):
-    """Recursively update the information contained in a dictionary
+    """Recursively update the information contained in a dictionary.
 
     Args:
-        data (dict): The starting dictionary
-        update_data (dict): The dictionary that contains the new data
-        overwrite (bool): wether existing keys are going to be overwritten
+        data (dict): The starting dictionary.
+        update_data (dict): The dictionary that contains the new data.
+        overwrite (bool): Whether existing keys are going to be overwritten.
+
+    Returns:
+        dict: The updated dictionary.
     """
     for key, value in list(update_data.items()):
         if value is None:
@@ -285,11 +288,11 @@ def update(data, update_data, overwrite=True):
 
 
 def write_to_xml_file(file_name, information):
-    """Writes out on the disk entries xml adding the necessary top level tags
+    """Writes out on the disk entries xml adding the necessary top level tags.
 
     Args:
-        file_name (str): the filename where you want to write to.
-        information (str): a string containing the xml for all the entries
+        file_name (str): The filename where you want to write to.
+        information (str): A string containing the xml for all the entries.
     """
     with open(file_name, "w") as outfile:
         outfile.write("<glidein>\n")
@@ -301,13 +304,12 @@ def write_to_xml_file(file_name, information):
         outfile.write("</glidein>\n")
 
 
-# Write collected information to file
 def write_to_file(file_name, information):
-    """Take a dictionary and writes it out to disk as a yaml file
+    """Take a dictionary and writes it out to disk as a yaml file.
 
     Args:
-        file_name (str): the filename to write to disk
-        information (dict): the dictionary to write out as yaml file
+        file_name (str): The filename to write to disk.
+        information (dict): The dictionary to write out as yaml file.
     """
     with open(file_name, "w") as outfile:
         yaml.safe_dump(information, outfile, default_flow_style=False)
