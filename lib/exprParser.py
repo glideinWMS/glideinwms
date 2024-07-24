@@ -7,8 +7,10 @@ Description: General purpose Python expression parser and unparser.
 
 import ast
 import itertools
+
 from ast import And, Not, Or  # noqa: F401
 from io import StringIO
+
 from .unparser import Unparser
 
 
