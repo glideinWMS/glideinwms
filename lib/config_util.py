@@ -7,6 +7,7 @@ configuration generation helper tools.
 
 import collections
 import os
+
 import yaml
 
 BEST_FIT_TAG = "BEST_FIT"
@@ -97,6 +98,7 @@ SUBMISSION_SPEED_MAP = {
     "super fast": {"cluster_size": 20, "max_per_cycle": 20, "sleep": 2, "slots_layout": "fixed"},
 }
 
+
 class ProgramError(Exception):
     """Simple collection of program error codes and related short messages.
 
@@ -106,7 +108,7 @@ class ProgramError(Exception):
     Attributes:
         code (int): Exception error code.
     """
-    
+
     codes_map = {
         1: "File not found",
         2: "Site not found",
