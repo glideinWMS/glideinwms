@@ -475,7 +475,7 @@ v3_10_4:
   Bug fix:
     - Fixed missing arguments from rrdtool fetch call (Issue#351, PR#352)
     - gconfig.py to use `gwms-python`, not use `python3` (Issue#349, PR#350)
-    - Fixed alternative Shell code still using the `python` (i.e. python2) interpreter (PR#353)
+    - Fixed alternative Shell code still using the `python` (i.e. python2) interpreter (Issue#289, PR#353)
 
 v3_10_5:
   Date: September 27, 2023
