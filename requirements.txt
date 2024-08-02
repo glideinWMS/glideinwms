@@ -33,4 +33,5 @@ mock
 pytest
 tabulate
 # std in p3 unittest
-xmlrunner
+# xmlrunner incompatible w/ 3.12, use:
+unittest-xml-reporting
