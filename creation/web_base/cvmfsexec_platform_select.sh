@@ -19,8 +19,22 @@ add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" |
 
 error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
-# parameter is 'osg', 'egi' or 'default' to download the latest cvmfs and configuration
-# rpm from one of these three sources (Ref. https://www.github.com/cvmfs/cvmfsexec)
+# this script should run only when on-demand CVMFS is requested by the user/job,
+# so use the GLIDEIN_USE_CVMFSEXEC from the config file as a flag to determine
+# whether the rest of this script should be run or not
+use_cvmfsexec=$(gconfig_get GLIDEIN_USE_CVMFSEXEC "$glidein_config")
+# TODO: int or string?? if string, make the attribute value case insensitive
+#use_cvmfsexec=${use_cvmfsexec,,}
+
+if [[ $use_cvmfsexec -ne 1 ]]; then
+    "$error_gen" -ok "$(basename $0)" "msg" "On-demand CVMFS not requested; skipping selection of platform-based cvmfsexec distribution."
+    exit 0
+fi
+
+# if on-demand CVMFS is requested, then proceed ahead
+# parameter is 'osg', 'egi' or 'default' to download the latest cvmfs and
+# configuration rpm from one of these three sources
+# (Ref. https://www.github.com/cvmfs/cvmfsexec)
 cvmfs_src=$(gconfig_get CVMFS_SRC "$glidein_config")
 cvmfs_src=${cvmfs_src,,}
 
@@ -31,7 +45,8 @@ if [[ ! $cvmfs_src =~ ^(osg|egi|default)$ ]]; then
     exit 1
 fi
 
-# TODO: is it possible to reuse cvmfs_helper_funcs.sh by sourcing it during the execution of this file????
+# TODO: is it possible to reuse cvmfs_helper_funcs.sh by sourcing it during the
+# execution of this file????
 if [[ -f "/etc/redhat-release" ]]; then
     os_distro=rhel
 else
@@ -48,7 +63,8 @@ mach_type=${os_distro}${os_ver}-${krnl_arch}
 cvmfsexec_platform="${cvmfs_src}-${mach_type}"
 cvmfsexec_platform_id="CVMFSEXEC_PLATFORM_$cvmfsexec_platform"
 
-# add the attribute to enable the appropriate distro file to be downloaded and unpacked
+# add the attribute to enable the appropriate distro file to be downloaded and
+# unpacked
 gconfig_add "$cvmfsexec_platform_id" "1"
 
 # if everything goes well, report the good part too!
