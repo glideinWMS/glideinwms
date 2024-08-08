@@ -2202,6 +2202,7 @@ def load_context(context: str) -> Optional[Mapping]:
 ### Compatibility ########
 ##########################
 
+
 def cred_path(cred: Optional[Union[Credential, str]]) -> Optional[str]:
     """
     Returns the path of a credential.
@@ -2223,4 +2224,3 @@ def cred_path(cred: Optional[Union[Credential, str]]) -> Optional[str]:
     if isinstance(cred, str):
         return cred
     raise CredentialError("Invalid credential object")
-    

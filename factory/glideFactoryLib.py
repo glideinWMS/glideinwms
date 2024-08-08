@@ -27,7 +27,7 @@ from glideinwms.lib import (  # in codice commentato:, x509Support
     logSupport,
     timeConversion,
 )
-from glideinwms.lib.credentials import CredentialPair, ParameterName, cred_path
+from glideinwms.lib.credentials import cred_path, CredentialPair, ParameterName
 from glideinwms.lib.defaults import BINARY_ENCODING
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
@@ -1818,9 +1818,13 @@ def get_submit_environment(
 
         exe_env = ["GLIDEIN_ENTRY_NAME=%s" % entry_name]
         if "frontend_scitoken" in submit_credentials.identity_credentials:
-            exe_env.append(cred_path("SCITOKENS_FILE=%s" % submit_credentials.identity_credentials["frontend_scitoken"]))
+            exe_env.append(
+                cred_path("SCITOKENS_FILE=%s" % submit_credentials.identity_credentials["frontend_scitoken"])
+            )
         if "frontend_condortoken" in submit_credentials.identity_credentials:
-            exe_env.append(cred_path("IDTOKENS_FILE=%s" % submit_credentials.identity_credentials["frontend_condortoken"]))
+            exe_env.append(
+                cred_path("IDTOKENS_FILE=%s" % submit_credentials.identity_credentials["frontend_condortoken"])
+            )
         else:
             # TODO: this ends up transferring an empty file called 'null' in the Glidein start dir. Find a better way
             exe_env.append("IDTOKENS_FILE=/dev/null")
@@ -1970,21 +1974,29 @@ def get_submit_environment(
             # log.debug("submit_credentials.identity_credentials: %s" % str(submit_credentials.identity_credentials))
 
             try:
-                exe_env.append("X509_USER_PROXY=%s" % cred_path(submit_credentials.security_credentials["GlideinProxy"]))
+                exe_env.append(
+                    "X509_USER_PROXY=%s" % cred_path(submit_credentials.security_credentials["GlideinProxy"])
+                )
 
                 exe_env.append("IMAGE_ID=%s" % submit_credentials.identity_credentials["VMId"])
                 exe_env.append("INSTANCE_TYPE=%s" % submit_credentials.identity_credentials["VMType"])
                 if grid_type == "ec2":
-                    exe_env.append("ACCESS_KEY_FILE=%s" % cred_path(submit_credentials.security_credentials["PublicKey"]))
-                    exe_env.append("SECRET_KEY_FILE=%s" % cred_path(submit_credentials.security_credentials["PrivateKey"]))
                     exe_env.append(
-                        "CREDENTIAL_DIR=%s" % os.path.dirname(cred_path(submit_credentials.security_credentials["PublicKey"]))
+                        "ACCESS_KEY_FILE=%s" % cred_path(submit_credentials.security_credentials["PublicKey"])
+                    )
+                    exe_env.append(
+                        "SECRET_KEY_FILE=%s" % cred_path(submit_credentials.security_credentials["PrivateKey"])
+                    )
+                    exe_env.append(
+                        "CREDENTIAL_DIR=%s"
+                        % os.path.dirname(cred_path(submit_credentials.security_credentials["PublicKey"]))
                     )
                 elif grid_type == "gce":
                     exe_env.append("GCE_AUTH_FILE=%s" % cred_path(submit_credentials.security_credentials["AuthFile"]))
                     exe_env.append("GRID_RESOURCE_OPTIONS=%s" % "$(gce_project_name) $(gce_availability_zone)")
                     exe_env.append(
-                        "CREDENTIAL_DIR=%s" % os.path.dirname(cred_path(submit_credentials.security_credentials["AuthFile"]))
+                        "CREDENTIAL_DIR=%s"
+                        % os.path.dirname(cred_path(submit_credentials.security_credentials["AuthFile"]))
                     )
 
                 try:
