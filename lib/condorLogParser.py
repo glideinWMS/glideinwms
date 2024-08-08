@@ -21,7 +21,6 @@ from . import util
 
 class cachedLogClass:
 
-
     def clInit(self, logname, cache_dir, cache_ext):
         """Initializes the log and cache file paths.
 
@@ -41,7 +40,7 @@ class cachedLogClass:
 
         Returns:
             bool: True if the log file has changed or if there is no cache, False otherwise.
-         """
+        """
         if os.path.isfile(self.logname):
             fstat = os.lstat(self.logname)
             logtime = fstat[stat.ST_MTIME]
@@ -107,7 +106,6 @@ class cachedLogClass:
 
 
 class logSummary(cachedLogClass):
-
 
     def __init__(self, logname, cache_dir):
         """Initializes the logSummary class with log and cache paths.
@@ -209,7 +207,6 @@ class logSummary(cachedLogClass):
 
 
 class logCompleted(cachedLogClass):
-
 
     def __init__(self, logname, cache_dir):
         """Initializes the logCompleted clas with log and cache paths.
@@ -331,7 +328,6 @@ class logCompleted(cachedLogClass):
 
 class logCounts(cachedLogClass):
 
-
     def __init__(self, logname, cache_dir):
         """Initializes the logCounts class with log and cache paths.
 
@@ -426,7 +422,6 @@ class logCounts(cachedLogClass):
 
 
 class logSummaryTimings(cachedLogClass):
-
 
     def __init__(self, logname, cache_dir):
         """Initializes the logSummaryTimings class with log and cache paths.
@@ -563,7 +558,7 @@ class cacheDirClass:
         wrapperClass=None,
         username=None,
     ):
-        
+
         self.cdInit(
             logClass,
             dirname,
@@ -590,7 +585,6 @@ class cacheDirClass:
         wrapperClass=None,
         username=None,
     ):
-        
 
         self.wrapperClass = wrapperClass
         self.username = username
@@ -614,7 +608,6 @@ class cacheDirClass:
         return
 
     def getFileList(self, active_only):
-        
 
         prefix_len = len(self.log_prefix)
         suffix_len = len(self.log_suffix)
@@ -682,7 +675,6 @@ class cacheDirClass:
 
     def diff(self, other):
 
-
         if (self.wrapperClass is not None) and (self.username is not None):
             dummyobj = self.wrapperClass.getObj(os.path.join(self.dirname, "dummy.txt"), self.cache_dir, self.username)
         else:
@@ -694,7 +686,6 @@ class cacheDirClass:
 
 class dirSummary(cacheDirClass):
 
-
     def __init__(
         self,
         dirname,
@@ -705,13 +696,12 @@ class dirSummary(cacheDirClass):
         inactive_timeout=24 * 3600,
         cache_dir=None,
     ):
-  
 
         self.cdInit(logSummary, dirname, log_prefix, log_suffix, cache_ext, inactive_files, inactive_timeout, cache_dir)
 
 
 class dirCompleted(cacheDirClass):
-  
+
     def __init__(
         self,
         dirname,
@@ -722,7 +712,6 @@ class dirCompleted(cacheDirClass):
         inactive_timeout=24 * 3600,
         cache_dir=None,
     ):
-       
 
         self.cdInit(
             logCompleted, dirname, log_prefix, log_suffix, cache_ext, inactive_files, inactive_timeout, cache_dir
@@ -730,7 +719,6 @@ class dirCompleted(cacheDirClass):
 
 
 class dirCounts(cacheDirClass):
- 
 
     def __init__(
         self,
@@ -742,13 +730,12 @@ class dirCounts(cacheDirClass):
         inactive_timeout=24 * 3600,
         cache_dir=None,
     ):
-       
+
         self.cdInit(logCounts, dirname, log_prefix, log_suffix, cache_ext, inactive_files, inactive_timeout, cache_dir)
 
 
 class dirSummaryTimings(cacheDirClass):
 
-
     def __init__(
         self,
         dirname,
@@ -759,7 +746,6 @@ class dirSummaryTimings(cacheDirClass):
         inactive_timeout=24 * 3600,
         cache_dir=None,
     ):
-      
 
         self.cdInit(
             logSummaryTimings, dirname, log_prefix, log_suffix, cache_ext, inactive_files, inactive_timeout, cache_dir
@@ -1050,7 +1036,7 @@ def rawTime2cTime(instr, year):
 
 
 def rawTime2cTimeLastYear(instr):
-    
+
     now = time.time()
     current_year = time.localtime(now)[0]
     ctime = rawTime2cTime(instr, current_year)
@@ -1123,7 +1109,6 @@ def countStatuses(jobs):
 
 def countAndInterpretRawStatuses(jobs_raw):
 
-
     outc = {}
     tmpc = countStatuses(jobs_raw)
     for s in list(tmpc.keys()):
@@ -1138,7 +1123,6 @@ def countAndInterpretRawStatuses(jobs_raw):
 
 def listStatuses(jobs):
 
-
     status = {}
     for k, e in list(jobs.items()):
         try:
@@ -1150,7 +1134,6 @@ def listStatuses(jobs):
 
 
 def listStatusesTimings(jobs):
-
 
     status = {}
     for k, e in list(jobs.items()):
@@ -1182,7 +1165,6 @@ def listAndInterpretRawStatuses(jobs_raw, invert_function):
 
 def parseSubmitLogFast(fname):
 
-
     jobs_raw = parseSubmitLogFastRaw(fname)
     jobs = {}
     for k in list(jobs_raw.keys()):
@@ -1191,7 +1173,6 @@ def parseSubmitLogFast(fname):
 
 
 def parseSubmitLogFastTimings(fname, year=None):
-
 
     jobs_raw, first_time, last_time = parseSubmitLogFastRawTimings(fname)
 
