@@ -1823,7 +1823,7 @@ def create_parameter(
 
 
 ##########################
-### Tools ###############
+### Tools ################
 ##########################
 
 
@@ -2196,3 +2196,31 @@ def load_context(context: str) -> Optional[Mapping]:
         return context
     except Exception:  # pylint: disable=bare-except
         return None
+
+
+##########################
+### Compatibility ########
+##########################
+
+def cred_path(cred: Optional[Union[Credential, str]]) -> Optional[str]:
+    """
+    Returns the path of a credential.
+
+    Args:
+        cred (Union[Credential, str]): The credential object or path.
+
+    Returns:
+        Optional[str]: The path of the credential.
+
+    Raises:
+        CredentialError: If the credential object is invalid.
+    """
+
+    if not cred:
+        return None
+    if issubclass(cred.__class__, Credential):
+        return cred.path
+    if isinstance(cred, str):
+        return cred
+    raise CredentialError("Invalid credential object")
+    
