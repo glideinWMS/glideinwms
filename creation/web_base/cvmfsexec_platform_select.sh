@@ -26,7 +26,7 @@ use_cvmfsexec=$(gconfig_get GLIDEIN_USE_CVMFSEXEC "$glidein_config")
 # TODO: int or string?? if string, make the attribute value case insensitive
 #use_cvmfsexec=${use_cvmfsexec,,}
 
-if [[ $use_cvmfsexec -ne 1 ]]; then
+if [[ "$use_cvmfsexec" -ne 1 ]]; then
     "$error_gen" -ok "$(basename $0)" "msg" "On-demand CVMFS not requested; skipping selection of platform-based cvmfsexec distribution."
     exit 0
 fi
