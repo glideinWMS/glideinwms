@@ -3,6 +3,31 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+
+Changes since the last release
+
+### New features / functionalities
+
+-   Advertizing information about unprivileged user namespaces in glidein classad (PR #416)
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Fixed root unable to remove other users' jobs in the Factory (PR #433)
+-   HTCondor TRUST_DOMAIN configuration macro set to string to avoid Glidein config error (PR #420)
+
+### Testing / Development
+
+-   Replacing xmlrunner with unittest-xml-reporting (PR #428)
+
+### Known Issues
+
 ## v3.10.7 \[2024-06-21\]
 
 Added black hole detection and ability to set jobs minimum memory for resource provisioning.
