@@ -74,7 +74,7 @@ error_gen=$(gconfig_get ERROR_GEN_PATH "$config_file")
 # Read the knobs coming from the frontend configuration for blackhole detection (GLIDEIN_BLACKHOLE_NUMJOBS and GLIDEIN_BLACKHOLE_RATE)
 glidein_blackhole_numjobs=$(gconfig_get GLIDEIN_BLACKHOLE_NUMJOBS "$config_file")
 glidein_blackhole_rate=$(gconfig_get GLIDEIN_BLACKHOLE_RATE "$config_file")
-if [[ -z "$GLIDEIN_BLACKHOLE_RATE" || "$GLIDEIN_BLACKHOLE_RATE" =~ ^0(\.0*)?$ ]]; then
+if [[ -z "$glidein_blackhole_rate" || "$glidein_blackhole_rate" =~ ^0(\.0*)?$ ]]; then
     use_blackhole_prevention=false
 else
     use_blackhole_prevention=true
