@@ -119,6 +119,7 @@ _perf_metric = {}
 # User functions
 ################################################################################
 
+
 def startPerfMetricEvent(name, event_name, t=None):
     """
     Start tracking an event's performance for a given service.
