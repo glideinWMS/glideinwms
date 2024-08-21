@@ -421,7 +421,6 @@ class RSAKey(PubRSAKey):
         return binascii.b2a_hex(self.sign(data))
 
 
-
 # def generate():
 #    privkey_file = "priv.pem"
 #    pubkey_file = "pub.pem"
