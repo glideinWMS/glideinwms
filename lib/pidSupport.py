@@ -12,6 +12,7 @@ import time
 
 ############################################################
 
+
 def check_pid(pid):
     """Check if a process with the given PID exists.
 
@@ -26,12 +27,15 @@ def check_pid(pid):
 
 ############################################################
 
+
 class AlreadyRunning(RuntimeError):
     """Exception raised when a process is already running and owns the PID file."""
+
     pass
 
 
 #######################################################
+
 
 class PidSupport:
     """Class to manage PID files with locking mechanisms.
@@ -187,6 +191,7 @@ class PidSupport:
 
 #######################################################
 
+
 class PidWParentSupport(PidSupport):
     """Extended PidSupport class that includes parent PID information.
 
@@ -284,7 +289,7 @@ def termsignal(signr, frame):
     Args:
         signr (int): Signal number.
         frame (FrameType): Current stack frame.
-    
+
     Raises:
         KeyboardInterrupt: Always raised with the signal number.
     """
