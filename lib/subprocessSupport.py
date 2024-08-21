@@ -12,16 +12,7 @@ from subprocess import CalledProcessError
 from . import defaults
 
 
-def iexe_cmd(
-    cmd,
-    useShell=False,
-    stdin_data=None,
-    child_env=None,
-    text=True,
-    encoding=None,
-    timeout=None,
-    log=None
-):
+def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True, encoding=None, timeout=None, log=None):
     """Fork a process and execute a command.
 
     This function forks a process to execute the given command using `subprocess.Popen`. It handles
