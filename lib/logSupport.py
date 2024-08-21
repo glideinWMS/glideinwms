@@ -189,7 +189,7 @@ class GlideinHandler(BaseRotatingHandler):
     def doRollover(self):
         """Performs the rollover process for the log file.
 
-        This includes renaming the log file, compressing it if necessary, 
+        This includes renaming the log file, compressing it if necessary,
         and removing old log files based on the backup count.
         """
         # Close the soon to be rotated log file
