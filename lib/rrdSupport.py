@@ -186,7 +186,9 @@ class BaseRRDSupport:
         multi_rrd_files = [
             (rrd_file[0], rrd_file[1], ds_name, ds_type, rrd_file[2], rrd_file[3]) for rrd_file in rrd_files
         ]
-        self.rrd2graph_multi(fname, rrd_step, start, end, width, height, title, multi_rrd_files, cdef_arr, trend, img_format)
+        self.rrd2graph_multi(
+            fname, rrd_step, start, end, width, height, title, multi_rrd_files, cdef_arr, trend, img_format
+        )
 
     def rrd2graph_now(
         self,
@@ -222,7 +224,9 @@ class BaseRRDSupport:
         now = int(time.time())
         start = ((now - period) / rrd_step) * rrd_step
         end = ((now - 1) / rrd_step) * rrd_step
-        self.rrd2graph(fname, rrd_step, ds_name, ds_type, start, end, width, height, title, rrd_files, cdef_arr, trend, img_format)
+        self.rrd2graph(
+            fname, rrd_step, ds_name, ds_type, start, end, width, height, title, rrd_files, cdef_arr, trend, img_format
+        )
 
     def rrd2graph_multi(
         self, fname, rrd_step, start, end, width, height, title, rrd_files, cdef_arr=None, trend=None, img_format="PNG"
@@ -634,9 +638,9 @@ def verifyHelper(filename, data_dict, fix_rrd=False, backup=True):
             rrd_problems_found = True
 
     if fix_rrd and missing:
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file, \
-             tempfile.NamedTemporaryFile(delete=False) as temp_file2, \
-             tempfile.NamedTemporaryFile(delete=False) as restored_file:
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file, tempfile.NamedTemporaryFile(
+            delete=False
+        ) as temp_file2, tempfile.NamedTemporaryFile(delete=False) as restored_file:
             os.close(temp_file.fileno())
             os.close(temp_file2.fileno())
             os.close(restored_file.fileno())
