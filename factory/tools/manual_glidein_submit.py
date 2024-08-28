@@ -45,6 +45,15 @@ def parse_opts():
     )
 
     parser.add_argument(
+        "--group-name",
+        type=str,
+        action="store",
+        dest="group_name",
+        default="main",
+        help="Name of the frontend group to use (e.g.: frontent, fecmsglobal, ...). Its credential will be used for submission",
+    )
+
+    parser.add_argument(
         "--entry-name",
         type=str,
         action="store",
@@ -87,11 +96,12 @@ def log_debug(msg, header=""):
     logging.debug(pprint.pformat(msg))
 
 
-def get_reqname(collector, fe_name, entry_name):
+def get_reqname(collector, fe_name, group_name, entry_name):
     constraint = (
-        'MyType=="glideclient" && regexp("^{}@.*$", AuthenticatedIdentity) && regexp("^{}@.*$", ReqName)'.format(
+        'MyType=="glideclient" && regexp("^{}@.*$", AuthenticatedIdentity) && regexp("^{}@.*$", ReqName) && GroupName=="{}" && GlideinEncParamSubmitProxy isnt undefined'.format(
             fe_name,
             entry_name,
+            group_name,
         )
     )
     res = collector.query(htcondor.AdTypes.Any, constraint, ["Name"])
@@ -134,7 +144,7 @@ def main():
     frontend_descript = gfc.FrontendDescript()
     collector = htcondor.Collector(wms_collector)
 
-    req_name = get_reqname(collector, options.fe_name, entry_name)
+    req_name = get_reqname(collector, options.fe_name, options.group_name, entry_name)
     logging.debug("Using reques name %s" % req_name)
 
     factory_config.submit_dir = conf.get_submit_dir()
