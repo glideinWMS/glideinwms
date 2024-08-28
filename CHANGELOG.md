@@ -10,7 +10,7 @@ Changes since the last release
 ### New features / functionalities
 
 -   Advertizing information about unprivileged user namespaces in glidein classad (PR #416)
--   Added option --group-name option to manual_glidein_submit 
+-   Added option --group-name option to manual_glidein_submit
 
 ### Changed defaults / behaviours
 

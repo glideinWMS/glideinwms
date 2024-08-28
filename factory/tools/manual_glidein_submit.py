@@ -97,12 +97,10 @@ def log_debug(msg, header=""):
 
 
 def get_reqname(collector, fe_name, group_name, entry_name):
-    constraint = (
-        'MyType=="glideclient" && regexp("^{}@.*$", AuthenticatedIdentity) && regexp("^{}@.*$", ReqName) && GroupName=="{}" && GlideinEncParamSubmitProxy isnt undefined'.format(
-            fe_name,
-            entry_name,
-            group_name,
-        )
+    constraint = 'MyType=="glideclient" && regexp("^{}@.*$", AuthenticatedIdentity) && regexp("^{}@.*$", ReqName) && GroupName=="{}" && GlideinEncParamSubmitProxy isnt undefined'.format(
+        fe_name,
+        entry_name,
+        group_name,
     )
     res = collector.query(htcondor.AdTypes.Any, constraint, ["Name"])
 
