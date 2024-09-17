@@ -22,6 +22,7 @@ Changes since the last release
 
 -   Fixed root unable to remove other users' jobs in the Factory (PR #433)
 -   HTCondor TRUST_DOMAIN configuration macro set to string to avoid Glidein config error (PR #420)
+-   Disabled shebang mangliing in rpm_build to avoid gwms-python not finding the shell (Issue #436, PR #437)
 
 ### Testing / Development
 
