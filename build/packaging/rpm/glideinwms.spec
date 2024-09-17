@@ -1,6 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+# Disable shebang mangling (see GHI#436)
+%undefine __brp_mangle_shebangs
+
 # How to build tar file
 
 # git clone http://cdcvs.fnal.gov/projects/glideinwms
