@@ -222,7 +222,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         populate_gridmap(self.conf, self.dicts["gridmap"])
 
         # the following list will be a megalist containing all the scripts; used for duplication check logic subsequently
-        all_scripts = list()
+        all_scripts = []
         # NOTE that all the files in these _scripts lists are added as executables (i.e. must report with error_gen)
         file_list_scripts = [
             "collector_setup.sh",
