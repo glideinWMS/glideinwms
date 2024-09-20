@@ -27,6 +27,7 @@ Changes since the last release
 ### Testing / Development
 
 -   Replacing xmlrunner with unittest-xml-reporting (PR #428)
+-   Updated the release upload script to work with osg-sw-submit (PR #439)
 
 ### Known Issues
 
