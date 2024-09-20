@@ -4,28 +4,32 @@
 # SPDX-License-Identifier: Apache-2.0
 
 USAGE_STR="$0 [-h] TAG USER [REPO]
+Buold the source tarball and upload it to the OSG library (now using osg-sw-submit.chtc.wisc.edu and AFS via Krb auth)
  TAG       - tag or branch ID in the Git repository (branch pointers change, use a branch name only for scratch builds)
  USER      - username on the OSG build machine
+ PRINC     - Kerberos principal for the OSG AFS (If only the user is given CS.WISC.EDU is assumed as domain). Krb user may differ form the build machine user name
  REPO      - url of the Git repository (default: https://github.com/glideinWMS/glideinwms.git)
  -h --help - print this message and exit"
 
 [ "$1" == "-h" ] || [ "$1" == "--help" ] && { echo "$USAGE_STR"; exit 0; }
 
-if [ $# -lt 2 ]; then
-    echo "ERROR: Missing arguments 'tag' and 'user'"
+if [ $# -lt 3 ]; then
+    echo "ERROR: Missing arguments 'tag', 'user', and 'krb_principal'"
     echo "$USAGE_STR"
     exit 1
 fi
 
 gwms_tag=$1
 username=$2
+krb_user=$3
+echo "$krb_user" | grep -q "@" || krb_user="$krb_user@CS.WISC.EDU"
 gwms_repo="https://github.com/glideinWMS/glideinwms.git"
-if [ $# -eq 3 ]; then
-    gwms_repo=$3
+if [ $# -eq 4 ]; then
+    gwms_repo=$4
 fi
 
-# At the end of 2019 OSG switched to moria. library still works but is deprecated. was: osg_buildmachine="library.cs.wisc.edu"
-osg_buildmachine="moria.cs.wisc.edu"
+# On August 2024 OSG switched to osg-sw-submit.chtc.wisc.edu. moria and library.cs.wisc.edu are not working any more
+osg_buildmachine="osg-sw-submit.chtc.wisc.edu"
 osg_uploaddir="/p/vdt/public/html/upstream/glideinwms/$gwms_tag"
 
 work_dir="/tmp/osgrelease.$$"
@@ -64,11 +68,13 @@ archive_gwms() {
 
 archive_gwms
 
+# Print the checksum for the source file
 echo "Tarball Created for $gwms_tag (sha1sum, file): $(sha1sum "$gwms_tar")"
 echo "Use the following to update the upstream file:"
 echo "echo 'glideinwms/$gwms_tag/glideinwms.tar.gz sha1sum=$(sha1sum "$gwms_tar" | cut -f 1 -d ' ')' > upstream/developer.tarball.source"
 
-if ssh $username@$osg_buildmachine "mkdir -p $osg_uploaddir"; then
+# Upload the tarball
+if ssh $username@$osg_buildmachine "kinit $krb_user; aklog; mkdir -p $osg_uploaddir"; then
     if scp "$gwms_tar" "$username@$osg_buildmachine:$osg_uploaddir"; then
         echo "Tarball Uploaded to $osg_buildmachine: $osg_uploaddir"
     else
