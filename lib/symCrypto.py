@@ -11,7 +11,7 @@ Note:
     (b64, hex, and .encrypt()) accept bytes-like objects (bytes, bytearray) and also Unicode strings
     utf-8 encoded (defaults.BINARY_ENCODING_CRYPTO).
     B64 and hex Decryption functions, consistent with Python's binascii.a2b_* functions, accept bytes and
-    Unicode strings containing only ASCII characters. The .decrypt() function only accepts bytes-like objects 
+    Unicode strings containing only ASCII characters. The .decrypt() function only accepts bytes-like objects
     (such as bytes, bytearray, and other objects that support the buffer protocol).
     All these functions return bytes.
 
@@ -19,8 +19,10 @@ Note:
 """
 
 import binascii
+
 import M2Crypto.BIO
 import M2Crypto.Rand
+
 from . import defaults
 
 
@@ -94,7 +96,7 @@ class SymKey:
         return "cypher:{},key:{},iv:{}".format(
             self.cypher_name,
             self.key_str.decode(defaults.BINARY_ENCODING_CRYPTO),
-            self.iv_str.decode(defaults.BINARY_ENCODING_CRYPTO)
+            self.iv_str.decode(defaults.BINARY_ENCODING_CRYPTO),
         )
 
     def new(self, random_iv=True):
@@ -221,13 +223,7 @@ class MutableSymKey(SymKey):
 
 
 # Parametrized symmetric algorithm classes
-cypher_dict = {
-    "aes_128_cbc": (16, 16),
-    "aes_256_cbc": (32, 16),
-    "bf_cbc": (16, 8),
-    "des3": (24, 8),
-    "des_cbc": (8, 8)
-}
+cypher_dict = {"aes_128_cbc": (16, 16), "aes_256_cbc": (32, 16), "bf_cbc": (16, 8), "des3": (24, 8), "des_cbc": (8, 8)}
 
 
 class ParametrizedSymKey(SymKey):
