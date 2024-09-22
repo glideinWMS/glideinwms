@@ -21,6 +21,7 @@ import time
 import uuid
 
 import jwt
+
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -154,7 +155,7 @@ def sign_token(identity, issuer, kid, master_key, duration=None, scope=None):
         payload["scope"] = scope
 
     encoded = jwt.encode(payload, master_key, algorithm="HS256", headers={"kid": kid})
-    
+
     if isinstance(encoded, bytes):
         encoded = encoded.decode("UTF-8")
     return encoded
