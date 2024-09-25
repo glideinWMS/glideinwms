@@ -19,8 +19,8 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots and/or console outputs to help explain your problem.
 
 **Info (please complete the following information):**
-Stakeholders and components can be a comma separated list or on multiple lines.
-If you add a new stakeholder or component, not on the sample list, add it on a line by its own.
+Stakeholders and components can be a comma-separated list or on multiple lines.
+If you add a new stakeholder or component, not on the sample list, add it on a line on its own.
 
 -   GlideinWMS version:
 -   Python version:
