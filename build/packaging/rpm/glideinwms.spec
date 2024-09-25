@@ -643,9 +643,11 @@ if [ ! -e %{frontend_passwd_dir} ]; then
     mkdir -p %{frontend_passwd_dir}
     chown frontend.frontend %{frontend_passwd_dir}
 fi
-openssl rand -base64 64 | /usr/sbin/condor_store_cred -u "frontend@${fqdn_hostname}" -f "/etc/condor/passwords.d/FRONTEND" add > /dev/null 2>&1
-/bin/cp /etc/condor/passwords.d/FRONTEND /var/lib/gwms-frontend/passwords.d/FRONTEND
-chown frontend.frontend /var/lib/gwms-frontend/passwords.d/FRONTEND
+# The IDTOKEN password creation is now in the startup script
+# For manual creation you can use:
+#  openssl rand -base64 64 | /usr/sbin/condor_store_cred -u "frontend@${fqdn_hostname}" -f "/etc/condor/passwords.d/FRONTEND" add > /dev/null 2>&1
+#  /bin/cp /etc/condor/passwords.d/FRONTEND /var/lib/gwms-frontend/passwords.d/FRONTEND
+#  chown frontend.frontend /var/lib/gwms-frontend/passwords.d/FRONTEND
 
 %post vofrontend-httpd
 # Protecting from failure in case it is not running/installed
