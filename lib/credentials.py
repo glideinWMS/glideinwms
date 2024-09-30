@@ -1144,6 +1144,9 @@ class RequestCredential:
         self.req_idle = req_idle
         self.req_max_run = req_max_run
 
+    def get_usage_details(self):
+        return self.req_idle, self.req_max_run
+
 
 def credential_type_from_string(string: str) -> Union[CredentialType, CredentialPairType]:
     """
