@@ -521,3 +521,10 @@ v3_10_7:
     - Flattening error message in \_CONDOR_WRAPPER_ERROR_FILE and JobWrapperFailure Ad. This is a workaround for a bug in HTCondor (PR#400)
     - Fixed problem when check_signature in glidein_startup is not defined (PR#402)
     - get_tarballs look for HTCondor releases also in the update directory (Issue#412, PR#413)
+
+v3_11_1:
+  Date: October 15, 2024
+  Series: Development
+  Tarball: false
+  Feature:
+    - Supports all available modes of cvmfsexec when provisioning CVMFS on demand. (PR#372)

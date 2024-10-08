@@ -1,11 +1,14 @@
+v3_11_1
+	Supports all available modes of cvmfsexec when provisioning CVMFS on demand. (PR#372)
+
 v3_10_7
-	Apptainer cache and temporary directory set in the Glidein working directory (Issue#403, PR#404)
-	Ability to set a minimum required memory for partitionable Glideins. The default is the value used previously, 2500 MB (Issue#405, PR#406)
-	Blackhole Detection. Stop accepting jobs if they are consumed at a rate higher than the configured limit and declare the Glidein a blackhole (Issue#331, PR#399)
-	Bug fix: Fixed Apptainer validation not considering uid_map w/o initial blank (Issue#395, PR#396)
-	Bug fix: Flattening error message in \_CONDOR_WRAPPER_ERROR_FILE and JobWrapperFailure Ad. This is a workaround for a bug in HTCondor (PR#400)
-	Bug fix: Fixed problem when check_signature in glidein_startup is not defined (PR#402)
-	Bug fix: get_tarballs look for HTCondor releases also in the update directory (Issue#412, PR#413)
+        Apptainer cache and temporary directory set in the Glidein working directory (Issue#403, PR#404)
+        Ability to set a minimum required memory for partitionable Glideins. The default is the value used previously, 2500 MB (Issue#405, PR#406)
+        Blackhole Detection. Stop accepting jobs if they are consumed at a rate higher than the configured limit and declare the Glidein a blackhole (Issue#331, PR#399)
+        Bug fix: Fixed Apptainer validation not considering uid_map w/o initial blank (Issue#395, PR#396)
+        Bug fix: Flattening error message in \_CONDOR_WRAPPER_ERROR_FILE and JobWrapperFailure Ad. This is a workaround for a bug in HTCondor (PR#400)
+        Bug fix: Fixed problem when check_signature in glidein_startup is not defined (PR#402)
+        Bug fix: get_tarballs look for HTCondor releases also in the update directory (Issue#412, PR#413)
 
 v3_10_6
 	Add knobs to allow overloading of memory, GLIDEIN_OVERLOAD_MEMORY, and CPU, GLIDEIN_OVERLOAD_CPUS. (Issue#370, PR#374)
