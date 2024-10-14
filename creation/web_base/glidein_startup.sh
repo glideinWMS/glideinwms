@@ -8,6 +8,16 @@
 #   This scripts runs all the others
 
 ############################
+
+printenv GWMS_CVMFS_REEXEC > /dev/null
+status=$?
+if [[ "$status" -eq 0 ]]; then
+    # glidein being reinvoked
+    gwms_cvmfs_reexec=$(printenv GWMS_CVMFS_REEXEC | sed s"/ //g")
+else
+    # regular glidein invocation
+    gwms_cvmfs_reexec=$(grep "^GWMS_CVMFS_REEXEC " "${glidein_config}" | cut -d ' ' -f 2-)
+fi
 # Customizable and initialization variables
 
 # Default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
@@ -21,6 +31,7 @@ fi
 global_args="$*"
 # GWMS_STARTUP_SCRIPT=$0
 GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+export GWMS_STARTUP_SCRIPT=${GWMS_STARTUP_SCRIPT}       # for glidein reinvocation
 GWMS_PATH=""
 # Relative to the work directory (GWMS_DIR, gwms_lib_dir, gwms_bin_dir and gwms_exec_dir will be the absolute paths)
 # bin (utilities), lib (libraries), exec (aux scripts to be executed/sourced, e.g. pre-job)
@@ -1174,6 +1185,8 @@ fetch_file_base() {
             START=$(date +%s)
             if [[ "${ffb_file_type}" = "exec:s" ]]; then
                 "${main_dir}/singularity_wrapper.sh" "${ffb_outname}" glidein_config "${ffb_id}"
+            elif [[ "${ffb_file_type}" = "exec:r" ]]; then
+                . "${ffb_outname}" glidein_config "${ffb_id}"
             else
                 "${ffb_outname}" glidein_config "${ffb_id}"
             fi
@@ -1261,7 +1274,6 @@ add_to_path() {
     export PATH="${tmp_path%:}"
 }
 
-
 fixup_condor_dir() {
     # All files in the native condor tarballs have a directory like condor-9.0.11-1-x86_64_CentOS7-stripped
     # However the (not used anymore) gwms create_condor_tarball removes that dir
@@ -1316,6 +1328,10 @@ usage() {
 #####################################################################
 #################### Execution starts here.... ######################
 #####################################################################
+
+if [[ -z "$gwms_cvmfs_reexec" ]]; then
+# TODO: not indenting to limit git conflicts, hold off until GWMS v3.12
+# if GWMS_CVMFS_REEXEC is empty, then this script is being invoked the first time; so proceed with usual glidein setup...
 
 # Variables initialized on top of the file
 
@@ -1423,6 +1439,7 @@ if [ -z "${repository_url}" ]; then
     usage
 fi
 
+export GWMS_REPOSITORY_URL=$repository_url   # for glidein reinvocation
 repository_entry_url="${repository_url}/entry_${glidein_entry}"
 
 if [ -z "${proxy_url}" ]; then
@@ -1485,7 +1502,9 @@ if [ -n "${client_repository_url}" ]; then
             warn "Missing client descript fname for group."
             usage
         fi
+        export GWMS_CLIENT_REPOSITORY_GROUP_URL=$client_repository_group_url     # for glidein reinvocation
     fi
+    export GWMS_CLIENT_REPOSITORY_URL=$client_repository_url     # for glidein reinvocation
 fi
 
 # Generate glidein UUID
@@ -1498,6 +1517,7 @@ fi
 # Print initial variables values (argumants and environment)
 startup_time="$(date +%s)"
 echo "Starting glidein_startup.sh at $(date) (${startup_time})"
+export GWMS_STARTUP_TIME=$startup_time   # for glidein reinvocation
 
 echo "script_checksum   = '$(md5wrapper "$0")'"
 echo "debug_mode        = '${operation_mode}'"
@@ -1654,6 +1674,7 @@ else
     fi
 fi
 work_dir_created=1
+export GWMS_GLIDEIN_WORK_DIR=${work_dir}     # for glidein reinvocation
 
 # GWMS_SUBDIR defined on top
 GWMS_DIR="${work_dir}/$GWMS_SUBDIR"
@@ -1664,10 +1685,12 @@ gwms_lib_dir="${GWMS_DIR}/lib"
 if ! mkdir -p "$gwms_lib_dir" ; then
     early_glidein_failure "Cannot create lib dir '$gwms_lib_dir'"
 fi
+export GWMS_LIB_DIR=${gwms_lib_dir}     # for glidein reinvocation
 gwms_bin_dir="${GWMS_DIR}/bin"
 if ! mkdir -p "$gwms_bin_dir" ; then
     early_glidein_failure "Cannot create bin dir '$gwms_bin_dir'"
 fi
+export GWMS_BIN_DIR=${gwms_bin_dir}     # for glidein reinvocation
 gwms_exec_dir="${GWMS_DIR}/exec"
 if ! mkdir -p "$gwms_exec_dir" ; then
     early_glidein_failure "Cannot create exec dir '$gwms_exec_dir'"
@@ -1675,7 +1698,11 @@ else
     for i in setup prejob postjob cleanup setup_singularity ; do
         mkdir -p "$gwms_exec_dir"/$i
     done
+    export GWMS_EXEC_DIR=${gwms_exec_dir}   # for glidein reinvocation
 fi
+# below lines for glidein reinvocation
+export GWMS_SUBDIR=${GWMS_SUBDIR}
+export GWMS_DIR=${GWMS_DIR}
 
 # mktemp makes it user readable by definition (ignores umask)
 # TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
@@ -1715,12 +1742,14 @@ main_dir="${work_dir}/${short_main_dir}"
 if ! mkdir "${main_dir}"; then
     early_glidein_failure "Cannot create '${main_dir}'"
 fi
+export GWMS_MAIN_DIR=${main_dir}        # for glidein reinvocation
 
 short_entry_dir=entry_${glidein_entry}
 entry_dir="${work_dir}/${short_entry_dir}"
 if ! mkdir "${entry_dir}"; then
     early_glidein_failure "Cannot create '${entry_dir}'"
 fi
+export GWMS_ENTRY_DIR=${entry_dir}      # for glidein reinvocation
 
 if [ -n "${client_repository_url}" ]; then
     short_client_dir=client
@@ -1728,6 +1757,7 @@ if [ -n "${client_repository_url}" ]; then
     if ! mkdir "$client_dir"; then
         early_glidein_failure "Cannot create '${client_dir}'"
     fi
+    export GWMS_CLIENT_DIR=${client_dir}        # for glidein reinvocation
 
     if [ -n "${client_repository_group_url}" ]; then
         short_client_group_dir=client_group_${client_group}
@@ -1736,6 +1766,7 @@ if [ -n "${client_repository_url}" ]; then
             early_glidein_failure "Cannot create '${client_group_dir}'"
         fi
     fi
+    export GWMS_CLIENTGROUP_DIR=${client_group_dir}     # for glidein reinvocation
 fi
 
 # Move the token files from condor to glidein workspace
@@ -1763,12 +1794,14 @@ extract_all_data
 
 wrapper_list="${PWD}/wrapper_list.lst"
 touch "${wrapper_list}"
+export GWMS_WRAPPER_LIST=${wrapper_list}     # for glidein reinvocation
 
 # create glidein_config
 glidein_config="${PWD}/glidein_config"
 if ! echo > "${glidein_config}"; then
     early_glidein_failure "Could not create '${glidein_config}'"
 fi
+export GWMS_GLIDEIN_CONFIG=${glidein_config}     # for glidein reinvocation
 if ! {
     echo "# --- glidein_startup vals ---"
     echo "GLIDEIN_UUID ${glidein_uuid}"
@@ -1888,6 +1921,7 @@ done
 
 # re-enable for everything else
 disable_check_signature=
+export GWMS_CHECK_SIGNATURE=$disable_check_signature     # for glidein reinvocation
 
 # Now verify the description was not tampered with
 # doing it so late should be fine, since nobody should have been able
@@ -1921,6 +1955,7 @@ done
 gs_id_work_dir="$(get_work_dir main)"
 gs_id_descript_file="$(get_descript_file main)"
 last_script="$(grep "^last_script " "${gs_id_work_dir}/${gs_id_descript_file}" | cut -s -f 2-)"
+export GWMS_LAST_SCRIPT="$last_script"       # for glidein reinvocation
 if [ -z "${last_script}" ]; then
     warn "last_script not in description file ${gs_id_work_dir}/${gs_id_descript_file}."
     glidein_exit 1
@@ -1931,7 +1966,7 @@ cleanup_script=$(grep "^GLIDEIN_CLEANUP_SCRIPT " "${glidein_config}" | cut -d ' 
 
 ##############################
 # Fetch all the other files
-for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "main at_file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
+for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "main precvmfs_file_list"
 do
     gs_id="$(echo "${gs_file_id}" |awk '{print $1}')"
 
@@ -1970,6 +2005,117 @@ do
     # fetch list file
     fetch_file_regular "${gs_id}" "${gs_file_list}"
 
+    # Fetch files contained in list
+    # TODO: $file is actually a list, so it cannot be double-quoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
+    # shellcheck disable=2086
+    while read -r file
+    do
+        if [ "${file:0:1}" != "#" ]; then
+            fetch_file "${gs_id}" $file
+        fi
+    done < "${gs_id_work_dir}/${gs_file_list}"
+
+    # Files to go into the GWMS_PATH
+    if [ "$gs_file_id" = "main at_file_list" ]; then
+        # setup here to make them available for other setup scripts
+        add_to_path "$gwms_bin_dir"
+        # all available now: gwms-python was in main,file_list; condor_chirp is in main,at_file_list
+        for file in "gwms-python" "condor_chirp"
+        do
+            cp "${gs_id_work_dir}/$file" "$gwms_bin_dir"/
+        done
+        cp -r "${gs_id_work_dir}/lib"/* "$gwms_lib_dir"/
+        cp "${gs_id_work_dir}/gconfig.py" "$gwms_lib_dir"/python/
+    elif [ "$gs_file_id" = "main after_file_list" ]; then
+        # in case some library has been added/updated
+        rsync -ar "${gs_id_work_dir}/lib"/ "$gwms_lib_dir"/
+        # new knowns binaries? add a loop like above: for file in ...
+    elif [[ "$gs_file_id" = client* ]]; then
+        # TODO: gwms25073 this is a workaround until there is an official designation for setup script fragments
+        [[ -e "${gs_id_work_dir}/setup_prejob.sh" ]] && { cp "${gs_id_work_dir}/setup_prejob.sh" "$gwms_exec_dir"/prejob/ ; chmod a-x "$gwms_exec_dir"/prejob/setup_prejob.sh ; }
+    fi
+done
+fi
+
+if [[ -n "$gwms_cvmfs_reexec" && "$gwms_cvmfs_reexec" == "yes" ]]; then
+    # gwms_cvmfs_reexec is not empty; meaning this block is being run inside of cvmfsexec environment
+    printenv GWMS_GLIDEIN_CONFIG > /dev/null
+    status=$?
+    if [[ ${status} -eq 0 ]]; then
+        work_dir=$(printenv GWMS_GLIDEIN_WORK_DIR | sed "s/ //g")
+        glidein_config=$(printenv GWMS_GLIDEIN_CONFIG | sed "s/ //g")
+        repository_url=$(printenv GWMS_REPOSITORY_URL | sed "s/ //g")
+        main_dir=$(printenv GWMS_MAIN_DIR | sed "s/ //g")
+        last_script=$(printenv GWMS_LAST_SCRIPT | sed "s/ //g")
+        check_signature=$(printenv GWMS_CHECK_SIGNATURE | sed "s/ //g")
+        startup_time=$(printenv GWMS_STARTUP_TIME | sed "s/ //g")
+        cvmfs_config_repo=$(printenv GLIDEIN_CVMFS_CONFIG_REPO | sed "s/ //g")
+        cvmfs_add_repos=$(printenv GLIDEIN_CVMFS_REPOS | sed "s/ //g")
+        gwms_cvmfsexec_mode=$(printenv GWMS_CVMFSEXEC_MODE | sed "s/ //g")
+        client_repository_url=$(printenv GWMS_CLIENT_REPOSITORY_URL | sed "s/ //g")
+        client_repository_group_url=$(printenv GWMS_CLIENT_REPOSITORY_GROUP_URL | sed "s/ //g")
+        wrapper_list=$(printenv GWMS_WRAPPER_LIST | sed "s/ //g")
+        gwms_exec_dir=$(printenv GWMS_EXEC_DIR | sed "s/ //g")
+    fi
+
+    # import add_config_line function
+    add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
+    # shellcheck source=./add_config_line.source
+    . "$add_config_line_source"
+
+    # re-sourcing the helper script inside of cvmfsexec environment
+    . "$work_dir"/cvmfs_helper_funcs.sh
+    mount_cvmfs_repos $gwms_cvmfsexec_mode $cvmfs_config_repo $cvmfs_add_repos
+
+    # re-source all the scripts as it'd have been done during the first invocation of this script
+    extract_all_data
+
+    log_setup "${glidein_config}"
+fi
+
+glidein_debug_options=$(gconfig_get GLIDEIN_DEBUG_OPTIONS "$glidein_config")
+glidein_debug_output=$(gconfig_get GLIDEIN_DEBUG_OUTPUT "$glidein_config")
+export GLIDEIN_DEBUG_OPTIONS=$glidein_debug_options
+export GLIDEIN_DEBUG_OUTPUT=$glidein_debug_output
+
+for gs_file_id in "main at_file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
+do
+    gs_id="$(echo "${gs_file_id}" |awk '{print $1}')"
+
+    if [ -z "${client_repository_url}" ]; then
+        if [ "${gs_id}" = "client" ]; then
+            # no client file when no client_repository
+            continue
+        fi
+    fi
+    if [ -z "${client_repository_group_url}" ]; then
+        if [ "${gs_id}" = "client_group" ]; then
+            # no client group file when no client_repository_group
+            continue
+        fi
+    fi
+
+    gs_file_list_id="$(echo "${gs_file_id}" |awk '{print $2}')"
+
+    gs_id_work_dir="$(get_work_dir "${gs_id}")"
+    gs_id_descript_file="$(get_descript_file "${gs_id}")"
+
+    # extract list file name
+    if ! gs_file_list_line="$(grep "^${gs_file_list_id} " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
+        if [ -z "${client_repository_group_url}" ]; then
+            if [ "${gs_file_list_id:0:11}" = "aftergroup_" ]; then
+                # afterfile_.. files optional when no client_repository_group
+                continue
+            fi
+        fi
+        warn "No '${gs_file_list_id}' in description file ${gs_id_work_dir}/${gs_id_descript_file}."
+        glidein_exit 1
+    fi
+    # space+tab separated file with multiple elements (was: awk '{print $2}', not safe for spaces in file name)
+    gs_file_list="$(echo "${gs_file_list_line}" | cut -s -f 2 | sed -e 's/[[:space:]]*$//')"
+
+    # fetch list file
+    fetch_file_regular "${gs_id}" "${gs_file_list}"
     # Fetch files contained in list
     # TODO: $file is actually a list, so it cannot be double-quoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
     # shellcheck disable=2086
