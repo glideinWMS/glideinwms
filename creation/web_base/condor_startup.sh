@@ -880,6 +880,9 @@ EOF
                     cat >> "$CONDOR_CONFIG" <<EOF
 # Declare resource: ${i}
 MACHINE_RESOURCE_${res_name} = ${res_num}
+# Declare no use of GPUs, i.e. the worker node (WN) should not have GPUs.
+# Even though the WN may physically have them, we want them to be ignored.
+MACHINE_RESOURCE_GPUs = 0
 EOF
                 fi
                 if [[ "$res_opt" == "extra" ]]; then
@@ -946,7 +949,13 @@ if defined MACHINE_RESOURCE_NAMES
 endif
 START = (\$(START)) && (\$(EXTRA_SLOTS_START))
 EOF
-
+        else
+	    # when GLIDEIN_Resource_Slots is not defined
+            cat >> "$CONDOR_CONFIG" <<EOF
+# Declare no use of GPUs, i.e. the worker node (WN) should not have GPUs.
+# Even though the WN may physically have them, we want them to be ignored.
+MACHINE_RESOURCE_GPUs = 0
+EOF
         fi  # end of resource slot if
 
         # Set to shutdown if total idle exceeds max idle, or if the age
