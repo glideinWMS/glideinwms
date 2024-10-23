@@ -149,6 +149,7 @@ class CredentialPurpose(enum.Enum):
     """
 
     REQUEST = "request"
+    CALLBACK = "callback"
     PAYLOAD = "payload"
 
     @classmethod
@@ -1207,7 +1208,7 @@ def create_credential(
     purpose: Optional[CredentialPurpose] = None,
     trust_domain: Optional[str] = None,
     security_class: Optional[str] = None,
-    cred_type: Optional[CredentialPairType] = None,
+    cred_type: Optional[CredentialType] = None,
     context: Optional[Mapping] = None,
 ) -> Credential:
     """
@@ -1873,14 +1874,14 @@ class SecurityBundle:
             element_descript (ElementDescriptor): The element descriptor to load from.
         """
 
-        for path in element_descript.merged_data["Proxies"]:
-            cred_type = credential_type_from_string(element_descript.merged_data["ProxyTypes"].get(path))
-            purpose = element_descript.merged_data["CredentialPurposes"].get(path)
-            trust_domain = element_descript.merged_data["ProxyTrustDomains"].get(path, "None")
-            security_class = element_descript.merged_data["ProxySecurityClasses"].get(
+        for path in element_descript["Proxies"]:
+            cred_type = credential_type_from_string(element_descript["ProxyTypes"].get(path))
+            purpose = element_descript["CredentialPurposes"].get(path)
+            trust_domain = element_descript["ProxyTrustDomains"].get(path, "None")
+            security_class = element_descript["ProxySecurityClasses"].get(
                 path, "None"
             )  # TODO: Should this be None?
-            context = load_context(element_descript.merged_data["CredentialContexts"].get(path, None))
+            context = load_context(element_descript["CredentialContexts"].get(path, None))
             if isinstance(cred_type, CredentialType):
                 credential = create_credential(
                     path=path,
@@ -1891,7 +1892,7 @@ class SecurityBundle:
                     context=context,
                 )
             else:
-                cred_key = element_descript.merged_data["ProxyKeyFiles"].get(path, None)
+                cred_key = element_descript["ProxyKeyFiles"].get(path, None)
                 credential = create_credential_pair(
                     path=path,
                     private_path=cred_key,
@@ -1902,7 +1903,7 @@ class SecurityBundle:
                     context=context,
                 )
             self.add_credential(credential)
-        for name, data in element_descript.merged_data["Parameters"].items():
+        for name, data in element_descript["Parameters"].items():
             parameter = create_parameter(
                 ParameterName.from_string(name),
                 data["value"],

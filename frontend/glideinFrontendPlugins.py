@@ -89,6 +89,12 @@ class CredentialsPlugin(ABC):
         """
         return []
 
+    def renew_credentials(self):
+        """Renew all credentials that are generators"""
+
+        for cred in self.cred_list:
+            cred.renew()
+
     def generate_credentials(self, **kwargs):
         """
         Generate all credentials that are generators

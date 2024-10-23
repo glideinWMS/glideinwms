@@ -217,7 +217,7 @@ class glideinFrontendElement:
                 )
                 return 1
             self.credentials_plugin = proxy_plugins[self.elementDescript.merged_data["ProxySelectionPlugin"]](
-                group_dir, glideinFrontendPlugins.createRequestBundle(self.elementDescript)
+                group_dir, glideinFrontendPlugins.createRequestBundle(self.elementDescript.merged_data)
             )
         self.idtoken_lifetime = int(self.elementDescript.merged_data.get("IDTokenLifetime", 24))
         self.idtoken_keyname = self.elementDescript.merged_data.get("IDTokenKeyname", "FRONTEND")
