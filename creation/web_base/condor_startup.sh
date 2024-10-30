@@ -803,7 +803,11 @@ EOF
         # check for resource slots
         # resource_name GPUs has special meaning, enables GPUs (including monitoring and autodetection if desired)
         condor_config_resource_slots=$(gconfig_get GLIDEIN_Resource_Slots "$config_file")
-        if [[ -n "$condor_config_resource_slots" ]]; then
+        if [[ -z "$condor_config_resource_slots" ]]; then
+            # GPUs should be set to 0 if not desired, otherwise HTCondor will enable them
+            echo "MACHINE_RESOURCE_GPUs = 0" >> "$CONDOR_CONFIG"
+        else
+            cc_resource_slots_has_gpus=0
             echo "adding resource slots configuration: $condor_config_resource_slots" 1>&2
             cat >> "$CONDOR_CONFIG" <<EOF
 # ---- start of resource slots part ($condor_config_resource_slots) ----
@@ -833,8 +837,14 @@ EOF
                 if [[ -z "$res_name" ]]; then
                     continue
                 fi
-        [[ "$(echo "$res_name" | tr -s '[:upper:]' '[:lower:]')" = "gpus" ]] && GPU_USE=True
+                GPU_USE=
+                GPU_AUTO=
+                [[ "$(echo "$res_name" | tr -s '[:upper:]' '[:lower:]')" = "gpus" ]] && GPU_USE=True
+                if [[ "$GPU_USE" == "True" ]]; then
+                    (( cc_resource_slots_has_gpus++ ))
+                fi
                 if [[ -z "$res_num" ]]; then
+                    # GPUs can be auto-discovered, other resources default to 1
                     if [[ -n "$GPU_USE" ]]; then
                         # GPUs auto-discovery: https://htcondor-wiki.cs.wisc.edu/index.cgi/wiki?p=HowToManageGpus
                         res_num=$(find_gpus_num)
@@ -880,9 +890,6 @@ EOF
                     cat >> "$CONDOR_CONFIG" <<EOF
 # Declare resource: ${i}
 MACHINE_RESOURCE_${res_name} = ${res_num}
-# Declare no use of GPUs, i.e. the worker node (WN) should not have GPUs.
-# Even though the WN may physically have them, we want them to be ignored.
-MACHINE_RESOURCE_GPUs = 0
 EOF
                 fi
                 if [[ "$res_opt" == "extra" ]]; then
@@ -940,7 +947,14 @@ EOF
                 fi
                 echo "NEW_RESOURCES_LIST = \$(NEW_RESOURCES_LIST) $res_name" >> "$CONDOR_CONFIG"
 
-            done
+            done  # end per-resource loop
+
+            # Epilogue GPUs handling
+            if [[ "$cc_resource_slots_has_gpus" -eq 0 ]]; then
+                echo "MACHINE_RESOURCE_GPUs = 0" >> "$CONDOR_CONFIG"
+            elif [[ "$cc_resource_slots_has_gpus" -gt 1 ]]; then
+                echo "WARNING: More than one GPU resource defined in GLIDEIN_Resource_Slots" 1>&2
+            fi
 
             cat >> "$CONDOR_CONFIG" <<EOF
 # Update machine_resource_names and start expression
@@ -949,13 +963,7 @@ if defined MACHINE_RESOURCE_NAMES
 endif
 START = (\$(START)) && (\$(EXTRA_SLOTS_START))
 EOF
-        else
-	    # when GLIDEIN_Resource_Slots is not defined
-            cat >> "$CONDOR_CONFIG" <<EOF
-# Declare no use of GPUs, i.e. the worker node (WN) should not have GPUs.
-# Even though the WN may physically have them, we want them to be ignored.
-MACHINE_RESOURCE_GPUs = 0
-EOF
+
         fi  # end of resource slot if
 
         # Set to shutdown if total idle exceeds max idle, or if the age
