@@ -1172,12 +1172,6 @@ class MultiAdvertizeWork:
                     logSupport.log.warning(f"Failed to create idtoken credential: {e}")
         params_obj.glidein_params_to_encrypt["PayloadCredentials"] = pickle.dumps(payload_creds)
 
-        # Pack request credentials to send with the request
-        request_creds = [
-            rc.credential.copy() for rc in self.request_credentials if rc.credential.trust_domain == factory_trust
-        ]
-        params_obj.glidein_params_to_encrypt["RequestCredentials"] = pickle.dumps(request_creds)
-
         # Pack parameters to send to the request
         security_params = [param.copy() for param in self.descript_obj.credentials_plugin.params_dict.values()]
         params_obj.glidein_params_to_encrypt["SecurityParameters"] = pickle.dumps(security_params)
@@ -1207,14 +1201,15 @@ class MultiAdvertizeWork:
             if params_obj.glidein_params_to_encrypt:
                 glidein_params_to_encrypt = copy.deepcopy(params_obj.glidein_params_to_encrypt)
 
+            # Add request specific parameters
+            glidein_params_to_encrypt["RequestCredentials"] = pickle.dumps([request_cred.credential])
+
             # Convert the security class to a string so the Factory can interpret the value correctly
             glidein_params_to_encrypt["SecurityClass"] = str(request_cred.credential.security_class)
             if params_obj.security_name is not None:
                 glidein_params_to_encrypt["SecurityName"] = params_obj.security_name
 
             glidein_params_to_encrypt[request_cred.credential.classad_attribute] = request_cred.credential.id
-            if request_cred.credential.cred_type is CredentialType.SCITOKEN:
-                glidein_params_to_encrypt["frontend_scitoken"] = request_cred.credential.string
             if isinstance(request_cred.credential, CredentialPair):
                 glidein_params_to_encrypt[request_cred.credential.private_credential.classad_attribute] = (
                     request_cred.credential.private_credential.id

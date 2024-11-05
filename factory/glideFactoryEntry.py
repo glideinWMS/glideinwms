@@ -1835,8 +1835,6 @@ def unit_work_v3_11(
     submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username)
 
     # Load credentials
-    frontend_scitoken = decrypted_params.get("frontend_scitoken", None)
-    frontend_condortoken = decrypted_params.get(f"{entry.name}.idtoken", None)
     for cred in decrypted_params.get("RequestCredentials") + decrypted_params.get("PayloadCredentials"):
         if not cred.path:
             cred.path = cred.id
@@ -1851,13 +1849,9 @@ def unit_work_v3_11(
                 cred.private_credential.path = standard_path(cred.private_credential)
                 cred.private_credential.save_to_file(backup=True)
         if cred.purpose == CredentialPurpose.REQUEST:
-            submit_credentials.add_security_credential(cred)  # TODO: Check if should use classad_attribute as id
-            if cred.string.decode() == frontend_scitoken:
-                submit_credentials.add_identity_credential(cred, "frontend_scitoken")
+            submit_credentials.add_security_credential(cred)
         else:
             submit_credentials.add_identity_credential(cred)
-            if cred.string.decode() == frontend_condortoken:
-                submit_credentials.add_identity_credential(cred, "frontend_condortoken")
 
     # Handle cloud-specific credentials  # TODO: Check if still needed
     if grid_type in ("ec2", "gce"):
