@@ -223,7 +223,7 @@ def main():
 
         # Set the arguments
         # I was using escapeParam for GLIDECLIENT_ReqNode and GLIDECLIENT_Collector but turned out it's not necessary
-        params["CONDOR_VERSION"] = "default"
+        params["CONDOR_OS"] = "auto"
         params["CONDOR_OS"] = "default"
         params["CONDOR_ARCH"] = "default"
         params["GLIDECLIENT_ReqNode"] = ad_gc["GlideinParamGLIDECLIENT_ReqNode"]
