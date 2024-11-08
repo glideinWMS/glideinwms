@@ -174,11 +174,11 @@ class GlideinHandler(BaseRotatingHandler):
 
         do_timed_rollover = False
         t = int(time.time())
-        if t >= self.rolloverAt:
+        if t >= self.rolloverAt and t >= self.rollover_not_before:
             do_timed_rollover = True
 
         do_size_rollover = False
-        if self.maxBytes > 0 and t >= self.rollover_not_before:  # are we rolling over?
+        if self.maxBytes > 0:  # are we rolling over?
             if empty_record:
                 msg = ""
             else:

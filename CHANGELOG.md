@@ -24,6 +24,7 @@ Changes since the last release
 -   HTCondor TRUST_DOMAIN configuration macro set to string to avoid Glidein config error (PR #420)
 -   Disabled shebang mangling in rpm_build to avoid gwms-python not finding the shell (Issue #436, PR #437)
 -   Dynamic creation of HTCondor IDTOKEN password (Issue #440, PR #441)
+-   Fix log rotation when maxMb is reached (Issue #451)
 
 ### Testing / Development
 
