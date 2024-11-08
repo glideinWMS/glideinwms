@@ -153,6 +153,36 @@ class GlideinHandler(BaseRotatingHandler):
 
         Args:
             record (str): The message that will be logged.
+            empty_record (bool): If False (default) count also `record` length to evaluate if a rollover is needed
+
+        Returns:
+            bool: True if rollover should be performed, False otherwise
+        """
+        if disable_rotate:
+            return False
+
+        do_timed_rollover = False
+        t = int(time.time())
+        if t >= self.rolloverAt:
+            do_timed_rollover = True
+
+        do_size_rollover = False
+        if self.maxBytes > 0:
+            if empty_record:
+                msg = ""
+            else:
+                msg = f"{self.format(record)}\n"
+            self.stream.seek(0, 2)  # due to non-posix-compliant Windows feature
+            if self.stream.tell() + len(msg) >= self.maxBytes:
+                do_size_rollover = True
+
+        return do_timed_rollover or do_size_rollover
+        """Determine if rollover should occur.
+
+        Basically, we are combining the checks for size and time interval
+
+        Args:
+            record (str): The message that will be logged.
             empty_record (bool): If False (default)  count also `record` length to evaluate if a rollover is needed
 
         Returns:
@@ -187,7 +217,15 @@ class GlideinHandler(BaseRotatingHandler):
             if self.stream.tell() + len(msg) >= self.maxBytes:
                 do_size_rollover = True
 
-        return do_timed_rollover or do_size_rollover
+
+    def check_and_perform_rollover(self):
+        if self.shouldRollover(None, empty_record=True):
+            self.doRollover()
+        else:
+            # Force rotation if file size exceeds maxBytes
+            self.stream.seek(0, 2)
+            if self.stream.tell() >= self.maxBytes:
+                self.doRollover()
 
     def getFilesToDelete(self):
         """Determine the files to delete when rolling over.
