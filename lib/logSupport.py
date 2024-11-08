@@ -217,7 +217,6 @@ class GlideinHandler(BaseRotatingHandler):
             if self.stream.tell() + len(msg) >= self.maxBytes:
                 do_size_rollover = True
 
-
     def check_and_perform_rollover(self):
         if self.shouldRollover(None, empty_record=True):
             self.doRollover()
