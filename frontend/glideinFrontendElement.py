@@ -39,13 +39,6 @@ from glideinwms.lib.fork import fork_in_bg, ForkManager, wait_for_pids
 from glideinwms.lib.pidSupport import register_sighandler
 from glideinwms.lib.util import safe_boolcomp
 
-# this should not be needed in RPM install: sys.path.append(os.path.join(sys.path[0], "../.."))
-
-# credential generator plugins support
-# TODO: This path should come from the frontend configuration, but it's not available yet.
-sys.path.append("/etc/gwms-frontend/plugin.d")
-plugins = {}
-
 ###########################################################
 # Support class that mimics the 2.7 collections.Counter class
 #
