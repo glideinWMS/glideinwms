@@ -25,6 +25,7 @@ Changes since the last release
 -   Disabled shebang mangling in rpm_build to avoid gwms-python not finding the shell (Issue #436, PR #437)
 -   Dynamic creation of HTCondor IDTOKEN password (Issue #440, PR #441)
 -   Autodetect CONDOR_OS in the manual_glidein_submit tool (Issue #449, PR #453)
+-   Failed log rotation due to wrong file creation time (Issue #451, PR #457)
 
 ### Testing / Development
 
