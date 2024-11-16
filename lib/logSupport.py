@@ -8,7 +8,6 @@
 import logging
 import os
 import re
-import stat
 import sys  # for alternate_log
 import time
 
@@ -85,16 +84,16 @@ class GlideinHandler(BaseRotatingHandler):
     And the size is measured in Bytes (MBytes in the constructor parameter can be
     fractional)
 
-    @type filename: string
-    @ivar filename: Full path to the log file.  Includes file name.
-    @type interval: int
-    @ivar interval: Number of seconds to keep log file before rotating
-    @type maxBytes: int
-    @param maxBytes: Maximum size of the logfile in Bytes before file rotation (used with min days)
-    @type min_lifetime: int
-    @param min_lifetime: Minimum number of seconds (used with max bytes)
-    @type backupCount: int
-    @ivar backupCount: How many backups to keep
+    Attributes:
+        filename (str|Path): The full path of the log file. Includes file name. Passed to BaseRotatingHandler
+        interval (int): Max number of seconds before file rotation. 0 to disable timed rotation
+        min_lifetime (int): Minimum number of seconds before file rotation (used with maxBytes)
+        maxBytes (int): Maximum size of the logfile in bytes before file rotation (used with min days)
+            0 to disable file size rotation
+        backupCount (int): Number of backups to keep
+        compression (str): Compression to use (gz, zip, depending on available compression modules)
+        rolloverAt (int): time of the next time-based rollover in seconds from Epoch. 0 to disable
+        rollover_not_before (int): time to wait before the next size-based rollover in seconds from Epoch
     """
 
     def __init__(self, filename, maxDays=1.0, minDays=0.0, maxMBytes=10.0, backupCount=5, compression=None):
@@ -103,13 +102,16 @@ class GlideinHandler(BaseRotatingHandler):
             1. Interval entered is in days or fractions of it (internally  converted to seconds)
             2. No special encoding
             3. No delays are set
-            4. Timestamps are not in UTC
+            4. Timestamps are in seconds since the epoch (can be converted in UTC with time.gmtime and
+               local with time.localtime)
 
         Args:
-            filename (str|Path): The full path of the log file
-            maxDays (float): Max number of days before file rotation (fraction of day accepted, used in unit test)
+            filename (str|Path): The full path of the log file. Includes file name.
+            maxDays (float): Max number of days before file rotation (fraction of day accepted, used in unit test).
+                0 to disable timed rotation
             minDays (float): Minimum number of days before file rotation (used with max MBytes)
             maxMBytes (float): Maximum size of the logfile in MB before file rotation (used with min days)
+                0 to disable file size rotation
             backupCount (int): Number of backups to keep
             compression (str): Compression to use (gz, zip, depending on available compression modules)
         """
@@ -137,14 +139,36 @@ class GlideinHandler(BaseRotatingHandler):
         self.suffix = "%Y-%m-%d_%H-%M"
         self.extMatch = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}(\.gz|\.zip)?$")
 
+        begin_interval_time_mtime = 0
         if os.path.exists(filename):
-            begin_interval_time = os.stat(filename)[stat.ST_MTIME]
+            fstats = os.stat(filename)
+            begin_interval_time_mtime = fstats.st_mtime
+            try:
+                begin_interval_time = fstats.st_birthtime
+            except AttributeError:
+                # Creation time is very tricky. Not all OS or file systems provide file creation information
+                # POSIX specifies atime (access), mtime (modification), and ctime (inode/metadata change time)
+                # Mac OS has creation time and ext4 does but not always is reliable
+                # Furthermore, when opening in write the file is truncated and rewritten, w/o changing creation time
+                # anyway, for these log files, the old file is moved at log rotation, so the new log write will start
+                # a new file.
+                # When 0, timed rotation is disabled.
+                begin_interval_time = 0
         else:
             begin_interval_time = int(time.time())
-        self.rolloverAt = begin_interval_time + self.interval
         self.rollover_not_before = 0
-        if self.min_lifetime > 0:
+        # Not before rollover is disabled in configuration (min_lifetime is 0) or if creation time is not available
+        if begin_interval_time > 0 and self.min_lifetime > 0:
             self.rollover_not_before = begin_interval_time + self.min_lifetime
+        self.rolloverAt = 0
+        # Timed rollover is disabled in configuration when interval is 0
+        if self.interval > 0:
+            # If creation time is not available, resorting to modification time (will work while the logger is running,
+            # not when restarted frequently because the log file keeps being modified)
+            if begin_interval_time == 0:
+                self.rolloverAt = begin_interval_time_mtime + self.interval
+            else:
+                self.rolloverAt = begin_interval_time + self.interval
 
     def shouldRollover(self, record, empty_record=False):
         """Determine if rollover should occur.
@@ -172,13 +196,14 @@ class GlideinHandler(BaseRotatingHandler):
         if disable_rotate:
             return False
 
-        do_timed_rollover = False
         t = int(time.time())
-        if t >= self.rolloverAt:
+
+        do_timed_rollover = False
+        if 0 < self.rolloverAt <= t:  # 0 means that timed rollover is disabled
             do_timed_rollover = True
 
         do_size_rollover = False
-        if self.maxBytes > 0 and t >= self.rollover_not_before:  # are we rolling over?
+        if self.maxBytes > 0 and t >= self.rollover_not_before:  # are we rolling over for size?
             if empty_record:
                 msg = ""
             else:
