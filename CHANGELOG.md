@@ -3,9 +3,9 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+## v3.10.8 \[2024-11-21\]
 
-Changes since the last release
+Fixed a few bugs including shebang mangling and failed log files rotation.
 
 ### New features / functionalities
 

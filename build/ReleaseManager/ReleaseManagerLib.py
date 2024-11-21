@@ -416,6 +416,7 @@ class PackageExcludes:
             ".prettierignore",
             ".reuse",
             ".ruff_cache",
+            ".tox",
             ".travis.yml",
             "build",
             "test",
