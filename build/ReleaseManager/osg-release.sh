@@ -10,7 +10,7 @@ Buold the source tarball and upload it to the OSG library (now using osg-sw-subm
  PRINC     - Kerberos principal for the OSG AFS (If only the user is given CS.WISC.EDU is assumed as domain). Krb user may differ form the build machine user name
  REPO      - url of the Git repository (default: https://github.com/glideinWMS/glideinwms.git)
  -h --help - print this message and exit
- 
+
 NOTE that when using this script you'll have to authenticate with the CILogon URL and insert the OSG PASSWORD (for AFS/Kerberos) and authenticate with the URL again."
 
 [ "$1" == "-h" ] || [ "$1" == "--help" ] && { echo "$USAGE_STR"; exit 0; }
