@@ -538,3 +538,10 @@ v3_10_8:
     - Failed log rotation due to wrong file creation time (Issue#451, PR#457)
     - Replacing xmlrunner with unittest-xml-reporting (PR#428)
     - Updated the release upload script to work with osg-sw-submit (PR#439)
+
+v3_11_0:
+  Date: December 12, 2024
+  Series: Development
+  Tarball: false
+  Feature:
+    - Introduces the new credentials model.

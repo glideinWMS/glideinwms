@@ -1,3 +1,6 @@
+v3_11_0
+	Introduces the new credentials model.
+
 v3_10_8
 	Advertising information about unprivileged user namespaces in glidein classad (PR#416)
 	Added option --group-name option to manual_glidein_submit (PR#435)
