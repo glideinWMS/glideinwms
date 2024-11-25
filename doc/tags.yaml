@@ -523,12 +523,12 @@ v3_10_7:
     - get_tarballs look for HTCondor releases also in the update directory (Issue#412, PR#413)
 
 v3_10_8:
-  Date: November 21, 2024
+  Date: November 25, 2024
   Series: Stable
   Tarball: false
   Feature:
     - Advertising information about unprivileged user namespaces in glidein classad (PR#416)
-    - Added option --group-name option to manual_glidein_submit
+    - Added option --group-name option to manual_glidein_submit (PR#435)
   Bug fix:
     - Fixed root unable to remove other users jobs in the Factory (PR#433)
     - HTCondor TRUST_DOMAIN configuration macro set to string to avoid Glidein config error (PR#420)

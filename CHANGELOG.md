@@ -10,7 +10,7 @@ Fixed a few bugs including shebang mangling and failed log files rotation.
 ### New features / functionalities
 
 -   Advertizing information about unprivileged user namespaces in glidein classad (PR #416)
--   Added option --group-name option to manual_glidein_submit
+-   Added option --group-name option to manual_glidein_submit (PR #435)
 
 ### Changed defaults / behaviours
 
