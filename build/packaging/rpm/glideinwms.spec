@@ -40,7 +40,7 @@ Version:        %{version}
 Release:        %{release}%{?dist}
 Summary:        The glidein Workload Management System (glideinWMS)
 # Group: has been deprecated, removing it from all specifications, wes "System Environment/Daemons"
-License:        Fermitools Software Legal Information (Modified BSD License)
+License:        Apache-2.0
 URL:            http://glideinwms.fnal.gov
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
@@ -1053,8 +1053,15 @@ rm -rf $RPM_BUILD_ROOT
 #%config(noreplace) %{_sysconfdir}/condor/scripts/frontend_condortoken
 
 %changelog
-* Fri Jun 21 2024 Marco Mambelli <marcom@fnal.gov> - 3.10.7
+* Thu Nov 21 2024 Marco Mambelli <marcom@fnal.gov> - 3.10.8.0.1.rc1
+- Glideinwms v3.10.8
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_10_8/history.html
+- Release candidates 3.10.7-01.rc1
+
+* Tue Oct 22 2024 Marco Mambelli <marcom@fnal.gov> - 3.10.7-3
 - Glideinwms v3.10.7
+- 3.10.7-1 was on Fri Jun 21 2024
+- Removed bash mangling in 3.10.7-3
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_10_7/history.html
 - Release candidates 3.10.7-01.rc1 to 3.10.7-03.rc3
 

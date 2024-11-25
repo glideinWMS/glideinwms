@@ -521,3 +521,20 @@ v3_10_7:
     - Flattening error message in \_CONDOR_WRAPPER_ERROR_FILE and JobWrapperFailure Ad. This is a workaround for a bug in HTCondor (PR#400)
     - Fixed problem when check_signature in glidein_startup is not defined (PR#402)
     - get_tarballs look for HTCondor releases also in the update directory (Issue#412, PR#413)
+
+v3_10_8:
+  Date: November 21, 2024
+  Series: Stable
+  Tarball: false
+  Feature:
+    - Advertising information about unprivileged user namespaces in glidein classad (PR#416)
+    - Added option --group-name option to manual_glidein_submit
+  Bug fix:
+    - Fixed root unable to remove other users jobs in the Factory (PR#433)
+    - HTCondor TRUST_DOMAIN configuration macro set to string to avoid Glidein config error (PR#420)
+    - Disabled shebang mangling in rpm_build to avoid gwms-python not finding the shell (Issue#436, PR#437)
+    - Dynamic creation of HTCondor IDTOKEN password (Issue#440, PR#441)
+    - Autodetect CONDOR_OS in the manual_glidein_submit tool (Issue#449, PR#453)
+    - Failed log rotation due to wrong file creation time (Issue#451, PR#457)
+    - Replacing xmlrunner with unittest-xml-reporting (PR#428)
+    - Updated the release upload script to work with osg-sw-submit (PR#439)
