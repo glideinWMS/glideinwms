@@ -3,12 +3,17 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This is the main of the glideinFrontend
+"""glideinFrontend Main Script.
 
-Arguments:
-   $1 = work_dir
+This script serves as the entry point for managing the glideinFrontend processes, handling group operations,
+failure monitoring, and performance aggregation.
+
+Usage:
+    python glidein_frontend_main.py <work_dir>
+
+Args:
+    work_dir (str): The working directory for the frontend.
 """
-
 
 import fcntl
 import os
@@ -33,35 +38,64 @@ from glideinwms.lib import cleanupSupport, condorExe, logSupport, servicePerform
 ############################################################
 # KEL remove this method and just call the monitor aggregator method directly below?  we don't use the results
 def aggregate_stats():
+    """Aggregate monitoring data using the monitor aggregator.
+
+    Returns:
+        dict: Aggregated statistics for the frontend.
+    """
     return glideinFrontendMonitorAggregator.aggregateStatus()
 
 
 ############################################################
 class FailureCounter:
+    """Tracks and counts failures within a specific time window.
+
+    Attributes:
+        my_name (str): Name or identifier for the failure counter.
+        max_lifetime (int): Time window in seconds for retaining failure records.
+        failure_times (list): List of timestamps for failures.
+    """
+
     def __init__(self, my_name, max_lifetime):
+        """
+        Args:
+            my_name (str): Name or identifier for the failure counter.
+            max_lifetime (int): Time window in seconds for retaining failure records.
+        """
         self.my_name = my_name
         self.max_lifetime = max_lifetime
-
         self.failure_times = []
 
     def add_failure(self, when=None):
+        """Record a failure event.
+
+        Args:
+            when (float, optional): Timestamp of the failure. Defaults to the current time.
+        """
         if when is None:
             when = time.time()
-
         self.clean_old()
         self.failure_times.append(when)
 
     def get_failures(self):
+        """Retrieve a list of failures within the retention window.
+
+        Returns:
+            list: A list of timestamps for failures.
+        """
         self.clean_old()
         return self.failure_times
 
     def count_failures(self):
+        """Count the number of failures within the retention window.
+
+        Returns:
+            int: The number of recorded failures.
+        """
         return len(self.get_failures())
 
-    # INTERNAL
-
-    # clean out any old records
     def clean_old(self):
+        """Remove outdated failure records that exceed the retention window."""
         min_time = time.time() - self.max_lifetime
         while self.failure_times and (self.failure_times[0] < min_time):
             # Assuming they are ordered
@@ -70,10 +104,20 @@ class FailureCounter:
 
 ############################################################
 def spawn_group(work_dir, group_name, action):
+    """Spawn a subprocess for a specific group.
+
+    Args:
+        work_dir (str): The working directory for the frontend.
+        group_name (str): The name of the group to process.
+        action (str): The action to perform for the group.
+
+    Returns:
+        subprocess.Popen: The spawned child process.
+    """
     command_list = [sys.executable, glideinFrontendElement.__file__, str(os.getpid()), work_dir, group_name, action]
     child = subprocess.Popen(command_list, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    # set it in non blocking mode
+    # Set stdout and stderr to non-blocking mode
     for fd in (child.stdout.fileno(), child.stderr.fileno()):
         fl = fcntl.fcntl(fd, fcntl.F_GETFL)
         fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
@@ -83,28 +127,49 @@ def spawn_group(work_dir, group_name, action):
 
 ############################################################
 def poll_group_process(group_name, child):
-    # empty stdout and stderr
+    """Poll the status of a group's subprocess.
+
+    Args:
+        group_name (str): The name of the group being processed.
+        child (subprocess.Popen): The child process to poll.
+
+    Returns:
+        int or None: The exit code of the process if it has exited, or None if it is still running.
+    """
+    # Empty stdout and stderr
     try:
         tempOut = child.stdout.read()
         if tempOut:
             logSupport.log.info(f"[{group_name}]: {tempOut}")
     except OSError:
-        pass  # ignore
+        pass  # Ignore errors
+
     try:
         tempErr = child.stderr.read()
-        if tempOut:
+        if tempErr:
             logSupport.log.warning(f"[{group_name}]: {tempErr}")
     except OSError:
-        pass  # ignore
+        pass  # Ignore errors
 
     return child.poll()
 
 
 ############################################################
-
-
-# return the list of (group,walltime) pairs
 def spawn_iteration(work_dir, frontendDescript, groups, max_active, failure_dict, max_failures, action):
+    """Execute a full iteration for managing groups and monitoring failures.
+
+    Args:
+        work_dir (str): The working directory for the frontend.
+        frontendDescript (FrontendDescript): The frontend configuration descriptor.
+        groups (list): A list of group names to process.
+        max_active (int): The maximum number of active groups allowed simultaneously.
+        failure_dict (dict): A dictionary mapping group names to their respective FailureCounter objects.
+        max_failures (int): The maximum number of failures allowed before aborting.
+        action (str): The action to perform for the iteration.
+
+    Returns:
+        list: A list of tuples containing group names and their respective wall times.
+    """
     childs = {}
 
     for group_name in groups:
@@ -254,7 +319,21 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active, failure_dict
 
 ############################################################
 def spawn_cleanup(work_dir, frontendDescript, groups, frontend_name, ha_mode):
-    # Invalidate glidefrontendmonitor classad
+    """Perform cleanup tasks for frontend processes.
+
+    This function invalidates glidefrontendmonitor classads and performs deadvertising
+    for all groups.
+
+    Args:
+        work_dir (str): The working directory.
+        frontendDescript (FrontendDescript): The frontend descriptor object.
+        groups (list): List of groups to clean up.
+        frontend_name (str): The name of the frontend.
+        ha_mode (str): High-availability mode.
+
+    Returns:
+        None
+    """
     try:
         set_frontend_htcondor_env(work_dir, frontendDescript)
         fm_advertiser = glideinFrontendInterface.FrontendMonitorClassadAdvertiser()
@@ -301,6 +380,24 @@ def spawn(
     restart_interval,
     restart_attempts,
 ):
+    """Spawn and manage frontend groups in master/slave modes.
+
+    This function manages the spawning and monitoring of frontend groups
+    in a high-availability (HA) environment, supporting master and slave roles.
+
+    Args:
+        sleep_time (float): Time (in seconds) to sleep between iterations.
+        advertize_rate (int): Rate at which to advertise classads.
+        work_dir (str): The working directory for the frontend.
+        frontendDescript (FrontendDescript): The frontend descriptor object.
+        groups (list): List of groups to manage.
+        max_parallel_workers (int): Maximum number of parallel workers.
+        restart_interval (int): Interval (in seconds) before attempting a restart.
+        restart_attempts (int): Maximum number of restart attempts.
+
+    Returns:
+        None
+    """
     num_groups = len(groups)
 
     # TODO: Get the ha_check_interval from the config
@@ -382,12 +479,17 @@ def spawn(
 
 ############################################################
 def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
-    """
-    Check if the frontend is running in HA mode. If run in master mode never
-    hibernate. If run in slave mode, hiberate if master is active.
+     """Determine if the frontend should enter hibernation.
 
-    @rtype: bool
-    @return: True if we should hibernate else False
+    Args:
+        frontendDescript (FrontendDescript): The frontend descriptor object.
+        work_dir (str): The working directory for the frontend.
+        ha (dict): High-availability settings.
+        mode (str): Current operating mode ("master" or "slave").
+        groups (list): List of groups being managed.
+
+    Returns:
+        bool: True if the frontend should hibernate, False otherwise.
     """
 
     servicePerformance.startPerfMetricEvent("frontend", "ha_check")
@@ -442,19 +544,41 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
 
 
 def clear_diskcache_dir(work_dir):
-    """Clear the cache by removing the directory used for the cachedir, and recreate it."""
+    """Clear the disk cache directory and recreate it.
+
+    This function removes the existing cache directory used by the frontend,
+    handles any errors if the directory does not exist, and recreates it.
+
+    Args:
+        work_dir (str): The working directory for the frontend.
+
+    Raises:
+        OSError: If an error occurs while attempting to remove the cache directory.
+    """
     cache_dir = os.path.join(work_dir, glideinFrontendConfig.frontendConfig.cache_dir)
     try:
         shutil.rmtree(cache_dir)
     except OSError as ose:
-        if ose.errno != 2:  # errno 2 is ok, dir is missing. Maybe it's the first execution?
-            logSupport.log.exception("Error removing cache directory %s" % cache_dir)
+        if ose.errno != 2:  # errno 2 is okay (directory missing)
+            logSupport.log.exception(f"Error removing cache directory {cache_dir}")
             raise
     os.mkdir(cache_dir)
 
 
 def set_frontend_htcondor_env(work_dir, frontendDescript, element=None):
-    # Collector DN is only in the group's mapfile. Just get first one.
+    """Set the HTCondor environment for the frontend.
+
+    Configures the environment variables required for HTCondor operations
+    based on the frontend description and element.
+
+    Args:
+        work_dir (str): The working directory for the frontend.
+        frontendDescript (FrontendDescript): The frontend descriptor object.
+        element (Element, optional): The specific group element. Defaults to None.
+
+    Returns:
+        None
+    """
     groups = frontendDescript.data["Groups"].split(",")
     if groups:
         if element is None:
@@ -468,43 +592,85 @@ def set_frontend_htcondor_env(work_dir, frontendDescript, element=None):
 
 
 def set_env(env):
-    for var in env:
-        os.environ[var] = env[var]
+    """Set the environment variables from a dictionary.
+
+    Args:
+        env (dict): Dictionary of environment variables and their values.
+
+    Returns:
+        None
+    """
+    for var, value in env.items():
+        os.environ[var] = value
 
 
 def clean_htcondor_env():
+    """Remove HTCondor-related environment variables.
+
+    This function clears specific environment variables used by HTCondor
+    to prevent conflicts with other processes.
+
+    Returns:
+        None
+    """
     for v in ("CONDOR_CONFIG", "_CONDOR_CERTIFICATE_MAPFILE", "X509_USER_PROXY"):
         if os.environ.get(v):
             del os.environ[v]
 
 
-############################################################
-
-
 def spawn_removal(work_dir, frontendDescript, groups, max_parallel_workers, removal_action):
-    failure_dict = {}
-    for group in groups:
-        failure_dict[group] = FailureCounter(group, 3600)
+    """Perform group removal operations.
 
+    This function handles removing groups based on the specified removal action.
+
+    Args:
+        work_dir (str): The working directory for the frontend.
+        frontendDescript (FrontendDescript): The frontend descriptor object.
+        groups (list): List of group names to process.
+        max_parallel_workers (int): Maximum number of parallel workers.
+        removal_action (str): The specific removal action to perform.
+
+    Returns:
+        None
+    """
+    failure_dict = {group: FailureCounter(group, 3600) for group in groups}
     spawn_iteration(work_dir, frontendDescript, groups, max_parallel_workers, failure_dict, 1, removal_action)
 
 
-############################################################
 def cleanup_environ():
+    """Clean up environment variables.
+
+    Removes environment variables related to CONDOR and X509 to ensure
+    a clean execution environment.
+
+    Returns:
+        None
+    """
     for val in list(os.environ.keys()):
         val_low = val.lower()
-        if val_low[:8] == "_condor_":
-            # remove any CONDOR environment variables
-            # don't want any surprises
+        if val_low.startswith("_condor_"):
             del os.environ[val]
-        elif val_low[:5] == "x509_":
-            # remove any X509 environment variables
-            # don't want any surprises
+        elif val_low.startswith("x509_"):
             del os.environ[val]
 
 
-############################################################
 def main(work_dir, action):
+    """Main entry point for the glideinFrontend.
+
+    This function initializes logging, processes configuration, and starts
+    the frontend based on the specified action.
+
+    Args:
+        work_dir (str): The working directory for the frontend.
+        action (str): The action to perform (e.g., "run", "removeIdle").
+
+    Raises:
+        ValueError: If an unknown action is specified.
+        Exception: For any errors during initialization or processing.
+
+    Returns:
+        None
+    """
     startup_time = time.time()
 
     glideinFrontendConfig.frontendConfig.frontend_descript_file = os.path.join(
@@ -512,20 +678,17 @@ def main(work_dir, action):
     )
     frontendDescript = glideinFrontendConfig.FrontendDescript(work_dir)
 
-    # the log dir is shared between the frontend main and the groups, so use a subdir
+    # Configure logging
     logSupport.log_dir = os.path.join(frontendDescript.data["LogDir"], "frontend")
-
-    # Configure frontend process logging
     logSupport.log = logSupport.get_logger_with_handlers("frontend", logSupport.log_dir, frontendDescript.data)
 
     logSupport.log.info("Logging initialized")
-    logSupport.log.debug("Frontend startup time: %s" % str(startup_time))
+    logSupport.log.debug(f"Frontend startup time: {startup_time}")
 
     clear_diskcache_dir(work_dir)
 
     try:
         cleanup_environ()
-        # we use a dedicated config... ignore the system-wide
         os.environ["CONDOR_CONFIG"] = frontendDescript.data["CondorConfig"]
 
         sleep_time = int(frontendDescript.data["LoopDelay"])
@@ -535,7 +698,6 @@ def main(work_dir, action):
         restart_interval = int(frontendDescript.data["RestartInterval"])
 
         groups = sorted(frontendDescript.data["Groups"].split(","))
-
         glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(
             os.path.join(work_dir, "monitor"), groups
         )
@@ -544,60 +706,59 @@ def main(work_dir, action):
         raise
 
     glideinFrontendMonitoring.write_frontend_descript_xml(frontendDescript, os.path.join(work_dir, "monitor/"))
+    logSupport.log.info(f"Enabled groups: {groups}")
 
-    logSupport.log.info("Enabled groups: %s" % groups)
-
-    # create lock file
+    # Create lock file
     pid_obj = glideinFrontendPidLib.FrontendPidSupport(work_dir)
 
-    # start
     try:
         pid_obj.register(action)
     except glideinFrontendPidLib.pidSupport.AlreadyRunning as err:
         pid_obj.load_registered()
         logSupport.log.exception(
-            "Failed starting Frontend with action %s. Instance with pid %s is aready running for action %s. Exception during pid registration: %s"
-            % (action, pid_obj.mypid, str(pid_obj.action_type), err)
+            f"Failed starting Frontend with action {action}. "
+            f"Instance with pid {pid_obj.mypid} is already running for action {pid_obj.action_type}. "
+            f"Exception during pid registration: {err}"
         )
         raise
 
     try:
-        try:
-            if action == "run":
-                spawn(
-                    sleep_time,
-                    advertize_rate,
-                    work_dir,
-                    frontendDescript,
-                    groups,
-                    max_parallel_workers,
-                    restart_interval,
-                    restart_attempts,
-                )
-            elif action in (
-                "removeWait",
-                "removeIdle",
-                "removeAll",
-                "removeWaitExcess",
-                "removeIdleExcess",
-                "removeAllExcess",
-            ):
-                spawn_removal(work_dir, frontendDescript, groups, max_parallel_workers, action)
-            else:
-                raise ValueError("Unknown action: %s" % action)
-        except KeyboardInterrupt:
-            logSupport.log.info("Received signal...exit")
-        except HUPException:
-            logSupport.log.info("Received SIGHUP, reload config")
-            pid_obj.relinquish()
-            os.execv(
-                os.path.join(glideinFrontendLib.__file__, "../creation/reconfig_frontend"),
-                ["reconfig_frontend", "-sighupreload", "-xml", "/etc/gwms-frontend/frontend.xml"],
+        if action == "run":
+            spawn(
+                sleep_time,
+                advertize_rate,
+                work_dir,
+                frontendDescript,
+                groups,
+                max_parallel_workers,
+                restart_interval,
+                restart_attempts,
             )
-        except Exception:
-            logSupport.log.exception("Exception occurred trying to spawn: ")
+        elif action in (
+            "removeWait",
+            "removeIdle",
+            "removeAll",
+            "removeWaitExcess",
+            "removeIdleExcess",
+            "removeAllExcess",
+        ):
+            spawn_removal(work_dir, frontendDescript, groups, max_parallel_workers, action)
+        else:
+            raise ValueError(f"Unknown action: {action}")
+    except KeyboardInterrupt:
+        logSupport.log.info("Received signal...exit")
+    except HUPException:
+        logSupport.log.info("Received SIGHUP, reload config")
+        pid_obj.relinquish()
+        os.execv(
+            os.path.join(glideinFrontendLib.__file__, "../creation/reconfig_frontend"),
+            ["reconfig_frontend", "-sighupreload", "-xml", "/etc/gwms-frontend/frontend.xml"],
+        )
+    except Exception:
+        logSupport.log.exception("Exception occurred trying to spawn: ")
     finally:
         pid_obj.relinquish()
+
 
 
 ############################################################
