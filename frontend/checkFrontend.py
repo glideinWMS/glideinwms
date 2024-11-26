@@ -5,7 +5,7 @@
 
 """Check if a glideinFrontend is running.
 
-This script checks whether a glideinFrontend is running in the specified 
+This script checks whether a glideinFrontend is running in the specified
 working directory. It optionally allows specifying a run mode.
 
 Usage:
@@ -29,6 +29,7 @@ Examples:
 """
 
 import sys
+
 from glideinwms.frontend import glideinFrontendPidLib
 
 if __name__ == "__main__":
