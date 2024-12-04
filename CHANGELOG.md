@@ -3,6 +3,27 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+
+Changes since the last release
+
+### New features / functionalities
+
+-   item one of the list
+-   item N
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+### Testing / Development
+
+### Known Issues
+
 ## v3.10.8 \[2024-11-21\]
 
 Fixed a few bugs including shebang mangling and failed log files rotation.
@@ -141,7 +162,7 @@ Bug fix quick release
 
 -   Fixed missing arguments from rrdtool fetch call (Issue #351, PR #352)
 -   gconfig.py to use `gwms-python`, not use `python3` (Issue #349, PR #350)
--   Fixed alternative Shell code still using the `python` (i.e. python2) interpreter (PR #353)
+-   Fixed alternative Shell code still using the `python` (i.e. python2) interpreter (Issue #289, PR #353)
 
 ### Testing / Development
 
