@@ -525,9 +525,9 @@ def get_logger_with_handlers(name, directory, config_data, level=logging.DEBUG):
             directory,
             plog["msg_types"],
             plog["extension"],
-            int(float(plog["max_days"])),
-            int(float(plog["min_days"])),
-            int(float(plog["max_mbytes"])),
+            float(plog["max_days"]),
+            float(plog["min_days"]),
+            float(plog["max_mbytes"]),
             int(float(plog["backup_count"])),
             plog["compression"],
         )

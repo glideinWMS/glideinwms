@@ -584,7 +584,7 @@ SPDX-License-Identifier: Apache-2.0
             <div class="xml">
               &lt;glidein&gt;&lt;log_retention&gt;&lt;process_logs&gt;&lt;process_log
               max_days=&quot;<i>max days</i>&quot; min_days=&quot;<i>min days</i
-              >&quot; max_bytes=&quot;<i>max bytes</i>&quot;
+              >&quot; max_mbytes=&quot;<i>max mega bytes</i>&quot;
               type=&quot;<i>INFO</i>&quot; backup_count=&quot;<i>backup count</i
               >&quot; compression=&quot;<i>gz</i>&quot;/&gt;
             </div>
@@ -629,19 +629,20 @@ SPDX-License-Identifier: Apache-2.0
             as follows:
             <ul>
               <li>
-                If the log file size reaches <i>max_bytes</i> it will be rotated
-                (NOTE: the value will be truncated and 0 means no size-based
-                rotation).
+                If the log file size reaches <i>max_mbytes</i> MB it will be
+                rotated. Use floats for fractions of a MegaByte. (NOTE: the
+                value will be truncated after converting to Bytes (multiply by
+                2^20) and 0 means no size-based rotation).
               </li>
               <li>
-                If the log file size is less that <i>max_bytes</i> but the file
+                If the log file size is less than <i>max_mbytes</i> but the file
                 is older than max_days, it will be rotated. Use floats for
                 fractions of a day, the value will be converted in seconds, 0
                 means no time-based rotation
               </li>
               <li>
-                <i>min_days</i> Used in combination with max_bytes to delay file
-                size rotation until min_days are gone by. Use floats for
+                <i>min_days</i> Used in combination with max_mbytes to delay
+                file size rotation until min_days are gone by. Use floats for
                 fractions of a day, the value will be converted in seconds, 0
                 means no delay (default).
               </li>
