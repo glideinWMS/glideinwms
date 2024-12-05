@@ -1821,11 +1821,15 @@ def get_submit_environment(
         jobAttributes = glideFactoryConfig.JobAttributes(entry_name)
         signatures = glideFactoryConfig.SignatureFile()
 
+        id_cred_paths = []
+
         exe_env = ["GLIDEIN_ENTRY_NAME=%s" % entry_name]
         if "frontend_scitoken" in submit_credentials.identity_credentials:
             exe_env.append("SCITOKENS_FILE=%s" % submit_credentials.identity_credentials["frontend_scitoken"])
+            id_cred_paths.append(submit_credentials.identity_credentials["frontend_scitoken"])
         if "frontend_condortoken" in submit_credentials.identity_credentials:
             exe_env.append("IDTOKENS_FILE=%s" % submit_credentials.identity_credentials["frontend_condortoken"])
+            id_cred_paths.append(submit_credentials.identity_credentials["frontend_condortoken"])
         else:
             # TODO: this ends up transferring an empty file called 'null' in the Glidein start dir. Find a better way
             exe_env.append("IDTOKENS_FILE=/dev/null")
@@ -2068,6 +2072,8 @@ email_logs = False
                 exe_env.append("GLIDEIN_PROJECT_ID=%s" % submit_credentials.identity_credentials["ProjectId"])
 
             exe_env.append("GLIDEIN_RSL=%s" % glidein_rsl)
+
+            exe_env.append(f"IDENTITY_CREDENTIALS={','.join(id_cred_paths)}")
 
         return exe_env
     except Exception as e:
