@@ -10,6 +10,7 @@
 import copy
 import os
 import os.path
+import pickle
 import signal
 import sys
 import tempfile
@@ -19,7 +20,18 @@ from glideinwms.factory import glideFactoryConfig, glideFactoryCredentials, glid
 from glideinwms.factory import glideFactoryInterface as gfi
 from glideinwms.factory import glideFactoryLib, glideFactoryLogParser, glideFactoryMonitoring
 from glideinwms.lib import classadSupport, cleanupSupport, defaults, glideinWMSVersion, logSupport, token_util, util
-from glideinwms.lib.util import chmod
+from glideinwms.lib.credentials import (
+    create_parameter,
+    CredentialError,
+    CredentialPair,
+    CredentialPairType,
+    CredentialPurpose,
+    CredentialType,
+    ParameterName,
+    standard_path,
+    SubmitBundle,
+)
+from glideinwms.lib.util import chmod, is_str_safe
 
 
 ############################################################
@@ -985,14 +997,27 @@ def check_and_perform_work(factory_in_downtime, entry, work):
     # STEP: Process every work one at a time. This is done only for entries with work to do
     #
     for work_key in work:
-        if not glideFactoryLib.is_str_safe(work_key):
+        if not is_str_safe(work_key):
             # may be used to write files... make sure it is reasonable
             entry.log.warning("Request name '%s' not safe. Skipping request" % work_key)
             continue
 
         # merge work and default params
         params = work[work_key]["params"]
-        decrypted_params = {key: value.decode() for key, value in work[work_key]["params_decrypted"].items()}
+        decrypted_params = {}
+        for key, value in work[work_key]["params_decrypted"].items():
+            decrypted_value = None
+            try:
+                decrypted_value = value.decode()
+            except UnicodeDecodeError:
+                try:
+                    decrypted_value = pickle.loads(value)
+                except pickle.PickleError:
+                    entry.log.exception(
+                        f'Failed to load decrypted value for key "{key}", value "{value}". Continuing with other keys.'
+                    )
+            if decrypted_value is not None:
+                decrypted_params[key] = decrypted_value
 
         # add default values if not defined
         for k in entry.jobParams.data:
@@ -1008,7 +1033,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             entry.log.warning("Request %s did not provide the client and/or request name. Skipping request" % work_key)
             continue
 
-        if not glideFactoryLib.is_str_safe(client_int_name):
+        if not is_str_safe(client_int_name):
             # may be used to write files... make sure it is reasonable
             entry.log.warning("Client name '%s' not safe. Skipping request" % client_int_name)
             continue
@@ -1038,7 +1063,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             glideFactoryCredentials.check_security_credentials(
                 auth_method, decrypted_params, client_int_name, entry.name, scitoken_passthru
             )
-        except glideFactoryCredentials.CredentialError:
+        except CredentialError:
             entry.log.exception("Error checking credentials, skipping request: ")
             continue
 
@@ -1075,7 +1100,12 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         #
         # STEP: Actually process the unit work using v3 protocol
         #
-        work_performed = unit_work_v3(
+        if "AuthSet" in decrypted_params:
+            unit_work = unit_work_v3_11
+        else:
+            unit_work = unit_work_v3
+
+        work_performed = unit_work(
             entry,
             work[work_key],
             work_key,
@@ -1702,6 +1732,303 @@ def unit_work_v3(
     return_dict["success"] = True
     return_dict["work_done"] = done_something
     return_dict["security_names"] = all_security_names
+
+    return return_dict
+
+
+def unit_work_v3_11(
+    entry,
+    work,
+    client_name,
+    client_int_name,
+    client_int_req,
+    client_expected_identity,
+    decrypted_params,
+    params,
+    in_downtime,
+    condorQ,
+):
+    """Perform a single work unit using the v3 protocol.
+
+    :param entry: Entry
+    :param work: work requests
+    :param client_name: work_key (key used in the work request)
+    :param client_int_name: client name declared in the request
+    :param client_int_req: name of the request (declared in the request)
+    :param client_expected_identity:
+    :param decrypted_params:
+    :param params:
+    :param in_downtime:
+    :param condorQ: list of HTCondor jobs for this entry as returned by entry.queryQueuedGlideins()
+    :return: Return dictionary w/ success, security_names and work_done
+    """
+
+    # Return dictionary. Only populate information to be passed at the end
+    # just before returning.
+    return_dict = {
+        "success": False,
+        "security_names": None,
+        "work_done": None,
+    }
+
+    #
+    # STEP: CHECK THAT GLIDEINS ARE WITHIN ALLOWED LIMITS
+    #
+    can_submit_glideins = entry.glideinsWithinLimits(condorQ)
+
+    # Get grid type
+    grid_type = entry.jobDescript.data["GridType"]
+
+    # Get credential security class
+    credential_security_class = decrypted_params.get("SecurityClass")
+    client_security_name = decrypted_params.get("SecurityName")
+
+    if not credential_security_class:
+        entry.log.warning("Client %s did not provide a security class. Skipping bad request." % client_int_name)
+        return return_dict
+
+    # Check security class for downtime (in downtimes file)
+    entry.log.info(
+        "Checking downtime for frontend %s security class: %s (entry %s)."
+        % (client_security_name, credential_security_class, entry.name)
+    )
+
+    if entry.isSecurityClassInDowntime(client_security_name, credential_security_class):
+        # Cannot use proxy for submission but entry is not in downtime
+        # since other proxies may map to valid security classes
+        entry.log.warning(
+            "Security class %s is currently in a downtime window for entry: %s. Ignoring request."
+            % (credential_security_class, entry.name)
+        )
+        # this below change is based on redmine ticket 3110.
+        # even though we do not return here, setting in_downtime=True (for entry downtime)
+        # will make sure no new glideins will be submitted in the same way that
+        # the code does for the factory downtime
+        in_downtime = True
+    #        return return_dict
+
+    # Deny Frontend from requesting glideins if the whitelist
+    # does not have its security class (or "All" for everyone)
+    if entry.isClientWhitelisted(client_security_name):
+        if entry.isSecurityClassAllowed(client_security_name, credential_security_class):
+            entry.log.info(f"Security test passed for : {entry.name} {credential_security_class} ")
+        else:
+            entry.log.warning(
+                "Security class not in whitelist, skipping request (%s %s)."
+                % (client_security_name, credential_security_class)
+            )
+            return return_dict
+
+    # Check that security class maps to a username for submission
+    # The username is still used also in single user factory (for log dirs, ...)
+    credential_username = entry.frontendDescript.get_username(client_security_name, credential_security_class)
+    if credential_username is None:
+        entry.log.warning(
+            "No username mapping for security class %s of credential for %s (secid: %s), skipping request."
+            % (credential_security_class, client_int_name, client_security_name)
+        )
+        return return_dict
+
+    # Initialize submit credential object & determine the credential location
+    submit_credentials = SubmitBundle(credential_username, credential_security_class)
+    submit_credentials.auth_set = decrypted_params.get("AuthSet")
+    submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username)
+
+    # Load credentials
+    for cred in decrypted_params.get("RequestCredentials") + decrypted_params.get("PayloadCredentials"):
+        if not cred.path:
+            cred.path = cred.id
+        cred.path = os.path.join(submit_credentials.cred_dir, os.path.basename(cred.path))
+        cred.path = standard_path(cred)
+        cred.save_to_file(backup=True)
+        if isinstance(cred, CredentialPair):
+            if cred.private_credential.path:
+                cred.private_credential.path = os.path.join(
+                    submit_credentials.cred_dir, os.path.basename(cred.private_credential.path)
+                )
+                cred.private_credential.path = standard_path(cred.private_credential)
+                cred.private_credential.save_to_file(backup=True)
+        if cred.purpose == CredentialPurpose.REQUEST:
+            submit_credentials.add_security_credential(cred)
+        else:
+            submit_credentials.add_identity_credential(cred)
+
+    # Handle cloud-specific credentials  # TODO: Check if still needed
+    if grid_type in ("ec2", "gce"):
+        for cred in submit_credentials.security_credentials:
+            if cred.credential_type == CredentialType.X509_CERT:
+                if os.path.exists(cred.path + "_compressed"):
+                    cred.path = cred.path + "_compressed"
+
+    # Load parameters
+    for param in decrypted_params.get("SecurityParameters"):
+        if submit_credentials.auth_set.supports(param.name):
+            submit_credentials.add_parameter(param)
+
+    # Load default username from entry if needed
+    if submit_credentials.auth_set.supports(CredentialPairType.KEY_PAIR):
+        if ParameterName.REMOTE_USERNAME not in submit_credentials.parameters:
+            gatekeeper_list = entry.jobDescript.data["Gatekeeper"].split("@")
+            if len(gatekeeper_list) == 2:
+                submit_credentials.add_parameter(
+                    create_parameter(ParameterName.REMOTE_USERNAME, gatekeeper_list[0].strip())
+                )
+            else:
+                entry.log.warning(
+                    f"Client '{client_int_name}' did not specify a Username to use with {CredentialPairType.KEY_PAIR} and the entry {entry.name} does not provide a default username in the gatekeeper string, skipping request"
+                )
+                return return_dict
+
+    # Determine submit_credentials.id   # TODO: What if there are multiple RequestCredentials?
+    submit_credentials.id = decrypted_params.get("RequestCredentials")[-1].id
+
+    # Set the downtime status so the frontend-specific
+    # downtime is advertised in glidefactoryclient ads
+    entry.setDowntime(in_downtime)
+    entry.gflFactoryConfig.qc_stats.set_downtime(in_downtime)
+
+    #
+    # STEP: CHECK IF CLEANUP OF IDLE GLIDEINS IS REQUIRED
+    #
+
+    remove_excess = (
+        work["requests"].get("RemoveExcess", "NO"),
+        work["requests"].get("RemoveExcessMargin", 0),
+        work["requests"].get("IdleGlideins", 0),
+    )
+    idle_lifetime = work["requests"].get("IdleLifetime", 0)
+
+    if "IdleGlideins" not in work["requests"]:
+        # Malformed, if no IdleGlideins
+        entry.log.warning("Skipping malformed classad for client %s" % client_name)
+        return return_dict
+
+    try:
+        idle_glideins = int(work["requests"]["IdleGlideins"])
+    except ValueError:
+        entry.log.warning(
+            f"Client {client_int_name} provided an invalid ReqIdleGlideins: '{work['requests']['IdleGlideins']}' not a number. Skipping request"
+        )
+        return return_dict
+
+    if "MaxGlideins" in work["requests"]:
+        try:
+            max_glideins = int(work["requests"]["MaxGlideins"])
+        except ValueError:
+            entry.log.warning(
+                f"Client {client_int_name} provided an invalid ReqMaxGlideins: '{work['requests']['MaxGlideins']}' not a number. Skipping request."
+            )
+            return return_dict
+    else:
+        try:
+            max_glideins = int(work["requests"]["MaxRunningGlideins"])
+        except ValueError:
+            entry.log.warning(
+                f"Client {client_int_name} provided an invalid ReqMaxRunningGlideins: '{work['requests']['MaxRunningGlideins']}' not a number. Skipping request"
+            )
+            return return_dict
+
+    # If we got this far, it was because we were able to
+    # successfully update all the credentials in the request
+    # If we already have hit our limits checked at beginning of this
+    # method and logged there, we can't submit.
+    # We still need to check/update all the other request credentials
+    # and do cleanup.
+
+    # We'll set idle glideins to zero if hit max or in downtime.
+    if in_downtime or not can_submit_glideins:
+        idle_glideins = 0
+
+    try:
+        client_web_url = work["web"]["URL"]
+        client_signtype = work["web"]["SignType"]
+        client_descript = work["web"]["DescriptFile"]
+        client_sign = work["web"]["DescriptSign"]
+        client_group = work["internals"]["GroupName"]
+        client_group_web_url = work["web"]["GroupURL"]
+        client_group_descript = work["web"]["GroupDescriptFile"]
+        client_group_sign = work["web"]["GroupDescriptSign"]
+
+        client_web = glideFactoryLib.ClientWeb(
+            client_web_url,
+            client_signtype,
+            client_descript,
+            client_sign,
+            client_group,
+            client_group_web_url,
+            client_group_descript,
+            client_group_sign,
+        )
+    except Exception:
+        # malformed classad, skip
+        entry.log.warning("Malformed classad for client %s, missing web parameters, skipping request." % client_name)
+        return return_dict
+
+    # Should log here or in perform_work
+    glideFactoryLib.logWorkRequest(
+        client_int_name,
+        client_security_name,
+        submit_credentials.security_class,
+        idle_glideins,
+        max_glideins,
+        remove_excess,
+        work,
+        log=entry.log,
+        factoryConfig=entry.gflFactoryConfig,
+    )
+
+    # Iv v2 this was:
+    # entry_condorQ = glideFactoryLib.getQProxSecClass(
+    #                    condorQ, client_int_name,
+    #                    submit_credentials.security_class,
+    #                    client_schedd_attribute=entry.gflFactoryConfig.client_schedd_attribute,
+    #                    credential_secclass_schedd_attribute=entry.gflFactoryConfig.credential_secclass_schedd_attribute,
+    #                    factoryConfig=entry.gflFactoryConfig)
+
+    # Sub-query selecting jobs in Factory schedd (still dictionary keyed by cluster, proc)
+    # for (client_schedd_attribute, credential_secclass_schedd_attribute, credential_id_schedd_attribute)
+    # ie (GlideinClient, GlideinSecurityClass, GlideinCredentialIdentifier)
+    entry_condorQ = glideFactoryLib.getQCredentials(
+        condorQ,
+        client_int_name,
+        submit_credentials,
+        entry.gflFactoryConfig.client_schedd_attribute,
+        entry.gflFactoryConfig.credential_secclass_schedd_attribute,
+        entry.gflFactoryConfig.credential_id_schedd_attribute,
+    )
+
+    # Map the identity to a frontend:sec_class for tracking totals
+    frontend_name = "{}:{}".format(
+        entry.frontendDescript.get_frontend_name(client_expected_identity),
+        credential_security_class,
+    )
+
+    # do one iteration for the credential set (maps to a single security class)
+    # entry.gflFactoryConfig.client_internals[client_int_name] = \
+    #    {"CompleteName":client_name, "ReqName":client_int_req}
+
+    done_something = perform_work_v3(
+        entry,
+        entry_condorQ,
+        client_name,
+        client_int_name,
+        client_security_name,
+        submit_credentials,
+        remove_excess,
+        idle_glideins,
+        max_glideins,
+        idle_lifetime,
+        credential_username,
+        entry.glideinTotals,
+        frontend_name,
+        client_web,
+        params,
+    )
+
+    # Gather the information to be returned back
+    return_dict["success"] = True
+    return_dict["work_done"] = done_something
+    return_dict["security_names"] = {client_security_name, credential_security_class}
 
     return return_dict
 
