@@ -29,6 +29,7 @@ f137c49c90632d4fc79012a254311b27  ./creation/lib/cWParams.py
 d48fdb92eea5622931531c497118c662  ./creation/lib/cgWCreate.py
 2ca1ce6e21d9c41bebdec477392316d3  ./creation/lib/cgWDictFile.py
 a6ce67e7b1619c03d823ef2a207383ca  ./creation/lib/cgWParamDict.py
+a6ce67e7b1619c03d823ef2a207383ca  ./creation/lib/cgWParamDict.py
 64614429675a460e40e1e8f26eecbdfa  ./creation/lib/cgWParams.py
 f3e8c0c2d0bf76c4f1d09030393ee1fc  ./creation/lib/check_python3_expr.py
 1d5f46b0d9fdcf5f27da93ee5a17d874  ./creation/lib/factoryXmlConfig.py
@@ -62,12 +63,18 @@ fe8e2d340388fd04275fc55c36c619ae  ./creation/web_base/condor_config
 2e3cf114d0ad0a6ac98d142e989f49e1  ./creation/web_base/condor_platform_select.sh
 307f6c46b8b22847df3ed4302410adad  ./creation/web_base/condor_startup.sh
 adfbcc4d9f68fc8e53ccc12c1ccaa828  ./creation/web_base/condor_vars.lst
+2e3cf114d0ad0a6ac98d142e989f49e1  ./creation/web_base/condor_platform_select.sh
+307f6c46b8b22847df3ed4302410adad  ./creation/web_base/condor_startup.sh
+adfbcc4d9f68fc8e53ccc12c1ccaa828  ./creation/web_base/condor_vars.lst
 393a01eb81bc9ee8bfd41d743a3190e7  ./creation/web_base/condor_vars.lst.entry
 24b87cb3a90a1db48bb0a901463efadf  ./creation/web_base/create_mapfile.sh
 85c6bd4a404a53a0cea5fcc0e4a3c122  ./creation/web_base/create_temp_mapfile.sh
 72b102c855c6d46c6c7ff0739b49ce67  ./creation/web_base/cvmfs_helper_funcs.sh
 5e8c777ad7417993160f6cdd0926385c  ./creation/web_base/cvmfs_setup.sh
+72b102c855c6d46c6c7ff0739b49ce67  ./creation/web_base/cvmfs_helper_funcs.sh
+5e8c777ad7417993160f6cdd0926385c  ./creation/web_base/cvmfs_setup.sh
 81b8075176a83aea65f8a87bc24c9cfc  ./creation/web_base/cvmfs_umount.sh
+ccffa2d10c55c2402ef40dc42dfd2600  ./creation/web_base/cvmfsexec_platform_select.sh
 ccffa2d10c55c2402ef40dc42dfd2600  ./creation/web_base/cvmfsexec_platform_select.sh
 607566ad406cbd575d816d7eeaed7d8d  ./creation/web_base/error_augment.sh
 5a3671c34a4fba20a3cf630e191f2e09  ./creation/web_base/error_gen.sh
@@ -141,6 +148,7 @@ c99f216bbeaad4084d462d5559501f1b  ./factory/glideFactoryMonitoring.py
 abca6d09d743f563831b4402c9e8d5a4  ./factory/manageFactoryDowntimes.py
 7735240be9eb6a6b561370aa33ad1a49  ./factory/stopFactory.py
 f620d3d260d2792feb58043ca4a30af8  ./factory/tools/OSG_autoconf.py
+f620d3d260d2792feb58043ca4a30af8  ./factory/tools/OSG_autoconf.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/__init__.py
 525c470e0e75fac9af2a4af8c44dd4ef  ./factory/tools/analyze_entries
 6c72899dec435d0624a8cb91f2638dc7  ./factory/tools/analyze_queues
@@ -166,6 +174,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/lib/__init__.py
 e84926e7741e6074910fd0c7dbfeec34  ./factory/tools/lib/analyze.py
 bf7ec449a3fd6d025e38e08d9fe4b55b  ./factory/tools/lib/gWftArgsHelper.py
 8b9e766ab06e328e907ba05a155fa827  ./factory/tools/lib/gWftLogParser.py
+8114301494d0419a8179fe6aa2038866  ./factory/tools/manual_glidein_submit.py
 8114301494d0419a8179fe6aa2038866  ./factory/tools/manual_glidein_submit.py
 d41d8cd98f00b204e9800998ecf8427e  ./install/__init__.py
 c8037041ce5c9d06b535b895aa8eeac1  ./install/glidecondor_addDN
@@ -208,6 +217,7 @@ cf788a094015c51afd8d9615a2f75359  ./lib/xmlParse.py
 32614c10594e81450cd864fd5db01a9e  ./plugins/RoundRobinGenerator.py
 ae4540ac3e790a02867cfa22291f48d6  ./plugins/scitokens_callout.py
 762e30b1c873f9e44fc786f7e57a9d93  ./pyproject.toml
+747b7fe6d83ec506f58292fa3b39f4c7  ./requirements.txt
 747b7fe6d83ec506f58292fa3b39f4c7  ./requirements.txt
 d41d8cd98f00b204e9800998ecf8427e  ./tools/__init__.py
 67187fc6a26c82ec4176f5d69c13ed29  ./tools/glidein_cat.py

@@ -154,9 +154,9 @@ SPDX-License-Identifier: Apache-2.0
             enable_attribute_expansion="False"&gt;</a
           ><br />
           <blockquote>
-            <a href="#">&lt;log_retention &gt;</a><br />
+            <a href="#log_retention">&lt;log_retention &gt;</a><br />
             <blockquote>
-              <a href="#">&lt;process_logs &gt;</a><br />
+              <a href="#process_logs">&lt;process_logs &gt;</a><br />
               <blockquote>
                 <a href="#process_logs"
                   >&lt;process_log structured="False" extension="info"
@@ -169,9 +169,9 @@ SPDX-License-Identifier: Apache-2.0
                   msg_types="DEBUG,ERR,WARN" backup_count="5" /&gt;</a
                 ><br />
               </blockquote>
-              <a href="#">&lt;/process_logs &gt;</a><br />
+              <a href="#process_logs">&lt;/process_logs &gt;</a><br />
             </blockquote>
-            <a href="#">&lt;/log_retention &gt;</a><br />
+            <a href="#log_retention">&lt;/log_retention &gt;</a><br />
             <a href="#match"
               >&lt;match match_expr="True"
               start_expr="$(JOBSTR_ATTR)&lt;$$(JOBSTR_VAL)"
@@ -518,6 +518,7 @@ SPDX-License-Identifier: Apache-2.0
             </p>
           </li>
           <li>
+            <a name="log_retention" />
             <a name="process_logs" />
             <div class="xml">
               &lt;frontend&gt;&lt;log_retention&gt;&lt;process_logs&gt;&lt;process_log
@@ -557,20 +558,25 @@ SPDX-License-Identifier: Apache-2.0
             <br /><br />
             <b>Log Retention and Rotation Policy:</b>
             <br /><br />
-            Log files are rotated based on a time and size of the log files as
-            follows:
+            Log files can be rotated based on the time and size of the log files
+            as follows:
             <ul>
               <li>
                 If the log file size reaches <i>max_bytes</i> it will be rotated
-                (NOTE: the value will be truncated and 0 means no rotation).
+                (NOTE: the value will be truncated and 0 means no size-based
+                rotation).
               </li>
               <li>
                 If the log file size is less that <i>max_bytes</i> but the file
-                is older than max_days it will be rotated.
+                is older than max_days, it will be rotated. Use floats for
+                fractions of a day, the value will be converted in seconds, 0
+                means no time-based rotation
               </li>
               <li>
-                <i>min_days</i> is not used and is there for backwards
-                compatibility.
+                <i>min_days</i> Used in combination with max_bytes to delay file
+                size rotation until min_days are gone by. Use floats for
+                fractions of a day, the value will be converted in seconds, 0
+                means no delay (default).
               </li>
               <li>
                 Rotated files may be compressed. Supported compressions are Gzip
@@ -581,8 +587,12 @@ SPDX-License-Identifier: Apache-2.0
                 be kept and older ones are deleted. Defaults to 5.
               </li>
             </ul>
+            NOTE: Time-based rotation and rotation delay use the file creation
+            time which may not be available on your system or file system. In
+            that case, the delay is disabled and time-based location will use
+            the log file modification time when the logger is restarted. This
+            may lead to incorrect time-based rotation.
           </li>
-
           <li>
             <p>
               <a name="wmscollector" />

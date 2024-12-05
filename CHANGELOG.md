@@ -3,14 +3,14 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+## v3.10.8 \[2024-11-21\]
 
-Changes since the last release
+Fixed a few bugs including shebang mangling and failed log files rotation.
 
 ### New features / functionalities
 
 -   Advertizing information about unprivileged user namespaces in glidein classad (PR #416)
--   Added option --group-name option to manual_glidein_submit
+-   Added option --group-name option to manual_glidein_submit (PR #435)
 
 ### Changed defaults / behaviours
 
@@ -25,6 +25,7 @@ Changes since the last release
 -   Disabled shebang mangling in rpm_build to avoid gwms-python not finding the shell (Issue #436, PR #437)
 -   Dynamic creation of HTCondor IDTOKEN password (Issue #440, PR #441)
 -   Autodetect CONDOR_OS in the manual_glidein_submit tool (Issue #449, PR #453)
+-   Failed log rotation due to wrong file creation time (Issue #451, PR #457)
 
 ### Testing / Development
 
