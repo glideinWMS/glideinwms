@@ -578,43 +578,53 @@ SPDX-License-Identifier: Apache-2.0
               </li>
             </ul>
           </li>
-          <li>
-            <a name="log_retention" />
+          <li id="log_retention">
             <a name="process_logs" />
             <div class="xml">
               &lt;glidein&gt;&lt;log_retention&gt;&lt;process_logs&gt;&lt;process_log
               max_days=&quot;<i>max days</i>&quot; min_days=&quot;<i>min days</i
               >&quot; max_mbytes=&quot;<i>max mega bytes</i>&quot;
-              type=&quot;<i>INFO</i>&quot; backup_count=&quot;<i>backup count</i
+              msg_types=&quot;<i>INFO</i>&quot; backup_count=&quot;<i
+                >backup count</i
               >&quot; compression=&quot;<i>gz</i>&quot;/&gt;
             </div>
             <p>
               The admin can configure one or more logs with any combination of
-              following log message types:
+              following log message types. Types are converted to uppercase,
+              unknown types are silently ignored, the default is INFO,ERR,WARN:
             </p>
             <ul>
               <li>
-                INFO: Informational messages about the state of the system.
+                INFO: (INFO level) Informational messages about the state of the
+                system.
               </li>
               <li>
-                DEBUG: Debug message. These are additional informational
-                messages that describe code execution in detail.
+                DEBUG: Debug message (DEBUG level). These are additional
+                informational messages that describe code execution in detail.
               </li>
-              <li>ERR: Error messages. These may include tracebacks.</li>
               <li>
-                WARN: Warning messages. These warn of conditions that were found
-                that don't necessarily cause abnormal execution.
+                ERR: Error messages (ERROR and CRITICAL levels). These may
+                include tracebacks.
+              </li>
+              <li>
+                WARN: Warning messages (WARNING level). These warn of conditions
+                that were found that don't necessarily cause abnormal execution.
+              </li>
+              <li>
+                ALL: Same as INFO,DEBUG,ERR,WARN. Other message type keywords
+                are ignored when ALL is present.
               </li>
               <li>
                 ADMIN: This is a special setting only applicable to Factory logs
                 (and not entry logs) that contains admin messages, such as
-                reconfig comments. This will create a new log called
-                factoryadmin.extension.log. Currently, it cannot be combined
-                with other message types.
+                reconfig comments. This will create a new log appending "admin"
+                to the name, e.g. factoryadmin.extension.log. Other message type
+                keywords are ignored. INFO, DEBUG, ERR, and WARN massages are
+                added to the log.
               </li>
             </ul>
             If any of the logs has <i>structured=True</i>, then the logs are
-            written in structured format. It is actuallly a hybrid format, with
+            written in structured format. It is actually a hybrid format, with
             some initial field and a JSON dictionary. Since all logs share the
             same logger, it is not possible to have some in structured and some
             in classic format. In the future we plan for the structured format
