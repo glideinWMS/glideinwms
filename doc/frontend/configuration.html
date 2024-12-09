@@ -517,8 +517,7 @@ SPDX-License-Identifier: Apache-2.0
               and up.
             </p>
           </li>
-          <li>
-            <a name="log_retention" />
+          <li id="log_retention">
             <a name="process_logs" />
             <div class="xml">
               &lt;frontend&gt;&lt;log_retention&gt;&lt;process_logs&gt;&lt;process_log
@@ -526,28 +525,38 @@ SPDX-License-Identifier: Apache-2.0
               min_days=&quot;<i>min days</i>&quot; max_mbytes=&quot;<i
                 >max megabytes</i
               >&quot; backup_count=&quot;<i>backup count</i>&quot;
-              type=&quot;<i>ALL</i>&quot; compression=&quot;<i>gz</i>&quot;/&gt;
+              msg_types=&quot;<i>ALL</i>&quot;
+              compression=&quot;<i>gz</i>&quot;/&gt;
             </div>
             <p>
               The admin can configure one or more logs with any combination of
-              following log message types:
+              following log message types. Types are converted to uppercase,
+              unknown types are silently ignored, the default is INFO,ERR,WARN:
             </p>
             <ul>
               <li>
-                INFO: Informational messages about the state of the system.
+                INFO: (INFO level) Informational messages about the state of the
+                system.
               </li>
               <li>
-                DEBUG: Debug message. These are additional informational
-                messages that describe code execution in detail.
+                DEBUG: Debug message (DEBUG level). These are additional
+                informational messages that describe code execution in detail.
               </li>
-              <li>ERR: Error messages. These may include tracebacks.</li>
               <li>
-                WARN: Warning messages. These warn of conditions that were found
-                that don't necessarily cause abnormal execution.
+                ERR: Error messages (ERROR, CRITICAL level). These may include
+                tracebacks.
+              </li>
+              <li>
+                WARN: Warning messages (WARNING level). These warn of conditions
+                that were found that don't necessarily cause abnormal execution.
+              </li>
+              <li>
+                ALL: Same as INFO,DEBUG,ERR,WARN. Other message type keywords
+                are ignored when ALL is present.
               </li>
             </ul>
             If any of the logs has <i>structured=True</i>, then the logs are
-            written in structured format. It is actuallly a hybrid format, with
+            written in structured format. It is actually a hybrid format, with
             some initial field and a JSON dictionary. Since all logs share the
             same logger, it is not possible to have some in structured and some
             in classic format. In the future we plan for the structured format

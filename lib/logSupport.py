@@ -327,6 +327,7 @@ def get_processlog_handler(
         msg_types (str): log levels to include (comma separated list). Keywords are:
             DEBUG,INFO,WARN,ERR, ADMIN or ALL (ADMIN and ALL both mean all the previous)
             ADMIN adds also the "admin" prefix to the `log_file_name`
+            Default INFO,WARN,ERR set at the configuration level
         extension (str): file name extension
         maxDays (float): Max number of days before file rotation (fraction of day accepted, used in unit test)
         minDays (float): Minimum number of days before file rotation (used with max MBytes)
