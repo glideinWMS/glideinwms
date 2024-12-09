@@ -20,7 +20,7 @@ Changes since the last release
 
 ### Bug Fixes
 
--   Fixed early truncation in log files configuration and inconsistent documentation (Issie #464, PR #462, PR #463)
+-   Fixed early truncation in log files configuration and inconsistent documentation (Issue #464, PR #462, PR #463)
 
 ### Testing / Development
 
