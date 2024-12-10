@@ -249,7 +249,9 @@ class Credential(ABC, Generic[T]):
         if not str(self.string):
             raise CredentialError("Credential not initialized")
 
-        return hash_nc(f"{str(self._string)}{self.purpose}{self.trust_domain}{self.security_class}", 8)
+        return hash_nc(
+            f"{str(self._id_attribute)}{self.purpose}{self.trust_domain}{self.security_class}{self.cred_type}", 8
+        )
 
     @property
     def purpose(self) -> Optional[CredentialPurpose]:
@@ -288,6 +290,13 @@ class Credential(ABC, Generic[T]):
         Whether the credential is valid.
         """
         return self.invalid_reason() is None
+
+    @property
+    @abstractmethod
+    def _id_attribute(self) -> Optional[str]:
+        """
+        Attribute used to identify the credential.
+        """
 
     @staticmethod
     @abstractmethod
@@ -648,6 +657,10 @@ class CredentialGenerator(Credential[Generator]):
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attr}'") from None
 
     @property
+    def _id_attribute(self) -> Optional[str]:
+        return f"{self.string}{self.context}"
+
+    @property
     def _payload(self) -> Optional[Generator]:
         return self.decode(self.string, self.context) if self.string and self.context else None
 
@@ -746,6 +759,13 @@ class Token(Credential[Mapping]):
     extension = "jwt"
 
     @property
+    def subject(self) -> Optional[str]:
+        """
+        Token subject.
+        """
+        return self._payload.get("sub", None) if self._payload else None
+
+    @property
     def scope(self) -> Optional[str]:
         """
         Token scope.
@@ -772,6 +792,10 @@ class Token(Credential[Mapping]):
         Token expiration time.
         """
         return datetime.fromtimestamp(self._payload.get("exp", None)) if self._payload else None
+
+    @property
+    def _id_attribute(self) -> Optional[str]:
+        return self.subject
 
     @staticmethod
     def decode(string: Union[str, bytes]) -> Mapping:
@@ -848,6 +872,13 @@ class X509Cert(Credential[M2Crypto.X509.X509]):
     extension = "pem"
 
     @property
+    def subject(self) -> Optional[str]:
+        """
+        X.509 subject.
+        """
+        return self._payload.get_subject().as_text() if self._payload else None
+
+    @property
     def pub_key(self) -> Optional[M2Crypto.EVP.PKey]:
         """
         X.509 public key.
@@ -867,6 +898,10 @@ class X509Cert(Credential[M2Crypto.X509.X509]):
         X.509 not-after time.
         """
         return self._payload.get_not_after().get_datetime() if self._payload else None
+
+    @property
+    def _id_attribute(self) -> Optional[str]:
+        return self.subject
 
     @staticmethod
     def decode(string: Union[str, bytes]) -> M2Crypto.X509.X509:
@@ -916,6 +951,10 @@ class RSAKey(Credential[pubCrypto.RSAKey]):
             if self.key_type and self.pub_key
             else None
         )
+
+    @property
+    def _id_attribute(self) -> Optional[str]:
+        return self.pub_key_id
 
     @property
     def key_type(self) -> Optional[str]:
@@ -987,6 +1026,10 @@ class TextCredential(Credential[bytes]):
     cred_type = CredentialType.TEXT
     classad_attribute = "AuthFile"
     extension = "txt"
+
+    @property
+    def _id_attribute(self) -> Optional[str]:
+        return self.string
 
     @staticmethod
     def decode(string: Union[str, bytes]) -> bytes:
