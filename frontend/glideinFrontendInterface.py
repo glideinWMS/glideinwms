@@ -1185,9 +1185,17 @@ class MultiAdvertizeWork:
                     f"Factory requires {factory_trust}. ({request_cred.credential.path})"
                 )
                 continue  # Skip credentials that don't match the trust domain
-            if request_cred.req_idle == 0 and request_cred.req_max_run == 0:
-                logSupport.log.debug(f"Skipping credential with no work assigned. ({request_cred.credential.path})")
-                continue  # Skip credentials with no work assigned
+            # NOTE: Up to GWMS 3.10.x glideclient was always advertised. This is a new behavior.
+            # If a credential has no work assigned to it or active Glideins using it, no glideclient Ad be advertised for it.
+            if (
+                request_cred.req_idle == 0
+                and request_cred.req_max_run == 0
+                and params_obj.glidein_monitors["GlideinsTotal"] == 0
+            ):
+                logSupport.log.debug(
+                    f"Skipping credential with no work assigned or active glideins. ({request_cred.credential.path})"
+                )
+                continue  # Skip credentials with no work assigned or active glideins
 
             classad_name = f"{request_cred.credential.id}_{params_obj.request_name}@{self.descript_obj.my_name}"
 
