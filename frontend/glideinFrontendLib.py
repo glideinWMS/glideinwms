@@ -1282,8 +1282,9 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
             condorq.load(full_constraint, format_list)
             if len(condorq.fetchStored()) > 0:
                 out_condorq_dict[schedd] = condorq
-        except condorMonitor.QueryError:
-            logSupport.log.exception("Condor Error. Failed to talk to schedd: ")
+        except condorMonitor.QueryError as e:
+            logSupport.log.exception(f"Condor Error. Failed to talk to schedd: {schedd}")
+            logSupport.log.debug(f"Condor Error: {e}")
             # If schedd not found it is equivalent to no jobs in the queue
             continue
         except RuntimeError as e:
