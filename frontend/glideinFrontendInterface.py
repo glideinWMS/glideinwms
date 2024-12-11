@@ -1191,7 +1191,8 @@ class MultiAdvertizeWork:
                     f"Factory requires {factory_trust}. ({request_cred.credential.path})"
                 )
                 continue  # Skip credentials that don't match the trust domain
-            # NOTE: This is a new behavior. If a credential has no work assinged to it or active glideins using it, no glideclient be avertized for it.
+            # NOTE: Up to GWMS 3.10.x glideclient was always advertised. This is a new behavior.
+            # If a credential has no work assigned to it or active Glideins using it, no glideclient Ad be advertised for it.
             if (
                 request_cred.req_idle == 0
                 and request_cred.req_max_run == 0
