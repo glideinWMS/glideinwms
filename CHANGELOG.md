@@ -21,6 +21,7 @@ Changes since the last release
 ### Bug Fixes
 
 -   Fixed early truncation in log files configuration and inconsistent documentation (Issue #464, PR #462, PR #463)
+-   Removed confusing tac broken pipe messages from the Glidein stderr (PR #465)
 
 ### Testing / Development
 

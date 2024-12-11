@@ -46,8 +46,9 @@ gconfig_get() {
     [[ -z "${config_file}" ]] && { warn "Error: glidein_config not provided and glidein_config variable not defined. Forcing exit."; exit 1; }
     [[ -n "$3" && ! "$3" = \-* ]] && { warn "Error: gconfig_get 3rd parameter must start with '-' Forcing exit."; exit 1; }
     [[ -r "$config_file" ]] || { true; return; }
+    # Redirected tac stderr to /dev/null to avoid "tac: write error: Broken pipe" message when grep closes early the pipe after the result is found
     # Leave the extra space in the grep, to parse correctly strings w/ the same beginning
-    $TAC "$config_file" | grep -m1 $3 "^$1 " | cut -d ' ' -f 2-
+    $TAC "$config_file" 2>/dev/null | grep -m1 $3 "^$1 " | cut -d ' ' -f 2-
 }
 
 gconfig_log_name() {
