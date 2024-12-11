@@ -23,9 +23,11 @@ trap_with_arg() {
 # all of its children. When each child exits, the master will send a SIGKILL to any remaining descendants.
 # Once all of the children exit, the master then exits.
 on_die() {
-    condor_signal=$1
-    # Can receive SIGTERM SIGINT SIGQUIT, condor understands SIGTERM SIGQUIT. Send SIGQUIT for SIGQUIT, SIGTERM otherwise
-    [[ "$condor_signal" != SIGQUIT ]] && condor_signal=SIGTERM
+    # Can receive SIGTERM SIGINT SIGQUIT as $1, condor understands SIGTERM (graceful) SIGQUIT (fast). Send SIGQUIT for SIGQUIT, SIGTERM otherwise
+    # condor_signal=$1
+    # [[ "$condor_signal" != SIGQUIT ]] && condor_signal=SIGTERM
+    # The HTCondor team suggested to send always SIGQUIT to speedup the shutdown and avoid leftover files
+    condor_signal=SIGQUIT
     condor_pid_tokill=$condor_pid
     [[ -z "$condor_pid_tokill" ]] && condor_pid_tokill=`cat $PWD/condor_master2.pid 2> /dev/null`
     echo "Condor startup received $1 signal ... shutting down condor processes (forwarding $condor_signal to $condor_pid_tokill)"
