@@ -589,6 +589,12 @@ SPDX-License-Identifier: Apache-2.0
               >&quot; compression=&quot;<i>gz</i>&quot;/&gt;
             </div>
             <p>
+              The logs documentin the server (Factory) and saved in the
+              <tt>base_log_dir</tt> and are configured in the
+              <i>process_log</i> section. summary_logs, job_logs and condor_logs
+              are in the client log folder or document the reconfiguration.
+            </p>
+            <p>
               The admin can configure one or more logs with any combination of
               following log message types. Types are converted to uppercase,
               unknown types are silently ignored, the default is INFO,ERR,WARN:
