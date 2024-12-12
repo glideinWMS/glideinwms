@@ -1,6 +1,18 @@
 v3_11_0
 	Introduces the new credentials model.
 
+v3_10_8
+	Advertising information about unprivileged user namespaces in glidein classad (PR#416)
+	Added option --group-name option to manual_glidein_submit (PR#435)
+	Bug fix: Fixed root unable to remove other users jobs in the Factory (PR#433)
+	Bug fix: HTCondor TRUST_DOMAIN configuration macro set to string to avoid Glidein config error (PR#420)
+	Bug fix: Disabled shebang mangling in rpm_build to avoid gwms-python not finding the shell (Issue#436, PR#437)
+	Bug fix: Dynamic creation of HTCondor IDTOKEN password (Issue#440, PR#441)
+	Bug fix: Autodetect CONDOR_OS in the manual_glidein_submit tool (Issue#449, PR#453)
+	Bug fix: Failed log rotation due to wrong file creation time (Issue#451, PR#457)
+	Bug fix: Replacing xmlrunner with unittest-xml-reporting (PR#428)
+	Bug fix: Updated the release upload script to work with osg-sw-submit (PR#439)
+
 v3_10_7
 	Apptainer cache and temporary directory set in the Glidein working directory (Issue#403, PR#404)
 	Ability to set a minimum required memory for partitionable Glideins. The default is the value used previously, 2500 MB (Issue#405, PR#406)
@@ -34,7 +46,6 @@ v3_10_5
 v3_10_4
 	Bug fix: Fixed missing arguments from rrdtool fetch call (Issue#351, PR#352)
 	Bug fix: gconfig.py to use `gwms-python`, not use `python3` (Issue#349, PR#350)
-	Bug fix: Fixed alternative Shell code still using the `python` (i.e. python2) interpreter (Issue#289, PR#353)
 	Bug fix: Fixed alternative Shell code still using the `python` (i.e. python2) interpreter (Issue#289, PR#353)
 
 v3_10_3
