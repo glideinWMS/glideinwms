@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_11_0_rc4
+# GLIDEINWMS_VERSION v3_11_0_rc5
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
 d3673bda1908bb2ddbc33f5f2d32e4d3  ./CHANGELOG.md
@@ -111,8 +111,8 @@ d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 e775956f000040ed12e561ef45c5023e  ./frontend/glideinFrontendConfig.py
 3f4d29b267c91bba6835d40776c7b640  ./frontend/glideinFrontendDowntimeLib.py
 e6a38e2771b037bdf2670f2d32fc0b5b  ./frontend/glideinFrontendElement.py
-582a87668c0813ca03531e22aab10d25  ./frontend/glideinFrontendInterface.py
-300fb5e6450cfc4e96b445545f40fecf  ./frontend/glideinFrontendLib.py
+8cd93784357f4d1015c50e691403cfab  ./frontend/glideinFrontendInterface.py
+9e221abdf39f93f8226ba7bc94dd50e9  ./frontend/glideinFrontendLib.py
 493c902e4e6ae8de032d7bb223c45290  ./frontend/glideinFrontendMonitorAggregator.py
 00bf93ddea651a43143154b8d9f300f8  ./frontend/glideinFrontendMonitoring.py
 3b4e2c250d66da9c81c67681bcdb5d2b  ./frontend/glideinFrontendPidLib.py
@@ -145,7 +145,7 @@ a983e3312e16944d254dfcc16c237ee5  ./lib/condorManager.py
 a47138c4f995d39943f0d9e8eb7d4f81  ./lib/condorMonitor.py
 e6da27f897e8bfd59d873fa3dbdc27bb  ./lib/condorSecurity.py
 dcd1c271a07f6bbd8d7f2de29f954547  ./lib/config_util.py
-985916cfc93b9511a2fcd8496a76a978  ./lib/credentials.py
+240fbb27862a43a41604e3cafa69ce67  ./lib/credentials.py
 a2b615c18a2a4d04dd63e82f11c1d695  ./lib/credentialsLegacy.py
 57a99728fdc7446216cfd2588cea9406  ./lib/defaults.py
 e0c681cd88c2b729b1c355de3d5fddb0  ./lib/disk_cache.py

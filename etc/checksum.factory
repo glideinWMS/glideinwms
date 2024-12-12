@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_11_0_rc4
+# GLIDEINWMS_VERSION v3_11_0_rc5
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
 d3673bda1908bb2ddbc33f5f2d32e4d3  ./CHANGELOG.md
@@ -180,7 +180,7 @@ a983e3312e16944d254dfcc16c237ee5  ./lib/condorManager.py
 a47138c4f995d39943f0d9e8eb7d4f81  ./lib/condorMonitor.py
 e6da27f897e8bfd59d873fa3dbdc27bb  ./lib/condorSecurity.py
 dcd1c271a07f6bbd8d7f2de29f954547  ./lib/config_util.py
-985916cfc93b9511a2fcd8496a76a978  ./lib/credentials.py
+240fbb27862a43a41604e3cafa69ce67  ./lib/credentials.py
 a2b615c18a2a4d04dd63e82f11c1d695  ./lib/credentialsLegacy.py
 57a99728fdc7446216cfd2588cea9406  ./lib/defaults.py
 e0c681cd88c2b729b1c355de3d5fddb0  ./lib/disk_cache.py

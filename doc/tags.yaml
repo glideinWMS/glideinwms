@@ -540,7 +540,7 @@ v3_10_8:
     - Updated the release upload script to work with osg-sw-submit (PR#439)
 
 v3_11_0:
-  Date: December 5, 2024
+  Date: December 12, 2024
   Series: Development
   Tarball: false
   Feature:
