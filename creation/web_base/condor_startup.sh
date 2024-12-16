@@ -510,7 +510,7 @@ fi
 logging_utils_source=$(gconfig_get LOGGING_UTILS_SOURCE "${config_file}")
 # shellcheck source=logging_utils.source
 . "${logging_utils_source}"
-log_setup "${config_file}"
+glog_setup "${config_file}"
 
 # At this point, we need to define two times:
 #  die_time = time that glidein will enter graceful shutdown

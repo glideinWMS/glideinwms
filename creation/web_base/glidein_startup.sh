@@ -503,9 +503,10 @@ glidein_exit() {
         fi
     fi
 
-    log_write "glidein_startup.sh" "text" "glidein is about to exit with retcode $1" "info"
-    send_logs_to_remote
-
+    glog_write "glidein_startup.sh" "text" "glidein is about to exit with retcode $1" "info"
+    if ! glog_send; then
+        warn "Failed to send Glidein Logging"
+    fi
     glidien_cleanup
 
     print_tail "$1" "${final_result_simple}" "${final_result_long}"
@@ -1742,8 +1743,14 @@ fi
 # Move the token files from condor to glidein workspace
 # TODO: compare this w/ setup_x509.sh
 # monitoring tokens, Should be using same credentials directory?
-mv "${start_dir}/tokens.tgz" .
-mv "${start_dir}/url_dirs.desc" .
+# TODO: url_dirs.desc seems to be defined only if there is a log url and requires factory upgrade
+#     this should be investigated and maybe changed
+if [[ -f "${start_dir}/tokens.tgz" && -f "${start_dir}/url_dirs.desc" ]]; then
+    mv "${start_dir}/tokens.tgz" .
+    mv "${start_dir}/url_dirs.desc" .
+else
+    warn "Unable to find Glidein Logging files: $([[ -f "${start_dir}/url_dirs.desc" ]] || echo description), $([[ -f "${start_dir}/tokens.tgz" ]] || echo tokens)."
+fi
 # idtokens are handled in setup_x509.sh - TODO: remove once verified
 #for idtk in ${start_dir}/*.idtoken; do
 #   if cp "${idtk}" . ; then
@@ -1834,13 +1841,19 @@ params2file ${params}
 
 ############################################
 # Setup logging
-log_init "${glidein_uuid}" "${work_dir}"
+if ! glog_init "${glidein_uuid}" "${work_dir}"; then
+    warn "Failed to initialize Glidein Logging"
+fi
 # Remove these files, if they are still there
 rm -rf tokens.tgz url_dirs.desc tokens
-log_setup "${glidein_config}"
+if ! glog_setup "${glidein_config}"; then
+    warn "Failed to setup Glidein Logging"
+fi
 
 echo "Downloading files from Factory and Frontend"
-log_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"
+if ! glog_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"; then
+    warn "Failed first write to Glidein Logging"
+fi
 
 #####################################
 # Fetch descript and signature files
@@ -2008,9 +2021,11 @@ fixup_condor_dir
 # Start the glidein main script
 gconfig_add "GLIDEIN_INITIALIZED" "1"
 
-log_write "glidein_startup.sh" "text" "Starting the glidein main script" "info"
-log_write "glidein_startup.sh" "file" "${glidein_config}" "debug"
-send_logs_to_remote          # checkpoint
+glog_write "glidein_startup.sh" "text" "Starting the glidein main script" "info"
+glog_write "glidein_startup.sh" "file" "${glidein_config}" "debug"
+if ! glog_send; then          # checkpoint
+    echo "Failed to checkpoint Glidein Logging"
+fi
 echo "# --- Last Script values ---" >> glidein_config
 last_startup_time=$(date +%s)
 ((validation_time=last_startup_time-startup_time)) || true

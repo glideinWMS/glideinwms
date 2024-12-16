@@ -9,6 +9,8 @@
 # Every logged event is recorded in a separate file. Eventually, these shards
 # are merged into a single log file; metadata is added at the beginning.
 # Logs are sent to one or more remote servers via https.
+#
+# if GLIDEIN_QUIET is set warn messages are not print
 
 log_initialized=0
 log_ready=0
@@ -28,7 +30,7 @@ warn() {
 }
 
 
-serialize_assoc_arr() {
+_glog_serialize_assoc_arr() {
     # Serialize an associative array to a file
     # To deserialize, use:
     #   eval "declare -A <arr>=$(cat <file>)"
@@ -42,7 +44,7 @@ serialize_assoc_arr() {
 }
 
 
-generate_glidein_metadata_json() {
+_glog_generate_glidein_metadata_json() {
     # Create a log shard file containing information about the glidein
 
     if command -v jq >/dev/null 2>&1; then
@@ -75,7 +77,7 @@ generate_glidein_metadata_json() {
 }
 
 
-log_init_tokens() {
+_glog_init_tokens() {
     # Process the tokens received from the factory to authenticate with log server:
     # keep only the necessary ones, delete everything else
     # An associative array is created and serialized: it maps server urls to tokens
@@ -84,17 +86,17 @@ log_init_tokens() {
 
     local recipients=("$@")
     if [ "${#recipients[@]}" -eq 0 ]; then
-        warn "log_init_tokens: empty argument (list of recipients)"
+        warn "_glog_init_tokens: empty argument (list of recipients)"
         return 1
     fi
 
     if [ ! -f tokens.tgz ] || [ ! -f url_dirs.desc ]; then
-        warn "log_init_tokens: missing token files (tar and descriptor)"
+        warn "_glog_init_tokens: missing token files (tar and descriptor)"
         return 2
     fi
 
     if ! tar xf tokens.tgz; then
-        warn "log_init_tokens: failed to untar the tokens archive"
+        warn "_glog_init_tokens: failed to untar the tokens archive"
         return 3
     fi
 
@@ -110,20 +112,20 @@ log_init_tokens() {
             # Use the token signed by the factory
             tokens_arr["${recip}"]=$(cat tokens/"${recip_dir}"/default.jwt)
         else
-            warn "log_init_tokens: could not find any valid token for ${recip}"
+            warn "_glog_init_tokens: could not find any valid token for ${recip}"
             # TODO: maybe fail only for this recipient, still serving the others?
             return 4
         fi
     done
 
-    serialize_assoc_arr "tokens_arr" tokens_arr
+    _glog_serialize_assoc_arr "tokens_arr" tokens_arr
 
     # It's important to remove these files because they contain private information
     rm -rf tokens.tgz url_dirs.desc tokens
 }
 
 
-log_init() {
+glog_init() {
     # Initializes the log utility with the specified configuration.
     # This also creates the necessary folders, and should be called only once per glidein.
     # Arguments:
@@ -131,13 +133,13 @@ log_init() {
 
     # Validate number of arguments
     if [ "$#" -ne 2 ]; then
-        warn "log_init: could not initialize log. Expected 2 arguments, got $#."
+        warn "glog_init: could not initialize log. Expected 2 arguments, got $#."
         return 1
     fi
 
     # Inherit glidein_config from caller. It is necessary for logging to be properly configured.
     if [ ! -f "${glidein_config}" ]; then
-        warn "log_init: glidein_config not defined in ${0}. Logging will not work here."
+        warn "glog_init: glidein_config not defined in ${0}. Logging will not work here."
         return 2
     else
         add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "${glidein_config}" | cut -d ' ' -f 2-)
@@ -162,13 +164,13 @@ log_init() {
     fi
 
     # Setup tokens to authenticate with log servers
-    log_recipients=($(gconfig_get GLIDEIN_LOG_RECIPIENTS "${glidein_config}"))
+    log_recipients=($(gconfig_get GLIDEIN_LOG_RECIPIENTS_FACTORY "${glidein_config}") $(gconfig_get GLIDEIN_LOG_RECIPIENTS "${glidein_config}"))
     local no_send=0
     if [ "${#log_recipients[@]}" -eq 0 ]; then
-        warn "log_init: no recipients configured. Logs will still be produced, but not forwarded to remote servers."
+        warn "glog_init: no recipients configured. Logs will still be produced, but not forwarded to remote servers."
         no_send=1
-    elif ! log_init_tokens "${log_recipients[@]}"; then
-        warn "log_init: error while initializing tokens. Logs will still be produced, but not forwarded to remote servers."
+    elif ! _glog_init_tokens "${log_recipients[@]}"; then
+        warn "glog_init: error while initializing tokens. Logs will still be produced, but not forwarded to remote servers."
         no_send=1
     fi
 
@@ -177,7 +179,7 @@ log_init() {
         curl_version=$(curl --version 2>&1 | head -1)
     else
         curl_version="not installed"
-        warn "log_init: curl not installed. Logs will still be produced, but not forwarded to remote servers."
+        warn "glog_init: curl not installed. Logs will still be produced, but not forwarded to remote servers."
         no_send=1
     fi
 
@@ -188,7 +190,7 @@ log_init() {
     mkdir -p "${logdir}/shards/creating"
 
     # Create an 'empty' log, containing only glidein metadata
-    generate_glidein_metadata_json
+    _glog_generate_glidein_metadata_json
     echo "[" > "${logdir}/${log_logfile}"
     cat "${logdir}/glidein_metadata.json" >> "${logdir}/${log_logfile}"
     echo "]" >> "${logdir}/${log_logfile}"
@@ -196,33 +198,33 @@ log_init() {
     # Log a copy of stdout and stderr too
     exec >  >(tee -ia "${logdir}/${stdout_logfile}")
     exec 2> >(tee -ia "${logdir}/${stderr_logfile}" >&2)
-    echo "$(date): Started logging stdout on file too"
-    echo "$(date): Started logging stderr on file too" >&2
+    echo "$(date): glog_init: Started logging stdout on file too"
+    echo "$(date): glog_init: Started logging stderr on file too" >&2
 
     gconfig_add "GLIDEIN_LOG_INITIALIZED" "1"
 }
 
 
-log_setup() {
+glog_setup() {
     # Setup the logging utilities for the caller script with the specified configuration
     # Arguments:
     #   1: glidein config filename
 
     # Validate number of arguments
     if [ "$#" -ne 1 ]; then
-        warn "log_setup: could not setup log for ${0}. Expected 1 arguments, got $#."
+        warn "glog_setup: could not setup log for ${0}. Expected 1 arguments, got $#."
         return 1
     fi
     local glidein_config=${1}
 
     if [ ! -f "${glidein_config}" ]; then
-        warn "log_setup: glidein_config not defined in ${0}. Logging will not work here."
+        warn "glog_setup: glidein_config not defined in ${0}. Logging will not work here."
         return 1
     fi
 
     log_initialized=$(gconfig_get GLIDEIN_LOG_INITIALIZED "${glidein_config}")
     if [ "${log_initialized}" != 1 ]; then
-        warn_ready "log_setup: apparently the logging configuration has not been initialiazed yet (${0}). Logging will not work here."
+        warn_ready "glog_setup: apparently the logging configuration has not been initialized yet (${0}). Logging will not work here."
         return 1
     fi
 
@@ -230,7 +232,7 @@ log_setup() {
     stdout_logfile=$(gconfig_get GLIDEIN_STDOUT_LOGFILE "${glidein_config}")
     stderr_logfile=$(gconfig_get GLIDEIN_STDERR_LOGFILE "${glidein_config}")
     log_logfile=$(gconfig_get GLIDEIN_LOG_LOGFILE "${glidein_config}")
-    log_recipients=($(gconfig_get GLIDEIN_LOG_RECIPIENTS "${glidein_config}"))
+    log_recipients=($(gconfig_get GLIDEIN_LOG_RECIPIENTS_FACTORY "${glidein_config}") $(gconfig_get GLIDEIN_LOG_RECIPIENTS "${glidein_config}"))
     log_no_send=$(gconfig_get GLIDEIN_LOG_NO_SEND "${glidein_config}")
     log_relative_basepath=$(gconfig_get GLIDEIN_LOG_RELATIVE_BASEPATH "${glidein_config}")
     curl_version=$(gconfig_get CURL_VERSION "${glidein_config}")
@@ -243,7 +245,7 @@ log_setup() {
 }
 
 
-json_escape() {
+_glog_json_escape() {
     # Escape json special characters
     # Arguments:
     #   1: text to escape
@@ -268,7 +270,7 @@ json_escape() {
 }
 
 
-get_logfile_path_relative() {
+_glog_get_logfile_path_relative() {
     # Get the relative path of the logfile w.r.t. the work dir
 
     if [ "${log_ready}" != 1 ]; then
@@ -279,7 +281,7 @@ get_logfile_path_relative() {
 }
 
 
-log_write() {
+glog_write() {
     # Log an event. This involves the creation of a 'shard', i.e. a file storing the log entry
     # The content can include either a string or the body of a file (encoded in base64)
     # If type is file, then the filepath can be either absolute or relative to work_dir
@@ -288,7 +290,7 @@ log_write() {
     #   1:invoker, 2:type of message, 3:content/filepath, 4:severity
 
     if [ "${log_ready}" != 1 ]; then
-        warn_ready "log_write: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
+        warn_ready "glog_write: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
         return 1
     fi
 
@@ -351,8 +353,8 @@ log_write() {
                   --arg sev "${severity}" \
                   '{invoker: $inv, pid: $pid, timestamp: $ts, severity: $sev, type: $ty, filename: $fn, content: $body}' )
     else
-        invoker="$(json_escape "${invoker}")"
-        content="$(json_escape "${content}")"
+        invoker="$(_glog_json_escape "${invoker}")"
+        content="$(_glog_json_escape "${content}")"
         json_logevent="{\"invoker\":\"${invoker}\", \"pid\":\"${pid}\", \"timestamp\":\"${cur_time}\", \"severity\":\"${severity}\", \"type\":\"${type}\", \"filename\":\"${filename}\", \"content\":\"${content}\"}"
     fi
 
@@ -362,11 +364,11 @@ log_write() {
 }
 
 
-log_coalesce_shards() {
+_glog_coalesce_shards() {
     # Merge log shards in a single file (for each glidein process)
     # Skip (and return with code 1) if another process is already coaleascing,
     # so that this operation is non-blocking. Retcode 1 may be exploited to loop
-    # log_coalesce_shards until it succeeds, when you want to force the merging
+    # _glog_coalesce_shards until it succeeds, when you want to force the merging
 
     if [ "${log_ready}" != 1 ]; then
         warn_ready "log_coalesce_shards: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
@@ -377,7 +379,7 @@ log_coalesce_shards() {
 
     if mkdir shards/coalescing; then
         # Coalescing is performed in a separate directory, to avoid
-        # interference from other processes calling log_write in the meanwhile.
+        # interference from other processes calling glog_write in the meanwhile.
         # Only one process at a time is allowed to use the merging folder.
         # The 'trylock' is based on the atomicity of the mkdir command
         cur_time=$(date +%Y-%m-%dT%H:%M:%S%:z)
@@ -405,25 +407,29 @@ log_coalesce_shards() {
     fi
 }
 
-send_logs_to_remote() {
+
+glog_send() {
     # Forward the logs to a remote HTTPS server.
     # A token must be included in the header for authentication.
     # Note:
     #   it also merges the shards before sending
+    # Exit codes:
+    # 1 - failed to coalesce or to send
+    # 2 - sending disabled via log_no_send=1
 
-    if ! log_coalesce_shards; then
+    if ! _glog_coalesce_shards; then
         return 1
     fi
 
     # log_no_send is set when the recipients initialization failed for some
     # reason, but the system is still capable of producing logs
     if [ "${log_no_send}" = 1 ]; then
-        return 1
+        return 2
     fi
 
     # Retrieve the tokens (by deserializing the tokens_arr file)
     if [ ! -f tokens_arr ]; then
-        warn "send_logs_to_remote: cannot find tokens_arr file"
+        warn "glog_send: cannot find tokens_arr file"
         return 1
     fi
     eval "declare -A tokens_arr=$(cat tokens_arr)"
@@ -431,13 +437,23 @@ send_logs_to_remote() {
     # Upload stdout, stderr and log file
     logfiles=("${stdout_logfile}" "${stderr_logfile}" "${log_logfile}")
 
+    local recipient_addr logfile curl_resp curl_retval send_failed=0
     for recipient_addr in "${log_recipients[@]}"; do
         for logfile in "${logfiles[@]}"; do
-            curl_resp=$(curl -X PUT --upload-file "${log_relative_basepath}/${logdir}/${logfile}" "${recipient_addr}/${logfile}" -H "Authorization: Bearer ${tokens_arr["${recipient_addr}"]}" 2>&1)
+            curl_resp=$(curl -w "LOG_HTTP_CODE:%{http_code}\n" -X PUT --upload-file "${log_relative_basepath}/${logdir}/${logfile}" "${recipient_addr}/${logfile}" -H "Authorization: Bearer ${tokens_arr["${recipient_addr}"]}" 2>&1)
             curl_retval=$?
             if [ ${curl_retval} -ne 0 ]; then
-                warn "Failed to deliver ${logfile} to remote server (${recipient_addr}). curl_version: ${curl_version} curl_exit_code: ${curl_retval} curl_err_msg: ${curl_resp}"
+                warn "Failed with cURL error to deliver ${logfile} to remote server (${recipient_addr}). curl_version: ${curl_version} curl_exit_code: ${curl_retval} curl_err_msg: ${curl_resp}"
+                ((send_failed++))
+            fi
+            if [[ ! "${curl_resp#*LOG_HTTP_CODE:}" = 2* ]]; then
+                warn "Failed with HTTP error to deliver ${logfile} to remote server (${recipient_addr}). curl_version: ${curl_version} curl_exit_code: ${curl_retval} curl_err_msg: ${curl_resp}"
+                ((send_failed++))
             fi
         done
     done
+    if [ "$send_failed" -gt 0 ]; then
+        warn "glog_send: failed to send $send_failed files"
+        return 1
+    fi
 }

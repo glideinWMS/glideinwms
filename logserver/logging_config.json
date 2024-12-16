@@ -1,0 +1,10 @@
+{
+  "secret_key_path": "/var/lib/gwms-factory/server-credentials/jwt_secret.key",
+  "token_issuer": "gfactory_service",
+  "uri_regex_file_name": "#logserver/put.php/(\\S+)#",
+  "upload_dir": "uploads/",
+  "upload_dir_unauthorized": "uploads_unauthorized/",
+  "require_authentication": true,
+  "verbose": false,
+  "debug": false
+}

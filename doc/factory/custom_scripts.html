@@ -107,6 +107,7 @@ SPDX-License-Identifier: Apache-2.0
           <li><a href="#glidein_config">Configuration file</a></li>
           <li><a href="#condor_vars">HTCondor vars file</a></li>
           <li><a href="#xml_output">Reporting script exit status</a></li>
+          <li><a href="#logging">Logging</a></li>
           <li><a href="#periodic">Periodic scripts</a></li>
           <li><a href="#order">Loading order</a></li>
           <li><a href="#examples">Examples</a></li>
@@ -273,7 +274,7 @@ SPDX-License-Identifier: Apache-2.0
         </blockquote>
         <blockquote>
           # read an attributes (set by you or some other script)<br />
-          <i>myvar</i>=gconfig_get <i>myattribute</i>
+          <i>myvar</i>=$(gconfig_get <i>myattribute</i>)
         </blockquote>
       </div>
 
@@ -448,7 +449,32 @@ MAX_STARTD_LOG          I       10000000        +                               
           code.
         </p>
       </div>
-
+      <div class="section">
+        <h2><a name="logging"></a>Logging</h2>
+        <p>
+          Standard output and standard error of all custom scripts (except the
+          periodic ones) is captured in the Glidein stdout and stderr and it is
+          transferred back to the Factory by HTCondor at the end of the Glidein.
+          Anyway this process may be insufficient: if the Glidein is killed the
+          transfer may not happen, if there are multi-Glideins all their
+          stdout/err are intermixed in the same files, and a user may desire to
+          have this output back earlier or in a different place. For all these
+          needs there is also a logging utility. It is defined in
+          <tt>logging_utils.source</tt>, can be used in any custom script,
+          requires a web server to receive the logging messages, and needs to
+          set up <tt>GLIDEIN_LOG_RECIPIENTS_FACTORY</tt> as <tt>attr</tt> in the
+          Factory configuration. The Web servers at the URLs in
+          GLIDEIN_LOG_RECIPIENTS_FACTORY must be able to receive
+          JWT-authenticated PUT requests HS256-encoded with the secret set in
+          the Factory secret file
+          (<tt>/var/lib/gwms-factory/server-credentials/jwt_secret.key</tt>).
+          This secret file must be HMAC 256 compatible, e.g. a 32 bytes string.
+          The Factory will create the file at startup if it is not there or
+          empty. Scripts can use <tt>glog_setup</tt>, <tt>glog_write</tt>, and
+          <tt>glog_send</tt> to set up, write, and checkpoint/upload log files.
+          There is an example of how to use logging in <tt>logging_test.sh</tt>.
+        </p>
+      </div>
       <div class="section">
         <h2><a name="periodic"></a>Periodic scripts</h2>
         <p>
@@ -646,7 +672,7 @@ Order:
 glidein_config=&quot;$1&quot;
 
 # find error reporting helper script
-error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+error_gen=$(grep -m1 '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
 
 if [ -z &quot;/usr/lib/libcrypto.so.0.9.8&quot; ]; then
   &quot;$error_gen&quot; -error &quot;libtest.sh&quot; &quot;WN_Resource&quot; &quot;Crypto library not found.&quot; &quot;file&quot; &quot;/usr/lib/libcrypto.so.0.9.8&quot;
@@ -667,7 +693,7 @@ glidein_config=&quot;$1&quot;
 # Get the data
 
 # find error reporting helper script
-error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+error_gen=$(grep -m1 '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
 
 if [ -f &quot;$VO_SW_DIR/setup.sh&quot; ]; then
    source &quot;$VO_SW_DIR/setup.sh&quot;
@@ -677,23 +703,23 @@ else
    exit 1
 fi
 
-tmpname=$PWD/installed_software_tmp_$$.tmp
+tmpname="$PWD"/installed_software_tmp_$$.tmp
 software_list&gt; $tmpname
 
 
 ###########################################################
-# import add_config_line and add_condor_vars_line functions
+# Import add_config_line and add_condor_vars_line functions
 
-add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
-source $add_config_line_source
-
-condor_vars_file=`grep -i &quot;^CONDOR_VARS_FILE &quot; $glidein_config | awk '{print $2}'`
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | awk '{print $2}')
+# shellcheck source=./add_config_line.source
+. "$add_config_line_source"
+condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
 
 
 ##################
 # Format the data
 
-sw_list=`cat $tmpname | awk '{if (length(a)!=0) {a=a &quot;,&quot; $0} else {a=$0}}END{print a}'`
+sw_list=$(cat $tmpname | awk '{if (length(a)!=0) {a=a &quot;,&quot; $0} else {a=$0}}END{print a}')
 
 if [ -z &quot;$sw_list&quot; ]; then
   ERRSTR=&quot;No SW found.
@@ -707,7 +733,7 @@ fi
 #################
 # Export the data
 
-add_config_line GLIDEIN_SW_LIST &quot;$sw_list&quot;
+gconfig_add GLIDEIN_SW_LIST &quot;$sw_list&quot;
 add_condor_vars_line GLIDEIN_SW_LIST &quot;S&quot; &quot;-&quot; &quot;+&quot; &quot;Y&quot; &quot;Y&quot; &quot;+&quot;
 
 &quot;$error_gen&quot; -ok  &quot;swfind.sh&quot; &quot;sw_list&quot; &quot;$sw_list&quot;
@@ -721,14 +747,15 @@ exit 0
 glidein_config=$1
 entry_dir=$2
 
-# find error reporting helper script
-error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
-
 # import add_config_line function, will use glidein_config
-add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
-source $add_config_line_source
+add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | awk '{print $2}')
+# shellcheck source=./add_config_line.source
+. "$add_config_line_source"
 
-vo_scalability=`grep '^VO_SCALABILITY ' $glidein_config | awk '{print $2}'`
+# find the error reporting helper script
+error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
+
+vo_scalability=$(gconfig_get VO_SCALABILITY "$glidein_config")
 
 if [ -z &quot;$vo_scalability&quot; ]; then
   # set a reasonable default
@@ -746,7 +773,7 @@ if [ &quot;$tot_mem&quot; -lt 500000 ]; then
   fi
 
   # write it back
-  add_config_line VO_SCALABILITY $vo_scalability
+  gconfig_add VO_SCALABILITY $vo_scalability
   &quot;$error_gen&quot; -ok  &quot;memset.sh&quot; &quot;vo_scalability&quot; &quot;$vo_scalability&quot;
   exit 0
 fi
