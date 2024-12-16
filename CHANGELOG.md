@@ -11,6 +11,7 @@ Changes since the last release
 
 -   item one of the list
 -   item N
+-   Added custom log server example (glideinwms-logging) (Issue #398, PR #467)
 
 ### Changed defaults / behaviours
 
@@ -21,6 +22,7 @@ Changes since the last release
 ### Bug Fixes
 
 -   Fixed early truncation in log files configuration and inconsistent documentation (Issue #464, PR #462, PR #463)
+-   Fixed JWT logging credentials not transferred to the Glidein. This includes removal of DictFile.append() and use of add_environment() for JWT tokens (Issue #398, PR #467)
 
 ### Testing / Development
 
