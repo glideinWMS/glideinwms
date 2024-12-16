@@ -503,9 +503,10 @@ glidein_exit() {
         fi
     fi
 
-    log_write "glidein_startup.sh" "text" "glidein is about to exit with retcode $1" "info"
-    send_logs_to_remote
-
+    glog_write "glidein_startup.sh" "text" "glidein is about to exit with retcode $1" "info"
+    if ! glog_send_to_remote; then
+        warn "Failed to send Glidein Logging"
+    fi
     glidien_cleanup
 
     print_tail "$1" "${final_result_simple}" "${final_result_long}"
@@ -1834,13 +1835,13 @@ params2file ${params}
 
 ############################################
 # Setup logging
-log_init "${glidein_uuid}" "${work_dir}"
+glog_init "${glidein_uuid}" "${work_dir}"
 # Remove these files, if they are still there
 rm -rf tokens.tgz url_dirs.desc tokens
-log_setup "${glidein_config}"
+glog_setup "${glidein_config}"
 
 echo "Downloading files from Factory and Frontend"
-log_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"
+glog_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"
 
 #####################################
 # Fetch descript and signature files
@@ -2008,9 +2009,11 @@ fixup_condor_dir
 # Start the glidein main script
 gconfig_add "GLIDEIN_INITIALIZED" "1"
 
-log_write "glidein_startup.sh" "text" "Starting the glidein main script" "info"
-log_write "glidein_startup.sh" "file" "${glidein_config}" "debug"
-send_logs_to_remote          # checkpoint
+glog_write "glidein_startup.sh" "text" "Starting the glidein main script" "info"
+glog_write "glidein_startup.sh" "file" "${glidein_config}" "debug"
+if ! glog_send_to_remote; then          # checkpoint
+    echo "Failed to checkpoint Glidein Logging"
+fi
 echo "# --- Last Script values ---" >> glidein_config
 last_startup_time=$(date +%s)
 ((validation_time=last_startup_time-startup_time)) || true
