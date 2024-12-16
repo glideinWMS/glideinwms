@@ -22,6 +22,7 @@ Changes since the last release
 
 -   Fixed early truncation in log files configuration and inconsistent documentation (Issue #464, PR #462, PR #463)
 -   Removed confusing tac broken pipe messages from the Glidein stderr (PR #465)
+-   Fixed quotes in glidein command line unpacking and replaced deprecated add_config_line commands (PR #468)
 
 ### Testing / Development
 
