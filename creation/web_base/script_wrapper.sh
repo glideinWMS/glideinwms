@@ -48,7 +48,7 @@ vmessage() {
 }
 
 # temporary function until the correct one is sourced
-add_config_line_safe() {
+gconfig_add_safe() {
     echo "$@" >> "$glidein_config"
 }
 
@@ -63,7 +63,7 @@ publish() {
     else
         echo "${prefix}$1 = ${*:2}"
     fi
-    add_config_line_safe "${prefix}$*"
+    gconfig_add_safe "${prefix}$*"
 }
 
 # Manage failure lists in glidein_config (GLIDEIN_PS_FAILED_LIST/GLIDEIN_PS_FAILING_LIST) and connected ads
@@ -80,10 +80,10 @@ list_manage() {
     local re=",*([^,]|[^,].*[^,]),*"
     if [[ "$1" == "del" && "$tmp_list" == *,$2,* ]]; then
         tmp_list="${tmp_list/,$2,/,}"
-        add_config_line_safe "$3" "$([[ "$tmp_list" =~ $re ]]; echo -n "${BASH_REMATCH[1]}")"
+        gconfig_add_safe "$3" "$([[ "$tmp_list" =~ $re ]]; echo -n "${BASH_REMATCH[1]}")"
     elif [[ "$1" == "add" && ! "$tmp_list," == *,$2,* ]]; then
         tmp_list="${tmp_list}$2"
-        add_config_line_safe "$3" "$([[ "$tmp_list" =~ $re ]]; echo -n "${BASH_REMATCH[1]}")"
+        gconfig_add_safe "$3" "$([[ "$tmp_list" =~ $re ]]; echo -n "${BASH_REMATCH[1]}")"
     fi
     if [ "$3" == GLIDEIN_PS_FAILING_LIST ]; then
         # publish test status
