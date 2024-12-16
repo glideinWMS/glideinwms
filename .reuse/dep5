@@ -13,6 +13,10 @@ Files: .codecov.yml .coveragerc .editorconfig .gitattributes .gitignore .gitmodu
 Copyright: 2009 Fermi Research Alliance, LLC
 License: Apache-2.0
 
+Files: logserver/logging_config.json
+Copyright: 2009 Fermi Research Alliance, LLC
+License: Apache-2.0
+
 Files: .github/ISSUE_TEMPLATE/* bigfiles/* etc/* config/* creation/templates/*.service creation/templates/*.cron creation/templates/*.timer doc/tags*txt lib/logging.conf test/bats/fixtures/* unittests/*.fixture unittests/fixtures/*
 Copyright: 2009 Fermi Research Alliance, LLC
 License: Apache-2.0

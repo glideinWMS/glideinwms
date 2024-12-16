@@ -6,7 +6,8 @@
 
 import sys
 import os
-import optparse
+import argparse
+from argparse import RawDescriptionHelpFormatter
 
 # Necessary to allow relative import when started as executable
 if __name__ == "__main__" and __package__ is None:
@@ -42,7 +43,7 @@ def manager_version():
 
 
 def usage():
-    help = [
+    help_str = [
         "%s <version> <SourceDir> <ReleaseDir>" % os.path.basename(sys.argv[0]),
         "NOTE that this script works on the files in your current directory tree",
         "- no git operations like clone/checkout are performed",
@@ -64,113 +65,92 @@ def usage():
         "release.py --release-version=3_2_11 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=3",
         "",
     ]
-    return "\n".join(help)
+    return "\n".join(help_str)
 
 
 def parse_opts(argv):
-    parser = optparse.OptionParser(usage=usage(), version=manager_version(), conflict_handler="resolve")
-    parser.add_option(
+    parser = argparse.ArgumentParser(
+        prog=os.path.basename(sys.argv[0]),
+        description=usage(),
+        conflict_handler="resolve",
+        formatter_class=RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
         "--release-version",
-        dest="relVersion",
         action="store",
+        required=True,
         metavar="<release version>",
         help="GlideinWMS version to release (format w/ underscores, for tarball, RPM version derived from it)",
     )
-    parser.add_option(
+    parser.add_argument(
         "--source-dir",
-        dest="srcDir",
         action="store",
+        required=True,
         metavar="<source directory>",
-        help="directory containing the glideinwms source code",
+        help="directory containing the GlideinWMS source code",
     )
-    parser.add_option(
+    parser.add_argument(
         "--release-dir",
-        dest="relDir",
         default="/tmp/release",
         action="store",
         metavar="<release directory>",
         help="directory to store release tarballs and webpages",
     )
-    parser.add_option(
-        "--rc", dest="rc", default=None, action="store", metavar="<Release Candidate Number>", help="Release Candidate"
+    parser.add_argument(
+        "--rc", default=None, action="store", metavar="<Release Candidate Number>", help="Release Candidate"
     )
-    parser.add_option(
+    parser.add_argument(
         "--rpm-release",
-        dest="rpmRel",
         default=None,
         action="store",
         metavar="<RPM Release Number>",
         help="RPM Release Number",
     )
-    parser.add_option(
+    parser.add_argument(
         "--no-mock", dest="use_mock", action="store_false", help="Set to use rpmbuild instead of mock to build the RPM"
     )
-    parser.add_option(
+    parser.add_argument(
         "--python-version",
-        dest="python_version",
         default="python36",
         action="store",
         metavar="<Python version>",
         help="Python version (default: python36)",
     )
+    parser.add_argument("--verbose", action="store_true", help="Set to see more details of the release building")
+    parser.add_argument("-v", "--version", action="version", version=manager_version())
 
-    if len(argv) == 2 and argv[1] in ["-v", "--version"]:
-        parser.print_version()
-        sys.exit()
-    if len(argv) < 4:
-        print("ERROR: Insufficient arguments specified")
-        parser.print_help()
-        sys.exit(1)
-    options, remainder = parser.parse_args(argv)
-    if len(remainder) > 1:
-        parser.print_help()
-    if not required_args_present(options):
-        print("ERROR: Missing required arguments")
-        parser.print_help()
-        sys.exit(1)
+    options = parser.parse_args()
     return options
 
 
-def required_args_present(options):
-    try:
-        if (options.relVersion is None) or (options.srcDir is None) or (options.relDir is None):
-            return False
-    except AttributeError:
-        return False
-    return True
-
-
-#   check_required_args
-
-
-# def main(ver, srcDir, relDir):
 def main(argv):
     options = parse_opts(argv)
     # sys.exit(1)
-    ver = options.relVersion
-    srcDir = options.srcDir
-    relDir = options.relDir
+    ver = options.release_version
+    src_dir = options.source_dir
+    rel_dir = options.release_dir
     rc = options.rc
-    rpmRel = options.rpmRel
+    rpm_rel = options.rpm_release
     python_version = options.python_version
     use_mock = options.use_mock
+    is_verbose = options.verbose
 
     print("___________________________________________________________________")
     print("Creating following GlideinWMS release")
     print(
         "Version=%s\nSourceDir=%s\nReleaseDir=%s\nReleaseCandidate=%s\nRPMRelease=%s\nPython=%s"
-        % (ver, srcDir, relDir, rc, rpmRel, python_version)
+        % (ver, src_dir, rel_dir, rc, rpm_rel, python_version)
     )
     print("___________________________________________________________________")
     print()
-    rel = ReleaseManagerLib.Release(ver, srcDir, relDir, rc, rpmRel)
+    rel = ReleaseManagerLib.Release(ver, src_dir, rel_dir, rc, rpm_rel)
 
     rel.addTask(ReleaseManagerLib.TaskClean(rel))
     rel.addTask(ReleaseManagerLib.TaskSetupReleaseDir(rel))
     rel.addTask(ReleaseManagerLib.TaskVersionFile(rel))
     rel.addTask(ReleaseManagerLib.TaskTar(rel))
     rel.addTask(ReleaseManagerLib.TaskDocumentation(rel))
-    rel.addTask(ReleaseManagerLib.TaskRPM(rel, python_version, use_mock))
+    rel.addTask(ReleaseManagerLib.TaskRPM(rel, python_version, use_mock, is_verbose))
 
     rel.executeTasks()
     rel.printReport()
