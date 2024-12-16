@@ -193,7 +193,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         frontend_recipients = []  # TODO: change when adding support for LOG_RECIPIENTS_CLIENT
         log_recipients = list(set(factory_recipients + frontend_recipients))
         if len(log_recipients) > 0:
-            self.append("environment", '"LOG_RECIPIENTS=' + "'" + " ".join(log_recipients) + "'" + '"')
+            # self.append("environment", '"LOG_RECIPIENTS=' + "'" + " ".join(log_recipients) + "'" + '"')
+            self.add_environment("LOG_RECIPIENTS='" + " ".join(log_recipients) + "'")
         # print("Token dir: " + token_basedir)  # DEBUG
 
         # Add in some common elements before setting up grid type specific attributes
