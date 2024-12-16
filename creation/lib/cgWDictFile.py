@@ -159,22 +159,34 @@ class CondorJDLDictFile(cWDictFile.DictFile):
         cWDictFile.DictFile.__init__(self, dir, fname, sort_keys, order_matters, fname_idx)
         self.jobs_in_cluster = jobs_in_cluster
 
-    def append(self, key, val):
-        # TODO add_environment would allow an easier handling of the environment attribute:
-        #  - ordered dict as input
-        #  - handling quoting and escaping
-        #  - formatting and overwriting the environment attribute in the submit file dict
-        if key == "environment":
-            # assumed to be in the new format (quoted)
-            if key not in self.keys:
-                self.add(key, val)
-            else:
-                # should add some protection about correct quoting
-                self.add(f"{val[:-1]} {self[key][1:]}", True)
-        else:
-            raise RuntimeError(f"CondorJDLDictFile append unsupported for key {key} (val: {val})!")
+    # append has been replaced by add_environment to ease the quote handling
+    # If a generic version is needed, the code can be modified and restored
+    # def append(self, key, val):
+    #     if key == "environment":
+    #         # assumed to be in the new format (quoted)
+    #         if key not in self.keys:
+    #             self.add(key, val)
+    #         else:
+    #             # should add some protection about correct quoting
+    #             self.add(key, f"{val[:-1]} {self[key][1:]}", True)
+    #     else:
+    #         raise RuntimeError(f"CondorJDLDictFile append unsupported for key {key} (val: {val})!")
 
     def add_environment(self, val):
+        """Add a variable definition to the "environment" key in the CondorJDLDictFile.
+        Defines a new "environment" entry if not there,
+        appends to the existing environment if there.
+        The whole environment value is enclosed in double quotes (")
+
+        Args:
+            val (str): variable definition to add to the environment. Cannot contain double quotes (")
+                Single quotes (') are OK and can be used to quote string values
+        """
+        # TODO: improve environment handling:
+        #  - allow ordered dict as input
+        #  - handling quoting and escaping, e.g. validate val for double quotes
+        #  - formatting and overwriting the environment attribute in the submit file dict
+        #    e.g. add a variable already in the environment
         curenv = self.get("environment")
         if curenv:
             if curenv[0] == '"':
