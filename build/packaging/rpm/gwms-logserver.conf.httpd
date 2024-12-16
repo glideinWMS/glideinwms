@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+# This is the httpd conf file
+# GlideinWMS Logging Server web configuration
+
+Alias /logserver /var/lib/gwms-logserver/web-area
+<Directory /var/lib/gwms-logserver/web-area/>
+    <IfModule mod_authz_core.c>
+        # Apache 2.4
+        Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        # Apache 2.2
+        Order allow,deny
+        Allow from all
+    </IfModule>
+    <IfModule mod_authnz_jwt>
+        AuthType jwt
+        AuthName "private area"
+        # Require valid-user
+    </IfModule>
+    # Options +Indexes
+    AllowMethods PUT GET POST OPTIONS
+    # Require method PUT GET POST OPTIONS
+    #<Limit GET POST PUT OPTIONS DELETE PATCH HEAD>
+    #  Require all granted
+    #</Limit>
+</Directory>
+
+# Use the following version if you are using mod_jwt (authnz_mod_jwt)
+# This will allow a simpler PUT uploader because it will not need to validate the JWT
+
+#AuthJWTSignatureAlgorithm HS256
+#AuthJWTSignatureSharedSecret VG9rZVNlY3JldEtleQo=
+#AuthJWTIss factory-workspace.glideinwms.org
+#
+#Alias /logging /var/lib/gwms-logging/logging
+#<Directory /var/lib/gwms-logging/logging/>
+#    <IfModule mod_authz_core.c>
+#        # Apache 2.4
+#        Require all granted
+#    </IfModule>
+#    <IfModule !mod_authz_core.c>
+#        # Apache 2.2
+#        Order allow,deny
+#        Allow from all
+#    </IfModule>
+#    <IfModule mod_authnz_jwt>
+#        AuthType jwt
+#        AuthName "private area"
+#        # Require valid-user
+#    <IFModule>
+#    # Options +Indexes
+#    AllowMethods PUT GET POST OPTIONS
+#    # Require method PUT GET POST OPTIONS
+#</Directory>
+#
+# # This is needed to always forward the HTTP_AUTHORIZATION header
+# # See: https://www.codepunker.com/blog/php-a-primer-on-the-basic-authorization-header
+# RewriteEngine On
+# RewriteCond %{HTTP:Authorization} ^(.+)$
+# RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

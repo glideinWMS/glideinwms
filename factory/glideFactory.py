@@ -11,12 +11,15 @@ Arguments:
 
 import copy
 import fcntl
-import glob
+
+# import glob
 import json
 import math
 import os
 import resource
+import secrets
 import signal
+import stat
 import subprocess
 import sys
 import tarfile
@@ -42,7 +45,6 @@ from glideinwms.factory import (
 )
 from glideinwms.lib import cleanupSupport, condorMonitor, glideinWMSVersion, logSupport, util
 from glideinwms.lib.condorMonitor import CondorQEdit, QueryError
-from glideinwms.lib.pubCrypto import RSAKey
 
 FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 
@@ -76,10 +78,8 @@ def aggregate_stats(in_downtime):
 
 
 def update_classads():
-    """Loads the aggregate job summary pickle files, and then
+    """Load the aggregate job summary pickle files, and then
     quedit the finished jobs adding a new classad called MONITOR_INFO with the monitor information.
-
-    :return:
     """
     jobinfo = glideFactoryMonitorAggregator.aggregateJobsSummary()
     for cnames, joblist in jobinfo.items():
@@ -98,14 +98,12 @@ def update_classads():
 
 def save_stats(stats, fname):
     """Serialize and save aggregated statistics so that each component (Factory and Entries)
-    can retrieve and use it to log and advertise
+    can retrieve and use them for logging and advertising.
 
-    stats is a dictionary pickled in binary format
-    stats['LogSummary'] - log summary aggregated info
-
-    :param stats: aggregated Factory statistics
-    :param fname: name of the file with the serialized data
-    :return:
+    Args:
+        stats (dict): Aggregated Factory statistics dictionary. stats is a dictionary pickled in binary format
+            stats['LogSummary'] - log summary aggregated info
+        fname (str): Name of the file to store the serialized data.
     """
     util.file_pickle_dump(
         fname, stats, mask_exceptions=(logSupport.log.exception, "Saving of aggregated statistics failed: ")
@@ -114,15 +112,12 @@ def save_stats(stats, fname):
 
 # Added by C.W. Murphy to make descript.xml
 def write_descript(glideinDescript, frontendDescript, monitor_dir):
-    """
-    Write the descript.xml to the monitoring directory
+    """Write the descript.xml file to the specified monitoring directory.
 
-    @type glideinDescript: glideFactoryConfig.GlideinDescript
-    @param glideinDescript: Factory config's glidein description object
-    @type frontendDescript: glideFactoryConfig.FrontendDescript
-    @param frontendDescript: Factory config's frontend description object
-    @type monitor_dir: String
-    @param monitor_dir: Path to monitoring directory
+    Args:
+        glideinDescript (glideFactoryConfig.GlideinDescript): Factory config's Glidein description object.
+        frontendDescript (glideFactoryConfig.FrontendDescript): Factory config's Frontend description object.
+        monitor_dir (str): Path to the monitoring directory.
     """
 
     glidein_data = copy.deepcopy(glideinDescript.data)
@@ -156,54 +151,63 @@ def write_descript(glideinDescript, frontendDescript, monitor_dir):
 ############################################################
 
 
-def generate_log_tokens(startup_dir, glideinDescript):
+def generate_log_tokens(startup_dir, glidein_descript):
     """Generate the JSON Web Tokens used to authenticate with the remote HTTP log server.
-    Note: tokens are generated for disabled entries too
+    Note: tokens were generated for disabled entries too, not now
 
     Args:
         startup_dir (str|Path): Path to the glideinsubmit directory
-        glideinDescript: Factory config's glidein description object
+        glidein_descript (glideFactoryConfig.GlideinDescript): Factory config's Glidein description object
 
     Returns:
         None
 
     Raises:
-        IOError: If can't open/read/write a file (key/token)
+        IOError: If it can't open/read/write a file (key/token)
     """
 
     logSupport.log.info("Generating JSON Web Tokens for authentication with log server")
 
     # Get a list of all entries, enabled and disabled
     # TODO: there are more reliable ways to do so, i.e. reading the xml config
-    entries = [ed[len("entry_") :] for ed in glob.glob("entry_*") if os.path.isdir(ed)]
+    # entries = [ed[len("entry_") :] for ed in glob.glob("entry_*") if os.path.isdir(ed)]
+    # OK to generate tokens only for enabled entries
+    entries = glidein_descript.data["Entries"].split(",")
 
     # Retrieve the factory secret key (manually delivered) for token generation
     credentials_dir = os.path.realpath(os.path.join(startup_dir, "..", "server-credentials"))
     jwt_key = os.path.join(credentials_dir, "jwt_secret.key")
-    if not os.path.exists(jwt_key):
-        # create one and log if it doesnt exist, otherwise needs a
-        # manual undocumented step to start factory
-        logSupport.log.info(
-            "creating %s -manually install  this key for " % (jwt_key) + "authenticating to external web sites"
-        )
-        rsa = RSAKey()
-        rsa.new(2048)
-        rsa.save(jwt_key)
+    if not os.path.exists(jwt_key) or os.path.getsize(jwt_key) == 0:
+        # Create a secret and log if it doesn't exist, otherwise needs a manual undocumented step to start factory
+        # For HS256 JWT (HMAC 256) a 32 bytes string is needed. A PEM file like the one from RSAKey() would cause
+        # jwt.exceptions.InvalidKeyError: The specified key is an asymmetric key or x509 certificate and
+        # should not be used as an HMAC secret.
+        # TODO: consider base64 encoding before saving sec_key (server code must be changed as well)
+        # TODO: add support for multiple secrets from different servers (RSA asymmetric or HMAC symmetric)
+        #       or should they provide (and refresh) tokens?
+        logSupport.log.info(f"creating {jwt_key} - manually install this key for authenticating to external web sites")
+        log_token_key = secrets.token_bytes(32)
+        # The file system is not a safe place to store secrets, but this key is used to control access to the logserver
+        # which reside on the file system. So someone with access to this key could access the logserver as well
+        with open(jwt_key, "wb") as file:
+            file.write(log_token_key)
+        os.chmod(jwt_key, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+        # TODO: chown gfactory:apache AND chmod u:rw,g:r
 
     try:
-        with open(os.path.join(credentials_dir, "jwt_secret.key")) as keyfile:
-            secret = keyfile.readline().strip()
+        with open(jwt_key, "rb") as keyfile:
+            secret = keyfile.read()
     except OSError:
-        logSupport.log.exception("Cannot find the key for JWT generation (must be manually deposited).")
+        logSupport.log.exception(f"Cannot find the key for JWT generation (must be manually deposited in {jwt_key}).")
         raise
 
-    factory_name = glideinDescript.data["FactoryName"]
+    factory_name = glidein_descript.data["FactoryName"]
 
     # Issue a token for each entry-recipient pair
     for entry in entries:
         # Get the list of recipients
-        if "LOG_RECIPIENTS_FACTORY" in glideFactoryConfig.JobParams(entry).data:
-            log_recipients = glideFactoryConfig.JobParams(entry).data["LOG_RECIPIENTS_FACTORY"].split()
+        if "GLIDEIN_LOG_RECIPIENTS_FACTORY" in glideFactoryConfig.JobParams(entry).data:
+            log_recipients = glideFactoryConfig.JobParams(entry).data["GLIDEIN_LOG_RECIPIENTS_FACTORY"].split()
         else:
             log_recipients = []
 
@@ -254,7 +258,7 @@ def generate_log_tokens(startup_dir, glideinDescript):
                 "aud": recipient_safe_url,
                 "iat": curtime,
                 "exp": curtime + 604800,
-                "nbf": curtime - 300,
+                "nbf": curtime - 300,  # To compensate for possible clock skews
             }
             token = jwt.encode(token_payload, secret, algorithm="HS256")
             # TODO: PyJWT bug workaround. Remove this conversion once affected PyJWT is no more around
@@ -438,25 +442,17 @@ def spawn(
     restart_interval,
 ):
     """
-    Spawn and keep track of the entry processes. Restart them if required.
-    Advertise glidefactoryglobal classad every iteration
+    Spawn and track entry processes, restarting them as needed. Advertise glidefactoryglobal ClassAds every iteration.
 
-    @type sleep_time: long
-    @param sleep_time: Delay between every iteration
-    @type advertize_rate: long
-    @param advertize_rate: Rate at which entries advertise their classads
-    @type startup_dir: String
-    @param startup_dir: Path to glideinsubmit directory
-    @type glideinDescript: glideFactoryConfig.GlideinDescript
-    @param glideinDescript: Factory config's glidein description object
-    @type frontendDescript: glideFactoryConfig.FrontendDescript
-    @param frontendDescript: Factory config's frontend description object
-    @type entries: list
-    @param entries: Sorted list of entry names
-    @type restart_interval: long
-    @param restart_interval: Allowed restart interval in second
-    @type restart_attempts: long
-    @param restart_attempts: Number of allowed restart attempts in the interval
+    Args:
+        sleep_time (int): Delay between iterations in seconds.
+        advertize_rate (int): Rate at which entries advertise their ClassAds.
+        startup_dir (str): Path to the glideinsubmit directory.
+        glideinDescript (glideFactoryConfig.GlideinDescript): Factory config's Glidein description object.
+        frontendDescript (glideFactoryConfig.FrontendDescript): Factory config's Frontend description object.
+        entries (list): Sorted list of entry names.
+        restart_interval (int): Allowed restart interval in seconds.
+        restart_attempts (int): Number of allowed restart attempts within the interval.
     """
 
     childs = {}
@@ -488,14 +484,20 @@ def spawn(
     entry_groups = entry_grouper(group_size, entries)
 
     def _set_rlimit(soft_l=None, hard_l=None):
-        # set new hard and soft open file limits
-        # if setting limits fails or no input parameters use inherited limits
-        # from parent process
-        # nb 1.  it is possible to raise limits
-        # up to [hard_l,hard_l] but once lowered they cannot be raised
-        # nb 2. it may be better just to omit calling this function at
-        # all from subprocess - in which case it inherits limits from
-        # parent process
+        """Set new hard and soft open file limits
+
+        If setting limits fails or no input parameters use inherited limits from parent process
+        NOTE1: it is possible to raise limits up to [hard_l,hard_l] but once lowered they cannot be raised
+        NOTE2: it may be better just to omit calling this function at all from subprocess -
+               in which case it inherits limits from the parent process
+
+        Args:
+            soft_l (int): soft limit
+            hard_l (int): hard limit
+
+        Raises:
+            Exception: if the limit setting fails
+        """
 
         lim = resource.getrlimit(resource.RLIMIT_NOFILE)
         if soft_l is not None or hard_l is not None:
@@ -544,13 +546,13 @@ def spawn(
         generate_log_tokens(startup_dir, glideinDescript)
 
         for group in childs:
-            # set it in non blocking mode
+            # set it in non-blocking mode
             # since we will run for a long time, we do not want to block
             for fd in (childs[group].stdout.fileno(), childs[group].stderr.fileno()):
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
-        # If RemoveOldCredFreq < 0, do not do credential cleanup.
+        # If RemoveOldCredFreq <= 0, do not do credential cleanup.
         curr_time = 0  # To ensure curr_time is always initialized
         if int(glideinDescript.data["RemoveOldCredFreq"]) > 0:
             # Convert credential removal frequency from hours to seconds
@@ -565,9 +567,8 @@ def spawn(
             logSupport.log.info("Adding cleaners for old credentials")
             cred_base_dir = glideinDescript.data["ClientProxiesBaseDir"]
             for username in frontendDescript.get_all_usernames():
-                cred_base_user = os.path.join(cred_base_dir, "user_%s" % username)
                 cred_user_instance_dirname = os.path.join(
-                    cred_base_user, "glidein_%s" % glideinDescript.data["GlideinName"]
+                    cred_base_dir, "user_%s" % username, "glidein_%s" % glideinDescript.data["GlideinName"]
                 )
                 cred_cleaner = cleanupSupport.DirCleanupCredentials(
                     cred_user_instance_dirname, "(credential_*)", remove_old_cred_age

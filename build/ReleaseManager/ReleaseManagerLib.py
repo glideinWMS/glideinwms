@@ -38,11 +38,11 @@ class Release:
             self.rpmVersion = self.versionToRPMVersion(ver)
             self.rpmbuildDir = os.path.join(self.releaseDir, "rpmbuild")
             self.rpmOSVersion = self.getElVersion()
+            # SRPM name has "el" also for AlmaLinux
             self.srpmFile = os.path.join(
                 self.rpmbuildDir,
                 "SRPMS",
-                "glideinwms-%s-%s.%s%s.src.rpm"
-                % (self.rpmVersion, self.rpmRelease, self.rpmOSVersion[0], self.rpmOSVersion[1]),
+                f"glideinwms-{self.rpmVersion}-{self.rpmRelease}.{self.rpmOSVersion[0]}{self.rpmOSVersion[1]}.src.rpm",
             )
             self.buildRPMs = bool(which("rpmbuild"))
             if not self.buildRPMs:
@@ -81,22 +81,34 @@ class Release:
             # Deprecated - distname, version, id = distro.linux_distribution()
             distname = distro.name()  # If full_distribution_name is false, the result of distro.id()
             version = distro.version()
-            id = distro.codename()
+            dist_id = distro.codename()
         else:
             # TODO: remove the else branch once Py3.6 is no more supported
-            distname, version, id = platform.linux_distribution()  # pylint: disable=no-member
-        distmap = {"Fedora": "fc", "Scientific Linux": "el", "Red Hat": "el", "CentOS Stream": "el"}
+            distname, version, dist_id = platform.linux_distribution()  # pylint: disable=no-member
+        # Check if mock profiles changed
+        # As of Dec 2024 on AlmaLinux9: alma+epel-..., rhel+epel-..., centos-stream+epel-...
+        # No profile has epel-... (maybe rhel-7 for sl7)
+        distmap = {
+            "Fedora": ("fc", "fedora"),
+            "Scientific Linux": ("el", "epel"),
+            "Red Hat": ("el", "rhel+epel"),
+            "CentOS Stream": ("el", "centos-stream+epel"),
+            "AlmaLinux": ("el", "alma+epel"),
+            "RockyLinux": ("el", "rocky+epel"),
+        }
         dist = None
+        el_profile = None
         for d in distmap:
             if distname.startswith(d):
-                dist = distmap[d]
+                dist = distmap[d][0]
+                el_profile = distmap[d][1]
                 break
         if dist is None:
             raise Exception("Unsupported distribution: %s" % distname)
         else:
             el_string = dist
         major_version = version.split(".")[0]
-        return (el_string, major_version)
+        return el_string, major_version, el_profile
 
     def addTask(self, task):
         self.tasks.append(task)
@@ -277,9 +289,10 @@ class TaskVersionFile(TaskRelease):
 
 
 class TaskRPM(TaskTar):
-    def __init__(self, rel, python_version, use_mock=True):
+    def __init__(self, rel, python_version, use_mock=True, verbose=False):
         TaskTar.__init__(self, rel)
         self.name = "GlideinwmsRPM"
+        self.verbose = verbose
         self.use_mock = use_mock
         self.python_version = python_version
         self.releaseFile = os.path.join(self.release.releaseDir, self.releaseFilename)
@@ -288,6 +301,7 @@ class TaskRPM(TaskTar):
         self.specFile = os.path.join(self.release.rpmbuildDir, "SPECS", "glideinwms.spec")
         # self.rpmmacrosFile = os.path.join(os.path.expanduser('~'),
         self.rpmmacrosFile = os.path.join(os.path.dirname(self.release.rpmbuildDir), ".rpmmacros")
+        # Files in build/pkg/rpm to copy in the SOURCES directory
         self.sourceFilenames = [
             "chksum.sh",
             "factory_startup",
@@ -300,6 +314,7 @@ class TaskRPM(TaskTar):
             "gwms-factory.sysconfig",
             "gwms-frontend.conf.httpd",
             "gwms-frontend.sysconfig",
+            "gwms-logserver.conf.httpd",
         ]
         self.rpmMacros = {
             "_topdir": self.release.rpmbuildDir,
@@ -318,6 +333,8 @@ class TaskRPM(TaskTar):
         rpm_dirs = ["BUILD", "RPMS", "SOURCES", "SPECS", "SRPMS"]
         for dirname in rpm_dirs:
             create_dir(os.path.join(self.release.rpmbuildDir, dirname))
+        if self.verbose:
+            print(f"RPM build directories created in {self.release.rpmbuildDir}")
 
     def createSpecFile(self):
         # No error checking because we want to fail in case of errors
@@ -351,33 +368,50 @@ class TaskRPM(TaskTar):
         cmd = "rpmbuild -bs %s" % self.specFile
         for m in self.rpmMacros:
             cmd = f'{cmd} --define "{m} {self.rpmMacros[m]}"'
+        if self.verbose:
+            print(f"Building source RPM: {cmd}")
         execute_cmd(cmd)
 
     def buildRPM(self):
-        cmd = "mock -r epel-{}-x86_64 --macro-file={} -i {}".format(
+        # Check if mock profiles changed
+        # As of Dec 2024 on AlmaLinux9: alma+epel-..., rhel+epel-..., centos-stream+epel-...
+        # No profile has epel-... (maybe rhel-7 for sl7)
+        cmd = "mock -r {}-{}-x86_64 --macro-file={} -i {}".format(
+            self.release.rpmOSVersion[2],
             self.release.rpmOSVersion[1],
             self.rpmmacrosFile,
             self.python_version,
         )
+        if self.verbose:
+            print(f"Build mock environment: {cmd}")
         execute_cmd(cmd)
-        cmd = "mock --no-clean -r epel-{}-x86_64 --macro-file={} --resultdir={}/RPMS rebuild {}".format(
+        cmd = "mock --no-clean -r {}-{}-x86_64 --macro-file={} --resultdir={}/RPMS rebuild {}".format(
+            self.release.rpmOSVersion[2],
             self.release.rpmOSVersion[1],
             self.rpmmacrosFile,
             self.release.rpmbuildDir,
             self.release.srpmFile,
         )
+        if self.verbose:
+            print(f"Build RPM with mock: {cmd}")
         execute_cmd(cmd)
 
     def buildRPMWithRPMBuild(self):
         cmd = "rpmbuild -bb %s" % self.specFile
         for m in self.rpmMacros:
             cmd = f'{cmd} --define "{m} {self.rpmMacros[m]}"'
+        if self.verbose:
+            print(f"Build RPM without mock: {cmd}")
         execute_cmd(cmd)
 
     def execute(self):
         if not self.release.buildRPMs:
             self.status = "SKIPPED"
         else:
+            if self.verbose:
+                print(
+                    f"Building RPM (version:{self.release.rpmVersion}, release:{self.release.rpmRelease}, use_mock:{self.use_mock})"
+                )
             # First build the source tarball
             # TaskTar.execute(self)
 

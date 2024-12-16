@@ -33,6 +33,8 @@
 %define factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
 %define factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
 %define condor_dir %{_localstatedir}/lib/gwms-factory/condor
+%define logserver_dir %{_localstatedir}/lib/gwms-logserver
+%define logserver_web_dir %{_localstatedir}/lib/gwms-logserver/web-area
 %define systemddir %{_prefix}/lib/systemd/system
 
 Name:           glideinwms
@@ -58,6 +60,7 @@ Source8:        gwms-frontend.sysconfig
 Source9:        gwms-factory.sysconfig
 Source11:       creation/templates/frontend_startup_sl7
 Source12:       creation/templates/factory_startup_sl7
+Source13:       gwms-logserver.conf.httpd
 
 BuildRequires:  python3
 BuildRequires:  python3-devel
@@ -153,6 +156,7 @@ This subpackage includes the Glidein components for the Frontend.
 %package vofrontend-httpd
 Summary:        The Apache http configuration for GWMS Frontend.
 Requires: httpd
+Requires: mod_ssl
 %description vofrontend-httpd
 This subpackage includes the minimal configuration to start Apache to
 serve the Frontend files to the pilot and the monitoring pages.
@@ -279,6 +283,7 @@ Factory. Created to separate out the httpd server.
 %package factory-httpd
 Summary:        The Apache httpd configuration for the GWMS Factory
 Requires: httpd
+Requires: mod_ssl
 %description factory-httpd
 This subpackage includes the minimal configuration to start Apache to
 serve the Factory files to the pilot and the monitoring pages.
@@ -291,6 +296,18 @@ Requires: glideinwms-condor-common-config = %{version}-%{release}
 %description factory-condor
 This is a package including condor_config for a full one-node
 install of wmscollector + wms factory
+
+
+%package logserver
+Summary:        The Glidein Log server and its Apache http configuration.
+Requires: httpd
+Requires: mod_ssl
+Requires: php
+Requires: php-fpm
+Requires: composer
+%description logserver
+This subpackage includes an example of the files and Apache configuration
+to implement a simple server to receive Glidein logs.
 
 
 %prep
@@ -404,6 +421,7 @@ rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/create_frontend
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/create_glidein
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/info_glidein
 rm -rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/plugins
+rm -rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/logserver
 
 # For sl7 sighup to work, we need reconfig_frontend and reconfig_glidein
 # under this directory
@@ -468,7 +486,6 @@ install -d $RPM_BUILD_ROOT%{factory_web_dir}/monitor/group_main/lock
 install -d $RPM_BUILD_ROOT%{factory_web_dir}/monitor/group_main/total
 install -m 644 creation/web_base/nodes.blacklist $RPM_BUILD_ROOT%{web_dir}/stage/nodes.blacklist
 install -m 644 creation/web_base/nodes.blacklist $RPM_BUILD_ROOT%{web_dir}/stage/group_main/nodes.blacklist
-
 
 # Install the logs
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-frontend/frontend
@@ -589,10 +606,11 @@ install -m 0755 install/glidecondor_createSecCol $RPM_BUILD_ROOT%{_sbindir}/glid
 install -m 0644 etc/checksum.frontend $RPM_BUILD_ROOT%{frontend_dir}/checksum.frontend
 install -m 0644 etc/checksum.factory $RPM_BUILD_ROOT%{factory_dir}/checksum.factory
 
-#Install web area conf
+# Install web area conf
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d
 install -m 0644 %{SOURCE3} $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
 install -m 0644 %{SOURCE5} $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d/gwms-factory.conf
+install -m 0644 %{SOURCE13} $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d/gwms-logserver.conf
 
 install -d $RPM_BUILD_ROOT%{web_base}/../creation
 install -d $RPM_BUILD_ROOT%{web_base}/../creation/templates
@@ -603,6 +621,17 @@ install -d $RPM_BUILD_ROOT%{factory_web_base}/../creation/templates
 install -m 0644 creation/templates/factory_initd_startup_template $RPM_BUILD_ROOT%{factory_web_base}/../creation/templates/
 install -m 0644 creation/templates/frontend_initd_startup_template $RPM_BUILD_ROOT%{web_base}/../creation/templates/
 
+# Install the logserver
+install -d $RPM_BUILD_ROOT%{logserver_dir}
+install -d $RPM_BUILD_ROOT%{logserver_web_dir}
+install -d $RPM_BUILD_ROOT%{logserver_web_dir}/uploads
+install -d $RPM_BUILD_ROOT%{logserver_web_dir}/uploads_unauthorized
+install -m 0644 logserver/web-area/put.php $RPM_BUILD_ROOT%{logserver_web_dir}/put.php
+install -m 0644 logserver/logging_config.json $RPM_BUILD_ROOT%{logserver_dir}/logging_config.json
+install -m 0644 logserver/composer.json $RPM_BUILD_ROOT%{logserver_dir}/composer.json
+install -m 0644 logserver/jwt.php $RPM_BUILD_ROOT%{logserver_dir}/jwt.php
+install -m 0644 logserver/getjwt.py $RPM_BUILD_ROOT%{logserver_dir}/getjwt.py
+install -m 0644 logserver/README.md $RPM_BUILD_ROOT%{logserver_dir}/README.md
 
 %post usercollector
 /sbin/service condor condrestart > /dev/null 2>&1 || true
@@ -680,6 +709,11 @@ systemctl daemon-reload
 # Protecting from failure in case it is not running/installed
 /sbin/service httpd reload > /dev/null 2>&1 || true
 
+%post logserver
+# Protecting from failure in case it is not running/installed
+/sbin/service httpd reload > /dev/null 2>&1 || true
+# Could also load the dependencies with composer install
+
 %pre vofrontend-core
 # Add the "frontend" user and group if they do not exist
 getent group frontend >/dev/null || groupadd -r frontend
@@ -751,6 +785,10 @@ fi
 /sbin/service httpd reload > /dev/null 2>&1 || true
 
 %postun factory-httpd
+# Protecting from failure in case it is not running/installed
+/sbin/service httpd reload > /dev/null 2>&1 || true
+
+%postun logserver
 # Protecting from failure in case it is not running/installed
 /sbin/service httpd reload > /dev/null 2>&1 || true
 
@@ -1052,11 +1090,31 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 #%config(noreplace) %{_sysconfdir}/condor/scripts/frontend_condortoken
 
+%files logserver
+%defattr(-,root,root,-)
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-logserver.conf
+%attr(-, root, root) %{logserver_dir}
+%attr(-, root, apache) %{logserver_web_dir}
+%attr(-, apache, apache) %{logserver_web_dir}/uploads
+%attr(-, apache, apache) %{logserver_web_dir}/uploads_unauthorized
+%attr(-, apache, apache) %{logserver_web_dir}/put.php
+%attr(-, root, root) %{logserver_dir}/logging_config.json
+%attr(-, root, root) %{logserver_dir}/composer.json
+%attr(-, root, root) %{logserver_dir}/jwt.php
+%attr(-, root, root) %{logserver_dir}/getjwt.py
+%attr(-, root, root) %{logserver_dir}/README.md
+
+
 %changelog
+* Fri Dec 20 2024 Marco Mambelli <marcom@fnal.gov> - 3.10.9
+- Glideinwms v3.10.9
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_10_9/history.html
+- Release candidates 3.10.9-01.rc1
+
 * Mon Nov 25 2024 Marco Mambelli <marcom@fnal.gov> - 3.10.8
 - Glideinwms v3.10.8
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_10_8/history.html
-- Release candidates 3.10.7-01.rc1
+- Release candidates 3.10.8-01.rc1
 
 * Tue Oct 22 2024 Marco Mambelli <marcom@fnal.gov> - 3.10.7-3
 - Glideinwms v3.10.7

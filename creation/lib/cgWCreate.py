@@ -113,11 +113,11 @@ def get_factory_log_recipients(entry):
         entry: dict-like object representing the entry configuration
 
     Returns:
-        list: list contaning the URLs of the log servers, empty if none present
+        list: list containing the URLs of the log servers, empty if none present
     """
     entr_attrs = entry.get_child_list("attrs")
     for attr in entr_attrs:
-        if attr["name"] == "LOG_RECIPIENTS_FACTORY":
+        if attr["name"] == "GLIDEIN_LOG_RECIPIENTS_FACTORY":
             return attr["value"].split()
     return []
 
