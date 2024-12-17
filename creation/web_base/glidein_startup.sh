@@ -62,6 +62,7 @@ list_data() {
 
 extract_all_data() {
     # Extract and source all the tarball files
+    # Expecting add_config_line.source, get_id_selectors.source, logging_utils.source, b64uuencode.source, glidein_paths.source
     local -a files
     # change separator to split the output file list from 'tar tz' command
     local IFS_OLD="${IFS}"
@@ -424,15 +425,15 @@ glidein_exit() {
         # wait a bit in case of error, to reduce lost glideins
         let "dl=$(date +%s) + ${sleep_time}"
         dlf=$(date --date="@${dl}")
-        add_config_line "GLIDEIN_ADVERTISE_ONLY" "1"
-        add_config_line "GLIDEIN_Failed" "True"
-        add_config_line "GLIDEIN_EXIT_CODE" "$1"
-        add_config_line "GLIDEIN_ToDie" "${dl}"
-        add_config_line "GLIDEIN_Expire" "${dl}"
-        add_config_line "GLIDEIN_LAST_SCRIPT" "${ge_last_script_name}"
-        add_config_line "GLIDEIN_ADVERTISE_TYPE" "Retiring"
+        gconfig_add "GLIDEIN_ADVERTISE_ONLY" "1"
+        gconfig_add "GLIDEIN_Failed" "True"
+        gconfig_add "GLIDEIN_EXIT_CODE" "$1"
+        gconfig_add "GLIDEIN_ToDie" "${dl}"
+        gconfig_add "GLIDEIN_Expire" "${dl}"
+        gconfig_add "GLIDEIN_LAST_SCRIPT" "${ge_last_script_name}"
+        gconfig_add "GLIDEIN_ADVERTISE_TYPE" "Retiring"
 
-        add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Keeping node busy until ${dl} (${dlf})."
+        gconfig_add "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Keeping node busy until ${dl} (${dlf})."
 
         condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "${glidein_config}" "-i")
         if [ -n "${condor_vars_file}" ]; then
@@ -453,12 +454,12 @@ glidein_exit() {
                 # if the file exists, we should be able to talk to the collectors
                 # notify that things went badly and we are waiting
                 if [ "${factory_report_failed}" != "NEVER" ]; then
-                    add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
+                    gconfig_add "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
                     warn "Notifying Factory of error"
                     "${main_work_dir}/${last_script}" glidein_config
                 fi
                 if [ "${report_failed}" != "NEVER" ]; then
-                    add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "VO"
+                    gconfig_add "GLIDEIN_ADVERTISE_DESTINATION" "VO"
                     warn "Notifying VO of error"
                     "${main_work_dir}/${last_script}" glidein_config
                 fi
@@ -478,23 +479,23 @@ glidein_exit() {
         if [ -e "${main_work_dir}/${last_script}" ] && [ "${do_report}" = "1" ]; then
             # notify that things went badly and we are going away
             if [ "${factory_report_failed}" != "NEVER" ]; then
-                add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
+                gconfig_add "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
                 if [ "${factory_report_failed}" = "ALIVEONLY" ]; then
-                    add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
+                    gconfig_add "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
                 else
-                    add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
-                    add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. (${dl}) (${dlf})"
+                    gconfig_add "GLIDEIN_ADVERTISE_TYPE" "Killing"
+                    gconfig_add "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. (${dl}) (${dlf})"
                 fi
                 "${main_work_dir}/${last_script}" glidein_config
                 warn "Last notification sent to Factory"
             fi
             if [ "${report_failed}" != "NEVER" ]; then
-                add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "VO"
+                gconfig_add "GLIDEIN_ADVERTISE_DESTINATION" "VO"
                 if [ "${report_failed}" = "ALIVEONLY" ]; then
-                    add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
+                    gconfig_add "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
                 else
-                    add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
-                    add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. (${dl}) (${dlf})"
+                    gconfig_add "GLIDEIN_ADVERTISE_TYPE" "Killing"
+                    gconfig_add "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. (${dl}) (${dlf})"
                 fi
                 "${main_work_dir}/${last_script}" glidein_config
                 warn "Last notification sent to VO"
@@ -610,7 +611,7 @@ params2file() {
     do
         # Note: using $() we escape blackslash with \\ like above. Using backticks would require \\\
         pfval=$(params_decode "$2")
-        if ! add_config_line "$1 ${pfval}"; then
+        if ! gconfig_add "$1" "${pfval}"; then
             glidein_exit 1
         fi
         if [ -z "${param_list}" ]; then
@@ -798,8 +799,8 @@ STARTD_CRON_${s_name}_JOB_LOAD = 0.01
 EOF
     # NOPREFIX is a keyword for not setting the prefix for all condor attributes
     [ "xNOPREFIX" != "x${s_cc_prefix}" ] && echo "STARTD_CRON_${s_name}_PREFIX = ${s_cc_prefix}" >> ${include_fname}
-    add_config_line "GLIDEIN_condor_config_startd_cron_include" "${include_fname}"
-    add_config_line "# --- Lines starting with ${s_cc_prefix} are from periodic scripts ---"
+    gconfig_add "GLIDEIN_condor_config_startd_cron_include" "${include_fname}"
+    gconfig_add "# --- Lines starting with ${s_cc_prefix} are from periodic scripts ---"
 }
 
 #####################
@@ -1216,11 +1217,11 @@ fetch_file_base() {
         ffb_prefix="$(get_prefix "${ffb_id}")"
         if [ "${ffb_file_type}" = "untar" ]; then
             # when untaring the original file is less interesting than the untar dir
-            if ! add_config_line "${ffb_prefix}${ffb_config_out}" "${ffb_untar_dir}"; then
+            if ! gconfig_add "${ffb_prefix}${ffb_config_out}" "${ffb_untar_dir}"; then
                 glidein_exit 1
             fi
         else
-            if ! add_config_line "${ffb_prefix}${ffb_config_out}" "${ffb_outname}"; then
+            if ! gconfig_add "${ffb_prefix}${ffb_config_out}" "${ffb_outname}"; then
                 glidein_exit 1
             fi
         fi
@@ -2005,7 +2006,7 @@ fixup_condor_dir
 
 ##############################
 # Start the glidein main script
-add_config_line "GLIDEIN_INITIALIZED" "1"
+gconfig_add "GLIDEIN_INITIALIZED" "1"
 
 log_write "glidein_startup.sh" "text" "Starting the glidein main script" "info"
 log_write "glidein_startup.sh" "file" "${glidein_config}" "debug"
