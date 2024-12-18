@@ -14,6 +14,8 @@ Changes since the last release
 
 ### Changed defaults / behaviours
 
+-   Always send SIGQUIT to HTCondor when the Glidein receives INT, TERM, QUIT signals. This speeds up the shutdown (PR #466)
+
 ### Deprecated / removed options and commands
 
 ### Security Related Fixes
