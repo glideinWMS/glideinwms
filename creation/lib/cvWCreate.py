@@ -1,17 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   Functions needed to create files used by the VO Frontend
-#
-# Author: Igor Sfiligoi
-#
 
 import os
 import re
@@ -209,7 +200,7 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("############################\n")
 
         fd.write("\n# Force GSI authentication\n")
-        fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = IDTOKENS, GSI\n")
+        fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = IDTOKENS, SSL, GSI\n")
         fd.write("SEC_DEFAULT_AUTHENTICATION = REQUIRED\n")
 
         fd.write("\n#################################\n")
@@ -223,7 +214,12 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("# I.e. we only talk to servers that have \n")
         fd.write("#  a DN mapped in our mapfile\n")
         for context in condorSecurity.CONDOR_CONTEXT_LIST:
-            fd.write("DENY_%s = anonymous@*\n" % context)
+            if context == "CLIENT":
+                # as we map SSL to anonymous, but want to allow
+                # anonymous clients, just put a placeholder for CLIENT
+                fd.write("DENY_%s = no-deny\n" % context)
+            else:
+                fd.write("DENY_%s = anonymous@*\n" % context)
         fd.write("\n")
         for context in condorSecurity.CONDOR_CONTEXT_LIST:
             fd.write("ALLOW_%s = *@*\n" % context)
