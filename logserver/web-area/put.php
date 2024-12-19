@@ -6,7 +6,7 @@
     The file content is received via stdin (Apache PUT implementation)
     A JSON configuration is in logging_config.json, valid parameters are:
     - secret_key_path (/var/lib/gwms-factory/server-credentials/jwt_secret.key)
-    - secret_key (VG9rZVNlY3JldEtleQo=)
+    - secret_key (the-key-string)
     - default_file_name (glideinlog.txt)
     - uri_regex_file_name ()#logging/put.php/(\S+)#)
     - token_issuer (gethostname())  // Should be the Factory, assuming is the same host by default
