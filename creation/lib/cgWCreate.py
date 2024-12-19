@@ -113,11 +113,11 @@ def get_factory_log_recipients(entry):
         entry: dict-like object representing the entry configuration
 
     Returns:
-        list: list contaning the URLs of the log servers, empty if none present
+        list: list containing the URLs of the log servers, empty if none present
     """
     entr_attrs = entry.get_child_list("attrs")
     for attr in entr_attrs:
-        if attr["name"] == "LOG_RECIPIENTS_FACTORY":
+        if attr["name"] == "GLIDEIN_LOG_RECIPIENTS_FACTORY":
             return attr["value"].split()
     return []
 
@@ -193,7 +193,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         frontend_recipients = []  # TODO: change when adding support for LOG_RECIPIENTS_CLIENT
         log_recipients = list(set(factory_recipients + frontend_recipients))
         if len(log_recipients) > 0:
-            self.append("environment", '"LOG_RECIPIENTS=' + "'" + " ".join(log_recipients) + "'" + '"')
+            # self.append("environment", '"LOG_RECIPIENTS=' + "'" + " ".join(log_recipients) + "'" + '"')
+            self.add_environment("LOG_RECIPIENTS='" + " ".join(log_recipients) + "'")
         # print("Token dir: " + token_basedir)  # DEBUG
 
         # Add in some common elements before setting up grid type specific attributes
