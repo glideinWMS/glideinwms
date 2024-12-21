@@ -3,9 +3,9 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+## v3.10.9 \[2024-12-23\]
 
-Changes since the last release
+Fixed the Glidein logging and added an sample log server
 
 ### New features / functionalities
 
