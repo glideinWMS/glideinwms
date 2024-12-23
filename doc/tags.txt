@@ -1,5 +1,14 @@
 v3_11_0
 	Introduces the new credentials model.
+	Add new hierarchical credential classes for a number of credential types
+	Add new parameter classes to handle security parameters orthogonally to credentials
+	Refactors credential generators to enhance its capabilities and allow for the generation of other attributes besides credentials
+	Add support for builtin generators such as the RoundRobinGenerator generator
+	Always send SIGQUIT to HTCondor when the Glidein receives INT, TERM, QUIT signals. This speeds up the shutdown (PR
+	Skip glideclient advertising if there are no Glideins to request or actively running on a given group
+	Bug fix: Fixed early truncation in log files configuration and inconsistent documentation (Issue
+	Bug fix: Removed confusing tac broken pipe messages from the Glidein stderr (PR
+	Bug fix: Fixed quotes in glidein command line unpacking and replaced deprecated add_config_line commands (PR
 
 v3_10_8
 	Advertising information about unprivileged user namespaces in glidein classad (PR#416)

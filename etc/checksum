@@ -1,8 +1,8 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_11_0_rc5
+# GLIDEINWMS_VERSION v3_11_0_rc6
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-d3673bda1908bb2ddbc33f5f2d32e4d3  ./CHANGELOG.md
+007021c6fda2d5e38af6a0e30d1f160c  ./CHANGELOG.md
 8e7d1957a094cc33c89f5b2c935666ff  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
@@ -56,7 +56,7 @@ fc648630677156904ef40f5434d25872  ./creation/templates/gwms-renew-proxies.cron
 7d7d2ee057fdbc10ec548b01d85c8229  ./creation/templates/gwms-renew-proxies.service
 11a437db8f082df96ea3858d2912cc29  ./creation/templates/gwms-renew-proxies.timer
 8fbe2ecd0d56fb58d7f7aa4c4b152632  ./creation/templates/proxies.ini
-98dc291aff163d32c5e759b223ebe284  ./creation/web_base/add_config_line.source
+8617a5acbc0324a2c40b8648781cbf47  ./creation/web_base/add_config_line.source
 81745ec60a29b34e5f116f8e06e8b139  ./creation/web_base/advertise_failure.helper
 99e956233214cc2fdabce268f17f8d37  ./creation/web_base/b64uuencode.source
 57b93914779a0986bfc60b537382a718  ./creation/web_base/cat_consts.sh
@@ -71,7 +71,7 @@ fe8e2d340388fd04275fc55c36c619ae  ./creation/web_base/condor_config
 398ed8f77802893eb270251cc81c7443  ./creation/web_base/condor_config.monitor.include
 8dde5e90ef395cea1b345f6fa846c942  ./creation/web_base/condor_config.multi_schedd.include
 2e3cf114d0ad0a6ac98d142e989f49e1  ./creation/web_base/condor_platform_select.sh
-307f6c46b8b22847df3ed4302410adad  ./creation/web_base/condor_startup.sh
+3fd967079254486c0aad30048bc06a25  ./creation/web_base/condor_startup.sh
 adfbcc4d9f68fc8e53ccc12c1ccaa828  ./creation/web_base/condor_vars.lst
 393a01eb81bc9ee8bfd41d743a3190e7  ./creation/web_base/condor_vars.lst.entry
 24b87cb3a90a1db48bb0a901463efadf  ./creation/web_base/create_mapfile.sh
@@ -133,7 +133,7 @@ f6cdfafa3b6d3d89b6ebcfd8f766007e  ./creation/web_base/glidein_cpus_setup.sh
 43cebbb898c9d195889691289d07af56  ./creation/web_base/glidein_memory_setup.sh
 e3ed418a005bb04fda16d9d3ef32bf49  ./creation/web_base/glidein_paths.source
 bb78d0e159849bc37951a17935eefc19  ./creation/web_base/glidein_sitewms_setup.sh
-5099724912a9d1b1baaa55211bcf462d  ./creation/web_base/glidein_startup.sh
+98ec51a561fa6d9f2d976e0208313f0e  ./creation/web_base/glidein_startup.sh
 4e5b56ef1d89aab93e37448c570f5302  ./creation/web_base/gwms-python
 8b9e6282741bd6a53944e30f3161297b  ./creation/web_base/htchirp.tar.gz
 e330a00cbf9966d96edaf33e9f3bf164  ./creation/web_base/htchirp.tar.gz.license
@@ -143,7 +143,7 @@ e330a00cbf9966d96edaf33e9f3bf164  ./creation/web_base/htchirp.tar.gz.license
 dd977a9927595f73a1f4907771b70c45  ./creation/web_base/mjf_setparams.sh
 a07332de53ae9fb905f7cc97e08ef37f  ./creation/web_base/nodes.blacklist
 7e9edf1abe5ca0ca0e1bfdafbbc08673  ./creation/web_base/parse_starterlog.awk
-4382570c9ef9b03147d06bc8f9c7e2cd  ./creation/web_base/script_wrapper.sh
+0046a85d072f6665f6857fe975cdb788  ./creation/web_base/script_wrapper.sh
 b6e8b47e95d9342a41002034336bdee0  ./creation/web_base/setup_network.sh
 214d7ed29a9a5f92453191b9c4089f12  ./creation/web_base/setup_prejob.sh
 44ddb239979e4592e0fc77ec8a21efd7  ./creation/web_base/setup_script.sh
@@ -163,7 +163,7 @@ aef0c6b9f9a31341f65c993c061d6237  ./factory/glideFactoryConfig.py
 db88854abfb6f02a47f93620df557690  ./factory/glideFactoryEntry.py
 6d4b3307f45df37d8972eccfb5cd61a0  ./factory/glideFactoryEntryGroup.py
 2b2007541b8a4a8303c10a82c0a95de8  ./factory/glideFactoryInterface.py
-03daed8d8192e129618694ebba90f38d  ./factory/glideFactoryLib.py
+f014acd007820fcc5686fa2a7d7d0e93  ./factory/glideFactoryLib.py
 40b47a303d43e77b8ac2ff1ca7c987f7  ./factory/glideFactoryLogParser.py
 b463fe49682fa9579e43665e4bb2fda0  ./factory/glideFactoryMonitorAggregator.py
 c99f216bbeaad4084d462d5559501f1b  ./factory/glideFactoryMonitoring.py
@@ -205,7 +205,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 e775956f000040ed12e561ef45c5023e  ./frontend/glideinFrontendConfig.py
 3f4d29b267c91bba6835d40776c7b640  ./frontend/glideinFrontendDowntimeLib.py
 e6a38e2771b037bdf2670f2d32fc0b5b  ./frontend/glideinFrontendElement.py
-8cd93784357f4d1015c50e691403cfab  ./frontend/glideinFrontendInterface.py
+4b0e9bdb555ff56836377fb3f50c90ae  ./frontend/glideinFrontendInterface.py
 9e221abdf39f93f8226ba7bc94dd50e9  ./frontend/glideinFrontendLib.py
 493c902e4e6ae8de032d7bb223c45290  ./frontend/glideinFrontendMonitorAggregator.py
 00bf93ddea651a43143154b8d9f300f8  ./frontend/glideinFrontendMonitoring.py
@@ -248,7 +248,7 @@ e0c681cd88c2b729b1c355de3d5fddb0  ./lib/disk_cache.py
 e7f392bcd0616cf812bfe10b00ab5e2e  ./lib/generators.py
 19864859185d7c752600bae03645ecde  ./lib/glideinWMSVersion.py
 bc9ae2f058e2ad1e8ca410ff9897efb0  ./lib/hashCrypto.py
-5038c7e3141973202b698c8166a74f1a  ./lib/logSupport.py
+7f1be0e2884df34d08de78e5cfe883a0  ./lib/logSupport.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
 8870d3293bbbf47d47fc5554847f9cc1  ./lib/pidSupport.py
 637f64d73772c3a614314255fe0d40cd  ./lib/pubCrypto.py
