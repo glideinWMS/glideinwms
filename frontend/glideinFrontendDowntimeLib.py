@@ -16,33 +16,96 @@ from glideinwms.lib import timeConversion
 # if end_time is None, the downtime does not have a set expiration
 #  (i.e. it runs forever)
 class DowntimeFile:
+    """Manages downtime periods stored in a file.
+
+    Attributes:
+        fname (str): The filename of the downtime file.
+    """
+
     def __init__(self, fname):
+        """
+        Args:
+            fname (str): Path to the downtime file.
+        """
         self.fname = fname
 
-    # if check_time==None, use current time
     def checkDowntime(self, check_time=None):
-        rtn = checkDowntime(self.fname, check_time)
-        return rtn
+        """Check if the specified time falls within a downtime period.
 
-    # add a scheduled downtime
+        Args:
+            check_time (int, optional): The time to check, in UNIX timestamp format.
+                Defaults to the current time.
+
+        Returns:
+            bool: True if the specified time is within a downtime period, False otherwise.
+        """
+        return checkDowntime(self.fname, check_time)
+
     def addPeriod(self, start_time, end_time, create_if_empty=True):
+        """Add a scheduled downtime period to the file.
+
+        Args:
+            start_time (int): Start time of the downtime, in UNIX timestamp format.
+            end_time (int): End time of the downtime, in UNIX timestamp format. Use `None`
+                for an indefinite downtime.
+            create_if_empty (bool): Whether to create the file if it doesn't exist.
+
+        Returns:
+            int: 0 if the downtime was added successfully.
+        """
         return addPeriod(self.fname, start_time, end_time, create_if_empty)
 
-    # start a downtime that we don't know when it will end    # if start_time==None, use current time
     def startDowntime(self, start_time=None, end_time=None, create_if_empty=True):
+        """Start an indefinite downtime.
+
+        Args:
+            start_time (int, optional): Start time of the downtime, in UNIX timestamp format.
+                Defaults to the current time.
+            end_time (int, optional): End time of the downtime, in UNIX timestamp format.
+                Use `None` for indefinite downtime.
+            create_if_empty (bool): Whether to create the file if it doesn't exist.
+
+        Returns:
+            int: 0 if the downtime was started successfully.
+        """
         if start_time is None:
             start_time = int(time.time())
         return self.addPeriod(start_time, end_time, create_if_empty)
 
-    # end a downtime (not a scheduled one)    # if end_time==None, use current time
     def endDowntime(self, end_time=None):
+        """End the current downtime.
+
+        Args:
+            end_time (int, optional): End time of the downtime, in UNIX timestamp format.
+                Defaults to the current time.
+
+        Returns:
+            int: The number of downtimes ended.
+        """
         return endDowntime(self.fname, end_time)
 
     def printDowntime(self, check_time=None):
+        """Print active downtime periods.
+
+        Args:
+            check_time (int, optional): The time to check against, in UNIX timestamp format.
+                Defaults to the current time.
+
+        Returns:
+            None
+        """
         return printDowntime(self.fname, check_time)
 
-    # return a list of downtime periods (utimes) a value of None idicates "forever" for example: [(1215339200,1215439170),(1215439271,None)]
     def read(self, raise_on_error=False):
+        """Read and parse downtime periods from the file.
+
+        Args:
+            raise_on_error (bool): Whether to raise an exception on errors.
+
+        Returns:
+            list: A list of tuples representing downtime periods. Each tuple contains
+                (start_time, end_time), where `None` for end_time represents an indefinite period.
+        """
         return read(self.fname, raise_on_error)
 
 
@@ -55,6 +118,16 @@ class DowntimeFile:
 # a value of None idicates "forever"
 # for example: [(1215339200,1215439170),(1215439271,None)]
 def read(fname, raise_on_error=False):
+    """Read downtime periods from a file.
+
+    Args:
+        fname (str): Path to the downtime file.
+        raise_on_error (bool): Whether to raise an exception on errors.
+
+    Returns:
+        list: A list of tuples representing downtime periods. Each tuple contains
+            (start_time, end_time), where `None` for end_time represents an indefinite period.
+    """
     try:
         with open(fname) as fd:
             fcntl.flock(fd, fcntl.LOCK_SH | fcntl.LOCK_NB)
@@ -111,6 +184,16 @@ def read(fname, raise_on_error=False):
 
 # if check_time==None, use current time
 def checkDowntime(fname, check_time=None):
+     """Check if a time falls within any downtime periods.
+
+    Args:
+        fname (str): Path to the downtime file.
+        check_time (int, optional): The time to check, in UNIX timestamp format.
+            Defaults to the current time.
+
+    Returns:
+        bool: True if the time is within a downtime period, False otherwise.
+    """
     if check_time is None:
         check_time = int(time.time())
 
@@ -131,6 +214,17 @@ def checkDowntime(fname, check_time=None):
 
 # just insert a new line with start time and end time
 def addPeriod(fname, start_time, end_time, create_if_empty=True):
+    """Add a new downtime period to the file.
+
+    Args:
+        fname (str): Path to the downtime file.
+        start_time (int): Start time of the downtime, in UNIX timestamp format.
+        end_time (int): End time of the downtime, in UNIX timestamp format. Use `None` for indefinite.
+        create_if_empty (bool): Whether to create the file if it doesn't exist.
+
+    Returns:
+        int: 0 if the downtime period was added successfully.
+    """
     exists = os.path.isfile(fname)
     if (not exists) and (not create_if_empty):
         raise OSError("[Errno 2] No such file or directory: '%s'" % fname)
@@ -155,6 +249,16 @@ def addPeriod(fname, start_time, end_time, create_if_empty=True):
 # end a downtime (not a scheduled one)
 # if end_time==None, use current time
 def endDowntime(fname, end_time=None):
+     """End the current downtime by updating the file.
+
+    Args:
+        fname (str): Path to the downtime file.
+        end_time (int, optional): End time of the downtime, in UNIX timestamp format.
+            Defaults to the current time.
+
+    Returns:
+        int: Number of downtimes ended.
+    """
     if end_time is None:
         end_time = int(time.time())
 
@@ -229,6 +333,16 @@ def endDowntime(fname, end_time=None):
 
 
 def printDowntime(fname, check_time=None):
+    """Print downtime periods currently in effect.
+
+    Args:
+        fname (str): Path to the downtime file.
+        check_time (int, optional): The time to check against, in UNIX timestamp format.
+            Defaults to the current time.
+
+    Returns:
+        None
+    """
     if check_time is None:
         check_time = int(time.time())
 

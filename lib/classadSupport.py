@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This module describes base classes for classads and advertisers
-"""
+"""This module describes base classes for classads and advertisers."""
 
 import os
 import time
@@ -18,12 +17,12 @@ class Classad:
     """Base class describing a classad."""
 
     def __init__(self, adType, advertiseCmd, invalidateCmd):
-        """Constructor
+        """Constructor.
 
         Args:
-            adType (str): Type of the classad
-            advertiseCmd (str): Condor update-command to advertise this classad
-            invalidateCmd (str): Condor update-command to invalidate this classad
+            adType (str): Type of the classad.
+            advertiseCmd (str): Condor update-command to advertise this classad.
+            invalidateCmd (str): Condor update-command to invalidate this classad.
         """
         self.adType = adType
         self.adAdvertiseCmd = advertiseCmd
@@ -41,11 +40,11 @@ class Classad:
         self.adParams["GlideinWMSVersion"] = "UNKNOWN"
 
     def update(self, params_dict, prefix=""):
-        """Update or Add ClassAd attributes
+        """Update or add ClassAd attributes.
 
         Args:
-            params_dict: new attributes
-            prefix: prefix used for the attribute names (Default: "")
+            params_dict (dict): New attributes.
+            prefix (str): Prefix used for the attribute names. Defaults to "".
         """
         for k, v in list(params_dict.items()):
             if isinstance(v, int):
@@ -56,14 +55,14 @@ class Classad:
                 self.adParams[f"{prefix}{k}"] = "%s" % escaped_v
 
     def writeToFile(self, filename, append=True):
-        """Write a ClassAd to file, adding a blank line if in append mode to separate the ClassAd
+        """Write a ClassAd to a file, adding a blank line if in append mode to separate the ClassAd.
 
         There can be no empty line at the beginning of the file:
         https://htcondor-wiki.cs.wisc.edu/index.cgi/tktview?tn=5147
 
         Args:
-            filename: file to write to
-            append: write mode if False, append if True (Default)
+            filename (str): File to write to.
+            append (bool): Write mode if False, append if True. Defaults to True.
         """
         o_flag = "a"
         if not append:
@@ -71,8 +70,8 @@ class Classad:
 
         try:
             f = open(filename, o_flag)
-        except Exception:
-            raise
+        except Exception as e:
+            raise e
 
         with f:
             if append and f.tell() > 0:
@@ -83,12 +82,15 @@ class Classad:
             f.write("%s" % self)
 
     def __str__(self):
-        """String representation of the classad."""
+        """String representation of the classad.
 
+        Returns:
+            str: The string representation of the classad.
+        """
         ad = ""
 
         for key, value in self.adParams.items():
-            if isinstance(value, str) or isinstance(value, str):
+            if isinstance(value, str):
                 # Format according to Condor String Literal definition
                 # http://research.cs.wisc.edu/htcondor/manual/v7.8/4_1HTCondor_s_ClassAd.html#SECTION005121
                 classad_value = value.replace('"', r"\"")
