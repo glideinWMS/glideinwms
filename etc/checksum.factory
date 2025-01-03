@@ -1,8 +1,8 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_8
+# GLIDEINWMS_VERSION v3_11_0_rc7
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-eead2b21294e7c173ae2cbe2bd7eae7a  ./CHANGELOG.md
+d799bdb76e19d74dd62e6d7820c29032  ./CHANGELOG.md
 8e7d1957a094cc33c89f5b2c935666ff  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
@@ -26,8 +26,8 @@ a3eec79ba2d348cbb5cecbd4c6bc39ea  ./creation/lib/cWExpand.py
 aae4bc48002f7f209870348d4222c8ec  ./creation/lib/cWParamDict.py
 f137c49c90632d4fc79012a254311b27  ./creation/lib/cWParams.py
 1bd4ad5d88e00cb92feda9a6f849e64b  ./creation/lib/cgWConsts.py
-5532e292340b72f8705586cd1838f14b  ./creation/lib/cgWCreate.py
-2ca1ce6e21d9c41bebdec477392316d3  ./creation/lib/cgWDictFile.py
+ce675145c57b41e92175dadbc4dde67b  ./creation/lib/cgWCreate.py
+c8254c56cd684c86c24161af3b83e26e  ./creation/lib/cgWDictFile.py
 a6ce67e7b1619c03d823ef2a207383ca  ./creation/lib/cgWParamDict.py
 64614429675a460e40e1e8f26eecbdfa  ./creation/lib/cgWParams.py
 f3e8c0c2d0bf76c4f1d09030393ee1fc  ./creation/lib/check_python3_expr.py
@@ -45,7 +45,7 @@ fc648630677156904ef40f5434d25872  ./creation/templates/gwms-renew-proxies.cron
 7d7d2ee057fdbc10ec548b01d85c8229  ./creation/templates/gwms-renew-proxies.service
 11a437db8f082df96ea3858d2912cc29  ./creation/templates/gwms-renew-proxies.timer
 8fbe2ecd0d56fb58d7f7aa4c4b152632  ./creation/templates/proxies.ini
-98dc291aff163d32c5e759b223ebe284  ./creation/web_base/add_config_line.source
+8617a5acbc0324a2c40b8648781cbf47  ./creation/web_base/add_config_line.source
 81745ec60a29b34e5f116f8e06e8b139  ./creation/web_base/advertise_failure.helper
 99e956233214cc2fdabce268f17f8d37  ./creation/web_base/b64uuencode.source
 57b93914779a0986bfc60b537382a718  ./creation/web_base/cat_consts.sh
@@ -60,7 +60,7 @@ fe8e2d340388fd04275fc55c36c619ae  ./creation/web_base/condor_config
 398ed8f77802893eb270251cc81c7443  ./creation/web_base/condor_config.monitor.include
 8dde5e90ef395cea1b345f6fa846c942  ./creation/web_base/condor_config.multi_schedd.include
 2e3cf114d0ad0a6ac98d142e989f49e1  ./creation/web_base/condor_platform_select.sh
-307f6c46b8b22847df3ed4302410adad  ./creation/web_base/condor_startup.sh
+168b3cd243a17feebf8cd6beb875ee7a  ./creation/web_base/condor_startup.sh
 adfbcc4d9f68fc8e53ccc12c1ccaa828  ./creation/web_base/condor_vars.lst
 393a01eb81bc9ee8bfd41d743a3190e7  ./creation/web_base/condor_vars.lst.entry
 24b87cb3a90a1db48bb0a901463efadf  ./creation/web_base/create_mapfile.sh
@@ -102,22 +102,21 @@ f6cdfafa3b6d3d89b6ebcfd8f766007e  ./creation/web_base/glidein_cpus_setup.sh
 43cebbb898c9d195889691289d07af56  ./creation/web_base/glidein_memory_setup.sh
 e3ed418a005bb04fda16d9d3ef32bf49  ./creation/web_base/glidein_paths.source
 bb78d0e159849bc37951a17935eefc19  ./creation/web_base/glidein_sitewms_setup.sh
-5099724912a9d1b1baaa55211bcf462d  ./creation/web_base/glidein_startup.sh
+5f30fe6c265efab18a8b839f48a9e8e4  ./creation/web_base/glidein_startup.sh
 4e5b56ef1d89aab93e37448c570f5302  ./creation/web_base/gwms-python
 8b9e6282741bd6a53944e30f3161297b  ./creation/web_base/htchirp.tar.gz
 e330a00cbf9966d96edaf33e9f3bf164  ./creation/web_base/htchirp.tar.gz.license
 911f7f57fe4f54e2bc052462f07d0227  ./creation/web_base/java_setup.sh
 8b1ef4adaed868c38e434cc44782bc23  ./creation/web_base/local_start.sh
-1adfc9fd8ca464e5fc204e5ae253b376  ./creation/web_base/logging_utils.source
+99c9724bd44b5be35746f0840a68a22a  ./creation/web_base/logging_utils.source
 dd977a9927595f73a1f4907771b70c45  ./creation/web_base/mjf_setparams.sh
 a07332de53ae9fb905f7cc97e08ef37f  ./creation/web_base/nodes.blacklist
 7e9edf1abe5ca0ca0e1bfdafbbc08673  ./creation/web_base/parse_starterlog.awk
-4382570c9ef9b03147d06bc8f9c7e2cd  ./creation/web_base/script_wrapper.sh
+0046a85d072f6665f6857fe975cdb788  ./creation/web_base/script_wrapper.sh
 b6e8b47e95d9342a41002034336bdee0  ./creation/web_base/setup_network.sh
 214d7ed29a9a5f92453191b9c4089f12  ./creation/web_base/setup_prejob.sh
 44ddb239979e4592e0fc77ec8a21efd7  ./creation/web_base/setup_script.sh
-0062f8d64ca14e2a5fabee257fe58193  ./creation/web_base/setup_x509.sh
-1f258397fd004e5abb690d9ce3df16a3  ./creation/web_base/singularity_lib-added_apptainer_cache_messages.sh
+da0fe703adbdd37bf358f15a1276556d  ./creation/web_base/setup_x509.sh
 5e5dcd13e262895278f63e4866fb8210  ./creation/web_base/singularity_lib.sh
 f459c9d531eef43969c923267f4b4441  ./creation/web_base/singularity_setup.sh
 09cb7472f92efcac002ee7166f9d4ae4  ./creation/web_base/singularity_wrapper.sh
@@ -126,14 +125,14 @@ ef537648a0a96e9fceeffd94f09782e7  ./creation/web_base/update_proxy.py
 84c7f139a20799882346249dca183000  ./creation/web_base/validate_node.sh
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 fecfec51f675180f2260f57355fc5dca  ./factory/checkFactory.py
-0e1c92c0838b9ee914be1512d96d756b  ./factory/glideFactory.py
-3bb0c93a99d5d72fb5d7464a0f87b4cc  ./factory/glideFactoryConfig.py
-e6b3fac5cba7266707f5f71bca16b078  ./factory/glideFactoryCredentials.py
+2d5d281b670a0ae0b0a0a2a099725fe6  ./factory/glideFactory.py
+aef0c6b9f9a31341f65c993c061d6237  ./factory/glideFactoryConfig.py
+5af9e133f74b97a1fc435d7ee579ebea  ./factory/glideFactoryCredentials.py
 684e877f9febd29411218a4824da6818  ./factory/glideFactoryDowntimeLib.py
-bbe23bbe67645351f3e64195b2bdb98f  ./factory/glideFactoryEntry.py
+db88854abfb6f02a47f93620df557690  ./factory/glideFactoryEntry.py
 6d4b3307f45df37d8972eccfb5cd61a0  ./factory/glideFactoryEntryGroup.py
-d960ba622e7c417bc2417bc4eb6c67c0  ./factory/glideFactoryInterface.py
-18420c559eebc1ddb8cc18715ca76f08  ./factory/glideFactoryLib.py
+2b2007541b8a4a8303c10a82c0a95de8  ./factory/glideFactoryInterface.py
+f014acd007820fcc5686fa2a7d7d0e93  ./factory/glideFactoryLib.py
 40b47a303d43e77b8ac2ff1ca7c987f7  ./factory/glideFactoryLogParser.py
 b463fe49682fa9579e43665e4bb2fda0  ./factory/glideFactoryMonitorAggregator.py
 c99f216bbeaad4084d462d5559501f1b  ./factory/glideFactoryMonitoring.py
@@ -181,13 +180,16 @@ a983e3312e16944d254dfcc16c237ee5  ./lib/condorManager.py
 a47138c4f995d39943f0d9e8eb7d4f81  ./lib/condorMonitor.py
 e6da27f897e8bfd59d873fa3dbdc27bb  ./lib/condorSecurity.py
 dcd1c271a07f6bbd8d7f2de29f954547  ./lib/config_util.py
-ba9d95ed03bd7c3a2531a7337cc8198d  ./lib/defaults.py
+240fbb27862a43a41604e3cafa69ce67  ./lib/credentials.py
+a2b615c18a2a4d04dd63e82f11c1d695  ./lib/credentialsLegacy.py
+57a99728fdc7446216cfd2588cea9406  ./lib/defaults.py
 e0c681cd88c2b729b1c355de3d5fddb0  ./lib/disk_cache.py
 3d99f638220e31e204b1df375320b9cb  ./lib/exprParser.py
 79081abbf5ad518e7434056048c2a3fc  ./lib/fork.py
+e7f392bcd0616cf812bfe10b00ab5e2e  ./lib/generators.py
 19864859185d7c752600bae03645ecde  ./lib/glideinWMSVersion.py
 bc9ae2f058e2ad1e8ca410ff9897efb0  ./lib/hashCrypto.py
-753d95995b823731a040b28d0e3d484a  ./lib/logSupport.py
+7f1be0e2884df34d08de78e5cfe883a0  ./lib/logSupport.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
 8870d3293bbbf47d47fc5554847f9cc1  ./lib/pidSupport.py
 637f64d73772c3a614314255fe0d40cd  ./lib/pubCrypto.py
@@ -199,10 +201,17 @@ d5775b2770e9ff788d7adc5c87cfcc06  ./lib/symCrypto.py
 b48743c10b47158a13d9a57b2b2814d6  ./lib/timeConversion.py
 790d78c87dec1eba0502f2da67a31a6e  ./lib/token_util.py
 8e22db523d42671f93d5852c7757401d  ./lib/unparser.py
-aa63b8d07809f43da98ea6b81af3f730  ./lib/util.py
+4d397b11cc1c41186a7292577233e479  ./lib/util.py
 a08fd26eb637192453ce84d4d045cf70  ./lib/x509Support.py
 97207b40b4ea7103444e63cfe843da4c  ./lib/xmlFormat.py
 cf788a094015c51afd8d9615a2f75359  ./lib/xmlParse.py
+3b4687dbec15bf8855dbd410a584937e  ./logserver/README.md
+5949c588fad1bed9dd8b89f61c483c0b  ./logserver/composer.json
+d64fb84480620115f461ec9aac0ba6be  ./logserver/getjwt.py
+4431fb42281b93c5aa09e760d0910d0b  ./logserver/jwt.php
+24341cffcec0fe15225324f38f707b27  ./logserver/logging_config.json
+eec3476ee8c91ffa71445e4cb860e61f  ./logserver/web-area/put.php
+32614c10594e81450cd864fd5db01a9e  ./plugins/RoundRobinGenerator.py
 ae4540ac3e790a02867cfa22291f48d6  ./plugins/scitokens_callout.py
 762e30b1c873f9e44fc786f7e57a9d93  ./pyproject.toml
 747b7fe6d83ec506f58292fa3b39f4c7  ./requirements.txt
