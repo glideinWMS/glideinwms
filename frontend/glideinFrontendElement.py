@@ -21,8 +21,6 @@ import tempfile
 import time
 import traceback
 
-from importlib import import_module
-
 from glideinwms.frontend import (
     glideinFrontendConfig,
     glideinFrontendDowntimeLib,
@@ -35,17 +33,11 @@ from glideinwms.frontend import (
 
 # from glideinwms.lib.util import file_tmp2final
 from glideinwms.lib import cleanupSupport, condorMonitor, logSupport, pubCrypto, servicePerformance, token_util
+from glideinwms.lib.credentials import create_credential, CredentialPurpose, CredentialType
 from glideinwms.lib.disk_cache import DiskCache
 from glideinwms.lib.fork import fork_in_bg, ForkManager, wait_for_pids
 from glideinwms.lib.pidSupport import register_sighandler
 from glideinwms.lib.util import safe_boolcomp
-
-# this should not be needed in RPM install: sys.path.append(os.path.join(sys.path[0], "../.."))
-
-# credential generator plugins support
-# TODO: This path should come from the frontend configuration, but it's not available yet.
-sys.path.append("/etc/gwms-frontend/plugin.d")
-plugins = {}
 
 ###########################################################
 # Support class that mimics the 2.7 collections.Counter class
@@ -163,8 +155,8 @@ class glideinFrontendElement:
         self.removal_requests_tracking = self.elementDescript.element_data["RemovalRequestsTracking"]
         self.removal_margin = int(self.elementDescript.element_data["RemovalMargin"])
 
-        # Default behavior: Use factory proxies unless configure overrides it
-        self.x509_proxy_plugin = None
+        # Default behavior: Use first credential that matches auth_method.
+        self.credentials_plugin: glideinFrontendPlugins.CredentialsPlugin = None
 
         # If not None, this is a request for removal of glideins only (i.e. do not ask for more)
         self.request_removal_wtype = None
@@ -217,8 +209,8 @@ class glideinFrontendElement:
                     % (self.elementDescript.merged_data["ProxySelectionPlugin"], list(proxy_plugins.keys()))
                 )
                 return 1
-            self.x509_proxy_plugin = proxy_plugins[self.elementDescript.merged_data["ProxySelectionPlugin"]](
-                group_dir, glideinFrontendPlugins.createCredentialList(self.elementDescript)
+            self.credentials_plugin = proxy_plugins[self.elementDescript.merged_data["ProxySelectionPlugin"]](
+                group_dir, glideinFrontendPlugins.createRequestBundle(self.elementDescript.merged_data)
             )
         self.idtoken_lifetime = int(self.elementDescript.merged_data.get("IDTokenLifetime", 24))
         self.idtoken_keyname = self.elementDescript.merged_data.get("IDTokenKeyname", "FRONTEND")
@@ -535,9 +527,9 @@ class glideinFrontendElement:
 
         # Update x509 user map and give proxy plugin a chance
         # to update based on condor stats
-        if self.x509_proxy_plugin:
+        if self.credentials_plugin:
             logSupport.log.info("Updating usermap")
-            self.x509_proxy_plugin.update_usermap(
+            self.credentials_plugin.update_usermap(
                 self.condorq_dict, condorq_dict_types, self.status_dict, self.status_dict_types
             )
 
@@ -552,7 +544,7 @@ class glideinFrontendElement:
             self.signatureDescript.signature_type,
             self.signatureDescript.frontend_descript_signature,
             self.signatureDescript.group_descript_signature,
-            x509_proxies_plugin=self.x509_proxy_plugin,
+            credentials_plugin=self.credentials_plugin,
             ha_mode=self.ha_mode,
         )
         descript_obj.add_monitoring_url(self.monitoring_web_url)
@@ -566,7 +558,7 @@ class glideinFrontendElement:
         self.condorq_match_list = [f[0] for f in self.elementDescript.merged_data["JobMatchAttrs"]]
 
         servicePerformance.startPerfMetricEvent(self.group_name, "matchmaking")
-        self.do_match()
+        self.do_match()  # Populates condorq_dict_types["Idle"]["total"]
         servicePerformance.endPerfMetricEvent(self.group_name, "matchmaking")
 
         logSupport.log.info(
@@ -776,10 +768,10 @@ class glideinFrontendElement:
                 glidein_monitors["Glideins%s" % t] = count_status[t]
 
             """
-            for cred in self.x509_proxy_plugin.cred_list:
-                glidein_monitors_per_cred[cred.getId()] = {}
+            for cred in self.credentials_plugin.cred_list:
+                glidein_monitors_per_cred[cred.id] = {}
                 for t in count_status:
-                    glidein_monitors_per_cred[cred.getId()]['Glideins%s' % t] = count_status_per_cred[cred.getId()][t]
+                    glidein_monitors_per_cred[cred.id]['Glideins%s' % t] = count_status_per_cred[cred.id][t]
             """
 
             # Number of credentials that have running and glideins.
@@ -789,35 +781,36 @@ class glideinFrontendElement:
             # Credential specific stats are not presented anywhere except the
             # classad. Monitoring info in frontend and factory shows
             # aggregated info considering all the credentials
+            submit_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.REQUEST)
             creds_with_running = 0
 
-            for cred in self.x509_proxy_plugin.cred_list:
-                glidein_monitors_per_cred[cred.getId()] = {}
+            for cred in submit_creds:
+                glidein_monitors_per_cred[cred.id] = {}
                 for t in count_status:
-                    glidein_monitors_per_cred[cred.getId()]["Glideins%s" % t] = count_status_per_cred[cred.getId()][t]
-                glidein_monitors_per_cred[cred.getId()]["ScaledRunning"] = 0
+                    glidein_monitors_per_cred[cred.id]["Glideins%s" % t] = count_status_per_cred[cred.id][t]
+                glidein_monitors_per_cred[cred.id]["ScaledRunning"] = 0
                 # This credential has running glideins.
-                if glidein_monitors_per_cred[cred.getId()]["GlideinsRunning"]:
+                if glidein_monitors_per_cred[cred.id]["GlideinsRunning"]:
                     creds_with_running += 1
 
             if creds_with_running:
                 # Counter to handle rounding errors
                 scaled = 0
                 tr = glidein_monitors["Running"]
-                for cred in self.x509_proxy_plugin.cred_list:
-                    if glidein_monitors_per_cred[cred.getId()]["GlideinsRunning"]:
+                for cred in submit_creds:
+                    if glidein_monitors_per_cred[cred.id]["GlideinsRunning"]:
                         # This cred has running. Scale them down
 
                         if (creds_with_running - scaled) == 1:
                             # This is the last one. Assign remaining running
 
-                            glidein_monitors_per_cred[cred.getId()]["ScaledRunning"] = (
+                            glidein_monitors_per_cred[cred.id]["ScaledRunning"] = (
                                 tr - (tr // creds_with_running) * scaled
                             )
                             scaled += 1
                             break
                         else:
-                            glidein_monitors_per_cred[cred.getId()]["ScaledRunning"] = tr // creds_with_running
+                            glidein_monitors_per_cred[cred.id]["ScaledRunning"] = tr // creds_with_running
                             scaled += 1
 
             key_obj = None
@@ -836,44 +829,69 @@ class glideinFrontendElement:
             # Only advertise if there is a valid key for encryption
             if key_obj is not None:
                 # determine whether to encrypt a condor token or scitoken into the classad
-                ctkn = ""
-                gp_encrypt = {}
+                token_str = ""
                 # see if site supports condor token
-                ctkn = self.refresh_entry_token(glidein_el)
-                expired = token_util.token_str_expired(ctkn)
+                token_str = self.refresh_entry_token(glidein_el)
+                expired = token_util.token_str_expired(token_str)
                 entry_token_name = "%s.idtoken" % glidein_el["attrs"].get("EntryName", "condor")
-                if ctkn and not expired:
+                if token_str and not expired:
                     # mark token for encrypted advertisement
-                    logSupport.log.debug("found condor token: %s" % entry_token_name)
-                    gp_encrypt[entry_token_name] = ctkn
+                    logSupport.log.debug("found condor token: %s", entry_token_name)
+                    ctkn = create_credential(
+                        token_str,
+                        cred_type=CredentialType.IDTOKEN,
+                        purpose=CredentialPurpose.CALLBACK,
+                        trust_domain=trust_domain,
+                    )
+                    self.credentials_plugin.security_bundle.add_credential(ctkn)
                 else:
                     if expired:
-                        logSupport.log.debug("found EXPIRED condor token: %s" % entry_token_name)
+                        logSupport.log.debug("found EXPIRED condor token: %s", entry_token_name)
                     else:
-                        logSupport.log.debug("could NOT find condor token: %s" % entry_token_name)
+                        logSupport.log.debug("could NOT find condor token: %s", entry_token_name)
 
-                # now try to generate a credential using a generator plugin
-                generator_name, stkn = self.generate_credential(
-                    self.elementDescript, glidein_el, self.group_name, trust_domain
+                # Generate credentials and parameters
+                self.credentials_plugin.generate_credentials(
+                    elementDescript=self.elementDescript,
+                    glidein_el=glidein_el,
+                    group_name=self.group_name,
+                    trust_domain=trust_domain,
+                )
+                self.credentials_plugin.generate_parameters(
+                    elementDescript=self.elementDescript,
+                    glidein_el=glidein_el,
+                    group_name=self.group_name,
+                    trust_domain=trust_domain,
                 )
 
-                # look for a local scitoken if no credential was generated
-                if not stkn:
-                    stkn = self.get_scitoken(self.elementDescript, trust_domain)
+                # TODO: Add a `context` attribute to the Credential class.
+                # TODO: Add a `context` argument to the Credential constructor, load, and renew methods.
+                # TODO: Add a `context` attribute to the credential elements in the frontend configuration.
+                # TODO: Pass `context` to Generator.generate on CredentialGenerator.
+                # NOTE: This allows contextual credential generation, and will make it possible to define round-robin from the config file.
+                # now try to generate a credential using a generator plugin
+                # generator_name, stkn = credentials.generate_credential(
+                #     self.elementDescript, glidein_el, self.group_name, trust_domain
+                # )
 
-                if stkn:
-                    if generator_name:
-                        for cred_el in advertizer.descript_obj.x509_proxies_plugin.cred_list:
-                            if cred_el.filename == generator_name:
-                                cred_el.generated_data = stkn
-                                break
-                    if token_util.token_str_expired(stkn):
-                        logSupport.log.warning("SciToken is expired, not forwarding.")
-                    else:
-                        gp_encrypt["frontend_scitoken"] = stkn
+                # TODO: Remove this code once we are sure the new credentials work properly
+                #
+                # look for a local scitoken if no credential was generated
+                # if not stkn:
+                #     stkn = credentials.get_scitoken(self.elementDescript, trust_domain)
+
+                # if stkn:
+                #     if generator_name:
+                #         for cred_el in advertizer.descript_obj.credentials_plugin.cred_list:
+                #             if cred_el.filename == generator_name:
+                #                 cred_el.generated_data = stkn
+                #                 break
+                #     if token_util.token_str_expired(stkn):
+                #         logSupport.log.warning("SciToken is expired, not forwarding.")
+                #     else:
+                #         gp_encrypt["frontend_scitoken"] = stkn
 
                 # now advertise
-                logSupport.log.debug("advertising tokens %s" % gp_encrypt.keys())
                 advertizer.add(
                     factory_pool_node,
                     request_name,
@@ -887,7 +905,7 @@ class glideinFrontendElement:
                     remove_excess_str=remove_excess_str,
                     remove_excess_margin=remove_excess_margin,
                     key_obj=key_obj,
-                    glidein_params_to_encrypt=gp_encrypt,
+                    glidein_params_to_encrypt={},
                     security_name=self.security_name,
                     trust_domain=trust_domain,
                     auth_method=auth_method,
@@ -950,109 +968,6 @@ class glideinFrontendElement:
         servicePerformance.endPerfMetricEvent(self.group_name, "advertize_classads")
 
         return
-
-    def get_scitoken(self, elementDescript, trust_domain):
-        """Look for a local SciToken specified for the trust domain.
-
-        Args:
-            elementDescript (ElementMergedDescript): element descript
-            trust_domain (string): trust domain for the element
-
-        Returns:
-            string, None: SciToken or None if not found
-        """
-
-        scitoken_fullpath = ""
-        cred_type_data = elementDescript.element_data.get("ProxyTypes")
-        trust_domain_data = elementDescript.element_data.get("ProxyTrustDomains")
-        if not cred_type_data:
-            cred_type_data = elementDescript.frontend_data.get("ProxyTypes")
-        if not trust_domain_data:
-            trust_domain_data = elementDescript.frontend_data.get("ProxyTrustDomains")
-        if trust_domain_data and cred_type_data:
-            cred_type_map = eval(cred_type_data)
-            trust_domain_map = eval(trust_domain_data)
-            for cfname in cred_type_map:
-                if cred_type_map[cfname] == "scitoken":
-                    if trust_domain_map[cfname] == trust_domain:
-                        scitoken_fullpath = cfname
-
-        if os.path.exists(scitoken_fullpath):
-            try:
-                logSupport.log.debug(f"found scitoken {scitoken_fullpath}")
-                stkn = ""
-                with open(scitoken_fullpath) as fbuf:
-                    for line in fbuf:
-                        stkn += line
-                stkn = stkn.strip()
-                return stkn
-            except Exception as err:
-                logSupport.log.exception(f"failed to read scitoken: {err}")
-
-        return None
-
-    def generate_credential(self, elementDescript, glidein_el, group_name, trust_domain):
-        """Generates a credential with a credential generator plugin provided for the trust domain.
-
-        Args:
-            elementDescript (ElementMergedDescript): element descript
-            glidein_el (dict): glidein element
-            group_name (string): group name
-            trust_domain (string): trust domain for the element
-
-        Returns:
-            string, None: Credential or None if not generated
-        """
-
-        ### The credential generator plugin should define the following function:
-        # def get_credential(log:logger, group:str, entry:dict{name:str, gatekeeper:str}, trust_domain:str):
-        # Generates a credential given the parameter
-
-        # Args:
-        # log:logger
-        # group:str,
-        # entry:dict{
-        #     name:str,
-        #     gatekeeper:str},
-        # trust_domain:str,
-        # Return
-        # tuple
-        #     token:str
-        #     lifetime:int seconds of remaining lifetime
-        # Exception
-        # KeyError - miss some information to generate
-        # ValueError - could not generate the token
-
-        generator = None
-        generators = elementDescript.element_data.get("CredentialGenerators")
-        trust_domain_data = elementDescript.element_data.get("ProxyTrustDomains")
-        if not generators:
-            generators = elementDescript.frontend_data.get("CredentialGenerators")
-        if not trust_domain_data:
-            trust_domain_data = elementDescript.frontend_data.get("ProxyTrustDomains")
-        if trust_domain_data and generators:
-            generators_map = eval(generators)
-            trust_domain_map = eval(trust_domain_data)
-            for cfname in generators_map:
-                if trust_domain_map[cfname] == trust_domain:
-                    generator = generators_map[cfname]
-                    logSupport.log.debug(f"found credential generator plugin {generator}")
-                    try:
-                        if generator not in plugins:
-                            plugins[generator] = import_module(generator)
-                        entry = {
-                            "name": glidein_el["attrs"].get("EntryName"),
-                            "gatekeeper": glidein_el["attrs"].get("GLIDEIN_Gatekeeper"),
-                            "factory": glidein_el["attrs"].get("AuthenticatedIdentity"),
-                        }
-                        stkn, _ = plugins[generator].get_credential(logSupport, group_name, entry, trust_domain)
-                        return cfname, stkn
-                    except ModuleNotFoundError:
-                        logSupport.log.warning(f"Failed to load credential generator plugin {generator}")
-                    except Exception as e:  # catch any exception from the plugin to prevent the frontend from crashing
-                        logSupport.log.warning(f"Failed to generate credential: {e}.")
-
-        return None, None
 
     def refresh_entry_token(self, glidein_el):
         """Create or update a condor token for an entry point
@@ -2025,9 +1940,9 @@ class glideinFrontendElement:
         condorq_dict = {}
         try:
             condorq_format_list = self.elementDescript.merged_data["JobMatchAttrs"]
-            if self.x509_proxy_plugin:
+            if self.credentials_plugin:
                 condorq_format_list = list(condorq_format_list) + list(
-                    self.x509_proxy_plugin.get_required_job_attributes()
+                    self.credentials_plugin.get_required_job_attributes()
                 )
 
             ### Add in elements to help in determining if jobs have voms creds
@@ -2076,9 +1991,9 @@ class glideinFrontendElement:
                 ("TotalSlotCpus", "i"),
             ]
 
-            if self.x509_proxy_plugin:
+            if self.credentials_plugin:
                 status_format_list = list(status_format_list) + list(
-                    self.x509_proxy_plugin.get_required_classad_attributes()
+                    self.credentials_plugin.get_required_classad_attributes()
                 )
 
             # Consider multicore slots with free cpus/memory only
@@ -2303,6 +2218,8 @@ class glideinFrontendElement:
         """
         out = ()
 
+        submit_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.REQUEST)
+
         count_status_multi = {}
         # Count distribution per credentials
         count_status_multi_per_cred = {}
@@ -2311,8 +2228,8 @@ class glideinFrontendElement:
 
             count_status_multi[request_name] = {}
             count_status_multi_per_cred[request_name] = {}
-            for cred in self.x509_proxy_plugin.cred_list:
-                count_status_multi_per_cred[request_name][cred.getId()] = {}
+            for cred in submit_creds:
+                count_status_multi_per_cred[request_name][cred.id] = {}
 
             # It is cheaper to get Idle and Running from request-only
             # classads then filter out requests from Idle and Running
@@ -2331,8 +2248,7 @@ class glideinFrontendElement:
                 "RunningCores": glideinFrontendLib.getRunningCoresCondorStatus(total_req_dict),
             }
 
-            for st in req_dict_types:
-                req_dict = req_dict_types[st]
+            for st, req_dict in req_dict_types.items():
                 if st in ("TotalCores", "IdleCores", "RunningCores"):
                     count_status_multi[request_name][st] = glideinFrontendLib.countCoresCondorStatus(req_dict, st)
                 elif st == "Running":
@@ -2343,23 +2259,22 @@ class glideinFrontendElement:
                 else:
                     count_status_multi[request_name][st] = glideinFrontendLib.countCondorStatus(req_dict)
 
-                for cred in self.x509_proxy_plugin.cred_list:
-                    cred_id = cred.getId()
-                    cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict, cred_id)
+                for cred in submit_creds:
+                    cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict, cred.id)
 
                     if st in ("TotalCores", "IdleCores", "RunningCores"):
-                        count_status_multi_per_cred[request_name][cred_id][st] = (
+                        count_status_multi_per_cred[request_name][cred.id][st] = (
                             glideinFrontendLib.countCoresCondorStatus(cred_dict, st)
                         )
                     elif st == "Running":
                         # Running counts are computed differently because of
                         # the dict composition. Dict also has p-slots
                         # corresponding to the dynamic slots
-                        count_status_multi_per_cred[request_name][cred_id][st] = (
+                        count_status_multi_per_cred[request_name][cred.id][st] = (
                             glideinFrontendLib.countRunningCondorStatus(cred_dict)
                         )
                     else:
-                        count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCondorStatus(
+                        count_status_multi_per_cred[request_name][cred.id][st] = glideinFrontendLib.countCondorStatus(
                             cred_dict
                         )
 
