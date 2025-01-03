@@ -9,11 +9,12 @@ This script serves as the entry point for managing the glideinFrontend processes
 failure monitoring, and performance aggregation.
 
 Usage:
-    python glidein_frontend_main.py <work_dir>
+    python glideinFrontend.py <work_dir>
 
 Args:
-    work_dir (str): The working directory for the frontend.
+    work_dir (str): The working directory for the Frontend.
 """
+
 
 import fcntl
 import os
@@ -93,6 +94,8 @@ class FailureCounter:
             int: The number of recorded failures.
         """
         return len(self.get_failures())
+
+    # INTERNAL
 
     def clean_old(self):
         """Remove outdated failure records that exceed the retention window."""
@@ -479,7 +482,10 @@ def spawn(
 
 ############################################################
 def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
-     """Determine if the frontend should enter hibernation.
+    """Determine if the frontend should enter hibernation.
+
+    Check if the frontend is running in HA mode. If run in master mode never
+    hibernate. If run in slave mode, hibernate if master is active.
 
     Args:
         frontendDescript (FrontendDescript): The frontend descriptor object.
@@ -489,7 +495,7 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
         groups (list): List of groups being managed.
 
     Returns:
-        bool: True if the frontend should hibernate, False otherwise.
+        bool: True if this Frontend should hibernate, False otherwise.
     """
 
     servicePerformance.startPerfMetricEvent("frontend", "ha_check")
@@ -559,7 +565,7 @@ def clear_diskcache_dir(work_dir):
     try:
         shutil.rmtree(cache_dir)
     except OSError as ose:
-        if ose.errno != 2:  # errno 2 is okay (directory missing)
+        if ose.errno != 2:  # errno 2 is okay (directory missing - Maybe it's the first execution?)
             logSupport.log.exception(f"Error removing cache directory {cache_dir}")
             raise
     os.mkdir(cache_dir)
@@ -570,6 +576,8 @@ def set_frontend_htcondor_env(work_dir, frontendDescript, element=None):
 
     Configures the environment variables required for HTCondor operations
     based on the frontend description and element.
+
+    The Collector DN is only in the group's mapfile. Just get first one.
 
     Args:
         work_dir (str): The working directory for the frontend.
@@ -618,6 +626,9 @@ def clean_htcondor_env():
             del os.environ[v]
 
 
+############################################################
+
+
 def spawn_removal(work_dir, frontendDescript, groups, max_parallel_workers, removal_action):
     """Perform group removal operations.
 
@@ -637,6 +648,7 @@ def spawn_removal(work_dir, frontendDescript, groups, max_parallel_workers, remo
     spawn_iteration(work_dir, frontendDescript, groups, max_parallel_workers, failure_dict, 1, removal_action)
 
 
+############################################################
 def cleanup_environ():
     """Clean up environment variables.
 
@@ -654,6 +666,7 @@ def cleanup_environ():
             del os.environ[val]
 
 
+############################################################
 def main(work_dir, action):
     """Main entry point for the glideinFrontend.
 
@@ -679,6 +692,7 @@ def main(work_dir, action):
     frontendDescript = glideinFrontendConfig.FrontendDescript(work_dir)
 
     # Configure logging
+    # the log dir is shared between the frontend main and the groups, so use a subdirectory
     logSupport.log_dir = os.path.join(frontendDescript.data["LogDir"], "frontend")
     logSupport.log = logSupport.get_logger_with_handlers("frontend", logSupport.log_dir, frontendDescript.data)
 
@@ -689,6 +703,7 @@ def main(work_dir, action):
 
     try:
         cleanup_environ()
+        # We use a dedicated config... ignore the system-wide
         os.environ["CONDOR_CONFIG"] = frontendDescript.data["CondorConfig"]
 
         sleep_time = int(frontendDescript.data["LoopDelay"])
@@ -698,6 +713,7 @@ def main(work_dir, action):
         restart_interval = int(frontendDescript.data["RestartInterval"])
 
         groups = sorted(frontendDescript.data["Groups"].split(","))
+
         glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(
             os.path.join(work_dir, "monitor"), groups
         )
@@ -711,6 +727,7 @@ def main(work_dir, action):
     # Create lock file
     pid_obj = glideinFrontendPidLib.FrontendPidSupport(work_dir)
 
+    # Start the main operation
     try:
         pid_obj.register(action)
     except glideinFrontendPidLib.pidSupport.AlreadyRunning as err:
@@ -758,7 +775,6 @@ def main(work_dir, action):
         logSupport.log.exception("Exception occurred trying to spawn: ")
     finally:
         pid_obj.relinquish()
-
 
 
 ############################################################

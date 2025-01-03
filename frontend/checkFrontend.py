@@ -5,20 +5,21 @@
 
 """Check if a glideinFrontend is running.
 
-This script checks whether a glideinFrontend is running in the specified 
-working directory. It optionally allows specifying a run mode.
+This script checks whether a glideinFrontend is running in the specified
+working directory. It optionally allows specifying a run mode (i.e. the
+action performed by the Frontend, e.g., "run", "removeIdle").
 
 Usage:
     python script_name.py <work_dir> [run_mode]
 
 Args:
     work_dir (str): The working directory to check for a running glideinFrontend.
-    run_mode (str, optional): The desired run mode to check for. Defaults to "run".
+    run_mode (str, optional): The desired run mode (action) to check for. Defaults to "run".
 
 Exit Codes:
     0: A glideinFrontend of the specified type is running.
     1: No glideinFrontend is running.
-    2: A glideinFrontend of a different type is running.
+    2: A glideinFrontend of a different type (performing a different action) is running.
 
 Examples:
     Check for a glideinFrontend running in "my_work_dir" with the default mode:
@@ -29,6 +30,7 @@ Examples:
 """
 
 import sys
+
 from glideinwms.frontend import glideinFrontendPidLib
 
 if __name__ == "__main__":

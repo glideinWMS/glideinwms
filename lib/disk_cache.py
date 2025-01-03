@@ -20,8 +20,9 @@ from time import time
 def get_lock(name):
     """Create a `name.lock` file and, using fcntl, lock it (or wait for the lock to be released) before proceeding.
 
-    The `name.lock` file is not removed after the lock is released; it is kept to be reused:
-    we only care about the lock status.
+    Notes:
+         The `name.lock` file is not removed after the lock is released; it is kept to be reused:
+         we only care about the lock status.
 
     Args:
         name (str): The name of the file you want to lock. A lockfile `name.lock` will be created.

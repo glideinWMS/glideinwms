@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-This module implements functions for converting between different time formats
+"""This module implements functions for converting between different time formats
 and string representations of time.
 
 Functions:
@@ -219,6 +218,10 @@ def get_time_in_format(now=None, time_format=None):
 #########################
 
 
+# time.daylight tells only if the computer support daylight saving time,
+# tm_isdst must be checked to see if it is in effect at time t
+# Some corner cases (changes in standard) are still uncovered, see https://bugs.python.org/issue1647654
+# See also https://bugs.python.org/issue7229 for an improved explanation of the Python manual wording
 def getTZval(t):
     """Returns the timezone offset in seconds for the given time.
 

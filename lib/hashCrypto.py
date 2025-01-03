@@ -1,12 +1,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-
 """hashCrypto - This module defines classes to perform hash based cryptography.
 
 It uses M2Crypto: https://github.com/mcepl/M2Crypto
@@ -17,6 +11,7 @@ get_hash() accepts byte-like objects or utf-8 encoded Unicode strings.
 Same for all the get_XXX or extract_XXX that use those functions.
 Other class methods and functions use bytes for input and output.
 """
+# TODO: should this module be replaced (or reimplemented) by using Python's hashlib?
 
 import binascii
 
@@ -111,7 +106,8 @@ class Hash:
             while True:
                 data = fd.read(block_size)
                 if data == b"":
-                    break  # no more data, stop reading
+                    break  # No more data, stop reading
+                # Should check update return? -1 for Python error, 1 for success, 0 for OpenSSL failure
                 h.update(data)
         return h.final()
 
@@ -143,6 +139,8 @@ class Hash:
 def get_hash(hash_algo, data):
     """Compute hash inline.
 
+    Convert `data` to bytes if needed and calculate the desired hash.
+
     Args:
         hash_algo (str): Hash algorithm to use.
         data (AnyStr): Data of which to calculate the hash.
@@ -168,6 +166,10 @@ def extract_hash(hash_algo, fname, block_size=1048576):
     """
     h = Hash(hash_algo)
     return h.extract_hex(fname, block_size).decode(defaults.BINARY_ENCODING_CRYPTO)
+
+
+##########################################################################
+# Explicit hash algorithms section
 
 
 class HashMD5(Hash):

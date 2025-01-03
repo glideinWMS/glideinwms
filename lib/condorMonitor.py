@@ -39,8 +39,7 @@ except ImportError:
 
 
 def htcondor_full_reload():
-    """
-    Reloads the HTCondor configuration from the environment and updates HTCondor parameters.
+    """Reloads the HTCondor configuration from the environment and updates HTCondor parameters.
 
     If the HTCondor Python bindings are enabled, this function reloads the configuration by reading the
     `CONDOR_CONFIG` environment variable and manually adds `_CONDOR_` prefixed environment variables to
@@ -51,13 +50,10 @@ def htcondor_full_reload():
     """
     HTCONDOR_ENV_PREFIX = "_CONDOR_"
     HTCONDOR_ENV_PREFIX_LEN = len(HTCONDOR_ENV_PREFIX)  # Length of _CONDOR_ = 8
-
     if not USE_HTCONDOR_PYTHON_BINDINGS:
         return
-
     # Reload configuration reading CONDOR_CONFIG from the environment
     htcondor.reload_config()
-
     # _CONDOR_ variables need to be added manually to _Params
     for i in os.environ:
         if i.startswith(HTCONDOR_ENV_PREFIX):
@@ -69,10 +65,8 @@ def htcondor_full_reload():
 #
 
 
-# Set path to condor binaries
 def set_path(new_condor_bin_path):
-    """
-    Sets the path to the Condor binaries.
+    """Sets the path to the HTCondor binaries.
 
     Args:
         new_condor_bin_path (str): The new path to the Condor binaries.
@@ -90,18 +84,14 @@ def set_path(new_condor_bin_path):
 
 
 class QueryError(RuntimeError):
-    """
-    Thrown when there are exceptions using htcondor python bindings or commands
-    """
+    """Thrown when there are exceptions using htcondor python bindings or commands"""
 
     def __init__(self, err_str):
         RuntimeError.__init__(self, err_str)
 
 
 class PBError(RuntimeError):
-    """
-    Thrown when there are exceptions using htcondor python bindings
-    """
+    """Thrown when there are exceptions using htcondor python bindings"""
 
     def __init__(self, err_str):
         RuntimeError.__init__(self, err_str)
@@ -113,28 +103,26 @@ class PBError(RuntimeError):
 
 
 class NoneScheddCache:
-    """
-    Dummy caching class, when you don't want caching.
+    """Dummy caching class, when you don't want caching.
     Used as base class below, too
     """
 
     def getScheddId(self, schedd_name, pool_name):
+        """Given the schedd name and pool name, return a tuple (ScheddCmdOption, env dict)
+
+        The environment dictionary could contain variables like LOCAL_DIR.
+
+        Args:
+            schedd_name (str or None): The name of the schedd. If None, an empty string is returned as option.
+            pool_name (str or None): The pool name.
+
+        Returns:
+            tuple: Tuple with schedd command string option, env (empty dictionary).
         """
-        Given the schedd name and pool name, return a tuple (ScheddId, dict)
-
-        @param schedd_name: Name of the schedd
-        @type schedd_name: string
-
-        @param pool_name: Name of the pool
-        @type pool_name: string
-
-        @return: tuple (schedd string, LOCAL_DIR)
-        """
-        return (self.iGetCmdScheddStr(schedd_name), {})
+        return self.iGetCmdScheddStr(schedd_name), {}
 
     def iGetCmdScheddStr(self, schedd_name):
-        """
-        Constructs a command string for the specified schedd name.
+        """Constructs a command string option for the specified schedd name.
 
         Args:
             schedd_name (str or None): The name of the schedd. If None, an empty string is returned.
@@ -152,64 +140,56 @@ class NoneScheddCache:
 
 
 class LocalScheddCache(NoneScheddCache):
+    """Schedd caching class
+
+    The schedd can be found either through -name attr or through the local disk lookup.
+    Remembers which one to use.
     """
-    Schedd caching class
-    The schedd can be found either through -name attr or through the
-    local disk lookup. Remember which one to use.
-    """
 
-    class YourClassName:
-        def __init__(self):
-            """
-            Initializes the instance with default settings.
+    def __init__(self):
+        """Initializes the schedd cache with default settings.
 
-            Attributes:
-                enabled (bool): Indicates if the instance is enabled. Default is True.
-                cache (dict): A dictionary to store schedd and pool name mappings to their respective CMS argument strings and environments.
-                my_ips (list): A list of IP addresses associated with the current host, including localhost if defined.
-            """
-            self.enabled = True
-            # dict of (schedd_name,pool_name)=>(cms arg schedd string,env)
-            self.cache = {}
-
-            self.my_ips = socket.gethostbyname_ex(socket.gethostname())[2]
-
+        Attributes:
+            enabled (bool): Indicates if the instance is enabled. Default is True.
+            cache (dict): A dictionary to store schedd and pool name mappings to their respective CMS argument strings and environments.
+            my_ips (list): A list of IP addresses associated with the current host, including localhost if defined.
+        """
+        self.enabled = True
+        # dict of (schedd_name,pool_name)=>(cms arg schedd string,env)
+        self.cache = {}
+        self.my_ips = socket.gethostbyname_ex(socket.gethostname())[2]
         try:
             self.my_ips += socket.gethostbyname_ex("localhost")[2]
         except socket.gaierror:
             pass  # localhost not defined, ignore
 
     def enable(self):
-        """
-        Enables the instance.
+        """Enables the cache.
 
         Sets the `enabled` attribute to True.
         """
         self.enabled = True
 
     def disable(self):
-        """
-        Disables the instance.
+        """Disables the cache.
 
         Sets the `enabled` attribute to False.
         """
         self.enabled = False
 
     def getScheddId(self, schedd_name, pool_name):
-        """
-        Given the schedd name and pool name, get a tuple containing
-        (ScheddId, dict)
+        """Given the schedd name and pool name, get a tuple containing (ScheddId, dict)
 
-        @param schedd_name: Name of the schedd
-        @type schedd_name: string
+        Args:
+            schedd_name (str or None): The name of the schedd. If None, an empty string is returned as option.
+            pool_name (str or None): The pool name.
 
-        @param pool_name: Name of the pool
-        @type pool_name: string
+        Returns:
+            tuple: Tuple with the schedd (command option) string, and env
 
-        @return: tuple (schedd string, env)
         """
         if schedd_name is None:  # special case, do not cache
-            return ("", {})
+            return "", {}
 
         if self.enabled:
             k = (schedd_name, pool_name)
@@ -218,74 +198,69 @@ class LocalScheddCache(NoneScheddCache):
                 if env is None:
                     self.cache[k] = (self.iGetCmdScheddStr(schedd_name), {})
                 else:
+                    # TODO: MM - Possible bug? Analyze cache use. Should this be "" or the schedd name?
                     self.cache[k] = ("", env)
             return self.cache[k]
         else:
             # Not enabled, just return the str
-            return (self.iGetCmdScheddStr(schedd_name), {})
+            return self.iGetCmdScheddStr(schedd_name), {}
 
     #
     # PRIVATE
     #
+    def iGetEnv(self, schedd_name, pool_name):
+        """Retrieves the HTCondor environment settings for a the spool directory for the specified schedd.
 
-    # return None if not found
-    # Can raise exceptions
+        This method checks the disk cache for existing data. If not found, it fetches the data from the HTCondor status.
+        It also checks if the schedd is local and if it is advertising its SPOOL or LOCAL directory.
 
+        Args:
+            schedd_name (str): The name of the schedd.
+            pool_name (str): The name of the pool.
 
-def iGetEnv(self, schedd_name, pool_name):
-    """
-    Retrieves the HTCondor environment settings for a specified schedd and pool.
+        Returns:
+            dict or None: A dictionary with the environment settings for the schedd if applicable,
+                          or None if the directory does not exist or if the schedd is not local.
 
-    This method checks the disk cache for existing data. If not found, it fetches the data from the Condor status.
-    It also checks if the schedd is local and if it is advertising its SPOOL or LOCAL directory.
+        Raises:
+            RuntimeError: If the schedd is not found or if it is not advertising `ScheddIpAddr`.
+            Exception: Other exceptions may be raised during the fetching or processing of data.
+        """
+        global disk_cache
+        data = disk_cache.get(schedd_name + ".igetenv")  # pylint: disable=assignment-from-none
+        if data is None:
+            cs = CondorStatus("schedd", pool_name)
+            data = cs.fetch(
+                constraint='Name=?="%s"' % schedd_name,
+                format_list=[("ScheddIpAddr", "s"), ("SPOOL_DIR_STRING", "s"), ("LOCAL_DIR_STRING", "s")],
+            )
+            disk_cache.save(schedd_name + ".igetenv", data)
+        if schedd_name not in data:
+            raise RuntimeError("Schedd '%s' not found" % schedd_name)
 
-    Args:
-        schedd_name (str): The name of the schedd.
-        pool_name (str): The name of the pool.
-
-    Returns:
-        dict or None: A dictionary with the environment settings for the schedd if applicable,
-                      or None if the directory does not exist or if the schedd is not local.
-
-    Raises:
-        RuntimeError: If the schedd is not found or if it is not advertising `ScheddIpAddr`.
-        Exception: Other exceptions may be raised during the fetching or processing of data.
-    """
-    global disk_cache
-    data = disk_cache.get(schedd_name + ".igetenv")  # pylint: disable=assignment-from-none
-    if data is None:
-        cs = CondorStatus("schedd", pool_name)
-        data = cs.fetch(
-            constraint='Name=?="%s"' % schedd_name,
-            format_list=[("ScheddIpAddr", "s"), ("SPOOL_DIR_STRING", "s"), ("LOCAL_DIR_STRING", "s")],
-        )
-        disk_cache.save(schedd_name + ".igetenv", data)
-    if schedd_name not in data:
-        raise RuntimeError("Schedd '%s' not found" % schedd_name)
-
-    el = data[schedd_name]
-    if "SPOOL_DIR_STRING" not in el and "LOCAL_DIR_STRING" not in el:
-        # Not advertising, cannot use disk optimization
-        return None
-    if "ScheddIpAddr" not in el:
-        # This should never happen
-        raise RuntimeError("Schedd '%s' is not advertising ScheddIpAddr" % schedd_name)
-
-    schedd_ip = el["ScheddIpAddr"][1:].split(":")[0]
-    if schedd_ip in self.my_ips:  # Seems local, go for the directory
-        l_dir = el.get("SPOOL_DIR_STRING", el.get("LOCAL_DIR_STRING"))
-        if os.path.isdir(l_dir):  # Making sure the directory exists
-            if "SPOOL_DIR_STRING" in el:
-                return {"_CONDOR_SPOOL": "%s" % l_dir}
-            else:  # LOCAL_DIR_STRING, assuming spool is LOCAL_DIR_STRING/spool
-                if os.path.isdir("%s/spool" % l_dir):
-                    return {"_CONDOR_SPOOL": "%s/spool" % l_dir}
-        else:
-            # Directory does not exist, not relevant, revert to standard behavior
+        el = data[schedd_name]
+        if "SPOOL_DIR_STRING" not in el and "LOCAL_DIR_STRING" not in el:
+            # Not advertising, cannot use disk optimization
             return None
-    else:
-        # Not local
-        return None
+        if "ScheddIpAddr" not in el:
+            # This should never happen
+            raise RuntimeError(f"Schedd '{schedd_name}' is not advertising ScheddIpAddr")
+
+        schedd_ip = el["ScheddIpAddr"][1:].split(":")[0]
+        if schedd_ip in self.my_ips:  # Seems local, go for the directory
+            l_dir = el.get("SPOOL_DIR_STRING", el.get("LOCAL_DIR_STRING"))
+            if os.path.isdir(l_dir):  # Making sure the directory exists
+                if "SPOOL_DIR_STRING" in el:
+                    return {"_CONDOR_SPOOL": "%s" % l_dir}
+                else:  # LOCAL_DIR_STRING, assuming spool is LOCAL_DIR_STRING/spool
+                    if os.path.isdir("%s/spool" % l_dir):
+                        return {"_CONDOR_SPOOL": "%s/spool" % l_dir}
+            else:
+                # Directory does not exist, not relevant, revert to standard behavior
+                return None
+        else:
+            # Not local
+            return None
 
 
 # The class does not belong here, it should be in the disk_cache module.
@@ -307,9 +282,7 @@ disk_cache = NoneDiskCache()
 
 
 def condorq_attrs(q_constraint, attribute_list):
-    """
-    Retrieves a list of a single item from the all the factory queues.
-    """
+    """Retrieves a list of a single item from the all the factory queues."""
     attr_str = ""
     for attr in attribute_list:
         attr_str += " -attr %s" % attr
@@ -340,62 +313,59 @@ def condorq_attrs(q_constraint, attribute_list):
 
 
 class AbstractQuery:
-    """
-    Pure virtual class to have a minimum set of methods defined
-    """
+    """Abstract (pure virtual) class to have a minimum set of methods defined"""
 
     def fetch(self, constraint=None, format_list=None):
-        """
-        Fetch the classad attributes specified in the format_list
-        matching the constraint
+        """Fetch the classad attributes specified in the format_list matching the constraint
 
-        @rtype: dict
-        @return: Dict containing classad attributes and values
+        Args:
+            constraint:
+            format_list:
+
+        Returns:
+            dict: Dict containing classad attributes and values
         """
         raise NotImplementedError("Fetch not implemented")
 
     def load(self, constraint=None, format_list=None):
-        """
-        Fetch the data and store it in self.stored_data
-        """
+        """Fetch the data and store it in self.stored_data"""
         raise NotImplementedError("Load not implemented")
 
     def fetchStored(self, constraint_func=None):
         """
-        @param constraint_func: A boolean function, with only one argument
-                                (data el). If None, return all the data.
-        @type constraint_func: Boolean function
 
-        @rtype: dict
-        @return: Same as fetch(), but limited to constraint_func(el)==True
+        Args:
+            constraint_func (function): A boolean function, with only one argument (data el).
+                If None, return all the data.
+
+        Returns:
+            dict: Same as fetch(), but limited to constraint_func(el)==True
         """
         raise NotImplementedError("fetchStored not implemented")
 
 
 class StoredQuery(AbstractQuery):
-    """
-    Virtual class that implements fetchStored
-    """
+    """Abstract (virtual) class that implements fetchStored"""
 
     stored_data = {}
 
     def fetchStored(self, constraint_func=None):
         """
-        @param constraint_func: A boolean function, with only one argument
-                                (data el). If None, return all the data.
-        @type constraint_func: Boolean function
 
-        @rtype: dict
-        @return: Same as fetch(), but limited to constraint_func(el)==True
+        Args:
+            constraint_func (function, optional): A boolean function, with only one argument (data el).
+                If None, return all the data.
+
+        Returns:
+            dict: Same as fetch(), but limited to constraint_func(el)==True
         """
         return applyConstraint(self.stored_data, constraint_func)
 
 
 class CondorQEdit:
-    """
-    Fully implemented class that executes condorq_edit commands. Only provides a method to do bulk
-    updates of jobs using transaction-based API and the condor python bindings. Cannot be used without
-    python bindings
+    """Fully implemented class that executes condorq_edit commands. Only provides a method to do bulk
+    updates of jobs using transaction-based API and the condor python bindings.
+    Cannot be used without HTCondor Python bindings
     """
 
     def __init__(self, pool_name=None, schedd_name=None):
@@ -466,13 +436,10 @@ class CondorQEdit:
 #
 # security_obj, if defined, should be a child of condorSecurity.ProtoRequest
 class CondorQuery(StoredQuery):
-    """
-    Fully implemented class that executes condor commands
-    """
+    """Fully implemented class that executes condor commands"""
 
     def __init__(self, exe_name, resource_str, group_attribute, pool_name=None, security_obj=None, env={}):
-        """
-        Initializes a new instance of the class.
+        """Initializes a new instance of the class.
 
         Args:
             exe_name (str): The name of the executable.
@@ -500,8 +467,7 @@ class CondorQuery(StoredQuery):
             self.security_obj = condorSecurity.ProtoRequest()
 
     def require_integrity(self, requested_integrity):
-        """
-        Set client integrity settings to use for condor commands.
+        """Set client integrity settings to use for condor commands.
 
         Args:
             requested_integrity (str): HTCondor integrity level.
@@ -516,8 +482,7 @@ class CondorQuery(StoredQuery):
         self.security_obj.set("CLIENT", "INTEGRITY", condor_val)
 
     def get_requested_integrity(self):
-        """
-        Get the current integrity settings.
+        """Get the current integrity settings.
 
         Returns:
             bool or None: None->None; REQUIRED->True; OPTIONAL->False.
@@ -528,8 +493,7 @@ class CondorQuery(StoredQuery):
         return condor_val == "REQUIRED"
 
     def require_encryption(self, requested_encryption):
-        """
-        Set client encryption settings to use for condor commands.
+        """Set client encryption settings to use for condor commands.
 
         Args:
             requested_encryption (str): HTCondor encryption level.
@@ -544,8 +508,7 @@ class CondorQuery(StoredQuery):
         self.security_obj.set("CLIENT", "ENCRYPTION", condor_val)
 
     def get_requested_encryption(self):
-        """
-        Get the current encryption settings.
+        """Get the current encryption settings.
 
         Returns:
             bool or None: None->None; REQUIRED->True; OPTIONAL->False.
@@ -556,13 +519,12 @@ class CondorQuery(StoredQuery):
         return condor_val == "REQUIRED"
 
     def fetch(self, constraint=None, format_list=None):
-        """
-        Return the results obtained using HTCondor commands or python bindings.
+        """Return the results obtained using HTCondor commands or python bindings.
 
         Args:
             constraint (str, optional): Query constraint. Defaults to None.
             format_list (list, optional): Classad attr & type. Defaults to None.
-                                          Example: [(attr1, 'i'), ('attr2', 's')].
+                                          Example: `[(attr1, 'i'), ('attr2', 's')]`.
 
         Returns:
             dict: Dict containing the query results.
@@ -586,10 +548,12 @@ class CondorQuery(StoredQuery):
         """Return the results obtained from executing the HTCondor query command
 
         Args:
-            constraint (str): Constraints to be applied to the query
-            format_list (list): Classad attr & type. [(attr1, 'i'), ('attr2', 's')]
+            constraint (str, optional): Constraints to be applied to the query. Defaults to None.
+            format_list (list, optional): Classad attr and type. Defaults to None.
+                                          Example: `[(attr1, 'i'), ('attr2', 's')]`
 
-        Returns (dict): Dict containing the results
+        Returns:
+            dict: Dictionary containing the results
 
         """
         if constraint is None:
@@ -635,10 +599,12 @@ class CondorQuery(StoredQuery):
         """Fetch the results using htcondor-python bindings
 
         Args:
-            constraint (str): Constraints to be applied to the query
-            format_list (list): Classad attr & type. [(attr1, 'i'), ('attr2', 's')]
+            constraint (str, optional): Constraints to be applied to the query. Defaults to None.
+            format_list (list, optional): Classad attr & type. Defaults to None.
+                                          Example: `[(attr1, 'i'), ('attr2', 's')]`
 
-        Returns (dict): Dict containing the results
+        Returns:
+            dict: Dictionary containing the results
 
         Raises:
             NotImplementedError: the operation is not implemented using bindings
@@ -647,129 +613,119 @@ class CondorQuery(StoredQuery):
         raise NotImplementedError("fetch_using_bindings() not implemented")
 
     def load(self, constraint=None, format_list=None):
-        """
-        Fetch the results and cache it in self.stored_data
-        """
+        """Fetch the results and cache it in self.stored_data"""
         self.stored_data = self.fetch(constraint, format_list)
 
+    def __repr__(self):
+        """Returns a string representation of the HTCondor query.
 
-def __repr__(self):
-    """
-    Returns a string representation of the object.
+        Returns a string containing detailed information about the HTCondor query's attributes.
 
-    Returns a string containing detailed information about the object's attributes.
-
-    Returns:
-        str: A string representation of the object.
-    """
-    output = "%s:\n" % self.__class__.__name__
-    output += "exe_name = %s\n" % str(self.exe_name)
-    output += "env = %s\n" % str(self.env)
-    output += "resource_str = %s\n" % str(self.resource_str)
-    output += "group_attribute = %s\n" % str(self.group_attribute)
-    output += "pool_name = %s\n" % str(self.pool_name)
-    output += "pool_str = %s\n" % str(self.pool_str)
-    output += "security_obj = %s\n" % str(self.security_obj)
-    output += "used_python_bindings = %s\n" % USE_HTCONDOR_PYTHON_BINDINGS
-    output += "stored_data = %s" % str(self.stored_data)
-    return output
+        Returns:
+            str: A string representation of the HTCondor query.
+        """
+        output = "%s:\n" % self.__class__.__name__
+        output += "exe_name = %s\n" % str(self.exe_name)
+        output += "env = %s\n" % str(self.env)
+        output += "resource_str = %s\n" % str(self.resource_str)
+        output += "group_attribute = %s\n" % str(self.group_attribute)
+        output += "pool_name = %s\n" % str(self.pool_name)
+        output += "pool_str = %s\n" % str(self.pool_str)
+        output += "security_obj = %s\n" % str(self.security_obj)
+        output += "used_python_bindings = %s\n" % USE_HTCONDOR_PYTHON_BINDINGS
+        output += "stored_data = %s" % str(self.stored_data)
+        return output
 
 
 class CondorQ(CondorQuery):
     """Class to implement condor_q. Uses htcondor-python bindings if possible."""
 
+    def __init__(self, schedd_name=None, pool_name=None, security_obj=None, schedd_lookup_cache=local_schedd_cache):
+        """Initializes a new instance of the class.
 
-def __init__(self, schedd_name=None, pool_name=None, security_obj=None, schedd_lookup_cache=local_schedd_cache):
-    """
-    Initializes a new instance of the class.
+        Args:
+            schedd_name (str, optional): The name of the schedd. Defaults to None.
+            pool_name (str, optional): The name of the pool. Defaults to None.
+            security_obj (object, optional): The security object. Defaults to None.
+            schedd_lookup_cache (object, optional): The cache object used for schedd lookup.
+                                                    Defaults to local_schedd_cache if not provided.
+        """
+        self.schedd_name = schedd_name
 
-    Args:
-        schedd_name (str, optional): The name of the schedd. Defaults to None.
-        pool_name (str, optional): The name of the pool. Defaults to None.
-        security_obj (object, optional): The security object. Defaults to None.
-        schedd_lookup_cache (object, optional): The cache object used for schedd lookup.
-                                                 Defaults to local_schedd_cache if not provided.
-    """
-    self.schedd_name = schedd_name
+        if schedd_lookup_cache is None:
+            schedd_lookup_cache = NoneScheddCache()
 
-    if schedd_lookup_cache is None:
-        schedd_lookup_cache = NoneScheddCache()
+        schedd_str, env = schedd_lookup_cache.getScheddId(schedd_name, pool_name)
+        CondorQuery.__init__(self, "condor_q", schedd_str, ["ClusterId", "ProcId"], pool_name, security_obj, env)
 
-    schedd_str, env = schedd_lookup_cache.getScheddId(schedd_name, pool_name)
-    CondorQuery.__init__(self, "condor_q", schedd_str, ["ClusterId", "ProcId"], pool_name, security_obj, env)
+    def fetch(self, constraint=None, format_list=None):
+        """Fetches data from the Condor query.
 
+        Args:
+            constraint (str, optional): A constraint to filter the query results. Defaults to None.
+            format_list (list of tuple, optional): A list of attributes to include in the query results.
+                                                   Defaults to None.
 
-def fetch(self, constraint=None, format_list=None):
-    """
-    Fetches data from the Condor query.
+        Returns:
+            list: A list of query results.
+        """
+        if format_list is not None:
+            # If format_list, make sure ClusterId and ProcId are present
+            format_list = complete_format_list(format_list, [("ClusterId", "i"), ("ProcId", "i")])
+        return CondorQuery.fetch(self, constraint=constraint, format_list=format_list)
 
-    Args:
-        constraint (str, optional): A constraint to filter the query results. Defaults to None.
-        format_list (list of tuple, optional): A list of attributes to include in the query results.
-                                               Defaults to None.
+    def fetch_using_bindings(self, constraint=None, format_list=None):
+        """Fetch the condor_q results using htcondor-python bindings
 
-    Returns:
-        list: A list of query results.
-    """
-    if format_list is not None:
-        # If format_list, make sure ClusterId and ProcId are present
-        format_list = complete_format_list(format_list, [("ClusterId", "i"), ("ProcId", "i")])
-    return CondorQuery.fetch(self, constraint=constraint, format_list=format_list)
+        Args:
+            constraint (str, optional): Constraints to be applied to the query. Defaults to None.
+            format_list (list, optional): Classad attr & type. Defaults to None.
+                                          Example: `[(attr1, 'i'), ('attr2', 's')]`
 
+        Returns:
+            dict: Dictionary containing the results
+        """
+        global disk_cache
+        results_dict = {}  # defined here in case of exception
+        constraint = bindings_friendly_constraint(constraint)
+        attrs = bindings_friendly_attrs(format_list)
 
-def fetch_using_bindings(self, constraint=None, format_list=None):
-    """Fetch the condor_q results using htcondor-python bindings
+        self.security_obj.save_state()
+        try:
+            self.security_obj.enforce_requests()
+            htcondor_full_reload()
+            if self.pool_name:
+                collector = htcondor.Collector(str(self.pool_name))
+            else:
+                collector = htcondor.Collector()
 
-    Args:
-        constraint (str): Constraints to be applied to the query
-        format_list (list): Classad attr & type. [(attr1, 'i'), ('attr2', 's')]
+            if self.schedd_name is None:
+                schedd = htcondor.Schedd()
+            else:
+                schedd_ad = disk_cache.get(self.schedd_name + ".locate")  # pylint: disable=assignment-from-none
+                if schedd_ad is None:
+                    schedd_ad = collector.locate(htcondor.DaemonTypes.Schedd, self.schedd_name)
+                    disk_cache.save(self.schedd_name + ".locate", schedd_ad)
+                schedd = htcondor.Schedd(schedd_ad)
+            results = schedd.query(constraint, attrs)
+            results_dict = list2dict(results, self.group_attribute)
+        except Exception as ex:
+            s = "default"
+            if self.schedd_name is not None:
+                s = self.schedd_name
+            p = "default"
+            if self.pool_name is not None:
+                p = self.pool_name
+            err_str = f"Error querying schedd {s} in pool {p} using python bindings: {ex}"
+            raise PBError(err_str) from ex
+        finally:
+            self.security_obj.restore_state()
 
-    Returns (dict): Dict containing the results
-
-    """
-    global disk_cache
-    results_dict = {}  # defined here in case of exception
-    constraint = bindings_friendly_constraint(constraint)
-    attrs = bindings_friendly_attrs(format_list)
-
-    self.security_obj.save_state()
-    try:
-        self.security_obj.enforce_requests()
-        htcondor_full_reload()
-        if self.pool_name:
-            collector = htcondor.Collector(str(self.pool_name))
-        else:
-            collector = htcondor.Collector()
-
-        if self.schedd_name is None:
-            schedd = htcondor.Schedd()
-        else:
-            schedd_ad = disk_cache.get(self.schedd_name + ".locate")  # pylint: disable=assignment-from-none
-            if schedd_ad is None:
-                schedd_ad = collector.locate(htcondor.DaemonTypes.Schedd, self.schedd_name)
-                disk_cache.save(self.schedd_name + ".locate", schedd_ad)
-            schedd = htcondor.Schedd(schedd_ad)
-        results = schedd.query(constraint, attrs)
-        results_dict = list2dict(results, self.group_attribute)
-    except Exception as ex:
-        s = "default"
-        if self.schedd_name is not None:
-            s = self.schedd_name
-        p = "default"
-        if self.pool_name is not None:
-            p = self.pool_name
-        err_str = f"Error querying schedd {s} in pool {p} using python bindings: {ex}"
-        raise PBError(err_str) from ex
-    finally:
-        self.security_obj.restore_state()
-
-    return results_dict
+        return results_dict
 
 
 class CondorStatus(CondorQuery):
-    """
-    Class to implement condor_status. Uses htcondor-python bindings if possible.
-    """
+    """Class to implement condor_status. Uses htcondor-python bindings if possible."""
 
     def __init__(self, subsystem_name=None, pool_name=None, security_obj=None):
         if subsystem_name is None:
@@ -785,9 +741,7 @@ class CondorStatus(CondorQuery):
         return CondorQuery.fetch(self, constraint=constraint, format_list=format_list)
 
     def fetch_using_bindings(self, constraint=None, format_list=None):
-        """
-        Fetch the results using htcondor-python bindings
-        """
+        """Fetch the results using htcondor-python bindings"""
         results_dict = {}  # defined here in case of exception
         constraint = bindings_friendly_constraint(constraint)
         attrs = bindings_friendly_attrs(format_list)
@@ -822,13 +776,10 @@ class CondorStatus(CondorQuery):
 
 
 class BaseSubQuery(StoredQuery):
-    """
-    Virtual class that implements fetch for StoredQuery()
-    """
+    """Abstract (virtual) class that implements fetch for StoredQuery()"""
 
     def __init__(self, query, subquery_func):
-        """
-        Initializes a new instance of the class.
+        """Initializes a new instance of the class.
 
         Args:
             query (object): The query object.
@@ -838,8 +789,7 @@ class BaseSubQuery(StoredQuery):
         self.subquery_func = subquery_func
 
     def fetch(self, constraint=None):
-        """
-        Fetches data based on the provided query and applies the subquery function.
+        """Fetches data based on the provided query and applies the subquery function.
 
         Args:
             constraint (str, optional): A constraint to filter the query results. Defaults to None.
@@ -855,8 +805,9 @@ class BaseSubQuery(StoredQuery):
     #       and had query.load issued before
     #
     def load(self, constraint=None):
-        """
-        Loads data using a stored query and applies the subquery function to it.
+        """Loads data using a stored query and applies the subquery function to it.
+
+        NOTE: You need to call `load` on the SubQuery object to use `fetchStored` and have `query.load` issued before
 
         Args:
             constraint (str, optional): A constraint to filter the query results. Defaults to None.
@@ -866,13 +817,10 @@ class BaseSubQuery(StoredQuery):
 
 
 class SubQuery(BaseSubQuery):
-    """
-    Fully usable subquery class, typically used on CondorQ() or CondorStatus()
-    """
+    """Fully usable subquery class, typically used on CondorQ() or CondorStatus()"""
 
     def __init__(self, query, constraint_func=None):
-        """
-        Initializes a new instance of the class.
+        """Initializes a new instance of the class.
 
         Args:
             query (object): The query object.
@@ -881,8 +829,7 @@ class SubQuery(BaseSubQuery):
         BaseSubQuery.__init__(self, query, lambda d: applyConstraint(d, constraint_func))
 
     def __repr__(self):
-        """
-        Returns a string representation of the object.
+        """Returns a string representation of the object.
 
         Returns:
             str: A string representation of the object.
@@ -898,8 +845,7 @@ class SubQuery(BaseSubQuery):
 
 
 class Group(BaseSubQuery):
-    """
-    Sub Query class with grouping functionality
+    """Sub Query class with grouping functionality
     Each element has a value that is the summary of the values in a group
     """
 
@@ -916,8 +862,7 @@ class Group(BaseSubQuery):
 
 
 class NestedGroup(BaseSubQuery):
-    """
-    Sub Query class with grouping functionality to create nested results
+    """Sub Query class with grouping functionality to create nested results
     Each element is a dictionary with elements reduced from the original elements in the group
     """
 
@@ -936,103 +881,104 @@ class NestedGroup(BaseSubQuery):
 
 
 class Summarize:
+    """Class summarizing other classes.
+
+    Attributes:
+        query (object): The query to summarize
+        hash_func (function): The hashing function.
+                              It has one argument: classad dictionary
+                              Returns the hash value:
+                              - if None, the element will not be counted
+                              - if a list, all elements will be used
     """
-    Summarizing classes
-    """
 
+    def __init__(self, query, hash_func=lambda x: 1):
+        """Initializes a new instance of the summarizing class.
 
-def __init__(self, query, hash_func=lambda x: 1):
-    """
-    Initializes a new instance of the class.
+        Args:
+            query (object): The query object.
+            hash_func (function, optional): The hashing function. Defaults to a function that always returns 1.
+        """
+        self.query = query
+        self.hash_func = hash_func
 
-    Args:
-        query (object): The query object.
-        hash_func (function, optional): The hashing function. Defaults to a function that always returns 1.
-    """
-    self.query = query
-    self.hash_func = hash_func
+    def count(self, constraint=None, hash_func=None, flat_hash=False):
+        """Counts occurrences of items based on the query results.
 
+        Args:
+            constraint (str, optional): A constraint to filter the query results (passed to `query.fetch()`).
+                                        Defaults to None.
+            hash_func (function, optional): A custom hashing function to use instead of the main one.
+                                            Defaults to None (i.e. using the main one).
+            flat_hash (bool, optional): Whether to return a flat dictionary or nested dictionaries. Defaults to False.
 
-def count(self, constraint=None, hash_func=None, flat_hash=False):
-    """
-    Counts occurrences of items based on the query results.
+        Returns:
+            dict: A dictionary of hash values with counts.
+                  Elements are counts (or more dictionaries if hash returns lists)
+        """
+        data = self.query.fetch(constraint)
+        if flat_hash:
+            return fetch2count_flat(data, self._get_hash(hash_func))
+        return fetch2count(data, self._get_hash(hash_func))
 
-    Args:
-        constraint (str, optional): A constraint to filter the query results. Defaults to None.
-        hash_func (function, optional): A custom hashing function to use instead of the main one. Defaults to None.
-        flat_hash (bool, optional): Whether to return a flat dictionary or nested dictionaries. Defaults to False.
+    def countStored(self, constraint_func=None, hash_func=None, flat_hash=False):
+        """Counts occurrences of items based on pre-stored query results.
 
-    Returns:
-        dict: A dictionary of hash values with counts.
-    """
-    data = self.query.fetch(constraint)
-    if flat_hash:
-        return fetch2count_flat(data, self.getHash(hash_func))
-    return fetch2count(data, self.getHash(hash_func))
+        Args:
+            constraint_func (function, optional): A constraint function to filter the stored query results. Defaults to None.
+            hash_func (function, optional): A custom hashing function to use instead of the main one. Defaults to None.
+            flat_hash (bool, optional): Whether to return a flat dictionary or nested dictionaries. Defaults to False.
 
+        Returns:
+            dict: A dictionary of hash values with counts.
+        """
+        data = self.query.fetchStored(constraint_func)
+        if flat_hash:
+            return fetch2count_flat(data, self._get_hash(hash_func))
+        return fetch2count(data, self._get_hash(hash_func))
 
-def countStored(self, constraint_func=None, hash_func=None, flat_hash=False):
-    """
-    Counts occurrences of items based on pre-stored query results.
+    def list(self, constraint=None, hash_func=None):
+        """Lists items based on the query results.
 
-    Args:
-        constraint_func (function, optional): A constraint function to filter the stored query results. Defaults to None.
-        hash_func (function, optional): A custom hashing function to use instead of the main one. Defaults to None.
-        flat_hash (bool, optional): Whether to return a flat dictionary or nested dictionaries. Defaults to False.
+        Args:
+            constraint (str, optional): A constraint to filter the query results. Defaults to None.
+            hash_func (function, optional): A custom hashing function to use instead of the main one. Defaults to None.
 
-    Returns:
-        dict: A dictionary of hash values with counts.
-    """
-    data = self.query.fetchStored(constraint_func)
-    if flat_hash:
-        return fetch2count_flat(data, self.getHash(hash_func))
-    return fetch2count(data, self.getHash(hash_func))
+        Returns:
+            dict: A dictionary of hash values with lists of keys.
+                  Elements are lists of keys (or more dictionaries if hash returns lists)
+        """
+        data = self.query.fetch(constraint)
+        return fetch2list(data, self._get_hash(hash_func))
 
+    def listStored(self, constraint_func=None, hash_func=None):
+        """Lists items based on pre-stored query results.
 
-def list(self, constraint=None, hash_func=None):
-    """
-    Lists items based on the query results.
+        Args:
+            constraint_func (function, optional): A constraint function to filter the stored query results. Defaults to None.
+            hash_func (function, optional): A custom hashing function to use instead of the main one. Defaults to None.
 
-    Args:
-        constraint (str, optional): A constraint to filter the query results. Defaults to None.
-        hash_func (function, optional): A custom hashing function to use instead of the main one. Defaults to None.
+        Returns:
+            dict: A dictionary of hash values with lists of keys.
+                  Elements are lists of keys (or more dictionaries if hash returns lists)
+        """
+        data = self.query.fetchStored(constraint_func)
+        return fetch2list(data, self._get_hash(hash_func))
 
-    Returns:
-        dict: A dictionary of hash values with lists of keys.
-    """
-    data = self.query.fetch(constraint)
-    return fetch2list(data, self.getHash(hash_func))
+    # Internal
+    def _get_hash(self, hash_func):
+        """Get the hash function to use. Returns the main (class) hash function if the parameter is None.
 
+        Args:
+            hash_func (function): The custom hash function, if provided.
 
-def listStored(self, constraint_func=None, hash_func=None):
-    """
-    Lists items based on pre-stored query results.
-
-    Args:
-        constraint_func (function, optional): A constraint function to filter the stored query results. Defaults to None.
-        hash_func (function, optional): A custom hashing function to use instead of the main one. Defaults to None.
-
-    Returns:
-        dict: A dictionary of hash values with lists of keys.
-    """
-    data = self.query.fetchStored(constraint_func)
-    return fetch2list(data, self.getHash(hash_func))
-
-
-def getHash(self, hash_func):
-    """
-    Get the hash function to use.
-
-    Args:
-        hash_func (function): The custom hash function, if provided.
-
-    Returns:
-        function: The hash function to use.
-    """
-    if hash_func is None:
-        return self.hash_func
-    else:
-        return hash_func
+        Returns:
+            function: The hash function to use.
+        """
+        if hash_func is None:
+            return self.hash_func
+        else:
+            return hash_func
 
 
 ############################################################
@@ -1065,9 +1011,36 @@ def complete_format_list(in_format_list, req_format_els):
     return out_format_list
 
 
+#
+# Convert Condor XML to list
+#
+# HTCondor XML example:
+#
+# <?xml version="1.0"?>
+# <!DOCTYPE classads SYSTEM "classads.dtd">
+# <classads>
+# <c>
+#    <a n="MyType"><s>Job</s></a>
+#    <a n="TargetType"><s>Machine</s></a>
+#    <a n="AutoClusterId"><i>0</i></a>
+#    <a n="ExitBySignal"><b v="f"/></a>
+#    <a n="TransferOutputRemaps"><un/></a>
+#    <a n="WhenToTransferOutput"><s>ON_EXIT</s></a>
+# </c>
+# <c>
+#    <a n="MyType"><s>Job</s></a>
+#    <a n="TargetType"><s>Machine</s></a>
+#    <a n="AutoClusterId"><i>0</i></a>
+#    <a n="OnExitRemove"><b v="t"/></a>
+#    <a n="x509userproxysubject"><s>/DC=gov/DC=fnal/O=Fermilab/OU=People/CN=Igor Sfiligoi/UID=sfiligoi</s></a>
+# </c>
+# </classads>
+#
+
+
+# 3 xml2list XML handler functions
 def xml2list_start_element(name, attrs):
-    """
-    XML handler function called when starting an XML element.
+    """XML handler function called when starting an XML element.
 
     Args:
         name (str): The name of the XML element.
@@ -1105,8 +1078,7 @@ def xml2list_start_element(name, attrs):
 
 
 def xml2list_end_element(name):
-    """
-    XML handler function called when encountering the end of an XML element.
+    """XML handler function called when encountering the end of an XML element.
 
     Args:
         name (str): The name of the XML element.
@@ -1127,27 +1099,29 @@ def xml2list_end_element(name):
         - Resets xml2list_intype to 's' (string) if the XML element is one of 'i', 'b', 'un', or 'r'.
         - Handles cases where the XML element name is 's' (string), 'e' (end), or 'classads' by passing silently.
         - Raises a TypeError if an unexpected XML element type is encountered.
-
     """
     global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
+    # Would like to reset, but the following would be resetting global variables and failing ./test_frontend.py
+    # xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype = {}
 
     if name == "c":
         xml2list_data.append(xml2list_inclassad)
         xml2list_inclassad = None
     elif name == "a":
-        xml2list_inclassad[xml2list_inattr["name"]] = xml2list_inattr["val"]
+        xml2list_inclassad[xml2list_inattr["name"]] = xml2list_inattr["val"]  # pylint: disable=unsubscriptable-object
         xml2list_inattr = None
     elif name in ("i", "b", "un", "r"):
         xml2list_intype = "s"
-    elif name in ("s", "e", "classads"):
-        pass  # Nothing to do for these elements
+    elif name in ("s", "e"):
+        pass  # Nothing to do for string and expression markers
+    elif name == "classads":
+        pass  # Top element, nothing to do
     else:
         raise TypeError("Unexpected type: %s" % name)
 
 
 def xml2list_char_data(data):
-    """
-    XML handler function called when receiving character data within an XML element.
+    """XML handler function called when receiving character data within an XML element.
 
     Args:
         data (str): The character data received.
@@ -1163,7 +1137,6 @@ def xml2list_char_data(data):
         - This function updates the xml2list_inattr["val"] with parsed data based on xml2list_intype.
         - If xml2list_intype is 'b' and xml2list_inattr["val"] is None, it interprets the data as boolean.
         - Handles unescaped double quotes in the data by replacing '\\"' with '"'.
-
     """
     global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
 
@@ -1192,8 +1165,7 @@ def xml2list_char_data(data):
 
 
 def xml2list(xml_data):
-    """
-    Parse XML data representing Condor classads and convert it into a list of dictionaries.
+    """Parse XML data representing Condor classads and convert it into a list of dictionaries.
 
     This function parses the XML data using the Expat parser and extracts classads and their attributes.
 
@@ -1212,7 +1184,6 @@ def xml2list(xml_data):
 
     Raises:
         RuntimeError: If there's an error parsing the XML data.
-
     """
     global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
 
@@ -1233,6 +1204,7 @@ def xml2list(xml_data):
     # Find the position of the XML header
     found_xml = -1
     for line in range(len(xml_data)):
+        # Look for the xml header
         if xml_data[line][:5] == "<?xml":
             found_xml = line
             break
@@ -1245,6 +1217,7 @@ def xml2list(xml_data):
             raise RuntimeError("Failed to parse XML data, TypeError: %s" % e) from e
         except Exception as e:
             raise RuntimeError("Failed to parse XML data, generic error") from e
+    # else no xml, so return an empty list
 
     return xml2list_data
 
@@ -1469,12 +1442,15 @@ def fetch2count(data, hash_func):
 def fetch2count_flat(data, hash_func):
     """Count the hash values returned from all the elements in data
 
-    :param data: data from a fetch()
-    :param hash_func: Hashing function
-                One argument: classad dictionary
-                Returns: flat hash value (for hashing functions returning also lists, use fetch2count
-                          if None, will not be counted
-    :return: a dictionary with a count of the hash values returned
+    Args:
+        data: data from a fetch()
+        hash_func: Hashing function
+                   One argument: classad dictionary
+                   Returns: flat hash value (for hashing functions returning also lists, use fetch2count
+                            if None, will not be counted
+
+    Returns:
+        dict: a dictionary with a count of the hash values returned
     """
     data_list = sorted(hash_func(v) for v in list(data.values()))
     count = {key: len(list(group)) for key, group in groupby([i for i in data_list if i is not None])}
@@ -1494,8 +1470,7 @@ def fetch2count_flat(data, hash_func):
 #    Elements are lists of keys (or more dictionaries if hash returns lists)
 #
 def fetch2list(data, hash_func):
-    """
-    Convert data into a nested dictionary structure based on hash values.
+    """Convert data into a nested dictionary structure based on hash values.
 
     This function takes a dictionary of data and a hash function, and creates a nested dictionary structure
     based on the hash values returned by the hash function. It uses the hash values to organize the data into
@@ -1525,7 +1500,7 @@ def fetch2list(data, hash_func):
         # Initialize a pointer to the current level of the return dictionary
         lel = return_list
 
-        # Check if the hash value is a list
+        # Check if the element/hash value is a list
         if isinstance(hid, list):
             # Traverse the nested dictionary structure based on the hash values
             for h in hid[:-1]:
@@ -1622,8 +1597,7 @@ def bindings_friendly_attrs(format_list):
 
 
 class SummarizeMulti:
-    """
-    Class to summarize multiple queries.
+    """Class to summarize multiple queries.
 
     This class aggregates the results of multiple queries into a single summary. It provides methods to count
     occurrences based on specified constraints and hash functions.
@@ -1635,18 +1609,15 @@ class SummarizeMulti:
 
     Attributes:
         counts (list): A list containing the results of individual queries.
-
     """
 
     def __init__(self, queries, hash_func=lambda x: 1):
-        """
-        Initializes the SummarizeMulti object.
+        """Initializes the SummarizeMulti object.
 
         Args:
             queries (list): A list of query objects to be summarized.
             hash_func (function, optional): The hash function used for summarization. Defaults to a function
                 that always returns 1.
-
         """
         self.counts = []
         for query in queries:
@@ -1654,8 +1625,7 @@ class SummarizeMulti:
         self.hash_func = hash_func
 
     def count(self, constraint=None, hash_func=None):
-        """
-        Count occurrences based on specified constraints and hash functions.
+        """Count occurrences based on specified constraints and hash functions.
 
         This method counts occurrences based on the specified constraints and hash functions for all queries
         stored in the SummarizeMulti object.
@@ -1666,7 +1636,6 @@ class SummarizeMulti:
 
         Returns:
             dict: A dictionary containing the count of occurrences.
-
         """
         out = {}
 
@@ -1677,8 +1646,7 @@ class SummarizeMulti:
         return out
 
     def countStored(self, constraint_func=None, hash_func=None):
-        """
-        Count occurrences using stored data and specified constraints and hash functions.
+        """Count occurrences using stored data and specified constraints and hash functions.
 
         This method counts occurrences using the stored data and specified constraints and hash functions
         for all queries stored in the SummarizeMulti object.
@@ -1689,7 +1657,6 @@ class SummarizeMulti:
 
         Returns:
             dict: A dictionary containing the count of occurrences.
-
         """
         out = {}
 
@@ -1702,8 +1669,7 @@ class SummarizeMulti:
 
 # condor_q, where we have only one ProcId x ClusterId
 class CondorQLite(CondorQuery):
-    """
-    Class for querying a Condor pool with simplified functionality.
+    """Class for querying a Condor pool with simplified functionality.
 
     This class extends the functionality of the CondorQuery class to provide simplified querying of a Condor pool.
     It is designed to handle basic query operations with a focus on ease of use and reduced complexity.
@@ -1720,12 +1686,10 @@ class CondorQLite(CondorQuery):
         pool_name (str): The name of the pool.
         security_obj (object): The security object for authentication.
         schedd_lookup_cache (object): The cache object for storing schedd lookup data.
-
     """
 
     def __init__(self, schedd_name=None, pool_name=None, security_obj=None, schedd_lookup_cache=local_schedd_cache):
-        """
-        Initializes the CondorQLite object.
+        """Initializes the CondorQLite object.
 
         Args:
             schedd_name (str, optional): The name of the schedd. Defaults to None.
@@ -1733,7 +1697,6 @@ class CondorQLite(CondorQuery):
             security_obj (object, optional): The security object for authentication. Defaults to None.
             schedd_lookup_cache (object, optional): The cache object for storing schedd lookup data. Defaults to
                 local_schedd_cache.
-
         """
         self.schedd_name = schedd_name
 
@@ -1745,8 +1708,7 @@ class CondorQLite(CondorQuery):
         CondorQuery.__init__(self, "condor_q", schedd_str, "ClusterId", pool_name, security_obj, env)
 
     def fetch(self, constraint=None, format_list=None):
-        """
-        Fetches data from the Condor pool.
+        """Fetches data from the Condor pool.
 
         This method fetches data from the Condor pool based on the specified constraint and format list.
 
@@ -1757,7 +1719,6 @@ class CondorQLite(CondorQuery):
 
         Returns:
             dict: A dictionary containing the query results.
-
         """
         if format_list is not None:
             # check that ClusterId is present, and if not add it
