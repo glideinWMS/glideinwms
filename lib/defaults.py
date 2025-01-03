@@ -34,10 +34,13 @@ def force_bytes(instr, encoding=BINARY_ENCODING_CRYPTO):
         ValueError: If it detects an improper str conversion (b'' around the string).
     """
     if isinstance(instr, str):
+        # raise Exception("ALREADY str!")  # Use this for investigations
         if instr.startswith("b'") and len(instr) > 2 and instr.endswith("'"):
+            # This may cause errors with the random strings generated for unit tests, which may start with "b'"
             raise ValueError(
                 "Input was improperly converted into string (resulting in b'' characters added): %s" % instr
             )
+        # If the encoding is known codecs can be used for more efficiency, e.g. codecs.latin_1_encode(x)[0]
         return instr.encode(encoding)
     return instr
 
@@ -57,12 +60,15 @@ def force_str(inbytes, encoding=BINARY_ENCODING_CRYPTO):
             the input is neither string nor bytes.
     """
     if isinstance(inbytes, str):
+        # raise Exception("ALREADY str!")
         if inbytes.startswith("b'"):
             raise ValueError(
                 "Input was improperly converted into string (resulting in b'' characters added): %s" % inbytes
             )
         return inbytes
+    # if isinstance(inbytes, (bytes, bytearray)):
     try:
         return inbytes.decode(encoding)
     except AttributeError:
+        # This is not bytes, bytearray (and was not str)
         raise ValueError(f"Input is not str or bytes: {type(inbytes)} ({inbytes})")

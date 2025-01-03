@@ -32,7 +32,7 @@ class FrontendPidSupport(pidSupport.PidSupport):
         We add action_type here
 
         Args:
-            action_type:
+            action_type: The action performed (e.g., "run", "removeIdle")
             pid: if None, will default to os.getpid()
             started_time: if None, use time.time()
         """

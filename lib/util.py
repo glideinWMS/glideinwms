@@ -43,12 +43,15 @@ HOOK_POST_RECONFIG_DIRNAME = "hooks.reconfig.post"
 # From http://stackoverflow.com/questions/6027558/flatten-nested-python-dictionaries-compressing-keys
 # Much faster than my first version
 def flattenDict(d, join=add, lift=lambda x: x):
-    """Flexible flattening of a dictionary
+    """Flexible flattening of a dictionary.
 
-    :param d: dictionary to flatten
-    :param join: join function for the keys (allows to concatenate strings)
-    :param lift: lift function for the keys (allows to create tuples)
-    :return: list with flattened dictionary
+    Args:
+        d (dict): Dictionary to flatten.
+        join (function): join function for the keys (allows to concatenate strings). Default is `add`.
+        lift (function): lift function for the keys (allows to create tuples). Default is identity.
+
+    Returns:
+        list: List with flattened dictionary.
 
     >>> testData = {
         'a':1,
@@ -95,19 +98,24 @@ def flattenDict(d, join=add, lift=lambda x: x):
 
 
 def dict_to_flat(in_dict, prefix="", suffix="", sep=""):
-    """Flatten a multi-level dictionary to one level
-    The resulting keys are the string concatenation of the original ones
-    A separator can be added between keys
+    """Flatten a multi-level dictionary to one level.
 
-    NOTE: Value could be clobbered if there are duplicates in the strings resulting from concatenating keys, e.g.
-    {'a':{'b':1}, 'ab':2}
-    A separator will not solve the problem if it is a valid character for the keys
+    The resulting keys are the string concatenation of the original ones.
+    A separator can be added between keys.
 
-    :param in_dict: input dictionary
-    :param prefix: prefix for the keys (Default "")
-    :param suffix: suffix for the keys (Default "")
-    :param sep: separator between keys (Default: "")
-    :return: flattened dictionary
+    Notes:
+        Value could be clobbered if there are duplicates in the strings resulting from concatenating keys, e.g.
+        `{'a':{'b':1}, 'ab':2}`.
+        A separator will not solve the problem if it is a valid character for the keys.
+
+    Args:
+        in_dict (dict): Input dictionary.
+        prefix (str, optional): Prefix for the keys. Default is "".
+        suffix (str, optional): Suffix for the keys. Default is "".
+        sep (str, optional): Separator between keys. Default is "".
+
+    Returns:
+        str: Flattened dictionary.
     """
     if sep:
         out_list = flattenDict(in_dict, join=lambda a, b: a + sep + b)
@@ -122,13 +130,17 @@ def dict_to_flat(in_dict, prefix="", suffix="", sep=""):
 
 # First version, not performant
 def dict_to_flat_slow(in_dict, prefix="", suffix=""):
-    """Flatten a multi-level dictionary to one level
-    The resulting keys are the string concatenation of the original ones
+    """Flatten a multi-level dictionary to one level.
 
-    :param in_dict: input dictionary
-    :param prefix: prefix for the keys (Default "")
-    :param suffix: suffix for the keys (Default "")
-    :return: flattened dictionary
+    The resulting keys are the string concatenation of the original ones.
+
+    Args:
+        in_dict (dict): Input dictionary.
+        prefix (str, optional): Prefix for the keys. Default is "".
+        suffix (str, optional): Suffix for the keys. Default is "".
+
+    Returns:
+        str: Flattened dictionary.
     """
     out_dict = {}
     for k, v in list(in_dict.items()):
@@ -141,14 +153,18 @@ def dict_to_flat_slow(in_dict, prefix="", suffix=""):
 
 
 def dict_normalize(in_dict, keys=None, prefix="", suffix="", default=None):
-    """Change the keys of a dictionary
+    """Change the keys of a dictionary.
 
-    :param in_dict: input dictionary
-    :param keys: key list, if None it is using in_dict.keys() (Default: None)
-    :param prefix: prefix for the keys (Default "")
-    :param suffix: suffix for the keys (Default "")
-    :param default: default value passed to get (Default: None)
-    :return: normalized dictionary
+    Args:
+        in_dict (dict): Input dictionary.
+        keys (list, optional): Keys list, if None it is using `in_dict.keys()`. Default is None.
+        prefix (str, optional): Prefix for the keys. Default is "".
+        suffix (str, optional): Suffix for the keys. Default is "".
+        default (Object, optional): Default value passed to get(). Default is None.
+
+    Returns:
+        dict: Normalized dictionary.
+
     """
     out_dict = {}
     if not keys:
@@ -179,18 +195,18 @@ def dict_normalize(in_dict, keys=None, prefix="", suffix="", default=None):
 
 
 class ExpiredFileException(Exception):
-    """The file is too old to be used"""
+    """The file is too old to be used."""
 
     pass
 
 
 # Avoiding print_function that may be in the built-in
 def print_funct(*args, **kwargs):
-    """Print function that can be used as mask exception (the print statement cannot be passed as parameter)
+    """Print function that can be used as mask exception (the print statement cannot be passed as parameter).
 
-    :param args: list of what to print, converted into string and separated by 'sep'
-    :param kwargs: keywords, valid keywords: 'sep' separator, default is space
-    :return: None
+    Args:
+        *args: list of what to print, converted into string and separated by `sep`.
+        **kwargs: keywords, valid keyword: 'sep' separator. Everything else is ignored. Default 'sep' is space.
     """
     sep = " "
     try:
@@ -202,13 +218,13 @@ def print_funct(*args, **kwargs):
 
 # pylint: disable=misplaced-bare-raise
 def conditional_raise(mask_exceptions):
-    """Auxiliary function to handle conditional raising
+    """Auxiliary function to handle conditional raising.
 
     Args:
-        mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
-            The callback function can access the exception via sys.exc_info()
-            If a function is not provided, the exception is re-risen
-            if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
+        mask_exceptions: callback function and arguments to use if an exception happens (Default: None).
+            The callback function can access the exception via sys.exc_info().
+            If a function is not provided, the exception is re-risen,
+            if provided it is called using `mask_exceptions[0](*mask_exceptions[1:])`.
     Returns:
         None
     """
@@ -223,21 +239,22 @@ def conditional_raise(mask_exceptions):
 
 
 def file_pickle_dump(fname, content, tmp_type="PID", mask_exceptions=None, protocol=pickle.HIGHEST_PROTOCOL):
-    """Serialize and save content
+    """Serialize and save content.
 
-    To avoid inconsistent content
+    To avoid inconsistent content.
+
     Args:
-        fname: file storing the serialized content
-        content: content to serialize
-        tmp_type: tmp file type as defined in file_get_tmp (Default: PID, .$PID.tmp suffix)
-        mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
-          The callback function can access the exception via sys.exc_info()
-          If a function is not provided, the exception is re-risen
-          if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
-        protocol: Pickle protocol to be used (Default: pickle.HIGHEST_PROTOCOL, 5 as of py3.8)
+        fname(str): file storing the serialized content.
+        content: content to serialize.
+        tmp_type(str, optional): tmp file type as defined in file_get_tmp (Default: PID, .$PID.tmp suffix).
+        mask_exceptions(list, optional): callback function and arguments to use if an exception happens (Default: None).
+          The callback function can access the exception via sys.exc_info().
+          If a function is not provided, the exception is re-risen,
+          if provided it is called using mask_exceptions[0](*mask_exceptions[1:]).
+        protocol: Pickle protocol to be used (Default: pickle.HIGHEST_PROTOCOL, 5 as of py3.8).
 
     Returns:
-        bool: True if the saving was successful, False or an exception otherwis
+        bool: True if the saving was successful, False or an exception otherwise.
     """
     tmp_fname = file_get_tmp(fname, tmp_type)
     try:
@@ -327,18 +344,18 @@ def file_tmp2final(
 
     Args:
         fname(str): name of the file
-        tmp_fname(str|None): name of the temporary file with the new version of the content (Default: <fname>.tmp)
-        bck_fname(str|None): name of a backup of the old version (Default: <fname>~)
-        do_backup(bool): do a backup of the old version only if True (Default: True)
-        mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
-            The callback function can access the exception via sys.exc_info()
-            If a function is not provided, the exception is re-risen
-            if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
+        tmp_fname(str|None): name of the temporary file with the new version of the content (Default: <fname>.tmp).
+        bck_fname(str|None): name of a backup of the old version (Default: <fname>~).
+        do_backup(bool): do a backup of the old version only if True (Default: True).
+        mask_exceptions: callback function and arguments to use if an exception happens (Default: None).
+            The callback function can access the exception via sys.exc_info().
+            If a function is not provided, the exception is re-risen.
+            if provided it is called using `mask_exceptions[0](*mask_exceptions[1:])`.
         log:
         do_print:
 
     Returns:
-        bool: False if the move caused an exception. True otherwise
+        bool: False if the move caused an exception. True otherwise.
     """
     if tmp_fname is None:
         tmp_fname = fname + ".tmp"
@@ -368,18 +385,23 @@ def file_tmp2final(
 # unique name is sufficient. If this changes or if wor-dir is not on a local (POSIX) file system, temporary files
 # may have to be moved to a shared place (/tmp) and handled more properly
 def file_get_tmp(fname=None, tmp_type=None):
-    """Get the name of a temporary file
-    Depending on the option chosen this may be unsafe:
-    .tmp suffix is OK only if no one else will use this file
-    .$PID.tmp is OK if no multithreading is used and there are no safety concerns (name easy to guess, attacks prone)
-    tempfile from tempfile.mkstemp() that guarantees uniqueness and safety
+    """Get the name of a temporary file.
 
-    @param fname: original file name
-    @param tmp_type: type of temporary file name (Default: None):
-       - None (or anything False) - '.tmp' suffix added to the file name (unsafe, may be conflicts if )
-       - PID - '.$PID.tmp' suffix added to the file name
-       - REAL (or anything else) - real tempfile (unique and safe, using tempfile.mkstemp())
-    @return: tamporary file name
+    Depending on the option chosen this may be unsafe:
+    .tmp suffix is OK only if no one else will use this file.
+    .$PID.tmp is OK if no multithreading is used and there are no safety concerns (name easy to guess, attacks prone).
+    `tempfile` from `tempfile.mkstemp()` that guarantees uniqueness and safety.
+
+    Args:
+        fname (str, optional): Original file name.
+        tmp_type (str, optional): Type of temporary file name. Default is ".tmp" suffix (None). Available types:
+                   - None (or anything False) - '.tmp' suffix added to the file name (unsafe, may be conflicts if ).
+                   - PID - '.$PID.tmp' suffix added to the file name.
+                   - REAL (or anything else) - real tempfile (unique and safe, using `tempfile.mkstemp()`).
+
+    Returns:
+        str: Name of temporary file.
+
     """
     if not tmp_type:
         return fname + ".tmp"
@@ -403,11 +425,11 @@ def safe_boolcomp(value, expected):
     This works even if the value you wantto compare is a string.
 
     Args:
-        value: what you want to safely compare
-        expected (bool): What you want to compare `value` with
+        value: what you want to safely compare.
+        expected (bool): What you want to compare `value` with.
 
     Returns:
-        bool: True if str(value).lower() is True
+        bool: True if str(value).lower() is True.
     """
     return str(value).lower() == str(expected).lower()
 
@@ -429,7 +451,7 @@ def is_true(value):
 
 
 def str2bool(val):
-    """Convert u"True" or u"False" to boolean or raise ValueError"""
+    """Convert u"True" or u"False" to boolean or raise ValueError."""
     if val not in ["True", "False"]:
         # Not using ValueError intentionally: all config errors are RuntimeError
         raise RuntimeError("Found %s instead of 'True' of 'False'" % val)
@@ -440,7 +462,7 @@ def str2bool(val):
 
 
 def handle_hooks(basedir, script_dir):
-    """The function itaretes over the script_dir directory and executes any script found there"""
+    """The function itaretes over the script_dir directory and executes any script found there."""
     dirname = os.path.join(basedir, script_dir)
     if not os.path.isdir(dirname):
         return
@@ -452,14 +474,14 @@ def handle_hooks(basedir, script_dir):
 
 
 def hash_nc(data, len=None):
-    """Returns a non-cryptographic MD5 hash encoded in base32
+    """Returns a non-cryptographic MD5 hash encoded in base32.
 
     Args:
-        data (AnyStr): Data to hash
+        data (AnyStr): Data to hash.
         len (int, optional): Hash length. Defaults to None.
 
     Returns:
-        str: Hash
+        str: Hash.
     """
     # TODO set md5 usedforsecurity to False when updating to Python 3.9
     out = b32encode(md5(force_bytes(data)).digest()).decode(BINARY_ENCODING_ASCII)
@@ -469,11 +491,11 @@ def hash_nc(data, len=None):
 
 
 def chmod(*args, **kwargs):
-    """Wrapper for os.chmod that supresses PermissionError exceptions
+    """Wrapper for os.chmod that supresses PermissionError exceptions.
 
     Args:
-        *args: Positional arguments to pass to os.chmod
-        **kwargs: Keyword arguments to pass to os.chmod
+        *args: Positional arguments to pass to os.chmod.
+        **kwargs: Keyword arguments to pass to os.chmod.
 
     Returns:
         None
@@ -483,18 +505,18 @@ def chmod(*args, **kwargs):
 
 
 def import_module(module, search_path=None):
-    """Import a module by name or path
+    """Import a module by name or path.
 
     Args:
         module (str): Module name, module path, file name, or file path.
         search_path (str or list of str, optional): Search path for the module. Defaults to None.
 
     Raises:
-        ValueError: Invalid search_path
-        ImportError: Failed to import the module
+        ValueError: Invalid search_path.
+        ImportError: Failed to import the module.
 
     Returns:
-        module: Imported module
+        module: Imported module.
     """
 
     if search_path:

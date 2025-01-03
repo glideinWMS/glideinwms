@@ -3,24 +3,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-servicePerf.py
-
-This module provides classes and functions to track performance metrics for different events in a service.
-
-Author:
-    Parag Mhashilkar (November 2016)
-
-License:
-    Fermitools
-"""
+"""This module provides classes and functions to track performance metrics for different events in a service."""
 
 import time
 
 
 class PerfMetric:
-    """
-    A class to store performance metrics for different events in a service.
+    """A class to store performance metrics for different events in a service.
 
     Attributes:
         name (str): The name of the service being monitored.
@@ -28,18 +17,18 @@ class PerfMetric:
     """
 
     def __init__(self, name):
-        """
-        Initialize a PerfMetric object.
+        """Initialize a PerfMetric object.
 
         Args:
             name (str): The name of the service.
         """
         self.name = name
+        # metric is a dict of dict with following structure
+        # {event_name: {'start_time': time(), 'end_time': time()}}
         self.metric = {}
 
     def register_event_time(self, event_name, t_tag, t=None):
-        """
-        Register a time for a specific event.
+        """Register a time for a specific event.
 
         Args:
             event_name (str): The name of the event.
@@ -53,8 +42,7 @@ class PerfMetric:
         self.metric[event_name][t_tag] = t
 
     def deregister_event(self, event_name):
-        """
-        Remove an event from the metric tracking.
+        """Remove an event from the metric tracking.
 
         Args:
             event_name (str): The name of the event to remove.
@@ -62,8 +50,7 @@ class PerfMetric:
         self.metric.pop(event_name, None)
 
     def event_start(self, event_name, t=None):
-        """
-        Register the start time of an event.
+        """Register the start time of an event.
 
         Args:
             event_name (str): The name of the event.
@@ -72,8 +59,7 @@ class PerfMetric:
         self.register_event_time(event_name, "start_time", t=t)
 
     def event_end(self, event_name, t=None):
-        """
-        Register the end time of an event.
+        """Register the end time of an event.
 
         Args:
             event_name (str): The name of the event.
@@ -82,8 +68,7 @@ class PerfMetric:
         self.register_event_time(event_name, "end_time", t=t)
 
     def event_lifetime(self, event_name, check_active_event=True):
-        """
-        Calculate the lifetime of an event.
+        """Calculate the lifetime of an event.
 
         Args:
             event_name (str): The name of the event.
@@ -97,6 +82,7 @@ class PerfMetric:
         if event_name in self.metric:
             if ("start_time" in self.metric[event_name]) and ("end_time" in self.metric[event_name]):
                 lifetime = self.metric[event_name]["end_time"] - self.metric[event_name]["start_time"]
+                # Event still alive, consider current time instead of end time
                 if (lifetime < 0) and check_active_event:
                     lifetime = time.time() - self.metric[event_name]["start_time"]
         return float(f"{lifetime:.3f}")
@@ -121,8 +107,7 @@ _perf_metric = {}
 
 
 def startPerfMetricEvent(name, event_name, t=None):
-    """
-    Start tracking an event's performance for a given service.
+    """Start tracking an event's performance for a given service.
 
     Args:
         name (str): The name of the service.
@@ -134,8 +119,7 @@ def startPerfMetricEvent(name, event_name, t=None):
 
 
 def endPerfMetricEvent(name, event_name, t=None):
-    """
-    Stop tracking an event's performance for a given service.
+    """Stop tracking an event's performance for a given service.
 
     Args:
         name (str): The name of the service.
@@ -147,8 +131,7 @@ def endPerfMetricEvent(name, event_name, t=None):
 
 
 def getPerfMetricEventLifetime(name, event_name):
-    """
-    Get the lifetime of a specific event for a given service.
+    """Get the lifetime of a specific event for a given service.
 
     Args:
         name (str): The name of the service.
@@ -161,8 +144,7 @@ def getPerfMetricEventLifetime(name, event_name):
 
 
 def getPerfMetric(name):
-    """
-    Retrieve or create a PerfMetric object for a given service.
+    """Retrieve or create a PerfMetric object for a given service.
 
     Args:
         name (str): The name of the service.

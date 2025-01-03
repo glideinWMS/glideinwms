@@ -5,6 +5,7 @@
 configuration generation helper tools.
 """
 
+
 import collections
 import os
 
@@ -99,6 +100,7 @@ SUBMISSION_SPEED_MAP = {
 }
 
 
+# Class to handle error in the merge script
 class ProgramError(Exception):
     """Simple collection of program error codes and related short messages.
 
@@ -176,6 +178,7 @@ def get_attr_str(attrs):
         else:
             data["comment"] = ' comment="' + data["comment"] + '"'
         if "value" in data:
+            # pylint: disable=line-too-long
             out += (
                 '            <attr name="%(name)s"%(comment)s const="%(const)s" glidein_publish="%(glidein_publish)s" job_publish="%(job_publish)s" parameter="%(parameter)s" publish="%(publish)s" type="%(type)s" value="%(value)s"/>\n'
                 % data
@@ -184,6 +187,7 @@ def get_attr_str(attrs):
     return out[:-1]
 
 
+# Collect all submit attributes
 def get_submit_attr_str(submit_attrs):
     """Convert submit attributes from a dictionary form to the corresponding configuration string.
 
@@ -202,6 +206,7 @@ def get_submit_attr_str(submit_attrs):
     return out
 
 
+# Collect all pilots limits
 def get_limits_str(limits):
     """Convert pilots limits from a dictionary form to the corresponding configuration string.
 
@@ -235,6 +240,7 @@ def get_limits_str(limits):
     return out
 
 
+# Collect submission speed
 def get_submission_speed(submission_speed):
     """Convert submission speed from a name to the corresponding configuration string.
 
@@ -306,6 +312,7 @@ def write_to_xml_file(file_name, information):
         outfile.write("</glidein>\n")
 
 
+# Write collected information to file
 def write_to_file(file_name, information):
     """Take a dictionary and writes it out to disk as a yaml file.
 
