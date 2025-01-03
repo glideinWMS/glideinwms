@@ -11,8 +11,7 @@ from . import condorExe, condorMonitor
 ##############################################
 # Helper functions
 def pool2str(pool_name):
-    """
-    Convert pool name to a string suitable for the Condor command line.
+    """Convert pool name to a string suitable for the Condor command line.
 
     Args:
         pool_name (str): The name of the pool.
@@ -27,8 +26,7 @@ def pool2str(pool_name):
 
 
 def schedd2str(schedd_name):
-    """
-    Convert schedd name to a string suitable for the Condor command line.
+    """Convert schedd name to a string suitable for the Condor command line.
 
     Args:
         schedd_name (str): The name of the schedd.
@@ -43,8 +41,7 @@ def schedd2str(schedd_name):
 
 
 def cached_exe_cmd(cmd, arg_str, schedd_name, pool_name, schedd_lookup_cache):
-    """
-    Execute a cached Condor command.
+    """Execute a cached Condor command.
 
     Args:
         cmd (str): The Condor command to execute.
@@ -67,16 +64,12 @@ def cached_exe_cmd(cmd, arg_str, schedd_name, pool_name, schedd_lookup_cache):
 
 ##############################################
 #
-# Submit a new job, given a submit file
-# Works only when a single cluster is created
-#
-# returns ClusterId
+# HTCondor commands
 #
 def condorSubmitOne(
     submit_file, schedd_name=None, pool_name=None, schedd_lookup_cache=condorMonitor.local_schedd_cache
 ):
-    """
-    Submit a new job using a submit file. Works only when a single cluster is created.
+    """Submit a new job using a submit file. Works only when a single cluster is created.
 
     Args:
         submit_file (str): The path to the submit file.
@@ -98,15 +91,10 @@ def condorSubmitOne(
     return int(idstr)
 
 
-##############################################
-#
-# Remove a set of jobs from the queue
-#
 def condorRemove(
     constraint, schedd_name=None, pool_name=None, do_forcex=False, schedd_lookup_cache=condorMonitor.local_schedd_cache
 ):
-    """
-    Remove a set of jobs from the queue.
+    """Remove a set of jobs from the queue.
 
     Args:
         constraint (str): The constraint to match jobs for removal.
@@ -124,10 +112,6 @@ def condorRemove(
     return cached_exe_cmd("condor_rm", opts, schedd_name, pool_name, schedd_lookup_cache)
 
 
-##############################################
-#
-# Remove a job from the queue
-#
 def condorRemoveOne(
     cluster_or_uname,
     schedd_name=None,
@@ -135,8 +119,7 @@ def condorRemoveOne(
     do_forcex=False,
     schedd_lookup_cache=condorMonitor.local_schedd_cache,
 ):
-    """
-    Remove a single job from the queue.
+    """Remove a single job from the queue.
 
     Args:
         cluster_or_uname (str): The ClusterId or username of the job to remove.
@@ -154,13 +137,8 @@ def condorRemoveOne(
     return cached_exe_cmd("condor_rm", opts, schedd_name, pool_name, schedd_lookup_cache)
 
 
-##############################################
-#
-# Hold a set of jobs from the queue
-#
 def condorHold(constraint, schedd_name=None, pool_name=None, schedd_lookup_cache=condorMonitor.local_schedd_cache):
-    """
-    Hold a set of jobs in the queue.
+    """Hold a set of jobs in the queue.
 
     Args:
         constraint (str): The constraint to match jobs for holding.
@@ -175,15 +153,10 @@ def condorHold(constraint, schedd_name=None, pool_name=None, schedd_lookup_cache
     return cached_exe_cmd("condor_hold", opts, schedd_name, pool_name, schedd_lookup_cache)
 
 
-##############################################
-#
-# Hold a job from the queue
-#
 def condorHoldOne(
     cluster_or_uname, schedd_name=None, pool_name=None, schedd_lookup_cache=condorMonitor.local_schedd_cache
 ):
-    """
-    Hold a single job in the queue.
+    """Hold a single job in the queue.
 
     Args:
         cluster_or_uname (str): The ClusterId or username of the job to hold.
@@ -198,13 +171,8 @@ def condorHoldOne(
     return cached_exe_cmd("condor_hold", opts, schedd_name, pool_name, schedd_lookup_cache)
 
 
-##############################################
-#
-# Release a set of jobs from the queue
-#
 def condorRelease(constraint, schedd_name=None, pool_name=None, schedd_lookup_cache=condorMonitor.local_schedd_cache):
-    """
-    Release a set of jobs from hold in the queue.
+    """Release a set of jobs from hold in the queue.
 
     Args:
         constraint (str): The constraint to match jobs for release.
@@ -219,15 +187,10 @@ def condorRelease(constraint, schedd_name=None, pool_name=None, schedd_lookup_ca
     return cached_exe_cmd("condor_release", opts, schedd_name, pool_name, schedd_lookup_cache)
 
 
-##############################################
-#
-# Release a job from the queue
-#
 def condorReleaseOne(
     cluster_or_uname, schedd_name=None, pool_name=None, schedd_lookup_cache=condorMonitor.local_schedd_cache
 ):
-    """
-    Release a single job from hold in the queue.
+    """Release a single job from hold in the queue.
 
     Args:
         cluster_or_uname (str): The ClusterId or username of the job to release.
@@ -242,13 +205,8 @@ def condorReleaseOne(
     return cached_exe_cmd("condor_release", opts, schedd_name, pool_name, schedd_lookup_cache)
 
 
-##############################################
-#
-# Issue a condor_reschedule
-#
 def condorReschedule(schedd_name=None, pool_name=None, schedd_lookup_cache=condorMonitor.local_schedd_cache):
-    """
-    Issue a condor_reschedule command.
+    """Issue a condor_reschedule command.
 
     Args:
         schedd_name (str, optional): The name of the schedd. Defaults to None.
@@ -262,14 +220,15 @@ def condorReschedule(schedd_name=None, pool_name=None, schedd_lookup_cache=condo
 ##############################################
 # Helper functions of condorAdvertise
 def usetcp2str(use_tcp):
-    """
-    Convert use_tcp flag to a string suitable for the Condor command line.
+    """Convert `use_tcp` flag to a string suitable for the Condor command line.
+
+    Helper functions of `condorAdvertise`.
 
     Args:
         use_tcp (bool): If True, use TCP.
 
     Returns:
-        str: The use_tcp flag formatted for the command line.
+        str: The `use_tcp` flag formatted for the command line.
     """
     if use_tcp:
         return "-tcp "
@@ -278,14 +237,15 @@ def usetcp2str(use_tcp):
 
 
 def ismulti2str(is_multi):
-    """
-    Convert is_multi flag to a string suitable for the Condor command line.
+    """Convert `is_multi` flag to a string suitable for the Condor command line.
+
+    Helper functions of `condorAdvertise`.
 
     Args:
         is_multi (bool): If True, indicate multiple.
 
     Returns:
-        str: The is_multi flag formatted for the command line.
+        str: The `is_multi` flag formatted for the command line.
     """
     if is_multi:
         return "-multiple "
@@ -293,13 +253,10 @@ def ismulti2str(is_multi):
         return ""
 
 
-##############################################
-#
-# Advertise a job to the queue
-#
+#############################################
+# HTCondor Advertise function
 def condorAdvertise(classad_fname, command, use_tcp=False, is_multi=False, pool_name=None):
-    """
-    Advertise a job to the Condor queue.
+    """Advertise a HTCondor ClassAd to the collector.
 
     Args:
         classad_fname (str): The filename of the classad.

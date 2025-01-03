@@ -29,12 +29,9 @@ def check_pid(pid):
 
 
 class AlreadyRunning(RuntimeError):
-    """Exception raised when a process is already running and owns the PID file."""
+    """Exception raised during PID registration when a process is already running and owns the PID file."""
 
     pass
-
-
-#######################################################
 
 
 class PidSupport:
@@ -49,6 +46,9 @@ class PidSupport:
         mypid (int): The PID of the current process.
         lock_in_place (bool): Indicates if the lock is in place.
         started_time (float): The time when the process started.
+
+    Notes:
+        `self.mypid` is valid only if `self.fd` is valid or after a load
     """
 
     def __init__(self, pid_fname):
@@ -86,10 +86,13 @@ class PidSupport:
         self.mypid = pid
         self.started_time = started_time
 
+        # check lock file
         if not os.path.exists(self.pid_fname):
+            # create a lock file if needed
             fd = open(self.pid_fname, "w")
             fd.close()
 
+        # Do not use 'with' or close the file. Will be closed when lock is released
         fd = open(self.pid_fname, "r+")
         try:
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -121,28 +124,36 @@ class PidSupport:
         Updates the instance's PID and lock status based on the contents of the PID file.
         """
         if self.fd is not None:
-            return
+            return  # we own it, so nothing to do
 
+        # make sure it is initialized (to not registered)
         self.reset_to_default()
 
         self.lock_in_place = False
+        # Else I don't own it
         if not os.path.isfile(self.pid_fname):
             return
 
         with open(self.pid_fname) as fd:
             try:
                 fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                # If I can get a lock, it means that there is no process
                 return
             except OSError:
+                # There is a process
+                # I will read it even if locked, so that I can report what the PID is
+                # if the data is corrupted, I will deal with it later
                 lines = fd.readlines()
                 self.lock_in_place = True
 
         try:
             self.parse_pid_file_content(lines)
         except Exception:
+            # Data is corrupted, cannot get the PID, masking exceptions
             return
 
         if not check_pid(self.mypid):
+            # Found not running
             self.mypid = None
         return
 
@@ -199,6 +210,9 @@ class PidWParentSupport(PidSupport):
 
     Attributes:
         parent_pid (int): The parent process PID.
+
+    Notes:
+        `self.mypid` and `self.parent_pid` are valid only if `self.fd` is valid or after a load
     """
 
     def __init__(self, pid_fname):

@@ -1,17 +1,22 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-Description: General purpose Python expression parser and unparser.
-"""
+"""Description: General purpose Python expression parser and unparser."""
 
 import ast
 import itertools
 
+# These are used in modules importing exprParser, like frontend_match_ana
 from ast import And, Not, Or  # noqa: F401
 from io import StringIO
 
 from .unparser import Unparser
+
+# Keeping this line from the Python 2 version to have a list of the objects supported
+# NOTE: compiler.ast is slightly different from the concrete tree in ast
+# from compiler.ast import Name, Const, Keyword, List, Tuple, And, Or, Not, UnaryAdd, UnarySub, Compare, Add, Sub,
+#     Mul, FloorDiv, Div, Mod, Power, LeftShift, RightShift, Bitand, Bitor, Bitxor, CallFunc, Getattr, Subscript,
+#     Slice, Lambda
 
 
 def exp_parse(expression):
@@ -23,6 +28,9 @@ def exp_parse(expression):
     Returns:
         ast.AST: AST tree from the expression, starting from ast.Expression node.
     """
+    # mode='exec' (default) for sequence of statements
+    # eval - single expression
+    # single - single interactive statement
     return ast.parse(expression, "<string>", mode="eval")
 
 

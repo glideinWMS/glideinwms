@@ -19,28 +19,24 @@ import os
 #
 # All info is in the state attribute
 class EnvState:
-    """
-    This class manages the state of the Condor environment.
+    """This class manages the state of the Condor environment.
 
     Attributes:
         filter (list): List of Condor variables to save.
         state (dict): The saved state of the environment variables.
     """
 
-    def __init__(self, filter):
-        """
-        Initializes the EnvState instance.
+    def __init__(self, filter_list):
+        """Initializes the EnvState instance.
 
         Args:
-            filter (list): List of Condor variables to save.
+            filter_list (list): List of Condor variables to save.
         """
-        self.filter = filter
+        self.filter = filter_list
         self.load()
 
     def restore(self):
-        """
-        Restores the environment variables to their original state.
-        """
+        """Restores the environment variables to their original state (the one found when creating this object)."""
         for condor_key in list(self.state.keys()):
             env_key = "_CONDOR_%s" % condor_key
             old_val = self.state[condor_key]
@@ -51,14 +47,13 @@ class EnvState:
                     del os.environ[env_key]
 
     def load(self):
-        """
-        Loads the current environment state into the instance.
+        """Loads the current environment state into the instance.
 
-        This method is automatically called by the __init__ method.
+        This method is automatically called by the __init__ method. It should not be called directly.
         """
-        filter = self.filter
+        filter_list = self.filter
         saved_state = {}
-        for condor_key in filter:
+        for condor_key in filter_list:
             env_key = "_CONDOR_%s" % condor_key
             if env_key in os.environ:
                 saved_state[condor_key] = os.environ[env_key]
@@ -73,8 +68,7 @@ class EnvState:
 
 
 def convert_sec_filter(sec_filter):
-    """
-    Converts a security filter dictionary to a list of Condor keys.
+    """Converts a security filter dictionary to a list of Condor keys.
 
     Args:
         sec_filter (dict): Dictionary of security contexts and features.
@@ -82,28 +76,27 @@ def convert_sec_filter(sec_filter):
     Returns:
         list: List of Condor keys.
     """
-    filter = []
+    filter_list = []
     for context in list(sec_filter.keys()):
         for feature in sec_filter[context]:
             condor_key = f"SEC_{context}_{feature}"
-            filter.append(condor_key)
-    return filter
+            filter_list.append(condor_key)
+    return filter_list
 
 
 class SecEnvState(EnvState):
-    """
-    This class manages the state of the Condor security environment.
+    """This class manages the state of the Condor security environment.
 
     Attributes:
         sec_filter (dict): Dictionary of security contexts and features.
     """
 
     def __init__(self, sec_filter):
-        """
-        Initializes the SecEnvState instance.
+        """Initializes the SecEnvState instance.
 
         Args:
             sec_filter (dict): Dictionary of security contexts and features.
+                               Example: `[context]=[feature list]`
         """
         EnvState.__init__(self, convert_sec_filter(sec_filter))
         self.sec_filter = sec_filter
@@ -119,8 +112,7 @@ UNSET_VALUE = "UNSET"
 # This class handle requests for ensuring
 # the security state is in a particular state
 class SecEnvRequest:
-    """
-    This class handles requests for setting the Condor security environment state.
+    """This class handles requests for setting the Condor security environment state.
 
     Attributes:
         requests (dict): Dictionary of security requests.
@@ -128,12 +120,13 @@ class SecEnvRequest:
     """
 
     def __init__(self, requests=None):
-        """
-        Initializes the SecEnvRequest instance.
+        """Initializes the SecEnvRequest instance.
 
         Args:
             requests (dict, optional): Dictionary of security requests. Defaults to None.
+                                       Example: `[context][feature]=VAL`
         """
+        # TODO: requests can be a self initializing dictionary of dictionaries in PY3
         self.requests = {}
         if requests is not None:
             for context in list(requests.keys()):
@@ -142,9 +135,10 @@ class SecEnvRequest:
 
         self.saved_state = None
 
+    ##############################################
+    # Methods for accessing the requests
     def set(self, context, feature, value):
-        """
-        Sets a security request.
+        """Sets a security request.
 
         Args:
             context (str): The security context.
@@ -162,8 +156,7 @@ class SecEnvRequest:
                     del self.requests[context]
 
     def get(self, context, feature):
-        """
-        Gets a security request.
+        """Gets a security request.
 
         Args:
             context (str): The security context.
@@ -180,9 +173,10 @@ class SecEnvRequest:
         else:
             return None
 
+    ##############################################
+    # Methods for preserving the old state
     def has_saved_state(self):
-        """
-        Checks if there is a saved state.
+        """Checks if there is a saved state.
 
         Returns:
             bool: True if there is a saved state, False otherwise.
@@ -190,8 +184,7 @@ class SecEnvRequest:
         return self.saved_state is not None
 
     def save_state(self):
-        """
-        Saves the current state of the environment variables.
+        """Saves the current state of the environment variables.
 
         Raises:
             RuntimeError: If there is already a saved state.
@@ -205,19 +198,20 @@ class SecEnvRequest:
         self.saved_state = SecEnvState(filter)
 
     def restore_state(self):
-        """
-        Restores the environment variables to the saved state.
-        """
+        """Restores the environment variables to the saved state."""
         if self.saved_state is None:
             return  # nothing to do
 
         self.saved_state.restore()
         self.saved_state = None
 
+    ##############################################
+    # Methods for changing to the desired state
+
+    # you should call save_state before this one,
+    # if you want to ever get back
     def enforce_requests(self):
-        """
-        Enforces the security requests by setting the environment variables.
-        """
+        """Enforces the security requests environment state by setting the environment variables."""
         for context in list(self.requests.keys()):
             for feature in list(self.requests[context].keys()):
                 condor_key = f"SEC_{context}_{feature}"
@@ -261,16 +255,14 @@ CONDOR_PROTO_VALUE_LIST = ("NEVER", "OPTIONAL", "PREFERRED", "REQUIRED")
 
 ########################################
 class EnvProtoState(SecEnvState):
-    """
-    This class manages the state of the Condor protocol security environment.
+    """This class manages the state of the Condor protocol security environment.
 
     Attributes:
         filter (dict): Dictionary of contexts and features to filter.
     """
 
     def __init__(self, filter=None):
-        """
-        Initializes the EnvProtoState instance.
+        """Initializes the EnvProtoState instance.
 
         Args:
             filter (dict, optional): Dictionary of contexts and features to filter. Defaults to None.
@@ -300,8 +292,7 @@ class EnvProtoState(SecEnvState):
 # the context and feature are related
 # to the Condor protocol handling
 class ProtoRequest(SecEnvRequest):
-    """
-    This class handles requests for setting the Condor protocol security environment state.
+    """This class handles requests for setting the Condor protocol security environment state.
 
     Methods:
         set: Sets a security request.
@@ -309,8 +300,8 @@ class ProtoRequest(SecEnvRequest):
     """
 
     def set(self, context, feature, value):
-        """
-        Sets a security request.
+        """Sets a security request.
+        If one of the inputs is invalid or is None, remove the request.
 
         Args:
             context (str): The security context.
@@ -318,7 +309,7 @@ class ProtoRequest(SecEnvRequest):
             value (str): The value to set. If None, the request is removed.
 
         Raises:
-            ValueError: If the context, feature, or value is invalid.
+            ValueError: If the context, feature, or value are invalid.
         """
         if context not in CONDOR_CONTEXT_LIST:
             raise ValueError("Invalid security context '%s'." % context)
@@ -329,8 +320,7 @@ class ProtoRequest(SecEnvRequest):
         SecEnvRequest.set(self, context, feature, value)
 
     def get(self, context, feature):
-        """
-        Gets a security request.
+        """Gets a security request.
 
         Args:
             context (str): The security context.
@@ -359,8 +349,7 @@ class ProtoRequest(SecEnvRequest):
 
 
 class GSIRequest(ProtoRequest):
-    """
-    This class handles requests for setting the Condor GSI security environment state.
+    """This class handles requests for setting the Condor GSI security environment state.
 
     Attributes:
         x509_proxy (str): The X.509 proxy.
@@ -370,8 +359,7 @@ class GSIRequest(ProtoRequest):
     """
 
     def __init__(self, x509_proxy=None, allow_fs=True, allow_idtokens=True, proto_requests=None):
-        """
-        Initializes the GSIRequest instance.
+        """Initializes the GSIRequest instance.
 
         Args:
             x509_proxy (str, optional): The X.509 proxy. Defaults to None.
@@ -410,6 +398,7 @@ class GSIRequest(ProtoRequest):
         self.x509_proxy_saved_state = None
 
         if x509_proxy is None:
+            # Removed X509_USER_PROXY requirement, could use tokens and X509_USER_PROXY be None
             x509_proxy = os.environ.get("X509_USER_PROXY")
 
         # Here I should probably check if the proxy is valid
@@ -418,8 +407,7 @@ class GSIRequest(ProtoRequest):
         self.x509_proxy = x509_proxy
 
     def save_state(self):
-        """
-        Saves the current state of the environment variables.
+        """Saves the current state of the environment variables.
 
         Raises:
             RuntimeError: If there is already a saved state.
@@ -434,9 +422,7 @@ class GSIRequest(ProtoRequest):
         ProtoRequest.save_state(self)
 
     def restore_state(self):
-        """
-        Restores the environment variables to the saved state.
-        """
+        """Restores the environment variables to the saved state."""
         if self.saved_state is None:
             return  # nothing to do
 
@@ -451,9 +437,7 @@ class GSIRequest(ProtoRequest):
         self.x509_proxy_saved_state = None
 
     def enforce_requests(self):
-        """
-        Enforces the security requests by setting the environment variables.
-        """
+        """Enforces the security requests by setting the environment variables."""
         ProtoRequest.enforce_requests(self)
         if self.x509_proxy:
             os.environ["X509_USER_PROXY"] = self.x509_proxy

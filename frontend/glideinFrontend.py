@@ -9,11 +9,12 @@ This script serves as the entry point for managing the glideinFrontend processes
 failure monitoring, and performance aggregation.
 
 Usage:
-    python glidein_frontend_main.py <work_dir>
+    python glideinFrontend.py <work_dir>
 
 Args:
-    work_dir (str): The working directory for the frontend.
+    work_dir (str): The working directory for the Frontend.
 """
+
 
 import fcntl
 import os
@@ -57,7 +58,8 @@ class FailureCounter:
     """
 
     def __init__(self, my_name, max_lifetime):
-        """
+        """Initializes the FailureCounter.
+
         Args:
             my_name (str): Name or identifier for the failure counter.
             max_lifetime (int): Time window in seconds for retaining failure records.
@@ -93,6 +95,8 @@ class FailureCounter:
             int: The number of recorded failures.
         """
         return len(self.get_failures())
+
+    # INTERNAL
 
     def clean_old(self):
         """Remove outdated failure records that exceed the retention window."""
@@ -330,9 +334,6 @@ def spawn_cleanup(work_dir, frontendDescript, groups, frontend_name, ha_mode):
         groups (list): List of groups to clean up.
         frontend_name (str): The name of the frontend.
         ha_mode (str): High-availability mode.
-
-    Returns:
-        None
     """
     try:
         set_frontend_htcondor_env(work_dir, frontendDescript)
@@ -394,9 +395,6 @@ def spawn(
         max_parallel_workers (int): Maximum number of parallel workers.
         restart_interval (int): Interval (in seconds) before attempting a restart.
         restart_attempts (int): Maximum number of restart attempts.
-
-    Returns:
-        None
     """
     num_groups = len(groups)
 
@@ -479,7 +477,10 @@ def spawn(
 
 ############################################################
 def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
-     """Determine if the frontend should enter hibernation.
+    """Determine if the frontend should enter hibernation.
+
+    Check if the frontend is running in HA mode. If run in master mode never
+    hibernate. If run in slave mode, hibernate if master is active.
 
     Args:
         frontendDescript (FrontendDescript): The frontend descriptor object.
@@ -489,7 +490,7 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
         groups (list): List of groups being managed.
 
     Returns:
-        bool: True if the frontend should hibernate, False otherwise.
+        bool: True if this Frontend should hibernate, False otherwise.
     """
 
     servicePerformance.startPerfMetricEvent("frontend", "ha_check")
@@ -559,7 +560,7 @@ def clear_diskcache_dir(work_dir):
     try:
         shutil.rmtree(cache_dir)
     except OSError as ose:
-        if ose.errno != 2:  # errno 2 is okay (directory missing)
+        if ose.errno != 2:  # errno 2 is okay (directory missing - Maybe it's the first execution?)
             logSupport.log.exception(f"Error removing cache directory {cache_dir}")
             raise
     os.mkdir(cache_dir)
@@ -571,13 +572,12 @@ def set_frontend_htcondor_env(work_dir, frontendDescript, element=None):
     Configures the environment variables required for HTCondor operations
     based on the frontend description and element.
 
+    The Collector DN is only in the group's mapfile. Just get first one.
+
     Args:
         work_dir (str): The working directory for the frontend.
         frontendDescript (FrontendDescript): The frontend descriptor object.
         element (Element, optional): The specific group element. Defaults to None.
-
-    Returns:
-        None
     """
     groups = frontendDescript.data["Groups"].split(",")
     if groups:
@@ -596,9 +596,6 @@ def set_env(env):
 
     Args:
         env (dict): Dictionary of environment variables and their values.
-
-    Returns:
-        None
     """
     for var, value in env.items():
         os.environ[var] = value
@@ -609,13 +606,13 @@ def clean_htcondor_env():
 
     This function clears specific environment variables used by HTCondor
     to prevent conflicts with other processes.
-
-    Returns:
-        None
     """
     for v in ("CONDOR_CONFIG", "_CONDOR_CERTIFICATE_MAPFILE", "X509_USER_PROXY"):
         if os.environ.get(v):
             del os.environ[v]
+
+
+############################################################
 
 
 def spawn_removal(work_dir, frontendDescript, groups, max_parallel_workers, removal_action):
@@ -629,22 +626,17 @@ def spawn_removal(work_dir, frontendDescript, groups, max_parallel_workers, remo
         groups (list): List of group names to process.
         max_parallel_workers (int): Maximum number of parallel workers.
         removal_action (str): The specific removal action to perform.
-
-    Returns:
-        None
     """
     failure_dict = {group: FailureCounter(group, 3600) for group in groups}
     spawn_iteration(work_dir, frontendDescript, groups, max_parallel_workers, failure_dict, 1, removal_action)
 
 
+############################################################
 def cleanup_environ():
     """Clean up environment variables.
 
     Removes environment variables related to CONDOR and X509 to ensure
     a clean execution environment.
-
-    Returns:
-        None
     """
     for val in list(os.environ.keys()):
         val_low = val.lower()
@@ -654,6 +646,7 @@ def cleanup_environ():
             del os.environ[val]
 
 
+############################################################
 def main(work_dir, action):
     """Main entry point for the glideinFrontend.
 
@@ -667,9 +660,6 @@ def main(work_dir, action):
     Raises:
         ValueError: If an unknown action is specified.
         Exception: For any errors during initialization or processing.
-
-    Returns:
-        None
     """
     startup_time = time.time()
 
@@ -679,6 +669,7 @@ def main(work_dir, action):
     frontendDescript = glideinFrontendConfig.FrontendDescript(work_dir)
 
     # Configure logging
+    # the log dir is shared between the frontend main and the groups, so use a subdirectory
     logSupport.log_dir = os.path.join(frontendDescript.data["LogDir"], "frontend")
     logSupport.log = logSupport.get_logger_with_handlers("frontend", logSupport.log_dir, frontendDescript.data)
 
@@ -689,6 +680,7 @@ def main(work_dir, action):
 
     try:
         cleanup_environ()
+        # We use a dedicated config... ignore the system-wide
         os.environ["CONDOR_CONFIG"] = frontendDescript.data["CondorConfig"]
 
         sleep_time = int(frontendDescript.data["LoopDelay"])
@@ -698,6 +690,7 @@ def main(work_dir, action):
         restart_interval = int(frontendDescript.data["RestartInterval"])
 
         groups = sorted(frontendDescript.data["Groups"].split(","))
+
         glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(
             os.path.join(work_dir, "monitor"), groups
         )
@@ -711,6 +704,7 @@ def main(work_dir, action):
     # Create lock file
     pid_obj = glideinFrontendPidLib.FrontendPidSupport(work_dir)
 
+    # Start the main operation
     try:
         pid_obj.register(action)
     except glideinFrontendPidLib.pidSupport.AlreadyRunning as err:
@@ -760,7 +754,6 @@ def main(work_dir, action):
         pid_obj.relinquish()
 
 
-
 ############################################################
 #
 # S T A R T U P
@@ -769,14 +762,34 @@ def main(work_dir, action):
 
 
 class HUPException(Exception):
+    """Exception for handling a SIGHUP signal, used to trigger reconfiguration."""
+
     pass
 
 
 def termsignal(signr, frame):
+    """Generic signal handler, used for SIGTERM and SIGQUIT.
+
+    Args:
+        signr (int): Signal number.
+        frame (Frame object or None): Current stack frame where the signal was received.
+
+    Raises:
+        KeyboardInterrupt: Whenever a signal is received.
+    """
     raise KeyboardInterrupt("Received signal %s" % signr)
 
 
 def hupsignal(signr, frame):
+    """Generic signal handler, used for SIGHUP. Raises `HUPException` to trigger a reconfiguration.
+
+    Args:
+        signr (int): Signal number.
+        frame (Frame object or None): Current stack frame where the signal was received.
+
+    Raises:
+        HUPException: Whenever SIGHUP is received, to trigger a reconfiguration.
+    """
     signal.signal(signal.SIGHUP, signal.SIG_IGN)
     raise HUPException("Received signal %s" % signr)
 

@@ -1,9 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-This module implements the functions to execute condor commands.
-"""
+"""This module implements the functions to execute condor commands."""
 
 import os
 
@@ -13,13 +11,10 @@ from . import logSupport, subprocessSupport
 
 
 class CondorExeError(RuntimeError):
-    """
-    Base class for condorExe module errors.
-    """
+    """Base class for condorExe module errors."""
 
     def __init__(self, err_str):
-        """
-        Initializes the CondorExeError with an error message.
+        """Initializes the CondorExeError with an error message.
 
         Args:
             err_str (str): The error message.
@@ -28,13 +23,10 @@ class CondorExeError(RuntimeError):
 
 
 class UnconfigError(CondorExeError):
-    """
-    Exception raised when condor is unconfigured.
-    """
+    """Exception raised when condor is unconfigured."""
 
     def __init__(self, err_str):
-        """
-        Initializes the UnconfigError with an error message.
+        """Initializes the UnconfigError with an error message.
 
         Args:
             err_str (str): The error message.
@@ -43,13 +35,10 @@ class UnconfigError(CondorExeError):
 
 
 class ExeError(CondorExeError):
-    """
-    Exception raised when there is an error executing a condor command.
-    """
+    """Exception raised when there is an error executing a condor command."""
 
     def __init__(self, err_str):
-        """
-        Initializes the ExeError with an error message.
+        """Initializes the ExeError with an error message.
 
         Args:
             err_str (str): The error message.
@@ -57,11 +46,13 @@ class ExeError(CondorExeError):
         CondorExeError.__init__(self, err_str)
 
 
+#
+# Configuration
+#
 def set_path(new_condor_bin_path, new_condor_sbin_path=None):
-    """
-    Set path to condor binaries, if needed.
+    """Set path to condor binaries, if needed.
 
-    Works by changing the global variables condor_bin_path and condor_sbin_path.
+    Works by changing the global variables `condor_bin_path` and `condor_sbin_path`.
 
     Args:
         new_condor_bin_path (str): Directory where the HTCondor binaries are located.
@@ -74,8 +65,7 @@ def set_path(new_condor_bin_path, new_condor_sbin_path=None):
 
 
 def exe_cmd(condor_exe, args, stdin_data=None, env={}):
-    """
-    Execute an arbitrary condor command and return its output as a list of lines.
+    """Execute an arbitrary condor command and return its output as a list of lines.
 
     Fails if stderr is not empty.
 
@@ -104,8 +94,7 @@ def exe_cmd(condor_exe, args, stdin_data=None, env={}):
 
 
 def exe_cmd_sbin(condor_exe, args, stdin_data=None, env={}):
-    """
-    Execute an arbitrary condor system command and return its output as a list of lines.
+    """Execute an arbitrary condor system command and return its output as a list of lines.
 
     Fails if stderr is not empty.
 
@@ -133,11 +122,15 @@ def exe_cmd_sbin(condor_exe, args, stdin_data=None, env={}):
     return iexe_cmd(cmd, stdin_data, env)
 
 
+############################################################
+#
+# P R I V A T E, do not use
+#
+############################################################
 def generate_bash_script(cmd, environment):
-    """
-    Print to a string a shell script setting the environment in 'environment' and running 'cmd'.
+    """Print to a string a shell script setting the environment in `environment` and running `cmd`.
 
-    If 'cmd' last argument is a file it will be printed as well in the string.
+    If `cmd` last argument is a file it will be printed as well in the string.
 
     Args:
         cmd (str): Command string.
@@ -165,8 +158,7 @@ def generate_bash_script(cmd, environment):
 
 
 def iexe_cmd(cmd, stdin_data=None, child_env=None, log=None):
-    """
-    Fork a process and execute cmd - rewritten to use select to avoid filling up stderr and stdout queues.
+    """Fork a process and execute cmd - rewritten to use select to avoid filling up stderr and stdout queues.
 
     Args:
         cmd (str): Command string containing the entire command including all arguments.
@@ -175,7 +167,7 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None, log=None):
         log (optional): Logger instance. Defaults to None.
 
     Returns:
-        list: Lines of stdout from the command.
+        list: list of str. Lines of stdout from the command.
 
     Raises:
         ExeError: If there is an error executing the command.
@@ -210,10 +202,11 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None, log=None):
     return stdout_data.splitlines()
 
 
+#########################
+# Module initialization
+#
 def init1():
-    """
-    Set condor_bin_path using various methods to locate the HTCondor binaries.
-    """
+    """Set condor_bin_path using various methods to locate the HTCondor binaries."""
     global condor_bin_path
     # try using condor commands to find it out
     try:
@@ -249,9 +242,7 @@ def init1():
 
 
 def init2():
-    """
-    Set condor_sbin_path using various methods to locate the HTCondor system binaries.
-    """
+    """Set condor_sbin_path using various methods to locate the HTCondor system binaries."""
     global condor_sbin_path
     # try using condor commands to find it out
     try:
@@ -287,9 +278,7 @@ def init2():
 
 
 def init():
-    """
-    Initialize both condor_bin_path and condor_sbin_path.
-    """
+    """Initialize both condor_bin_path and condor_sbin_path."""
     init1()
     init2()
 

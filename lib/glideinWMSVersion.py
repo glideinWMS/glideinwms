@@ -12,7 +12,11 @@ Usage:
 import os
 import sys
 
+# pylint: disable=E0611
+#  (hashlib methods are called dynamically)
 from hashlib import md5
+
+# pylint: enable=E0611
 
 
 class GlideinWMSDistro:
@@ -22,7 +26,8 @@ class GlideinWMSDistro:
         """Implementation of the singleton interface."""
 
         def __init__(self, chksumFile="checksum"):
-            """
+            """Constructor.
+
             Args:
                 chksumFile (str): Path to the checksum file. Defaults to "checksum".
             """
@@ -49,6 +54,7 @@ class GlideinWMSDistro:
             patch = ""
             modifiedFiles = []
 
+            # Load the distro file hastable
             distroFileHash = {}
             with open(self.distroChksumFile) as distroChksumFd:
                 for line in distroChksumFd.readlines():
@@ -64,9 +70,11 @@ class GlideinWMSDistro:
                                 ver = v
 
             if ver != "UNKNOWN":
+                # Read the dir contents of distro and compute the md5sum
                 for file in list(distroFileHash.keys()):
                     fd = None
                     try:
+                        # In the RPM, all files are in site-packages
                         rpm_dir = os.path.dirname(os.path.dirname(sys.modules[__name__].__file__))
                         fd = open(os.path.join(rpm_dir, os.path.dirname(file), os.path.basename(file)))
 
@@ -75,6 +83,7 @@ class GlideinWMSDistro:
                             modifiedFiles.append(file)
                             patch = "PATCHED"
                     except Exception:
+                        # Ignore missing files
                         pass
                     if fd:
                         fd.close()
@@ -89,10 +98,12 @@ class GlideinWMSDistro:
             """
             return self._version
 
+    # storage for the instance reference
     __instance = None
 
     def __init__(self, chksumFile="checksum"):
-        """
+        """Constructor.
+
         Args:
             chksumFile (str): Path to the checksum file. Defaults to "checksum".
         """

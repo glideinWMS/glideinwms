@@ -11,6 +11,9 @@ class FileDoesNotExist(Exception):
 
     Attributes:
         full_path (str): The full path to the missing file.
+
+    Notes:
+        Must include the file name in `full_path`.
     """
 
     def __init__(self, full_path):
@@ -26,8 +29,8 @@ class FileDoesNotExist(Exception):
 class GlideinTar:
     """Container for creating tarballs.
 
-    This class provides methods to add files and string data to a tarball.
-    The tarball can be written to a file on disk or stored in memory.
+    This class provides methods to add files and string data (saved as a file)
+    to a tarball. The tarball can be written to a file on disk or stored in memory.
     """
 
     def __init__(self):
@@ -67,14 +70,18 @@ class GlideinTar:
     def create_tar(self, tf):
         """Adds files and string data to the provided tarfile object.
 
+        Takes the provided tar file object and adds all the specified data
+        to it.  The strings dictionary is parsed such that the key name is the
+        file name and the value is the file data in the tar file.
+
         Args:
             tf (tarfile.TarFile): The tarfile object to which files and strings will be added.
         """
-        for file, dirname in self.files:
+        for fpath, dirname in self.files:
             if dirname:
-                tf.add(file, arcname=os.path.join(dirname, os.path.split(file)[-1]))
+                tf.add(fpath, arcname=os.path.join(dirname, os.path.split(fpath)[-1]))
             else:
-                tf.add(file)
+                tf.add(fpath)
 
         for filename, string in self.strings.items():
             string_encoding = string.encode("utf-8")
@@ -92,10 +99,10 @@ class GlideinTar:
 
         Args:
             archive_full_path (str): The full path to the file where the tarball will be written.
-            compression (str, optional): The compression format to use (default is "gz").
+            compression (str, optional): The compression format to use. Defaults to "gz".
 
         Raises:
-            CompressionError: If an invalid compression type is passed in.
+            tarfile.CompressionError: If an invalid compression type is passed in.
         """
         tar_mode = f"w:{compression}"
         tf = tarfile.open(archive_full_path, mode=tar_mode)
@@ -106,20 +113,24 @@ class GlideinTar:
         """Creates a tarball and stores it in memory.
 
         Args:
-            compression (str, optional): The compression format to use (default is "gz").
+            compression (str, optional): The compression format to use. Defaults to "gz".
 
         Returns:
             bytes: The tarball data stored in memory.
 
         Raises:
-            CompressionError: If an invalid compression type is passed in.
+            tarfile.CompressionError: If an invalid compression type is passed in.
+
+        Notes:
+            We don't have to worry about ReadError, since we don't allow
+            appending.  We only write to a tarball on create.
         """
         from io import BytesIO
 
         tar_mode = f"w:{compression}"
         file_out = BytesIO()
-        tf = tarfile.open(fileobj=file_out, mode=tar_mode)
-        self.create_tar(tf)
+        with tarfile.open(fileobj=file_out, mode=tar_mode) as tf:
+            self.create_tar(tf)
         tf.close()
         return file_out.getvalue()
 

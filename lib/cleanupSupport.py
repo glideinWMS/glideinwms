@@ -11,8 +11,7 @@ from .pidSupport import register_sighandler, unregister_sighandler
 
 
 class Cleanup:
-    """
-    A class used to manage cleanup tasks for various objects and processes.
+    """A class used to manage cleanup tasks for various objects and processes.
 
     Attributes:
         cleanup_objects (list): A list of cleanup objects to be processed.
@@ -20,15 +19,12 @@ class Cleanup:
     """
 
     def __init__(self):
-        """
-        Initializes a Cleanup instance with empty lists for cleanup objects and PIDs.
-        """
+        """Initializes a Cleanup instance with empty lists for cleanup objects and PIDs."""
         self.cleanup_objects = []
         self.cleanup_pids = []
 
     def add_cleaner(self, cleaner):
-        """
-        Adds a cleanup object to the list of objects to be cleaned.
+        """Adds a cleanup object to the list of objects to be cleaned.
 
         Args:
             cleaner: An object with a cleanup method.
@@ -36,8 +32,7 @@ class Cleanup:
         self.cleanup_objects.append(cleaner)
 
     def start_background_cleanup(self):
-        """
-        Starts background cleanup processes by forking the current process.
+        """Starts background cleanup processes by forking the current process.
 
         This method forks the current process into multiple subprocesses to handle
         the cleanup tasks in parallel.
@@ -61,8 +56,7 @@ class Cleanup:
             del cleanup_lists
 
     def wait_for_cleanup(self):
-        """
-        Waits for all cleanup subprocesses to finish.
+        """Waits for all cleanup subprocesses to finish.
 
         This method checks the status of the cleanup subprocesses and logs
         when they have finished.
@@ -78,8 +72,7 @@ class Cleanup:
                 logSupport.log.warning(f"Received error {e.strerror} while waiting for PID {pid}")
 
     def cleanup(self):
-        """
-        Performs foreground cleanup tasks.
+        """Performs foreground cleanup tasks.
 
         This method iterates over all registered cleanup objects and calls
         their cleanup methods.
@@ -92,13 +85,10 @@ cleaners = Cleanup()
 
 
 class CredCleanup(Cleanup):
-    """
-    A class used to clean up old credential files.
-    """
+    """A class used to clean up old credential files."""
 
     def cleanup(self, in_use_proxies):
-        """
-        Cleans up credential files that are no longer in use.
+        """Cleans up credential files that are no longer in use.
 
         Args:
             in_use_proxies (list): A list of currently in-use proxy files.
@@ -111,8 +101,7 @@ cred_cleaners = CredCleanup()
 
 
 class DirCleanup:
-    """
-    A class used for cleaning up old files in a directory.
+    """A class used for cleaning up old files in a directory.
 
     Attributes:
         dirname (str): The directory to clean.
@@ -130,8 +119,7 @@ class DirCleanup:
         should_log=True,
         should_log_warnings=True,
     ):
-        """
-        Initializes a DirCleanup instance.
+        """Initializes a DirCleanup instance.
 
         Args:
             dirname (str): The directory to clean.
@@ -148,8 +136,7 @@ class DirCleanup:
         self.should_log_warnings = should_log_warnings
 
     def cleanup(self):
-        """
-        Cleans up files in the directory that match the filename expression and are older than maxlife.
+        """Cleans up files in the directory that match the filename expression and are older than maxlife.
 
         This method removes files that are older than the specified maximum lifetime.
         """
@@ -174,9 +161,9 @@ class DirCleanup:
             if self.should_log:
                 logSupport.log.info("Removed %i files." % count_removes)
 
+    # INTERNAL
     def get_files_wstats(self):
-        """
-        Retrieves a dictionary of file paths and their statistics.
+        """Retrieves a dictionary of file paths and their statistics.
 
         This method returns a dictionary where the keys are file paths and the
         values are the output of os.lstat for each file.
@@ -202,8 +189,9 @@ class DirCleanup:
         return out_data
 
     def delete_file(self, fpath):
-        """
-        Deletes a file from the filesystem.
+        """Deletes a file from the filesystem.
+
+        This is likely reimplemented by the children.
 
         Args:
             fpath (str): The path to the file to be deleted.
@@ -212,8 +200,7 @@ class DirCleanup:
 
 
 class DirCleanupWSpace(DirCleanup):
-    """
-    A class used for cleaning up files in a directory based on both age and total space used.
+    """A class used for cleaning up files in a directory based on both age and total space used.
 
     Attributes:
         dirname (str): The directory to clean.
@@ -235,8 +222,7 @@ class DirCleanupWSpace(DirCleanup):
         should_log=True,
         should_log_warnings=True,
     ):
-        """
-        Initializes a DirCleanupWSpace instance.
+        """Initializes a DirCleanupWSpace instance.
 
         Args:
             dirname (str): The directory to clean.
@@ -252,8 +238,7 @@ class DirCleanupWSpace(DirCleanup):
         self.maxspace = maxspace
 
     def cleanup(self):
-        """
-        Cleans up files in the directory based on age and total space used.
+        """Cleans up files in the directory based on age and total space used.
 
         This method removes files that are older than the specified maximum lifetime or if
         the total space used by the files exceeds the specified maximum space.
@@ -266,8 +251,10 @@ class DirCleanupWSpace(DirCleanup):
 
         files_wstats = self.get_files_wstats()
         fpaths = list(files_wstats.keys())
+        # Order based on time (older first)
         fpaths.sort(key=lambda x: files_wstats[x][stat.ST_MTIME])
 
+        # First calculate the amount of space currently used
         used_space = 0
         for fpath in fpaths:
             fstat = files_wstats[fpath]
@@ -298,8 +285,7 @@ class DirCleanupWSpace(DirCleanup):
 
 
 class DirCleanupCredentials(DirCleanup):
-    """
-    A class used to clean up old credential files saved to disk by the factory for glidein submission.
+    """A class used to clean up old credential files saved to disk by the factory for glidein submission.
 
     Attributes:
         dirname (str): The directory to clean.
@@ -310,8 +296,7 @@ class DirCleanupCredentials(DirCleanup):
     def __init__(
         self, dirname, fname_expression, maxlife  # regular expression, used with re.match
     ):  # max lifetime after which it is deleted
-        """
-        Initializes a DirCleanupCredentials instance.
+        """Initializes a DirCleanupCredentials instance.
 
         Args:
             dirname (str): The directory to clean.
@@ -321,8 +306,7 @@ class DirCleanupCredentials(DirCleanup):
         DirCleanup.__init__(self, dirname, fname_expression, maxlife, should_log=True, should_log_warnings=True)
 
     def cleanup(self, in_use_creds):
-        """
-        Cleans up credential files that are no longer in use.
+        """Cleans up credential files that are no longer in use.
 
         Args:
             in_use_creds (list): A list of currently in-use credential files.
