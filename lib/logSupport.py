@@ -60,44 +60,51 @@ DEBUG_FORMATTER = logging.Formatter("[%(asctime)s] %(levelname)s: %(module)s:%(l
 
 
 def alternate_log(msg):
-    """
-    When an exceptions happen within the logging system (e.g. when the disk is full while rotating a
-    log file) an alternate logging is necessary, e.g. writing to stderr
+    """Logs a message to stderr as an alternative logging method.
+
+    This function is used when exceptions occur within the logging system,
+    such as when the disk is full during log file rotation.
+
+    Args:
+        msg (str): The message to be logged.
     """
     sys.stderr.write("%s\n" % msg)
 
 
 class GlideinHandler(BaseRotatingHandler):
-    """
-    Custom logging handler class for GlideinWMS.  It combines the decision tree
-    for log rotation from the TimedRotatingFileHandler with the decision tree
-    from the RotatingFileHandler.  This allows us to specify a lifetime AND
-    file size to determine when to rotate the file.
+    """Custom logging handler class for GlideinWMS.
+
+    Combines log rotation based on both time and file size, allowing
+    the specification of a lifetime and file size to determine when to rotate the log file.
+
+    Specifically, it combines the decision tree for log rotation from the
+    TimedRotatingFileHandler with the decision tree from the RotatingFileHandler.
     Files are rotated if the days since the last rotation (or the beginning)
     are more than the time limit (maxDays) or if the size of the file grew above
     the size limit (maxMBytes) and at least the min time interval (minDays) went by.
 
-    This class assumes that the lifetime (`interval`, `min_lifetime`) specified is
-    in seconds but the value in the constructor (`maxDays`, `minDays`) are in days
+    Assumes that the lifetimes (`interval`, `min_lifetime`) are
+    in seconds but the values in the constructor (`maxDays`, `minDays`) are in days
     (24 hour periods) and can be fractions (float).
-
     And the size is measured in Bytes (MBytes in the constructor parameter can be
     fractional)
 
     Attributes:
         filename (str|Path): The full path of the log file. Includes file name. Passed to BaseRotatingHandler
-        interval (int): Max number of seconds before file rotation. 0 to disable timed rotation
+        interval (int): Time interval in seconds before rotation. 0 to disable timed rotation
         min_lifetime (int): Minimum number of seconds before file rotation (used with maxBytes)
-        maxBytes (int): Maximum size of the logfile in bytes before file rotation (used with min days)
+        maxBytes (int): Maximum file size in bytes before rotation. (used with min days)
             0 to disable file size rotation
-        backupCount (int): Number of backups to keep
-        compression (str): Compression to use (gz, zip, depending on available compression modules)
-        rolloverAt (int): time of the next time-based rollover in seconds from Epoch. 0 to disable
-        rollover_not_before (int): time to wait before the next size-based rollover in seconds from Epoch
+        backupCount (int): Number of backup files to keep.
+        compression (str): Compression format (gz, zip, depending on available compression modules) used for log files.
+        suffix (str): Suffix format for the rotated files.
+        extMatch (re.Pattern): Regex pattern to match the suffix of the rotated files.
+        rolloverAt (int): Time of the next time-based rollover in seconds from Epoch. 0 to disable
+        rollover_not_before (int): Earliest time (seconds from Epoch) when size-based rollover can happen.
     """
 
     def __init__(self, filename, maxDays=1.0, minDays=0.0, maxMBytes=10.0, backupCount=5, compression=None):
-        """Initialize the Handler.  We assume the following:
+        """Initialize the GlideinHandler.  We assume the following:
 
             1. Interval entered is in days or fractions of it (internally  converted to seconds)
             2. No special encoding
@@ -110,10 +117,10 @@ class GlideinHandler(BaseRotatingHandler):
             maxDays (float): Max number of days before file rotation (fraction of day accepted, used in unit test).
                 0 to disable timed rotation
             minDays (float): Minimum number of days before file rotation (used with max MBytes)
-            maxMBytes (float): Maximum size of the logfile in MB before file rotation (used with min days)
+            maxMBytes (float): Maximum file size in MB before rotation. (used with min days)
                 0 to disable file size rotation
-            backupCount (int): Number of backups to keep
-            compression (str): Compression to use (gz, zip, depending on available compression modules)
+            backupCount (int): Number of backup files to keep.
+            compression (str): Compression format (gz, zip, depending on available compression modules) to use for log files.
         """
         # Make dirs if logging directory does not exist
         if not os.path.exists(os.path.dirname(filename)):
@@ -125,7 +132,6 @@ class GlideinHandler(BaseRotatingHandler):
                 self.compression = compression.lower()
         except AttributeError:
             pass
-        # bz2 compression can be implemented with encoding='bz2-codec' in BaseRotatingHandler
         mode = "a"
         BaseRotatingHandler.__init__(self, filename, mode, encoding=None)
         self.backupCount = backupCount
@@ -171,27 +177,27 @@ class GlideinHandler(BaseRotatingHandler):
                 self.rolloverAt = begin_interval_time + self.interval
 
     def shouldRollover(self, record, empty_record=False):
-        """Determine if rollover should occur.
-
-        Basically, we are combining the checks for size and time interval
+        """Determines if a rollover should occur based on time or file size.
 
         Args:
             record (str): The message that will be logged.
-            empty_record (bool): If False (default)  count also `record` length to evaluate if a rollover is needed
+            empty_record (bool, optional): If False, counts also the current `record` length to evaluate if a
+                                           rollover is needed. Defaults to False.
 
         Returns:
-            bool: True if rollover should be performed, False otherwise
+            bool: True if rollover should be performed, False otherwise.
 
-        @attention: Due to the architecture decision to fork "workers" we run
-        into an issue where the child that was forked could cause a log
-        rotation.  However, the parent will never know and the parent's file
-        descriptor will still be pointing at the old log file (now renamed by
-        the child).  This will in turn cause the parent to immediately request
-        a log rotate, which results in what appears to be truncated logs.  To
-        handle this we add a flag to disable log rotation.  By default, this is
-        set to False, but anywhere we want to fork a child (or in any object
-        that will be forked) we set the flag to True.  Then in the parent, we
-        initiate a log function that will log and rotate if necessary.
+        Notes:
+            Due to the architecture decision to fork "workers" we run
+            into an issue where the child that was forked could cause a log
+            rotation.  However, the parent will never know and the parent's file
+            descriptor will still be pointing at the old log file (now renamed by
+            the child).  This will in turn cause the parent to immediately request
+            a log rotate, which results in what appears to be truncated logs.  To
+            handle this we add a flag to disable log rotation.  By default, this is
+            set to False, but anywhere we want to fork a child (or in any object
+            that will be forked) we set the flag to True.  Then in the parent, we
+            initiate a log function that will log and rotate if necessary.
         """
         if disable_rotate:
             return False
@@ -215,9 +221,12 @@ class GlideinHandler(BaseRotatingHandler):
         return do_timed_rollover or do_size_rollover
 
     def getFilesToDelete(self):
-        """Determine the files to delete when rolling over.
+        """Gets the list of files that should be deleted during rollover.
 
-        More specific than the earlier method, which just used glob.glob().
+        This version is more specific than the earlier method, which just used glob.glob().
+
+        Returns:
+            list: A list of file paths that should be deleted.
         """
         dirName, baseName = os.path.split(self.baseFilename)
         fileNames = os.listdir(dirName)
@@ -237,14 +246,13 @@ class GlideinHandler(BaseRotatingHandler):
         return result
 
     def doRollover(self):
-        """Do a rollover
+        """Performs the rollover process for the log file.
 
-        In this case, a date/time stamp is appended to the filename
-        when the rollover happens.  If there is a backup count, then we have to get
-        a list of matching filenames, sort them and remove the one with the oldest
-        suffix.
+        This includes renaming the log file (appending a date/time stamp to the name),
+        compressing it if necessary, and removing the oldest log files based on the
+        backup count.
         """
-        # Close the soon to be rotated log file
+        # Close the soon-to-be rotated log file
         self.stream.close()
         # get the time that this sequence started at and make it a TimeTuple
         timeTuple = time.localtime(time.time())
@@ -294,22 +302,21 @@ class GlideinHandler(BaseRotatingHandler):
             if os.path.exists(dfn + ".gz"):
                 os.remove(dfn + ".gz")
             try:
-                # TODO #23166: Use context managers[with statement] when python 3
-                # once we get rid of SL6 and tarballs
-                f_out = gzip.open(dfn + ".gz", "wb")
-                with open(dfn, "rb") as f_in:
-                    f_out.writelines(f_in)
-                f_out.close()
+                with gzip.open(dfn + ".gz", "wb") as f_out:
+                    with open(dfn, "rb") as f_in:
+                        f_out.writelines(f_in)
                 os.remove(dfn)
             except OSError as e:
                 alternate_log("Log file gzip compression failed: %s" % e)
 
     def check_and_perform_rollover(self):
+        """Checks if rollover conditions are met and performs the rollover if necessary."""
         if self.shouldRollover(None, empty_record=True):
             self.doRollover()
 
 
 def roll_all_logs():
+    """Triggers log rotation for all registered handlers."""
     for handler in handlers:
         handler.check_and_perform_rollover()
 
@@ -317,26 +324,26 @@ def roll_all_logs():
 def get_processlog_handler(
     log_file_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes, backupCount=5, compression=None
 ):
-    """Return a configured handler for the GlideinLogger logger
+    """Returns a configured handler for the GlideinLogger logger.
 
-    The file name is `"{log_dir}/{log_file_name}.{extension.lower()}.log"` and can include env variables
+    The file name is `"{log_dir}/{log_file_name}.{extension.lower()}.log"` and can include environment variables.
 
     Args:
-        log_file_name (str): log file name (same as the logger name)
-        log_dir (str|Path): log directory
-        msg_types (str): log levels to include (comma separated list). Keywords are:
+        log_file_name (str): Log file name (same as the logger name)
+        log_dir (str|Path): Log directory
+        msg_types (str): Log levels to include (comma separated list). Keywords are:
             DEBUG,INFO,WARN,ERR, ADMIN or ALL (ADMIN and ALL both mean all the previous)
             ADMIN adds also the "admin" prefix to the `log_file_name`
             Default INFO,WARN,ERR set at the configuration level
-        extension (str): file name extension
-        maxDays (float): Max number of days before file rotation (fraction of day accepted, used in unit test)
+        extension (str): File name extension
+        maxDays (float): Maximum number of days before file rotation (fraction of day accepted, used in unit test)
         minDays (float): Minimum number of days before file rotation (used with max MBytes)
         maxMBytes (float): Maximum size of the logfile in MB before file rotation (used with min days)
         backupCount (int): Number of backups to keep
         compression (str): Compression to use (gz, zip, depending on available compression modules)
 
     Returns:
-        GlideinHandler: configured handler
+        GlideinHandler: Configured logging handler.
     """
     # Parameter adjustments
     msg_types = msg_types.upper()
@@ -346,7 +353,6 @@ def get_processlog_handler(
             log_file_name = log_file_name + "admin"
     if "ALL" in msg_types:
         msg_types = "DEBUG,INFO,WARN,ERR"
-    # File name
     logfile = os.path.expandvars(f"{log_dir}/{log_file_name}.{extension.lower()}.log")
 
     handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount, compression)
@@ -384,30 +390,47 @@ def get_processlog_handler(
 
 
 class MsgFilter(logging.Filter):
-    """Filter used in handling records for the info logs.
+    """Filter class for handling log messages based on log level.
 
-    Default to logging.INFO
+    Args:
+        msg_type_list (list): List of log levels to filter. Defaults to logging.INFO
+
+    Returns:
+        bool: True if the log level matches one in the list, False otherwise.
     """
 
     msg_type_list = [logging.INFO]
 
     def __init__(self, msg_type_list):
+        """Initializes the MsgFilter.
+
+        Args:
+            msg_type_list (list): List of log levels to filter.
+        """
         logging.Filter.__init__(self)
         self.msg_type_list = msg_type_list
 
     def filter(self, rec):
+        """Filters log records based on log level.
+
+        Args:
+            rec (logging.LogRecord): The log record to be filtered.
+
+        Returns:
+            bool: True if the log level is in msg_type_list, False otherwise.
+        """
         return rec.levelno in self.msg_type_list
 
 
 def format_dict(unformated_dict, log_format="   %-25s : %s\n"):
-    """Convenience function used to format a dictionary for the logs to make it  human-readable.
+    """Formats a dictionary for human-readable logging.
 
     Args:
-        unformated_dict (dict): The dictionary to be formatted for logging
-        log_format (str): format string for logging
+        unformated_dict (dict): The dictionary to be formatted for logging.
+        log_format (str): Format string for logging.
 
     Returns:
-        str: Formatted string
+        str: Formatted string.
     """
     formatted_string = ""
     for key in unformated_dict:
@@ -460,8 +483,7 @@ if USE_STRUCTLOG:
             # string) from the final processor (`JSONRenderer`) will be passed to
             # the method of the same name as that you've called on the bound logger.
             logger_factory=structlog.stdlib.LoggerFactory(),
-            # Effectively freeze configuration after creating the first bound
-            # logger.
+            # Effectively freeze configuration after creating the first bound logger.
             cache_logger_on_first_use=True,
         )
     except AttributeError:
@@ -485,12 +507,28 @@ if USE_STRUCTLOG:
 
 
 def get_logging_logger(name):
+    """Retrieves a standard Python logging logger.
+
+    Args:
+        name (str): Name of the logger.
+
+    Returns:
+        logging.Logger: Configured logger.
+    """
     log = logging.getLogger(name)
     log.setLevel(logging.DEBUG)
     return log
 
 
 def get_structlog_logger(name):
+    """Retrieves a structured logger using structlog if available.
+
+    Args:
+        name (str): Name of the logger.
+
+    Returns:
+        structlog.BoundLogger: Configured structured logger.
+    """
     if USE_STRUCTLOG:
         log = structlog.get_logger(name)
         log.setLevel(logging.DEBUG)
@@ -499,19 +537,19 @@ def get_structlog_logger(name):
 
 
 def get_logger_with_handlers(name, directory, config_data, level=logging.DEBUG):
-    """Create/retrieve a logger, set the handlers, set the starting logging level, and return the logger
+    """Creates or retrieves a logger, sets the handlers, sets the starting logging level, and returns the logger
 
     The file name is {name}.{plog["extension"].lower()}.log
 
     Args:
-        name (str): logger name (and file base name)
-        directory (str|Path): log directory
-        config_data (dict): logging configuration
-          (the "ProcessLogs" value evaluates to list of dictionary with process_logs section values)
-        level: logger's logging level (default: logging.DEBUG)
+        name (str): Logger name.
+        directory (str|Path): Directory for the log files.
+        config_data (dict): Logging configuration data.
+                            (the "ProcessLogs" value evaluates to list of dictionaries with process_logs section values)
+        level (int, optional): Logging level. Defaults to logging.DEBUG.
 
     Returns:
-        logging.Logger: configured logger
+        logging.Logger: Configured logger.
     """
     # Contains a dictionary in a string
     process_logs = eval(config_data["ProcessLogs"])

@@ -45,10 +45,13 @@ HOOK_POST_RECONFIG_DIRNAME = "hooks.reconfig.post"
 def flattenDict(d, join=add, lift=lambda x: x):
     """Flexible flattening of a dictionary
 
-    :param d: dictionary to flatten
-    :param join: join function for the keys (allows to concatenate strings)
-    :param lift: lift function for the keys (allows to create tuples)
-    :return: list with flattened dictionary
+    Args:
+        d (dict): Dictionary to flatten
+        join (function): join function for the keys (allows to concatenate strings). Default is `add`.
+        lift (function): lift function for the keys (allows to create tuples). Default is identity.
+
+    Returns:
+        list: List with flattened dictionary
 
     >>> testData = {
         'a':1,
@@ -99,15 +102,19 @@ def dict_to_flat(in_dict, prefix="", suffix="", sep=""):
     The resulting keys are the string concatenation of the original ones
     A separator can be added between keys
 
-    NOTE: Value could be clobbered if there are duplicates in the strings resulting from concatenating keys, e.g.
-    {'a':{'b':1}, 'ab':2}
-    A separator will not solve the problem if it is a valid character for the keys
+    Notes:
+        Value could be clobbered if there are duplicates in the strings resulting from concatenating keys, e.g.
+        `{'a':{'b':1}, 'ab':2}`
+        A separator will not solve the problem if it is a valid character for the keys
 
-    :param in_dict: input dictionary
-    :param prefix: prefix for the keys (Default "")
-    :param suffix: suffix for the keys (Default "")
-    :param sep: separator between keys (Default: "")
-    :return: flattened dictionary
+    Args:
+        in_dict (dict): Input dictionary
+        prefix (str, optional): Prefix for the keys. Default is "".
+        suffix (str, optional): Suffix for the keys. Default is "".
+        sep (str, optional): Separator between keys. Default is "".
+
+    Returns:
+        str: Flattened dictionary
     """
     if sep:
         out_list = flattenDict(in_dict, join=lambda a, b: a + sep + b)
@@ -125,10 +132,13 @@ def dict_to_flat_slow(in_dict, prefix="", suffix=""):
     """Flatten a multi-level dictionary to one level
     The resulting keys are the string concatenation of the original ones
 
-    :param in_dict: input dictionary
-    :param prefix: prefix for the keys (Default "")
-    :param suffix: suffix for the keys (Default "")
-    :return: flattened dictionary
+    Args:
+        in_dict (dict): Input dictionary
+        prefix (str, optional): Prefix for the keys. Default is "".
+        suffix (str, optional): Suffix for the keys. Default is "".
+
+    Returns:
+        str: Flattened dictionary
     """
     out_dict = {}
     for k, v in list(in_dict.items()):
@@ -143,12 +153,16 @@ def dict_to_flat_slow(in_dict, prefix="", suffix=""):
 def dict_normalize(in_dict, keys=None, prefix="", suffix="", default=None):
     """Change the keys of a dictionary
 
-    :param in_dict: input dictionary
-    :param keys: key list, if None it is using in_dict.keys() (Default: None)
-    :param prefix: prefix for the keys (Default "")
-    :param suffix: suffix for the keys (Default "")
-    :param default: default value passed to get (Default: None)
-    :return: normalized dictionary
+    Args:
+        in_dict (dict): Input dictionary
+        keys (list, optional): Keys list, if None it is using `in_dict.keys()`. Default is None.
+        prefix (str, optional): Prefix for the keys. Default is "".
+        suffix (str, optional): Suffix for the keys. Default is "".
+        default (Object, optional): Default value passed to get(). Default is None.
+
+    Returns:
+        dict: Normalized dictionary
+
     """
     out_dict = {}
     if not keys:
@@ -188,9 +202,9 @@ class ExpiredFileException(Exception):
 def print_funct(*args, **kwargs):
     """Print function that can be used as mask exception (the print statement cannot be passed as parameter)
 
-    :param args: list of what to print, converted into string and separated by 'sep'
-    :param kwargs: keywords, valid keywords: 'sep' separator, default is space
-    :return: None
+    Args:
+        *args: list of what to print, converted into string and separated by `sep`
+        **kwargs: keywords, valid keyword: 'sep' separator. Everything else is ignored. Default 'sep' is space.
     """
     sep = " "
     try:
@@ -369,17 +383,22 @@ def file_tmp2final(
 # may have to be moved to a shared place (/tmp) and handled more properly
 def file_get_tmp(fname=None, tmp_type=None):
     """Get the name of a temporary file
+
     Depending on the option chosen this may be unsafe:
     .tmp suffix is OK only if no one else will use this file
     .$PID.tmp is OK if no multithreading is used and there are no safety concerns (name easy to guess, attacks prone)
-    tempfile from tempfile.mkstemp() that guarantees uniqueness and safety
+    `tempfile` from `tempfile.mkstemp()` that guarantees uniqueness and safety
 
-    @param fname: original file name
-    @param tmp_type: type of temporary file name (Default: None):
-       - None (or anything False) - '.tmp' suffix added to the file name (unsafe, may be conflicts if )
-       - PID - '.$PID.tmp' suffix added to the file name
-       - REAL (or anything else) - real tempfile (unique and safe, using tempfile.mkstemp())
-    @return: tamporary file name
+    Args:
+        fname (str, optional): Original file name
+        tmp_type (str, optional): Type of temporary file name. Default is ".tmp" suffix (None). Available types:
+                   - None (or anything False) - '.tmp' suffix added to the file name (unsafe, may be conflicts if )
+                   - PID - '.$PID.tmp' suffix added to the file name
+                   - REAL (or anything else) - real tempfile (unique and safe, using `tempfile.mkstemp()`)
+
+    Returns:
+        str: Name of temporary file.
+
     """
     if not tmp_type:
         return fname + ".tmp"

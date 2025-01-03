@@ -1,22 +1,22 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""symCrypto - This module defines classes to perform symmetric key cryptography (shared or hidden key)
+"""symCrypto - This module defines classes to perform symmetric key cryptography (shared or hidden key).
 
 It uses M2Crypto: https://github.com/mcepl/M2Crypto
 a wrapper around OpenSSL: https://www.openssl.org/docs/man1.1.1/man3/
 
-NOTE For convenience and consistency w/ previous versions of this module, Encryption/Signing functions
-    (b64, hex and .encrypt() ) accept bytes-like objects (bytes, bytearray) and also Unicode strings
+Note:
+    For convenience and consistency with previous versions of this module, Encryption/Signing functions
+    (b64, hex, and .encrypt()) accept bytes-like objects (bytes, bytearray) and also Unicode strings
     utf-8 encoded (defaults.BINARY_ENCODING_CRYPTO).
-    B64 and hex Decryption functions, consistent w/ Python's binascii.a2b_* functions, accept bytes and
-    Unicode strings containing only ASCII characters, .decrypt() only accepts bytes-like objects (such as bytes,
-    bytearray and other objects that support the buffer protocol).
+    B64 and hex Decryption functions, consistent with Python's binascii.a2b_* functions, accept bytes and
+    Unicode strings containing only ASCII characters. The .decrypt() function only accepts bytes-like objects
+    (such as bytes, bytearray, and other objects that support the buffer protocol).
     All these functions return bytes.
 
-    Key definitions accept AnyStr (str, bytes, bytearray), key_str are iv_str bytes, key_iv_code is a str,
-    so is the key
-
+    Key definitions accept AnyStr (str, bytes, bytearray). key_str and iv_str are bytes, key_iv_code and the
+    key are a str.
 """
 
 import binascii
@@ -26,71 +26,58 @@ import M2Crypto.Rand
 
 from . import defaults
 
-######################
-#
-# Available ciphers:
-#  too many to list them all
-#     try 'man enc'
-#  a few of them are
-#   'aes_128_cbc'
-#   'aes_128_ofb
-#   'aes_256_cbc'
-#   'aes_256_cfb'
-#   'bf_cbc'
-#   'des3'
-#
-######################
-
 
 class SymKey:
-    """Symmetric keys cryptography
+    """Symmetric key cryptography class.
 
-    You probably don't want to use this, use the child classes instead
+    This class provides functionalities to perform symmetric key cryptography.
+    It is designed to be extended by child classes for specific algorithms.
 
-    self.key_str and self.iv_str are bytes (strings) with HEX encoded data
+    Attributes:
+        cypher_name (str): The name of the cipher.
+        key_len (int): The length of the key.
+        iv_len (int): The length of the initialization vector (IV).
+        key_str (bytes): The key string (HEX encoded).
+        iv_str (bytes): The initialization vector (HEX encoded).
 
-    Available ciphers, too many to list them all, try `man enc`, a few of them are:
-        'aes_128_cbc'
-        'aes_128_ofb
-        'aes_256_cbc'
-        'aes_256_cfb'
-        'bf_cbc'
-        'des3'
+    Notes:
+        Many cyphers are available, use `man enc` to list them all, a few of them are:
+            'aes_128_cbc'
+            'aes_128_ofb
+            'aes_256_cbc'
+            'aes_256_cfb'
+            'bf_cbc'
+            'des3'
     """
 
     def __init__(self, cypher_name, key_len, iv_len, key_str=None, iv_str=None, key_iv_code=None):
-        """Constructor
+        """Initializes a SymKey object.
 
         Args:
-            cypher_name:
-            key_len:
-            iv_len:
-            key_str:
-            iv_str:
-            key_iv_code:
+            cypher_name (str): Name of the cipher.
+            key_len (int): Length of the key.
+            iv_len (int): Length of the initialization vector (IV).
+            key_str (str/bytes, optional): HEX encoded key string. Defaults to None.
+            iv_str (str/bytes, optional): HEX encoded IV string. Defaults to None.
+            key_iv_code (str, optional): Key and IV encoded as a comma-separated string. Defaults to None.
         """
         self.cypher_name = cypher_name
         self.key_len = key_len
         self.iv_len = iv_len
         self.key_str = None
         self.iv_str = None
-        self.ket_str = None
         self.load(key_str, iv_str, key_iv_code)
-        return
 
-    ###########################################
-    # load a new key
     def load(self, key_str=None, iv_str=None, key_iv_code=None):
-        """Load a new key from text (str/bytes)
+        """Loads a new key and initialization vector.
 
         Args:
-            key_str (str/bytes): string w/ base64 encoded key
-                Must be bytes-like object or ASCII string, like base64 inputs
-            iv_str (str/bytes): initialization vector
-            key_iv_code (str/bytes): comma separated text with cypher, key, iv
+            key_str (str/bytes, optional): Base64 encoded key string. Defaults to None.
+            iv_str (str/bytes, optional): Base64 encoded initialization vector. Defaults to None.
+            key_iv_code (str/bytes, optional): Comma-separated string of cipher, key, and IV. Defaults to None.
 
-        Returns:
-
+        Raises:
+            ValueError: If both `key_str` and `key_iv_code` are defined, or the lengths of the key/IV are invalid.
         """
         if key_str is not None:
             if key_iv_code is not None:
@@ -131,29 +118,28 @@ class SymKey:
         self.iv_str = iv_str
 
     def is_valid(self):
-        """Return true if the key is valid
+        """Checks if the key is valid.
+
+        A key is valid if the key string is not empty.
 
         Returns:
-            bool: True if the key string is not None
-
+            bool: True if the key is valid, False otherwise.
         """
         return self.key_str is not None
 
     def get(self):
-        """Get the key and initialization vector
+        """Returns the key and initialization vector.
 
         Returns:
-            tuple: (key, iv) tuple wehere both key and iv are bytes
-
+            tuple: A tuple (key, iv) where both key and IV are bytes.
         """
-        return (self.key_str, self.iv_str)
+        return self.key_str, self.iv_str
 
     def get_code(self):
-        """Return the key code: cypher, key, iv, as a comma separated string
+        """Returns the cipher, key, and IV as a comma-separated string.
 
         Returns:
-            str: key description in the string
-
+            str: The key code in the format "cypher:{cypher_name},key:{key},iv:{iv}".
         """
         return "cypher:{},key:{},iv:{}".format(
             self.cypher_name,
@@ -162,31 +148,28 @@ class SymKey:
         )
 
     def new(self, random_iv=True):
-        """Generate a new key
-
-        Set self.key_str and self.iv_str
+        """Generates a new key and IV.
 
         Args:
-            random_iv (bool): if False, set iv to 0
+            random_iv (bool): If True, generate a random IV. If False, set IV to zero. Defaults to True.
         """
         self.key_str = binascii.b2a_hex(M2Crypto.Rand.rand_bytes(self.key_len))
         if random_iv:
             self.iv_str = binascii.b2a_hex(M2Crypto.Rand.rand_bytes(self.iv_len))
         else:
             self.iv_str = b"0" * (self.iv_len * 2)
-        return
 
     def encrypt(self, data):
-        """Encrypt data inline
+        """Encrypts the given data.
 
         Args:
-            data (AnyStr): data to encrypt
+            data (AnyStr): The data to encrypt.
 
         Returns:
-            bytes: encrypted data
+            bytes: The encrypted data.
 
         Raises:
-            KeyError: if there is no valid crypto key
+            KeyError: If there is no valid key.
         """
         if not self.is_valid():
             raise KeyError("No key")
@@ -197,28 +180,27 @@ class SymKey:
         c.write(bdata)
         c.flush()
         c.close()
-        e = b.read()
-        return e
+        return b.read()
 
     def encrypt_base64(self, data):
-        """like encrypt, but the result is base64 encoded"""
+        """Encrypts data and returns the result as a base64-encoded string."""
         return binascii.b2a_base64(self.encrypt(data))
 
     def encrypt_hex(self, data):
-        """like encrypt, but the result is hex encoded"""
+        """Encrypts data and returns the result as a hex-encoded string."""
         return binascii.b2a_hex(self.encrypt(data))
 
     def decrypt(self, data):
-        """Decrypt data inline
+        """Decrypts the given data.
 
         Args:
-            data (bytes): data to decrypt
+            data (bytes): The data to decrypt.
 
         Returns:
-            bytes: decrypted data
+            bytes: The decrypted data.
 
         Raises:
-            KeyError: if there is no valid crypto key
+            KeyError: If there is no valid key.
         """
         if not self.is_valid():
             raise KeyError("No key")
@@ -228,11 +210,10 @@ class SymKey:
         c.write(data)
         c.flush()
         c.close()
-        d = b.read()
-        return d
+        return b.read()
 
     def decrypt_base64(self, data):
-        """like decrypt, but the input is base64 encoded
+        """Decrypts base64-encoded data.
 
         Args:
             data (AnyStrASCII): Base64 input data. bytes or ASCII encoded Unicode str
@@ -243,7 +224,7 @@ class SymKey:
         return self.decrypt(binascii.a2b_base64(data))
 
     def decrypt_hex(self, data):
-        """like decrypt, but the input is hex encoded
+        """Decrypts hex-encoded data.
 
         Args:
             data (AnyStrASCII): HEX input data. bytes or ASCII encoded Unicode str
@@ -255,58 +236,60 @@ class SymKey:
 
 
 class MutableSymKey(SymKey):
-    """SymKey class, allows to change the crypto after instantiation"""
+    """SymKey class that allows changing the cryptography parameters after instantiation."""
 
     def __init__(self, cypher_name=None, key_len=None, iv_len=None, key_str=None, iv_str=None, key_iv_code=None):
+        """Initializes a MutableSymKey object and allows redefinition of cryptographic parameters.
+
+        Args:
+            cypher_name (str, optional): The name of the cipher. Defaults to None.
+            key_len (int, optional): Length of the key. Defaults to None.
+            iv_len (int, optional): Length of the initialization vector (IV). Defaults to None.
+            key_str (str/bytes, optional): HEX encoded key string. Defaults to None.
+            iv_str (str/bytes, optional): HEX encoded IV string. Defaults to None.
+            key_iv_code (str, optional): Key and IV encoded as a comma-separated string. Defaults to None.
+        """
         self.redefine(cypher_name, key_len, iv_len, key_str, iv_str, key_iv_code)
 
     def redefine(self, cypher_name=None, key_len=None, iv_len=None, key_str=None, iv_str=None, key_iv_code=None):
-        """Load a new crypto type and a new key
+        """Redefines the cryptographic parameters and reloads the key.
 
         Args:
-            cypher_name:
-            key_len:
-            iv_len:
-            key_str:
-            iv_str:
-            key_iv_code:
-
-        Returns:
-
+            cypher_name (str, optional): Name of the cipher. Defaults to None.
+            key_len (int, optional): Length of the key. Defaults to None.
+            iv_len (int, optional): Length of the initialization vector (IV). Defaults to None.
+            key_str (str/bytes, optional): HEX encoded key string. Defaults to None.
+            iv_str (str/bytes, optional): HEX encoded IV string. Defaults to None.
+            key_iv_code (str, optional): Key and IV encoded as a comma-separated string. Defaults to None.
         """
         self.cypher_name = cypher_name
         self.key_len = key_len
         self.iv_len = iv_len
         self.load(key_str, iv_str, key_iv_code)
-        return
 
     def is_valid(self):
-        """Return true if the key is valid.
+        """Checks if the key and cipher name are valid.
 
         Redefine, as null crypto name could be used in this class
 
         Returns:
-             bool: True if both the key string and cypher name are not None
-
+            bool: True if both the key and cipher name are valid.
         """
         return (self.key_str is not None) and (self.cypher_name is not None)
 
     def get_wcrypto(self):
-        """Get the stored key and the crypto name
+        """Gets the cipher name, key, and IV.
 
         Returns:
-            str: cypher name
-            bytes: key string
-            bytes: iv string
-
+            tuple: A tuple containing the cipher name (str), key string (bytes), and IV string (bytes).
         """
-        return (self.cypher_name, self.key_str, self.iv_str)
+        return self.cypher_name, self.key_str, self.iv_str
 
 
 ##########################################################################
-# Parametrized sym algo classes
+# Parametrized symmetric algorithm classes
 
-# dict of crypt_name -> (key_len, iv_len)
+# Dictionary of crypt_name -> (key_len, iv_len)
 cypher_dict = {"aes_128_cbc": (16, 16), "aes_256_cbc": (32, 16), "bf_cbc": (16, 8), "des3": (24, 8), "des_cbc": (8, 8)}
 
 
@@ -314,32 +297,44 @@ class ParametrizedSymKey(SymKey):
     """Helper class to build different types of Symmetric Keys from a parameter dictionary (cypher_dict)."""
 
     def __init__(self, cypher_name, key_str=None, iv_str=None, key_iv_code=None):
+        """Initializes a ParametrizedSymKey based on a cipher name.
+
+        Args:
+            cypher_name (str): Name of the cipher.
+            key_str (str/bytes, optional): HEX encoded key string. Defaults to None.
+            iv_str (str/bytes, optional): HEX encoded IV string. Defaults to None.
+            key_iv_code (str, optional): Key and IV encoded as a comma-separated string. Defaults to None.
+
+        Raises:
+            KeyError: If the cipher is unsupported.
+        """
         if cypher_name not in list(cypher_dict.keys()):
-            raise KeyError("Unsupported cypher %s" % cypher_name)
+            raise KeyError(f"Unsupported cipher {cypher_name}")
         cypher_params = cypher_dict[cypher_name]
         SymKey.__init__(self, cypher_name, cypher_params[0], cypher_params[1], key_str, iv_str, key_iv_code)
 
 
 class AutoSymKey(MutableSymKey):
-    """Symmetric Keys from code strings. Get cypher name from key_iv_code"""
+    """Symmetric key class that automatically determines the cipher from the key_iv_code."""
 
     def __init__(self, key_iv_code=None):
-        """Constructor
+        """Initializes an AutoSymKey object based on key_iv_code.
 
         Args:
-            key_iv_code (AnyStr): cypher byte string. str is encoded using BINARY_ENCODING_CRYPTO
+            key_iv_code (str/bytes): Cipher and key information encoded, using BINARY_ENCODING_CRYPTO,
+                                     as a comma-separated string.
         """
         self.auto_load(key_iv_code)
 
     def auto_load(self, key_iv_code=None):
-        """Load a new key_iv_key and extract the cypher
+        """Loads a new key and determines the cipher name from key_iv_code.
 
         Args:
-            key_iv_code (AnyStr): cypher byte string. str is encoded using BINARY_ENCODING_CRYPTO
+            key_iv_code (str/bytes): Cipher and key information encoded using BINARY_ENCODING_CRYPTO,
+                                     as a comma-separated string.
 
         Raises:
-            ValueError: if the format of the code is incorrect
-
+            ValueError: If the format of key_iv_code is incorrect.
         """
         if key_iv_code is None:
             self.cypher_name = None
@@ -363,26 +358,55 @@ class AutoSymKey(MutableSymKey):
 
 
 ##########################################################################
-# Explicit sym algo classes
+# Explicit symmetric algorithm classes
 
 
 class SymAES128Key(ParametrizedSymKey):
+    """Symmetric key class for AES-128 encryption."""
+
     def __init__(self, key_str=None, iv_str=None, key_iv_code=None):
+        """Initializes a SymAES128Key object.
+
+        Args:
+            key_str (str/bytes, optional): HEX encoded key string. Defaults to None.
+            iv_str (str/bytes, optional): HEX encoded IV string. Defaults to None.
+            key_iv_code (str, optional): Key and IV encoded as a comma-separated string. Defaults to None.
+        """
         ParametrizedSymKey.__init__(self, "aes_128_cbc", key_str, iv_str, key_iv_code)
 
 
 class SymAES256Key(ParametrizedSymKey):
+    """Symmetric key class for AES-256 encryption."""
+
     def __init__(self, key_str=None, iv_str=None, key_iv_code=None):
+        """Initializes a SymAES256Key object.
+
+        Args:
+            key_str (str/bytes, optional): HEX encoded key string. Defaults to None.
+            iv_str (str/bytes, optional): HEX encoded IV string. Defaults to None.
+            key_iv_code (str, optional): Key and IV encoded as a comma-separated string. Defaults to None.
+        """
         ParametrizedSymKey.__init__(self, "aes_256_cbc", key_str, iv_str, key_iv_code)
 
 
 class Sym3DESKey(ParametrizedSymKey):
+    """Symmetric key class for 3DES encryption."""
+
     def __init__(self, key_str=None, iv_str=None, key_iv_code=None):
+        """Initializes a Sym3DESKey object.
+
+        Args:
+            key_str (str/bytes, optional): HEX encoded key string. Defaults to None.
+            iv_str (str/bytes, optional): HEX encoded IV string. Defaults to None.
+            key_iv_code (str, optional): Key and IV encoded as a comma-separated string. Defaults to None.
+        """
         ParametrizedSymKey.__init__(self, "des3", key_str, iv_str, key_iv_code)
 
 
 # Removed SymBlowfishKey, bf_cbc and SymDESKey, des_cbc, because not supported in openssl3 (EL9)
 
+# Test functions
+#
 # def debug_print(description, text):
 #    print "<%s>\n%s\n</%s>\n" % (description,text,description)
 #

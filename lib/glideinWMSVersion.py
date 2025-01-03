@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Execute a ls command on a condor job working directory
+"""Execute a ls command on a condor job working directory.
 
 Usage:
     glideinWMSVersion.py <Path to glideinWMS distribution> [<Checksum file>]
@@ -20,10 +20,16 @@ from hashlib import md5
 
 
 class GlideinWMSDistro:
+    """Singleton class to handle GlideinWMS distribution checksum and versioning."""
+
     class __impl:
-        """Implementation of the singleton interface"""
+        """Implementation of the singleton interface."""
 
         def __init__(self, chksumFile="checksum"):
+            """
+            Args:
+                chksumFile (str): Path to the checksum file. Defaults to "checksum".
+            """
             self.versionIdentifier = "GLIDEINWMS_VERSION"
 
             rpm_workdir = ""
@@ -42,6 +48,7 @@ class GlideinWMSDistro:
                 self._version = "glideinWMS UNKNOWN"
 
         def createVersionString(self):
+            """Creates the version string based on the checksum file and the current state of the distribution."""
             ver = "UNKNOWN"
             patch = ""
             modifiedFiles = []
@@ -74,57 +81,66 @@ class GlideinWMSDistro:
                         if chksum != distroFileHash[file]:
                             modifiedFiles.append(file)
                             patch = "PATCHED"
-                    except Exception:  # ignore missing files
+                    except Exception:
+                        # Ignore missing files
                         pass
                     if fd:
                         fd.close()
 
-            # if len(modifiedFiles) > 0:
-            #    print "Modified files: %s" % " ".join(modifiedFiles)
-
             self._version = f"glideinWMS {ver} {patch}"
 
         def version(self):
+            """Returns the current version string.
+
+            Returns:
+                str: The current version string.
+            """
             return self._version
 
     # storage for the instance reference
     __instance = None
 
     def __init__(self, chksumFile="checksum"):
+        """
+        Args:
+            chksumFile (str): Path to the checksum file. Defaults to "checksum".
+        """
         if GlideinWMSDistro.__instance is None:
             GlideinWMSDistro.__instance = GlideinWMSDistro.__impl(chksumFile=chksumFile)
 
         self.__dict__["_GlideinWMSDistro__instance"] = GlideinWMSDistro.__instance
 
     def __getattr__(self, attr):
-        """Delegate access to implementation"""
+        """Delegate access to implementation."""
         return getattr(self.__instance, attr)
 
     def __setattr__(self, attr, value):
-        """Delegate access to implementation"""
+        """Delegate access to implementation."""
         return setattr(self.__instance, attr, value)
 
 
 def version(chksumFile=None):
+    """Gets the GlideinWMS version.
+
+    Args:
+        chksumFile (str, optional): Path to the checksum file.
+
+    Returns:
+        str: The GlideinWMS version.
+    """
     return GlideinWMSDistro(chksumFile=chksumFile).version()
 
 
-#   version
-
-
 def usage():
+    """Prints the usage of the script."""
     print("Usage: glideinWMSVersion.py <Path to glideinWMS distribution> [<Checksum file>]")
 
 
-##############################################################################
-# MAIN
-##############################################################################
-
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        print("%s " % (GlideinWMSDistro().version()))
+        print(f"{GlideinWMSDistro().version()} ")
     elif len(sys.argv) == 2:
-        print("%s " % (GlideinWMSDistro(chksumFile=sys.argv[1]).version()))
+        print(f"{GlideinWMSDistro(chksumFile=sys.argv[1]).version()} ")
     else:
         usage()
         sys.exit(1)
