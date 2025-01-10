@@ -105,7 +105,9 @@ SPDX-License-Identifier: Apache-2.0
           <li><a href="#vars">Variables used</a></li>
           <li><a href="#admin_vars">Admin variables</a></li>
           <li><a href="#dyn_vars">Dynamic variables </a></li>
-          <li><a href="#singularity_vars">Singularity variables </a></li>
+          <li>
+            <a href="#singularity_vars">Apptainer/Singularity variables </a>
+          </li>
           <li>
             <a href="#cpuscalculation">Set and discover available CPUs</a>
           </li>
@@ -1358,7 +1360,8 @@ MAX_STARTD_LOG          I       10000000        +                               
                 Comma separated list of keywords affecting Glidein debug.
                 Possible options are:<br />
                 userjob - prints debug informations on the user job stderr (at
-                the beginning, when invoked with the Singularity wrapper)<br />
+                the beginning, when invoked with the container -Apptainer-
+                wrapper)<br />
                 nowait - removes the Glidein wait time when it ends with errors.
                 Useful when debugging. The wait time protects against black
                 holes<br />
@@ -2244,7 +2247,10 @@ MAX_STARTD_LOG          I       10000000        +                               
       </div>
 
       <div class="section">
-        <h3><a name="singularity_vars"></a>Singularity Variables (dynamic)</h3>
+        <h3>
+          <a name="singularity_vars"></a>Apptainer/Singularity Variables
+          (dynamic)
+        </h3>
 
         <p>
           These variables can be set in the Factory attributes, set in the
@@ -2256,8 +2262,8 @@ MAX_STARTD_LOG          I       10000000        +                               
           have the ultimate saying.
         </p>
         <p>
-          The resulting invocation of Singularity is something like the text
-          below. Where $singularity_binds is built using
+          The resulting invocation of Apptainer/Singularity is something like
+          the text below. Where $singularity_binds is built using
           GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, GLIDEIN_SINGULARITY_BINDPATH,
           and GWMS_SINGULARITY_BIND_CVMFS, and the $singularity_image is one
           coming from SINGULARITY_IMAGES_DICT or specified in the job. The debug
@@ -2285,11 +2291,13 @@ MAX_STARTD_LOG          I       10000000        +                               
           </li>
           <li>
             If defined (in environment, Frontend or Factory): Try a singularity
-            binary in the directory suggested via SINGULARITY_BIN: (keyword OSG
-            (default)-> OSG_SINGULARITY_BINARY, keyword PATH -> go to the next
-            step and check the system PATH)
+            binary in the directory suggested via SINGULARITY_BIN: (keyword
+            CONDOR -> apptainer in HTCondor tar ball, keyword OSG (default)->
+            OSG_SINGULARITY_BINARY, keyword PATH -> go to the next step and
+            check the system PATH)
           </li>
           <li>Try the singularity binary in PATH</li>
+          <li>Try the apptainer binary in the HTCondor tar ball</li>
           <li>
             Try the singularity binary in PATH after invoking module
             singularitypro
@@ -2650,15 +2658,17 @@ MAX_STARTD_LOG          I       10000000        +                               
               <p>
                 If set to "OSG" or not set (default), the Glidein will try first
                 to use the singularity binary provided by OSG in CVMFS before
-                looking in the system PATH and trying module. If set to "PATH",
-                the Glidein will try first to use the singularity binary in the
-                system PATH. SINGULARITY_BIN can be used also to suggest an
-                arbitrary specific folder for the singularity binary that will
-                be tested (and used) before the other options, but this use is
-                only for debug purposes, not recommended in production, not to
-                overload Factory Ops with tracking site changes. NOTE: in
-                pre-v3.4 versions SINGULARITY_BIN was used also to enable the
-                use of Singularity for a Factory entry. This is no more, use
+                looking in the system PATH and trying module. If set to
+                "CONDOR", the Glidein will try first to use the apptainer binary
+                provided by the HTCondor tar ball. If set to "PATH", the Glidein
+                will try first to use the singularity binary in the system PATH.
+                SINGULARITY_BIN can be used also to suggest an arbitrary
+                specific folder for the singularity binary that will be tested
+                (and used) before the other options, but this use is only for
+                debug purposes, not recommended in production, not to overload
+                Factory Ops with tracking site changes. NOTE: in pre-v3.4
+                versions SINGULARITY_BIN was used also to enable the use of
+                Singularity for a Factory entry. This is no more, use
                 GLIDEIN_SINGULARITY_REQUIRE instead.
               </p>
             </td>

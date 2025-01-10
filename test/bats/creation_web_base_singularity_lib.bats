@@ -536,11 +536,24 @@ mock_singularity_test_bin() {
         stb_attempts=$(grep -ch "Called singularity_test_bin" "$tmp_singularity_dir/calls")
         echo "SLB: $slb_ec, $HAS_SINGULARITY, $GWMS_SINGULARITY_MODE, $GWMS_SINGULARITY_PATH, $stb_attempts"
     }
+    # Replace gwms_from_config to alter the output for CONDOR_DIR (to find the condor apptainer)
+    eval "original_gwms_from_config()
+$(typeset -f gwms_from_config | tail -n +2)"
+    gwms_from_config() {
+        if [ "$1" = CONDOR_DIR ]; then
+            echo "$tmp_singularity_dir"
+        else
+            original_gwms_from_config "$@"
+        fi
+    }
     # Prepare a fake singularity binary
     tmp_singularity_dir=$(mktemp -d -t gwms_bats-XXXXXXXXXX)
     tmp_singularity_bin="$tmp_singularity_dir/singularity"
     echo -e '#!/bin/bash\necho "mock singularity v1.0"' > "$tmp_singularity_bin"
     chmod +x "$tmp_singularity_bin"
+    # Emulate the HTCondor tar ball apptainer setup
+    mkdir -p "$tmp_singularity_dir/usr/libexec"
+    ln -s "$tmp_singularity_bin" "$tmp_singularity_dir/usr/libexec/apptainer"
     echo "Singularity binary mocked: $tmp_singularity_bin" >&3
 
     mock_singularity_test_bin_control=true  # all tests successful
@@ -573,9 +586,13 @@ mock_singularity_test_bin() {
     run  singularity_locate_bin_wrapped "PATH" "/path/to/image"
     echo "part 5: $output" >&3
     [ "$output" = "SLB: 0, True, mock_PATH, apptainer, 1" ]
+    # keyword CONDOR
+    run  singularity_locate_bin_wrapped "CONDOR" "/path/to/image"
+    echo "part 6a: $output" >&3
+    [ "$output" = "SLB: 0, True, mock_s_bin_CONDOR, $tmp_singularity_dir/usr/libexec/apptainer, 1" ]
     # keyword OSG
     run  singularity_locate_bin_wrapped "OSG" "/path/to/image"
-    echo "part 6: $output" >&3
+    echo "part 6b: $output" >&3
     [ "$output" = "SLB: 0, True, mock_s_bin_OSG, $tmp_singularity_bin, 1" ]
     # keyword OSG w/ default OSG_SINGULARITY_BINARY
     OSG_SINGULARITY_BINARY=
@@ -591,9 +608,9 @@ mock_singularity_test_bin() {
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 8: $output" >&3
     if [ -e "$OSG_SINGULARITY_BINARY_DEFAULT" ]; then
-        [ "$output" = "SLB: 1, False, , , 6" ]
+        [ "$output" = "SLB: 1, False, , , 7" ]
     else
-        [ "$output" = "SLB: 1, False, , , 5" ]
+        [ "$output" = "SLB: 1, False, , , 6" ]
     fi
     OSG_SINGULARITY_BINARY=$tmp_singularity_bin # To avoid having 2 versions for when /cvmfs is available and when not
     mock_singularity_test_bin_control=PATH  # only PATH successful
@@ -603,11 +620,15 @@ mock_singularity_test_bin() {
     mock_singularity_test_bin_control=module  # only module successful
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 10: $output" >&3
-    [ "$output" = "SLB: 0, True, mock_module, singularitypro, 4" ]
+    [ "$output" = "SLB: 0, True, mock_module, singularitypro, 5" ]
     mock_singularity_test_bin_control=OSG  # only OSG successful
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 11: $output" >&3
-    [ "$output" = "SLB: 0, True, mock_OSG, $tmp_singularity_bin, 6" ]
+    [ "$output" = "SLB: 0, True, mock_OSG, $tmp_singularity_bin, 7" ]
+    mock_singularity_test_bin_control=CONDOR  # only CONDOR successful
+    run  singularity_locate_bin_wrapped "" "/path/to/image"
+    echo "part 12: $output" >&3
+    [ "$output" = "SLB: 0, True, mock_CONDOR, $tmp_singularity_dir/usr/libexec/apptainer, 4" ]
 
     [[ -n "${tmp_singularity_dir}" ]] && rm -rf "${tmp_singularity_dir}"
 }
