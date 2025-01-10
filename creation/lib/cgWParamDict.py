@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Glidein creation module
-   Classes and functions needed to handle dictionary files
-   created out of the parameter object
+"""Glidein creation module.
+   Classes and functions needed to handle dictionary files.
+   created out of the parameter object.
 """
 
 import os
@@ -27,7 +27,7 @@ from . import cgWConsts, cgWCreate, cgWDictFile, cWConsts, cWDictFile, cWExpand,
 class UnconfiguredScheddError(Exception):
     def __init__(self, schedd):
         self.schedd = schedd
-        self.err_str = "Schedd '%s' used by one or more entries is not configured." % (schedd)
+        self.err_str = f"Schedd '{schedd}' used by one or more entries is not configured."
 
     def __str__(self):
         return repr(self.err_str)
@@ -41,7 +41,7 @@ class UnconfiguredScheddError(Exception):
 
 
 class glideinMainDicts(cgWDictFile.glideinMainDicts):
-    """This Class contains the main dicts"""
+    """This Class contains the main dicts."""
 
     def __init__(self, conf, workdir_name):
         submit_dir = conf.get_submit_dir()

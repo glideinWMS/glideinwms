@@ -79,6 +79,9 @@
 OSG_SINGULARITY_BINARY_DEFAULT="/cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity"
 [[ -n "$CVMFS_MOUNT_DIR" ]] && OSG_SINGULARITY_BINARY_DEFAULT="${CVMFS_MOUNT_DIR}/oasis.opensciencegrid.org/mis/singularity/bin/singularity"
 
+# Path of apptainer within the HTCondor tar ball
+CONDOR_APPTAINER_BIN=usr/libexec/apptainer
+
 # For shell, for HTCondor is the opposite
 # 0 = true
 # 1 = false
@@ -1489,11 +1492,13 @@ singularity_locate_bin() {
     # 1. Optional: Look first in the override path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)
     # 2. Look for 'singularity' and then 'apptainer' in the path suggested via $1 (SINGULARITY_BIN)
     #      (keywords: PATH -> go to step 3 - ie start w/ $PATH;
-    #           OSG -> OSG location, and continue from step 3 if failed, this is the default)
+    #           OSG -> OSG location, and continue from step 3 if failed, this is the default;
+    #           CONDOR -> apptainer included in HTCondor tar ball)
     # 3. Look in $PATH for 'apptainer' and then 'singularity'
-    # 4. Invoke module singularitypro
-    # 5. Invoke module singularity
-    # 6. Look in the default OSG location
+    # 4. Look for 'apptainer' in the HTCondor tar ball
+    # 5. Invoke module singularitypro
+    # 6. Invoke module singularity
+    # 7. Look in the default OSG location
     # In:
     #   1 - s_location, suggested Singularity directory, will be added first in PATH before searching for Singularity
     #            keywords OSG (default, same as '') and PATH (no suggestion start checking form PATH) are possible
@@ -1516,6 +1521,8 @@ singularity_locate_bin() {
     local test_out
     HAS_SINGULARITY=False
     local osg_singularity_binary="${OSG_SINGULARITY_BINARY:-${OSG_SINGULARITY_BINARY_DEFAULT}}"
+    local condor_apptainer_binary
+    condor_apptainer_binary="$(gwms_from_config CONDOR_DIR main/condor)/${CONDOR_APPTAINER_BIN}"
     local singularity_binary_override
     singularity_binary_override="${GLIDEIN_SINGULARITY_BINARY_OVERRIDE:-$(gwms_from_config GLIDEIN_SINGULARITY_BINARY_OVERRIDE)}"
 
@@ -1554,26 +1561,30 @@ singularity_locate_bin() {
         bread_crumbs+=" s_bin_defined"
         s_step=s_bin
         [[ "$s_location" == OSG ]] && { s_location="${osg_singularity_binary%/singularity}"; s_step=s_bin_OSG; }
-        if [[ ! -d "$s_location"  ||  ! -x "${s_location}/singularity" ]]; then
+        [[ "$s_location" == CONDOR ]] && { s_location="${condor_apptainer_binary%/apptainer}"; s_step=s_bin_CONDOR; }
+        if [[ -d "$s_location"  && ( -x "${s_location}/apptainer" || -x "${s_location}/singularity" ) ]]; then
+            # 2. Look in the path suggested, separate from $PATH (key OSG -> OSG_SINGULARITY_BINARY)
+            test_out=apptainer
+            [[ -x "${s_location}/apptainer" ]] || test_out=singularity
+            test_out=$(singularity_test_bin "${s_step},${s_location}/$test_out" "$s_image") &&
+                HAS_SINGULARITY=True
+            bread_crumbs+="${test_out##*@}"
+        else
             [[ "$s_location" = NONE ]] &&
                 warn "SINGULARITY_BIN = NONE is no more a valid value, use GLIDEIN_SINGULARITY_REQUIRE to control the use of Singularity"
             info "Suggested path (SINGULARITY_BIN?) '$1' ($s_location) is not a directory or does not contain singularity."
             info "Will try to proceed with auto-discover but this mis-configuration may cause errors later"
-        else
-            # 2. Look in the path suggested, separate from $PATH (key OSG -> OSG_SINGULARITY_BINARY)
-            test_out=$(singularity_test_bin "${s_step},${s_location}/singularity" "$s_image") &&
-                HAS_SINGULARITY=True
-            bread_crumbs+="${test_out##*@}"
         fi
     fi
     if [[ "$HAS_SINGULARITY" != True ]]; then
         # 3. Look in $PATH for apptainer
         # 4. Look in $PATH for singularity
-        # 5. Invoke module singularitypro
-        # 6. Invoke module singularity
-        #    some sites requires us to do a module load first - not sure if we always want to do that
-        # 7. Look in the default OSG location
-        for attempt in "PATH,apptainer" "PATH,singularity" "module,singularitypro" "module,singularity" "OSG,${osg_singularity_binary}"; do
+        # 5. Look for apptainer in the HTCondor tar ball
+        # 6. Invoke module singularitypro
+        # 7. Invoke module singularity
+        #    Some sites requires us to do a module load first - not sure if we always want to do that
+        # 8. Look in the default OSG location
+        for attempt in "PATH,apptainer" "PATH,singularity" "CONDOR,${condor_apptainer_binary}" "module,singularitypro" "module,singularity" "OSG,${osg_singularity_binary}"; do
             if test_out=$(singularity_test_bin "$attempt" "$s_image"); then
                 HAS_SINGULARITY=True
                 break
@@ -1587,7 +1598,7 @@ singularity_locate_bin() {
     if [[ "$HAS_SINGULARITY" = True ]]; then
         local test_results
         IFS=$'\n' read -rd '' -a test_results <<<"$test_out"
-        # one last check - make sure we could determine the path to singularity
+        # One last check - make sure we could determine the path to singularity
         if [[ -z "${test_results[3]#_}" ]]; then
             warn "Looks like we found Singularity, but were unable to determine the full path to the executable"
         else
@@ -1672,10 +1683,12 @@ singularity_get_image() {
         return 3
     fi
 
-    # We make sure it exists
-    if [[ ! -e "$singularity_image" ]]; then
-        warn "ERROR: $singularity_image file not found" 1>&2
-        return 2
+    # Unless is OK to use URLs/remote images, we make sure it exists
+    if [[ ! ",${s_restrictions}," = *",remote,"* ]]; then
+        if [[ ! -e "$singularity_image" ]]; then
+            warn "ERROR: $singularity_image file not found" 1>&2
+            return 2
+        fi
     fi
 
     echo "$singularity_image"
@@ -1890,7 +1903,7 @@ singularity_prepare_and_invoke() {
             # Prefer the platforms default,rhel9,rhel8,rhel7,rhel6, otherwise pick the first one available
             GWMS_SINGULARITY_IMAGE=$(singularity_get_image default,rhel9,rhel8,rhel7,rhel6 ${GWMS_SINGULARITY_IMAGE_RESTRICTIONS:+$GWMS_SINGULARITY_IMAGE_RESTRICTIONS,}any)
         else
-            GWMS_SINGULARITY_IMAGE=$(singularity_get_image "$DESIRED_OS" $GWMS_SINGULARITY_IMAGE_RESTRICTIONS)
+            GWMS_SINGULARITY_IMAGE=$(singularity_get_image "$DESIRED_OS" "$GWMS_SINGULARITY_IMAGE_RESTRICTIONS")
         fi
     fi
 

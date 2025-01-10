@@ -5,15 +5,21 @@ SPDX-License-Identifier: Apache-2.0
 
 ## v3.10.9 \[2024-12-23\]
 
-Fixed the Glidein logging and added an sample log server
+Added support for the HTCondor distributed apptainer.
+Fixed the Glidein logging and added an sample log server.
 
 ### New features / functionalities
 
--   Added custom log server example (glideinwms-logging) (Issue #398, PR #467)
+-   Added custom JWT-authenticated log server example (new RPM glideinwms-logging) (Issue #398, PR #467)
+-   Now using also Apptainer included in the HTCondor tar ball (Issue #364, PR #473)
 
 ### Changed defaults / behaviours
 
 -   Always send SIGQUIT to HTCondor when the Glidein receives INT, TERM, QUIT signals. This speeds up the shutdown (PR #466)
+-   Apptainer downloaded in the HTCondor tar ball is now considered after the PATH in the search for a valid binary.
+    The keyword CONDOR in the parameter SINGULARITY_BIN will make so that the HTCondor Apptainer is preferred
+    ahead of the rest (PR #473)
+-   Added RHEL9 to the list of default OSes used for the container images lookup. Now it is: default,rhel9,rhel7,rhel6,rhel8 (PR #473)
 
 ### Deprecated / removed options and commands
 
@@ -25,6 +31,8 @@ Fixed the Glidein logging and added an sample log server
 -   Removed confusing tac broken pipe messages from the Glidein stderr (PR #465)
 -   Fixed JWT logging credentials not transferred to the Glidein. This includes removal of DictFile.append() and use of add_environment() for JWT tokens (Issue #398, PR #467)
 -   Fixed quotes in Glidein command line unpacking and replaced deprecated add_config_line commands (PR #468)
+-   Allow anonymous SSL authentication for the dynamically generated client config (Issue #222, PR #470)
+-   Checking also the apptainer binary in the SINGULARITY_BIN path, not only singularity (PR #473)
 
 ### Testing / Development
 

@@ -819,9 +819,10 @@ fetch_file() {
     # 3. real fname
     # 4. file type (regular, exec, exec:s, untar, nocache)
     # 5. period (0 if not a periodic file)
-    # 6. periodic scripts prefix
-    # 7. config check TRUE,FALSE
-    # 8. config out TRUE,FALSE
+    # 6. periodic scripts prefix (used also for condor_config keys)
+    # 7. config check: key in condor_config to use for conditional download (download if 1), TRUE (always download),
+    #                  FALSE (never download)
+    # 8. config out: condor_config key to use to save the file path or tar dir, FALSE (don't write)
     # The above is the most recent list, below some adaptations for different versions
     if [ $# -gt 8 ]; then
         # For compatibility w/ future versions (add new parameters at the end)
@@ -1212,6 +1213,10 @@ fetch_file_base() {
             warn "Error untarring '${ffb_outname}'"
             return 1
         fi
+        # Check if it just unpacked the HTCondor tarball. CONDOR_DIR is the value of cgWConsts.CONDOR_ATTR
+        if [ "${ffb_config_out}" = "CONDOR_DIR" ]; then
+            fixup_condor_dir
+        fi
     fi
 
     if [ "${ffb_config_out}" != "FALSE" ]; then
@@ -1229,7 +1234,7 @@ fetch_file_base() {
     fi
 
     if [ "${have_dummy_otrx}" -eq 1 ]; then
-        # no one should really look at this file, but just to avoid confusion
+        # No one should really look at this file, but just to avoid confusion
         echo "<?xml version=\"1.0\"?>
 <OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
   <operatingenvironment>
@@ -1996,9 +2001,9 @@ do
 
     # Files to go into the GWMS_PATH
     if [ "$gs_file_id" = "main at_file_list" ]; then
-        # setup here to make them available for other setup scripts
+        # Setup here to make them available for other setup scripts
         add_to_path "$gwms_bin_dir"
-        # all available now: gwms-python was in main,file_list; condor_chirp is in main,at_file_list
+        # All available now: gwms-python was in main,file_list; condor_chirp is in main,at_file_list
         for file in "gwms-python" "condor_chirp"
         do
             cp "${gs_id_work_dir}/$file" "$gwms_bin_dir"/
@@ -2006,16 +2011,14 @@ do
         cp -r "${gs_id_work_dir}/lib"/* "$gwms_lib_dir"/
         cp "${gs_id_work_dir}/gconfig.py" "$gwms_lib_dir"/python/
     elif [ "$gs_file_id" = "main after_file_list" ]; then
-        # in case some library has been added/updated
+        # In case some library has been added/updated
         rsync -ar "${gs_id_work_dir}/lib"/ "$gwms_lib_dir"/
-        # new knowns binaries? add a loop like above: for file in ...
+        # New known binaries? add a loop like above: for file in ...
     elif [[ "$gs_file_id" = client* ]]; then
         # TODO: gwms25073 this is a workaround until there is an official designation for setup script fragments
         [[ -e "${gs_id_work_dir}/setup_prejob.sh" ]] && { cp "${gs_id_work_dir}/setup_prejob.sh" "$gwms_exec_dir"/prejob/ ; chmod a-x "$gwms_exec_dir"/prejob/setup_prejob.sh ; }
     fi
 done
-
-fixup_condor_dir
 
 ##############################
 # Start the glidein main script

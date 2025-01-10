@@ -29,6 +29,7 @@ if [[ "$glidein_config" != "NONE" ]]; then
         export add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
         export       condor_vars_file=$(grep -m1 -i "^CONDOR_VARS_FILE "    "$glidein_config" | cut -d ' ' -f 2-)
     fi
+    # shellcheck source=./add_config_line.source
     . "$add_config_line_source"
 fi
 

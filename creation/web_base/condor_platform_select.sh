@@ -3,12 +3,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This script will select the appropriate condor tarball
 #   Must be listed in the file_list before the condor tarballs
@@ -16,7 +10,7 @@
 #
 
 glidein_config="$1"
-tmp_fname="${glidein_config}.$$.tmp"
+# not used - tmp_fname="${glidein_config}.$$.tmp"
 
 # import add_config_line function
 add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
