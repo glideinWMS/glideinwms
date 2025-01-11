@@ -24,9 +24,11 @@ Fixed the Glidein logging and added an sample log server
 -   Fixed early truncation in log files configuration and inconsistent documentation (Issue #464, PR #462, PR #463)
 -   Removed confusing tac broken pipe messages from the Glidein stderr (PR #465)
 -   Fixed JWT logging credentials not transferred to the Glidein. This includes removal of DictFile.append() and use of add_environment() for JWT tokens (Issue #398, PR #467)
--   Fixed quotes in glidein command line unpacking and replaced deprecated add_config_line commands (PR #468)
+-   Fixed quotes in Glidein command line unpacking and replaced deprecated add_config_line commands (PR #468)
 
 ### Testing / Development
+
+-   Improved the docstrings and some code in the lib files and few others with the help of AI (PR #471, PR #472)
 
 ### Known Issues
 
@@ -36,7 +38,7 @@ Fixed a few bugs including shebang mangling and failed log files rotation.
 
 ### New features / functionalities
 
--   Advertizing information about unprivileged user namespaces in glidein classad (PR #416)
+-   Advertising information about unprivileged user namespaces in Glidein classad (PR #416)
 -   Added option --group-name option to manual_glidein_submit (PR #435)
 
 ### Changed defaults / behaviours

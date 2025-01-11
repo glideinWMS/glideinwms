@@ -46,10 +46,10 @@ class cachedLogClass:
             self.cachename = os.path.join(cache_dir, os.path.basename(logname) + cache_ext)
 
     def has_changed(self):
-        """Compare to cache, and tell if the log file has changed since last checked.
+        """Compares to cache, and tells if the log file has changed since last cached.
 
         Returns:
-            bool: True if the log file has changed, False otherwise.
+            bool: True if the log file has changed or if there is no cache, False otherwise.
         """
         if os.path.isfile(self.logname):
             fstat = os.lstat(self.logname)
@@ -67,11 +67,11 @@ class cachedLogClass:
         return logtime > cachetime
 
     def load(self):
-        """Load data from the most recent file. Update the cache if needed.
+        """Loads data from the most recent file. Updates the cache if needed.
 
-        If the file has not changed, use the cache instead.
+        If the file has not changed, use the cache.
         The cache is typically named something like filename.ftstpk and is in a pickle format.
-        If file is newer, use the inherited class's loadFromLog method.
+        If file is newer, use the `loadFromLog()` method of the child class to load from the file.
         Then, save the values in the pickle cache.
         """
         if not self.has_changed():
@@ -95,15 +95,13 @@ class cachedLogClass:
             if logtime <= start_logtime:
                 return  # OK, not changed, can exit
 
-        return  # should never reach this point
-
     def loadCache(self):
-        """Load data from the cache file."""
+        """Loads data from the cache file."""
         self.data = loadCache(self.cachename)
         return
 
     def loadFromLog(self):
-        """Load data from the log file.
+        """Loads data from the log file.
 
         This method should be implemented by subclasses.
         """
@@ -111,16 +109,16 @@ class cachedLogClass:
 
     ####### PRIVATE ###########
     def saveCache(self):
-        """Save data to the cache file."""
+        """Saves data to the cache file."""
         saveCache(self.cachename, self.data)
         return
 
 
 class logSummary(cachedLogClass):
-    """Keeps track of jobs in various statuses (Wait, Idle, Running, Held, Completed, Removed).
+    """Keeps track of jobs in various statuses ('Wait', 'Idle', 'Running', 'Held', 'Completed', 'Removed').
 
     This data is available in self.data dictionary, for example:
-    self.data = {'Idle': ['123.003', '123.004'], 'Running': ['123.001', '123.002']}
+    `self.data = {'Idle': ['123.003', '123.004'], 'Running': ['123.001', '123.002']}`
     """
 
     def __init__(self, logname, cache_dir):
@@ -133,16 +131,16 @@ class logSummary(cachedLogClass):
         self.clInit(logname, cache_dir, ".cstpk")
 
     def loadFromLog(self):
-        """Parse the condor activity log and interpret the globus status code.
+        """Parses the condor activity log and interprets the HTCondor status codes.
 
-        Stores the result in self.data.
+        Stores the result in `self.data`.
         """
         jobs = parseSubmitLogFastRaw(self.logname)
         self.data = listAndInterpretRawStatuses(jobs, listStatuses)
         return
 
     def isActive(self):
-        """Determine if there are any active jobs.
+        """Determines if there are any active jobs.
 
         Returns:
             bool: True if there are active jobs, False otherwise.
@@ -155,13 +153,13 @@ class logSummary(cachedLogClass):
         return active
 
     def merge(self, other_data):
-        """Merge self data with other data.
+        """Merges the current log data with another dataset.
 
         Args:
-            other_data (dict): The data to merge with.
+            other_data (dict): The dataset to merge with.
 
         Returns:
-            dict: The merged data. May modify also `other_data`
+            dict: The merged data. May modify also `other_data`.
         """
         if other_data is None:
             return self.data
@@ -176,19 +174,19 @@ class logSummary(cachedLogClass):
             return other_data
 
     def diff(self, other_data):
-        """Compare self data with other data.
+        """Finds differences between the current log dataset and another dataset.
 
-        Used to compare the previous iteration with the current iteration
+        Used to compare the previous iteration with the current iteration.
 
         Performs symmetric difference on the two sets and
         creates a dictionary for each job status.
 
         Args:
-            other_data (dict): The data to compare with.
+            other_data (dict): The dataset to compare with.
 
         Returns:
             dict: A dictionary with the differences, showing entered and exited jobs.
-                `data[status]['Entered'|'Exited']` contains a list of jobs
+                `data[status]['Entered'|'Exited']` contains a list of jobs.
         """
         if other_data is None:
             outdata = {}
@@ -249,9 +247,10 @@ class logCompleted(cachedLogClass):
         self.clInit(logname, cache_dir, ".clspk")
 
     def loadFromLog(self):
-        """Load information from condor_activity logs, parse globus statuses, and parse and add counts.
+        """Loads information from condor_activity logs, interprets the HTCondor status codes,
+        and stores the count per status and list of completed jobs.
 
-        Stores the result in self.data.
+        Stores the result in `self.data`.
         """
         tmpdata = {}
         jobs = parseSubmitLogFastRaw(self.logname)
@@ -278,17 +277,18 @@ class logCompleted(cachedLogClass):
         for k in list(counts.keys()):
             if k not in ["Completed", "Removed"]:
                 if counts[k] > 0:
-                    active = True  # Enough that at least one non Completed/Removed job exists
+                    # Enough that at least one non Completed/Removed job exists
+                    active = True
         return active
 
     def merge(self, other_data):
-        """Merge self data with other data.
+        """Merges the current log data with another dataset.
 
         Args:
-            other_data (dict): The data to merge with.
+            other_data (dict): The dataset to merge with.
 
         Returns:
-            dict: The merged data. May modify also `other_data`
+            dict: The merged data. May modify also `other_data`.
         """
         if other_data is None:
             return self.data
@@ -304,13 +304,13 @@ class logCompleted(cachedLogClass):
             return other_data
 
     def diff(self, other_data):
-        """Compare self data with other data.
+        """Finds differences between the current log dataset and another dataset.
 
         For use in comparing the previous iteration with the current iteration.
         Uses a symmetric difference of sets.
 
         Args:
-            other_data (dict): The data to compare with.
+            other_data (dict): The dataset to compare with.
 
         Returns:
             dict: A dictionary with the differences, showing entered and exited jobs.
@@ -379,16 +379,17 @@ class logCounts(cachedLogClass):
         self.clInit(logname, cache_dir, ".clcpk")
 
     def loadFromLog(self):
-        """Load and parse jobs from the log file, then count and interpret their statuses.
+        """Loads and parses jobs from the log file, then counts, interprets and stores the counts of
+        various job statuses.
 
-        Stores the result in self.data.
+        Stores the result in `self.data`.
         """
         jobs = parseSubmitLogFastRaw(self.logname)
         self.data = countAndInterpretRawStatuses(jobs)
         return
 
     def isActive(self):
-        """Determine if there are any active jobs.
+        """Determines if there are any active jobs.
 
         Returns:
             bool: True if there are active jobs, False otherwise.
@@ -401,13 +402,13 @@ class logCounts(cachedLogClass):
         return active
 
     def merge(self, other_data):
-        """Merge self data with other data.
+        """Merges the current log data with another dataset.
 
         Args:
-            other_data (dict): The data to merge with.
+            other_data (dict): The dataset to merge with.
 
         Returns:
-            dict: The merged data. May modify also `other_data`
+            dict: The merged data. May modify also `other_data`.
         """
         if other_data is None:
             return self.data
@@ -422,10 +423,10 @@ class logCounts(cachedLogClass):
             return other_data
 
     def diff(self, other_data):
-        """Compare self data with other data.
+        """Finds differences between the current log dataset and another dataset.
 
         Args:
-            other_data (dict): The data to compare with.
+            other_data (dict): The dataset to compare with.
 
         Returns:
             dict: A dictionary with the differences in counts.
@@ -480,16 +481,16 @@ class logSummaryTimings(cachedLogClass):
         self.clInit(logname, cache_dir, ".ctstpk")
 
     def loadFromLog(self):
-        """Load and parse jobs from the log file, including timings.
+        """Loads and parses jobs from the log file, including timings.
 
-        Stores the result in self.data.
+        Stores the result in `self.data`.
         """
         jobs, self.startTime, self.endTime = parseSubmitLogFastRawTimings(self.logname)
         self.data = listAndInterpretRawStatuses(jobs, listStatusesTimings)
         return
 
     def isActive(self):
-        """Determine if there are any active jobs.
+        """Determines if there are any active jobs.
 
         Returns:
             bool: True if there are active jobs, False otherwise.
@@ -498,17 +499,18 @@ class logSummaryTimings(cachedLogClass):
         for k in list(self.data.keys()):
             if k not in ["Completed", "Removed"]:
                 if len(self.data[k]) > 0:
-                    active = True  # Enough that at least one non Completed/Removed job exists
+                    # Enough that at least one non Completed/Removed job exists
+                    active = True
         return active
 
     def merge(self, other_data):
-        """Merge self data with other data.
+        """Merges the current log data with another dataset.
 
         Args:
-            other_data (dict): The data to merge with. May modify also `other_data`
+            other_data (dict): The dataset to merge with. May modify also `other_data`.
 
         Returns:
-            dict: The merged data.
+            dict: The merged data, including job statuses with timings.
         """
         if other_data is None:
             return self.data
@@ -523,14 +525,14 @@ class logSummaryTimings(cachedLogClass):
             return other_data
 
     def diff(self, other_data):
-        """Compare self data with other data.
+        """Finds differences between the current log dataset and another dataset.
 
         Args:
-            other_data (dict): The data to compare with.
+            other_data (dict): The dataset to compare with.
 
         Returns:
-            dict: A dictionary with the differences, showing entered and exited jobs.
-                `data[status]['Entered'|'Exited']` is a list of jobs
+            dict: A dictionary with the differences, showing entered and exited jobs and timings.
+                `data[status]['Entered'|'Exited']` is a list of jobs.
         """
         if other_data is None:
             outdata = {}
@@ -979,15 +981,14 @@ class dirSummaryTimings(cacheDirClass):
 
 
 def get_new_status(old_status, new_status):
-    """Given a job with an old and new status,
-    will return the appropriate status to register to the job.
+    """Determines the updated job status based on the old and new statuses.
 
     Args:
-        old_status (str): Globus job status.
-        new_status (str): Globus job status.
+        old_status (str): The current Globus job status.
+        new_status (str): The new Globus job status.
 
     Returns:
-        str: Appropriate status for the job.
+        str: The updated job status after applying the logic for status correction in transitions.
     """
     # keep the old status unless you really want to change
     status = old_status
@@ -1013,13 +1014,13 @@ def get_new_status(old_status, new_status):
 
 
 def parseSubmitLogFastRaw(fname):
-    """Read a HTCondor submit log.
+    """Parses a HTCondor submit log file and extracts job statuses without timing information.
 
     Args:
         fname (str): Filename of the log to parse.
 
     Returns:
-        dict: A dictionary of jobStrings each having the last statusString.
+        dict: A dictionary where keys are job IDs and values are their corresponding statuses (statusString).
               For example, {'1583.004': '000', '3616.008': '009'}
     """
     jobs = {}
@@ -1064,18 +1065,26 @@ def parseSubmitLogFastRaw(fname):
 
 
 def parseSubmitLogFastRawTimings(fname):
-    """Read a HTCondor submit log and return a dictionary of jobStrings
-    each having the last statusString, firstTime, runningTime, lastTime,
-    plus the first and last date in the file.
+    """Parses a HTCondor submit log file and extracts job statuses along with timing information.
+
+    It returns a dictionary of jobStrings each having the last statusString, firstTime, runningTime, lastTime.
+    It also returns the first and last date in the file.
 
     Args:
         fname (str): Filename of the log to parse.
 
     Returns:
-        tuple: A dictionary of jobStrings, the first time, and the last time.
-               For example, ({'9568.001': ('000', '09/28 01:38:53', '', '09/28 01:38:53'),
-                             '9868.003': ('005', '09/28 01:48:52', '09/28 16:11:23', '09/28 20:31:53')},
-                             '09/28 01:38:53', '09/28 20:31:53')
+        tuple: A tuple containing:
+                - dict: A dictionary of jobStrings, where keys are job IDs and values are tuples with
+                        Job ID, start time, running time (if completed), end time.
+                - str: The timestamp of the first log entry.
+                - str: The timestamp of the last log entry.
+               For example:
+               ```
+                    ({'9568.001': ('000', '09/28 01:38:53', '', '09/28 01:38:53'),
+                      '9868.003': ('005', '09/28 01:48:52', '09/28 16:11:23', '09/28 20:31:53')},
+                      '09/28 01:38:53', '09/28 20:31:53')
+               ```
     """
     jobs = {}
 
@@ -1137,12 +1146,13 @@ def parseSubmitLogFastRawTimings(fname):
 
 
 def parseSubmitLogFastRawCallback(fname, callback):
-    """Read a condor submit log and for each new event, call a callback.
+    """Parses a HTCondor submit log file and invokes a callback function for each status change.
 
     Args:
         fname (str): Filename of the log to parse.
-        callback (function): Function to call for each new event.
-                             Should have the signature callback(new_status_str, timestamp_str, job_str)
+        callback (function): Callback function to call for each status change.
+                             It takes three arguments: job status entered (str), time (str), and job ID (str).
+                             E.g: `callback(new_status_str, timestamp_str, job_str)`.
     """
     jobs = {}
 
@@ -1192,7 +1202,6 @@ def parseSubmitLogFastRawCallback(fname, callback):
             idx = i1 + 4  # the 3 dots plus newline
 
         buf.close()
-    return
 
 
 def rawJobId2Nr(job_str):
@@ -1208,7 +1217,7 @@ def rawJobId2Nr(job_str):
     try:
         return int(arr[0]), int(arr[1])
     except (IndexError, ValueError):
-        return -1, -1  # invalid
+        return -1, -1  # Invalid
 
 
 def rawTime2cTime(time_str, year):
@@ -1236,12 +1245,12 @@ def rawTime2cTime(time_str, year):
             )
         )
     except ValueError:
-        return -1  # invalid
+        return -1  # Invalid
     return ctime
 
 
 def rawTime2cTimeLastYear(time_str):
-    """Convert the log representation into ctime, works only for the past year.
+    """Converts the log representation into ctime, works only for the past year.
 
     Args:
         time_str (str): Time string in the format 'MM/DD HH:MM:SS'.
@@ -1259,7 +1268,7 @@ def rawTime2cTimeLastYear(time_str):
 
 
 def diffTimes(start_time, end_time, year):
-    """Get two condor time strings and compute the difference.
+    """Gets two condor time strings and computes the difference.
     The start_time must be before the end_time.
 
     Args:
@@ -1279,7 +1288,7 @@ def diffTimes(start_time, end_time, year):
 
 
 def diffTimeswWrap(start_time, end_time, year, wrap_time):
-    """Get two condor time strings and compute the difference with wrapping.
+    """Gets two condor time strings and computes the difference with wrapping.
     The start_time must be before the end_time.
 
     Args:
@@ -1310,10 +1319,10 @@ def diffTimeswWrap(start_time, end_time, year, wrap_time):
 
 
 def interpretStatus(status, default_status="Idle"):
-    """Transform an integer globus status to either Wait, Idle, Running, Held, Completed or Removed.
+    """Transforms an integer HTCondor status to either Wait, Idle, Running, Held, Completed or Removed.
 
     Args:
-        status (int): Globus status code.
+        status (int): HTCondor status code.
         default_status (str): Default status to return if status code is unknown. Defaults to "Idle".
 
     Returns:
@@ -1336,8 +1345,8 @@ def interpretStatus(status, default_status="Idle"):
 
 
 def countStatuses(jobs):
-    """Given a dictionary of job statuses (like the one got from parseSubmitLogFastRaw),
-    will return a dictionary of status counts.
+    """Given a dictionary of job statuses (like the one got from `parseSubmitLogFastRaw`),
+    returns a dictionary of status counts.
 
     Args:
         jobs (dict): Dictionary of job statuses.
@@ -1357,8 +1366,8 @@ def countStatuses(jobs):
 
 
 def countAndInterpretRawStatuses(jobs_raw):
-    """Given a dictionary of job statuses (like the one got from parseSubmitLogFastRaw),
-    will return a dictionary of interpreted status counts.
+    """Given a dictionary of job statuses (like the one got from `parseSubmitLogFastRaw`),
+    returns a dictionary of interpreted status counts.
 
     Args:
         jobs_raw (dict): Dictionary of job statuses.
@@ -1380,8 +1389,8 @@ def countAndInterpretRawStatuses(jobs_raw):
 
 
 def listStatuses(jobs):
-    """Given a dictionary of job statuses (like the one got from parseSubmitLogFastRaw),
-    will return a dictionary of jobs in each status.
+    """Given a dictionary of job statuses (like the one got from `parseSubmitLogFastRaw`),
+    returns a dictionary of jobs in each status.
 
     Args:
         jobs (dict): Dictionary of job statuses.
@@ -1401,8 +1410,8 @@ def listStatuses(jobs):
 
 
 def listStatusesTimings(jobs):
-    """Given a dictionary of job statuses and timings (like the one got from parseSubmitLogFastRawTimings),
-    will return a dictionary of jobs and timings in each status.
+    """Given a dictionary of job statuses and timings (like the one got from `parseSubmitLogFastRawTimings`),
+    returns a dictionary of jobs and timings in each status.
 
     Args:
         jobs (dict): Dictionary of job statuses and timings.
@@ -1425,8 +1434,8 @@ def listStatusesTimings(jobs):
 
 
 def listAndInterpretRawStatuses(jobs_raw, invert_function):
-    """Given a dictionary of job statuses (whatever the invert_function recognises),
-    will return a dictionary of jobs in each status according to the provided invert function
+    """Given a dictionary of job statuses (whatever the `invert_function` recognises),
+    returns a dictionary of jobs in each status according to the provided invert function
     (syntax depends on the `invert_function`).
 
     Args:
