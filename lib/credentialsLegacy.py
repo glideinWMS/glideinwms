@@ -12,7 +12,7 @@ import os
 import sys
 
 from glideinwms.lib import logSupport
-from glideinwms.lib.generators import import_module
+from glideinwms.lib.util import import_module
 
 sys.path.append("/etc/gwms-frontend/plugin.d")
 plugins = {}

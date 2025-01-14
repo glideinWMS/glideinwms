@@ -851,17 +851,26 @@ class glideinFrontendElement:
                         logSupport.log.debug("could NOT find condor token: %s", entry_token_name)
 
                 # Generate credentials and parameters
+                entry = {  # here to support callout interface (legacy generators)
+                    "name": glidein_el["attrs"].get("EntryName"),
+                    "gatekeeper": glidein_el["attrs"].get("GLIDEIN_Gatekeeper"),
+                    "factory": glidein_el["attrs"].get("AuthenticatedIdentity"),
+                }
                 self.credentials_plugin.generate_credentials(
                     elementDescript=self.elementDescript,
                     glidein_el=glidein_el,
                     group_name=self.group_name,
                     trust_domain=trust_domain,
+                    entry=entry,
+                    logger=logSupport.log,
                 )
                 self.credentials_plugin.generate_parameters(
                     elementDescript=self.elementDescript,
                     glidein_el=glidein_el,
                     group_name=self.group_name,
                     trust_domain=trust_domain,
+                    entry=entry,
+                    logger=logSupport.log,
                 )
 
                 # TODO: Add a `context` attribute to the Credential class.
