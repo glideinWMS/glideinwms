@@ -538,3 +538,21 @@ v3_10_8:
     - Failed log rotation due to wrong file creation time (Issue#451, PR#457)
     - Replacing xmlrunner with unittest-xml-reporting (PR#428)
     - Updated the release upload script to work with osg-sw-submit (PR#439)
+
+v3_11_0:
+  Date: January 14, 2025
+  Series: Development
+  Tarball: false
+  Feature:
+    - Introduces the new credentials model.
+    - Add new hierarchical credential classes for a number of credential types
+    - Add new parameter classes to handle security parameters orthogonally to credentials
+    - Refactors credential generators to enhance its capabilities and allow for the generation of other attributes besides credentials
+    - Add support for builtin generators such as the RoundRobinGenerator generator
+    - Add LegacyGenerator to support the old callout API
+    - Always send SIGQUIT to HTCondor when the Glidein receives INT, TERM, QUIT signals. This speeds up the shutdown (PR #466)
+    - Skip glideclient advertising if there are no Glideins to request or actively running on a given group
+  Bug fix:
+    - Fixed early truncation in log files configuration and inconsistent documentation (Issue #464, PR #462, PR #463)
+    - Removed confusing tac broken pipe messages from the Glidein stderr (PR #465)
+    - Fixed quotes in glidein command line unpacking and replaced deprecated add_config_line commands (PR #468)

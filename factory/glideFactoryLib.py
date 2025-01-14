@@ -11,7 +11,6 @@ import glob
 import os
 import pwd
 import re
-import string
 
 # in codice commentato: import tempfile
 import time
@@ -28,6 +27,7 @@ from glideinwms.lib import (  # in codice commentato:, x509Support
     logSupport,
     timeConversion,
 )
+from glideinwms.lib.credentials import cred_path, CredentialPair, CredentialPurpose, CredentialType, ParameterName
 from glideinwms.lib.defaults import BINARY_ENCODING
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
@@ -801,9 +801,9 @@ def keepIdleGlideins(
     except RuntimeError as e:
         log.warning("%s" % e)
         return 0  # something is wrong... assume 0 and exit
-    except Exception:
-        log.warning("Unexpected error submiting glideins")
-        log.exception("Unexpected error submiting glideins")
+    except Exception as e:
+        log.warning(f"Unexpected error submiting glideins: {e}")
+        log.exception(f"Unexpected error submiting glideins: {e}")
         return 0  # something is wrong... assume 0 and exit
 
     return 0
@@ -1634,8 +1634,13 @@ def submitGlideins(
     # List of job ids that have been submitted - initialize to empty array
     submitted_jids = []
 
+    if hasattr(submit_credentials, "auth_set"):  # New protocol
+        get_submit_environment_func = get_submit_environment_v3_11
+    else:  # Old protocol
+        get_submit_environment_func = get_submit_environment
+
     try:
-        entry_env = get_submit_environment(
+        entry_env = get_submit_environment_func(
             entry_name,
             client_name,
             submit_credentials,
@@ -1816,11 +1821,15 @@ def get_submit_environment(
         jobAttributes = glideFactoryConfig.JobAttributes(entry_name)
         signatures = glideFactoryConfig.SignatureFile()
 
+        id_cred_paths = []
+
         exe_env = ["GLIDEIN_ENTRY_NAME=%s" % entry_name]
         if "frontend_scitoken" in submit_credentials.identity_credentials:
             exe_env.append("SCITOKENS_FILE=%s" % submit_credentials.identity_credentials["frontend_scitoken"])
+            id_cred_paths.append(submit_credentials.identity_credentials["frontend_scitoken"])
         if "frontend_condortoken" in submit_credentials.identity_credentials:
             exe_env.append("IDTOKENS_FILE=%s" % submit_credentials.identity_credentials["frontend_condortoken"])
+            id_cred_paths.append(submit_credentials.identity_credentials["frontend_condortoken"])
         else:
             # TODO: this ends up transferring an empty file called 'null' in the Glidein start dir. Find a better way
             exe_env.append("IDTOKENS_FILE=/dev/null")
@@ -2064,6 +2073,341 @@ email_logs = False
 
             exe_env.append("GLIDEIN_RSL=%s" % glidein_rsl)
 
+            exe_env.append(f"IDENTITY_CREDENTIALS={','.join(id_cred_paths)}")
+
+        return exe_env
+    except Exception as e:
+        msg = "Error setting up submission environment: %s" % str(e)
+        log.debug(msg)
+        log.exception(msg)
+        # Exception logged, continuing. No valid environment, returning None
+
+
+def get_submit_environment_v3_11(
+    entry_name,
+    client_name,
+    submit_credentials,
+    client_web,
+    params,
+    idle_lifetime,
+    log=logSupport.log,
+    factoryConfig=None,
+):
+    if factoryConfig is None:
+        factoryConfig = globals()["factoryConfig"]
+
+    try:
+        glideinDescript = glideFactoryConfig.GlideinDescript()
+        jobDescript = glideFactoryConfig.JobDescript(entry_name)
+        jobAttributes = glideFactoryConfig.JobAttributes(entry_name)
+        signatures = glideFactoryConfig.SignatureFile()
+
+        exe_env = ["GLIDEIN_ENTRY_NAME=%s" % entry_name]
+        scitoken = submit_credentials.security_credentials.find(
+            cred_type=CredentialType.SCITOKEN, purpose=CredentialPurpose.REQUEST
+        )
+        if scitoken:
+            exe_env.append(f"SCITOKENS_FILE={cred_path(scitoken[-1])}")
+        idtoken = submit_credentials.identity_credentials.find(
+            cred_type=CredentialType.IDTOKEN, purpose=CredentialPurpose.CALLBACK
+        )
+        if idtoken:
+            exe_env.append(f"IDTOKENS_FILE={cred_path(idtoken[-1])}")
+        else:
+            exe_env.append("IDTOKENS_FILE=/dev/null")
+
+        id_cred_paths = []
+        for cred in submit_credentials.identity_credentials.values():
+            if cred_path(cred):
+                id_cred_paths.append(cred_path(cred))
+            if isinstance(cred, CredentialPair):
+                if cred_path(cred.private_credential):
+                    id_cred_paths.append(cred_path(cred.private_credential))
+        exe_env.append(f"IDENTITY_CREDENTIALS={','.join(id_cred_paths)}")
+
+        # The parameter list to be added to the arguments for glidein_startup.sh
+        params_str = ""
+        # if client_web has been provided, get the arguments and add them to the string
+        if client_web is not None:
+            params_str = " ".join(client_web.get_glidein_args())
+        # add all the params to the argument string
+        for k, v in params.items():
+            # Remove the null parameters and warn
+            if not str(v).strip():
+                log.warning("Skipping empty job parameter (%s)" % k)
+                continue
+            exe_env.append(f"GLIDEIN_PARAM_{k}={str(v)}")
+            params_str += f" -param_{k} {escapeParam(str(v))}"
+
+        exe_env.append("GLIDEIN_CLIENT=%s" % client_name)
+        exe_env.append("GLIDEIN_SEC_CLASS=%s" % submit_credentials.security_class)
+
+        # Glidein username (for client logs)
+        exe_env.append("GLIDEIN_USER=%s" % submit_credentials.username)
+
+        # Credential id, required for querying the condor q
+        exe_env.append("GLIDEIN_CREDENTIAL_ID=%s" % submit_credentials.id)
+
+        # Entry Params (job.descript)
+        schedd = jobDescript.data["Schedd"]
+        verbosity = jobDescript.data["Verbosity"]
+        startup_dir = jobDescript.data["StartupDir"]
+        slots_layout = jobDescript.data["SubmitSlotsLayout"]
+        max_walltime = jobAttributes.data.get("GLIDEIN_Max_Walltime")
+        proxy_url = jobDescript.data.get("ProxyURL", None)
+
+        exe_env.append("GLIDEIN_SCHEDD=%s" % schedd)
+        exe_env.append("GLIDEIN_VERBOSITY=%s" % verbosity)
+        exe_env.append("GLIDEIN_STARTUP_DIR=%s" % startup_dir)
+        exe_env.append("GLIDEIN_SLOTS_LAYOUT=%s" % slots_layout)
+        if max_walltime:
+            exe_env.append("GLIDEIN_MAX_WALLTIME=%s" % max_walltime)
+
+        submit_time = timeConversion.get_time_in_format(time_format="%Y%m%d")
+        exe_env.append("GLIDEIN_LOGNR=%s" % str(submit_time))
+
+        # Main Params (glidein.descript
+        glidein_name = glideinDescript.data["GlideinName"]
+        factory_name = glideinDescript.data["FactoryName"]
+        web_url = glideinDescript.data["WebURL"]
+
+        exe_env.append("GLIDEIN_NAME=%s" % glidein_name)
+        exe_env.append("FACTORY_NAME=%s" % factory_name)
+        exe_env.append("GLIDEIN_WEB_URL=%s" % web_url)
+        exe_env.append("GLIDEIN_IDLE_LIFETIME=%s" % idle_lifetime)
+
+        # Security Params (signatures.sha1)
+        # sign_type has always been hardcoded... we can change in the future if need be
+        sign_type = "sha1"
+        exe_env.append("SIGN_TYPE=%s" % sign_type)
+
+        main_descript = signatures.data["main_descript"]
+        main_sign = signatures.data["main_sign"]
+
+        entry_descript = signatures.data["entry_%s_descript" % entry_name]
+        entry_sign = signatures.data["entry_%s_sign" % entry_name]
+
+        exe_env.append("MAIN_DESCRIPT=%s" % main_descript)
+        exe_env.append("MAIN_SIGN=%s" % main_sign)
+        exe_env.append("ENTRY_DESCRIPT=%s" % entry_descript)
+        exe_env.append("ENTRY_SIGN=%s" % entry_sign)
+
+        # Specify how the slots should be layed out
+        slots_layout = jobDescript.data["SubmitSlotsLayout"]
+        # Build the glidein pilot arguments
+        glidein_arguments = str(
+            "-v %s -name %s -entry %s -clientname %s -schedd %s -proxy %s "
+            "-factory %s -web %s -sign %s -signentry %s -signtype %s "
+            "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s -submitcredid %s -slotslayout %s %s"
+            % (
+                verbosity,
+                glidein_name,
+                entry_name,
+                client_name,
+                schedd,
+                proxy_url,
+                factory_name,
+                web_url,
+                main_sign,
+                entry_sign,
+                sign_type,
+                main_descript,
+                entry_descript,
+                startup_dir,
+                client_name,
+                submit_credentials.id,
+                slots_layout,
+                params_str,
+            )
+        )
+        glidein_arguments = glidein_arguments.replace('"', '\\"')
+        # log.debug("glidein_arguments: %s" % glidein_arguments)
+
+        # get my (entry) type
+        grid_type = jobDescript.data["GridType"]
+        if grid_type.startswith("batch "):
+            log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
+            # TODO: username, should this be only for batch or all key pair + username/password?
+            try:
+                # is always there and not empty for batch (is optional w/ Key pair or Username/password
+                # otherways could not be there (KeyError), be empty (AttributeError), bad format (IndexError)
+                remote_username = submit_credentials.parameters[ParameterName.REMOTE_USERNAME]
+                if remote_username:
+                    exe_env.append("GLIDEIN_REMOTE_USERNAME=%s" % remote_username)
+            except KeyError:
+                pass
+            private_key = submit_credentials.security_credentials.find(
+                cred_type=CredentialType.RSA_KEY, purpose=CredentialPurpose.REQUEST
+            )
+            if private_key:
+                exe_env.append("GRID_RESOURCE_OPTIONS=--rgahp-key %s --rgahp-nopass" % cred_path(private_key[-1]))
+            else:
+                log.warning("No key pair found in the security credentials")
+            glidein_proxy = submit_credentials.security_credentials.find(
+                cred_type=CredentialType.X509_CERT, purpose=CredentialPurpose.CALLBACK
+            )
+            if glidein_proxy:
+                exe_env.append("X509_USER_PROXY=%s" % cred_path(glidein_proxy[-1]))
+                exe_env.append("X509_USER_PROXY_BASENAME=%s" % os.path.basename(cred_path(glidein_proxy[-1])))
+            else:
+                log.warning("No grid proxy found in the security credentials")
+            glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
+            # condor and batch (BLAH/BOSCO) submissions do not like arguments enclosed in quotes
+            # - batch pbs would consider a single argument if quoted
+            # - condor and batch condor would return a submission error
+            # condor_submit will swallow the " character in the string.
+            # condor_submit will include ' as a literal in the arguments string, causing breakage
+            # Hence, use " for now.
+            exe_env.append("GLIDEIN_ARGUMENTS=%s" % glidein_arguments)
+        elif grid_type in ("ec2", "gce"):
+            # do not uncomment these in production, it exposes secrets that
+            # should not be logged
+            # log.debug("params: %s" % str(params))
+            # log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
+            # log.debug("submit_credentials.identity_credentials: %s" % str(submit_credentials.identity_credentials))
+
+            try:
+
+                glidein_proxy = submit_credentials.security_credentials.find(
+                    cred_type=CredentialType.X509_CERT, purpose=CredentialPurpose.CALLBACK
+                )
+                if glidein_proxy:
+                    exe_env.append("X509_USER_PROXY=%s" % cred_path(glidein_proxy[-1]))
+                else:
+                    log.warning("No grid proxy found in the security credentials")
+
+                exe_env.append("IMAGE_ID=%s" % submit_credentials.parameters[ParameterName.VM_ID])
+                exe_env.append("INSTANCE_TYPE=%s" % submit_credentials.parameters[ParameterName.VM_TYPE])
+                if grid_type == "ec2":
+                    key_pair = submit_credentials.security_credentials.find(
+                        cred_type=CredentialType.RSA_KEY, purpose=CredentialPurpose.REQUEST
+                    )
+                    if key_pair:
+                        exe_env.append("ACCESS_KEY_FILE=%s" % cred_path(key_pair[-1]))
+                        exe_env.append("SECRET_KEY_FILE=%s" % cred_path(key_pair[-1].private_credential))
+                        exe_env.append("CREDENTIAL_DIR=%s" % os.path.dirname(cred_path(key_pair[-1])))
+                    else:
+                        log.warning("No key pair found in the security credentials")
+                elif grid_type == "gce":
+                    auth_file = submit_credentials.security_credentials.find(
+                        cred_type=CredentialType.TEXT, purpose=CredentialPurpose.REQUEST
+                    )
+                    if auth_file:
+                        exe_env.append("GCE_AUTH_FILE=%s" % cred_path(auth_file[-1]))
+                        exe_env.append("GRID_RESOURCE_OPTIONS=%s" % "$(gce_project_name) $(gce_availability_zone)")
+                        exe_env.append("CREDENTIAL_DIR=%s" % os.path.dirname(cred_path(auth_file[-1])))
+                    else:
+                        log.warning("No auth file found in the security credentials")
+
+                try:
+                    vm_max_lifetime = str(params["VM_MAX_LIFETIME"])
+                except Exception:
+                    # if no lifetime is specified, then default to 12 hours
+                    # we can change this to a more "sane" default if we can
+                    # agree to what is "sane"
+                    vm_max_lifetime = str(43200)
+                    log.debug("No lifetime set.  Defaulting to: %s" % vm_max_lifetime)
+
+                try:
+                    vm_disable_shutdown = str(params["VM_DISABLE_SHUTDOWN"])
+                except Exception:
+                    # By default assume we don't want to debug the VM
+                    log.debug("No disable flag set.  Defaulting to: False")
+                    vm_disable_shutdown = "False"
+
+                # change proxy to token in template
+                ini_template = """[glidein_startup]
+args = %s
+idtoken_file_name = credential_frontend.idtoken
+proxy_file_name = pilot_proxy
+webbase= %s
+
+[vm_properties]
+max_lifetime = %s
+contextualization_type = %s
+disable_shutdown = %s
+admin_email = UNSUPPORTED
+email_logs = False
+"""
+
+                ini = ini_template % (
+                    glidein_arguments,
+                    web_url,
+                    vm_max_lifetime,
+                    grid_type.upper(),
+                    vm_disable_shutdown,
+                )
+                log.debug("Userdata ini file:\n%s" % ini)
+                ini = base64.b64encode(ini.encode()).decode(BINARY_ENCODING)
+                log.debug("Userdata ini file has been base64 encoded")
+                exe_env.append("USER_DATA=%s" % ini)
+
+                # get the proxy
+                glidein_proxy = submit_credentials.security_credentials.find(
+                    cred_type=CredentialType.X509_CERT, purpose=CredentialPurpose.CALLBACK
+                )
+                if glidein_proxy:
+                    exe_env.append("GLIDEIN_PROXY_FNAME=%s" % cred_path(glidein_proxy[-1]))
+                else:
+                    log.warning("No grid proxy found in the security credentials")
+
+            except KeyError:
+                msg = "Error setting up submission environment (bad key)"
+                log.debug(msg)
+                log.exception(msg)
+                # Known error, can continue without the missing elements
+                #  (from the one missing to the end of the section)
+            except Exception:
+                msg = "Error setting up submission environment (in %s section)" % grid_type
+                log.debug(msg)
+                log.exception(msg)
+                # Unknown error, re-raise to stop the environment build
+                raise
+        else:
+            proxy = submit_credentials.security_credentials.find(
+                cred_type=CredentialType.X509_CERT, purpose=CredentialPurpose.REQUEST
+            )
+            if proxy:
+                exe_env.append("X509_USER_PROXY=%s" % cred_path(proxy[-1]))
+            else:
+                exe_env.append("X509_USER_PROXY=")
+                log.warning("No grid proxy found in the security credentials")
+
+            # TODO: we might review this part as we added this here because the macros were been expanded when used in the gt2 submission
+            # we don't add the macros to the arguments for the EC2 submission since condor will never
+            # see the macros
+            glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
+            if grid_type == "condor":
+                # batch grid type are handled above
+                # condor_submit will swallow the " character in the string.
+                exe_env.append("GLIDEIN_ARGUMENTS=%s" % glidein_arguments)
+            else:
+                exe_env.append('GLIDEIN_ARGUMENTS="%s"' % glidein_arguments)
+
+            # RSL is definitely not for cloud entries
+            glidein_rsl = ""
+            if "GlobusRSL" in jobDescript.data:
+                glidein_rsl = jobDescript.data["GlobusRSL"]
+
+            supports_project_id = False
+            try:
+                # New protocol
+                if submit_credentials.auth_set.supports(ParameterName.PROJECT_ID):
+                    supports_project_id = True
+            except AttributeError:
+                # Old protocol
+                if "ProjectId" in jobDescript.data["AuthMethod"]:
+                    supports_project_id = True
+
+            if supports_project_id:
+                # Append project id to the rsl
+                glidein_rsl = "{}(project={})".format(
+                    glidein_rsl, submit_credentials.parameters[ParameterName.PROJECT_ID]
+                )
+                exe_env.append("GLIDEIN_PROJECT_ID=%s" % submit_credentials.parameters[ParameterName.PROJECT_ID])
+
+            exe_env.append("GLIDEIN_RSL=%s" % glidein_rsl)
+
         return exe_env
     except Exception as e:
         msg = "Error setting up submission environment: %s" % str(e)
@@ -2209,15 +2553,6 @@ def isGlideinHeldNTimes(jobInfo, factoryConfig=None, n=20):
         greater_than_n_iterations = True
 
     return greater_than_n_iterations
-
-
-############################################################
-# only allow simple strings
-def is_str_safe(s):
-    for c in s:
-        if c not in ("._-@" + string.ascii_letters + string.digits):
-            return False
-    return True
 
 
 class GlideinTotals:
