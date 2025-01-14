@@ -107,6 +107,12 @@ def parse_opts(argv):
         help="RPM Release Number",
     )
     parser.add_argument(
+        "--skip-rpm",
+        dest="skip_rpm",
+        action="store_true",
+        help="Skip the RPM building step even if all tools are available",
+    )
+    parser.add_argument(
         "--no-mock", dest="use_mock", action="store_false", help="Set to use rpmbuild instead of mock to build the RPM"
     )
     parser.add_argument(
@@ -132,6 +138,7 @@ def main(argv):
     rc = options.rc
     rpm_rel = options.rpm_release
     python_version = options.python_version
+    skip_rpm = options.skip_rpm
     use_mock = options.use_mock
     is_verbose = options.verbose
 
@@ -143,7 +150,7 @@ def main(argv):
     )
     print("___________________________________________________________________")
     print()
-    rel = ReleaseManagerLib.Release(ver, src_dir, rel_dir, rc, rpm_rel)
+    rel = ReleaseManagerLib.Release(ver, src_dir, rel_dir, rc, rpm_rel, skip_rpm)
 
     rel.addTask(ReleaseManagerLib.TaskClean(rel))
     rel.addTask(ReleaseManagerLib.TaskSetupReleaseDir(rel))
