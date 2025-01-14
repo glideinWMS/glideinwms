@@ -24,7 +24,7 @@ class ExeError(RuntimeError):
 
 
 class Release:
-    def __init__(self, ver, srcDir, relDir, rc, rpmRel):
+    def __init__(self, ver, srcDir, relDir, rc, rpmRel, skip_rpm):
         self.version = self.createTarballVersionString(ver, rc)
         self.sourceDir = srcDir
         self.releaseDir = os.path.join(relDir, self.version)
@@ -44,9 +44,12 @@ class Release:
                 "SRPMS",
                 f"glideinwms-{self.rpmVersion}-{self.rpmRelease}.{self.rpmOSVersion[0]}{self.rpmOSVersion[1]}.src.rpm",
             )
-            self.buildRPMs = bool(which("rpmbuild"))
-            if not self.buildRPMs:
-                print("'rpmbuild' not found, skipping RPM build")
+            if skip_rpm:
+                print("Skipping RPM build as requested.")
+            else:
+                self.buildRPMs = bool(which("rpmbuild"))
+                if not self.buildRPMs:
+                    print("'rpmbuild' not found, skipping RPM build")
         except Exception:
             print("RPMs will not be build for this platform")
 
