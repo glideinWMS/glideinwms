@@ -771,11 +771,15 @@ def verifyHelper(filename, data_dict, fix_rrd=False, backup=True):
             rrd_problems_found = True
 
     if fix_rrd and missing:
-        with (
-            tempfile.NamedTemporaryFile(delete=False) as temp_file,
-            tempfile.NamedTemporaryFile(delete=False) as temp_file2,
-            tempfile.NamedTemporaryFile(delete=False) as restored_file,
-        ):
+        # TODO: Change this code with the commented version below once Py>=3.10 (parenthesis support in with)
+        # with (
+        #     tempfile.NamedTemporaryFile(delete=False) as temp_file,
+        #     tempfile.NamedTemporaryFile(delete=False) as temp_file2,
+        #     tempfile.NamedTemporaryFile(delete=False) as restored_file,
+        # ):
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file, tempfile.NamedTemporaryFile(
+            delete=False
+        ) as temp_file2, tempfile.NamedTemporaryFile(delete=False) as restored_file:
             os.close(temp_file.fileno())
             os.close(temp_file2.fileno())
             os.close(restored_file.fileno())
