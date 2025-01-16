@@ -3,6 +3,27 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+
+Changes since the last release
+
+### New features / functionalities
+
+-   item one of the list
+-   item N
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+### Testing / Development
+
+### Known Issues
+
 ## v3.10.9 \[2025-01-16\]
 
 Added support for the HTCondor distributed apptainer.
@@ -40,6 +61,7 @@ Fixed the Glidein logging and added an sample log server.
 ### Testing / Development
 
 -   Improved the docstrings and some code in the lib files and few others with the help of AI (PR #471, PR #472)
+-   Added --skip-rpm option in release.py to skip RPM building (PR #474)
 
 ### Known Issues
 
