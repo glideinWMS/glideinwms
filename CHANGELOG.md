@@ -3,7 +3,28 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.10.9 \[2024-12-23\]
+## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+
+Changes since the last release
+
+### New features / functionalities
+
+-   item one of the list
+-   item N
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+### Testing / Development
+
+### Known Issues
+
+## v3.10.9 \[2025-01-16\]
 
 Added support for the HTCondor distributed apptainer.
 Fixed the Glidein logging and added an sample log server.
@@ -16,12 +37,15 @@ Fixed the Glidein logging and added an sample log server.
 ### Changed defaults / behaviours
 
 -   Always send SIGQUIT to HTCondor when the Glidein receives INT, TERM, QUIT signals. This speeds up the shutdown (PR #466)
+-   Renamed Glidein Logging functions to glog\_...: glog_init, glog_setup, glog_write, glog_send (PR #467)
 -   Apptainer downloaded in the HTCondor tar ball is now considered after the PATH in the search for a valid binary.
     The keyword CONDOR in the parameter SINGULARITY_BIN will make so that the HTCondor Apptainer is preferred
     ahead of the rest (PR #473)
 -   Added RHEL9 to the list of default OSes used for the container images lookup. Now it is: default,rhel9,rhel7,rhel6,rhel8 (PR #473)
 
 ### Deprecated / removed options and commands
+
+-   The original Glidein Logging functions (log_init_tokens, log_init, log_setup, log_write, send_logs_to_remote, ...) are no more available
 
 ### Security Related Fixes
 
@@ -37,6 +61,7 @@ Fixed the Glidein logging and added an sample log server.
 ### Testing / Development
 
 -   Improved the docstrings and some code in the lib files and few others with the help of AI (PR #471, PR #472)
+-   Added --skip-rpm option in release.py to skip RPM building (PR #474)
 
 ### Known Issues
 
