@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.10.9 \[2025-01-15\]
+## v3.10.9 \[2025-01-16\]
 
 Added support for the HTCondor distributed apptainer.
 Fixed the Glidein logging and added an sample log server.

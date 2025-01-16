@@ -181,8 +181,9 @@ SPDX-License-Identifier: Apache-2.0
                 SINGULARITY_BIN path, not only singularity (PR#473)
               </li>
               <li>
-                NOTE: Always send SIGQUIT to HTCondor when the Glidein receives
-                INT, TERM, QUIT signals. This speeds up the shutdown (PR#466)
+                NOTE: The Glidein will always send SIGQUIT to HTCondor when it
+                receives INT, TERM, QUIT signals. This speeds up the shutdown
+                (PR#466)
               </li>
               <li>
                 NOTE: Renamed Glidein Logging functions to glog_... (glog_init,

@@ -8,7 +8,7 @@ v3_10_9
 	Bug fix: Fixed quotes in Glidein command line unpacking and replaced deprecated add_config_line commands (PR#468)
 	Bug fix: Allow anonymous SSL authentication for the dynamically generated client config (Issue#222, PR#470)
 	Bug fix: Checking also the apptainer binary in the SINGULARITY_BIN path, not only singularity (PR#473)
-	NOTE: Always send SIGQUIT to HTCondor when the Glidein receives INT, TERM, QUIT signals. This speeds up the shutdown (PR#466)
+	NOTE: The Glidein will always send SIGQUIT to HTCondor when it receives INT, TERM, QUIT signals. This speeds up the shutdown (PR#466)
 	NOTE: Renamed Glidein Logging functions to glog_... (glog_init, glog_setup, glog_write, glog_send - PR#467) The original functions (log_init_tokens, log_init, log_setup, log_write, send_logs_to_remote, ...) are no more available
 	NOTE: Apptainer downloaded in the HTCondor tar ball is now considered after the PATH in the search for a valid binary. The keyword CONDOR in the parameter SINGULARITY_BIN will make so that the HTCondor Apptainer is preferred ahead of the rest (PR#473)
 	NOTE: Added RHEL9 to the list of default OSes used for the container images lookup. Now it is default,rhel9,rhel7,rhel6,rhel8 (PR#473)

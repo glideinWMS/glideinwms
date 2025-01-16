@@ -1,8 +1,8 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_9_rc3
+# GLIDEINWMS_VERSION v3_10_9
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-550ad98e30b872eea24959a4484cd0bc  ./CHANGELOG.md
+78af37a2f358302bff89ae6dc4cb5e37  ./CHANGELOG.md
 8e7d1957a094cc33c89f5b2c935666ff  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
@@ -190,7 +190,7 @@ e388df40751e10796bd77be0d5769b0d  ./lib/logSupport.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
 fd9283b5db9f859f50ba121e9002e561  ./lib/pidSupport.py
 a3a067cfeb79c58fd3113730efb17a55  ./lib/pubCrypto.py
-5c1f673ed3ab7451b3d679130c308aa0  ./lib/rrdSupport.py
+d886da8307c20ec9443e4966761ba648  ./lib/rrdSupport.py
 29695ba87368293a3d80b6d3f7d28d7c  ./lib/servicePerformance.py
 3ccd714831ac81fdcb9359a3d1366d2c  ./lib/subprocessSupport.py
 f89e40abb0f48a2c1e692123e4ff3660  ./lib/symCrypto.py

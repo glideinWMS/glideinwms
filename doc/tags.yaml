@@ -555,7 +555,7 @@ v3_10_9:
     - Allow anonymous SSL authentication for the dynamically generated client config (Issue#222, PR#470)
     - Checking also the apptainer binary in the SINGULARITY_BIN path, not only singularity (PR#473)
   NOTE:
-    - Always send SIGQUIT to HTCondor when the Glidein receives INT, TERM, QUIT signals. This speeds up the shutdown (PR#466)
+    - The Glidein will always send SIGQUIT to HTCondor when it receives INT, TERM, QUIT signals. This speeds up the shutdown (PR#466)
     - Renamed Glidein Logging functions to glog_... (glog_init, glog_setup, glog_write, glog_send - PR#467)
       The original functions (log_init_tokens, log_init, log_setup, log_write, send_logs_to_remote, ...) are no more available
     - Apptainer downloaded in the HTCondor tar ball is now considered after the PATH in the search for a valid binary.
