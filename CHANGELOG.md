@@ -27,7 +27,8 @@ Changes since the last release
 ## v3.10.9 \[2025-01-16\]
 
 Added support for the HTCondor distributed apptainer.
-Fixed the Glidein logging and added an sample log server.
+Fixed the Glidein logging and added a sample log server.
+Fixed a few more bugs including allowing anonymous SSL authentication in the Frontend client config.
 
 ### New features / functionalities
 
@@ -55,7 +56,7 @@ Fixed the Glidein logging and added an sample log server.
 -   Removed confusing tac broken pipe messages from the Glidein stderr (PR #465)
 -   Fixed JWT logging credentials not transferred to the Glidein. This includes removal of DictFile.append() and use of add_environment() for JWT tokens (Issue #398, PR #467)
 -   Fixed quotes in Glidein command line unpacking and replaced deprecated add_config_line commands (PR #468)
--   Allow anonymous SSL authentication for the dynamically generated client config (Issue #222, PR #470)
+-   Allow anonymous SSL authentication for the dynamically generated client config in the Frontend (Issue #222, PR #470)
 -   Checking also the apptainer binary in the SINGULARITY_BIN path, not only singularity (PR #473)
 
 ### Testing / Development

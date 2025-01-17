@@ -68,7 +68,7 @@ BuildRequires:  python3-devel
 %description
 This is a package for the glidein workload management system.
 GlideinWMS provides a simple way to access the Grid, Cloud and HPC
-resources through a dynamic condor pool of grid-submitted resources.
+resources through a dynamic HTCondor pool of grid-submitted resources.
 
 
 %package vofrontend
