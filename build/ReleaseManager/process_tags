@@ -99,20 +99,24 @@ def dump_txt(release_tags, fname=None, versions=None):
         fd = None
     try:
         for v in versions:
-            # TODO: add better formatting for multiline tags
-            print(v, file=fd)
-            for i in release_tags[v].get(FEATURE, []):
-                print(f"\t{i}", file=fd)
-            for i in release_tags[v].get(BACKPORT, []):
-                print(f"\t{BACKPORT}: {i}", file=fd)
-            for i in release_tags[v].get(BUGFIX, []):
-                print(f"\t{BUGFIX}: {i}", file=fd)
-            for i in release_tags[v].get(NOTE, []):
-                print(f"\t{NOTE}: {i}", file=fd)
-            for k in [k for k in release_tags[v] if k not in PROCESSED_TAGS]:
-                for i in release_tags[v][k]:
-                    print(f"\t{k}: {i}", file=fd)
-            print(file=fd)
+            try:
+                # TODO: add better formatting for multiline tags
+                print(v, file=fd)
+                for i in release_tags[v].get(FEATURE, []):
+                    print(f"\t{i}", file=fd)
+                for i in release_tags[v].get(BACKPORT, []):
+                    print(f"\t{BACKPORT}: {i}", file=fd)
+                for i in release_tags[v].get(BUGFIX, []):
+                    print(f"\t{BUGFIX}: {i}", file=fd)
+                for i in release_tags[v].get(NOTE, []):
+                    print(f"\t{NOTE}: {i}", file=fd)
+                for k in [k for k in release_tags[v] if k not in PROCESSED_TAGS]:
+                    for i in release_tags[v][k]:
+                        print(f"\t{k}: {i}", file=fd)
+                print(file=fd)
+            except TypeError:
+                print(f"Malformed 'tags.yaml'. Error handling version {v}: {release_tags[v]}")
+                raise
     finally:
         if fd:
             fd.close()
@@ -425,6 +429,19 @@ def test(release_tags):
     dump_txt(release_tags, versions)
 
 
+def sanitize_dict(release_dict):
+    """Sanitize the release dictionary, replacing None with empty lists.
+
+    Args:
+        release_dict (dict): Dictionary with release information. Will be modified.
+    """
+    if release_dict:
+        for v in release_dict:
+            for i in release_dict[v]:
+                if release_dict[v][i] is None:
+                    release_dict[v][i] = []
+
+
 # TODO: remove. Old example from yaml to text, now unused
 def main(fname="tags.yml"):
     """
@@ -486,6 +503,7 @@ if __name__ == "__main__":
             main_release_tags = load_yaml(main_infile)
         else:
             raise ParameterException("Unsupported input format: %s" % action_in)
+        sanitize_dict(main_release_tags)
         if main_outfile == "-" or main_outfile == "stdout":
             main_outfile = None
         elif main_outfile == "tags.history":
