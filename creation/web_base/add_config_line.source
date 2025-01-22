@@ -84,9 +84,17 @@ gconfig_add() {
         local tmp_config2="${glidein_config}.$$.2.tmp"
         local ec=0
         if ! cp -p "${glidein_config}" "${tmp_config1}"; then
-            warn "Error writing ${tmp_config1}"
-            rm -f "${tmp_config1}"
-            exit 1
+            # Fallback to cp and chmod for file systems that do not support "-p" (e.g.: ACL not available)
+            warn "Trying cp/chown combination since cp -p failed"
+            permissions=$(stat -c "%a" "${glidein_config}")
+            if ! cp "${glidein_config}" "${tmp_config1}"; then
+                warn "Error writing ${tmp_config1}"
+                rm -f "${tmp_config1}"
+                exit 1
+            fi
+            if ! chmod "$permissions" "${tmp_config1}"; then
+                warn "File copied but original file permissions cannot be set. Continuing"
+            fi
         fi
         # OR needed to avoid set -e problems when the file is empty
         grep -v "^$1 " "${tmp_config1}" > "${tmp_config2}" || ec=$?
