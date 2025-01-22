@@ -39,7 +39,6 @@ XML_OUT: "/etc/gwms-factory/config.d/01-condor-tarballs.xml"
 # Blacklist is ignored if whitelist is specified as well
 # WHITELIST: download only those releases
 # BLACKLIST: do not download the releases but download all the rest
-# CHECK_LATEST: print a warning if latest version of the major series is not on the factory xml
 """
 
 import argparse
@@ -48,6 +47,7 @@ import os
 import re
 import sys
 import tempfile
+import xml.etree.ElementTree as ET
 
 from collections import UserDict
 from distutils.version import StrictVersion
@@ -277,16 +277,6 @@ class Config(UserDict):
             major_dict["BLACKLIST"].sort(key=StrictVersion)
 
 
-def check_xml(release):
-    """Deprecate?"""
-    found = False
-    with open("/etc/gwms-factory/glideinWMS.xml") as myfile:
-        for line in myfile:
-            if re.search(f"condor_tarball.*{release}", line):
-                found = True
-    return found
-
-
 def save_xml(dest_xml, xml):
     """Wrapper function to save the tarball xml snippet to disk. Also adds
     the necessary xml tags.
@@ -306,10 +296,62 @@ def parse_opts():
     )
 
     parser.add_argument("--verbose", action="store_true", help="Be more loud when downloading tarballs file")
+    parser.add_argument("--checklatest", action="store_true", help="Check that each of the major version 'latest' is in the xml")
 
     args = parser.parse_args()
 
     return args
+
+
+def checklatest(config, verbose):
+    """ Validates that the "latest" tarball versions specified in the configuration are present
+    in the XML file and match the actual latest versions available from the condor website.
+
+    Args:
+        config (dict): The configuratin dictionary
+        verbose (bool): If True, prints detailed logs for debugging purposes.
+
+    Returns:
+        int:
+            - 0 if all "latest" tarball versions are up to date.
+            - 1 if any "latest" tarball version is missing in the XML file.
+            - 2 if the XML file specified in XML_OUT is missing.
+
+    Behavior:
+        - Parses the XML file specified in `XML_OUT` to extract the versions of the current tarballs.
+        - Identifies the major versions in `CONDOR_TARBALL_LIST` that require "latest" tarballs.
+        - Checks if the "latest" tarball version from the condor website is present in the XML file.
+    """
+    xml_out = config.get("XML_OUT")
+    if not os.path.exists(xml_out):
+        print(f"Cannot find tarball xml file {xml_out}")
+        return 3
+
+    tree = ET.parse(xml_out)
+    root = tree.getroot()
+    version_list = []
+    for tarball in root.findall(".//condor_tarball"):
+        version_list += tarball.get("version").split(",")
+    version_list = set(version_list)
+    verbose and print(f'Found the following tarballs in {xml_out}:\n{chr(10).join(sorted(version_list))}\n') # using chr(10) since \n is not allowed inside {}
+
+    print(f"Searching for condor major versions that need 'latest' tarballs in {xml_out}\n")
+    for major_dict in config["CONDOR_TARBALL_LIST"]:
+        major_version = major_dict["MAJOR_VERSION"]
+        if not major_dict.get("DOWNLOAD_LATEST", False):
+            verbose and print(f"Skipping version {major_version} because it does not need 'latest' tarballs\n")
+            continue
+        manager = TarballManager(
+            urljoin(config["TARBALL_BASE_URL"], major_version), config["FILENAME_LIST"], config["DESTINATION_DIR"]
+        )
+        verbose and print(f'Available releases for major version {major_dict["MAJOR_VERSION"]} are:\n{manager.releases}.\nLatest tarball in xml file is {manager.latest_version}. All good.\n')
+
+        if manager.latest_version not in version_list:
+            print(f'Latest version {manager.latest_version} found at "{config["TARBALL_BASE_URL"]}" is not present in "{xml_out}"')
+            return 4
+
+    print("All tarballs are up to date")
+    return 0
 
 
 def main():
@@ -320,6 +362,9 @@ def main():
     default_tarball_version = config["DEFAULT_TARBALL_VERSION"]
     xml = ""
 
+    if args.checklatest is True:
+        return checklatest(config, args.verbose)
+
     for major_dict in config["CONDOR_TARBALL_LIST"]:
         print(f'Handling major version {major_dict["MAJOR_VERSION"]}')
         major_version = major_dict["MAJOR_VERSION"]
@@ -329,9 +374,6 @@ def main():
         # If necessary, add the latest version to the whitelist now that we know the latest version for this major set of releases
         if major_dict.get("DOWNLOAD_LATEST", False):
             major_dict["WHITELIST"].append(manager.latest_version)
-        # I think CHACK_LATEST can be deprecated now that we have DOWNLOAD_LATEST
-        if major_dict.get("CHECK_LATEST", False) and not check_xml(manager.latest_version):
-            print(f"Latest version {manager.latest_version} not present in the glideinWMS.xml file.")
         if major_dict["WHITELIST"] != []:
             # Just get whitelisted versions
             for version in set(major_dict["WHITELIST"]):
@@ -355,7 +397,10 @@ def main():
             save_xml(config["XML_OUT"], xml)
         except OSError as ioex:
             print(f'Cannot write file {config["XML_OUT"]} when trying to save xml tarball output: {str(ioex)}')
+            return 2
+
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
