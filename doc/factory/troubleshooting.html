@@ -790,22 +790,44 @@ SPDX-License-Identifier: Apache-2.0
         <h2>
           <a name="gfdiff">Checking differences in entries configuration</a>
         </h2>
-        The gfdiff tool can be used to check differences among entries in the
-        xml configuraiton. For example:
+        The gfdiff tool has been improved to use positional arguments instead of options. You can use it to check differences among entries in the XML configuration. For example:
         <blockquote>
-          bash-4.1$ gfdiff --debug --confA=data/automatically_generated.xml
-          --confB=/etc/osg-gfactory/10-cmst1-uscmst2-all.xml
-          --entryA=CMSHTPC_T2_US_Florida_slurm
-          --entryB=CMSHTPC_T2_US_Florida_slurm Checking entry attributes: Key
-          proxy_url(OSG) not found in CMSHTPC_T2_US_Florida_slurm Checking inner
-          xml: GLIDEIN_MaxMemMBs: Key glidein_publish is different: (True vs
-          False) GLIDEIN_MaxMemMBs: Key job_publish is different: (False vs
-          True) CONDOR_ARCH: not present in CMSHTPC_T2_US_Florida_slurm
-          GLIDEIN_Max_Walltime: not present in CMSHTPC_T2_US_Florida_slurm
-          GLIDEIN_SEs: not present in CMSHTPC_T2_US_Florida_slurm
+          <pre>
+            [0618] gfactory@gfactory-2 ~/mmascher/gfdiff$ ./gfdiff 10-hosted-ces.auto.xml.new 10-hosted-ces.auto.xml.bak241121 OSG_US_CHTC-Spark-CE1-gpu
+            --- text_a
+            +++ text_b
+            @@ -1,6 +1,6 @@
+             <entry name="OSG_US_CHTC-Spark-CE1-gpu" auth_method="grid_proxy" comment="Entry automatically generated" enabled="True" gatekeeper="chtc-spark-ce1.svc.opensciencegrid.org chtc-spark-ce1.svc.opensciencegrid.org:9619" gridtype="condor" proxy_url="OSG" trust_domain="grid" verbosity="std" work_dir="OSG">
+                     <config>
+            -            <max_jobs >
+            +            <max_jobs num_factories="1">
+                           <default_per_frontend glideins="4" held="4" idle="4"/>
+                           <per_entry glideins="4" held="4" idle="4"/>
+                           <per_frontends>
+            @@ -13,9 +13,9 @@
+                           <submit_attrs>
+                              <submit_attr name="+maxMemory" value="126500"/>
+                              <submit_attr name="+maxWallTime" value="4320"/>
+            +                  <submit_attr name="+queue" value="&quot;gpu&quot;"/>
+                              <submit_attr name="+xcount" value="16"/>
+                              <submit_attr name="Request_GPUs" value="1"/>
+            -                  <submit_attr name="batch_queue" value="gpu"/>
+                           </submit_attrs>
+                        </submit>
+                     </config>
+            @@ -31,7 +31,7 @@
+                        <attr name="GLIDEIN_ResourceName" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="CHTC-Spark-CE1"/>
+                        <attr name="GLIDEIN_Resource_Slots" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="GPUs,1,type=main"/>
+                        <attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="CHTC-Spark"/>
+            -            <attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="OSGVO"/>
+            +            <attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="OSGVOGPU"/>
+                     </attrs>
+                     <files>
+                     </files>
+          </pre>
         </blockquote>
       </div>
-
+      
       <div class="footer">
         Banner image by
         <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>

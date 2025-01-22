@@ -8,131 +8,62 @@
 
 
 import argparse
-import base64
-import hashlib
+import difflib
 import re
 import sys
-import uuid
 
 import requests
 
-from glideinwms.creation.lib.factoryXmlConfig import _parse, EntryElement, FactAttrElement  # , parse
-from glideinwms.creation.lib.xmlConfig import DictElement, ListElement
-
-g_entry_a = None
-g_entry_b = None
-last_key = []
-tabs = 0
-
-
-def count_tabs(function_to_decorate):
-    """Decorator function that keeps track of how many intentation level are required.
-    In other words, the decorator counts how many times the decorated function is called
-    """
-
-    def wrapper(*args, **kw):
-        """The wrapper function"""
-        global tabs
-        tabs += 1
-        _ = function_to_decorate(*args, **kw)
-        tabs -= 1
-
-    return wrapper
-
-
-def check_list_diff(list_a, list_b):
-    """Scan the two list for differences"""
-    SKIP_TAGS = ["infosys_ref"]
-    for elem in list_a.children:
-        if elem.tag in SKIP_TAGS:
-            continue
-        if isinstance(elem, DictElement):
-            # print("\t"*tabs + "Checking %s" % elem.tag)
-            if len(list_a.children) > 2:
-                return
-            # TODO what if B does not have it
-            check_dict_diff(list_a.children[0], list_b.children[0], lambda e: list(e.children.items()))
-        elif isinstance(elem, FactAttrElement):
-            # print("\t"*tabs + "Checking %s" % elem['name'])
-            elem_b = [x for x in list_b.children if x["name"] == elem["name"]]
-            if len(elem_b) == 1:
-                check_dict_diff(elem, elem_b[0], FactAttrElement.items)
-            elif len(elem_b) == 0:
-                print("\t" * (tabs + 1) + "{}: not present in {}".format(elem["name"], g_entry_b.getName()))
-            else:
-                print("More than one FactAttrElement")
-        else:
-            print("Element type not DictElement or FactAttrElement")
-    for elem in list_b.children:
-        if isinstance(elem, FactAttrElement):
-            elem_a = [x for x in list_a.children if x["name"] == elem["name"]]
-            if len(elem_a) == 0:
-                print("\t" * (tabs + 1) + "{}: not present in {}".format(elem["name"], g_entry_a.getName()))
-
-
-@count_tabs
-def check_dict_diff(dict_a, dict_b, itemfunc=EntryElement.items, print_name=True):
-    """Check differences between two dictionaries"""
-    tmp_dict_a = dict(itemfunc(dict_a))
-    tmp_dict_b = dict(itemfunc(dict_b))
-    SKIP_KEYS = ["name", "comment"]  # , 'gatekeeper']
-    for key, val in list(tmp_dict_a.items()):
-        last_key.append(key)
-        # print("\t"*tabs + "Checking %s" % key)
-        if key in SKIP_KEYS:
-            continue
-        if key not in tmp_dict_b:
-            print("\t" * tabs + f"Key {key}({val}) not found in {g_entry_b.getName()}")
-        elif isinstance(val, ListElement):
-            check_list_diff(tmp_dict_a[key], tmp_dict_b[key])
-        elif isinstance(val, DictElement):
-            check_dict_diff(
-                tmp_dict_a[key],
-                tmp_dict_b[key],
-                lambda e: list(e.children.items()) if len(e.children) > 0 else list(e.items()),
-            )
-        elif tmp_dict_a[key] != tmp_dict_b[key]:
-            keystr = tmp_dict_a["name"] + ": " if print_name and "name" in tmp_dict_a else last_key[-2] + ": "
-            print("\t" * tabs + f"{keystr}Key {key} is different: ({tmp_dict_a[key]} vs {tmp_dict_b[key]})")
-        last_key.pop()
-    for key, val in list(tmp_dict_b.items()):
-        if key in SKIP_KEYS:
-            continue
-        if key not in tmp_dict_a:
-            print("\t" * tabs + f"Key {key}({val}) not found in {g_entry_a.getName()}")
+from glideinwms.creation.lib.factoryXmlConfig import _parse
 
 
 def parse_opts():
     """Parse the command line options for this command"""
     description = "Do a diff of two entries\n\n"
 
-    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(description=description,
+                                     formatter_class=argparse.RawTextHelpFormatter)
 
+    # Positional arguments
     parser.add_argument(
-        "--confA",
+        "conf_a",
         type=str,
-        action="store",
-        dest="conf_a",
-        default="/etc/gwms-factory/glideinWMS.xml",
         help="Configuration for the first entry",
+        default="/etc/gwms-factory/glideinWMS.xml"
     )
 
     parser.add_argument(
-        "--confB",
+        "conf_b",
         type=str,
-        action="store",
-        dest="conf_b",
-        default="/etc/gwms-factory/glideinWMS.xml",
-        help="Configuration for the first entry",
+        help="Configuration for the second entry",
+        default="/etc/gwms-factory/glideinWMS.xml"
     )
 
-    parser.add_argument("--entryA", type=str, action="store", dest="entry_a", help="Configuration for the first entry")
+    parser.add_argument(
+        "entry_a",
+        type=str,
+        help="Name of the first entry"
+    )
 
-    parser.add_argument("--entryB", type=str, action="store", dest="entry_b", help="Configuration for the first entry")
+    parser.add_argument(
+        "entry_b",
+        type=str,
+        nargs="?",  # Makes this positional argument optional
+        help="Name of the second entry (optional)"
+    )
 
-    parser.add_argument("--mergely", action="count", help="Only print the mergely link")
+    # Named argument
+    parser.add_argument(
+        "--mergely",
+        action="count",
+        help="Only print the mergely link"
+    )
 
     options = parser.parse_args()
+
+    # Set entry_b to entry_a if not provided
+    if options.entry_b is None:
+        options.entry_b = options.entry_a
 
     return options
 
@@ -141,40 +72,63 @@ def get_entry_text(entry, conf):
     """Get an entry text from the xml configuration file"""
     with open(conf) as fdesc:
         text = fdesc.read()
+        # pylint: disable=no-member, maybe-no-member
         return re.search('.*( +<entry name="%s".*?</entry>)' % entry, text, re.DOTALL).group(1)
 
 
-def handle_mergely(entry_a, conf_a, entry_b, conf_b, mergely_only):
-    """Function that prints the link to the mergely website"""
-    url = "https://www.mergely.com/ajax/handle_file.php"
-    # get a unique 8char key
-    unique_id = uuid.uuid4()
-    myhash = hashlib.sha1(str(unique_id).encode("UTF-8"))
-    key = base64.b32encode(myhash.digest())[0:8]
+def handle_diff(text_a, text_b):
+    """Function that prints the differences using the diff command"""
 
-    payload = {"key": key, "name": "lhs", "content": get_entry_text(entry_a, conf_a)}
-    requests.post(url, data=payload)
-    payload["name"] = "rhs"
-    payload["content"] = get_entry_text(entry_b, conf_b)
-    requests.post(url, data=payload)
-    requests.get("https://www.mergely.com/ajax/handle_save.php?key=" + key)
-    if mergely_only:
-        print("http://www.mergely.com/" + key)
-    else:
-        print("Visualize differences at: http://www.mergely.com/" + key)
-        print()
+    lines_a = text_a.splitlines()
+    lines_b = text_b.splitlines()
+
+    # Create a unified diff
+    diff = difflib.unified_diff(
+        lines_a, lines_b,
+        fromfile="text_a", tofile="text_b",
+        lineterm=""
+    )
+
+    # Print the diff line by line
+    for line in diff:
+        print(line)
+
+
+def handle_mergely(text_a, text_b):
+    """Function that prints the link to the mergely website"""
+
+    url = "https://mergely.com/ajax/handle_save.php"
+
+    payload = {
+        "config": {},
+        "lhs_title": "",
+        "lhs": text_a,
+        "rhs_title": "",
+        "rhs": text_b
+    }
+
+    headers = {}
+    headers["Accept"] = "*/*"
+    headers["Accept-Language"] = "en-US,en;q=0.5"
+    headers["Accept-Encoding"] = "gzip, deflate, br, zstd"
+    headers["Referer"] = "https://editor.mergely.com/"
+    headers["content-type"] = "application/json; charset=utf-8"
+    headers["Content-Length"] = str(len(str(payload)))
+    headers["Origin"] = "https://editor.mergely.com"
+    headers["Connection"] = "keep-alive"
+
+    res = requests.post(url, headers=headers, json=payload)
+
+    print("http://www.mergely.com/" + res.headers["location"])
 
 
 def main():
     """The main"""
-    global g_entry_a
-    global g_entry_b
     options = parse_opts()
 
     entry_a = options.entry_a
     entry_b = options.entry_b
 
-    # conf = parse("/etc/gwms-factory/glideinWMS.xml")
     conf_a = _parse(options.conf_a)
     conf_b = _parse(options.conf_b)
 
@@ -188,17 +142,14 @@ def main():
     if len(entry_b) != 1:
         print(f"Cannot find entry {options.entry_b} in the configuration file {options.conf_b}")
         sys.exit(1)
-    g_entry_a = entry_a[0]
-    g_entry_b = entry_b[0]
 
+
+    text_a = get_entry_text(options.entry_a, options.conf_a)
+    text_b = get_entry_text(options.entry_b, options.conf_b)
+    handle_diff(text_a, text_b)
     if options.mergely:
-        handle_mergely(options.entry_a, options.conf_a, options.entry_b, options.conf_b, options.mergely)
-        return
-
-    print("Checking entry attributes:")
-    check_dict_diff(g_entry_a, g_entry_b, print_name=False)
-    print("Checking inner xml:")
-    check_dict_diff(g_entry_a.children, g_entry_b.children, dict.items)
+        print()
+        handle_mergely(text_a, text_b)
 
 
 if __name__ == "__main__":
