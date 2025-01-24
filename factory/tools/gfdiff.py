@@ -21,43 +21,28 @@ def parse_opts():
     """Parse the command line options for this command"""
     description = "Do a diff of two entries\n\n"
 
-    parser = argparse.ArgumentParser(description=description,
-                                     formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawTextHelpFormatter)
 
     # Positional arguments
     parser.add_argument(
-        "conf_a",
-        type=str,
-        help="Configuration for the first entry",
-        default="/etc/gwms-factory/glideinWMS.xml"
+        "conf_a", type=str, help="Configuration for the first entry.", default="/etc/gwms-factory/glideinWMS.xml"
     )
 
     parser.add_argument(
-        "conf_b",
-        type=str,
-        help="Configuration for the second entry",
-        default="/etc/gwms-factory/glideinWMS.xml"
+        "conf_b", type=str, help="Configuration for the second entry.", default="/etc/gwms-factory/glideinWMS.xml"
     )
 
-    parser.add_argument(
-        "entry_a",
-        type=str,
-        help="Name of the first entry"
-    )
+    parser.add_argument("entry_a", type=str, help="Name of the first entry.")
 
     parser.add_argument(
         "entry_b",
         type=str,
         nargs="?",  # Makes this positional argument optional
-        help="Name of the second entry (optional)"
+        help="Name of the second entry (optional). Defaults to the first entry name.",
     )
 
     # Named argument
-    parser.add_argument(
-        "--mergely",
-        action="count",
-        help="Only print the mergely link"
-    )
+    parser.add_argument("--mergely", action="count", help="Only print the mergely link")
 
     options = parser.parse_args()
 
@@ -83,11 +68,7 @@ def handle_diff(text_a, text_b):
     lines_b = text_b.splitlines()
 
     # Create a unified diff
-    diff = difflib.unified_diff(
-        lines_a, lines_b,
-        fromfile="text_a", tofile="text_b",
-        lineterm=""
-    )
+    diff = difflib.unified_diff(lines_a, lines_b, fromfile="text_a", tofile="text_b", lineterm="")
 
     # Print the diff line by line
     for line in diff:
@@ -99,23 +80,19 @@ def handle_mergely(text_a, text_b):
 
     url = "https://mergely.com/ajax/handle_save.php"
 
-    payload = {
-        "config": {},
-        "lhs_title": "",
-        "lhs": text_a,
-        "rhs_title": "",
-        "rhs": text_b
-    }
+    payload = {"config": {}, "lhs_title": "", "lhs": text_a, "rhs_title": "", "rhs": text_b}
 
-    headers = {}
-    headers["Accept"] = "*/*"
-    headers["Accept-Language"] = "en-US,en;q=0.5"
-    headers["Accept-Encoding"] = "gzip, deflate, br, zstd"
-    headers["Referer"] = "https://editor.mergely.com/"
-    headers["content-type"] = "application/json; charset=utf-8"
-    headers["Content-Length"] = str(len(str(payload)))
-    headers["Origin"] = "https://editor.mergely.com"
-    headers["Connection"] = "keep-alive"
+    # HTTP header field names are case-insensitive but MUST be converted to lowercase by the API
+    headers = {
+        "Accept": "*/*",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "Referer": "https://editor.mergely.com/",
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Length": str(len(str(payload))),
+        "Origin": "https://editor.mergely.com",
+        "Connection": "keep-alive",
+    }
 
     res = requests.post(url, headers=headers, json=payload)
 
@@ -142,7 +119,6 @@ def main():
     if len(entry_b) != 1:
         print(f"Cannot find entry {options.entry_b} in the configuration file {options.conf_b}")
         sys.exit(1)
-
 
     text_a = get_entry_text(options.entry_a, options.conf_a)
     text_b = get_entry_text(options.entry_b, options.conf_b)
