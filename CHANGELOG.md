@@ -3,9 +3,9 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+## v3.10.10 \[2025-01-24\]
 
-Changes since the last release
+Minor Factory operation features and bug fixes.
 
 ### New features / functionalities
 

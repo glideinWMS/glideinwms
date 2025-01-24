@@ -1,3 +1,9 @@
+v3_10_10
+	Improved gfdiff tool interface and changed diff algorithm (PR#476)
+	Added option to check if new HTCondor tarballs are available to get_tarballs (PR#477)
+	Bug fix: Fixed gfdiff issue with mergely interface (PR#476)
+	Bug fix: Fallback to cp/chown when cp -p does not work (It is unavailable on some containers) (PR#478)
+
 v3_10_9
 	Added custom JWT-authenticated log server example (new RPM glideinwms-logging) (Issue#398, PR#467)
 	Now using also Apptainer included in the HTCondor tar ball (Issue#364, PR#473)

@@ -1,8 +1,8 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_9
+# GLIDEINWMS_VERSION v3_10_10
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-78af37a2f358302bff89ae6dc4cb5e37  ./CHANGELOG.md
+231d7b10c9446bad9e700c3a8ab1b86e  ./CHANGELOG.md
 8e7d1957a094cc33c89f5b2c935666ff  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
@@ -43,7 +43,7 @@ fc648630677156904ef40f5434d25872  ./creation/templates/gwms-renew-proxies.cron
 7d7d2ee057fdbc10ec548b01d85c8229  ./creation/templates/gwms-renew-proxies.service
 11a437db8f082df96ea3858d2912cc29  ./creation/templates/gwms-renew-proxies.timer
 8fbe2ecd0d56fb58d7f7aa4c4b152632  ./creation/templates/proxies.ini
-8617a5acbc0324a2c40b8648781cbf47  ./creation/web_base/add_config_line.source
+a6d2c9a318c957dc19060f7a7fd4b771  ./creation/web_base/add_config_line.source
 81745ec60a29b34e5f116f8e06e8b139  ./creation/web_base/advertise_failure.helper
 99e956233214cc2fdabce268f17f8d37  ./creation/web_base/b64uuencode.source
 57b93914779a0986bfc60b537382a718  ./creation/web_base/cat_consts.sh
@@ -173,6 +173,7 @@ d64fb84480620115f461ec9aac0ba6be  ./logserver/getjwt.py
 4431fb42281b93c5aa09e760d0910d0b  ./logserver/jwt.php
 24341cffcec0fe15225324f38f707b27  ./logserver/logging_config.json
 eec3476ee8c91ffa71445e4cb860e61f  ./logserver/web-area/put.php
+15da242bd65422e150ac9d64a0411cda  ./plugins/EntryConditionGenerator.py
 ae4540ac3e790a02867cfa22291f48d6  ./plugins/scitokens_callout.py
 762e30b1c873f9e44fc786f7e57a9d93  ./pyproject.toml
 747b7fe6d83ec506f58292fa3b39f4c7  ./requirements.txt

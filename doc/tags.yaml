@@ -563,3 +563,14 @@ v3_10_9:
       The keyword CONDOR in the parameter SINGULARITY_BIN will make so that the HTCondor Apptainer is preferred
       ahead of the rest (PR#473)
     - Added RHEL9 to the list of default OSes used for the container images lookup. Now it is default,rhel9,rhel7,rhel6,rhel8 (PR#473)
+
+v3_10_10:
+  Date: January 24, 2025
+  Series: Stable
+  Tarball: false
+  Feature:
+    - Improved gfdiff tool interface and changed diff algorithm (PR#476)
+    - Added option to check if new HTCondor tarballs are available to get_tarballs (PR#477)
+  Bug fix:
+    - Fixed gfdiff issue with mergely interface (PR#476)
+    - Fallback to cp/chown when cp -p does not work (It is unavailable on some containers) (PR#478)
