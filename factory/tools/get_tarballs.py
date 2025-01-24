@@ -9,6 +9,9 @@ This script download HTCondor tarballs from the official condor website.
 # Exit codes:
 # 0: All good
 # 1: Configuration file does not exist
+# 2 if the XML file specified in XML_OUT is missing or cannot write XML_OUT file on disk.
+# 3 Cannot find XML_OUT file when using --checklatest.
+# 4 XML file needs to be updated since a newer version is present on the website.
 
 A configuration file is specified through the GET_TARBALLS_CONFIG environment variable.
 Alternatively, the script looks for a file named get_tarballs.yaml in the same directory
@@ -296,7 +299,9 @@ def parse_opts():
     )
 
     parser.add_argument("--verbose", action="store_true", help="Be more loud when downloading tarballs file")
-    parser.add_argument("--checklatest", action="store_true", help="Check that each of the major version 'latest' is in the xml")
+    parser.add_argument(
+        "--checklatest", action="store_true", help="Check that each of the major version 'latest' is in the xml"
+    )
 
     args = parser.parse_args()
 
@@ -304,7 +309,7 @@ def parse_opts():
 
 
 def checklatest(config, verbose):
-    """ Validates that the "latest" tarball versions specified in the configuration are present
+    """Validates that the "latest" tarball versions specified in the configuration are present
     in the XML file and match the actual latest versions available from the condor website.
 
     Args:
@@ -315,7 +320,9 @@ def checklatest(config, verbose):
         int:
             - 0 if all "latest" tarball versions are up to date.
             - 1 if any "latest" tarball version is missing in the XML file.
-            - 2 if the XML file specified in XML_OUT is missing.
+            - 2 if the XML file specified in XML_OUT is missing or cannot write XML_OUT file on disk.
+            - 3 Cannot find XML_OUT file when using --checklatest.
+            - 4 XML file needs to be updated since a newer version is present on the website.
 
     Behavior:
         - Parses the XML file specified in `XML_OUT` to extract the versions of the current tarballs.
@@ -333,7 +340,9 @@ def checklatest(config, verbose):
     for tarball in root.findall(".//condor_tarball"):
         version_list += tarball.get("version").split(",")
     version_list = set(version_list)
-    verbose and print(f'Found the following tarballs in {xml_out}:\n{chr(10).join(sorted(version_list))}\n') # using chr(10) since \n is not allowed inside {}
+    if verbose:
+        lines = "\n".join(sorted(version_list))  # chr(10).join() is not portable, better to define the var outside
+        print(f"Found the following tarballs in {xml_out}:\n{lines}\n")
 
     print(f"Searching for condor major versions that need 'latest' tarballs in {xml_out}\n")
     for major_dict in config["CONDOR_TARBALL_LIST"]:
@@ -344,10 +353,14 @@ def checklatest(config, verbose):
         manager = TarballManager(
             urljoin(config["TARBALL_BASE_URL"], major_version), config["FILENAME_LIST"], config["DESTINATION_DIR"]
         )
-        verbose and print(f'Available releases for major version {major_dict["MAJOR_VERSION"]} are:\n{manager.releases}.\nLatest tarball in xml file is {manager.latest_version}. All good.\n')
+        verbose and print(
+            f'Available releases for major version {major_dict["MAJOR_VERSION"]} are:\n{manager.releases}.\nLatest tarball in xml file is {manager.latest_version}. All good.\n'
+        )
 
         if manager.latest_version not in version_list:
-            print(f'Latest version {manager.latest_version} found at "{config["TARBALL_BASE_URL"]}" is not present in "{xml_out}"')
+            print(
+                f'Latest version {manager.latest_version} found at "{config["TARBALL_BASE_URL"]}" is not present in "{xml_out}"'
+            )
             return 4
 
     print("All tarballs are up to date")

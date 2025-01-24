@@ -9,8 +9,8 @@ Changes since the last release
 
 ### New features / functionalities
 
--   item one of the list
--   item N
+-   Improved gfdiff tool interface and changed diff algorithm (PR #476)
+-   Added option to check if new HTCondor tarballs are available to get_tarballs (PR #477)
 
 ### Changed defaults / behaviours
 
@@ -19,6 +19,9 @@ Changes since the last release
 ### Security Related Fixes
 
 ### Bug Fixes
+
+-   Fixed gfdiff issue with mergely interface (PR #476)
+-   Fallback to cp/chown when cp -p does not work (It is unavailable on some containers) (PR #478)
 
 ### Testing / Development
 
