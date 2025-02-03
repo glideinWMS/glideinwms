@@ -31,9 +31,9 @@ GWMS_THIS_SCRIPT_DIR=$(dirname "$0")
 # import add_config_line function
 add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | awk '{print $2}')
 # shellcheck source=./add_config_line.source
-. $add_config_line_source
+. "$add_config_line_source"
 
-echo "`date` Starting singularity_setup.sh. Importing singularity_lib.sh."
+echo "$(date) Starting singularity_setup.sh. Importing singularity_lib.sh."
 
 # defined in singularity_lib.sh
 [[ -e "$glidein_config" ]] && error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
@@ -50,7 +50,7 @@ fi
 
 
 no_use_singularity_config () {
-    info_stdout "`date` Not using singularity ($gwms_singularity_status)"
+    info_stdout "$(date) Not using singularity ($gwms_singularity_status)"
     advertise HAS_SINGULARITY "False" "C"
     "$error_gen" -ok "singularity_setup.sh" "use_singularity" "False"
     exit 0
@@ -64,11 +64,11 @@ no_singularity_fail_or_exit () {
     #  3: variable (default: WN_Resource)
     local var_name="${3:-WN_Resource}"
     if [[ "$1" = "REQUIRED" ]]; then
-        info_stdout "`date` Incompatible Singularity requirements ($2). Failing Glidein"
+        info_stdout "$(date) Incompatible Singularity requirements ($2). Failing Glidein"
         "$error_gen" -error "singularity_setup.sh" "$var_name" "$2"
         exit 1
     elif [[ "$1" = "PREFERRED" ]]; then
-        info_stdout "`date` Falling back to no Singularity, error: $2"
+        info_stdout "$(date) Falling back to no Singularity, error: $2"
         no_use_singularity_config
     else
         warn "Unexpected gwms_singularity_status $1 in fail_or_exit (no REQUIRED or PREFERRED)"
@@ -190,7 +190,7 @@ temp_singularity_bin=$(gconfig_get OSG_SINGULARITY_BINARY "$glidein_config")
 # Does frontend want to use singularity?
 use_singularity=$(gconfig_get GLIDEIN_Singularity_Use "$glidein_config")
 if [[ -z "$use_singularity" ]]; then
-    info_stdout "`date` GLIDEIN_Singularity_Use not configured. Defaulting to DISABLE_GWMS"
+    info_stdout "$(date) GLIDEIN_Singularity_Use not configured. Defaulting to DISABLE_GWMS"
     # GWMS, when Group does not specify GLIDEIN_Singularity_Use, it should default to DISABLE_GWMS (2018-03-19 discussion)
     use_singularity="DISABLE_GWMS"
 fi
@@ -198,15 +198,20 @@ fi
 # Does entry require glidein to use singularity?
 require_singularity=$(gconfig_get GLIDEIN_SINGULARITY_REQUIRE "$glidein_config")
 if [[ -z "$require_singularity" ]]; then
-    info_stdout "`date` GLIDEIN_SINGULARITY_REQUIRE not configured. Defaulting to OPTIONAL"
+    info_stdout "$(date) GLIDEIN_SINGULARITY_REQUIRE not configured. Defaulting to OPTIONAL"
     require_singularity="OPTIONAL"
 fi
 
 # What are the restrictions for the singularity image?
 image_restrictions=$(gconfig_get SINGULARITY_IMAGE_RESTRICTIONS "$glidein_config")
 if [[ -z "$image_restrictions" ]]; then
-    info_stdout "`date` SINGULARITY_IMAGE_RESTRICTIONS not configured. Defaulting to cvmfs"
+    info_stdout "$(date) SINGULARITY_IMAGE_RESTRICTIONS not configured. Defaulting to cvmfs"
     image_restrictions="cvmfs"
+fi
+image_required=$(gconfig_get_tolower SINGULARITY_IMAGE_REQUIRED "$glidein_config")
+if [[ -z "$image_required" ]]; then
+    info_stdout "$(date) SINGULARITY_IMAGE_REQUIRED not configured. Defaulting to false"
+    image_required="false"
 fi
 
 info_stdout "`date` Factory's desire to use Singularity: $require_singularity"
@@ -262,7 +267,7 @@ SINGULARITY_IMAGE_DEFAULT=$(gconfig_get SINGULARITY_IMAGE_DEFAULT "$glidein_conf
 # Select the singularity image:  singularity_get_image platforms restrictions
 # Uses SINGULARITY_IMAGES_DICT and legacy SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7
 # TODO Should the image be on CVMFS or anywhere is OK?
-info_stdout "`date` Looking for Singularity image for [default,rhel9,rhel7,rhel6,rhel8] with restrictions $image_restrictions"
+info_stdout "$(date) Looking for Singularity image for [default,rhel9,rhel7,rhel6,rhel8] with restrictions $image_restrictions"
 GWMS_SINGULARITY_IMAGE="$(singularity_get_image default,rhel9,rhel7,rhel6,rhel8 $image_restrictions)"
 ec=$?
 if [[ $ec -ne 0 ]]; then
@@ -273,17 +278,30 @@ if [[ $ec -ne 0 ]]; then
         out_str="Selected singularity image, $GWMS_SINGULARITY_IMAGE, does not exist"
     elif [[ $ec -eq 3 ]]; then
         out_str="Selected singularity image, $GWMS_SINGULARITY_IMAGE, is not in CVMFS as requested"
+        GWMS_SINGULARITY_IMAGE=""
     fi
-    no_singularity_fail_or_exit $gwms_singularity_status "$out_str"
+    if [[ "$image_required" == "false" ]]; then
+        warn "No valid singularity image found, but image not required via SINGULARITY_IMAGE_REQUIRED. Continuing to test the binary."
+        warn "A later setup will have to set GWMS_SINGULARITY_IMAGE or jobs to set their image. Otherwise singularity/apptainer will not work."
+    else
+        no_singularity_fail_or_exit $gwms_singularity_status "$out_str"
+    fi
 fi
 
 # Using Singularity and valid image found
 export GWMS_SINGULARITY_IMAGE
 
-info_stdout "`date` Searching and testing the singularity binary"
+info_stdout "$(date) Searching and testing the singularity binary"
+
+singularity_image_for_test="$GWMS_SINGULARITY_IMAGE"
+if ! uri_is_valid_file_or_remote "$singularity_image_for_test"; then
+    warn "The Singularity image ($GWMS_SINGULARITY_IMAGE) is not a readable file/directory."
+    singularity_image_for_test=$(singularity_get_image_default)
+    info "Testing the Singularity/Apptainer binary with test image: $singularity_image_for_test"
+fi
 
 # Changes PATH (Singularity path may be added), GWMS_SINGULARITY_VERSION, GWMS_SINGULARITY_PATH, HAS_SINGULARITY, singularity_bin
-singularity_locate_bin "$singularity_bin" "$GWMS_SINGULARITY_IMAGE"
+singularity_locate_bin "$singularity_bin" "$singularity_image_for_test"
 
 if [[ "$HAS_SINGULARITY" = "True" ]]; then
     info "Singularity binary appears present, claims to be version $GWMS_SINGULARITY_VERSION and tested with $GWMS_SINGULARITY_IMAGE"
