@@ -9,10 +9,14 @@ Changes since the last release
 
 ### New features / functionalities
 
--   item one of the list
--   item N
+-   Added a test Apptainer image to use when the configured one is not available (PR #482)
 
 ### Changed defaults / behaviours
+
+-   The new variable SINGULARITY_IMAGE_REQUIRED defaults to false and allows to use Singularity/Apptainer also when the configured image is not available.
+    The image must be provided by the job or a future custom script in order not to fail. (PR #482)
+-   APPTAINER_TEST_IMAGE can be set to an always available Singularity/Apptainer image to use for testing.
+    Defaults to oras://ghcr.io/apptainer/alpine:latest (PR #482)
 
 ### Deprecated / removed options and commands
 

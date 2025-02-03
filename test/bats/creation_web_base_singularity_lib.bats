@@ -60,6 +60,7 @@ setup_nameprint() {
     [ "$output" = "bar" ]
 }
 
+
 ## Tests for dict_... functions
 @test "Test dictionary values" {
     my_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
@@ -145,6 +146,25 @@ dit() { echo "TEST:<$1><$2><$3>"; }
     [ "$(list_get_intersection "$list3" "$list2")" = "$list2" ]
 }
 
+
+## Test for utility functions
+@test "Verify uri_is_valid_file_or_remote" {
+    # Remote URI
+    uri_is_valid_file_or_remote http://user@host:port/path/to/file
+    uri_is_valid_file_or_remote ftp://host/path/to/file
+    fixture_dir=$(realpath fixtures)
+    # Local or file:// - both file:// and file:/// are absolute paths
+    # file fixtures/glidein_config is expected to exist
+    uri_is_valid_file_or_remote fixtures/glidein_config
+    uri_is_valid_file_or_remote "$fixture_dir/glidein_config"
+    uri_is_valid_file_or_remote file:/"$fixture_dir/glidein_config"
+    uri_is_valid_file_or_remote file://"$fixture_dir/glidein_config"
+    # file fixtures/this_file_is_not_there is expected NOT to exist
+    ! uri_is_valid_file_or_remote "fixtures/this_file_is_not_there"
+    ! uri_is_valid_file_or_remote "$fixture_dir/this_file_is_not_there"
+    ! uri_is_valid_file_or_remote "file:/$fixture_dir/this_file_is_not_there"
+    ! uri_is_valid_file_or_remote "file://$fixture_dir/this_file_is_not_there"
+}
 
 
 ## Tests for env_... functions

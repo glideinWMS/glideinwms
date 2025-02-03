@@ -81,6 +81,8 @@ OSG_SINGULARITY_BINARY_DEFAULT="/cvmfs/oasis.opensciencegrid.org/mis/singularity
 
 # Path of apptainer within the HTCondor tar ball
 CONDOR_APPTAINER_BIN=usr/libexec/apptainer
+# Apptainer maintained test image
+APPTAINER_TEST_IMAGE_DEFAULT="oras://ghcr.io/apptainer/alpine:latest"
 
 # For shell, for HTCondor is the opposite
 # 0 = true
@@ -428,6 +430,24 @@ gwms_from_config() {
 }
 
 
+uri_is_valid_file_or_remote() {
+    # Return true if URI is not local or if it is a readable file
+    # Return false for empty values or non readable local URI/files
+    # In:
+    #  1: URI to check, can be a path or a URI
+    [[ -n "$1" ]] || { false; return; }
+    local uri=$1
+    if [[ ! "${uri}" = *"://"* ]] || [[ "${uri}" = "file://"* ]]; then
+        # file:// are absolute paths, protect for 2 or 3 slashes
+        uri="${uri#file:/}"
+        [[ -r "${uri/\/\//\/}" ]]
+        return
+    fi
+    true
+    return
+}
+
+
 #######################################
 #
 # GWMS aux functions
@@ -522,6 +542,7 @@ get_prop_str() {
             echo "$3"
             return 1
         fi
+        # Note this will remove only the first 2 front characters and first back
         val=$( (grep -i "^$2 " "$1" | cut -d= -f2 | sed -e "s/^[\"' \t\n\r]//g" -e "s/[\"' \t\n\r]$//g" | sed -e "s/^[\"' \t\n\r]//g" ) 2>/dev/null )
     fi
     if [[ -z "$val" || "$val" =~ [Uu][Nn][Dd][Ee][Ff][Ii][Nn][Ee][Dd] ]]; then
@@ -1314,7 +1335,7 @@ singularity_exec_simple() {
 singularity_test_exec() {
     # Test Singularity by invoking it with the standard environment (binds, options)
     # In:
-    #  1 - Singularity image, default GWMS_SINGULARITY_IMAGE_DEFAULT
+    #  1 - Singularity image, default singularity_get_image_default()
     #  2 - Singularity path, default GWMS_SINGULARITY_PATH_DEFAULT
     #  PWD (used by singularity_exec to bind it)
     #  GLIDEIN_DEBUG_OUTPUT - to increase verbosity
@@ -1327,7 +1348,7 @@ singularity_test_exec() {
     #  true - Singularity OK
     #  false - Test failing. Singularity not working or empty bin/image
     # E.g. if ! singularity_test_exec "$GWMS_SINGULARITY_IMAGE" "$GWMS_SINGULARITY_PATH" ; then
-    local singularity_image="${1:-$GWMS_SINGULARITY_IMAGE_DEFAULT}"
+    local singularity_image="${1:-$(singularity_get_image_default)}"
     local singularity_bin="${2:-$GWMS_SINGULARITY_PATH_DEFAULT}"
     [[ -z "$singularity_image"  ||  -z "$singularity_bin" ]] &&
             { info "Singularity image or binary empty. Test failed "; false; return; }
@@ -1389,7 +1410,7 @@ singularity_get_platform() {
     # TODO: incomplete, add script to detect platform (needs to work in/out singularity)
     # Detect the platform (OS) inside of Singularity (invoking it with the standard environment: binds, options)
     # In:
-    #  1 - Singularity image, default GWMS_SINGULARITY_IMAGE_DEFAULT
+    #  1 - Singularity image, default singularity_get_image_default()
     #  2 - Singularity path, default GWMS_SINGULARITY_PATH_DEFAULT
     #  PWD (used by singularity_exec to bind it)
     # Out:
@@ -1402,7 +1423,7 @@ singularity_get_platform() {
     local singularity_bin="$2"
     [[ -e "$PLATFORM_DETECTION" ]] ||
             { info "File not found ($PLATFORM_DETECTION). Unable to detect platform "; false; return; }
-    [[ -z "$singularity_image" ]] && singularity_image="$GWMS_SINGULARITY_IMAGE_DEFAULT"
+    [[ -z "$singularity_image" ]] && singularity_image="$(singularity_get_image_default)"
     [[ -z "$singularity_bin" ]] && singularity_bin="$GWMS_SINGULARITY_PATH_DEFAULT"
     [[ -z "$singularity_image"  ||  -z "$singularity_bin" ]] &&
             { info "Singularity image or binary empty. Unable to run Singularity to detect platform "; false; return; }
@@ -1630,6 +1651,25 @@ singularity_locate_bin() {
 }
 
 
+singularity_get_image_default() {
+    # Return the default Singularity/Apptainer image
+    # Return GWMS_SINGULARITY_IMAGE_DEFAULT if existing and accessible,
+    # otherwise APPTAINER_TEST_IMAGE if set and accessible, or APPTAINER_TEST_IMAGE_DEFAULT
+    local image="$GWMS_SINGULARITY_IMAGE_DEFAULT"
+    if uri_is_valid_file_or_remote "$image" ; then
+        echo "$image"
+        return
+    fi
+    image="${APPTAINER_TEST_IMAGE:-$(gwms_from_config APPTAINER_TEST_IMAGE)}"
+    # Verifying also APPTAINER_TEST_IMAGE since external
+    if uri_is_valid_file_or_remote "$image" ; then
+        echo "$image"
+    else
+        echo "$APPTAINER_TEST_IMAGE_DEFAULT"
+    fi
+}
+
+
 singularity_get_image() {
     # Return on stdout the Singularity image
     # Let caller decide what to do if there are problems
@@ -1637,6 +1677,8 @@ singularity_get_image() {
     #  1: a comma separated list of platforms (OS) to choose the image
     #  2: a comma separated list of restrictions (default: none)
     #     - cvmfs: image must be on CVMFS
+    #     - remote: it is OK to use remote images (not file URI)
+    #     - test: in case of failure return the default image instead of error
     #     - any: any image is OK, $1 was just a preference (the first one in SINGULARITY_IMAGES_DICT is used if none of the preferred is available)
     #  SINGULARITY_IMAGES_DICT
     #  SINGULARITY_IMAGE_DEFAULT (legacy)
@@ -1653,6 +1695,9 @@ singularity_get_image() {
     fi
     local s_restrictions="$2"
     local singularity_image
+
+    # Safe test image (should be available also if CVMFS is not available)
+    dict_check_key SINGULARITY_IMAGES_DICT testimage || SINGULARITY_IMAGES_DICT=$(dict_set_val SINGULARITY_IMAGES_DICT testimage "$(singularity_get_image_default)")
 
     # To support legacy variables SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7
     # values are added to SINGULARITY_IMAGES_DICT
@@ -1674,20 +1719,20 @@ singularity_get_image() {
     if [[ -z "$singularity_image" ]]; then
         [[ -z "$SINGULARITY_IMAGES_DICT" ]] && warn "No Singularity image available (SINGULARITY_IMAGES_DICT is empty)" ||
                 warn "No Singularity image available for the required platforms ($s_platform)"
-        return 1
+        [[ ",${s_restrictions}," = *",test,"* ]] && { singularity_get_image_default; return; } || return 1
     fi
 
     # Check all restrictions (at the moment cvmfs) and return 3 if failing
     if [[ ",${s_restrictions}," = *",cvmfs,"* ]] && ! cvmfs_path_in_cvmfs "$singularity_image"; then
         warn "$singularity_image is not in the /cvmfs area as requested"
-        return 3
+        [[ ",${s_restrictions}," = *",test,"* ]] && { singularity_get_image_default; return; } || return 3
     fi
 
     # Unless is OK to use URLs/remote images, we make sure it exists
     if [[ ! ",${s_restrictions}," = *",remote,"* ]]; then
         if [[ ! -e "$singularity_image" ]]; then
             warn "ERROR: $singularity_image file not found" 1>&2
-            return 2
+            [[ ",${s_restrictions}," = *",test,"* ]] && { singularity_get_image_default; return; } || return 2
         fi
     fi
 
@@ -1851,7 +1896,7 @@ singularity_verify_image() {
     [[ ! -e "$singularity_image" ]] && return 1
     if cvmfs_path_in_cvmfs "$singularity_image"; then
         if ! ls -l "$(cvmfs_resolve_path "$singularity_image")" >/dev/null; then
-            if ok_compressed; then
+            if $ok_compressed; then
                 info_dbg "Listing failed for $singularity_image, probably a compressed image in CVMFS"
             else
                 return 2
