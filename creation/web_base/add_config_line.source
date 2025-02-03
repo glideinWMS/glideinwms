@@ -33,6 +33,43 @@ TAC=$(command -v tac)
 PSPID="$(command -v ps) -q"
 [[ "$OSTYPE" =~ darwin* ]] && PSPID="$(command -v ps) -p"  # Quick-pid option not available on Mac/BSD
 
+# Convert to lowercase the output of gconfig_get
+gconfig_get_tolower() {
+    gconfig_get "$@" | tr '[:upper:]' '[:lower:]'
+}
+
+# Convert to uppercase the output of gconfig_get
+gconfig_get_toupper() {
+    gconfig_get "$@" | tr '[:lower:]' '[:upper:]'
+}
+
+# Check for Truth values (case insensitive) from gconfig_get: TRUE, T, YES, Y, 1 (or positive numbers)
+# Anything else, including empty is false
+gconfig_get_bool() {
+    local res
+    # sed "s/[\"' \t\r\n]//g" not working on OS X, '\040\011\012\015' = ' '$'\t'$'\r'$'\n'
+    res=$(gconfig_get "$@" | tr -d '\040\011\012\015')
+    res=${res^^}
+    re="^[0-9]+$"
+    if [[ "$res" == "TRUE" || "$res" == "T" || "$res" == "YES" || "$res" == "Y" || "$res" == "1" ]]; then
+        true
+    elif [[ "$res" =~ $re ]]; then
+            if [[ $res -eq 0 ]]; then
+                false
+            else
+                true
+            fi
+    else
+        false
+    fi
+}
+
+# Strip from space characters and quotes the gconfig_get output.
+# Remove all space and quote characters in front and at the end of the string.
+gconfig_get_trim() {
+    gconfig_get "$@" | sed -e "s/^[\"' \t\n\r]*//g" -e "s/[\"' \t\n\r]*$//g"
+}
+
 # Return the value stored in glidein_config
 #  1: id (key) of the value to retrieve;
 #  2(opt): path of the config file ("$glidein_config" by default)
@@ -58,7 +95,8 @@ gconfig_log_name() {
 }
 
 gconfig_log_add() {
-    local log_name=$(gconfig_log_name "$1")
+    local log_name
+    log_name=$(gconfig_log_name "$1")
     shift
     echo "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${log_name}"
 }
