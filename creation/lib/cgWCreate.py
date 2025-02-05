@@ -162,7 +162,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         enc_input_files = []
 
         enc_input_files.append("$ENV(IDENTITY_CREDENTIALS:)")
-        self.add_environment("IDTOKENS_FILE=$ENV(IDTOKENS_FILE:)")
 
         if gridtype not in ["ec2", "gce"] and not (gridtype == "arc" and auth_method == "grid_proxy"):
             self.add("+SciTokensFile", '"$ENV(SCITOKENS_FILE:)"')

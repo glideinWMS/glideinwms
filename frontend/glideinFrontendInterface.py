@@ -22,7 +22,7 @@ from glideinwms.lib import (
     logSupport,
     x509Support,
 )
-from glideinwms.lib.credentials import AuthenticationMethod, CredentialPair, CredentialPurpose
+from glideinwms.lib.credentials import AuthenticationMethod, CredentialPurpose
 from glideinwms.lib.util import hash_nc
 
 ############################################################
@@ -304,8 +304,8 @@ class LegacyCredential:
         proxy_pilotfiles = elementDescript.merged_data["ProxyPilotFiles"]
         proxy_vm_ids = elementDescript.merged_data["ProxyVMIds"]
         proxy_vm_types = elementDescript.merged_data["ProxyVMTypes"]
-        proxy_creation_scripts = elementDescript.merged_data["ProxyCreationScripts"]
-        proxy_update_frequency = elementDescript.merged_data["ProxyUpdateFrequency"]
+        proxy_creation_scripts = elementDescript.merged_data["CredentialCreationScripts"]
+        proxy_update_frequency = elementDescript.merged_data["CredentialMinimumLifetime"]
         proxy_vmid_fname = elementDescript.merged_data["ProxyVMIdFname"]
         proxy_vmtype_fname = elementDescript.merged_data["ProxyVMTypeFname"]
         proxy_remote_username = elementDescript.merged_data["ProxyRemoteUsernames"]
@@ -830,7 +830,6 @@ class MultiAdvertizeWork:
             count += len(self.factory_queue[factory_pool])
         return count
 
-    # TODO: Review the need for this method. If we're keeping it, it should be refactored.
     def renew_and_load_credentials(self):
         """
         Get the list of proxies,
@@ -838,7 +837,6 @@ class MultiAdvertizeWork:
         and read the credentials in memory.
         Modifies the self.request_credentials variable.
         """
-        # TODO: remove references to x509
         self.request_credentials = []
         if self.descript_obj.credentials_plugin is not None:
             self.request_credentials = self.descript_obj.credentials_plugin.get_request_credentials()
@@ -1176,13 +1174,13 @@ class MultiAdvertizeWork:
         for request_cred in self.request_credentials:
             if not request_cred.advertize:
                 logSupport.log.debug(
-                    f"Skipping credential with 'advertize' set to False. ({request_cred.credential.path})"
+                    f"Skipping credential with 'advertize' set to False. ({request_cred.credential.id})"
                 )
                 continue  # We already determined it cannot be used
             if (request_cred.credential.trust_domain != factory_trust) and (factory_trust != "Any"):
                 logSupport.log.warning(
                     f"Skipping credential with trust_domain {request_cred.credential.trust_domain}. "
-                    f"Factory requires {factory_trust}. ({request_cred.credential.path})"
+                    f"Factory requires {factory_trust}. ({request_cred.credential.id})"
                 )
                 continue  # Skip credentials that don't match the trust domain
             # NOTE: Up to GWMS 3.10.x glideclient was always advertised. This is a new behavior.
@@ -1190,10 +1188,10 @@ class MultiAdvertizeWork:
             if (
                 request_cred.req_idle == 0
                 and request_cred.req_max_run == 0
-                and params_obj.glidein_monitors["GlideinsTotal"] == 0
+                and params_obj.glidein_monitors_per_cred[request_cred.credential.id]["GlideinsTotal"] == 0
             ):
                 logSupport.log.debug(
-                    f"Skipping credential with no work assigned or active glideins. ({request_cred.credential.path})"
+                    f"Skipping credential with no work assigned or active glideins. ({request_cred.credential.id})"
                 )
                 continue  # Skip credentials with no work assigned or active glideins
 
@@ -1210,12 +1208,6 @@ class MultiAdvertizeWork:
             glidein_params_to_encrypt["SecurityClass"] = str(request_cred.credential.security_class)
             if params_obj.security_name is not None:
                 glidein_params_to_encrypt["SecurityName"] = params_obj.security_name
-
-            glidein_params_to_encrypt[request_cred.credential.classad_attribute] = request_cred.credential.id
-            if isinstance(request_cred.credential, CredentialPair):
-                glidein_params_to_encrypt[request_cred.credential.private_credential.classad_attribute] = (
-                    request_cred.credential.private_credential.id
-                )
 
             # Encrypt parameters
             encrypted_params = {}

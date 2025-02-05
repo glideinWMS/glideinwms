@@ -829,7 +829,6 @@ class glideinFrontendElement:
             # Only advertise if there is a valid key for encryption
             if key_obj is not None:
                 # determine whether to encrypt a condor token or scitoken into the classad
-                token_str = ""
                 # see if site supports condor token
                 token_str = self.refresh_entry_token(glidein_el)
                 expired = token_util.token_str_expired(token_str)
@@ -851,37 +850,18 @@ class glideinFrontendElement:
                         logSupport.log.debug("could NOT find condor token: %s", entry_token_name)
 
                 # Generate credentials and parameters
-                entry = {  # here to support callout interface (legacy generators)
-                    "name": glidein_el["attrs"].get("EntryName"),
-                    "gatekeeper": glidein_el["attrs"].get("GLIDEIN_Gatekeeper"),
-                    "factory": glidein_el["attrs"].get("AuthenticatedIdentity"),
-                }
                 self.credentials_plugin.generate_credentials(
                     elementDescript=self.elementDescript,
                     glidein_el=glidein_el,
                     group_name=self.group_name,
-                    trust_domain=trust_domain,
-                    entry=entry,
                     logger=logSupport.log,
                 )
                 self.credentials_plugin.generate_parameters(
                     elementDescript=self.elementDescript,
                     glidein_el=glidein_el,
                     group_name=self.group_name,
-                    trust_domain=trust_domain,
-                    entry=entry,
                     logger=logSupport.log,
                 )
-
-                # TODO: Add a `context` attribute to the Credential class.
-                # TODO: Add a `context` argument to the Credential constructor, load, and renew methods.
-                # TODO: Add a `context` attribute to the credential elements in the frontend configuration.
-                # TODO: Pass `context` to Generator.generate on CredentialGenerator.
-                # NOTE: This allows contextual credential generation, and will make it possible to define round-robin from the config file.
-                # now try to generate a credential using a generator plugin
-                # generator_name, stkn = credentials.generate_credential(
-                #     self.elementDescript, glidein_el, self.group_name, trust_domain
-                # )
 
                 # TODO: Remove this code once we are sure the new credentials work properly
                 #

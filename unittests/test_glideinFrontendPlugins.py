@@ -60,8 +60,8 @@ class fakeDescript:
             "ProxyVMTypeFname": {},
             "ProxyRemoteUsernames": {},
             "ProxyProjectIds": {},
-            "ProxyCreationScripts": {},
-            "ProxyUpdateFrequency": {},
+            "CredentialCreationScripts": {},
+            "CredentialMinimumLifetime": {},
         }
 
     def addproxy(self, name):

@@ -40,7 +40,7 @@ except ImportError:
 
 # Create a placeholder for a global logger (logging.Logger),
 # individual modules can create their own loggers if necessary
-log: logging.Logger = None
+log = None  # logging.Logger or structlog.BoundLogger
 
 log_dir = None
 disable_rotate = False

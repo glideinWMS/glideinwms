@@ -299,7 +299,7 @@ class VOFrontendParams(cWParams.CommonParams):
         )
         proxy_defaults["purpose"] = (
             "request",
-            "credential purpose",
+            "request|payload|CUSTOM_PURPOSE",
             "Purpose of credential: request,payload",
             None,
         )

@@ -74,7 +74,7 @@ Key points to note:
 
 - The custom generator class should inherit from `glideinwms.lib.generators.Generator`. This is an abstract base class that requires the implementation of a `generate` method, which should return the generated value.
 - `self.context` is a dictionary that contains the context passed from the configuration file. This attribute is loaded at the base class constructor.
-- `kwargs` is used to retrieve runtime parameters provided by the Frontend. The arguments currently supported are `elementDescript`, `glidein_el`, `group_name`, `trust_domain`, `entry`, and `logger`.
+- `kwargs` is used to retrieve runtime parameters provided by the Frontend. The arguments currently supported are `elementDescript`, `glidein_el`, `group_name`, and `logger`.
 - The `export_generator` function is used to register the custom generator with the GlideinWMS Generators framework. You can define as many classes as you need in a single plugin file, but only one of them should be exported.
 - The module name is determined by the filename of the plugin. For example, if the plugin is saved as `RandomGenerator.py`, the module name will be `RandomGenerator`. The exported class name does not affect the module name. To use this module in you configuration file, you could specify `RandomGenerator`, `RandomGenerator.py`, or `/path/to/generator/RandomGenerator.py` in the `absfname` or `value` attributes.
 

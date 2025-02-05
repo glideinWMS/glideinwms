@@ -1750,17 +1750,20 @@ def unit_work_v3_11(
 ):
     """Perform a single work unit using the v3 protocol.
 
-    :param entry: Entry
-    :param work: work requests
-    :param client_name: work_key (key used in the work request)
-    :param client_int_name: client name declared in the request
-    :param client_int_req: name of the request (declared in the request)
-    :param client_expected_identity:
-    :param decrypted_params:
-    :param params:
-    :param in_downtime:
-    :param condorQ: list of HTCondor jobs for this entry as returned by entry.queryQueuedGlideins()
-    :return: Return dictionary w/ success, security_names and work_done
+    Args:
+        entry (Entry): Entry object.
+        work (dict): Work requests.
+        client_name (str): Work key used in the work request.
+        client_int_name (str): Client name declared in the request.
+        client_int_req (str): Name of the request declared in the request.
+        client_expected_identity (str): Expected identity of the client.
+        decrypted_params (dict): Decrypted parameters.
+        params (dict): Parameters.
+        in_downtime (bool): Downtime flag.
+        condorQ (dict): List of HTCondor jobs for this entry as returned by entry.queryQueuedGlideins().
+
+    Returns:
+        dict: Dictionary with keys 'success', 'security_names', and 'work_done'.
     """
 
     # Return dictionary. Only populate information to be passed at the end

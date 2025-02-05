@@ -427,6 +427,7 @@ class ElementMergedDescript:
                 if t in data:
                     self.merged_data[t] = data[t]
 
+        # TODO: Rename to credentials
         proxies = []  # TODO: Investigate how to merge global and group credentials.
         parameters = {}
         # switching the order, so that the group credential will
@@ -450,8 +451,8 @@ class ElementMergedDescript:
             "ProxyPilotFiles",
             "ProxyVMIds",
             "ProxyVMTypes",
-            "ProxyCreationScripts",
-            "ProxyUpdateFrequency",
+            "CredentialCreationScripts",
+            "CredentialMinimumLifetime",
             "ProxyVMIdFname",
             "ProxyVMTypeFname",
             "ProxyRemoteUsernames",

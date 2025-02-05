@@ -26,11 +26,21 @@ class LegacyGenerator(Generator[Any]):
             raise GeneratorError("callout module does not have get_credential method")
 
     def generate(self, **kwargs) -> Any:
+        for param in ["glidein_el", "logger", "group_name"]:
+            if param not in kwargs:
+                raise GeneratorError(f"missing required parameter: {param}")
+
+        entry = {
+            "name": kwargs["glidein_el"]["attrs"].get("EntryName"),
+            "gatekeeper": kwargs["glidein_el"]["attrs"].get("GLIDEIN_Gatekeeper"),
+            "factory": kwargs["glidein_el"]["attrs"].get("AuthenticatedIdentity"),
+        }
+
         callout_kwargs = {
             "logger": kwargs["logger"],
             "group": kwargs["group_name"],
-            "entry": kwargs["entry"],
-            "trust_domain": kwargs["trust_domain"],
+            "entry": entry,
+            "trust_domain": kwargs["glidein_el"]["attrs"].get("GLIDEIN_TrustDomain", "Grid"),
         }
         callout_kwargs.update(self.context.get("kwargs", {}))
 

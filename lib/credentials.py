@@ -22,10 +22,11 @@ from io import BytesIO
 from typing import Any, Generic, Iterable, List, Mapping, Optional, Set, Type, TypeVar, Union
 
 import jwt
-import M2Crypto.EVP
-import M2Crypto.X509
 
-from glideinwms.lib import logSupport, pubCrypto, symCrypto
+from cryptography import x509
+from cryptography.hazmat.primitives.asymmetric.types import CERTIFICATE_PUBLIC_KEY_TYPES
+
+from glideinwms.lib import logSupport, pubCrypto, subprocessSupport, symCrypto
 from glideinwms.lib.defaults import force_bytes
 from glideinwms.lib.generators import Generator, load_generator
 from glideinwms.lib.util import hash_nc
@@ -39,22 +40,16 @@ T = TypeVar("T")
 
 
 class CredentialError(Exception):
-    """defining new exception so that we can catch only the credential errors here
-    and let the "real" errors propagate up
-    """
+    """Defining new exception so that we can catch only the credential errors here and let the "real" errors propagate up."""
 
 
 class ParameterError(Exception):
-    """defining new exception so that we can catch only the parameter errors here
-    and let the "real" errors propagate up
-    """
+    """Defining new exception so that we can catch only the parameter errors here and let the "real" errors propagate up."""
 
 
 @enum.unique
 class CredentialType(enum.Enum):
-    """
-    Enum representing different types of credentials.
-    """
+    """Enum representing different types of credentials."""
 
     TOKEN = "token"
     SCITOKEN = "scitoken"
@@ -72,8 +67,7 @@ class CredentialType(enum.Enum):
 
     @classmethod
     def from_string(cls, string: str) -> "CredentialType":
-        """
-        Converts a string representation of a credential type to a CredentialType object.
+        """Converts a string representation of a credential type to a CredentialType object.
 
         Args:
             string (str): The string representation of the credential type.
@@ -100,9 +94,7 @@ class CredentialType(enum.Enum):
 
 @enum.unique
 class CredentialPairType(enum.Enum):
-    """
-    Enum representing different types of credential pairs.
-    """
+    """Enum representing different types of credential pairs."""
 
     X509_PAIR = "x509_pair"
     KEY_PAIR = "key_pair"
@@ -110,8 +102,7 @@ class CredentialPairType(enum.Enum):
 
     @classmethod
     def from_string(cls, string: str) -> "CredentialPairType":
-        """
-        Converts a string representation of a credential type to a CredentialPairType object.
+        """Converts a string representation of a credential type to a CredentialPairType object.
 
         Args:
             string (str): The string representation of the credential type.
@@ -144,9 +135,7 @@ class CredentialPairType(enum.Enum):
 
 @enum.unique
 class CredentialPurpose(enum.Enum):
-    """
-    Enum representing different purposes for credentials.
-    """
+    """Enum representing different purposes for credentials."""
 
     REQUEST = "request"
     CALLBACK = "callback"
@@ -154,8 +143,7 @@ class CredentialPurpose(enum.Enum):
 
     @classmethod
     def from_string(cls, string: str) -> "CredentialPurpose":
-        """
-        Converts a string representation of a CredentialPurpose to a CredentialPurpose object.
+        """Converts a string representation of a CredentialPurpose to a CredentialPurpose object.
 
         Args:
             string (str): The string representation of the CredentialPurpose.
@@ -175,21 +163,17 @@ class CredentialPurpose(enum.Enum):
 
 
 class Credential(ABC, Generic[T]):
-    """
-    Represents a credential used for authentication or authorization purposes.
+    """Represents a credential used for authentication or authorization purposes.
 
     Attributes:
         cred_type (Optional[CredentialType]): The type of the credential.
-        classad_attribute (Optional[str]): The classad attribute associated with the credential.
         extension (Optional[str]): The file extension of the credential.
 
     Raises:
         CredentialError: If the credential cannot be initialized or loaded.
-
     """
 
     cred_type: Optional[CredentialType] = None
-    classad_attribute: Optional[str] = None
     extension: Optional[str] = None
 
     def __init__(
@@ -199,9 +183,10 @@ class Credential(ABC, Generic[T]):
         purpose: Optional[CredentialPurpose] = None,
         trust_domain: Optional[str] = None,
         security_class: Optional[str] = None,
+        creation_script: Optional[str] = None,
+        minimum_lifetime: Optional[str] = None,
     ) -> None:
-        """
-        Initialize a Credentials object.
+        """Initialize a Credentials object.
 
         Args:
             string (Optional[Union[str, bytes]]): The credential string.
@@ -216,7 +201,12 @@ class Credential(ABC, Generic[T]):
         self.purpose = purpose
         self.trust_domain = trust_domain
         self.security_class = security_class
-        if string or path:
+        self.creation_script = creation_script
+        try:
+            self.minimum_lifetime = int(minimum_lifetime) if minimum_lifetime else None
+        except ValueError as err:
+            raise ParameterError(f"Invalid minimum lifetime: {minimum_lifetime}") from err
+        if string or (path and os.path.isfile(path)):
             self.load(string, path)
 
     def __repr__(self) -> str:
@@ -226,7 +216,15 @@ class Credential(ABC, Generic[T]):
         return self.string.decode() if self.string else ""
 
     def __renew__(self) -> None:
-        raise NotImplementedError("Renewal not implemented for this credential type")
+        if not self.creation_script:
+            raise NotImplementedError("Renewal not implemented for this credential type")
+        if self.valid:
+            return
+        try:
+            subprocessSupport.iexe_cmd(self.creation_script)
+        except RuntimeError as err:
+            raise CredentialError(f"Error renewing or creating credential: {err}") from err
+        self.load_from_file()
 
     @property
     def _payload(self) -> Optional[T]:
@@ -234,17 +232,13 @@ class Credential(ABC, Generic[T]):
 
     @property
     def string(self) -> Optional[bytes]:
-        """
-        Credential string.
-        """
+        """Credential string."""
 
         return self._string
 
     @property
     def id(self) -> str:
-        """
-        Credential unique identifier.
-        """
+        """Credential unique identifier."""
 
         if not str(self.string):
             raise CredentialError("Credential not initialized")
@@ -255,9 +249,7 @@ class Credential(ABC, Generic[T]):
 
     @property
     def purpose(self) -> Optional[CredentialPurpose]:
-        """
-        Credential purpose.
-        """
+        """Credential purpose."""
 
         return self._purpose[0]
 
@@ -277,32 +269,25 @@ class Credential(ABC, Generic[T]):
 
     @property
     def purpose_alias(self) -> Optional[str]:
-        """
-        Credential purpose alias.
-        """
+        """Credential purpose alias."""
 
         if self._purpose[0] is not None:
             return self._purpose[1] or self._purpose[0].value
 
     @property
     def valid(self) -> bool:
-        """
-        Whether the credential is valid.
-        """
+        """Whether the credential is valid."""
         return self.invalid_reason() is None
 
     @property
     @abstractmethod
     def _id_attribute(self) -> Optional[str]:
-        """
-        Attribute used to identify the credential.
-        """
+        """Attribute used to identify the credential."""
 
     @staticmethod
     @abstractmethod
     def decode(string: Union[str, bytes]) -> T:
-        """
-        Decode the given string to provide the credential.
+        """Decode the given string to provide the credential.
 
         Args:
             string (bytes): The string to decode.
@@ -313,16 +298,14 @@ class Credential(ABC, Generic[T]):
 
     @abstractmethod
     def invalid_reason(self) -> Optional[str]:
-        """
-        Returns the reason why the credential is invalid.
+        """Returns the reason why the credential is invalid.
 
         Returns:
             str: The reason why the credential is invalid. None if the credential is valid.
         """
 
     def load_from_string(self, string: Union[str, bytes]) -> None:
-        """
-        Load the credential from a string.
+        """Load the credential from a string.
 
         Args:
             string (bytes): The credential string to load.
@@ -340,9 +323,8 @@ class Credential(ABC, Generic[T]):
             raise CredentialError(f"Could not load credential from string: {string}") from err
         self._string = string
 
-    def load_from_file(self, path: str) -> None:
-        """
-        Load credentials from a file.
+    def load_from_file(self, path: Optional[str] = None) -> None:
+        """Load credentials from a file.
 
         Args:
             path (str): The path to the credential file.
@@ -351,6 +333,8 @@ class Credential(ABC, Generic[T]):
             CredentialError: If the specified file does not exist.
         """
 
+        path = path or self.path
+
         if not os.path.isfile(path):
             raise CredentialError(f"Credential file {self.path} does not exist")
         with open(path, "rb") as cred_file:
@@ -358,8 +342,7 @@ class Credential(ABC, Generic[T]):
         self.path = path
 
     def load(self, string: Optional[Union[str, bytes]] = None, path: Optional[str] = None) -> None:
-        """
-        Load credentials from either a string or a file.
+        """Load credentials from either a string or a file.
         If both are defined, the string takes precedence.
 
         Args:
@@ -380,8 +363,7 @@ class Credential(ABC, Generic[T]):
             raise CredentialError("No string or path specified")
 
     def copy(self) -> "Credential":
-        """
-        Create a copy of the credential.
+        """Create a copy of the credential.
 
         Returns:
             Credential: The static credential.
@@ -411,8 +393,7 @@ class Credential(ABC, Generic[T]):
         overwrite: bool = True,
         continue_if_no_path=False,
     ) -> None:
-        """
-        Save the credential to a file.
+        """Save the credential to a file.
 
         Args:
             path (Optional[str]): The path to the file where the credential will be saved.
@@ -463,8 +444,7 @@ class Credential(ABC, Generic[T]):
             raise CredentialError(f"Could not save credential to {path}: {err}") from err
 
     def renew(self) -> None:
-        """
-        Renews the credentials.
+        """Renews the credentials.
 
         This method attempts to renew the credentials by calling the private __renew__ method.
         If the __renew__ method is not implemented, it will silently pass.
@@ -476,8 +456,7 @@ class Credential(ABC, Generic[T]):
 
 
 class CredentialPair:
-    """
-    Represents a pair of credentials, consisting of a public and private credential.
+    """Represents a pair of credentials, consisting of a public and private credential.
 
     NOTE: This class requires a Credential subclass as a second base class.
 
@@ -499,8 +478,7 @@ class CredentialPair:
         trust_domain: Optional[str] = None,
         security_class: Optional[str] = None,
     ) -> None:
-        """
-        Initialize a CredentialPair object.
+        """Initialize a CredentialPair object.
 
         Args:
             string (Optional[bytes]): The string representation of the public credential.
@@ -522,9 +500,7 @@ class CredentialPair:
         self.private_credential = credential_class(private_string, private_path, purpose, trust_domain, security_class)
 
     def renew(self) -> None:
-        """
-        Renews the credentials by calling the __renew__() method on both the public and private credentials.
-        """
+        """Renews the credentials by calling the __renew__() method on both the public and private credentials."""
 
         try:
             self.__renew__()  # pylint: disable=no-member # type: ignore[attr-defined]
@@ -533,8 +509,7 @@ class CredentialPair:
             pass
 
     def copy(self) -> "CredentialPair":
-        """
-        Create a copy of the credential pair.
+        """Create a copy of the credential pair.
 
         Returns:
             CredentialPair: The static credential pair.
@@ -559,8 +534,7 @@ class CredentialPair:
 
 # Dictionary of Credentials
 class CredentialDict(dict):
-    """
-    A dictionary-like class for storing credentials.
+    """A dictionary-like class for storing credentials.
 
     This class extends the built-in `dict` class and provides additional
     functionality for storing and retrieving `Credential` objects.
@@ -572,8 +546,7 @@ class CredentialDict(dict):
         super().__setitem__(__k, __v)
 
     def add(self, credential: Credential, credential_id: Optional[str] = None):
-        """
-        Add a credential to the dictionary.
+        """Add a credential to the dictionary.
 
         Args:
             credential (Credential): The credential object to add.
@@ -589,8 +562,7 @@ class CredentialDict(dict):
         cred_type: Optional[Union[CredentialType, CredentialPairType]] = None,
         purpose: Optional[CredentialPurpose] = None,
     ) -> List[Credential]:
-        """
-        Find credentials in the dictionary.
+        """Find credentials in the dictionary.
 
         Args:
             type (Optional[Union[CredentialType, CredentialPairType]]): The type of credential to find.
@@ -607,17 +579,14 @@ class CredentialDict(dict):
 
 
 class CredentialGenerator(Credential[Generator]):
-    """
-    Represents a credential generator used for generating credentials.
+    """Represents a credential generator used for generating credentials.
 
     Attributes:
         cred_type (CredentialType): The type of the credential.
-        classad_attribute (str): The classad attribute associated with the credential.
         path (str): The path of the credential file.
     """
 
     cred_type = CredentialType.GENERATOR
-    classad_attribute = "CredentialGenerator"
 
     def __init__(  # pylint: disable=super-init-not-called
         self,
@@ -628,8 +597,7 @@ class CredentialGenerator(Credential[Generator]):
         security_class: Optional[str] = None,
         context: Optional[Mapping] = None,
     ) -> None:
-        """
-        Initialize a Credentials object.
+        """Initialize a Credentials object.
 
         Args:
             string (Optional[Union[str, bytes]]): The credential string.
@@ -666,9 +634,7 @@ class CredentialGenerator(Credential[Generator]):
 
     @property
     def context(self) -> Optional[Mapping]:
-        """
-        The context of the generator.
-        """
+        """The context of the generator."""
 
         return self._context
 
@@ -719,8 +685,7 @@ class CredentialGenerator(Credential[Generator]):
         return "Credential not initialized."
 
     def generate(self, **kwargs):
-        """
-        Generate a credential using the generator.
+        """Generate a credential using the generator.
 
         Args:
             **kwargs: Additional keyword arguments to pass to the generator.
@@ -741,12 +706,10 @@ class CredentialGenerator(Credential[Generator]):
 
 
 class Token(Credential[Mapping]):
-    """
-    Represents a token credential.
+    """Represents a token credential.
 
     Attributes:
         cred_type (CredentialType): The type of the credential.
-        classad_attribute (str): The name of the attribute in the classad.
         extension (str): The file extension for the token.
         scope (Optional[str]): The scope of the token.
         issue_time (Optional[datetime]): The issue time of the token.
@@ -755,42 +718,31 @@ class Token(Credential[Mapping]):
     """
 
     cred_type = CredentialType.TOKEN
-    classad_attribute = "ScitokenId"  # TODO: We might want to change this name to "TokenId" in the future
     extension = "jwt"
 
     @property
     def subject(self) -> Optional[str]:
-        """
-        Token subject.
-        """
+        """Token subject."""
         return self._payload.get("sub", None) if self._payload else None
 
     @property
     def scope(self) -> Optional[str]:
-        """
-        Token scope.
-        """
+        """Token scope."""
         return self._payload.get("scope", None) if self._payload else None
 
     @property
     def issue_time(self) -> Optional[datetime]:
-        """
-        Token issue time.
-        """
+        """Token issue time."""
         return datetime.fromtimestamp(self._payload.get("iat", None)) if self._payload else None
 
     @property
     def not_before_time(self) -> Optional[datetime]:
-        """
-        Token not-before time.
-        """
+        """Token not-before time."""
         return datetime.fromtimestamp(self._payload.get("nbf", None)) if self._payload else None
 
     @property
     def expiration_time(self) -> Optional[datetime]:
-        """
-        Token expiration time.
-        """
+        """Token expiration time."""
         return datetime.fromtimestamp(self._payload.get("exp", None)) if self._payload else None
 
     @property
@@ -810,15 +762,15 @@ class Token(Credential[Mapping]):
             return "Token not yet valid."
         if datetime.now() > self.expiration_time:
             return "Token expired."
+        if self.minimum_lifetime and (self.expiration_time - datetime.now()).total_seconds() < self.minimum_lifetime:
+            return "Token lifetime too short."
 
 
 class SciToken(Token):
-    """
-    Represents a SciToken credential.
+    """Represents a SciToken credential.
 
     Attributes:
         cred_type (CredentialType): The type of the credential.
-        classad_attribute (str): The name of the attribute in the classad.
         extension (str): The file extension for the token.
         scope (Optional[str]): The scope of the token.
         issue_time (Optional[datetime]): The issue time of the token.
@@ -829,17 +781,14 @@ class SciToken(Token):
     """
 
     cred_type = CredentialType.SCITOKEN
-    classad_attribute = "ScitokenId"  # TODO: We might want to change this name to "TokenId" in the future
     extension = "scitoken"
 
 
 class IdToken(Token):
-    """
-    Represents an ID token credential.
+    """Represents an ID token credential.
 
     Attributes:
         cred_type (CredentialType): The type of the credential.
-        classad_attribute (str): The name of the attribute in the classad.
         extension (str): The file extension for the token.
         scope (Optional[str]): The scope of the token.
         issue_time (Optional[datetime]): The issue time of the token.
@@ -850,17 +799,14 @@ class IdToken(Token):
     """
 
     cred_type = CredentialType.IDTOKEN
-    classad_attribute = "IdToken"
     extension = "idtoken"
 
 
-class X509Cert(Credential[M2Crypto.X509.X509]):
-    """
-    Represents an X.509 certificate credential.
+class X509Cert(Credential[x509.Certificate]):
+    """Represents an X.509 certificate credential.
 
     Attributes:
         cred_type (CredentialType): The type of the credential.
-        classad_attribute (str): The attribute name used in ClassAds.
         extension (str): The file extension for the credential.
         pub_key (Optional[M2Crypto.EVP.PKey]): The public key of the certificate.
         not_before_time (Optional[datetime]): The not-before time of the certificate.
@@ -868,45 +814,36 @@ class X509Cert(Credential[M2Crypto.X509.X509]):
     """
 
     cred_type = CredentialType.X509_CERT
-    classad_attribute = "SubmitProxy"
     extension = "pem"
 
     @property
     def subject(self) -> Optional[str]:
-        """
-        X.509 subject.
-        """
-        return self._payload.get_subject().as_text() if self._payload else None
+        """X.509 subject."""
+        return "/" + "/".join(self._payload.subject.rfc4514_string().split(",")[::-1]) if self._payload else None
 
     @property
-    def pub_key(self) -> Optional[M2Crypto.EVP.PKey]:
-        """
-        X.509 public key.
-        """
-        return self._payload.get_pubkey() if self._payload else None
+    def pub_key(self) -> Optional[CERTIFICATE_PUBLIC_KEY_TYPES]:
+        """X.509 public key."""
+        return self._payload.public_key() if self._payload else None
 
     @property
     def not_before_time(self) -> Optional[datetime]:
-        """
-        X.509 not-before time.
-        """
-        return self._payload.get_not_before().get_datetime() if self._payload else None
+        """X.509 not-before time."""
+        return self._payload.not_valid_before if self._payload else None
 
     @property
     def not_after_time(self) -> Optional[datetime]:
-        """
-        X.509 not-after time.
-        """
-        return self._payload.get_not_after().get_datetime() if self._payload else None
+        """X.509 not-after time."""
+        return self._payload.not_valid_after if self._payload else None
 
     @property
     def _id_attribute(self) -> Optional[str]:
         return self.subject
 
     @staticmethod
-    def decode(string: Union[str, bytes]) -> M2Crypto.X509.X509:
+    def decode(string: Union[str, bytes]) -> x509.Certificate:
         string = force_bytes(string)
-        return M2Crypto.X509.load_cert_string(string)
+        return x509.load_pem_x509_certificate(string)
 
     def invalid_reason(self) -> Optional[str]:
         if not self._payload:
@@ -915,37 +852,34 @@ class X509Cert(Credential[M2Crypto.X509.X509]):
             return "Certificate not yet valid."
         if datetime.now(self.not_after_time.tzinfo) > self.not_after_time:
             return "Certificate expired."
+        if self.minimum_lifetime and (self.not_after_time - datetime.now()).total_seconds() < self.minimum_lifetime:
+            return "Certificate lifetime too short."
 
 
 class RSAKey(Credential[pubCrypto.RSAKey]):
-    """
-    Represents an RSA key credential.
+    """Represents an RSA key credential.
 
     Attributes:
         cred_type (CredentialType): The type of the credential.
-        classad_attribute (str): The attribute name used in ClassAds.
         extension (str): The file extension for the key.
         pub_key (Optional[pubCrypto.PubRSAKey]): The public key of the RSA key.
         pub_key_id (Optional[str]): The ID of the public key.
         key_type (Optional[str]): The type of the RSA key.
     """
 
+    # TODO: Replace pubCrypto (M2Crypto) with cryptography (issue #481)
+
     cred_type = CredentialType.RSA_KEY
-    classad_attribute = "RSAKey"
     extension = "rsa"
 
     @property
     def pub_key(self) -> Optional[pubCrypto.PubRSAKey]:
-        """
-        RSA public key.
-        """
+        """RSA public key."""
         return self._payload.PubRSAKey() if self._payload else None
 
     @property
     def pub_key_id(self) -> Optional[str]:
-        """
-        RSA public key ID.
-        """
+        """RSA public key ID."""
         return (
             md5(b" ".join((self.key_type.encode("utf-8"), self.pub_key.get()))).hexdigest()
             if self.key_type and self.pub_key
@@ -958,8 +892,7 @@ class RSAKey(Credential[pubCrypto.RSAKey]):
 
     @property
     def key_type(self) -> Optional[str]:
-        """
-        RSA key type.
+        """RSA key type.
 
         NOTE: This property always returns "RSA" if the key is initialized.
         """
@@ -979,8 +912,7 @@ class RSAKey(Credential[pubCrypto.RSAKey]):
             return "RSA public key ID not initialized."
 
     def recreate(self) -> None:
-        """
-        Recreates the RSA key.
+        """Recreates the RSA key.
 
         Raises:
             CredentialError: If the RSA key is not initialized.
@@ -995,8 +927,7 @@ class RSAKey(Credential[pubCrypto.RSAKey]):
             self.save_to_file(self.path)
 
     def extract_sym_key(self, enc_sym_key) -> symCrypto.AutoSymKey:
-        """
-        Extracts the symmetric key using the RSA key.
+        """Extracts the symmetric key using the RSA key.
 
         Args:
             enc_sym_key: The encrypted symmetric key.
@@ -1014,17 +945,14 @@ class RSAKey(Credential[pubCrypto.RSAKey]):
 
 
 class TextCredential(Credential[bytes]):
-    """
-    Represents a text-based credential.
+    """Represents a text-based credential.
 
     Attributes:
         cred_type (CredentialType): The type of the credential.
-        classad_attribute (str): The attribute name used in ClassAds.
         extension (str): The file extension for the credential.
     """
 
     cred_type = CredentialType.TEXT
-    classad_attribute = "AuthFile"
     extension = "txt"
 
     @property
@@ -1041,14 +969,12 @@ class TextCredential(Credential[bytes]):
 
 
 class X509Pair(CredentialPair, X509Cert):
-    """
-    Represents a pair of X509 certificates, consisting of a public certificate and a private certificate.
+    """Represents a pair of X509 certificates, consisting of a public certificate and a private certificate.
 
     This class extends both the `CredentialPair` and `X509Cert` classes.
 
     Attributes:
         cred_type (CredentialPairType): The type of the credential pair.
-        classad_attribute (str): The attribute name used in the ClassAd for the public certificate.
         private_credential (X509Cert): The private certificate associated with this pair.
         NOTE: Includes all attributes from the X509Cert class.
     """
@@ -1065,8 +991,7 @@ class X509Pair(CredentialPair, X509Cert):
         trust_domain: Optional[str] = None,
         security_class: Optional[str] = None,
     ) -> None:
-        """
-        Initialize a X509Pair object.
+        """Initialize a X509Pair object.
 
         Args:
             string (Optional[bytes]): The public certificate as a byte string.
@@ -1079,19 +1004,15 @@ class X509Pair(CredentialPair, X509Cert):
         """
 
         super().__init__(string, path, private_string, private_path, purpose, trust_domain, security_class)
-        self.classad_attribute = "PublicCert"
-        self.private_credential.classad_attribute = "PrivateCert"
 
 
-class KeyPair(CredentialPair, RSAKey):
-    """
-    Represents a pair of RSA keys, consisting of a public key and a private key.
+class RSAKeyPair(CredentialPair, RSAKey):
+    """Represents a pair of RSA keys, consisting of a public key and a private key.
 
     This class extends both the `CredentialPair` and `RSAKey` classes.
 
     Attributes:
         cred_type (CredentialPairType): The type of the credential pair.
-        classad_attribute (str): The attribute name used in the ClassAd for the public key.
         private_credential (RSAKey): The private key associated with this pair.
         NOTE: Includes all attributes from the RSAKey class.
     """
@@ -1108,8 +1029,7 @@ class KeyPair(CredentialPair, RSAKey):
         trust_domain: Optional[str] = None,
         security_class: Optional[str] = None,
     ) -> None:
-        """
-        Initialize a KeyPair object.
+        """Initialize a RSAKeyPair object.
 
         Args:
             string (Optional[bytes]): The public key as a byte string.
@@ -1122,19 +1042,15 @@ class KeyPair(CredentialPair, RSAKey):
         """
 
         super().__init__(string, path, private_string, private_path, purpose, trust_domain, security_class)
-        self.classad_attribute = "PublicKey"
-        self.private_credential.classad_attribute = "PrivateKey"
 
 
 class UsernamePassword(CredentialPair, TextCredential):
-    """
-    Represents a username and password credential pair.
+    """Represents a username and password credential pair.
 
     This class extends both the `CredentialPair` and `TextCredential` classes.
 
     Attributes:
         cred_type (CredentialPairType): The type of the credential pair.
-        classad_attribute (str): The classad attribute for the username.
         private_credential (Credential): The private credential object for the password.
         NOTE: Includes all attributes from the TextCredential class.
     """
@@ -1151,8 +1067,7 @@ class UsernamePassword(CredentialPair, TextCredential):
         trust_domain: Optional[str] = None,
         security_class: Optional[str] = None,
     ) -> None:
-        """
-        Initialize a UsernamePassword object.
+        """Initialize a UsernamePassword object.
 
         Args:
             string (Optional[bytes]): The username as a byte string.
@@ -1165,13 +1080,10 @@ class UsernamePassword(CredentialPair, TextCredential):
         """
 
         super().__init__(string, path, private_string, private_path, purpose, trust_domain, security_class)
-        self.classad_attribute = "Username"
-        self.private_credential.classad_attribute = "Password"
 
 
 class RequestCredential:
-    """
-    Represents an extended credential used for requesting resources.
+    """Represents an extended credential used for requesting resources.
 
     Args:
         credential (Credential): The credential object.
@@ -1199,8 +1111,7 @@ class RequestCredential:
         return f"{self.credential!s}"
 
     def add_usage_details(self, req_idle=0, req_max_run=0):
-        """
-        Add usage details to the request.
+        """Add usage details to the request.
 
         Args:
             req_idle (int): Number of idle jobs requested.
@@ -1214,8 +1125,7 @@ class RequestCredential:
 
 
 def credential_type_from_string(string: str) -> Union[CredentialType, CredentialPairType]:
-    """
-    Returns the credential type for a given string.
+    """Returns the credential type for a given string.
 
     Args:
         string (str): The string to parse.
@@ -1261,9 +1171,8 @@ def credential_of_type(
 
     try:
         return subclasses_dict([Credential, CredentialPair])[cred_type]
-    except KeyError:
-        pass
-    raise CredentialError(f"Unknown Credential type: {cred_type}")
+    except KeyError as err:
+        raise CredentialError(f"Unknown Credential type: {cred_type}") from err
 
 
 def create_credential(
@@ -1273,10 +1182,11 @@ def create_credential(
     trust_domain: Optional[str] = None,
     security_class: Optional[str] = None,
     cred_type: Optional[CredentialType] = None,
+    creation_script: Optional[str] = None,
+    minimum_lifetime: Optional[int] = None,
     context: Optional[Mapping] = None,
 ) -> Credential:
-    """
-    Creates a credential object.
+    """Creates a credential object.
 
     Args:
         string (bytes, optional): The credential as a byte string.
@@ -1319,10 +1229,11 @@ def create_credential_pair(
     trust_domain: Optional[str] = None,
     security_class: Optional[str] = None,
     cred_type: Optional[CredentialPairType] = None,
+    creation_script: Optional[str] = None,
+    minimum_lifetime: Optional[int] = None,
     context: Optional[Mapping] = None,
 ) -> CredentialPair:
-    """
-    Creates a credential pair object.
+    """Creates a credential pair object.
 
     Args:
         string (bytes, optional): The public credential as a byte string.
@@ -1363,8 +1274,7 @@ def create_credential_pair(
 
 
 def standard_path(cred: Credential) -> str:
-    """
-    Returns the standard path for a credential.
+    """Returns the standard path for a credential.
 
     Args:
         cred (Credential): The credential object.
@@ -1389,8 +1299,7 @@ def standard_path(cred: Credential) -> str:
 
 
 def compress_credential(credential_data: bytes) -> bytes:
-    """
-    Compresses a credential.
+    """Compresses a credential.
 
     Args:
         credential_data (bytes): The credential data.
@@ -1413,9 +1322,7 @@ def compress_credential(credential_data: bytes) -> bytes:
 
 @enum.unique
 class ParameterName(enum.Enum):
-    """
-    Enum representing different parameter names.
-    """
+    """Enum representing different parameter names."""
 
     VM_ID = "VMId"
     VM_TYPE = "VMType"
@@ -1425,8 +1332,7 @@ class ParameterName(enum.Enum):
 
     @classmethod
     def from_string(cls, string: str) -> "ParameterName":
-        """
-        Converts a string representation of a parameter name to a ParameterName object.
+        """Converts a string representation of a parameter name to a ParameterName object.
 
         Args:
             string (str): The string representation of the parameter name.
@@ -1460,9 +1366,7 @@ class ParameterName(enum.Enum):
 
 @enum.unique
 class ParameterType(enum.Enum):
-    """
-    Enum representing different types of parameters.
-    """
+    """Enum representing different types of parameters."""
 
     GENERATOR = "generator"
     INTEGER = "integer"
@@ -1471,8 +1375,7 @@ class ParameterType(enum.Enum):
 
     @classmethod
     def from_string(cls, string: str) -> "ParameterType":
-        """
-        Create a ParameterType object from a string representation.
+        """Create a ParameterType object from a string representation.
 
         Args:
             string (str): The string representation of the ParameterType.
@@ -1505,8 +1408,7 @@ class ParameterType(enum.Enum):
 
 
 class Parameter(ABC, Generic[T]):
-    """
-    Represents a parameter with a name and value.
+    """Represents a parameter with a name and value.
 
     Attributes:
         param_type (ParameterType): The type of the parameter.
@@ -1517,8 +1419,7 @@ class Parameter(ABC, Generic[T]):
     param_type = None
 
     def __init__(self, name: ParameterName, value: Union[T, str]):
-        """
-        Initialize a Parameter object.
+        """Initialize a Parameter object.
 
         Args:
             name (ParameterName): The name of the parameter.
@@ -1533,32 +1434,25 @@ class Parameter(ABC, Generic[T]):
 
     @property
     def name(self) -> ParameterName:
-        """
-        Parameter name.
-        """
+        """Parameter name."""
 
         return self._name
 
     @property
     def value(self) -> T:
-        """
-        Parameter value.
-        """
+        """Parameter value."""
 
         return self._value
 
     @property
     @abstractmethod
     def quoted_value(self) -> str:
-        """
-        Quoted parameter value.
-        """
+        """Quoted parameter value."""
 
     @staticmethod
     @abstractmethod
     def parse_value(value: Union[T, str]) -> T:
-        """
-        Parse a value to the parameter type.
+        """Parse a value to the parameter type.
 
         Args:
             value: The value to parse.
@@ -1571,8 +1465,7 @@ class Parameter(ABC, Generic[T]):
         """
 
     def copy(self) -> "Parameter":
-        """
-        Create a copy of the parameter.
+        """Create a copy of the parameter.
 
         Returns:
             Parameter: The copied parameter.
@@ -1588,8 +1481,7 @@ class Parameter(ABC, Generic[T]):
 
 
 class ParameterGenerator(Parameter, Generator):
-    """
-    A class representing a generator parameter.
+    """A class representing a generator parameter.
 
     This class inherits from the base `Parameter` class and is used to define parameters
     that generate their values dynamically using a generator function.
@@ -1607,8 +1499,7 @@ class ParameterGenerator(Parameter, Generator):
     param_type = ParameterType.GENERATOR
 
     def __init__(self, name: ParameterName, value: str, context: Optional[Mapping] = None):
-        """
-        Initialize a ParameterGenerator object.
+        """Initialize a ParameterGenerator object.
 
         Args:
             name (ParameterName): The name of the parameter.
@@ -1627,8 +1518,7 @@ class ParameterGenerator(Parameter, Generator):
 
     @property
     def value(self) -> any:
-        """
-        Parameter value.
+        """Parameter value.
 
         NOTE: None until the parameter is generated.
         """
@@ -1637,16 +1527,13 @@ class ParameterGenerator(Parameter, Generator):
 
     @property
     def quoted_value(self) -> Optional[str]:
-        """
-        Quoted parameter value.
-        """
+        """Quoted parameter value."""
 
         return self._generated_parameter.quoted_value if self._generated_parameter else None
 
     @staticmethod
     def parse_value(value: Union[Generator, str], context: Optional[Mapping]) -> Generator:
-        """
-        Parse the parameter value to a generator.
+        """Parse the parameter value to a generator.
 
         Args:
             value (str): The value to parse.
@@ -1666,8 +1553,7 @@ class ParameterGenerator(Parameter, Generator):
             raise ImportError(f"Could not load generator: {value}") from err
 
     def copy(self) -> Parameter:
-        """
-        Create a copy of the current generated parameter.
+        """Create a copy of the current generated parameter.
 
         NOTE: The resulting parameter is not a generator.
 
@@ -1678,8 +1564,7 @@ class ParameterGenerator(Parameter, Generator):
         return create_parameter(self.name, self.value, self.param_type)
 
     def generate(self, **kwargs):
-        """
-        Generate the parameter value using the generator function.
+        """Generate the parameter value using the generator function.
 
         Args:
             **kwargs: Additional keyword arguments to pass to the generator function.
@@ -1689,8 +1574,7 @@ class ParameterGenerator(Parameter, Generator):
 
 
 class IntegerParameter(Parameter[int]):
-    """
-    Represents an integer parameter.
+    """Represents an integer parameter.
 
     This class extends the base `Parameter` class and is used to define parameters
     with integer values.
@@ -1705,18 +1589,13 @@ class IntegerParameter(Parameter[int]):
 
     @property
     def quoted_value(self) -> str:
-        """
-        Quoted parameter value.
-        """
+        """Quoted parameter value."""
 
-        return str(self.value)
+        return str(self.value) if self.value else None
 
     @staticmethod
     def parse_value(value: Union[int, str]) -> int:
-        """
-        Parse a value to an integer.
-        """
-
+        """Parse a value to an integer."""
         try:
             return int(value)
         except ValueError as err:
@@ -1724,8 +1603,7 @@ class IntegerParameter(Parameter[int]):
 
 
 class StringParameter(Parameter[str]):
-    """
-    Represents a string parameter.
+    """Represents a string parameter.
 
     This class extends the base `Parameter` class and is used to define parameters
     with string values.
@@ -1740,16 +1618,13 @@ class StringParameter(Parameter[str]):
 
     @property
     def quoted_value(self) -> str:
-        """
-        Quoted parameter value.
-        """
+        """Quoted parameter value."""
 
-        return f'"{self.value}"'
+        return f'"{self.value}"' if self.value else None
 
     @staticmethod
     def parse_value(value: str) -> str:
-        """
-        Parse a value to a string.
+        """Parse a value to a string.
 
         Args:
             value (str): The value to parse.
@@ -1759,8 +1634,7 @@ class StringParameter(Parameter[str]):
 
 
 class ExpressionParameter(Parameter[str]):
-    """
-    Represents an expression parameter.
+    """Represents an expression parameter.
 
     This class extends the base `Parameter` class and is used to define parameters
     with expression values.
@@ -1775,16 +1649,13 @@ class ExpressionParameter(Parameter[str]):
 
     @property
     def quoted_value(self) -> str:
-        """
-        Quoted parameter value.
-        """
+        """Quoted parameter value."""
 
         return self.value
 
     @staticmethod
     def parse_value(value: str) -> str:
-        """
-        Parse the parameter value.
+        """Parse the parameter value.
 
         Args:
             value (str): The value to parse.
@@ -1799,8 +1670,7 @@ class ExpressionParameter(Parameter[str]):
 
 
 class ParameterDict(dict):
-    """
-    A dictionary subclass for storing parameters.
+    """A dictionary subclass for storing parameters.
 
     This class extends the built-in `dict` class and provides additional functionality
     for storing and retrieving parameters. It enforces that keys must be of type `ParameterName`
@@ -1824,8 +1694,7 @@ class ParameterDict(dict):
         return super().__getitem__(__k)
 
     def add(self, parameter: Parameter):
-        """
-        Adds a parameter to the dictionary.
+        """Adds a parameter to the dictionary.
 
         Args:
             parameter (Parameter): The parameter to add.
@@ -1861,8 +1730,7 @@ def parameter_of_type(param_type: ParameterType) -> Type[Parameter]:
 def create_parameter(
     name: ParameterName, value: str, param_type: Optional[ParameterType] = None, context: Optional[Mapping] = None
 ) -> Parameter:
-    """
-    Creates a parameter.
+    """Creates a parameter.
 
     Args:
         name (ParameterName): The name of the parameter.
@@ -1896,8 +1764,7 @@ def create_parameter(
 
 
 class SecurityBundle:
-    """
-    Represents a security bundle used for submitting jobs.
+    """Represents a security bundle used for submitting jobs.
 
     Args:
         username (str): The username for the security bundle.
@@ -1909,8 +1776,7 @@ class SecurityBundle:
         self.parameters = ParameterDict()
 
     def add_credential(self, credential, credential_id=None):
-        """
-        Adds a credential to the security bundle.
+        """Adds a credential to the security bundle.
 
         Args:
             credential (Credential): The credential to add.
@@ -1921,8 +1787,7 @@ class SecurityBundle:
         self.credentials.add(credential, credential_id)
 
     def add_parameter(self, parameter: Parameter):
-        """
-        Adds a parameter to the security bundle.
+        """Adds a parameter to the security bundle.
 
         Args:
             parameter (Parameter): The parameter to add.
@@ -1931,8 +1796,7 @@ class SecurityBundle:
         self.parameters.add(parameter)
 
     def load_from_element(self, element_descript):
-        """
-        Load the security bundle from an element descriptor.
+        """Load the security bundle from an element descriptor.
 
         Args:
             element_descript (ElementDescriptor): The element descriptor to load from.
@@ -1942,7 +1806,9 @@ class SecurityBundle:
             cred_type = credential_type_from_string(element_descript["ProxyTypes"].get(path))
             purpose = element_descript["CredentialPurposes"].get(path)
             trust_domain = element_descript["ProxyTrustDomains"].get(path, "None")
-            security_class = element_descript["ProxySecurityClasses"].get(path, "None")  # TODO: Should this be None?
+            security_class = element_descript["ProxySecurityClasses"].get(path, "grid")
+            creation_script = element_descript["CredentialCreationScripts"].get(path, None)
+            minimum_lifetime = element_descript["CredentialMinimumLifetime"].get(path, None)
             context = load_context(element_descript["CredentialContexts"].get(path, None))
             if isinstance(cred_type, CredentialType):
                 credential = create_credential(
@@ -1951,6 +1817,8 @@ class SecurityBundle:
                     trust_domain=trust_domain,
                     security_class=security_class,
                     cred_type=cred_type,
+                    creation_script=creation_script,
+                    minimum_lifetime=minimum_lifetime,
                     context=context,
                 )
             else:
@@ -1962,6 +1830,8 @@ class SecurityBundle:
                     trust_domain=trust_domain,
                     security_class=security_class,
                     cred_type=cred_type,
+                    creation_script=creation_script,
+                    minimum_lifetime=minimum_lifetime,
                     context=context,
                 )
             self.add_credential(credential)
@@ -1976,8 +1846,7 @@ class SecurityBundle:
 
 
 class SubmitBundle:
-    """
-    Represents a submit bundle used for submitting jobs.
+    """Represents a submit bundle used for submitting jobs.
 
     This includes Frontend-provided security credentials, identity credentials, and parameters,
     and Factory-provided security credentials.
@@ -1994,8 +1863,7 @@ class SubmitBundle:
     """
 
     def __init__(self, username: str, security_class: str):
-        """
-        Initialize a Credentials object.
+        """Initialize a Credentials object.
 
         Args:
             username (str): The username for the submit bundle.
@@ -2016,8 +1884,7 @@ class SubmitBundle:
         credential: Credential,
         cred_id: str = None,
     ) -> bool:
-        """
-        Adds a security credential.
+        """Adds a security credential.
 
         Args:
             credential (Credential): The credential object.
@@ -2034,8 +1901,7 @@ class SubmitBundle:
             return False
 
     def add_factory_credential(self, cred_id: str, credential: Credential) -> bool:
-        """
-        Adds a factory provided security credential.
+        """Adds a factory provided security credential.
 
         Args:
             cred_id (str): The ID of the credential.
@@ -2049,8 +1915,7 @@ class SubmitBundle:
         return True
 
     def add_identity_credential(self, credential: Credential, cred_id: Optional[str] = None) -> bool:
-        """
-        Adds an identity credential.
+        """Adds an identity credential.
 
         Args:
             cred_id (str): The ID of the credential.
@@ -2067,8 +1932,7 @@ class SubmitBundle:
             return False
 
     def add_parameter(self, parameter: Parameter) -> bool:
-        """
-        Adds a parameter.
+        """Adds a parameter.
 
         Args:
             param_id (ParameterName): The ID of the parameter.
@@ -2086,15 +1950,12 @@ class SubmitBundle:
 
 
 class AuthenticationSet:
-    """
-    Represents a set of authentication requirements.
-    """
+    """Represents a set of authentication requirements."""
 
     _required_types: Set[Union[CredentialType, CredentialPairType, ParameterName]] = set()
 
     def __init__(self, auth_set: Iterable[Union[CredentialType, CredentialPairType, ParameterName]]):
-        """
-        Initialize the Credentials object.
+        """Initialize the Credentials object.
 
         Args:
             auth_set: A collection of credential types, credential pair types, or parameter names.
@@ -2117,8 +1978,7 @@ class AuthenticationSet:
         return self.supports(auth_el)
 
     def supports(self, auth_el: Union[CredentialType, CredentialPairType, ParameterName, str]) -> bool:
-        """
-        Checks if the authentication set supports a given credential type.
+        """Checks if the authentication set supports a given credential type.
 
         Args:
             auth_el (Union[CredentialType, CredentialPairType, ParameterName, str]): The authentication element to check.
@@ -2143,8 +2003,7 @@ class AuthenticationSet:
         return auth_el in self._required_types
 
     def satisfied_by(self, auth_set: Iterable[Union[CredentialType, CredentialPairType, ParameterName]]) -> bool:
-        """
-        Checks if the authentication set is satisfied by a given set of credential types.
+        """Checks if the authentication set is satisfied by a given set of credential types.
 
         Args:
             auauth_set: A collection of credential types, credential pair types, or parameter names.
@@ -2157,13 +2016,10 @@ class AuthenticationSet:
 
 
 class AuthenticationMethod:
-    """
-    Represents an authentication method used for authenticating users.
-    """
+    """Represents an authentication method used for authenticating users."""
 
     def __init__(self, auth_method: str):
-        """
-        Initialize the Credentials object.
+        """Initialize the Credentials object.
 
         Args:
             auth_method (str): The authentication method.
@@ -2184,8 +2040,7 @@ class AuthenticationMethod:
         return any(cred_type in group for group in self._requirements)
 
     def load(self, auth_method: str):
-        """
-        Loads the authentication method from a string.
+        """Loads the authentication method from a string.
 
         Args:
             auth_method (str): The authentication method.
@@ -2216,8 +2071,7 @@ class AuthenticationMethod:
                 self._requirements.append(options)
 
     def match(self, security_bundle: SecurityBundle) -> Optional[AuthenticationSet]:
-        """
-        Matches the authentication method to a security bundle and returns the authentication set if the requirements are met.
+        """Matches the authentication method to a security bundle and returns the authentication set if the requirements are met.
 
         Args:
             security_bundle (SecurityBundle): The security bundle to match.
@@ -2246,8 +2100,7 @@ class AuthenticationMethod:
 
 
 def load_context(context: str) -> Optional[Mapping]:
-    """
-    Load a context from a string.
+    """Load a context from a string.
 
     Args:
         context (str): The context string.
@@ -2270,8 +2123,7 @@ def load_context(context: str) -> Optional[Mapping]:
 
 
 def cred_path(cred: Optional[Union[Credential, str]]) -> Optional[str]:
-    """
-    Returns the path of a credential.
+    """Returns the path of a credential.
 
     Args:
         cred (Union[Credential, str]): The credential object or path.

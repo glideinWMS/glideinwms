@@ -286,7 +286,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name,
 
     # TODO: This function policies need to be reviewed and updated.
 
-    auth_set = params.get("AuthSet", auth_method.split("+"))  # Fall back to auth_method (str) for retrocompatibility
+    auth_set = params.get("AuthSet", auth_method.split("+")[0])  # Fall back to auth_method (str) for retrocompatibility
     if isinstance(auth_set, str) and not set(auth_set) & set(SUPPORTED_AUTH_METHODS):
         logSupport.log.warning(
             f"None of the supported auth methods {SUPPORTED_AUTH_METHODS} in provided auth methods: {auth_set}"
