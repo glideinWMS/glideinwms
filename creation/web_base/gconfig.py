@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""":
+""" ":
 # Shell preamble to find the Python interpreter (type OK, command -v is POSIX)
 if [ -f "$(dirname "$0")"/gwms-python ]; then
     exec "$(dirname "$0")"/gwms-python "$0" "$@"
