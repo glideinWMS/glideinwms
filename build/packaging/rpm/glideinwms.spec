@@ -679,6 +679,17 @@ fi
 #  chown frontend.frontend /var/lib/gwms-frontend/passwords.d/FRONTEND
 
 %post vofrontend-httpd
+# Protecting from missing SSL certificate file
+if [ -f /etc/httpd/conf.d/ssl.conf ]; then
+    ssl_certfile=$(grep "^SSLCertificateFile" /etc/httpd/conf.d/ssl.conf | cut -f2 -d ' ')
+    if [ -z "$ssl_certfile" ]; then
+        mv /etc/httpd/conf.d/ssl.conf /etc/httpd/conf.d/ssl.conf.disable
+    elif [ ! -f "$ssl_certfile" ]; then
+        echo "<IfFile \"$ssl_certfile\" >" | cat - /etc/httpd/conf.d/ssl.conf > /etc/httpd/conf.d/ssl.conf.new
+        echo "</IfFile>" >> /etc/httpd/conf.d/ssl.conf.new
+        mv /etc/httpd/conf.d/ssl.conf.new /etc/httpd/conf.d/ssl.conf
+    fi
+fi
 # Protecting from failure in case it is not running/installed
 /sbin/service httpd reload > /dev/null 2>&1 || true
 
@@ -706,6 +717,17 @@ systemctl daemon-reload
 /sbin/service condor condrestart > /dev/null 2>&1 || true
 
 %post factory-httpd
+# Protecting from missing SSL certificate file
+if [ -f /etc/httpd/conf.d/ssl.conf ]; then
+    ssl_certfile=$(grep "^SSLCertificateFile" /etc/httpd/conf.d/ssl.conf | cut -f2 -d ' ')
+    if [ -z "$ssl_certfile" ]; then
+        mv /etc/httpd/conf.d/ssl.conf /etc/httpd/conf.d/ssl.conf.disable
+    elif [ ! -f "$ssl_certfile" ]; then
+        echo "<IfFile \"$ssl_certfile\" >" | cat - /etc/httpd/conf.d/ssl.conf > /etc/httpd/conf.d/ssl.conf.new
+        echo "</IfFile>" >> /etc/httpd/conf.d/ssl.conf.new
+        mv /etc/httpd/conf.d/ssl.conf.new /etc/httpd/conf.d/ssl.conf
+    fi
+fi
 # Protecting from failure in case it is not running/installed
 /sbin/service httpd reload > /dev/null 2>&1 || true
 
