@@ -24,7 +24,7 @@ Changes since the last release
 
 ### Known Issues
 
-## v3.11.0 \[2025-01-21\]
+## v3.11.0 \[2025-02-18\]
 
 Credentials refactoring
 
