@@ -1,8 +1,8 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_10
+# GLIDEINWMS_VERSION v3_11_0_rc9
 ###################################################################
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-231d7b10c9446bad9e700c3a8ab1b86e  ./CHANGELOG.md
+0fa6db0c83395927bf240f8d74597e38  ./CHANGELOG.md
 8e7d1957a094cc33c89f5b2c935666ff  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
@@ -29,8 +29,8 @@ f3e8c0c2d0bf76c4f1d09030393ee1fc  ./creation/lib/check_python3_expr.py
 2df1408de2ab12cd70612bd7bce3f5d4  ./creation/lib/cvWConsts.py
 fb68e0be8543847cc298ac3cc48cbe6e  ./creation/lib/cvWCreate.py
 8c9c35ce1cb6c7dc2720fa198bb93598  ./creation/lib/cvWDictFile.py
-7528cab3d16bb672174bedea91af3924  ./creation/lib/cvWParamDict.py
-5b8e774102d0caad63b7ff8a5ec4bc5a  ./creation/lib/cvWParams.py
+8540d229e8b74d8949b9fc644c463218  ./creation/lib/cvWParamDict.py
+506dfc18fc6a6375fe530c0e43239720  ./creation/lib/cvWParams.py
 9dd5e2f0870e564ce3c82b48648c8fbe  ./creation/lib/matchPolicy.py
 b6a841c39ce1adf0f150b8a994922961  ./creation/lib/xmlConfig.py
 685fa8cf99ece27f96064254692e0150  ./creation/lib/xslt.py
@@ -108,15 +108,15 @@ ef537648a0a96e9fceeffd94f09782e7  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 86818837b83be4ba1ce16753c890fd3d  ./frontend/checkFrontend.py
 db03563c6e963ffdd5cda2650ebf5f6b  ./frontend/glideinFrontend.py
-f6f210e5ae77ebfca9182952d8a7c0b0  ./frontend/glideinFrontendConfig.py
+8229eadef26be2762ce1af26abf00e14  ./frontend/glideinFrontendConfig.py
 d492e93afe583235ecd14410bc0e8252  ./frontend/glideinFrontendDowntimeLib.py
-8a2373a525b78ddb61545865b643c9dd  ./frontend/glideinFrontendElement.py
-1464594f619c594042d920669f46385a  ./frontend/glideinFrontendInterface.py
-300fb5e6450cfc4e96b445545f40fecf  ./frontend/glideinFrontendLib.py
+0156272cd63e5db958bab1b8070644a4  ./frontend/glideinFrontendElement.py
+e9d295e40af95d438f90a2abb0128bde  ./frontend/glideinFrontendInterface.py
+9e221abdf39f93f8226ba7bc94dd50e9  ./frontend/glideinFrontendLib.py
 493c902e4e6ae8de032d7bb223c45290  ./frontend/glideinFrontendMonitorAggregator.py
 00bf93ddea651a43143154b8d9f300f8  ./frontend/glideinFrontendMonitoring.py
 bb7bb4889cbb53521c4678485e2e01d5  ./frontend/glideinFrontendPidLib.py
-0986ef774e5afd0950f787551ce8c1ef  ./frontend/glideinFrontendPlugins.py
+fcbe7296695edcd9b6662647d386d857  ./frontend/glideinFrontendPlugins.py
 0333b657d1aca1840f5521065d33e7a0  ./frontend/gwms_renew_proxies.py
 c8df058cbee3c7227ecd6a47cdfa3210  ./frontend/manageFrontendDowntimes.py
 38e554fd4994690888f1bf23e532701b  ./frontend/stopFrontend.py
@@ -145,13 +145,16 @@ c27e6774c7576b83ee3b670a7f1b77c6  ./lib/condorManager.py
 6b8e271498c26de784f54d181443eb1c  ./lib/condorMonitor.py
 cf16f13e98036847e5944efcdb495e56  ./lib/condorSecurity.py
 fc0c01249883eafc6bafe93d3a0abb15  ./lib/config_util.py
-2977fdd9b733eacb9b3ddfbffde812a6  ./lib/defaults.py
+2c446f941abb0ee122efe6b64ae82ae8  ./lib/credentials.py
+8734d80c6742fa1671397bacebfc090e  ./lib/credentials_legacy.py
+7179fa8d6b9e170d754098fde70857a6  ./lib/defaults.py
 e1d55140d5c24e3cb3db14f0dc99ce4e  ./lib/disk_cache.py
 c8fc04f77f60c3e09f6df50ce11e48c8  ./lib/exprParser.py
 667e1f6044d5a15d92d4e452ceff330a  ./lib/fork.py
+e7f392bcd0616cf812bfe10b00ab5e2e  ./lib/generators.py
 5dd90ec097bf456786761d924ece5b87  ./lib/glideinWMSVersion.py
 95fc15b50f64a28b396509519307f97a  ./lib/hashCrypto.py
-e388df40751e10796bd77be0d5769b0d  ./lib/logSupport.py
+5ed2d8172ada0dc14ed4f4d8fe6ab56c  ./lib/logSupport.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
 fd9283b5db9f859f50ba121e9002e561  ./lib/pidSupport.py
 a3a067cfeb79c58fd3113730efb17a55  ./lib/pubCrypto.py
@@ -163,7 +166,7 @@ f89e40abb0f48a2c1e692123e4ff3660  ./lib/symCrypto.py
 aede7313a50f9c7e1178a1a30ab72a5a  ./lib/timeConversion.py
 8d0568ce11be2bc32550c7ffe1a743ce  ./lib/token_util.py
 8e22db523d42671f93d5852c7757401d  ./lib/unparser.py
-a38e9d264f85555b11e2312fb5fa6e57  ./lib/util.py
+b4558fbcb5c1de90565d4223457b05e4  ./lib/util.py
 a08fd26eb637192453ce84d4d045cf70  ./lib/x509Support.py
 97207b40b4ea7103444e63cfe843da4c  ./lib/xmlFormat.py
 cf788a094015c51afd8d9615a2f75359  ./lib/xmlParse.py
@@ -173,7 +176,9 @@ d64fb84480620115f461ec9aac0ba6be  ./logserver/getjwt.py
 4431fb42281b93c5aa09e760d0910d0b  ./logserver/jwt.php
 24341cffcec0fe15225324f38f707b27  ./logserver/logging_config.json
 eec3476ee8c91ffa71445e4cb860e61f  ./logserver/web-area/put.php
-15da242bd65422e150ac9d64a0411cda  ./plugins/EntryConditionGenerator.py
+4fe6c1653ddad710689ddd0a72980d17  ./plugins/LegacyGenerator.py
+64718feeab6cd7fac5c6457747208ce1  ./plugins/README.md
+32614c10594e81450cd864fd5db01a9e  ./plugins/RoundRobinGenerator.py
 ae4540ac3e790a02867cfa22291f48d6  ./plugins/scitokens_callout.py
 762e30b1c873f9e44fc786f7e57a9d93  ./pyproject.toml
 747b7fe6d83ec506f58292fa3b39f4c7  ./requirements.txt

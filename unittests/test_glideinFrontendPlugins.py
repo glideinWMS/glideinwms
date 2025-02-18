@@ -34,7 +34,7 @@ from glideinwms.unittests.unittest_utils import FakeLogger, TestImportError
 
 try:
     from glideinwms.frontend import glideinFrontendPlugins
-    from glideinwms.frontend.glideinFrontendInterface import Credential
+    from glideinwms.frontend.glideinFrontendInterface import LegacyCredential
 except ImportError as err:
     raise TestImportError(str(err))
 
@@ -60,8 +60,8 @@ class fakeDescript:
             "ProxyVMTypeFname": {},
             "ProxyRemoteUsernames": {},
             "ProxyProjectIds": {},
-            "ProxyCreationScripts": {},
-            "ProxyUpdateFrequency": {},
+            "CredentialCreationScripts": {},
+            "CredentialMinimumLifetime": {},
         }
 
     def addproxy(self, name):
@@ -86,7 +86,7 @@ class TestPlugins(unittest.TestCase):
             (f, proxyfile) = tempfile.mkstemp()
             os.close(f)
             self.elementDescript.addproxy(proxyfile)
-            rtnlist.append(Credential(t, proxyfile, self.elementDescript))
+            rtnlist.append(LegacyCredential(t, proxyfile, self.elementDescript))
         return rtnlist
 
     def killCredlist(self, cred_list):

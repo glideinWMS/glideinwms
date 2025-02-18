@@ -11,6 +11,7 @@ import os
 import pickle
 import re
 import shutil
+import string
 import subprocess
 import sys
 import tempfile
@@ -502,6 +503,15 @@ def chmod(*args, **kwargs):
     """
     with contextlib.suppress(PermissionError):
         os.chmod(*args, **kwargs)
+
+
+############################################################
+# only allow simple strings
+def is_str_safe(s):
+    for c in s:
+        if c not in ("._-@" + string.ascii_letters + string.digits):
+            return False
+    return True
 
 
 def import_module(module, search_path=None):

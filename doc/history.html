@@ -2666,6 +2666,59 @@ SPDX-License-Identifier: Apache-2.0
           <!-- starting 3.7 generated via tags.yaml -->
           <!-- start development -->
           <li>
+            <a id="v3_11_0"><b>v3_11_0</b></a> released on January 14, 2025 (<a
+              href="http://glideinwms.fnal.gov/doc.v3_11_0/index.html"
+              >Manual</a
+            >,
+            <a href="http://glideinwms.fnal.gov/doc.v3_11_0/install.html"
+              >Installation instructions</a
+            >)<br />
+            <ul>
+              <li>Introduces the new credentials model.</li>
+              <li>
+                Add new hierarchical credential classes for a number of
+                credential types
+              </li>
+              <li>
+                Add new parameter classes to handle security parameters
+                orthogonally to credentials
+              </li>
+              <li>
+                Refactors credential generators to enhance its capabilities and
+                allow for the generation of other attributes besides credentials
+              </li>
+              <li>
+                Add support for builtin generators such as the
+                RoundRobinGenerator generator
+              </li>
+              <li>Add LegacyGenerator to support the old callout API</li>
+              <li>
+                Always send SIGQUIT to HTCondor when the Glidein receives INT,
+                TERM, QUIT signals. This speeds up the shutdown (PR
+              </li>
+              <li>
+                Skip glideclient advertising if there are no Glideins to request
+                or actively running on a given group
+              </li>
+              <li>
+                Reintroduces security credentials renewal scripts and the
+                related `creation_script` and `update_frequency` parameters
+              </li>
+              <li>
+                Bug fix: Fixed early truncation in log files configuration and
+                inconsistent documentation (Issue
+              </li>
+              <li>
+                Bug fix: Removed confusing tac broken pipe messages from the
+                Glidein stderr (PR
+              </li>
+              <li>
+                Bug fix: Fixed quotes in glidein command line unpacking and
+                replaced deprecated add_config_line commands (PR
+              </li>
+            </ul>
+          </li>
+          <li>
             <a id="v3_9_6"><b>v3_9_6</b></a> released on October 27, 2022 (<a
               href="http://glideinwms.fnal.gov/doc.v3_9_6/index.html"
               >Manual</a

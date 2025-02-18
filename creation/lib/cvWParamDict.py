@@ -1121,6 +1121,8 @@ def populate_common_descript(descript_dict, params):
             "security_class": "ProxySecurityClasses",
             "trust_domain": "ProxyTrustDomains",
             "type": "ProxyTypes",
+            "purpose": "CredentialPurposes",
+            "context": "CredentialContexts",
             # credential files probably should be handles as a list, each w/ name and path
             # or the attributes ending in _file are files
             # "file": "CredentialFiles",  # placeholder for when name will not be absfname
@@ -1130,9 +1132,9 @@ def populate_common_descript(descript_dict, params):
             "remote_username": "ProxyRemoteUsernames",
             "vm_id": "ProxyVMIds",
             "vm_type": "ProxyVMTypes",
-            "creation_script": "ProxyCreationScripts",
+            "creation_script": "CredentialCreationScripts",
             "project_id": "ProxyProjectIds",
-            "update_frequency": "ProxyUpdateFrequency",
+            "update_frequency": "CredentialMinimumLifetime",  # TODO: rename "update_frequency" to "minimum_lifetime"
         }
         # translation of attributes that can be added to the base type (name in list -> attribute name)
         proxy_attr_type_list = {
@@ -1186,6 +1188,7 @@ def populate_common_descript(descript_dict, params):
                 descript_dict.add(proxy_attr_names[attr], repr(proxy_descript_values[attr]))
 
     match_expr = params.match.match_expr
+    descript_dict.add("Parameters", repr(params.security.parameters))
     descript_dict.add("MatchExpr", match_expr)
 
 
@@ -1344,8 +1347,9 @@ def populate_group_security(client_security, params, sub_params, group_name):
             schedd_dns.append(dn)
     client_security["schedd_DNs"] = schedd_dns
 
+    # NOTE: Subjects/DNs not available for generated credentials at reconfig time
     pilot_dns = []
-    exclude_from_pilot_dns = ["SCITOKEN", "IDTOKEN"]
+    exclude_from_pilot_dns = ["SCITOKEN", "IDTOKEN", "GENERATOR"]
     for credentials in (params.security.credentials, sub_params.security.credentials):
         if is_true(params.groups[group_name].enabled):
             for pel in credentials:

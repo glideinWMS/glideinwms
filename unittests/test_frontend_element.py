@@ -245,7 +245,7 @@ class FEElementTestCase(unittest.TestCase):
         self.gfe.stats = {"group": glideinFrontendMonitoring.groupStats()}
         self.gfe.published_frontend_name = f"{self.gfe.frontend_name}.XPVO_{self.gfe.group_name}"
         mockery = mock.MagicMock()
-        self.gfe.x509_proxy_plugin = mockery
+        self.gfe.credentials_plugin = mockery
         # keep logSupport.log.info in an array to search through later to
         # evaluate success
         glideinwms.frontend.glideinFrontendLib.logSupport.log = mockery
