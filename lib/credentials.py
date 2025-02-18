@@ -463,7 +463,8 @@ class CredentialPair:
     Attributes:
         cred_type (Optional[CredentialPairType]): The type of the credential pair.
         private_credential (Credential): The private credential associated with this pair.
-        NOTE: Includes all attributes from the Credential class.
+
+    NOTE: Includes all attributes from the Credential class.
     """
 
     cred_type: Optional[CredentialPairType] = None
@@ -503,6 +504,7 @@ class CredentialPair:
         """Renews the credentials by calling the __renew__() method on both the public and private credentials."""
 
         try:
+            # noinspection PyUnresolvedReferences
             self.__renew__()  # pylint: disable=no-member # type: ignore[attr-defined]
             self.private_credential.__renew__()
         except NotImplementedError:
@@ -588,6 +590,7 @@ class CredentialGenerator(Credential[Generator]):
 
     cred_type = CredentialType.GENERATOR
 
+    # noinspection PyMissingConstructor
     def __init__(  # pylint: disable=super-init-not-called
         self,
         string: Optional[Union[str, bytes]] = None,
@@ -976,7 +979,8 @@ class X509Pair(CredentialPair, X509Cert):
     Attributes:
         cred_type (CredentialPairType): The type of the credential pair.
         private_credential (X509Cert): The private certificate associated with this pair.
-        NOTE: Includes all attributes from the X509Cert class.
+
+    NOTE: Includes all attributes from the X509Cert class.
     """
 
     cred_type = CredentialPairType.X509_PAIR
@@ -1014,7 +1018,8 @@ class RSAKeyPair(CredentialPair, RSAKey):
     Attributes:
         cred_type (CredentialPairType): The type of the credential pair.
         private_credential (RSAKey): The private key associated with this pair.
-        NOTE: Includes all attributes from the RSAKey class.
+
+    NOTE: Includes all attributes from the RSAKey class.
     """
 
     cred_type = CredentialPairType.KEY_PAIR
@@ -1052,7 +1057,8 @@ class UsernamePassword(CredentialPair, TextCredential):
     Attributes:
         cred_type (CredentialPairType): The type of the credential pair.
         private_credential (Credential): The private credential object for the password.
-        NOTE: Includes all attributes from the TextCredential class.
+
+    NOTE: Includes all attributes from the TextCredential class.
     """
 
     cred_type = CredentialPairType.USERNAME_PASSWORD
@@ -1486,10 +1492,6 @@ class ParameterGenerator(Parameter, Generator):
     This class inherits from the base `Parameter` class and is used to define parameters
     that generate their values dynamically using a generator function.
 
-    Args:
-        name (ParameterName): The name of the parameter.
-        generator (str): The name of the generator to use.
-
     Attributes:
         param_type (ParameterType): The type of the parameter (GENERATOR).
         name (ParameterName): The name of the parameter.
@@ -1498,6 +1500,7 @@ class ParameterGenerator(Parameter, Generator):
 
     param_type = ParameterType.GENERATOR
 
+    # noinspection PyMissingConstructor
     def __init__(self, name: ParameterName, value: str, context: Optional[Mapping] = None):
         """Initialize a ParameterGenerator object.
 
@@ -1766,9 +1769,9 @@ def create_parameter(
 class SecurityBundle:
     """Represents a security bundle used for submitting jobs.
 
-    Args:
-        username (str): The username for the security bundle.
-        security_class (str): The security class for the security bundle.
+    Attributes:
+        credentials (CredentialDict): The credentials in the security bundle.
+        parameters (type(ParameterDict): The parameters in the security bundle.
     """
 
     def __init__(self):
@@ -1935,8 +1938,7 @@ class SubmitBundle:
         """Adds a parameter.
 
         Args:
-            param_id (ParameterName): The ID of the parameter.
-            param_value (str): The value of the parameter.
+            parameter (Parameter): The parameter. You can define it using the ID and value.
 
         Returns:
             bool: True if the parameter was added, otherwise False.
@@ -2006,7 +2008,7 @@ class AuthenticationSet:
         """Checks if the authentication set is satisfied by a given set of credential types.
 
         Args:
-            auauth_set: A collection of credential types, credential pair types, or parameter names.
+            auth_set: A collection of credential types, credential pair types, or parameter names.
 
         Returns:
             bool: True if the authentication set is satisfied, otherwise False.
