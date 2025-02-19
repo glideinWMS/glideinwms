@@ -242,8 +242,8 @@ SPDX-License-Identifier: Apache-2.0
               GWMS versions 3.6.5" idtoken_lifetime="24"
               idtoken_keyname="FRONTEND"
               proxy_DN="/DC=org/DC=doegrids/OU=Services/CN=frontend-server.fnal.gov"
-              proxy_selection_plugin="ProxyAll" security_name="frontenduser"
-              sym_key="aes_256_cbc"&gt;</a
+              proxy_selection_plugin="CredentialsBasic"
+              security_name="frontenduser" sym_key="aes_256_cbc"&gt;</a
             ><br />
             <blockquote>
               <a href="#credentials">&lt;credentials&gt;</a><br />
@@ -266,10 +266,29 @@ SPDX-License-Identifier: Apache-2.0
                   vm_type="type1" pool_idx_len="5" pool_idx_list="2,4-6,10"
                   /&gt; </a
                 ><br />
+                <a href="#credentials">
+                  &lt;credential absfname="LegacyGenerator" context="{'callout':
+                  'scitokens_callout.py', 'type': 'scitoken'}" purpose="payload"
+                  security_class="frontend" trust_domain="grid" type="generator"
+                  /&gt; </a
+                ><br />
               </blockquote>
               <a href="#credentials">&lt;/credentials&gt;</a><br />
-              <a href="#security">&lt;/security&gt;</a><br />
+              <a href="#parameters">&lt;parameters&gt;</a><br />
+              <blockquote>
+                <a href="#parameters">
+                  &lt;parameter name="ProjectID" value="my_project"
+                  type="string"/&gt; </a
+                ><br />
+                <a href="#parameters">
+                  &lt;parameter name="VMId" value="RoundRobinGenerator"
+                  type="generator" context="{'items': ['vm_type_1', 'vm_type_1',
+                  'vm_type_1'], 'type': 'string'}"/&gt; </a
+                ><br />
+              </blockquote>
+              <a href="#parameters">&lt;/parameters&gt;</a><br />
             </blockquote>
+            <a href="#security">&lt;/security&gt;</a><br />
             <a href="#stage"
               >&lt;stage base_dir="/var/www/html/vofrontend/stage"
               use_symlink="True"
@@ -736,7 +755,7 @@ SPDX-License-Identifier: Apache-2.0
               &lt;frontend&gt;&lt;security
               proxy_DN=&quot;<i>/DC=org/DC=doegrids/OU=Service/CN=frontend/frontend1.my.org</i>&quot;
               classad_proxy=&quot;<i>proxy_dir</i>&quot;
-              proxy_selection_plugin=&quot;<i>ProxyAll</i>&quot;
+              proxy_selection_plugin=&quot;<i>CredentialsBasic</i>&quot;
               security_name=&quot;<i>vofrontend1</i>&quot;&gt;
             </div>
             <p>
@@ -756,13 +775,14 @@ SPDX-License-Identifier: Apache-2.0
           </li>
           <li>
             <p>
-              <a name="proxies" />
+              <a name="credentials" />
             </p>
 
             <div class="xml">
               &lt;frontend&gt;&lt;security&gt;&lt;credentials&gt;&lt;credential
               type=&quot;<i>grid_proxy</i>&quot;
               absfname=&quot;<i>proxyfile</i>&quot;
+              purpose=&quot;<i>request</i>&quot;
               [keyabsfname=&quot;<i>keyfile</i>&quot;]
               [pilotabsfname=&quot;<i>proxyfile</i>&quot;]
               security_class=&quot;<i>frontend</i>&quot;
@@ -770,15 +790,17 @@ SPDX-License-Identifier: Apache-2.0
               [creation_script=&quot;<i>creationcommand</i>&quot;]
               [update_frequency=&quot;<i>time_left</i>&quot;]
               [remote_username=&quot;<i>username</i>&quot;]
-              [vm_id=&quot;<i>id</i>&quot;] [vm_type=&quot;<i>type</i>&quot;]
               [pool_idx_len=&quot;<i>5</i>&quot;]
-              [pool_idx_list=&quot;<i>2,4-6,10</i>&quot;] /&gt;
+              [pool_idx_list=&quot;<i>2,4-6,10</i>&quot;] [context=&quot;<i
+                >{"key": "value", "type": "<i>cred_type</i>}</i
+              >&quot;] /&gt;
             </div>
             <p>
               This section lists credentials used by the whole Frontend. You can
               have multiple credentials listed here and they are used by all
               groups. The type (authentication method in the Factory's entry)
-              can be one of the following:
+              can be a combination of security parameters along with the
+              following:
             </p>
             <ul>
               <li>
@@ -809,14 +831,20 @@ SPDX-License-Identifier: Apache-2.0
                 <b>scitoken</b>: SciToken stored as jwt file at the
                 <i>absfname</i> location.
               </li>
+              <li>
+                <b>idtoken</b>: HTCondor IDTOKEN stored as jwt file at the
+                <i>absfname</i> location.
+              </li>
+              <li>
+                <b>generator</b>: A
+                <a href="#generators">GlideinWMS Generator</a> that produces the
+                credential string. The generator location is specified in the
+                <i>absfname</i> and the context is passed as a dictionary in the
+                <i>context</i> attribute. When using generators, the type of the
+                generated credential must be specified in the context.
+              </li>
             </ul>
             <p>
-              In addition, if you have a cloud (non-grid type) entry, you may
-              also be required to specify the identity credentials VM id and VM
-              type. If these either of these are specified, &quot+vm_id&quot or
-              &quot+vm_type&quot will be added to one of the authentication
-              methods (types) above. For example,
-              type="cert_pair+vm_id+vm_type". <br /><br />
               Pool index length and list allows the admin to configure a list of
               credentials without having to list each one of them. The files
               must all be identical except for the numbers at the end. The index
@@ -849,7 +877,63 @@ SPDX-License-Identifier: Apache-2.0
               user name specified in the Factory entry using the
               USERNAME@HOST:PORT string of the <i>gatekeeper</i> attribute. The
               username has to be specified in at least one of these two places.
+              <br /><br />
+              The <i>context</i> attribute is used to pass additional
+              information to a generator. This attribute expects a dictionary in
+              JSON format. Built-in generators expect specific keys. Refer to
+              their documentation for more information.
             </p>
+          </li>
+          <li>
+            <p>
+              <a name="parameters" />
+            </p>
+            <div class="xml">
+              &lt;frontend&gt;&lt;parameters&gt;&lt;parameter
+              name=&quot;<i>parameter_name</i>&quot;
+              value=&quot;<i>value</i>&quot; type=&quot;<i>string</i>&quot;
+              context=&quot;<i>{"key": "value", "type": "<i>param_type</i>"}</i
+              >&quot; /&gt;
+            </div>
+            <p>
+              Parameters are used to pass additional information to be used by a
+              Factory entry. Cloud resources, for example, may require project
+              names or machine types. The list of supported parameters is the
+              following:
+            </p>
+            <ul>
+              <li>
+                <b>VMId</b>: The VMId is used to identify a VM in a cloud
+                resource.
+              </li>
+              <li>
+                <b>VMType</b>: The VMType is used to identify a VM type in a
+                cloud resource.
+              </li>
+              <li>
+                <b>ProjectId</b>: The ProjectId is used to identify a project in
+                a cloud resource.
+              </li>
+              <li>
+                <b>RemoteUsername</b>: The RemoteUsername is used to identify
+                the username to use when connecting to a remote resource.
+              </li>
+              <li>
+                <b>GlideinProxy</b>: The GlideinProxy is used to identify the
+                proxy to use when connecting to a remote resource.
+              </li>
+            </ul>
+            <p>Parameters types can be one of the following:</p>
+            <ul>
+              <li><b>string</b>: A string value.</li>
+              <li><b>integer</b>: An integer value.</li>
+              <li><b>expression</b>: An HTCondor expression.</li>
+              <li>
+                <b>generator</b>: A GlideinWMS Generator that produces a value
+                to for the parameter. When using generators, the type of the
+                generated parameter must be specified in the context.
+              </li>
+            </ul>
           </li>
           <li>
             <p>
@@ -2445,7 +2529,7 @@ def get_credential(log: logger, group: str, entry: dict, trust_domain: str):
       </div>
 
       <div>
-        <a name="#reconfigure_hooks" />
+        <a name="reconfigure_hooks" />
         <h3 class="western">Running pre/post reconfigure hooks</h3>
         <p>You can put executable scipts in the</p>
         <pre>/etc/gwms-frontend/hooks.reconfig.pre/</pre>
@@ -2462,6 +2546,222 @@ def get_credential(log: logger, group: str, entry: dict, trust_domain: str):
         as user
         <pre>frontend</pre>
         . Only executable scripts will be executed.
+        <br />
+        <br />
+      </div>
+
+      <div>
+        <a name="generators" />
+        <h3 class="western">GlideinWMS Generators</h3>
+        <p>
+          Generators are plugins used to generate content at runtime during the
+          Frontend workflow. GlideinWMS provides a set of built-in generators,
+          and you can also create your own custom generators.
+        </p>
+
+        <h4>Usage</h4>
+
+        <p>
+          GlideinWMS currently supports the usage of generators for security
+          credentials and parameters. Here are a couple of examples of how to
+          use generators in your configuration files:
+        </p>
+
+        <h4>Credential Generator Example</h4>
+
+        <div class="xml">
+          &lt;credential absfname="RoundRobinGenerator" purpose="payload"
+          security_class="frontend" trust_domain="grid" type="generator"
+          context="{'items': ['cred1', 'cred2', 'cred3'], 'type': 'text'}" /&gt;
+        </div>
+
+        <h4>Parameter Generator Example</h4>
+
+        <div class="xml">
+          &lt;parameter name="VMId" value="RoundRobinGenerator" type="generator"
+          context="{'items': ['vm1', 'vm2', 'vm3'], 'type': 'string'}" /&gt;
+        </div>
+
+        <p>
+          Note that credential and parameter generators are specified in the
+          same way as their static counterparts, but there are a few key
+          differences:
+        </p>
+
+        <ul>
+          <li>
+            Credential <code>absfname</code> and parameter
+            <code>value</code> attributes are used to specify the generator
+            plugin to be used. GlideinWMS will look for a generator class, or a
+            plugin module name within its <code>PYTHON_PATH</code> to load and
+            execute. Typically, generators are stored in
+            <code>/etc/gwms-frontend/plugin.d</code> which is included in the
+            <code>PYTHON_PATH</code> by default. Alternatively, you can specify
+            the full path to the plugin file in the <code>absfname</code> or
+            <code>value</code> attributes.
+          </li>
+          <li>
+            The <code>context</code> attribute is used to pass a dictionary of
+            parameters to the generator plugin. The content of this dictionary
+            will depend on the specific generator being used. The
+            <code>type</code> key is used to specify the type of credential or
+            parameter being generated.
+          </li>
+          <li>
+            The <code>type</code> attribute is set to <code>generator</code> to
+            indicate that the credential or parameter is generated at runtime.
+          </li>
+        </ul>
+
+        <h4>Custom Generators</h4>
+
+        <p>
+          You can define your own generators using the GlideinWMS Generators
+          framework. Here is a simple example of a custom generator plugin that
+          returns a random string from a list of items:
+        </p>
+
+        <pre>
+      import random
+      from typing import Any
+
+      from glideinwms.lib.generators import export_generator, Generator, GeneratorError
+
+      class RandomGenerator(Generator[Any]):
+          """Random generator"""
+
+          def generate(self, **kwargs) -> Any:
+        items = self.context.get("items", [])
+        if not items:
+            raise GeneratorError("No items provided for generation")
+        return random.choice(items)
+
+      export_generator(RandomGenerator)
+        </pre>
+
+        <p>Key points to note:</p>
+
+        <ul>
+          <li>
+            The custom generator class should inherit from
+            <code>glideinwms.lib.generators.Generator</code>. This is an
+            abstract base class that requires the implementation of a
+            <code>generate</code> method, which should return the generated
+            value.
+          </li>
+          <li>
+            <code>self.context</code> is a dictionary that contains the context
+            passed from the configuration file. This attribute is loaded at the
+            base class constructor.
+          </li>
+          <li>
+            <code>kwargs</code> is used to retrieve runtime parameters provided
+            by the Frontend. The arguments currently supported are
+            <code>elementDescript</code>, <code>glidein_el</code>,
+            <code>group_name</code>, and <code>logger</code>.
+          </li>
+          <li>
+            The <code>export_generator</code> function is used to register the
+            custom generator with the GlideinWMS Generators framework. You can
+            define as many classes as you need in a single plugin file, but only
+            one of them should be exported.
+          </li>
+          <li>
+            The module name is determined by the filename of the plugin. For
+            example, if the plugin is saved as <code>RandomGenerator.py</code>,
+            the module name will be <code>RandomGenerator</code>. The exported
+            class name does not affect the module name. To use this module in
+            your configuration file, you could specify
+            <code>RandomGenerator</code>, <code>RandomGenerator.py</code>, or
+            <code>/path/to/generator/RandomGenerator.py</code> in the
+            <code>absfname</code> or <code>value</code> attributes.
+          </li>
+        </ul>
+
+        <h4>Legacy Generators</h4>
+
+        <p>
+          The new GlideinWMS Generators framework supports legacy generators
+          that use the callout interface. The built-in
+          <code>LegacyGenerator</code> works as an adapter that allows you to
+          use existing callout-based generators with the new framework. Here is
+          an example of how to use a legacy generator in your configuration
+          file:
+        </p>
+
+        <div class="xml">
+          &lt;credential absfname="LegacyGenerator" purpose="payload"
+          security_class="frontend" trust_domain="grid" type="generator"
+          context="{'callout': 'example_callout.py', 'type': 'scitoken',
+          'kwargs': {'param1': 'value1', 'param2': 'value2'}}" /&gt;
+        </div>
+
+        <p>Key points to note:</p>
+
+        <ul>
+          <li>
+            The <code>callout</code> key in the <code>context</code> dictionary
+            specifies the path to the legacy callout script. As in
+            <code>absfname</code> and <code>value</code> attributes, you can
+            specify the full path to the script if it is not in
+            <code>PYTHON_PATH</code>.
+          </li>
+          <li>
+            If your legacy generator requires additional parameters, you can
+            include them by adding a <code>kwargs</code> key to the
+            <code>context</code> dictionary.
+          </li>
+        </ul>
+
+        <h4>Built-in Generators</h4>
+        <p>
+          GlideinWMS ships with a set of built-in generators that are available
+          for use straight from your configuration file. Here is a list of the
+          available generators:
+        </p>
+        <table>
+          <tr>
+            <th>Generator</th>
+            <th>Description</th>
+            <th>Required Context</th>
+          </tr>
+          <tr>
+            <td><b>RoundRobinGenerator</b></td>
+            <td>
+              <p>
+                Cycles through a list of items in a round-robin fashion and
+                returns the next item in the sequence.
+              </p>
+            </td>
+            <td>
+              <ul>
+                <li><code>items</code>: List of items to cycle through.</li>
+                <li><code>type</code>: Type of the items in the list.</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td><b>LegacyGenerator</b></td>
+            <td>
+              <p>
+                Adapter for legacy callout-based generators. Allows you to use
+                existing callout scripts with the new Generators framework.
+              </p>
+            </td>
+            <td>
+              <ul>
+                <li>
+                  <code>callout</code>: Path to the legacy callout script.
+                </li>
+                <li><code>type</code>: Type of the generated content.</li>
+                <li>
+                  <code>kwargs</code>: Additional parameters for the callout
+                  script.
+                </li>
+              </ul>
+            </td>
+          </tr>
+        </table>
       </div>
 
       <div class="footer">
