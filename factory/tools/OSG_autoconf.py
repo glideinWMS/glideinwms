@@ -56,19 +56,21 @@ def parse_opts():
     return args
 
 
-def get_vos(allowed_vos):
+def get_vos(allowed_vos, GPU_entry=False):
     """This function converts the list of VO from the collector to the frontend ones
 
     Args:
-        allowed_vos (list): The list ov vos in the OSG collector
+        allowed_vos (list): The list of vos in the OSG collector
 
     Returns:
         set: The set of frontend VOs to add to the configuration GLIDEIN_SupportedVOs
     """
     vos = set()
     for vorg in allowed_vos:
-        if vorg in GLIDEIN_SUPPORTED_VO_MAP:
-            vos.add(GLIDEIN_SUPPORTED_VO_MAP[vorg])
+        # Fixup vo found in the collector since there is no consistency with case and presence of quotes
+        fix_vorg = vorg.replace('"', '').lower()
+        if fix_vorg in GLIDEIN_SUPPORTED_VO_MAP:
+            vos.add(GLIDEIN_SUPPORTED_VO_MAP[fix_vorg])
 
     return vos
 
@@ -121,7 +123,7 @@ def get_pilot(resource, site, pilot_entry):
     Returns:
         dict: A dictionary to be used to generate the xml for this pilot entry
     """
-    vos = get_vos(pilot_entry.get("AllowedVOs", set()))
+    vos = get_vos(pilot_entry.get("AllowedVOs", set()), "GPUs" in pilot_entry)
     cpus = pilot_entry.get("CPUs", None)
     walltime = pilot_entry.get("MaxWallTime", None)
     memory = pilot_entry.get("Memory", None)
