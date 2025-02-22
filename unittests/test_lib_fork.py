@@ -246,7 +246,7 @@ class TestWaitForPids(unittest.TestCase):
             pid_list.append(fork_in_bg(sleep_fn, 10))
 
         wait_for_pids(pid_list)
-        # this is the last Test Class run, they are run in lexigraphical order
+        # this is the last Test Class run, they are run in lexicographical order
         global_log_cleanup()
 
 

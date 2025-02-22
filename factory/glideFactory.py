@@ -281,8 +281,8 @@ def generate_log_tokens(startup_dir, glidein_descript):
         try:
             tokens_tgz = tarfile.open(os.path.join(entry_dir, "tokens.tgz"), "w:gz", dereference=True)
             tokens_tgz.add(tokens_dir, arcname=os.path.basename(tokens_dir))
-        except tarfile.TarError as te:
-            logSupport.log.exception("TarError: %s" % str(te))
+        except tarfile.TarError as terr:
+            logSupport.log.exception("TarError: %s" % str(terr))
             raise
         tokens_tgz.close()
 
@@ -325,7 +325,7 @@ def entry_grouper(size, entries):
 ############################################################
 def is_crashing_often(startup_time, restart_interval, restart_attempts):
     """
-    Check if the entry is crashing/dieing often
+    Check if the entry is crashing/dying often
 
     @type startup_time: long
     @param startup_time: Startup time of the entry process in second
@@ -335,7 +335,7 @@ def is_crashing_often(startup_time, restart_interval, restart_attempts):
     @param restart_attempts: Number of allowed restart attempts in the interval
 
     @rtype: bool
-    @return: True if entry process is crashing/dieing often
+    @return: True if entry process is crashing/dying often
     """
 
     crashing_often = True
@@ -373,23 +373,23 @@ def is_file_old(filename, allowed_time):
 
 
 ############################################################
-def clean_exit(childs):
+def clean_exit(children):
     count = 100000000  # set it high, so it is triggered at the first iteration
     sleep_time = 0.1  # start with very little sleep
-    while len(list(childs.keys())) > 0:
+    while len(list(children.keys())) > 0:
         count += 1
         if count > 4:
-            # Send a term signal to the childs
+            # Send a term signal to the children
             # May need to do it several times, in case there are in the
             # middle of something
             count = 0
-            logSupport.log.info("Killing EntryGroups %s" % list(childs.keys()))
-            for group in childs:
+            logSupport.log.info("Killing EntryGroups %s" % list(children.keys()))
+            for group in children:
                 try:
-                    os.kill(childs[group].pid, signal.SIGTERM)
+                    os.kill(children[group].pid, signal.SIGTERM)
                 except OSError:
                     logSupport.log.warning("EntryGroup %s already dead" % group)
-                    del childs[group]  # already dead
+                    del children[group]  # already dead
 
         logSupport.log.info("Sleep")
         time.sleep(sleep_time)
@@ -398,10 +398,10 @@ def clean_exit(childs):
         if sleep_time > 5:
             sleep_time = 5
 
-        logSupport.log.info("Checking dying EntryGroups %s" % list(childs.keys()))
+        logSupport.log.info("Checking dying EntryGroups %s" % list(children.keys()))
         dead_entries = []
-        for group in childs:
-            child = childs[group]
+        for group in children:
+            child = children[group]
 
             # empty stdout and stderr
             try:
@@ -421,7 +421,7 @@ def clean_exit(childs):
             if child.poll():
                 # the child exited
                 dead_entries.append(group)
-                del childs[group]
+                del children[group]
                 tempOut = child.stdout.readlines()
                 tempErr = child.stderr.readlines()
         if len(dead_entries) > 0:
@@ -455,12 +455,12 @@ def spawn(
         restart_attempts (int): Number of allowed restart attempts within the interval.
     """
 
-    childs = {}
+    children = {}
 
     # Number of glideFactoryEntry processes to spawn and directly relates to
-    # number of concurrent condor_status processess
+    # number of concurrent condor_status processes
     #
-    # NOTE: If number of entries gets too big, we may excede the shell args
+    # NOTE: If number of entries gets too big, we may exceed the shell args
     #       limit. If that becomes an issue, move the logic to identify the
     #       entries to serve to the group itself.
     #
@@ -474,7 +474,7 @@ def spawn(
     oldkey_gracetime = int(glideinDescript.data["OldPubKeyGraceTime"])
     oldkey_eoltime = starttime + oldkey_gracetime
 
-    childs_uptime = {}
+    children_uptime = {}
 
     factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data["DowntimesFile"])
 
@@ -527,7 +527,7 @@ def spawn(
                 entry_names,
                 str(group),
             ]
-            childs[group] = subprocess.Popen(
+            children[group] = subprocess.Popen(
                 command_list,
                 shell=False,
                 stdout=subprocess.PIPE,
@@ -538,17 +538,17 @@ def spawn(
 
             # Get the startup time. Used to check if the entry is crashing
             # periodically and needs to be restarted.
-            childs_uptime[group] = list()
-            childs_uptime[group].insert(0, time.time())
+            children_uptime[group] = list()
+            children_uptime[group].insert(0, time.time())
 
-        logSupport.log.info("EntryGroup startup times: %s" % childs_uptime)
+        logSupport.log.info("EntryGroup startup times: %s" % children_uptime)
 
         generate_log_tokens(startup_dir, glideinDescript)
 
-        for group in childs:
+        for group in children:
             # set it in non-blocking mode
             # since we will run for a long time, we do not want to block
-            for fd in (childs[group].stdout.fileno(), childs[group].stderr.fileno()):
+            for fd in (children[group].stdout.fileno(), children[group].stderr.fileno()):
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
@@ -657,10 +657,10 @@ def spawn(
                 except Exception:
                     logSupport.log.exception("Error occurred processing the globals classads: ")
 
-            logSupport.log.info("Checking EntryGroups %s" % list(childs.keys()))
-            for group in list(childs):  # making a copy of the keys because the dict is being modified in the loop
+            logSupport.log.info("Checking EntryGroups %s" % list(children.keys()))
+            for group in list(children):  # making a copy of the keys because the dict is being modified in the loop
                 entry_names = ":".join(entry_groups[group])
-                child = childs[group]
+                child = children[group]
 
                 # empty stdout and stderr
                 try:
@@ -683,8 +683,8 @@ def spawn(
                     tempOut = child.stdout.readlines()
                     tempErr = child.stderr.readlines()
 
-                    if is_crashing_often(childs_uptime[group], restart_interval, restart_attempts):
-                        del childs[group]
+                    if is_crashing_often(children_uptime[group], restart_interval, restart_attempts):
+                        del children[group]
                         raise RuntimeError(
                             "EntryGroup '%s' has been crashing too often, quit the whole factory:\n%s\n%s"
                             % (group, tempOut, tempErr)
@@ -692,7 +692,7 @@ def spawn(
                     else:
                         # Restart the entry setting its restart time
                         logSupport.log.warning("Restarting EntryGroup %s." % (group))
-                        del childs[group]
+                        del children[group]
 
                         command_list = [
                             sys.executable,
@@ -704,7 +704,7 @@ def spawn(
                             entry_names,
                             str(group),
                         ]
-                        childs[group] = subprocess.Popen(
+                        children[group] = subprocess.Popen(
                             command_list,
                             shell=False,
                             stdout=subprocess.PIPE,
@@ -713,13 +713,13 @@ def spawn(
                             preexec_fn=_set_rlimit,
                         )
 
-                        if len(childs_uptime[group]) == restart_attempts:
-                            childs_uptime[group].pop(0)
-                        childs_uptime[group].append(time.time())
-                        for fd in (childs[group].stdout.fileno(), childs[group].stderr.fileno()):
+                        if len(children_uptime[group]) == restart_attempts:
+                            children_uptime[group].pop(0)
+                        children_uptime[group].append(time.time())
+                        for fd in (children[group].stdout.fileno(), children[group].stderr.fileno()):
                             fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                             fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-                        logSupport.log.warning(f"EntryGroup startup/restart times: {childs_uptime}")
+                        logSupport.log.warning(f"EntryGroup startup/restart times: {children_uptime}")
 
             # Aggregate Monitoring data periodically
             logSupport.log.info("Aggregate monitoring data")
@@ -763,13 +763,13 @@ def spawn(
         logSupport.log.info("Received signal...exit")
         try:
             try:
-                clean_exit(childs)
+                clean_exit(children)
             except Exception:
                 # if anything goes wrong, hardkill the rest
-                for group in childs:
+                for group in children:
                     logSupport.log.info("Hard killing EntryGroup %s" % group)
                     try:
-                        os.kill(childs[group].pid, signal.SIGKILL)
+                        os.kill(children[group].pid, signal.SIGKILL)
                     except OSError:
                         pass  # ignore dead clients
         finally:
@@ -876,7 +876,7 @@ def main(startup_dir):
         key_fname = getattr(e, "key_fname", None)
         cwd = getattr(e, "cwd", None)
         if key_fname and cwd:
-            logSupport.log.error("Failed to load RSA key %s with current working direcotry %s", key_fname, cwd)
+            logSupport.log.error("Failed to load RSA key %s with current working directory %s", key_fname, cwd)
             logSupport.log.error(
                 "If you think the rsa key might be corrupted, try to remove it, and then reconfigure the factory to recreate it"
             )
@@ -931,7 +931,7 @@ def main(startup_dir):
     except glideFactoryPidLib.pidSupport.AlreadyRunning as err:
         pid_obj.load_registered()
         logSupport.log.exception(
-            "Failed starting Factory. Instance with pid %s is aready running. Exception during pid registration: %s"
+            "Failed starting Factory. Instance with pid %s is already running. Exception during pid registration: %s"
             % (pid_obj.mypid, err)
         )
         raise

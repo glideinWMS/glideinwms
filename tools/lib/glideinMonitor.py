@@ -6,7 +6,7 @@
 Prerequisites:
    The startd must be configured with exactly 2 slots, called vm
    It must have cross-vm expressions State and RemoteUser enabled.
-   It also must advertize that has the monitor vm.
+   It also must advertise that has the monitor vm.
 """
 
 import os

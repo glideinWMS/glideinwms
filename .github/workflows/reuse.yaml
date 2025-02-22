@@ -39,6 +39,6 @@ jobs:
           path: "glideinwms"
       - name: reuse lint action step
         id: reuse
-        uses: fsfe/reuse-action@v2
+        uses: fsfe/reuse-action@v5
         with:
           args: --root ./glideinwms lint

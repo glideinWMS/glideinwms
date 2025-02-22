@@ -115,16 +115,16 @@ def fetch_fork_result(r, pid):
         OSError: Other system-related error (includes both former OSError and IOError since Py3.4).
         pickle.UnpicklingError: Incomplete pickled data.
     """
-    rin = b""
+    r_in = b""
     out = None
     try:
         s = os.read(r, 1024 * 1024)
         while s != b"":  # "" means EOF
-            rin += s
+            r_in += s
             s = os.read(r, 1024 * 1024)
-        # pickle can fail w/ EOFError if rin is empty.
+        # pickle can fail w/ EOFError if r_in is empty.
         # Any output from pickle is never an empty string, e.g. None is 'N.'
-        out = pickle.loads(rin)
+        out = pickle.loads(r_in)
     except (OSError, EOFError, pickle.UnpicklingError) as err:
         etype, evalue, etraceback = sys.exc_info()
         # Adding message in case close/waitpid fail and preempt raise

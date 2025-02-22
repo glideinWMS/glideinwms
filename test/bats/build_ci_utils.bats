@@ -24,7 +24,7 @@ no_teardown() {
 
 
 @test "test_loginfo" {
-    filename=PERFIX
+    filename=PREFIX
     VERBOSE=
     run loginfo "Message on verbose"
     [ "$output" == "" ]
@@ -37,7 +37,7 @@ no_teardown() {
 
 
 @test "test_logexit" {
-    filename=PERFIX
+    filename=PREFIX
     run logexit "This should be 1"
     [ "$output" == "$filename ERROR: This should be 1" ]
     [ "$status" -eq 1 ]

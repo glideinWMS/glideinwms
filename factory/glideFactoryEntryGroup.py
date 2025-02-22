@@ -86,7 +86,7 @@ def check_parent(parent_pid, glideinDescript, my_entries):
         except Exception:
             logSupport.log.warning("Failed to deadvertize monitoring for entry '%s'" % entry.name)
 
-    raise KeyboardInterrupt("Parent died. Quiting.")
+    raise KeyboardInterrupt("Parent died. Quitting.")
 
 
 ############################################################
@@ -239,7 +239,7 @@ def find_and_perform_work(do_advertize, factory_in_downtime, glideinDescript, fr
     If an entry is in downtime, requested Glideins is zero.
 
     Args:
-        do_advertize (bool): Advertise (publish the gfc ClassAd) event if no work is preformed
+        do_advertize (bool): Advertise (publish the gfc ClassAd) event if no work is performed
         factory_in_downtime (bool): True if factory is in downtime
         glideinDescript (dict): Factory glidein config values
         frontendDescript (dict): Security mappings for frontend identities, security classes, and usernames
@@ -333,7 +333,7 @@ def find_and_perform_work(do_advertize, factory_in_downtime, glideinDescript, fr
     # This caused  "ValueError: I/O operation on closed file." on a seek in logSupport.shouldRollover()
     # Children use fork.fork_in_bg which has logSupport.disable_rotate = True
     # Furthermore, all children should be completed, there should be no competition for log file rotation
-    # TODO: investigate logs with processs tree if this happens again
+    # TODO: investigate logs with process tree if this happens again
     try:
         logSupport.roll_all_logs()
     except ValueError as e:
@@ -388,7 +388,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript, frontendDesc
         my_entries (dict): Dictionary of entry objects (glideFactoryEntry.Entry) keyed on entry name
 
     Returns:
-        int: Units of work preformed (0 if no Glidein was submitted)
+        int: Units of work performed (0 if no Glidein was submitted)
     """
     groupwork_done = {}
     done_something = 0
@@ -611,7 +611,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_names, group
         advertize_rate (int): The rate at which advertising should occur
         startup_dir (str|Path): The "home" directory for the entry.
         entry_names (str): Colon separated list with the names of the entries this process should work on
-        group_id (str): Group id, normally a number (with the "group_" prefix formes the group name),
+        group_id (str): Group id, normally a number (with the "group_" prefix forms the group name),
             It can change between Factory reconfigurations
 
     """

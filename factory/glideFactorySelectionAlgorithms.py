@@ -15,7 +15,7 @@ def selectionAlgoDefault(submit_files, status_sf, jobDescript, nr_glideins, log)
     @type submit_files: list
     @param submit_files: list of strings containing the name of the submit files for this entry set
     @type status_sf: dict
-    @param status_sf: dictrionary where the keys are the submit files and the values is a condor states dict
+    @param status_sf: dictionary where the keys are the submit files and the values is a condor states dict
     @type jobDescript: object
     @param jobDescript: will read here maximum number of idle/total fglideins for each sub entry
     @type nr_glideins: int

@@ -71,7 +71,7 @@ class Element:
         self.line_no = line_no
         # Notice that in Handler.startElement the parent is passed as a slice (=>self.ancestry[:-1])
         # instead of just taking the last element (=>self.ancestry[-1]). This way if self.ancestry is an
-        # empty list we pass an empty list (instad of throwing IndexError) and we set None here
+        # empty list we pass an empty list (instead of throwing IndexError) and we set None here
         self.parent = parent[0] if parent else None
 
     # children should override these (signature should be the same)

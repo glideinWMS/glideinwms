@@ -269,7 +269,7 @@ class Params:
         xml_format = self.get_xml_format()
         xmlFormat.DEFAULT_LISTS_PARAMS = xml_format["lists_params"]
         xmlFormat.DEFAULT_DICTS_PARAMS = xml_format["dicts_params"]
-        # hack needed to make xmlFormat to properly do the formating, using override_dictionary_type
+        # hack needed to make xmlFormat to properly do the formatting, using override_dictionary_type
         dict_override = type(OrderedDict())
         out = xmlFormat.class2string(self.data, self.get_top_element(), override_dictionary_type=dict_override)
         xmlFormat.DEFAULT_IGNORE_NONES = old_default_ignore_nones
@@ -548,7 +548,7 @@ class CommonParams(Params):
 
 
 ################################################
-# only allow ascii characters, the numbers and a few punctuations
+# only allow ascii characters, the numbers and a few punctuation characters
 # no spaces, not special characters or other punctuation
 VALID_NAME_CHARS = string.ascii_letters + string.digits + "._-"
 
@@ -557,7 +557,7 @@ def is_valid_name(name):
     """Check if a string can be used as a valid name
 
     Whitelist based:
-        only allow ascii characters, numbers and a few punctuations
+        only allow ascii characters, numbers and a few punctuation characters
         no spaces, no special characters or other punctuation
 
     Args:
@@ -639,7 +639,7 @@ def shorten_text(text, width):
         if count >= width:
             return (text[:idx], c)
         if c == "\t":
-            count = ((count + 8) // 8) * 8  # round to neares mult of 8
+            count = ((count + 8) // 8) * 8  # round to nearest mult of 8
             if count > width:
                 return (text[:idx], c)
             idx = idx + 1

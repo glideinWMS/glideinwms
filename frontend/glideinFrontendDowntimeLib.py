@@ -117,7 +117,7 @@ class DowntimeFile:
 
 
 # return a list of downtime periods (utimes)
-# a value of None idicates "forever"
+# a value of None indicates "forever"
 # for example: [(1215339200,1215439170),(1215439271,None)]
 def read(fname, raise_on_error=False):
     """Read downtime periods from a file.

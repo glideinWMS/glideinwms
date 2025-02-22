@@ -102,7 +102,7 @@ def mychown(path, uid, gid, fuid, test):
 
 
 def chown_dir(path, uid, gid, fuid, test):
-    """Recursively go through the direcotry "path" and change the permission
+    """Recursively go through the directory "path" and change the permission
     of its files to "uid":"gid". Before doing that check if the current
     owner of the file is fuid.
     If "test: is set don't chown but just print a message

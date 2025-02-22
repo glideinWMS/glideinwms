@@ -11,7 +11,7 @@
 #
 # Description:
 #   This script will setup the knobs that
-#   are related to network tunning, like incoming connections/firewalls
+#   are related to network tuning, like incoming connections/firewalls
 #
 
 glidein_config="$1"

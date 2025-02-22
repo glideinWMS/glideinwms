@@ -36,7 +36,7 @@ class DictFileError(RuntimeError):
 #  to have a more standard behavior
 #  Method naming could also be changes to comply w/ std interfaces and similar classes in the std library
 
-# TODO: DictFile could include encoding information (default being BINARY_ENCODING, latin-1) and have 2 childs,
+# TODO: DictFile could include encoding information (default being BINARY_ENCODING, latin-1) and have 2 children,
 #  DictBytesFile and DictTextFiles, saving respectively binary and text files, to optimize and reduce some back
 #  and forth encoding
 
@@ -122,7 +122,7 @@ class DictFile:
         Args:
             key (str): dictionary key
             val: Any value stored in the dictionary, usually a tuple (e.g. attributes and value)
-            allow_overwrite (bool): Allow to overwrite an exising value if True (default: False)
+            allow_overwrite (bool): Allow to overwrite an existing value if True (default: False)
 
         Raises:
             DictFileError: when trying to modify a read only DictFile or overriding an existing item when prohibited
@@ -197,7 +197,7 @@ class DictFile:
             sort_keys = self.sort_keys
         filepath = os.path.join(dir, fname)
 
-        # For some reason self.changed is set to false when the file is missin (and no items are added)
+        # For some reason self.changed is set to false when the file is missing (and no items are added)
         # This causes problems during upgrades (if a file dict is added) and if a file dict is accidentally deleted
         # Things work OK on fresh installs when no file exist (no load attempt)
         # This should never happen. I tracked all self.changed=False statements and never apply to the dict in question
@@ -478,7 +478,7 @@ class DictFile:
         Changes the dictionary and self.changed via self.add()
 
         Args:
-            line (str): splitting w/ the default separator should yeld the key and the value
+            line (str): splitting w/ the default separator should yield the key and the value
 
         Raises:
             DictFileError, from self.add()
@@ -968,10 +968,10 @@ class SimpleFileDictFile(DictFile):
 
         For each item self.vals[key][-1] is the content of the file
         It should be bytes, if it is not it will be encoded using BINARY_ENCODING
-        This methos is not saving the dictionary itself (key, values)
+        This method is not saving the dictionary itself (key, values)
 
         Args:
-            allow_overwrite (bool): if True allow to over write existing files
+            allow_overwrite (bool): if True allow to overwrite existing files
 
         Raises:
             DictFileError: if an error occurred in writing into the file or the file data (last element) is str
@@ -1342,9 +1342,9 @@ class VarsDictFile(DictFile):
     The key is the variable name.
     Values are (Type,Default,CondorName,Required,Export,UserName).
     The CondorName is the name to use in the HTCSS configuration
-     (special keyworks: `+` the same as the variable name)
+     (special keywords: `+` the same as the variable name)
     The UserName is the name to use in the job environment
-     (special keyworks: `+` the same as the variable name, `@` the same as the HTCSS name, `-` do not export)
+     (special keywords: `+` the same as the variable name, `@` the same as the HTCSS name, `-` do not export)
     """
 
     def is_compatible(self, old_val, new_val):
@@ -1587,7 +1587,7 @@ class DirSupport:
             bool: True if the dir was created, false else
 
         Raises:
-            RuntimeError: if failed the operation failed and the dircetory is not already there
+            RuntimeError: if failed the operation failed and the directory is not already there
                 or if it is there and fail_if_exists is True
         """
         raise RuntimeError("Undefined")

@@ -120,7 +120,7 @@ get_x509_certs_dir() {
 }
 
 # Look for the proxy certificate in $1 and $X509_USER_PROXY
-# Currently env X509_USER_PROXY is set by the job manager in the evvironment befor starting the Glidein,
+# Currently env X509_USER_PROXY is set by the job manager in the evvironment before starting the Glidein,
 # on all CEs where Glideins run and proxyes are provided
 # TODO: HTCSS newer version do not define X509_USER_PROXY. Add here canonical paths where to look
 #       for possible proxy files (e.g. in ARC CE)

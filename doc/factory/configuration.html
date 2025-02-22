@@ -596,7 +596,7 @@ SPDX-License-Identifier: Apache-2.0
               >&quot; compression=&quot;<i>gz</i>&quot;/&gt;
             </div>
             <p>
-              The logs documentin the server (Factory) and saved in the
+              The logs documenting the server (Factory) are saved in the
               <tt>base_log_dir</tt> and are configured in the
               <i>process_log</i> section. summary_logs, job_logs and condor_logs
               are in the client log folder or document the reconfiguration.
@@ -1116,7 +1116,7 @@ SPDX-License-Identifier: Apache-2.0
                 to find out how the authentication method matching is altered to
                 ease the transition from grid_proxy to scitoken.<br />
                 Multiple authentication methods may be needed and there may be
-                reqirements on the authentication method depending on the type
+                requirements on the authentication method depending on the type
                 of entry. E.g. ec2 requires a credential pair (key_pair,
                 cert_pair, username_password) and the VM id and type. BOSCO
                 requires a key_pair and a grid_proxy. The authentication method
@@ -1202,7 +1202,7 @@ SPDX-License-Identifier: Apache-2.0
                   <li>OSG: will run in $OSG_WN_TMP <br /></li>
                   <li>TMPDIR: will run in $TMPDIR <br /></li>
                   <li>
-                    AUTO: will try to determine which direcotry has enogh space
+                    AUTO: will try to determine which directory has enough space
                     (at least 1 GB of free space). Directory checked are
                     $_CONDOR_SCRATCH_DIR, $OSG_WN_TMP $TG_NODE_SCRATCH,
                     $TG_CLUSTER_SCRATCH, $SCRATCH $TMPDIR, $TMP, $PWD (in this
@@ -1600,7 +1600,7 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
         </p>
         <p>
           The <b>$$</b> variant will interpret the type of the attribute,
-          quoting its value as appopriate, while the <b>$</b> requires a
+          quoting its value as appropriate, while the <b>$</b> requires a
           <i>string</i> type and will use it as-is.<br />
           They can appear in any string of the configuration file.
         </p>
@@ -1667,7 +1667,7 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
           the Frontend).
         </p>
         <p>
-          Only the metasite will be advertized as a glideresource ClassAd, so
+          Only the metasite will be advertised as a glideresource ClassAd, so
           the Frontend will only see one element (entry). The Frontend will
           apply limits transparently as before, and the Factory as well. Right
           before glidein submission, the Factory will detect there are multiple
@@ -1895,7 +1895,7 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
 
         <p>
           The transition for the new jobs is clear. But either for upgrading an
-          existing Factory version from v3.4.x or ealier (even if there are no
+          existing Factory version from v3.4.x or earlier (even if there are no
           glideins) or for the old glideins that are still running, there is a
           process which will ease the migration process for this purpose. This
           process implies the execution of a script which:<br />
@@ -1948,7 +1948,7 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
 
         <p>
           After executing these steps, you should see your jobs changed user in
-          condor_q to the new owner. Also, the onwership to Factory user
+          condor_q to the new owner. Also, the ownership to Factory user
           (gfactory) of: <br />
           - Log files directories in /var/log/gwms-factory/client/<br />
           - Security files directory in /var/lib/gwms-factory/client-proxies/<br />
@@ -1963,7 +1963,7 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
           To <b>revert</b> to a previous version of GlideinWMS, you need to
           restore the job_queue files and change back the permissions of the log
           directories. As commented previously, those operations need to be
-          performed with both condor and GlideinWMS stoppped. <br />
+          performed with both condor and GlideinWMS stopped. <br />
           - To restore the job_queue condor files: untar all the
           schedd_glideins1_job_queue.log.tar.gz files, and move the
           job_queue.log file into its original location. You can print it when
@@ -2197,7 +2197,7 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
           service proxy. gLExec is a tool, now unsupported, that was used before
           containers to achieve security (sandboxing) and isolation between
           different jobs in the same Glidein. It used a service with sudo
-          privileges to switch the jobs to different Unix users dpending on the
+          privileges to switch the jobs to different Unix users depending on the
           identity in a x509/VOMS Proxy. To obtain the same results look into
           Singularity. This section is kept for historical reasons.
         </p>
@@ -3193,7 +3193,7 @@ CONDORCE_COLLECTOR_HOST=&lt;site-local HTCondorCE collector address&gt;</pre
       <div>
         <a name="#reconfigure_hooks" />
         <h3 class="western">Running pre/post reconfigure hooks</h3>
-        <p>You can put executable scipts in the</p>
+        <p>You can put executable scripts in the</p>
         <pre>/etc/gwms-factory/hooks.reconfig.pre/</pre>
         or the
         <pre>/etc/gwms-factory/hooks.reconfig.pre/</pre>

@@ -1476,7 +1476,7 @@ rm -rf $RPM_BUILD_ROOT
 
 * Fri Jul 25 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.6-1
 - Glideinwms v3.2.6 release
-- Reverted group name in default dir ownership but we now explicitly make gfactory and fronend users part of the gfactory and frontend group respectively
+- Reverted group name in default dir ownership but we now explicitly make gfactory and frontend users part of the gfactory and frontend group respectively
 - Removed the group name in the default dir ownership for factory and frontend
 - Release candidates: 3.2.6-0.1.rc1 to 3.2.6-0.2.rc3
 
@@ -1536,7 +1536,7 @@ rm -rf $RPM_BUILD_ROOT
 
 * Fri Apr 26 2013 Parag Mhashilkar <parag@fnal.gov> - 2.7.0-0.3
 - Further refactoring of packages.
-- Added new packages glideinwms-glidecondor-tools and its dependancy glideinwms-libs
+- Added new packages glideinwms-glidecondor-tools and its dependency glideinwms-libs
 - Removed files provided by glideinwms-minimal-condor from file list of glideinwms-usercollector and glideinwms-userschedd and make usercollector and userschedd depend on the minimal-condor
 
 * Fri Apr 26 2013 Parag Mhashilkar <parag@fnal.gov> - 2.7.0-0.2

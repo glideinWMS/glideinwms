@@ -265,7 +265,7 @@ class ElementDescript(GroupConfigFile):
 
 
 class ParamsDescript(JoinConfigFile):
-    """Global and grup parameters in a Frontend
+    """Global and group parameters in a Frontend
 
     One per group/element
     Content has `parameter="True"` in the <attrs> sections in the global and group configuration
@@ -301,7 +301,7 @@ class ParamsDescript(JoinConfigFile):
 
 
 class AttrsDescript(JoinConfigFile):
-    """Global and grup attributes in a Frontend
+    """Global and group attributes in a Frontend
 
     One per group/element
     Content comes from the <attrs> sections in the global and group configuration

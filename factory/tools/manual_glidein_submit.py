@@ -41,7 +41,7 @@ def parse_opts():
         type=str,
         action="store",
         dest="fe_name",
-        help="Name of the frontend client to use (e.g.: frontent, fecmsglobal, ...). Its credential will be used for submission",
+        help="Name of the frontend client to use (e.g.: frontend, fecmsglobal, ...). Its credential will be used for submission",
     )
 
     parser.add_argument(
@@ -50,7 +50,7 @@ def parse_opts():
         action="store",
         dest="group_name",
         default="main",
-        help="Name of the frontend group to use (e.g.: frontent, fecmsglobal, ...). Its credential will be used for submission",
+        help="Name of the frontend group to use (e.g.: frontend, fecmsglobal, ...). Its credential will be used for submission",
     )
 
     parser.add_argument(
@@ -143,7 +143,7 @@ def main():
     collector = htcondor.Collector(wms_collector)
 
     req_name = get_reqname(collector, options.fe_name, options.group_name, entry_name)
-    logging.debug("Using reques name %s" % req_name)
+    logging.debug("Using request name %s" % req_name)
 
     factory_config.submit_dir = conf.get_submit_dir()
     constraint_gc = '(MyType=="glideclient") && (Name=="%s")' % (req_name)

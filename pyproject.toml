@@ -21,7 +21,11 @@ write_to = "version.py"
 # flake8-statistics = "True"
 [tool.black]
 line-length = 120
-target-version = ['py36']
+target-version = ["py36"]
+
+[tool.codespell]
+exclude-file = ".codespell/ignore_lines.txt"
+ignore-words = ".codespell/ignore_words.txt"
 
 [tool.isort]
 src_paths = ["doc", "src"]

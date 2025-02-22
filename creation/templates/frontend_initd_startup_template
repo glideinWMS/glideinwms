@@ -452,7 +452,7 @@ reconfig() {
             # reconfig_failed is the reconfiguration result: 0-succeded, !0-failed
             #  If start failed, then RETVAL=1 (generic error)
             #  If start succeeded but reconfig failed RETVAL=6 (RET_NOT_CONFIGURED: bad or missing configuration)
-            #  If start succeded and reconfig succeded, then return 0
+            #  If start succeeded and reconfig succeeded, then return 0
             if [ $RETVAL -eq 0 ]; then
                 [ $reconfig_failed -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
             else

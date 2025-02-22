@@ -274,7 +274,7 @@ def refresh_signature(dicts):  # update in place
 
 # internal, do not use from outside the module
 def save_common_dicts(dicts, is_main, set_readonly=True):  # will update in place, too
-    # make sure decription is up to date
+    # make sure description is up-to-date
     refresh_description(dicts)
     # save the immutable ones
     for k in ("description",):
@@ -290,7 +290,7 @@ def save_common_dicts(dicts, is_main, set_readonly=True):  # will update in plac
     for k in ("preentry_file_list", "file_list", "aftergroup_preentry_file_list", "aftergroup_file_list"):
         if k in dicts:
             dicts[k].save(set_readonly=set_readonly)
-    # calc and save the signatues
+    # calc and save the signatures
     refresh_signature(dicts)
     dicts["signature"].save(set_readonly=set_readonly)
 
@@ -440,7 +440,7 @@ class frontendMainDicts(cWDictFile.FileMainDicts):
     def get_daemon_log_dir(self, base_dir):
         return os.path.join(base_dir, "frontend")
 
-    # Overwritting the empty one
+    # Overwriting the empty one
     def get_main_dicts(self):
         return get_main_dicts(self.work_dir, self.stage_dir, self.simple_work_dir, self.assume_groups)
 

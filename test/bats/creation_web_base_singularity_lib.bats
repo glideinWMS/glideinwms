@@ -35,7 +35,7 @@ setup() {
     # Mock robust_realpath intercepting some inputs
     # used by singularity_update_path, singularity_setup_inside_env
     eval "$(echo "robust_realpath_orig()"; declare -f robust_realpath | tail -n +2 )"
-    echo "Runnig setup" >&3
+    echo "Running setup" >&3
     robust_realpath() { robust_realpath_mock "$@"; }
 
 }
@@ -174,7 +174,7 @@ dit() { echo "TEST:<$1><$2><$3>"; }
     [ "$TEST_VAR" = "testvalue" ]
     [ "x$GWMS_OLDENV_TEST_VAR" = "x" ]
     env_clear_one TEST_VAR
-    echo "For visual inspection, TEST_VAR sould be gone: `env | grep TEST_VAR`" >&3
+    echo "For visual inspection, TEST_VAR should be gone: `env | grep TEST_VAR`" >&3
     [ -z "${TEST_VAR+x}" ]
     [ "$GWMS_OLDENV_TEST_VAR" = "testvalue" ]
 }
@@ -264,12 +264,12 @@ preset_env() {
     [[ -n "$1" ]] && env_file="$1" || true
     env_sing="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^SINGULARITYENV_ || true)"
     for i in $env_sing ; do
-        #echo "UE unsetting: $i" >&3
+        #echo "ENV Unsetting: $i" >&3
         unset $i
     done
     env_appt="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^APPTAINERENV_ || true)"
     for i in $env_appt ; do
-        #echo "UE unsetting: $i" >&3
+        #echo "ENV Unsetting: $i" >&3
         unset $i
     done
     # on GNU:

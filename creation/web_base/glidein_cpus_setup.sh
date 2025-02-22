@@ -31,7 +31,7 @@ condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
 GLIDEIN_CPUS=$(gconfig_get GLIDEIN_CPUS "$glidein_config")
 GLIDEIN_OVERLOAD_CPUS=$(gconfig_get GLIDEIN_OVERLOAD_CPUS "$glidein_config")
 
-# 3.2.16 Meaning of "auto" chenged from "node" to "slot"
+# 3.2.16 Meaning of "auto" changed from "node" to "slot"
 # node and 0 mean the same thing - detect the hardware resources
 # auto, slot and -1 mean the same thing - detect the slot resources
 if (echo "${GLIDEIN_CPUS}" | grep -i "auto") >/dev/null 2>&1; then
@@ -64,7 +64,7 @@ function detect_cpus_htcondor {
 #
 # Use the bigger number (and flag a warning if are different) between:
 #  PBS_NUM_PPN
-#  the occurences of the host in PBS_NODEFILE
+#  the occurrences of the host in PBS_NODEFILE
 #  and PBS_NP if PBS_NUM_NODES=1
 # This will compensate for misconfiguration and is OK to be optimistic
 

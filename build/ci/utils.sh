@@ -399,7 +399,7 @@ setup_python2_venv() {
         curl -L -o "$WORKSPACE/$VIRTUALENV_TARBALL" "$VIRTUALENV_URL"
         tar xzf "$WORKSPACE/$VIRTUALENV_TARBALL" -C "$WORKSPACE/"
 
-        #if we download the venv tarball everytime we should remake the venv
+        #if we download the venv tarball every time we should remake the venv
         #every time
         rm -rf "$VENV"
         python2 "$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"

@@ -117,8 +117,8 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
                 for util_file in tar_file_list:
                     util_file_path = os.path.join(cgWConsts.WEB_BASE_DIR, util_file)
                     tar_utils.add(util_file_path, arcname=os.path.basename(util_file_path))
-        except tarfile.TarError as te:
-            print2("Unable to pack the startup file payload. TarError: %s" % str(te))
+        except tarfile.TarError as terr:
+            print2("Unable to pack the startup file payload. TarError: %s" % str(terr))
             sys.exit(1)
         # append the tarball to glidein_startup.sh
         try:
@@ -273,10 +273,10 @@ if __name__ == "__main__":
         print2(re)
         exit_code = 1
 
-    except UsageError as ue:
+    except UsageError as uerr:
         print2(usage)
         print("")
-        print2(ue)
+        print2(uerr)
         exit_code = 1
 
     except RuntimeError as e:

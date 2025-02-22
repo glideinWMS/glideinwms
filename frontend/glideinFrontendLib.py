@@ -3,7 +3,7 @@
 
 """
 This module implements the functions needed to keep the
-required number of idle glideins plus other miscelaneous functions
+required number of idle glideins plus other miscellaneous functions
 """
 
 import math
@@ -879,7 +879,7 @@ def getRunningPSlotCondorStatus(status_dict):
     """
     out = {}
     for collector_name in list(status_dict.keys()):
-        # Get p-slot where there is atleast one dynamic slot
+        # Get p-slot where there is at least one dynamic slot
         sq = condorMonitor.SubQuery(
             status_dict[collector_name],
             lambda el: (el.get("PartitionableSlot") and (el.get("TotalSlots", 1) > 1)),

@@ -263,7 +263,7 @@ def _unlock_file():
 
 
 def add_condor_config_var(name, value, kind="C", publish=True, condor_name=None, verbose=True, conf_fname=None):
-    """Write a veriable to the HTCSS variables list (to include it in the HTCSS configuration)
+    """Write a variable to the HTCSS variables list (to include it in the HTCSS configuration)
 
     Args:
         name (str): attribute name
@@ -330,7 +330,7 @@ def add_condor_config_var(name, value, kind="C", publish=True, condor_name=None,
 
 
 def _complete_args(mandatory, args, defaults):
-    """Auxiliary finction to facilitate variable arguments
+    """Auxiliary function to facilitate variable arguments
 
     Args:
         mandatory (int): number of mandatory arguments

@@ -52,7 +52,7 @@ DS_TO_DIE = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie))
 # partitionable slots will get reaped sooner than non-partitionable.
 DS${I}_NOT_PARTITIONABLE = ((PartitionableSlot =!= True) || (TotalSlots =?=1))
 # The daemon shutdown expression for idle startds(glideins) depends on some conditions:
-# If some jobs were sheduled on the startd (JOB) or none at all (NOJOB)
+# If some jobs were scheduled on the startd (JOB) or none at all (NOJOB)
 # If using condor 8.2 or later (NEW) or previous versions (PRE82). JobStarts defined
 # is used to discriminate
 DS${I}_IS_HCCONDOR_NEW = (Slot${I}_JobStarts =!= UNDEFINED)
@@ -64,7 +64,7 @@ DS${I}_IS_HCCONDOR_NEW = (Slot${I}_JobStarts =!= UNDEFINED)
 # partitionable slots will get reaped sooner than non-partitionable.
 DS_NOT_PARTITIONABLE = ((PartitionableSlot =!= True) || (TotalSlots =?=1))
 # The daemon shutdown expression for idle startds(glideins) depends on some conditions:
-# If some jobs were sheduled on the startd (TAIL) or none at all (NOJOB)
+# If some jobs were scheduled on the startd (TAIL) or none at all (NOJOB)
 # If using condor 8.2 or later (NEW) or previous versions (PRE82). JobStarts defined
 # is used to discriminate
 DS_IS_HTCONDOR_NEW = (JobStarts =!= UNDEFINED)

@@ -110,7 +110,7 @@ class BaseRRDSupport:
             return  # nothing to do in this case
 
         # make the start time to be aligned on the rrd_step boundary
-        # This is needed for optimal resoultion selection
+        # This is needed for optimal resolution selection
         start_time = (int(time.time() - 1) / rrd_step) * rrd_step
         # print (rrdfname,start_time,rrd_step)+rrd_ds
         args = [str(rrdfname), "-b", "%li" % start_time, "-s", "%i" % rrd_step]

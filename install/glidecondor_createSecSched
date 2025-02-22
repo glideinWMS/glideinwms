@@ -126,10 +126,10 @@ def add_schedd(schedd, config_fd):
     global create_dirs
     if create_dirs:
         # then run condor_init with the modified environment
-        config_fd.flush()  # let's just make sure we don't have a patial -> invalid file
+        config_fd.flush()  # let's just make sure we don't have a partial -> invalid file
 
         global local_dir, log_dir, schedlog, shadowlog
-        # we must start with the old environemnt
+        # we must start with the old environment
         sp_env_dict = copy.deepcopy(os.environ)
         # and just add the new attributes to it
         for a in env_arr:

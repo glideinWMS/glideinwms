@@ -28,7 +28,7 @@ def main():
         elif sys.argv[1].startswith("-slot"):
             if len(sys.argv) < 4:
                 # Either slotname or log name not provided
-                raise Exception("Insufficent arguments")
+                raise Exception("Insufficient arguments")
             else:
                 fname = sys.argv[len(sys.argv) - 1]
                 slotname = sys.argv[2]
