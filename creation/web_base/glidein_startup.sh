@@ -319,7 +319,7 @@ print_tail() {
 }
 
 ####################################
-# Cleaup, print out message and exit
+# Cleanup, print out message and exit
 # Remove Glidein directories (work_dir, glide_local_tmp_dir)
 # 1 - exit code
 # Using GLIDEIN_DEBUG_OPTIONS, start_dir, work_dir_created, work_dir,
@@ -1376,7 +1376,7 @@ else
 fi
 
 ####################################
-# Cleaup, print out message and exit
+# Cleanup, print out message and exit
 work_dir_created=0
 glide_local_tmp_dir_created=0
 
@@ -1502,7 +1502,7 @@ else
     glidein_uuid="$(od -x -w32 -N32 /dev/urandom | awk 'NR==1{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')"
 fi
 
-# Print initial variables values (argumants and environment)
+# Print initial variables values (arguments and environment)
 startup_time="$(date +%s)"
 echo "Starting glidein_startup.sh at $(date) (${startup_time})"
 

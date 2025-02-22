@@ -312,7 +312,7 @@ USAGE:
     # debug_print_dict(data)
 
     #####################################################################
-    # Organize totals/stats for each period, frontend, and entry independantly
+    # Organize totals/stats for each period, frontend, and entry independently
     ######################################################################
 
     if filter_frontend == 0:

@@ -216,7 +216,7 @@ do_process_branch() {
     local test_outdir="${outfile}.d"
     mkdir -p "${test_outdir}"
     local timeout_cmd=
-    # define the prefix to the command if the timout is set (prefix: 'timeout [--kill-after=HARD_DELAY] DELAY command')
+    # define the prefix to the command if the timeout is set (prefix: 'timeout [--kill-after=HARD_DELAY] DELAY command')
     if [[ -n ${TIMEOUT} ]]; then
         timeout_cmd="$COMPCMD_TIMEOUT --kill-after=${HARD_TIMEOUT_DELAY} ${TIMEOUT}  "
     fi

@@ -70,7 +70,7 @@
 # GLIDEIN_SINGULARITY_OPTS - options after the exec command
 # GLIDEIN_SINGULARITY_GLOBAL_OPTS - singularity options, like debug, silent/verbose, ...
 # NOTE: GLIDEIN_SINGULARITY_OPTS and GLIDEIN_SINGULARITY_GLOBAL_OPTS must be expansion/flattening safe because
-#       is passed as veriable and quoted strings inside it are not preserved
+#       is passed as variable and quoted strings inside it are not preserved
 # Reference documentation for the command and env variables:
 # https://sylabs.io/guides/3.3/user-guide/cli/singularity.html
 # https://sylabs.io/guides/3.3/user-guide/appendix.html
@@ -577,7 +577,7 @@ if [[ -e "$glidein_config" ]]; then    # was: [ -n "$glidein_config" ] && [ "$gl
         condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
         error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
     else
-        # Trying to get these defined even if add_config_line is unavailable (using grep instead ot tac, OK if no duplicate)
+        # Trying to get these defined even if add_config_line is unavailable (using grep instead of tac, OK if no duplicate)
         condor_vars_file=$(grep -m1 '^CONDOR_VARS_FILE ' "$glidein_config" | cut -d ' ' -f 2-)
         error_gen=$(grep -m1 '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)
     fi
@@ -622,7 +622,7 @@ advertise() {
 
 advertise_safe() {
     # Add the attribute to glidein_config (if not NONE) and return the string for the HTC ClassAd
-    # Thos should be used in periodic scripts or wrappers, because it uses add_config_line_safe
+    # This should be used in periodic scripts or wrappers, because it uses add_config_line_safe
     # In:
     #  1 - key
     #  2 - value
@@ -874,7 +874,7 @@ env_preserve() {
     env_options=",$(env_process_options "$1"),"
     local env_preserve=
     local all_condor_set_envvars varname newname envvars_condorset=""
-    # ist of Singularity/Apptainer protected variables
+    # List of Singularity/Apptainer protected variables
     local singenv_condor_set_envvars="" singenv_regex="^SINGULARITYENV_" apptenv_regex="^APPTAINERENV_"
     # Protect GWMS variables all the time the environment is cleared
     env_preserve="$env_preserve $envvars_gwmsset"
@@ -1799,7 +1799,7 @@ EOF
 
 
 singularity_check() {
-    # Check if it is invoked in Singularity and if Singularity is privileged mode ot not
+    # Check if it is invoked in Singularity and if Singularity is privileged mode or not
     # Return true (0) if in Singularity false (1) otherwise
     # Echo to stdout a string with the status:
     # - EMPTY if not in singularity
@@ -2249,7 +2249,7 @@ setup_from_environment() {
             export HAS_SINGULARITY=0
         fi
     fi
-    # TODO: Remove to allow this for toubleshooting purposes?
+    # TODO: Remove to allow this for troubleshooting purposes?
     if [[ "x$GWMS_SINGULARITY_AUTOLOAD" != "x$HAS_SINGULARITY" ]]; then
         warn "Using +SingularityAutoLoad is no longer allowed to change Singularity use. Ignoring."
         export GWMS_SINGULARITY_AUTOLOAD=${HAS_SINGULARITY}
@@ -2343,7 +2343,7 @@ setup_classad_variables() {
             export HAS_SINGULARITY=0
         fi
     fi
-    # TODO: Remove to allow this for toubleshooting purposes?
+    # TODO: Remove to allow this for troubleshooting purposes?
     if [[ "x$GWMS_SINGULARITY_AUTOLOAD" != "x$HAS_SINGULARITY" ]]; then
         warn "Using +SingularityAutoLoad is no longer allowed to change Singularity use. Ignoring."
         export GWMS_SINGULARITY_AUTOLOAD=${HAS_SINGULARITY}

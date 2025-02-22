@@ -62,9 +62,9 @@ parse_and_select_collectors() {
     # The value is a semicolon(;) separated list of comma(,) separated lists
     # Out:
     #   The output is a comma separated list with one element for each csv list separated by semicolon.
-    #   The element is choosen at random between the elements of the comma separated list, using select_collector.
+    #   The element is chosen at random between the elements of the comma separated list, using select_collector.
     #   The output cardinality is the # of semicolon separated lists in input.
-    #   output is '' if no key is fount in glidein_config
+    #   output is '' if no key is found in glidein_config
     # Used for both User collectors and CCBs
     local inattr="$1"
 

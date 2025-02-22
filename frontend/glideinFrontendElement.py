@@ -111,7 +111,7 @@ class glideinFrontendElement:
         self.signatureDescript = glideinFrontendConfig.GroupSignatureDescript(self.work_dir, self.group_name)
         self.attr_dict = glideinFrontendConfig.AttrsDescript(self.work_dir, self.group_name).data
 
-        # Automatically initialze history object data to dictionaries
+        # Automatically initialize history object data to dictionaries
         # PS: The default initialization is not to CounterWrapper, to avoid
         # saving custom classes to disk
         self.history_obj = glideinFrontendConfig.HistoryFile(self.work_dir, self.group_name, True, dict)
@@ -1406,7 +1406,7 @@ class glideinFrontendElement:
 
         elif effective_idle > 0:
             # don't go over the system-wide max
-            # not perfect, given te number of entries, but better than nothing
+            # not perfect, given the number of entries, but better than nothing
             glidein_min_idle = min(
                 effective_idle,
                 self.max_running - count_status["Total"],
@@ -1431,43 +1431,43 @@ class glideinFrontendElement:
 
             # /2 each time you hit a limit, to do an exponential backoff
             if count_status["Idle"] >= self.curb_vms_idle:
-                glidein_min_idle /= 2  # above first treshold, reduce
+                glidein_min_idle /= 2  # above first threshold, reduce
                 limits_triggered["CurbIdleGlideinsPerEntry"] = "count=%i, curb=%i" % (
                     count_status["Idle"],
                     self.curb_vms_idle,
                 )
             if total_glideins >= self.total_curb_glideins:
-                glidein_min_idle /= 2  # above global treshold, reduce further
+                glidein_min_idle /= 2  # above global threshold, reduce further
                 limits_triggered["CurbTotalGlideinsPerGroup"] = "count=%i, curb=%i" % (
                     total_glideins,
                     self.total_curb_glideins,
                 )
             if total_idle_glideins >= self.total_curb_vms_idle:
-                glidein_min_idle /= 2  # above global treshold, reduce further
+                glidein_min_idle /= 2  # above global threshold, reduce further
                 limits_triggered["CurbIdleGlideinsPerGroup"] = "count=%i, curb=%i" % (
                     total_idle_glideins,
                     self.total_curb_vms_idle,
                 )
             if fe_total_glideins >= self.fe_total_curb_glideins:
-                glidein_min_idle /= 2  # above global treshold, reduce further
+                glidein_min_idle /= 2  # above global threshold, reduce further
                 limits_triggered["CurbTotalGlideinsPerFrontend"] = "count=%i, curb=%i" % (
                     fe_total_glideins,
                     self.fe_total_curb_glideins,
                 )
             if fe_total_idle_glideins >= self.fe_total_curb_vms_idle:
-                glidein_min_idle /= 2  # above global treshold, reduce further
+                glidein_min_idle /= 2  # above global threshold, reduce further
                 limits_triggered["CurbIdleGlideinsPerFrontend"] = "count=%i, curb=%i" % (
                     fe_total_idle_glideins,
                     self.fe_total_curb_vms_idle,
                 )
             if global_total_glideins >= self.global_total_curb_glideins:
-                glidein_min_idle /= 2  # above global treshold, reduce further
+                glidein_min_idle /= 2  # above global threshold, reduce further
                 limits_triggered["CurbTotalGlideinsGlobal"] = "count=%i, curb=%i" % (
                     global_total_glideins,
                     self.global_total_curb_glideins,
                 )
             if global_total_idle_glideins >= self.global_total_curb_vms_idle:
-                glidein_min_idle /= 2  # above global treshold, reduce further
+                glidein_min_idle /= 2  # above global threshold, reduce further
                 limits_triggered["CurbIdleGlideinsGlobal"] = "count=%i, curb=%i" % (
                     global_total_idle_glideins,
                     self.global_total_curb_vms_idle,
@@ -2056,9 +2056,9 @@ class glideinFrontendElement:
         # less memory in idle MC slot, there is a possibility that we consider
         # it as an idle resource but non of the jobs would match it.
         # In case of other VOs that require less memory, HTCondor will auto
-        # carve out a slot and there is a chance for over provisioing by a
+        # carve out a slot and there is a chance for over provisioning by a
         # small amount. Over provisioning is by far the worst case than
-        # under provisioing.
+        # under provisioning.
 
         # mc_idle_constraint = '(PartitionableSlot=!=True) || (PartitionableSlot=?=True && cpus > 0 && memory > 2500)'
 

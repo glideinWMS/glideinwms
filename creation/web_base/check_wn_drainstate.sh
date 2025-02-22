@@ -11,18 +11,18 @@
 #   Script to be periodically executed to check if the WN
 #   is in draining mode.
 #
-#   The script implements one of the use case forseen by the
+#   The script implements one of the use case foreseen by the
 #   WLCG Machine / Job Features Task Force :
 #   https://twiki.cern.ch/twiki/bin/view/LCG/MachineJobFeatures
 #
-#   The script check the existance of the shutdowntime_job file
+#   The script check the existence of the shutdowntime_job file
 #   in the $JOBFEATURES directory (or shutdowntime in $MACHINEFEATURES).
 #   If one of the files is present then
 #   a shutdown is scheduled and the script will output
 #   "SiteWMS_WN_Draining = True" so the pilot will stop accepting jobs.
 #   $JOBFEATURES/shutdowntime_job ($MACHINEFEATURES/shutdowntime) could also
 #   be a URL that the script tries to download.
-#   The script also checks the shutdown time contaned in the file and if
+#   The script also checks the shutdown time contained in the file and if
 #   less than 30 minutes are left before it, then it will preempt the job
 #   by setting SiteWMS_WN_Preempt
 #   If one of the two files contains a non numeric value the script will exit
@@ -65,8 +65,8 @@ if [ "$J" == '"Unknown"' ] && [ "$M" == '"Unknown"' ] ; then
 fi
 
 # Get the shutdown time (the lowest number between J and M)
-# We know either J or M contains the timestamp, but one can contain "Unknwown".
-# Replace the "Unknwon" with the other timestamp
+# We know either J or M contains the timestamp, but one can contain "Unknown".
+# Replace the "Unknown" with the other timestamp
 [ "$J" == '"Unknown"' ] && J=$M
 [ "$M" == '"Unknown"' ] && M=$J
 SHTUDOWN_TIME=$M

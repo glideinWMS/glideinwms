@@ -87,8 +87,8 @@ class FakeLogger:
     Super simple logger for the unittests
     """
 
-    def __init__(self, afile=sys.stderr):
-        self.file = afile
+    def __init__(self, in_file=sys.stderr):
+        self.file = in_file
         pass
 
     def debug(self, msg, *args):

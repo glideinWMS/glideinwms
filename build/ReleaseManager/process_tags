@@ -10,7 +10,7 @@ Parameters:
     ACTION: IN_FORMAT2OUT_FORMAT (Default: yaml2txt), 2 is the separator
             Supported IN_FORMAT: yaml, txt
             Supported OUT_FORMAT: yaml, txt, print, dict, history
-    INFILE: inout file name (Default: tags.IN_FORMAT)
+    INFILE: input file name (Default: tags.IN_FORMAT)
     OUTFILE: output file name (Default: tags.OUT_FORMAT)
 
 """

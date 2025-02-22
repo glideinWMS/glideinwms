@@ -156,7 +156,7 @@ Added black hole detection and ability to set jobs minimum memory for resource p
 
 ### Known Issues
 
--   We needed to revert PR #401, "Hardening of HTCondor configuraiton. Restricted authentication to exclude unauthenticated beside anonymous (PR #401)" because it broke authentication for normal functionalities
+-   We needed to revert PR #401, "Hardening of HTCondor configuration. Restricted authentication to exclude unauthenticated beside anonymous (PR #401)" because it broke authentication for normal functionalities
 
 ## v3.10.6 \[2024-01-25\]
 

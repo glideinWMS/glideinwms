@@ -183,7 +183,7 @@ function getRRDName(rrd_fname, group_name, factory_name, frontendStats) {
         var states = getFrontendGroupStates(frontendStats, group_name);
 
         fos_prefix = "factory_";
-        // seach through the array
+        // search through the array
         // quick hack, could be optimized
         for (var state in states) {
             state_name = states[state];

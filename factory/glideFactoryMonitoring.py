@@ -407,15 +407,15 @@ class condorQStats:
 
     def logRequest(self, client_name, requests):
         """
-        requests is a dictinary of requests
-        params is a dictinary of parameters
+        requests is a dictionary of requests
+        params is a dictionary of parameters
 
         At the moment, it looks only for
           'IdleGlideins'
           'MaxGlideins'
 
         Request contains only that (no real cores info)
-        It is eveluated using GLIDEIN_CPUS
+        It is evaluated using GLIDEIN_CPUS
         """
         if client_name in self.data:
             t_el = self.data[client_name]
@@ -997,7 +997,7 @@ class condorLogSummary:
 
         count_jobs_duration = {}
         for enle_jobs_duration_range in getAllTimeRanges():
-            count_jobs_duration[enle_jobs_duration_range] = 0  # make sure all are intialized
+            count_jobs_duration[enle_jobs_duration_range] = 0  # make sure all are initialized
 
         count_total = getLogCompletedDefaults()
 
@@ -1010,7 +1010,7 @@ class condorLogSummary:
         for w in list(count_waste_mill.keys()):
             count_waste_mill_w = count_waste_mill[w]
             for enle_waste_mill_w_range in getAllMillRanges():
-                count_waste_mill_w[enle_waste_mill_w_range] = 0  # make sure all are intialized
+                count_waste_mill_w[enle_waste_mill_w_range] = 0  # make sure all are initialized
         time_waste_mill = {
             "validation": {},
             "idle": {},
@@ -1020,7 +1020,7 @@ class condorLogSummary:
         for w in list(time_waste_mill.keys()):
             time_waste_mill_w = time_waste_mill[w]
             for enle_waste_mill_w_range in getAllMillRanges():
-                time_waste_mill_w[enle_waste_mill_w_range] = 0  # make sure all are intialized
+                time_waste_mill_w[enle_waste_mill_w_range] = 0  # make sure all are initialized
 
         for enle_job in list(entered_list.keys()):
             enle = entered_list[enle_job]
@@ -1242,7 +1242,7 @@ class condorLogSummary:
             # files updated recently, no need to redo it
             return
 
-        # write snaphot file
+        # write snapshot file
         xml_str = (
             '<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'
             + "<glideFactoryEntryLogSummary>\n"
@@ -1405,7 +1405,7 @@ class condorLogSummary:
         monitoringConfig.write_completed_json("completed_data", updated, entry_data)
 
     def write_job_info(self, scheddName, collectorName):
-        """The method itereates over the stats_diff dictionary looking for
+        """The method iterates over the stats_diff dictionary looking for
         completed jobs and then fills out a dictionary that contains the
         monitoring information needed for this job. Those info looks like:
 
@@ -1442,7 +1442,7 @@ class condorLogSummary:
                                 "glidein_duration": jobstats["glidein_duration"],
                                 # condor_duration could be missing if the glidein had problems and condor was not started
                                 # set it to 0
-                                # and ser condor_started to None if missing
+                                # and set condor_started to None if missing
                                 "condor_duration": jobstats.get("condor_duration", 0),
                                 "condor_started": jobstats.get("condor_started", None),
                                 "numjobs": jobstats.get("stats", {}).get("Total", {}).get("jobsnr", "unknown"),
@@ -1486,7 +1486,7 @@ class FactoryStatusData:
         """Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
 
         rrdtool fetch returns 3 tuples: a[0], a[1], & a[2].
-        [0] lists the resolution, start and end time, which can be specified as arugments of fetchData.
+        [0] lists the resolution, start and end time, which can be specified as arguments of fetchData.
         [1] returns the names of the datasets.  These names are listed in the key.
         [2] is a list of tuples. each tuple contains data from every dataset.  There is a tuple for each time data was collected.
         """

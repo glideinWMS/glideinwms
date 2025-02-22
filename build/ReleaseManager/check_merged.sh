@@ -187,7 +187,7 @@ if [[ -n "$VER_ONLYBRANCH" ]]; then
             # an existing branch (these are coming from branch -al) should never be w/o reference
             [[ -z "$merge_source_current_commit" ]] && echo "ERROR: branch $j is empty!"
             if [[ "$merge_base" != "$merge_source_current_commit" ]]; then
-                # j is not merged in RELEASE_BRANCH (at leas not the current tip)
+                # j is not merged in RELEASE_BRANCH (at least not the current tip)
                 separator="$separator (NC)"
                 nocontain=true
                 VER_NOCONTAIN_BRANCH="$VER_NOCONTAIN_BRANCH $j"

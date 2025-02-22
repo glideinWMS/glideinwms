@@ -167,7 +167,7 @@ do_process_branch() {
         [[ ${tmp_exit_code} -gt ${exit_code} ]] && exit_code=${tmp_exit_code}
 
         # tmp_out_file="${test_outdir}/$(basename "${file%.*}").txt"
-	    # To accomodate the flat list of files in CI the dir name is in the file name
+	    # To accommodate the flat list of files in CI the dir name is in the file name
 	    tmp_out_file="${test_outdir}/$(basename ${test_outdir}).$(basename "${file%.*}").txt"
         [[ -e "$tmp_out_file" ]] && logwarn "duplicate file name, overwriting tests results: $tmp_out_file"
         echo "$tmp_out" > "${tmp_out_file}"

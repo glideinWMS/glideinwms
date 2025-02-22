@@ -16,7 +16,7 @@
 # glidein_config is a key-value file
 # each line is a key (case sensitive ID name), a space, and a value (rest of the line)
 # if there are multiple lines w/ the same key, the last one counts
-# ecah linke can be max 4K
+# each line can be max 4K
 GWSM_CONFIG_LINE_MAX=4k
 # Number of seconds before forcing unlock if the owner process is not there
 UNLOCK_TIMEOUT=60

@@ -311,7 +311,7 @@ SPDX-License-Identifier: Apache-2.0
           }
         }
         if (row == statusEntries.length) return;
-        entry = statusEntries[row]; /* RETREIVE CURR ENTRY */
+        entry = statusEntries[row]; /* RETRIEVE CURR ENTRY */
         /* CLEAN UP THE PREVIOUS POP UP TABLE*/
         hoverse = document.getElementById("hoverpopupsubentries");
         while (hoverse.firstChild) {
@@ -382,7 +382,7 @@ SPDX-License-Identifier: Apache-2.0
           totalEntries = tempTotalEntries;
         }
 
-        entry = totalEntries[row - 1]; /* RETREIVE CURR ENTRY */
+        entry = totalEntries[row - 1]; /* RETRIEVE CURR ENTRY */
 
         /* SET UP POP UP BODY */
         frontEndTable = document.createElement("table");
@@ -490,7 +490,7 @@ SPDX-License-Identifier: Apache-2.0
         unsortedFE = new Array();
         sortedFE = new Array();
 
-        /* FILL ARRY WITH ENTRIES FE's */
+        /* FILL ARRAY WITH ENTRIES FE's */
         for (i = 1; i < numFE; i += 2) unsortedFE.push(ends.childNodes[i]);
 
         /* SORT ENTRIES FE ORDER TO BE CONSISTENT (DROP DOWN LIST ORDER) */
@@ -845,7 +845,7 @@ SPDX-License-Identifier: Apache-2.0
         ends =
           tempTotalEntries[row].childNodes[
             feChild
-          ]; /* The front ends the specifed entry has. */
+          ]; /* The front ends the specified entry has. */
         unsortedFE = new Array();
         sortedFE = new Array();
 
@@ -1130,7 +1130,7 @@ SPDX-License-Identifier: Apache-2.0
           totalP = totalPMaster;
           numberRows = totalEntries.length;
 
-          /* ACIVE? */
+          /* ACTIVE? */
           if (active) {
             active = 0;
             friend = troubleshoot;
@@ -1882,7 +1882,7 @@ SPDX-License-Identifier: Apache-2.0
         for (i = 0; i < numberRows; i++) {
           y = totalEntries[i].getAttribute("name");
           display_y = y;
-          /* IF NAME DOESNT FIT */
+          /* IF NAME DOES NOT FIT */
           if (y.length >= 32) {
             display_y = y.substring(0, 27);
             display_y = display_y + "...";
@@ -2888,7 +2888,7 @@ SPDX-License-Identifier: Apache-2.0
         if (sortColNum == -2) return; /* INCOMPATIBLE COL */
 
         /* COLOR SELECTED COLS */
-        /* TODO: use colSpanArry or	hArry3 or lenghs like (1, 1, 1,xmlAttStatNumArry.length, xmlAttReqNumArry.length, xmlAttCMNumArry.length) */
+        /* TODO: use colSpanArry or	hArry3 or lengths like (1, 1, 1,xmlAttStatNumArry.length, xmlAttReqNumArry.length, xmlAttCMNumArry.length) */
         for (i = 0; i < totalEntries.length; i++) {
           if (sortColNum > 0 && sortColNum < columnArrayDesc.Req.offset) {
             table.rows[i].cells[sortColNum].bgColor = "#FAF0E6";
@@ -3143,7 +3143,7 @@ SPDX-License-Identifier: Apache-2.0
           }
         }
 
-        /* MAKE SURE ENTRIE COL IS NOT ALL 0's */
+        /* MAKE SURE ENTRIES COL IS NOT ALL 0's */
         for (i = 0; i < newTotal.length; i++) {
           if (
             newTotal[i].childNodes.length != 0 &&
@@ -4244,7 +4244,7 @@ SPDX-License-Identifier: Apache-2.0
               troubleshooting();
               sorted = hold;
             } else {
-              /* RESTORE TR + PEIROD VIEW */
+              /* RESTORE TR + PERIOD VIEW */
               prTr = 0;
               temp = sorted;
               sorted = 0;
@@ -4313,7 +4313,7 @@ SPDX-License-Identifier: Apache-2.0
                 troubleshooting();
                 sorted = friend;
               } else {
-                /* RESTORE TR + PEIROD VIEW */
+                /* RESTORE TR + PERIOD VIEW */
                 prTr = 0;
                 friend = sorted;
                 sorted = 0;
@@ -4343,7 +4343,7 @@ SPDX-License-Identifier: Apache-2.0
                 troubleshooting();
                 sorted = friend;
               } else {
-                /* RESTORE TR + PEIROD VIEW */
+                /* RESTORE TR + PERIOD VIEW */
                 prTr = 0;
                 friend = sorted;
                 sorted = 0;
@@ -4476,7 +4476,7 @@ SPDX-License-Identifier: Apache-2.0
               troubleshooting();
               sorted = friend;
             } else {
-              /* RESTORE TR + PEIROD VIEW */
+              /* RESTORE TR + PERIOD VIEW */
               prTr = 0;
               friend = sorted;
               sorted = 0;
@@ -4591,7 +4591,7 @@ SPDX-License-Identifier: Apache-2.0
           document.getElementById("scroll").appendChild(table);
           document.getElementById("header").appendChild(thead);
 
-          /* RESTORE TROUBESHOOTING VIEW */
+          /* RESTORE TROUBLESHOOTING VIEW */
           if (troubleshoot) {
             troubleshoot = 0;
             troubleshooting();
@@ -5131,7 +5131,7 @@ SPDX-License-Identifier: Apache-2.0
         }
 
         /*
-         *  SET UP EVERYTHING TO BUIILD PERIOD VIEW-------------------------------------------------------------
+         *  SET UP EVERYTHING TO BUILD PERIOD VIEW-------------------------------------------------------------
          */
 
         periodV = 1;

@@ -99,7 +99,7 @@ class Entry:
         except Exception:
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             self.log.warning(
-                "Exception occured while trying to retrieve the glideinwms version. See debug log for more details."
+                "Exception occurred while trying to retrieve the glideinwms version. See debug log for more details."
             )
             self.log.debug("Exception occurred while trying to retrieve the glideinwms version: %s" % tb)
 
@@ -159,7 +159,7 @@ class Entry:
 
         self.glideinTotals = None
 
-        # Load intial context for whitelist and downtimes
+        # Load initial context for whitelist and downtimes
         self.loadWhitelist()
         self.loadDowntimes()
 
@@ -169,7 +169,7 @@ class Entry:
     def loadContext(self):
         """
         Load context for this entry object so monitoring and logs are
-        writen correctly. This should be called in every method for now.
+        written correctly. This should be called in every method for now.
         """
 
         glideFactoryMonitoring.monitoringConfig = self.monitoringConfig
@@ -312,7 +312,7 @@ class Entry:
 
     def initIteration(self, factory_in_downtime):
         """
-        Perform the reseting of stats as required before every iteration
+        Perform the resetting of stats as required before every iteration
 
         @type factory_in_downtime: boolean
         @param factory_in_downtime: Downtime flag for the factory
@@ -324,7 +324,7 @@ class Entry:
 
         self.gflFactoryConfig.log_stats.reset()
 
-        # This one is used for stats advertized in the ClassAd
+        # This one is used for stats advertised in the ClassAd
         self.gflFactoryConfig.client_stats = glideFactoryMonitoring.condorQStats(
             log=self.log, cores=self.getGlideinExpectedCores()
         )
@@ -803,7 +803,7 @@ class Entry:
 
     def getState(self):
         """
-        Compile a dictionary containt useful state information
+        Compile a dictionary containing useful state information
 
         @rtype: dict
         @return: Useful state information that can be pickled and restored
@@ -1108,7 +1108,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         glideFactoryLib.sanitizeGlideins(condorQ, log=entry.log)
 
     # This is the only place where rrd_stats.getData(), updating RRD as side effect, is called for clients;
-    # totals are updated aslo elsewhere
+    # totals are updated also elsewhere
     # i.e. RRD stats and the content of XML files are not updated for clients w/o work requests
     # TODO: #22163, should this change and rrd_stats.getData() be called for all clients anyway?
     #  if yes, How to get security names tuples (client_security_name, credential_security_class)? - mmb

@@ -302,7 +302,7 @@ SPDX-License-Identifier: Apache-2.0
             }
           }
         }
-        /* BUILD MASTER ARRY OF FE's */
+        /* BUILD MASTER ARRAY OF FE's */
         for (y = 0; y < feArry.length; y++) {
           for (
             x = 1;
@@ -902,7 +902,7 @@ SPDX-License-Identifier: Apache-2.0
           }
           return;
         }
-        makeFEArray(); /* FILL ARRY WITH THE CURR ENTRIES FE's */
+        makeFEArray(); /* FILL ARRAY WITH THE CURR ENTRIES FE's */
 
         /* OPTION CHANGE */
         if (table && preOption != noOption) {
@@ -1363,7 +1363,7 @@ SPDX-License-Identifier: Apache-2.0
       /* FILL TOTAL INFO TABLE */
       function fillTotInfoTable() {
         rows = new Array(2, 3, 4, 5, 7, 8, 9, 11, 13, 15);
-        arry = new Array(6, 8, 10, 12, 14);
+        arr_y = new Array(6, 8, 10, 12, 14);
         prChild = new Array(3, 5, 1);
         start = 1;
         br = 2;
@@ -1536,7 +1536,7 @@ SPDX-License-Identifier: Apache-2.0
       /* FILL IN FE TABLES */
       function fillInFeTable() {
         rows = new Array(2, 3, 4, 5, 7, 8, 9, 11, 13, 15);
-        arry = new Array(6, 8, 10, 12, 14);
+        arr_y = new Array(6, 8, 10, 12, 14);
         prChild = new Array(3, 5, 1);
         if (periodV) DISPLACE = 5;
         else DISPLACE = 2;
@@ -1711,7 +1711,7 @@ SPDX-License-Identifier: Apache-2.0
         if (feArryMaster.length == 0) {
           return;
         } /* NO FE's */
-        arry = new Array(6, 8, 10, 12, 14);
+        arr_y = new Array(6, 8, 10, 12, 14);
 
         if (periodV)
           feRowTwoTxt = new Array(
@@ -1814,7 +1814,7 @@ SPDX-License-Identifier: Apache-2.0
             feRow[x].appendChild(feCell[j]);
             feTBody[i].appendChild(feRow[x]);
             feTable[i].appendChild(feTBody[i]);
-            indexFE = arry[i];
+            indexFE = arr_y[i];
 
             if ((j + 1) % feRowTwoTxt.length == 0) {
               x++;
@@ -1829,7 +1829,7 @@ SPDX-License-Identifier: Apache-2.0
           feRow[x].setAttribute("id", "brick");
           feTBody[i].appendChild(feRow[x]);
           feTable[i].appendChild(feTBody[i]);
-          indexFE = arry[i];
+          indexFE = arr_y[i];
           x++;
           feRow[x] = document.createElement("tr");
 
@@ -1854,7 +1854,7 @@ SPDX-License-Identifier: Apache-2.0
             feRow[x].appendChild(feCell[j + k]);
             feTBody[i].appendChild(feRow[x]);
             feTable[i].appendChild(feTBody[i]);
-            indexFE = arry[i];
+            indexFE = arr_y[i];
 
             if ((j + k + 1) % feRowTwoTxt.length == 0) {
               x++;
@@ -1869,7 +1869,7 @@ SPDX-License-Identifier: Apache-2.0
           feRow[x].setAttribute("id", "brick");
           feTBody[i].appendChild(feRow[x]);
           feTable[i].appendChild(feTBody[i]);
-          indexFE = arry[i];
+          indexFE = arr_y[i];
 
           x++;
           feRow[x] = document.createElement("tr");
@@ -1908,7 +1908,7 @@ SPDX-License-Identifier: Apache-2.0
           feRow[x].setAttribute("id", "brick");
           feTBody[i].appendChild(feRow[x]);
           feTable[i].appendChild(feTBody[i]);
-          indexFE = arry[i];
+          indexFE = arr_y[i];
 
           x++;
           feRow[x] = document.createElement("tr");
@@ -1934,7 +1934,7 @@ SPDX-License-Identifier: Apache-2.0
             feRow[x].appendChild(feCell[j + k + l + m]);
             feTBody[i].appendChild(feRow[x]);
             feTable[i].appendChild(feTBody[i]);
-            indexFE = arry[i];
+            indexFE = arr_y[i];
             if ((j + k + l + m + 1) % feRowTwoTxt.length == 0) {
               x++;
               feRow[x] = document.createElement("tr");
@@ -1948,7 +1948,7 @@ SPDX-License-Identifier: Apache-2.0
           feRow[x].setAttribute("id", "brick");
           feTBody[i].appendChild(feRow[x]);
           feTable[i].appendChild(feTBody[i]);
-          indexFE = arry[i];
+          indexFE = arr_y[i];
           x++;
           feRow[x] = document.createElement("tr");
 
@@ -1976,7 +1976,7 @@ SPDX-License-Identifier: Apache-2.0
             feRow[x].appendChild(feCell[j + k + l + m + n]);
             feTBody[i].appendChild(feRow[x]);
             feTable[i].appendChild(feTBody[i]);
-            indexFE = arry[i];
+            indexFE = arr_y[i];
             if ((j + k + l + m + n + 1) % feRowTwoTxt.length == 0) {
               x++;
               feRow[x] = document.createElement("tr");
@@ -2048,7 +2048,7 @@ SPDX-License-Identifier: Apache-2.0
             y++;
           }
           paramTable[i].appendChild(paramBody[i]);
-          indexFE = arry[i] + 1;
+          indexFE = arr_y[i] + 1;
 
           document
             .getElementsByTagName("div")

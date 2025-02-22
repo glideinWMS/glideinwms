@@ -525,7 +525,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data, factoryC
         return fname
 
     #
-    # proxy changed, neeed to update
+    # proxy changed, need to update
     #
 
     # remove any previous backup file
@@ -802,8 +802,8 @@ def keepIdleGlideins(
         log.warning("%s" % e)
         return 0  # something is wrong... assume 0 and exit
     except Exception:
-        log.warning("Unexpected error submiting glideins")
-        log.exception("Unexpected error submiting glideins")
+        log.warning("Unexpected error submitting glideins")
+        log.exception("Unexpected error submitting glideins")
         return 0  # something is wrong... assume 0 and exit
 
     return 0
@@ -1094,7 +1094,7 @@ def logStats(
 
     Args:
         condorq: condorQ object, containing a list of all jobs of the schedd (.data) for the entry invoking this
-        client_int_name: client name (from the requestor/Frontend)
+        client_int_name: client name (from the requester/Frontend)
         client_security_name: security name used by the client
         proxy_security_class: credential security class used by the client
         log: to log errors/info/...
@@ -1359,7 +1359,7 @@ def extractHeldSimple(q, factoryConfig=None):
     """All Held Glideins: JobStatus == 5
 
         q: dictionary of Glideins from condor_q
-        factoryConfig (FactoryConfig): Factory configuartion (NOT USED, for interface)
+        factoryConfig (FactoryConfig): Factory configuration (NOT USED, for interface)
 
     Returns:
         dict: dictionary of Held Glideins from condor_q
@@ -1375,7 +1375,7 @@ def extractIdleSimple(q, factoryConfig=None):
     """All Idle Glideins: JobStatus == 1
 
         q: dictionary of Glideins from condor_q
-        factoryConfig (FactoryConfig): Factory configuartion (NOT USED, for interface)
+        factoryConfig (FactoryConfig): Factory configuration (NOT USED, for interface)
 
     Returns:
         dict: dictionary of Idle Glideins from condor_q
@@ -1393,7 +1393,7 @@ def extractIdleUnsubmitted(q, factoryConfig=None):
     hash_status 1xxx implies JobStatus 1
 
         q: dictionary of Glideins from condor_q
-        factoryConfig (FactoryConfig): Factory configuartion (NOT USED, for interface)
+        factoryConfig (FactoryConfig): Factory configuration (NOT USED, for interface)
 
     Returns:
         dict: dictionary of Idle not Submitted Glideins from condor_q
@@ -1411,7 +1411,7 @@ def extractIdleQueued(q, factoryConfig=None):
 
     Args:
         q: dictionary of Glideins from condor_q
-        factoryConfig (FactoryConfig): Factory configuartion (NOT USED, for interface)
+        factoryConfig (FactoryConfig): Factory configuration (NOT USED, for interface)
 
     Returns:
         dict: dictionary of Idle and Submitted Glideins from condor_q
@@ -1426,7 +1426,7 @@ def extractNonRunSimple(q, factoryConfig=None):
     """All NOT Running Glideins: JobStatus != 2
 
         q: dictionary of Glideins from condor_q
-        factoryConfig (FactoryConfig): Factory configuartion (NOT USED, for interface)
+        factoryConfig (FactoryConfig): Factory configuration (NOT USED, for interface)
 
     Returns:
         dict: dictionary of Not Running Glideins from condor_q
@@ -1441,7 +1441,7 @@ def extractRunSimple(q, factoryConfig=None):
     """All Running Glideins: JobStatus == 2
 
         q: dictionary of Glideins from condor_q
-        factoryConfig (FactoryConfig): Factory configuartion (NOT USED, for interface)
+        factoryConfig (FactoryConfig): Factory configuration (NOT USED, for interface)
 
     Returns:
         dict: dictionary of Running Glideins from condor_q
@@ -1892,7 +1892,7 @@ def get_submit_environment(
         exe_env.append("ENTRY_DESCRIPT=%s" % entry_descript)
         exe_env.append("ENTRY_SIGN=%s" % entry_sign)
 
-        # Specify how the slots should be layed out
+        # Specify how the slots layout should be
         slots_layout = jobDescript.data["SubmitSlotsLayout"]
         # Build the glidein pilot arguments
         glidein_arguments = str(
@@ -1930,7 +1930,7 @@ def get_submit_environment(
             # TODO: username, should this be only for batch or all key pair + username/password?
             try:
                 # is always there and not empty for batch (is optional w/ Key pair or Username/password
-                # otherways could not be there (KeyError), be empty (AttributeError), bad format (IndexError)
+                # otherwise could not be there (KeyError), be empty (AttributeError), bad format (IndexError)
                 remote_username = submit_credentials.identity_credentials["RemoteUsername"]
                 if remote_username:
                     exe_env.append("GLIDEIN_REMOTE_USERNAME=%s" % remote_username)

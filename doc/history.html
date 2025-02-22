@@ -800,7 +800,9 @@ SPDX-License-Identifier: Apache-2.0
                 Bug fix: Adjust size of ClusterId and ProcessId fields for the
                 condor_q custom format
               </li>
-              <li>Bug fix: Total of frontend info is 0 in Factory monitring</li>
+              <li>
+                Bug fix: Total of frontend info is 0 in Factory monitoring
+              </li>
             </ul>
           </li>
           <li>
@@ -946,7 +948,7 @@ SPDX-License-Identifier: Apache-2.0
               <li>Add a bind mount for /etc/localtime in Singularity</li>
               <li>
                 Bug fix: Strings evaluated as boolean (New error preventing the
-                Frontend fo match jobs)
+                Frontend to match jobs)
               </li>
             </ul>
           </li>
@@ -984,7 +986,7 @@ SPDX-License-Identifier: Apache-2.0
                 periodically
               </li>
               <li>Bug fix: Glidein not killing condor processes</li>
-              <li>Bug fix: Error preventing the Frontend fo match jobs</li>
+              <li>Bug fix: Error preventing the Frontend to match jobs</li>
               <li>Bug fix: Make sure metasite limits are respected</li>
               <li>
                 Bug fix: Convert per/frontend limits to integers before division
@@ -1057,11 +1059,11 @@ SPDX-License-Identifier: Apache-2.0
               <li>Bug fix: Frontend not recognizing entries in downtime</li>
               <li>
                 Bug fix: Pylint tests improved (htcondor setup, remove external
-                lins)
+                lines)
               </li>
               <li>
                 NOTE: If you update from 3.4 or earlier make sure to have open
-                port 9618 also on standalone Frontends/subit hosts (was using
+                port 9618 also on standalone Frontends/submit hosts (was using
                 9615 before)
               </li>
             </ul>
@@ -1177,7 +1179,7 @@ SPDX-License-Identifier: Apache-2.0
                 frontend
               </li>
               <li>
-                NOTE: The type of the GLIDEIN_CPU attr is String (to accomodate
+                NOTE: The type of the GLIDEIN_CPU attr is String (to accommodate
                 the keywords auto, slot, node). Documentation was reporting Int
                 incorrectly. Make sure your configuration uses the correct type
                 or you may get a reconfig/upgrade error.
@@ -1526,7 +1528,7 @@ SPDX-License-Identifier: Apache-2.0
               </li>
 
               <li>
-                Bug Fix: Frontend is now more resilent to transient errors
+                Bug Fix: Frontend is now more resilient to transient errors
                 communicating with the HTCondor daemons
               </li>
 
@@ -1683,7 +1685,7 @@ SPDX-License-Identifier: Apache-2.0
               </li>
 
               <li>
-                Various limits configred in the factory and frontend are now
+                Various limits configured in the factory and frontend are now
                 advertised in the respective classads
               </li>
 
@@ -1850,7 +1852,7 @@ SPDX-License-Identifier: Apache-2.0
 
               <li>
                 Bug Fix: Fixed a bug where CCB_ADDRESS configuration for the
-                glidein was not created correclty under certain conditions
+                glidein was not created correctly under certain conditions
               </li>
 
               <li>
@@ -2031,8 +2033,8 @@ SPDX-License-Identifier: Apache-2.0
               </li>
 
               <li>
-                Bug Fix: Removed obsolute defult requirement for vanilla jobs in
-                user schedd's config file
+                Bug Fix: Removed absolute default requirement for vanilla jobs
+                in user schedd's config file
               </li>
 
               <li>
@@ -2103,7 +2105,7 @@ SPDX-License-Identifier: Apache-2.0
               </li>
 
               <li>
-                Bug Fix: Fixed issue where work dir and vesioning in frontend
+                Bug Fix: Fixed issue where work dir and versioning in frontend
                 config would break the config in case of frontend rpms
               </li>
 
@@ -2343,7 +2345,7 @@ SPDX-License-Identifier: Apache-2.0
               </li>
 
               <li>
-                Bug Fix: Frontend RPM now corectly creates frontend.xml config
+                Bug Fix: Frontend RPM now correctly creates frontend.xml config
                 with default trust_domain='grid' for the credentials
               </li>
 
@@ -2375,7 +2377,7 @@ SPDX-License-Identifier: Apache-2.0
 
               <li>Factory monitoring now aggregates Log RRDs</li>
               <li>Frontend can now limit total idle glideins</li>
-              <li>Added limits to globaly total idle glideins</li>
+              <li>Added limits to globally total idle glideins</li>
               <li>Added badput summary line in the factory report</li>
               <li>Improved documentation</li>
               <li>
@@ -2401,7 +2403,7 @@ SPDX-License-Identifier: Apache-2.0
               </li>
               <li>
                 Bug Fix: GLIDEIN_Glexec_Use when defined in the group now
-                correctly overriddes the value defined in global scope
+                correctly overrides the value defined in global scope
               </li>
             </ul>
           </li>
@@ -2793,7 +2795,7 @@ SPDX-License-Identifier: Apache-2.0
               <li>Special handling of multiline condor config values</li>
               <li>Advertise CONTAINERSW_ variables</li>
               <li>
-                Bug fix: Fixes an issue causing SciTokens transfered to the
+                Bug fix: Fixes an issue causing SciTokens transferred to the
                 factory to be corrupted
               </li>
               <li>
@@ -2840,7 +2842,7 @@ SPDX-License-Identifier: Apache-2.0
                 Bug fix: Updates libraries for compatibility with PyYAML 6.0
               </li>
               <li>
-                Bug fix: Fixes a sring encoding issue affecting the cat log
+                Bug fix: Fixes a string encoding issue affecting the cat log
                 scripts
               </li>
               <li>Bug fix: Fixes AWS/Google metadata encoding error</li>
@@ -2917,7 +2919,7 @@ SPDX-License-Identifier: Apache-2.0
                 Fix section
               </li>
               <li>
-                Bug fix: custom disctionaries with __getattr__ in the creation
+                Bug fix: custom dictionaries with __getattr__ in the creation
                 package (an infinite loop was masked in Python 2)
               </li>
               <li>Bug fix: str vs bytes, especially in crypto libraries</li>
@@ -2956,7 +2958,7 @@ SPDX-License-Identifier: Apache-2.0
                 transition
               </li>
               <li>
-                Bug fix: Fixes an issue causing SciTokens transfered to the
+                Bug fix: Fixes an issue causing SciTokens transferred to the
                 factory to be corrupted
               </li>
               <li>
@@ -3155,7 +3157,7 @@ SPDX-License-Identifier: Apache-2.0
               </li>
               <li>
                 OSG_autoconf protection added to prevent failures when CE
-                dissapears from OSG Collector
+                disappears from OSG Collector
               </li>
               <li>
                 Bug fix: Frontend no longer over-generates tokens for entries
@@ -3427,7 +3429,7 @@ SPDX-License-Identifier: Apache-2.0
 
               <li>
                 Bug Fix: Fixed a bug where glidein would not parse some of its
-                configuration variables corectly
+                configuration variables correctly
               </li>
 
               <li>
@@ -3462,7 +3464,7 @@ SPDX-License-Identifier: Apache-2.0
               </li>
               <li>Change to max job limits to reflect more accurate names</li>
               <li>
-                Add attr_dict in the environemnt of the frontend match_expr
+                Add attr_dict in the environment of the frontend match_expr
               </li>
               <li>New feature: The start_expr is now a native part of match</li>
               <li>Improved logging using standard Python logging APIs</li>
@@ -3572,7 +3574,7 @@ SPDX-License-Identifier: Apache-2.0
               </li>
               <li>
                 Bug Fix: Fixed a bug where frontend would crash if the some of
-                the internal files were trucated to zero length.
+                the internal files were truncated to zero length.
               </li>
 
               <li>
@@ -3998,7 +4000,7 @@ ml"
                 Bug Fix: Fixed a bug where frontend would not stop cleanly
               </li>
               <li>
-                Bug Fix: Factory doesnot depend on the X509_CERT_DIR in the
+                Bug Fix: Factory does not depend on the X509_CERT_DIR in the
                 environment
               </li>
             </ul>
@@ -4146,7 +4148,7 @@ ml"
 
               <li>Improved documentation</li>
               <li>Enable Match Authentication configuration by default</li>
-              <li>Made quering of schedds efficient where ever possible.</li>
+              <li>Made querying of schedds efficient where ever possible.</li>
               <li>
                 Add autocomplete/search to table in
                 frontendGroupGraphStatusNow.html
@@ -4192,7 +4194,7 @@ ml"
               </li>
 
               <li>
-                Bug Fix: Frontend does better error reporting when quering user
+                Bug Fix: Frontend does better error reporting when querying user
                 pool or the schedd fails
               </li>
 
@@ -4280,7 +4282,7 @@ ml"
                 Default GLEXEC_JOB = True when GLEXEC_BIN is set to use glexec
               </li>
               <li>
-                Factory can now resue old public key after startup to decrypt
+                Factory can now reuse old public key after startup to decrypt
                 frontend requests. Grace time for old public key is
                 configurable.
               </li>
@@ -4414,7 +4416,7 @@ ml"
                 up and shutsdown
               </li>
               <li>Improvements to the monitoring</li>
-              <li>Improvements to documentaion</li>
+              <li>Improvements to documentation</li>
               <li>Add support for use of TCP in condor_advertise</li>
               <li>
                 Add support for condor_advertise -multiple (requires Condor
@@ -4478,7 +4480,7 @@ ml"
               <li>Allow factory to startup from any directory</li>
               <li>
                 Python scripts get the python from /usr/bin/env python instead
-                of /bin/env python making them more portable accross different
+                of /bin/env python making them more portable across different
                 linux distros
               </li>
 
@@ -4561,7 +4563,7 @@ ml"
               <li>BUG FIX: Returning invalid variable during proxy creation</li>
               <li>
                 <b>KNOWN ISSUE:</b> Running glideinWMS v2_4_1 with Condor 7.5.3
-                has not been tested. Altough, most of the things may work,
+                has not been tested. Although, most of the things may work,
                 security changes in Condor may affect your installation.
               </li>
               <li>
@@ -4592,7 +4594,7 @@ ml"
               </li>
               <li>Frontend now dynalically creates GLIDEIN_Collector.</li>
               <li>Frontend now requires Match authentication.</li>
-              <li>Add frontend autentication info to the factory config.</li>
+              <li>Add frontend authentication info to the factory config.</li>
               <li>
                 Add support for different frontend identities in different WMS
                 collectors.
@@ -4673,7 +4675,7 @@ ml"
               <li>
                 Attempt to restart a crashed entry few times before shutting
                 down the factory. Restarting is allowed for max restart_attempts
-                in time interval restart_interval sec in te factory.
+                in time interval restart_interval sec in the factory.
               </li>
               <li>Add vacuum option to manageDowntimes.</li>
               <li>
@@ -4685,7 +4687,7 @@ ml"
               </li>
               <li>More protections in place.</li>
               <li>
-                Fixed a security bug in key handling. BREAKES BACKWARDS
+                Fixed a security bug in key handling. BREAKS BACKWARDS
                 COMPATIBILITY! But it is needed.
               </li>
               <li>
@@ -4729,11 +4731,11 @@ ml"
             <ul>
               <li>
                 Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in
-                glideins classds. This was preventing psuedo interactive
+                glideins classds. This was preventing pseudo interactive
                 monitoring to work in case of GLEXEC.
               </li>
               <li>Made VDT optional.</li>
-              <li>Addedd support for VDT 2.0, and made it the default.</li>
+              <li>Added support for VDT 2.0, and made it the default.</li>
               <li>
                 Added Globus-Client and Myproxy-Client in the minimal VDT
                 install.
@@ -4917,7 +4919,7 @@ ml"
               <li>Better formatting of error logs for factory and frontend</li>
               <li>
                 Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in
-                glideins classds. This was preventing psuedo interactive
+                glideins classds. This was preventing pseudo interactive
                 monitoring to work in case of GLEXEC
               </li>
 
@@ -5168,7 +5170,7 @@ ml"
               <li>
                 Improved pseudo-interactive monitoring
                 <ul>
-                  <li>By default use a separate startd for montoring</li>
+                  <li>By default use a separate startd for monitoring</li>
                   <li>
                     Old multi-VM mode can be enabled by
                     <a
@@ -5244,7 +5246,7 @@ ml"
             Improvements list:
             <ul>
               <li>
-                Factory and frontend now gets sleep and advertize attr from
+                Factory and frontend now gets sleep and advertise attr from
                 config.
               </li>
               <li>
@@ -5372,7 +5374,7 @@ ml"
 
             <b
               >WARNING: Security configuration has been overhauled to fix the
-              security issues of the provious verisons.<br />
+              security issues of the provious versions.<br />
               Please reinstall (or at least reconfigure) your Condor
               installation.</b
             >
@@ -5436,7 +5438,7 @@ ml"
             <ul>
               <li>Add support for multiple schedds</li>
               <li>Add initial support for pseudo interactive monitoring</li>
-              <li>Inproved Web monitoring</li>
+              <li>Improved Web monitoring</li>
               <li>Better documentation</li>
             </ul>
 

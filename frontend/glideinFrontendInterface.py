@@ -123,16 +123,16 @@ class MultiExeError(condorExe.ExeError):
 #
 ############################################################
 
-# Advertize counter for glideclient
+# Advertise counter for glideclient
 advertizeGCCounter = {}
 
-# Advertize counter for glideclientglobal
+# Advertise counter for glideclientglobal
 advertizeGCGounter = {}
 
-# Advertize counter for glideresource
+# Advertise counter for glideresource
 advertizeGRCounter = {}
 
-# Advertize counter for glidefrontendmonitor
+# Advertise counter for glidefrontendmonitor
 advertizeGFMCounter = {}
 
 
@@ -290,7 +290,7 @@ class Credential:
     def __init__(self, proxy_id, proxy_fname, elementDescript):
         self.req_idle = 0
         self.req_max_run = 0
-        self.advertize = False
+        self.advertise = False
 
         # TODO: refcredential - all these attributes names should not start w/ proxy and the dict names should
         #       be CredentialSomething, not ProxySomething
@@ -379,7 +379,7 @@ class Credential:
                 condorExe.iexe_cmd(self.creation_script)
             except Exception:
                 logSupport.log.exception("Creating credential using %s failed" % (self.creation_script))
-                self.advertize = False
+                self.advertise = False
 
             # Recreating the credential can result in ID change
             self._id = self.file_id(self.getIdFilename())
@@ -409,7 +409,7 @@ class Credential:
                 cred_data = data_fd.read()
         except Exception:
             # This credential should not be advertised
-            self.advertize = False
+            self.advertise = False
             logSupport.log.exception("Failed to read credential %s: " % cred_file)
         return cred_data
 
@@ -495,7 +495,7 @@ class Credential:
         return output
 
 
-# PM: Credential.getId() should be much faster way of geting the Id
+# PM: Credential.getId() should be much faster way of getting the Id
 #     Maybe CredentialCache is now obsolete? Can we get rid of it?
 
 
@@ -743,7 +743,7 @@ class AdvertizeParams:
         return output
 
 
-# Given a file, advertize
+# Given a file, advertise
 # Can throw a CondorExe/ExeError exception
 def advertizeWorkFromFile(factory_pool, fname, remove_file=True, is_multi=False):
     try:
@@ -844,7 +844,7 @@ class MultiAdvertizeWork:
 
         for i in range(nr_credentials):
             cred_el = self.x509_proxies_data[i]
-            cred_el.advertize = True
+            cred_el.advertise = True
             cred_el.renew()
             cred_el.createIfNotExist()
 
@@ -869,7 +869,7 @@ class MultiAdvertizeWork:
     def initialize_advertize_batch(self, adname_prefix="gfi_ad_batch"):
         """
         Initialize the variables that are used for batch avertizement
-        Returns the adname to pass to do*advertize methods
+        Returns the adname to pass to do*advertise methods
         (will have to set reset_unique_id=False there, too)
         """
         self.unique_id = 1
@@ -877,7 +877,7 @@ class MultiAdvertizeWork:
 
     def do_advertize_batch(self, filename_dict, remove_files=True):
         """
-        Advertize the classad files in the dictionary provided
+        Advertise the classad files in the dictionary provided
          The keys are the factory names, while the elements are lists of files
         Safe to run in parallel, guaranteed to not modify the self object state.
         """
@@ -886,10 +886,10 @@ class MultiAdvertizeWork:
 
     def do_advertize_batch_one(self, factory_pool, filename_arr, remove_files=True):
         """
-        Advertize to a factory the clasad files provided
+        Advertise to a Factory the ClassAd files provided
         Safe to run in parallel, guaranteed to not modify the self object state.
         """
-        # Advertize all the files
+        # Advertise all the files
         for filename in filename_arr:
             try:
                 advertizeWorkFromFile(
@@ -903,7 +903,7 @@ class MultiAdvertizeWork:
 
     def do_global_advertize(self, adname=None, create_files_only=False, reset_unique_id=True):
         """
-        Advertize globals with credentials
+        Advertise globals with credentials
         Returns a dictionary of files that still need to be advertised.
           The key is the factory pool, while the element is a list of file names
         Expects that the credentials have been already loaded.
@@ -920,7 +920,7 @@ class MultiAdvertizeWork:
 
     def do_global_advertize_one(self, factory_pool, adname=None, create_files_only=False, reset_unique_id=True):
         """
-        Advertize globals with credentials to one factory
+        Advertise globals with credentials to one factory
         Returns the list of files that still need to be advertised.
         Expects that the credentials have been already loaded.
         """
@@ -940,7 +940,7 @@ class MultiAdvertizeWork:
         if create_files_only:
             return filename_arr
 
-        # Else, advertize all the files (if multi, should only be one)
+        # Else, advertise all the files (if multi, should only be one)
         for filename in filename_arr:
             try:
                 advertizeWorkFromFile(
@@ -952,7 +952,7 @@ class MultiAdvertizeWork:
 
     def createGlobalAdvertizeWorkFile(self, factory_pool):
         """
-        Create the advertize file for globals with credentials
+        Create the advertise file for globals with credentials
         Expects the object variables
          adname and x509_proxies_data
         to be set.
@@ -981,7 +981,7 @@ class MultiAdvertizeWork:
             fd.write('ClientName = "%s"\n' % self.descript_obj.my_name)
             for i in range(nr_credentials):
                 cred_el = self.x509_proxies_data[i]
-                if not cred_el.advertize:
+                if not cred_el.advertise:
                     continue  # we already determined it cannot be used
                 for ld_el in cred_el.loaded_data:
                     ld_fname, ld_data = ld_el
@@ -1092,7 +1092,7 @@ class MultiAdvertizeWork:
         if create_files_only:
             return filename_arr
 
-        # Else, advertize all the files (if multi, should only be one)
+        # Else, advertise all the files (if multi, should only be one)
         for filename in filename_arr:
             try:
                 advertizeWorkFromFile(
@@ -1101,7 +1101,7 @@ class MultiAdvertizeWork:
             except condorExe.ExeError:
                 logSupport.log.exception("Advertising request failed for factory pool %s: " % factory_pool)
 
-        return []  # No files left to be advertized
+        return []  # No files left to be advertised
 
     def vm_attribute_from_file(self, filename, prefix):
         """
@@ -1139,7 +1139,7 @@ class MultiAdvertizeWork:
 
     def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None, file_id_cache=None):
         """
-        Create the advertize file
+        Create the advertise file
         Expects the object variables
           adname, unique_id and x509_proxies_data
         to be set.
@@ -1149,7 +1149,7 @@ class MultiAdvertizeWork:
 
         descript_obj = self.descript_obj
 
-        logSupport.log.debug("In create Advertize work")
+        logSupport.log.debug("In create Advertise work")
 
         factory_trust, factory_auth = self.factory_constraint[params_obj.request_name]
 
@@ -1192,7 +1192,7 @@ class MultiAdvertizeWork:
                 # credential_el (Credebtial())
                 credential_el = credentials_with_requests[i]
                 logSupport.log.debug(f"Checking Credential file {credential_el.filename} ...")
-                if not credential_el.advertize:
+                if not credential_el.advertise:
                     # We already determined it cannot be used
                     # if hasattr(credential_el,'filename'):
                     #    filestr=credential_el.filename

@@ -174,10 +174,10 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active, failure_dict
     Returns:
         list: A list of tuples containing group names and their respective wall times.
     """
-    childs = {}
+    children = {}
 
     for group_name in groups:
-        childs[group_name] = {"state": "queued"}
+        children[group_name] = {"state": "queued"}
 
     active_groups = 0
     groups_tofinish = len(groups)
@@ -189,13 +189,13 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active, failure_dict
             done_something = False
             # check if any group finished by now
             for group_name in groups:
-                if childs[group_name]["state"] == "spawned":
-                    group_rc = poll_group_process(group_name, childs[group_name]["data"])
+                if children[group_name]["state"] == "spawned":
+                    group_rc = poll_group_process(group_name, children[group_name]["data"])
                     if group_rc is not None:  # None means "still alive"
                         if group_rc == 0:
-                            childs[group_name]["state"] = "finished"
+                            children[group_name]["state"] = "finished"
                         else:
-                            childs[group_name]["state"] = "failed"
+                            children[group_name]["state"] = "failed"
                             failure_dict[group_name].add_failure()
                             num_failures = failure_dict[group_name].count_failures()
                             max_num_failures = max(max_num_failures, num_failures)
@@ -203,7 +203,7 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active, failure_dict
                                 "Group %s terminated with exit code %i (%i recent failure)"
                                 % (group_name, group_rc, num_failures)
                             )
-                        childs[group_name]["end_time"] = time.time()
+                        children[group_name]["end_time"] = time.time()
                         servicePerformance.endPerfMetricEvent("frontend", "group_%s_iteration" % group_name)
                         active_groups -= 1
                         groups_tofinish -= 1
@@ -212,10 +212,10 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active, failure_dict
             # see if I can spawn more
             for group_name in groups:
                 if active_groups < max_active:  # can spawn more
-                    if childs[group_name]["state"] == "queued":
-                        childs[group_name]["data"] = spawn_group(work_dir, group_name, action)
-                        childs[group_name]["state"] = "spawned"
-                        childs[group_name]["start_time"] = time.time()
+                    if children[group_name]["state"] == "queued":
+                        children[group_name]["data"] = spawn_group(work_dir, group_name, action)
+                        children[group_name]["state"] = "spawned"
+                        children[group_name]["start_time"] = time.time()
                         servicePerformance.startPerfMetricEvent("frontend", "group_%s_iteration" % group_name)
                         active_groups += 1
                         done_something = True
@@ -305,19 +305,19 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active, failure_dict
     finally:
         # cleanup at exit
         # if anything goes wrong, hardkill the rest
-        for group_name in childs:
-            if childs[group_name]["state"] == "spawned":
+        for group_name in children:
+            if children[group_name]["state"] == "spawned":
                 logSupport.log.info("Hard killing group %s" % group_name)
                 servicePerformance.endPerfMetricEvent("frontend", "group_%s_iteration" % group_name)
                 try:
-                    os.kill(childs[group_name]["data"].pid, signal.SIGKILL)
+                    os.kill(children[group_name]["data"].pid, signal.SIGKILL)
                 except OSError:
                     pass  # ignore failed kills of non-existent processes
 
     # at this point, all groups should have been run
     timings = []
     for group_name in groups:
-        timings.append((group_name, childs[group_name]["end_time"] - childs[group_name]["start_time"]))
+        timings.append((group_name, children[group_name]["end_time"] - children[group_name]["start_time"]))
     return timings
 
 
