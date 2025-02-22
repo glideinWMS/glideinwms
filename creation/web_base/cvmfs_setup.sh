@@ -69,8 +69,8 @@ if [[ $use_cvmfsexec -eq 1 ]]; then
     if [[ ! -d "$glidein_cvmfsexec_dir" && ! -f ${glidein_cvmfsexec_dir}/${dist_file} ]]; then
         # neither the cvmfsexec directory nor the cvmfsexec distribution is found -- this happens when a directory named 'cvmfsexec' does not exist on the glidein because an appropriate distribution tarball is not found in the list of all the available tarballs and was not unpacked [trying to unpack osg-rhel8 on osg-rhel7 worker node]
         # if use_cvmfsexec is set to 1, then warn that cvmfs will not be mounted and flag an error
-        logerror "Error occured during cvmfs setup: None of the available cvmfsexec distributions is compatible with the worker node specifications."
-        "$error_gen" -error "$(basename $0)" "WN_Resource" "Error occured during cvmfs setup... no matching cvmfsexec distribution available."
+        logerror "Error occurred during cvmfs setup: None of the available cvmfsexec distributions is compatible with the worker node specifications."
+        "$error_gen" -error "$(basename $0)" "WN_Resource" "Error occurred during cvmfs setup... no matching cvmfsexec distribution available."
         exit 1
     elif [[ -d "$glidein_cvmfsexec_dir" && ! -f ${glidein_cvmfsexec_dir}/${dist_file} ]]; then
         # something might have gone wrong during the unpacking of the tarball into the glidein_cvmfsexec_dir
@@ -84,7 +84,7 @@ perform_cvmfs_mount
 
 if [[ $GWMS_IS_CVMFS -ne 0 ]]; then
     # Error occurred during mount of CVMFS repositories"
-    logerror "Error occured during mount of CVMFS repositories."
+    logerror "Error occurred during mount of CVMFS repositories."
     "$error_gen" -error "$(basename $0)" "WN_Resource" "Mount unsuccessful... CVMFS is still unavailable on the node."
     exit 1
 fi

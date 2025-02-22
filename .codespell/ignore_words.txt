@@ -1,0 +1,23 @@
+;; SPDX-FileCopyrightText = "2009 Fermi Research Alliance, LLC"
+;; SPDX-License-Identifier = "Apache-2.0"
+;; GWMS and HTCondor words
+glidein
+Glidein
+glideinwms
+GlideinWMS
+apptainer
+Apptainer
+HTCondor
+startd
+schedd
+collector
+negotiator
+classad
+classads
+ClassAd
+ClassAds
+astroid
+;; Variables in creation/web_base/*html
+fillIn
+cellsT
+;;

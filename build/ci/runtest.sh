@@ -503,8 +503,8 @@ ${COMMAND} command:
   The output file is the per-test summary in csv format and optionally a second file in HTML format with the same name
   but ".html" extension. It will generate also the per-branch file.
   The input files are all per-branch files that have been generated during the tests (gwms.ALL.summary_append.csv files)
-  With per-test ot per-branch I refer to tables that have respectively tests or branches as column headers (first row)
-  NOTE All the summary files must ne homogeneous: same branches in the same orde and same output format
+  With per-test or per-branch I refer to tables that have respectively tests or branches as column headers (first row)
+  NOTE All the summary files must be homogeneous: same branches in the same order and same output format
        This script will not check and inconsistent files will result in an inconsistent summary
 ${filename} [options] ${COMMAND} [other command options] OUTPUT_FILE INPUT_SUMMARY_FILES
 Command options:

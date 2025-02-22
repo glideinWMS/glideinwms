@@ -1,4 +1,4 @@
-v3_10_10
+doc/tags.txtv3_10_10
 	Improved gfdiff tool interface and changed diff algorithm (PR#476)
 	Added option to check if new HTCondor tarballs are available to get_tarballs (PR#477)
 	Bug fix: Fixed gfdiff issue with mergely interface (PR#476)
@@ -143,7 +143,7 @@ v3_9_5
 	Improved default SHARED_PORT configuration
 	Special handling of multiline condor config values
 	Advertise CONTAINERSW_ variables
-	Bug fix: Fixes an issue causing SciTokens transfered to the factory to be corrupted
+	Bug fix: Fixes an issue causing SciTokens transferred to the factory to be corrupted
 	Bug fix: Fixes to manual_glidein_submit for compatibility with Python 3
 	Bug fix: Fixes to OSG_autoconf for compatibility with Python 3
 	Bug fix: Fixes a minor issue in job.condor
@@ -159,7 +159,7 @@ v3_9_4
 	Adds two new RPM packages (vofrontend-libs and vofrontend-glidein) to provide essential libraries for frontend-like applications
 	Updates license to Apache 2.0
 	Bug fix: Updates libraries for compatibility with PyYAML 6.0
-	Bug fix: Fixes a sring encoding issue affecting the cat log scripts
+	Bug fix: Fixes a string encoding issue affecting the cat log scripts
 	Bug fix: Fixes AWS/Google metadata encoding error
 
 v3_9_3
@@ -183,7 +183,7 @@ v3_9_1
 v3_9
 	Includes all features and fixes of 3.6.3 and 3.7.1
 	Python 3 code, some pitfalls to pay attention to are in the Bug Fix section
-	Bug fix: custom disctionaries with __getattr__ in the creation package (an infinite loop was masked in Python 2)
+	Bug fix: custom dictionaries with __getattr__ in the creation package (an infinite loop was masked in Python 2)
 	Bug fix: str vs bytes, especially in crypto libraries
 	Bug fix: None cannot be used in sorted string lists and we use (None, None, None) for unmatched jobs in the Frontend
 	Bug fix: Add __repr__ method to SubParams class
@@ -195,7 +195,7 @@ v3_9
 v3_7_7
 	Authenticate w/ tokens w/ the HTCondor-CE collector
 	Added CONTINUE_IF_NO_PROXY attribute to control GSI to token transition
-	Bug fix: Fixes an issue causing SciTokens transfered to the factory to be corrupted
+	Bug fix: Fixes an issue causing SciTokens transferred to the factory to be corrupted
 	Bug fix: Fixes condor_config -dump is not safe if the pool config has multiline entries
 	Bug fix: Add job.condor typo fix for bosco to 3.7.7
 	NOTE: Now branch_v3_7 is completely separate. Feature or fixes have to be backported
@@ -263,7 +263,7 @@ v3_7_2
 	Includes all features and fixes of 3.6.6
 	Drop GLExec support
 	Mechanism for running custom scripts at the end of glidein execution
-	OSG_autoconf protection added to prevent failures when CE dissapears from OSG Collector
+	OSG_autoconf protection added to prevent failures when CE disappears from OSG Collector
 	Bug fix: Frontend no longer over-generates tokens for entries
 	Bug fix: Factory does not remove glideins when idle limit is hi
 
@@ -332,7 +332,7 @@ v3_6_2
 	Bug fix: Broken submission to GCE and AWS
 	Bug fix: Correct how entry_ls detect an rpm installation
 	Bug fix: Adjust size of ClusterId and ProcessId fields for the condor_q custom format
-	Bug fix: Total of frontend info is 0 in Factory monitring
+	Bug fix: Total of frontend info is 0 in Factory monitoring
 
 v3_6_1
 	Added compatibility w/ HTCondor 8.8.x in OSG 3.5
@@ -389,7 +389,7 @@ v3_4_6  Make Factory compatible with older 3.4 Frontends reverting back to send 
         Bug fix: Fixing chkconfig lines on proxy renewal (SOFTWARE-3758)
 
 v3_4_5  Add a bind mount for /etc/localtime in Singularity
-        Bug fix: Strings evaluated as boolean (New error preventing the Frontend fo match jobs)
+        Bug fix: Strings evaluated as boolean (New error preventing the Frontend to match jobs)
 
 v3_4_4  Propagate to Factory and glidein submission attributes controlled by FE
         Track jobs that spawn multiple nodes, e.g. HPC submission
@@ -400,7 +400,7 @@ v3_4_4  Propagate to Factory and glidein submission attributes controlled by FE
         Removed Frontend service dependency from HTCondor service
         Bug fix: Factory GlideinMonitor* classads appear to be erased periodically
         Bug fix: Glidein not killing condor processes
-        Bug fix: Error preventing the Frontend fo match jobs
+        Bug fix: Error preventing the Frontend to match jobs
         Bug fix: Make sure metasite limits are respected
         Bug fix: Convert per/frontend limits to integers before division
         Bug fix: 'tochild' AttributeError in Factory
@@ -424,7 +424,7 @@ v3_4_3  Add a scaling factor for all glideins limits in the entries
         Bug fix: Update documentation about ports requirement for Frontend's submit host
         Bug fix: The factory seems to ignore the configuration values in the files in the config.d directory w/ entry configurations
         Bug fix: Frontend not recognizing entries in downtime
-        Bug fix: Pylint tests improved (htcondor setup, remove external lins)
+        Bug fix: Pylint tests improved (htcondor setup, remove external lines)
         NOTE: If you update from 3.4 or earlier make sure to have open port 9618 also on standalone Frontends/subit hosts (was using 9615 before)
 
 v3_4_2  Controlling that Frontend is not using options incompatible w/ linked Factories
@@ -456,7 +456,7 @@ v3_4    GlideinWMS 3.4 includes all features of previous stable series 3.2 and d
         Increased testing (more than doubled unit tests coverage and testing more files w/ pylint)
         Bug Fix: TypeError: under special conditions in Factory reconfig
         Bug Fix: Entries in downtime slow down the ramp-up for the frontend
-        NOTE: The type of the GLIDEIN_CPU attr is String (to accomodate the keywords auto, slot, node). Documentation was reporting Int incorrectly. Make sure your configuration uses the correct type or you may get a reconfig/upgrade error.
+        NOTE: The type of the GLIDEIN_CPU attr is String (to accommodate the keywords auto, slot, node). Documentation was reporting Int incorrectly. Make sure your configuration uses the correct type or you may get a reconfig/upgrade error.
         NOTE: If you use HTCondor 8.7.2 or bigger with the GlideinWMS Factory, you must install also glideinwms-switchboard, to have condor_root_switchboard, that was removed from HTCondor
         NOTE: 'entry_sets' should be considered an experimental feature: the imlpementation is changing and there may be errors when upgrading across versions
 
@@ -579,7 +579,7 @@ v3_2_16	Information about job and machine features are now available in glidein
 	Bug Fix: Added condor-python rpm as a dependency
 	Bug Fix: Complex credentials (vm_id+vm_type) are now correctly
 	  interpreted
-	Bug Fix: Frontend is now more resilent to transient errors
+	Bug Fix: Frontend is now more resilient to transient errors
 	  communicating with the HTCondor daemons
 	Bug Fix: Slave frontend now correctly looks up the master frontend
 	  when using condor-python bindings
@@ -631,7 +631,7 @@ v3_2_14	Various curbs and limits triggered in the factory are now logged
 	Condor classad fetching is now done by using python bindings by
 	  default. Until now this was done using condor_q and condor_status
 	  commands
-	Various limits configred in the factory and frontend are now
+	Various limits configured in the factory and frontend are now
 	  advertised in the respective classads
 	Updated documentation
 	Bug Fix: Factory will not release glideins sent to Condor CE if they
@@ -688,7 +688,7 @@ v3_2_12 Various curbs and limits triggered in the frontend are now logged
           glideresource classads
           deloyment specific configuration and entry specific configuration.
         Bug Fix: Fixed a bug where CCB_ADDRESS configuration for the
-          glidein was not created correclty under certain conditions
+          glidein was not created correctly under certain conditions
         Bug Fix: create_frontend script now correctly populates images
           in the monitoring pages
         Bug Fix: gwms-logcat now correctly supports multiple users
@@ -740,14 +740,14 @@ v3_2_10 Improved Documentation
 
 v3_2_9  VO Frontend supports a master-slave HA mode
         Added a factory wrapper script to view glidein logs files
-        Updated the dependency of Glideinwms to HTCondor v8.2.2
+        Updated the dependency of GlideinWMS to HTCondor v8.2.2
         Frontend supports CCBs in addition to User Collector
         Updated documentation
         Bug Fix: glideresource classads now contain appropriate monitoring
           information
         Bug Fix: Fixed a bug where an unhandled exception would cause a
           frontend to shutdown
-        Bug Fix: Removed obsolute defult requirement for vanilla jobs in
+        Bug Fix: Removed absolute default requirement for vanilla jobs in
           user schedd's config file
         Bug Fix: Glidein now works correctly when both grid/voms-proxy
           commands are not available on the worker node
@@ -774,7 +774,7 @@ v3_2_8  VO Frontend parameters are added to HTCondor config for ganglia
           now correctly expanded for different users
         Bug Fix: Factory and Frontend service start/stop exit codes now
           confer to Linux standards
-        Bug Fix: Fixed issue where work dir and vesioning in frontend config
+        Bug Fix: Fixed issue where work dir and versioning in frontend config
           would break the config in case of frontend rpms
         Bug Fix: Made improvements to the HTCondor configuration used by
           factory rpm
@@ -848,7 +848,7 @@ v3_2_5  Added administrative commands for frontend fetch_glidein_log,
           frontend would crash under certain conditions
         Bug Fix: Frontend's group logging and factory logging now
           correctly consider the backup_count when configured
-        Bug Fix: Frontend RPM now corectly creates frontend.xml config with
+        Bug Fix: Frontend RPM now correctly creates frontend.xml config with
           default trust_domain='grid' for the credentials
         Bug Fix: Fixed frontend performance issue introduced in v3.2.4
 
@@ -858,7 +858,7 @@ v3_2_4  Added support for HTCondor-CE attributes in the factory
         Factory & frontend monitoring pages now use new javascriptrrd v1.1.0+
         Factory monitoring now aggregates Log RRDs
         Frontend can now limit total idle glideins
-        Added limits to globaly total idle glideins
+        Added limits to globally total idle glideins
         Added badput summary line in the factory report
         Improved documentation
         Bug Fix: Factory & frontend operations like reconfig and upgrade now
@@ -872,7 +872,7 @@ v3_2_4  Added support for HTCondor-CE attributes in the factory
           multiple proxies
         Bug Fix: Factory now properly advertises entries in downtime
         Bug Fix: GLIDEIN_Glexec_Use when defined in the group now correctly
-          overriddes the value defined in global scope
+          overrides the value defined in global scope
 
 v3_2_3  Glideins now have the ability to track the worker node batch slot.
           Based on the batch system at site (HTCondor, SGE, PBS, LSF, SLURM) the
@@ -970,7 +970,7 @@ v3_1    Includes relevant features and bug fixes released upto v2_7
         Bug Fix: Tools analyze_queues and analyze_frontend now correctly work
 	  with the http:// URI
         Bug Fix: Fixed a bug where glidein would not parse some of its
-	  configuration variables corectly
+	  configuration variables correctly
 	Bug Fix: Fixed a bug where create_glidein would fail when used with
 	  condor 7.9.4+
         Bug Fix: Factory does better error reporting when an entry is configured
@@ -978,7 +978,7 @@ v3_1    Includes relevant features and bug fixes released upto v2_7
         Bug Fix: Fixed bug where log files were not rotated correctly
 
 v3_0_0  Change to max job limits to reflect more accurate names
-	Add attr_dict in the environemnt of the frontend match_expr
+	Add attr_dict in the environment of the frontend match_expr
 	New feature: The start_expr is now a native part of match
 	Support for new API for factory - frontend communication
 	Improved logging using standard Python logging APIs
@@ -1012,7 +1012,7 @@ v2_7_1  glidecondor_adddn tool now supports adding dns from a file
           components had undefined values
         bug fix: analyze_entries tool now correctly handles uri http://
         bug Fix: Fixed a bug where frontend would crash if the some of the
-          internal files were trucated to zero length.
+          internal files were truncated to zero length.
         Bug Fix: Factory now correctly does the cleanup of log files
         Bug Fix: Factory now correctly does accounting of glideins in default
           condor schedd
@@ -1168,7 +1168,7 @@ v2_5_7
 
 v2_5_6  Factory supports per-frontend limits in the config
         Bug Fix: Fixed a bug where frontend would not stop cleanly
-	Bug Fix: Factory doesnot depend on the X509_CERT_DIR in the environment
+	Bug Fix: Factory does not depend on the X509_CERT_DIR in the environment
 
 v2_5_5	Added filtering to analyze_entries
 	Reduced the number of debug log messages when entry becomes inactive.
@@ -1178,7 +1178,7 @@ v2_5_5	Added filtering to analyze_entries
 	  glidein tarballs
 	Pilot proxy is not available in the user job environment any more
 	  reducing the chance for user job using it.
-	Ini Installer caan now create a tmeplate for single service installs
+	Ini Installer can now create a template for single service installs
 	Bug Fix: Fixed several issues with the frontend rpm
 	Bug Fix: GLIDEIN_Glexec_Use=NEVER setting now correctly works with the
 	 setting require_voms_proxy=True
@@ -1211,7 +1211,7 @@ v2_5_3  Updated the license to reflect current Fermitools license
           Frontend names
         Improved documentation
         Enable Match Authentication configuration by default
-        Made quering of schedds efficient where ever possible.
+        Made querying of schedds efficient where ever possible.
         Add autocomplete/search to table in frontendGroupGraphStatusNow.html
         Added 'upgrade' option to factory startup script so that all the
           files in the glidein submit directory are updated.  Did the same for
@@ -1229,7 +1229,7 @@ v2_5_3  Updated the license to reflect current Fermitools license
         Bug fix: Fixed a bug where frontend reconfig was not populating
           GSI_DAEMON_PROXY correctly in frontend.condor_config
         Bug fix: Writeback of config files on reconfig is now enable by default
-        Bug fix: Frontend does better error reporting when quering user pool or
+        Bug fix: Frontend does better error reporting when querying user pool or
           the schedd fails
         Bug fix: Fixed a bug in condor log parsing when we encounter event 400
           (Job was evicted)
@@ -1257,7 +1257,7 @@ v2_5_2  Frontend publishes glideresource classad to the pool collector. This
           JOB_GLIDEIN_Factory, JOB_GLIDEIN_Schedd, JOB_GLIDEIN_ClusterId,
           JOB_GLIDEIN_ProcId, JOB_GLIDEIN_Site is now added to SUBMIT_EXPRS
         Default GLEXEC_JOB = True when GLEXEC_BIN is set to use glexec
-        Factory can now resue old public key after startup to decrypt
+        Factory can now reuse old public key after startup to decrypt
           frontend requests. Grace time for old public key is configurable.
         The frontend now can set global limits on number of glideins.
         The frontend now can use more than a single CPU.
@@ -1314,7 +1314,7 @@ v2_5	Installer can now install gridFTP and VOMS certs needed by CREAM
 	Frontend should try to recover the crashed group before it gives up and
 	  shutsdown
 	Improvements to the monitoring
-        Improvements to documentaion
+        Improvements to documentation
 	Add support for use of TCP in condor_advertise
 	Add support for condor_advertise -multiple (requires Condor v7.5.4+)
 	Improved factory stopping procedure
@@ -1342,7 +1342,7 @@ v2_4_3  Install VOMS Certificates during the install time
 	  stderr instead of stdout
 	Allow factory to startup from any directory
 	Python scripts get the python from /usr/bin/env python instead of
-	  /bin/env python making them more portable accross different linux
+	  /bin/env python making them more portable across different linux
 	  distros
 	Better exception handling and error reporting
 	Fixed how voms_proxy_init is looked for after VDT install
@@ -1376,7 +1376,7 @@ v2_4_1	Add a new configuration option for PREEMPT_GRACE_TIME
 	  collector
 	BUG FIX: Returning invalid variable during proxy creation
 	KNOWN ISSUES: Running GlideinWMS v2_4_1 with Condor 7.5.3 has not been
-	  tested. Altough, most of the things may work, security changes in
+	  tested. Although, most of the things may work, security changes in
 	  Condor may affect your installation.
 
 
@@ -1386,7 +1386,7 @@ v2_4	Add proxy security classes to the frontend
 	  create own Condor config file and gldiein gridmap file out of them.
 	Frontend now dynalically creates GLIDEIN_Collector.
 	Frontend now requires Match authentication.
-	Add frontend autentication info to the factory config.
+	Add frontend authentication info to the factory config.
 	Add support for different frontend identities in different WMS
 	  collectors.
 	Put log files in a separate tree.
@@ -1421,12 +1421,12 @@ v2_3_1	Updated documentation. This is document change only release
 
 v2_3	Attempt to restart a crashed entry few times before shutting down the
 	  factory. Restarting is allowed for max restart_attempts in time
-	  interval restart_interval sec in te factory.
+	  interval restart_interval sec in the factory.
 	Add vacuum option to manageDowntimes.
 	Factory now properly handles new-style frontends without a group.
 	Frontend code has been refactored to allow use as a library.
 	More protections in place.
-        Fixed a security bug in key handling. BREAKES BACKWARDS COMPATIBILITY! But it is needed.
+        Fixed a security bug in key handling. BREAKS BACKWARDS COMPATIBILITY! But it is needed.
 	Fixed a bug in glidein_startup.sh that prevented the passing of * as a parameter value
 	Fixed a logical bug in the glidein config that resulted in job preemption.
 	Added support for condor_ssh (v7.4 and up)
@@ -1436,10 +1436,10 @@ v2_3	Attempt to restart a crashed entry few times before shutting down the
  	KNOWN ISSUES: If using condor 7.4.0-7.4.2 and 7.5.0, USE_VOMS_ATTRIBUTESshould be set to false for Collector and negotiator to avoid potential problems and memory leaks in GSI libraries.
 
 v2_2	Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
-          classds. This was preventing psuedo interactive monitoring to work
+          classads. This was preventing pseudo interactive monitoring to work
           in case of GLEXEC.
 	Made VDT optional.
-	Addedd support for VDT 2.0, and made it the default.
+	Added support for VDT 2.0, and made it the default.
 	  Added Globus-Client and Myproxy-Client in the minimal VDT install.
 	Installer now allows the collector to run on non-standard port.
 	Factory now only checks X509_USER_PROXY if it needs it.
@@ -1496,7 +1496,7 @@ v1_6_1	Better randomization of GCBs and collectors
 	Better error handling in Factory downtime management
 	Better formatting of error logs for factory and frontend
 	Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
-	  classds. This was preventing psuedo interactive monitoring to work
+	  classads. This was preventing pseudo interactive monitoring to work
 	  in case of GLEXEC
 	Improved documentation
 
@@ -1513,7 +1513,7 @@ v1_6	The XML file now supports comments.
 	Added support for CCB.
         Monitoring refactored
           Most rrd operations now in separate module
-          Groupes multiple attributes in the RRD files (lower overhead)
+          Grouped multiple attributes in the RRD files (lower overhead)
           Removed RRD locking
 	Fixed Condor-G log parsing.
 	Fixed startup bugs in various debug tools.
@@ -1564,7 +1564,7 @@ v1_4_2	Fix glexec setup script bug.
 	  The changes introduced in v1_4_1 could leave behind zombies.
 
 v1_4_1	Improved pseudo-interactive monitoring
-	  By default use a separate startd for montoring
+	  By default use a separate startd for monitoring
 	  Old multi-VM mode can be enabled by MONITOR_MODE=MULTI
 	Fixed factory handling held jobs
 	Improved installer defaults
@@ -1586,7 +1586,7 @@ v1_4	Better support for RESS and BDII
 	Made the most CPU intensive part of monitoring optional.
 	Installer now supports multiple collectors.
 
-v1_3	Factory and frontend now gets sleep and advertize attr from config.
+v1_3	Factory and frontend now gets sleep and advertise attr from config.
 	Add downtime concept to the factory and relative management tool.
 	Add command to get info about factory config file.
 	Add init.d style startup script.
@@ -1652,7 +1652,7 @@ v0_9	Significant speedup in the VO frontend matchmaking
 
 v0_8	Add support for multiple schedds
 	Add initial support for pseudo interactive monitoring
-	Inproved Web monitoring
+	Improved Web monitoring
 	Better documentation
 	NOT BACKWARD COMPATIBLE: Entry points need to be recreated.
 
@@ -1677,7 +1677,7 @@ v0_4	Many bug fixes.
 v0_3	Added support for GCB and gLExec
 	Better stability and logging.
 	Many bug fixes.
-	Greately improved user documentation.
+	Greatly improved user documentation.
 	NOT BACKWARD COMPATIBLE: Entry points need to be recreated.
 
 v0_2	First fully configured version

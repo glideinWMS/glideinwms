@@ -29,7 +29,7 @@ setup () {
 #    # Mock robust_realpath intercepting some inputs
 #    # used by singularity_update_path, singularity_setup_inside_env
 #    eval "$(echo "robust_realpath_orig()"; declare -f robust_realpath | tail -n +2 )"
-#    echo "Runnig setup" >&3
+#    echo "Running setup" >&3
 #    robust_realpath() { robust_realpath_mock "$@"; }
 
 }

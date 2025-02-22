@@ -37,6 +37,6 @@
         sys.exit(main())
 
     The main function will be executed both when you directly run the unittest
-    and when unittest_utils.runAllTests() funtion is called.  Replace
+    and when unittest_utils.runAllTests() function is called.  Replace
     <Unittest Class> with the class name.
 """

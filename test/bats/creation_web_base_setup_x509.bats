@@ -33,7 +33,7 @@ setup () {
     # Mock gconfig_get intercepting some inputs
     # used by get_trust_domain, and others
     eval "$(echo "gconfig_get_orig()"; declare -f gconfig_get | tail -n +2 )"
-    # echo "Runnig setup" >&3
+    # echo "Running setup" >&3
     gconfig_get() { gconfig_get_mock "$@"; }
 }
 

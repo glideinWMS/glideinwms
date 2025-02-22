@@ -58,7 +58,7 @@ class TestCleanupSupport(unittest.TestCase):
 
     def create_files(self, number_of_files, suffix=""):
         """
-        Create temporary files using the tempfile module.  The absolute path toThe file extension to place on the temporary file
+        Create temporary files using the tempfile module.  The absolute path to the file extension to place on the temporary file
         the file is written to the file for content.
 
         @type number_of_files: int
@@ -111,7 +111,7 @@ class TestCleanupSupport(unittest.TestCase):
     def test_DirCleanupWSpace(self):
         """
         Instantiate the directory cleaner and direct it to clean all cleanup files with
-        the cleanup extension.  After teh cleanup method has been called, check for the
+        the cleanup extension.  After the cleanup method has been called, check for the
         presence of cleanup files.  Fail if any exist.  Also check for the presence of
         the other files created.  Fail if any were deleted.
         """

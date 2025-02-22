@@ -44,7 +44,7 @@ and still can be included in the API documentation ([here](https://www.sphinx-do
 
 ## Licensing compliance
 
-Decison engine is released under the Apache 2.0 license and license compliance is
+Decision engine is released under the Apache 2.0 license and license compliance is
 handled with the [REUSE](http://reuse.software/) tool.
 REUSE is installed as development dependency or you can install it manually
 (`pip install reuse`). All files should have a license notice:

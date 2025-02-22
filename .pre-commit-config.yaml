@@ -67,7 +67,31 @@ repos:
         # needs to be py2.7 compatible
         args:
           - "--py36-plus"
-  - repo: "https://github.com/fsfe/reuse-tool"
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.4
+    hooks:
+      - id: codespell
+        args: [
+            # codespell   --toml pyproject.toml -S ./build/ci/checkbashisms.pl -S ./unittests/cs.fixture  .
+            # Pass skip configuration as command line arguments rather than in the
+            # config file because neither cfg nor TOML support splitting this argument
+            # across multiple lines.
+            # Globs must match the Python `glob` module's format:
+            # https://docs.python.org/3/library/glob.html#module-glob
+            "-S",
+            ".codespell/ignore_words.txt",
+            "-S",
+            "build/ci/checkbashisms.pl",
+            "-S",
+            "creation/web_base/factoryEntryStatusNow.html",
+            "-S",
+            "unittests/cs.fixture",
+            # Write changes in place
+            "-w",
+          ]
+        additional_dependencies:
+          - tomli
+  - repo: https://github.com/fsfe/reuse-tool
     rev: v5.0.2
     hooks:
       - id: reuse

@@ -689,7 +689,7 @@ class TestIsGlideinUnrecoverable(unittest.TestCase):
         class GlideinDescriptMock:
             data = {"RecoverableExitcodes": "24,36 7 8"}
 
-        # Do not crash if jobInfo is empy
+        # Do not crash if jobInfo is empty
         jobInfo = {}
         res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
         self.assertTrue(res)

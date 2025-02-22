@@ -13,7 +13,7 @@ import glideinwms.lib.logSupport as logSupport
 
 from glideinwms.unittests.unittest_utils import create_random_string
 
-# this shoud be not needed #was-pylint: enable=import-error
+# this should be not needed #was-pylint: enable=import-error
 
 module_globals = globals()
 this_dir = os.path.dirname(os.path.realpath(module_globals["__file__"]))

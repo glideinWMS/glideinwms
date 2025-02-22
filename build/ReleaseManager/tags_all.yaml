@@ -58,7 +58,7 @@ v3_4_6:
 
 v3_4_5:
   Bug fix:
-    - Strings evaluated as boolean (New error preventing the Frontend fo match jobs)
+    - Strings evaluated as boolean (New error preventing the Frontend to match jobs)
   Feature:
     - Add a bind mount for /etc/localtime in Singularity
 
@@ -66,7 +66,7 @@ v3_4_4:
   Bug fix:
     - Factory GlideinMonitor* classads appear to be erased periodically
     - Glidein not killing condor processes
-    - Error preventing the Frontend fo match jobs
+    - Error preventing the Frontend to match jobs
     - Make sure metasite limits are respected
     - Convert per/frontend limits to integers before division
     - "'tochild' AttributeError in Factory"
@@ -98,7 +98,7 @@ v3_4_3:
     - The factory seems to ignore the configuration values in the files in the config.d
       directory w/ entry configurations
     - Frontend not recognizing entries in downtime
-    - Pylint tests improved (htcondor setup, remove external lins)
+    - Pylint tests improved (htcondor setup, remove external lines)
   Feature:
     - Add a scaling factor for all glideins limits in the entries
     - Comprehensive unit-test for the parsing of the Frontend configuration with collectors
@@ -317,7 +317,7 @@ v3_2_5:
       frontend would crash under certain conditions
     - "Frontend's group logging and factory logging now
       correctly consider the backup_count when configured"
-    - "Frontend RPM now corectly creates frontend.xml config with
+    - "Frontend RPM now correctly creates frontend.xml config with
       default trust_domain='grid' for the credentials"
     - Fixed frontend performance issue introduced in v3.2.4
   Feature:
@@ -343,7 +343,7 @@ v3_2_4:
       multiple proxies
     - Factory now properly advertises entries in downtime
     - GLIDEIN_Glexec_Use when defined in the group now correctly
-      overriddes the value defined in global scope
+      overrides the value defined in global scope
   Feature:
     - Added support for HTCondor-CE attributes in the factory
     - "Made several performance improvements to frontend. Frontend does
@@ -351,7 +351,7 @@ v3_2_4:
     - Factory & frontend monitoring pages now use new javascriptrrd v1.1.0+
     - Factory monitoring now aggregates Log RRDs
     - Frontend can now limit total idle glideins
-    - Added limits to globaly total idle glideins
+    - Added limits to globally total idle glideins
     - Added badput summary line in the factory report
     - Improved documentation
 
@@ -518,7 +518,7 @@ v3_2_16:
     - "Complex credentials (vm_id+vm_type) are now correctly
 
       interpreted"
-    - "Frontend is now more resilent to transient errors
+    - "Frontend is now more resilient to transient errors
 
       communicating with the HTCondor daemons"
     - "Slave frontend now correctly looks up the master frontend
@@ -627,7 +627,7 @@ v3_2_14:
       default. Until now this was done using condor_q and condor_status
 
       commands"
-    - "Various limits configred in the factory and frontend are now
+    - "Various limits configured in the factory and frontend are now
 
       advertised in the respective classads"
     - Updated documentation
@@ -677,7 +677,7 @@ v3_2_12:
   Bug fix:
     - "Fixed a bug where CCB_ADDRESS configuration for the
 
-      glidein was not created correclty under certain conditions"
+      glidein was not created correctly under certain conditions"
     - "create_frontend script now correctly populates images
 
       in the monitoring pages"
@@ -851,7 +851,7 @@ v3_1:
       with the http:// URI"
     - "Fixed a bug where glidein would not parse some of its
 
-      configuration variables corectly"
+      configuration variables correctly"
     - "Fixed a bug where create_glidein would fail when used with
 
       condor 7.9.4+"
@@ -886,7 +886,7 @@ v3_1:
 v3_0_0:
   Feature:
     - Change to max job limits to reflect more accurate names
-    - Add attr_dict in the environemnt of the frontend match_expr
+    - Add attr_dict in the environment of the frontend match_expr
     - "New feature: The start_expr is now a native part of match"
     - Support for new API for factory - frontend communication
     - Improved logging using standard Python logging APIs
@@ -941,7 +941,7 @@ v2_7_1:
     - "bug fix: analyze_entries tool now correctly handles uri http://"
     - "bug Fix: Fixed a bug where frontend would crash if the some of the
 
-      internal files were trucated to zero length."
+      internal files were truncated to zero length."
 
 v2_7:
   Bug fix:
@@ -1049,7 +1049,7 @@ v2_6_2:
 v2_6_1:
   Bug fix:
     - "Factory configuration now supports specifying limits for \ndifferent security\
-      \ classes of same frontend\nKNOWN ISSUE: If limits are configured in the factory,\
+      \ classes of same frontend\n KNOWN ISSUE: If limits are configured in the factory,\
       \ this change\nbreaks backward compatibility. As a workaround, admin needs to\
       \ remove\nthe limits and re-apply them."
     - Factory monitoring pages now correctly work in Firefox 14+
@@ -1154,7 +1154,7 @@ v2_5_7:
 v2_5_6:
   Bug fix:
     - Fixed a bug where frontend would not stop cleanly
-    - Factory doesnot depend on the X509_CERT_DIR in the environment
+    - Factory does not depend on the X509_CERT_DIR in the environment
   Feature:
     - Factory supports per-frontend limits in the config
 
@@ -1224,7 +1224,7 @@ v2_5_3:
 
       GSI_DAEMON_PROXY correctly in frontend.condor_config"
     - Writeback of config files on reconfig is now enable by default
-    - "Frontend does better error reporting when quering user pool or
+    - "Frontend does better error reporting when querying user pool or
 
       the schedd fails"
     - "Fixed a bug in condor log parsing when we encounter event 400
@@ -1256,7 +1256,7 @@ v2_5_3:
       Frontend names"
     - Improved documentation
     - Enable Match Authentication configuration by default
-    - Made quering of schedds efficient where ever possible.
+    - Made querying of schedds efficient where ever possible.
     - Add autocomplete/search to table in frontendGroupGraphStatusNow.html
     - "Added 'upgrade' option to factory startup script so that all the
 
@@ -1290,7 +1290,7 @@ v2_5_2:
       JOB_GLIDEIN_Factory, JOB_GLIDEIN_Schedd, JOB_GLIDEIN_ClusterId,
 
       JOB_GLIDEIN_ProcId, JOB_GLIDEIN_Site is now added to SUBMIT_EXPRS"
-    - "Factory can now resue old public key after startup to decrypt
+    - "Factory can now reuse old public key after startup to decrypt
 
       frontend requests. Grace time for old public key is configurable."
     - The frontend now can set global limits on number of glideins.
@@ -1375,7 +1375,7 @@ v2_5:
 
       shutsdown"
     - Improvements to the monitoring
-    - Improvements to documentaion
+    - Improvements to documentation
     - Add support for use of TCP in condor_advertise
     - Add support for condor_advertise -multiple (requires Condor v7.5.4+)
     - Improved factory stopping procedure
@@ -1416,7 +1416,7 @@ v2_4_3:
     - Allow factory to startup from any directory
     - "Python scripts get the python from /usr/bin/env python instead of
 
-      /bin/env python making them more portable accross different linux
+      /bin/env python making them more portable across different linux
 
       distros"
     - Better exception handling and error reporting
@@ -1456,7 +1456,7 @@ v2_4_1:
   KNOWN ISSUE:
     - "Running GlideinWMS v2_4_1 with Condor 7.5.3 has not been
 
-      tested. Altough, most of the things may work, security changes in
+      tested. Although, most of the things may work, security changes in
 
       Condor may affect your installation."
 
@@ -1469,7 +1469,7 @@ v2_4:
       create own Condor config file and gldiein gridmap file out of them."
     - Frontend now dynalically creates GLIDEIN_Collector.
     - Frontend now requires Match authentication.
-    - Add frontend autentication info to the factory config.
+    - Add frontend authentication info to the factory config.
     - "Add support for different frontend identities in different WMS
 
       collectors."
@@ -1515,11 +1515,11 @@ v2_3:
 
       factory. Restarting is allowed for max restart_attempts in time
 
-      interval restart_interval sec in te factory. "
+      interval restart_interval sec in the factory. "
     - Factory now properly handles new-style frontends without a group.
     - Frontend code has been refactored to allow use as a library.
     - More protections in place.
-    - Fixed a security bug in key handling. BREAKES BACKWARDS COMPATIBILITY! But it
+    - Fixed a security bug in key handling. BREAKS BACKWARDS COMPATIBILITY! But it
       is needed.
     - Fixed a bug in glidein_startup.sh that prevented the passing of * as a parameter
       value
@@ -1537,12 +1537,12 @@ v2_2:
   Bug fix:
     - "GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
 
-      classds. This was preventing psuedo interactive monitoring to work
+      classds. This was preventing pseudo interactive monitoring to work
 
       in case of GLEXEC."
   Feature:
     - Made VDT optional.
-    - "Addedd support for VDT 2.0, and made it the default.
+    - "Added support for VDT 2.0, and made it the default.
 
       Added Globus-Client and Myproxy-Client in the minimal VDT install."
     - Installer now allows the collector to run on non-standard port.
@@ -1608,7 +1608,7 @@ v1_6_1:
   Bug fix:
     - "GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
 
-      classds. This was preventing psuedo interactive monitoring to work
+      classds. This was preventing pseudo interactive monitoring to work
 
       in case of GLEXEC"
   Feature:
@@ -1648,7 +1648,7 @@ v1_6:
 
       Most rrd operations now in separate module
 
-      Groupes multiple attributes in the RRD files (lower overhead)
+      Groups multiple attributes in the RRD files (lower overhead)
 
       Removed RRD locking"
     - Fixed Condor-G log parsing.
@@ -1725,7 +1725,7 @@ v1_4_1:
     - Improved installer defaults
     - "Improved pseudo-interactive monitoring
 
-      By default use a separate startd for montoring
+      By default use a separate startd for monitoring
 
       Old multi-VM mode can be enabled by MONITOR_MODE=MULTI"
     - Fixed factory handling held jobs
@@ -1752,7 +1752,7 @@ v1_4:
 
 v1_3:
   Feature:
-    - Factory and frontend now gets sleep and advertize attr from config.
+    - Factory and frontend now gets sleep and advertise attr from config.
     - Add downtime concept to the factory and relative management tool.
     - Add command to get info about factory config file.
     - Add init.d style startup script.

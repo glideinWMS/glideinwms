@@ -113,7 +113,7 @@ def main(argv):
         print("Schedd: %s" % schedd_name)
         print("Constraint: '%s'" % const_str)
 
-    # must flush out before forking, or any buffered content wil be lost
+    # must flush out before forking, or any buffered content will be lost
     sys.__stdout__.flush()
     sys.__stderr__.flush()
     os.execvp("condor_rm", ["condor_rm", "-name", schedd_name, "-const", const_str] + cr_argv)

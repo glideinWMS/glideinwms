@@ -39,8 +39,8 @@ class TestMutableSymKey(unittest.TestCase):
         self.assertTrue(isinstance(self.key, MutableSymKey))
 
     def test_get_wcrypto(self):
-        nam, kstr, key_iv = self.key.get_wcrypto()
-        self.assertTrue(nam is None)
+        kname, kstr, key_iv = self.key.get_wcrypto()
+        self.assertTrue(kname is None)
         self.assertTrue(kstr is None)
         self.assertTrue(key_iv is None)
 

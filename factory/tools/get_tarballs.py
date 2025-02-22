@@ -145,11 +145,11 @@ class TarballManager(HTMLParser):
     def download_tarballs(self, version):
         """Download a specific set of condor tarballs from the release_url link
          All the OS and architecture tarballs for the specified condor version are downloaded.
-         The set of OS and architecture files are specified in the constructure using filenames
+         The set of OS and architecture files are specified in the constructor using filenames
 
          The method also checks the tarball checksum (by downloading the sha256sum.txt file)
          If a tarball already exist and its checksum is correct then it is skipped.
-         If a specific os/architecture tarball is not avalable it is skipped, and a message is
+         If a specific os/architecture tarball is not available it is skipped, and a message is
          printed on stdout if verbose has been set to True in the constructor.
 
         Args:
@@ -222,7 +222,7 @@ class TarballManager(HTMLParser):
                     See ARCH_MAP in the configuration template.
           whitelist: The whitelist that tells the method which versions of condor have been downloaded. Can be "latest".
           blacklist: The blacklist in case it was used.
-          default_tarball_version: The default condor tarball version, "default" will be addded to the version attribute in the xml
+          default_tarball_version: The default condor tarball version, "default" will be added to the version attribute in the xml
         """
         xml_snippet = '      <condor_tarball arch="{arch}" os="{os}" tar_file="{dest_file}" version="{version}"/>\n'
 
@@ -313,7 +313,7 @@ def checklatest(config, verbose):
     in the XML file and match the actual latest versions available from the condor website.
 
     Args:
-        config (dict): The configuratin dictionary
+        config (dict): The configuration dictionary
         verbose (bool): If True, prints detailed logs for debugging purposes.
 
     Returns:

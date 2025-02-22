@@ -205,7 +205,7 @@ class VOFrontendParams(cWParams.CommonParams):
         collector_defaults["DN"] = (
             None,
             "dn",
-            "Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=fg2.my.org)",
+            "Factory collector distinguished name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=fg2.my.org)",
             None,
         )
         collector_defaults["factory_identity"] = (
@@ -227,7 +227,7 @@ class VOFrontendParams(cWParams.CommonParams):
         schedd_defaults["DN"] = (
             None,
             "dn",
-            "User schedd distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=sb1.my.org)",
+            "User schedd distinguished name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=sb1.my.org)",
             None,
         )
 
@@ -348,7 +348,7 @@ class VOFrontendParams(cWParams.CommonParams):
         security_defaults["security_name"] = (
             None,
             "frontend_name",
-            "What name will we advertize for security purposes?",
+            "What name will we advertise for security purposes?",
             None,
         )
         security_defaults["idtoken_lifetime"] = (
@@ -405,7 +405,7 @@ class VOFrontendParams(cWParams.CommonParams):
         ]
         process_log_defaults["max_days"] = ["7.0", "days", "Max number of days the logs should be preserved", None]
         process_log_defaults["max_mbytes"] = ["100.0", "Mbytes", "Max number of Mbytes the logs can use", None]
-        process_log_defaults["extension"] = ["all", "string", "name of the log extention", None]
+        process_log_defaults["extension"] = ["all", "string", "name of the log extension", None]
         process_log_defaults["msg_types"] = ["INFO, WARN, ERR", "string", "types of log messages", None]
         process_log_defaults["backup_count"] = ["5", "string", "Number of backup logs to keep", None]
         process_log_defaults["compression"] = ["", "string", "Compression for backup log files", None]
@@ -430,7 +430,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["monitor_footer"] = monitor_footer_defaults
 
         self.defaults["loop_delay"] = ("60", "seconds", "Number of seconds between iterations", None)
-        self.defaults["advertise_delay"] = ("5", "NR", "Advertize evert NR loops", None)
+        self.defaults["advertise_delay"] = ("5", "NR", "Advertise event NR loops", None)
         self.defaults["advertise_with_tcp"] = ("True", "Bool", "Should condor_advertise use TCP connections?", None)
         self.defaults["advertise_with_multiple"] = ("True", "Bool", "Should condor_advertise use -multiple?", None)
         self.defaults["enable_attribute_expansion"] = (
@@ -490,7 +490,7 @@ class VOFrontendParams(cWParams.CommonParams):
         pool_collector_defaults["DN"] = (
             None,
             "dn",
-            "Pool collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",
+            "Pool collector distinguished name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",
             None,
         )
         pool_collector_defaults["secondary"] = (
@@ -513,7 +513,7 @@ class VOFrontendParams(cWParams.CommonParams):
         ccb_defaults["DN"] = (
             None,
             "dn",
-            "CCB collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=ccb1.my.org)",
+            "CCB collector distinguished name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=ccb1.my.org)",
             None,
         )
         ccb_defaults["group"] = ("default", "string", "CCB collector group name useful to group HA setup", None)
@@ -529,13 +529,13 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["security"]["proxy_DN"] = (
             None,
             "dn",
-            "Distinguised name (subject) of the proxy (for example, /DC=org/DC=myca/OU=Services/CN=fe1.my.org)",
+            "Distinguished name (subject) of the proxy (for example, /DC=org/DC=myca/OU=Services/CN=fe1.my.org)",
             None,
         )
         self.defaults["security"]["sym_key"] = (
             "aes_256_cbc",
             "sym_algo",
-            "Type of symetric key system used for secure message passing",
+            "Type of symmetric key system used for secure message passing",
             None,
         )
 
@@ -666,7 +666,7 @@ class VOFrontendParams(cWParams.CommonParams):
                 has_security_name &= self.groups[group_name].security.security_name is not None
 
         if not has_security_name:
-            # explicity define one, so it will not change if config copied
+            # explicitly define one, so it will not change if config copied
             # it also makes the frontend admins aware of the name
             self.data["security"]["security_name"] = self.frontend_name
 
