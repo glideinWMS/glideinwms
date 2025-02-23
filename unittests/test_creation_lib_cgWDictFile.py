@@ -480,7 +480,7 @@ class TestGlideinEntryDicts(unittest.TestCase):
         for nm in self.edicts:
             self.assertTrue(isinstance(self.edicts[nm], glideinEntryDicts))
 
-    @unittest.skip("doesnt work")
+    @unittest.skip("does not work")
     def test_load(self):
         for nm in self.edicts:
             self.edicts[nm].load()

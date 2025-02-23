@@ -6,7 +6,7 @@
 # Description;
 #   This is a factory provided custom script invoked by glidein_startup.sh
 #   It checks that the X509 proxies ar valid for enough time
-#   This script will run after all the antry and group files (after_file_list_scripts)
+#   This script will run after all the entry and group files (after_file_list_scripts)
 #   It cannot run periodically (startd cron) because it writes to stdout
 #
 # To make changes to this file check first setup_x509.sh that defines X509_CERT_DIR and X509_USER_PROXY

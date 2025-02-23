@@ -216,7 +216,7 @@ def parse_import_args(args, QUIET_OPS):
             count += 1
             line = rawline.strip()
             if len(line) == 0:
-                continue  # emtpy line
+                continue  # empty line
             if line[0] == "#":
                 continue  # comment
 
@@ -299,7 +299,7 @@ def update_mapfile(mapfile, dnlist, opts):
                 break
         if not found:
             # should have found GSI anon, but could not
-            print("File '%s' is not valid a condor mapfile; cound not find anonymous mapping!" % mapfile)
+            print("File '%s' is not valid a condor mapfile; could not find anonymous mapping!" % mapfile)
             sys.exit(3)
 
     if recreate:

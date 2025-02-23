@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # This is a placeholder file, it should never appear in the final installation
-# This file will be replaced when create_rpm_startup is calles with the template
+# This file will be replaced when create_rpm_startup is called with the template
 
 # LSB Exit code 5: program is not installed
 exit 5

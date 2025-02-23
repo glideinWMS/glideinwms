@@ -24,5 +24,5 @@ and is distributed under the Apache 2.0 license, see the [LICENSE](LICENSE) file
 For release notes, a detailed description and installation, configuration and use instructions see:
 https://glideinwms.fnal.gov/
 
-For build instruction and development guidlines see:
+For build instruction and development guidelines see:
 https://cdcvs.fnal.gov/redmine/projects/glideinwms/wiki

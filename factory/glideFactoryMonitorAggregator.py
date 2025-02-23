@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """This module implements the functions needed
-   to aggregate the monitoring fo the glidein factory
+   to aggregate the monitoring of the Glidein Factory
 """
 
 import json
@@ -913,7 +913,7 @@ def aggregateRRDStats(log=logSupport.log):
 
         # write an aggregate XML file
 
-        # data from indivdual entries
+        # data from individual entries
         entry_str = tab + "<entries>\n"
         for entry in stats_entries:
             entry_name = entry.split("/")[-1]

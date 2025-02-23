@@ -83,7 +83,7 @@ class SubmitCredentials:
         output += "username = %s; " % self.username
         output += "security class = %s; " % str(self.security_class)
         output += "id = %s; " % self.id
-        output += "cedential dir = %s; " % self.cred_dir
+        output += "credential dir = %s; " % self.cred_dir
         output += "security credentials: "
         for sck, scv in self.security_credentials.items():
             output += f"    {sck} : {scv}; "
@@ -278,7 +278,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name,
         client_int_name (string): internal client name
         entry_name: (string): name of the entry
         scitoken_passthru: (bool): if True, scitoken present in credential. Override checks
-                                   for 'auth_method' and proceded with glidein request
+                                   for 'auth_method' and proceed with glidein request
     Raises:
        CredentialError: if the credentials in params don't match what is defined for the auth method
     """
@@ -446,7 +446,7 @@ def safe_update(fname, credential_data):
 
         #  if proxy_data == old_data nothing changed, done else
         if not (credential_data == old_data):
-            # proxy changed, neeed to update
+            # proxy changed, need to update
             # remove any previous backup file, if it exists
             try:
                 os.remove(fname + ".old")

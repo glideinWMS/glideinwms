@@ -339,7 +339,7 @@ class FEElementTestCase(unittest.TestCase):
         }
         self.gfe.populate_pubkey()
         self.assertTrue("bad_id" not in self.gfe.globals_dict, "Bad public key was not removed")
-        self.assertTrue("good_id" in self.gfe.globals_dict, "good public key was removed when it shouldnt have been")
+        self.assertTrue("good_id" in self.gfe.globals_dict, "good public key was removed when it shouldn't have been")
         self.assertTrue(
             "PubKeyObj" in self.gfe.globals_dict["good_id"]["attrs"],
             "public key object not populated when it should have been",

@@ -28,7 +28,7 @@ import time
 from glideinwms.frontend import glideinFrontendConfig, glideinFrontendPidLib
 
 
-# this one should  never throw an exeption
+# this one should  never throw an exception
 def get_element_pids(work_dir, frontend_pid):
     # get element pids
     frontendDescript = glideinFrontendConfig.FrontendDescript(work_dir)

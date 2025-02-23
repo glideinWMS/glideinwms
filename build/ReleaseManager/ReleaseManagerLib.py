@@ -191,7 +191,7 @@ class TaskPylint(TaskRelease):
 
     def pylint(self):
         # not currently called by packageManager, import was commented out above.
-        # As pylint didnt like that, move it here to make it easier to either
+        # As pylint didn't like that, move it here to make it easier to either
         # delete whole thing or re-enable as desired
         #
         from pylint import lint
@@ -530,8 +530,8 @@ def create_dir(dirname, mode=0o755, error_if_exists=False):
 # can throw ExeError
 def execute_cmd(cmd, stdin_data=None):
     """Execute a command in a shell using subprocess.Popen
-    The initial directory is the one of the Pithon script
-    (the final direcotry at the end of the subprocess does not matter)
+    The initial directory is the one of the Python script
+    (the final directory at the end of the subprocess does not matter)
 
     Args:
         cmd (str): string containing the command to execute

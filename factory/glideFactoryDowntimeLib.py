@@ -32,7 +32,7 @@ class DowntimeFile:
 
     def read(self, raise_on_error=False):
         """Return a list of downtime periods (utimes)
-        a value of None idicates "forever"
+        a value of None indicates "forever"
         for example: `[(1215339200,1215439170),(1215439271,None)]`
 
         Args:
@@ -40,7 +40,7 @@ class DowntimeFile:
 
         Returns:
             list: list of downtime periods [(start, end), ...]
-                a value of None idicates "forever", no start time, or no end time
+                a value of None indicates "forever", no start time, or no end time
                 timestamps are in seconds from epoch (utime)
                 `[]` returned when `raise_on_error` is False (default) and there is no downtime file
         """
@@ -145,7 +145,7 @@ class DowntimeFile:
 
 def read(fname, raise_on_error=False):
     """Return a list of downtime periods (utimes)
-    a value of None idicates "forever"
+    a value of None indicates "forever"
     for example: `[(1215339200,1215439170),(1215439271,None)]`
 
     Args:
@@ -154,7 +154,7 @@ def read(fname, raise_on_error=False):
 
     Returns:
         list: list of downtime periods [(start, end), ...]
-            a value of None idicates "forever", no start time, or no end time
+            a value of None indicates "forever", no start time, or no end time
             timestamps are in seconds from epoch (utime)
             `[]` returned when `raise_on_error` is False (default) and there is no file
     """

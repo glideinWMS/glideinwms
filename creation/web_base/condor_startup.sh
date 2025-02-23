@@ -594,7 +594,7 @@ if [[ -z "$retire_spread" ]]; then
     ((retire_spread= retire_time / 10))
     echo "using default retire spread, $retire_spread" 1>&2
 else
-    echo "used param retire spead, $retire_spread" 1>&2
+    echo "used param retire spread, $retire_spread" 1>&2
 fi
 
 
@@ -622,7 +622,7 @@ echo "Die time set to $die_time" 1>&2
 ((glidein_toretire= now + retire_time))
 ((glidein_todie= now + die_time))
 
-# minimize re-authentications, by asking for a session lenght to be the same as proxy lifetime, if possible
+# minimize re-authentications, by asking for a session length to be the same as proxy lifetime, if possible
 ((session_duration=x509_duration))
 
 # if in test mode, don't ever start any jobs
@@ -983,7 +983,7 @@ DS${I}_TO_DIE = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie))
 # partitionable slots will get reaped sooner than non-partitionable.
 DS${I}_NOT_PARTITIONABLE = ((PartitionableSlot =!= True) || (TotalSlots =?=1))
 # The daemon shutdown expression for idle startds(glideins) depends on some conditions:
-# If some jobs were sheduled on the startd (TAIL) or none at all (NOJOB)
+# If some jobs were scheduled on the startd (TAIL) or none at all (NOJOB)
 # If using condor 8.2 or later (NEW) or previous versions (PRE82). JobStarts defined
 # is used to discriminate
 DS${I}_IS_HTCONDOR_NEW = (Slot${I}_JobStarts =!= UNDEFINED)

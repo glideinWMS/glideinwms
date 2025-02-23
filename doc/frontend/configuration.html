@@ -1048,8 +1048,8 @@ SPDX-License-Identifier: Apache-2.0
                     <blockquote>
                       +CVMFSReposList = &quot;cms.cern.ch,atlas.cern.ch&quot;.
                     </blockquote>
-                    If any of these cvmfs repositories is not availale, the user
-                    jobs will fail.
+                    If any of these cvmfs repositories is not available, the
+                    user jobs will fail.
                   </li>
                   <li>
                     If they want their own singularity image, put the image file
@@ -1298,7 +1298,7 @@ SPDX-License-Identifier: Apache-2.0
                 Factory entry will ever see.
               </li>
               <li>
-                The next element, <b>idle_glideins_lifetime</b>, determins how
+                The next element, <b>idle_glideins_lifetime</b>, determines how
                 many seconds glideins will stay in the idle state in the Factory
                 queue before they are automatically removed (through a
                 periodic_remove expression)
@@ -1741,7 +1741,7 @@ SPDX-License-Identifier: Apache-2.0
                 >HTCondor manual</a
               >
               for more information on CCB. A switch in the entry section of the
-              Factory configuration determines wether the daemons started by
+              Factory configuration determines whether the daemons started by
               Glideins on that entry will use CCBs or not.<br /><br />
               <b
                 >Normally this section is empty and the main User Pool Collector
@@ -2047,7 +2047,7 @@ job_match_attrs = {
         <h2>Attribute substitution</h2>
 
         <p>
-          Atribute substitution can be used to parametrized the Frontend
+          Attribute substitution can be used to parametrized the Frontend
           configuration.
         </p>
         <p>
@@ -2065,7 +2065,7 @@ job_match_attrs = {
         </p>
         <p>
           The <b>$$</b> variant will interpret the type of the attribute,
-          quoting its value as appopriate, while the <b>$</b> requires a
+          quoting its value as appropriate, while the <b>$</b> requires a
           <i>string</i> type and will use it as-is.<br />
           They can appear in any string of the configuration file.
         </p>
@@ -2297,7 +2297,7 @@ def get_credential(log: logger, group: str, entry: dict, trust_domain: str):
           </a>
           for a table of how Singularity is negotiated with the entries using
           GLIDEIN_Singularity_Use and GLIDEIN_SINGULARITY_REQUIRE (the entry
-          variable) to decide wether the Glidein can run there and should use
+          variable) to decide whether the Glidein can run there and should use
           Singularity or not.
         </p>
 
@@ -2370,7 +2370,7 @@ def get_credential(log: logger, group: str, entry: dict, trust_domain: str):
             CVMFS is mounted in a different place CVMFS_MOUNT_DIR will be set in
             the environment and the Glidein will replace /cvms/ at the beginning
             of the path with the correct mount point. I.e. operators and users
-            do not have to worry about CVMFS bein mounted on an unusual mount
+            do not have to worry about CVMFS being mounted on an unusual mount
             point.
           </li>
         </ol>
@@ -2422,7 +2422,7 @@ def get_credential(log: logger, group: str, entry: dict, trust_domain: str):
           gwms-frontend reconfig; systemctl start gwms-frontend
         </blockquote>
         <p>
-          With the configutation above, all the activity messages will go into
+          With the configuration above, all the activity messages will go into
         </p>
         <blockquote>group_*/log/frontend_info.&lt;date&gt;.log</blockquote>
         <p>while the debug, warning and error messages go into</p>
@@ -2447,7 +2447,7 @@ def get_credential(log: logger, group: str, entry: dict, trust_domain: str):
       <div>
         <a name="#reconfigure_hooks" />
         <h3 class="western">Running pre/post reconfigure hooks</h3>
-        <p>You can put executable scipts in the</p>
+        <p>You can put executable scripts in the</p>
         <pre>/etc/gwms-frontend/hooks.reconfig.pre/</pre>
         or the
         <pre>/etc/gwms-frontend/hooks.reconfig.pre/</pre>

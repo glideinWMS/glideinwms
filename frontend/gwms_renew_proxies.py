@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Code and configuration files contributed by Brian Lin, OSG Software
-"""Automatical renewal of proxies necessary for a glideinWMS frontend
+"""Automatic renewal of proxies necessary for a glideinWMS frontend
 """
 
 
@@ -84,7 +84,7 @@ class Proxy:
 
     @staticmethod
     def voms_proxy_info(filename, *opts):
-        """Run voms-proxy-info on a arbritary file. Returns stdout, stderr, and return code of voms-proxy-info
+        """Run voms-proxy-info on a arbitrary file. Returns stdout, stderr, and return code of voms-proxy-info
         for any arbitrary file"""
         cmd = ["voms-proxy-info", "-file", filename] + list(opts)
         return _run_command(cmd)

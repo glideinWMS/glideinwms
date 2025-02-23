@@ -63,7 +63,7 @@ def update_credential(fname, credential_data):
 
         #  if proxy_data == old_data nothing changed, done else
         if not (credential_data == old_data):
-            # proxy changed, neeed to update
+            # proxy changed, need to update
             # remove any previous backup file, if it exists
             try:
                 os.remove(fname + ".old")

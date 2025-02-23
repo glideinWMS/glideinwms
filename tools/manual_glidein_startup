@@ -168,7 +168,7 @@ def main(argv):
         ads_gc = collector.query(htcondor.AdTypes.Any, constraint_gc)
 
         if ads_gc:
-            # If a given client name has mutliple credentials, there will be
+            # If a given client name has multiple credentials, there will be
             # multiple classads matching the criteria.
             # For manual startup of glidein, credentials will be provided by
             # the user as an option so just take first classad and ignore

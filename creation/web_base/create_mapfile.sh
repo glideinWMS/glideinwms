@@ -58,7 +58,7 @@ create_gridmapfile() {
     if ! id=$(grid-proxy-info -identity 2>/dev/null); then
         proxy_cmd="voms-proxy-info"
         if ! id=$(voms-proxy-info -identity 2>/dev/null); then
-            # "openssl x509 -noout -issuer .." works for proxys but may be a CA for certificates
+            # "openssl x509 -noout -issuer .." works for proxies but may be a CA for certificates
             # did not find something to extract the identity, filtering manually
             cert_fname=$(get_proxy_fname)
             if [[ -z "$cert_fname" ]]; then
@@ -142,9 +142,9 @@ create_condormapfile() {
             edn_wq=$(echo "$udn" | sed 's/[^[:alnum:]]/\\\&/g')
             # remove backslashes from the first and last quote
             # and add begin and end matching chars
-            edn=$(echo "$edn_wq" | awk '{print "\"^" substr(substr($0,3,length($0)-2),1,length($0)-4) "$\"" }')
+            e_dn=$(echo "$edn_wq" | awk '{print "\"^" substr(substr($0,3,length($0)-2),1,length($0)-4) "$\"" }')
 
-            echo "GSI $edn $uid" >> "$X509_CONDORMAP"
+            echo "GSI $e_dn $uid" >> "$X509_CONDORMAP"
             if [ "$X509_SKIP_HOST_CHECK_DNS_REGEX" = "" ]; then
                 X509_SKIP_HOST_CHECK_DNS_REGEX="$edn_wq"
             else

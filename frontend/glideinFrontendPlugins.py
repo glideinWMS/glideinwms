@@ -36,7 +36,7 @@ from . import glideinFrontendInterface, glideinFrontendLib
 #     If params_obj is NOT None, then this function is responsible for calling
 #     add_usage_details() for each returned credential to determine idle and max run
 #     If called multiple time, it is guaranteed that                           #
-#        if the index is the same, the proxy is (logicaly) the same            #
+#        if the index is the same, the proxy is (logically) the same            #
 #     credential_type will limit the returned credentials to a particular type #
 #     trust_domain will limit the returned credentials to a particular domain  #
 #                                                                              #
@@ -644,7 +644,7 @@ def fair_assign(cred_list, params_obj):
 ###################################################################
 
 # Being plugins, users are not expected to directly reference the classes
-# They should go throug the dictionaries below to find the appropriate plugin
+# They should go through the dictionaries below to find the appropriate plugin
 
 proxy_plugins = {
     "ProxyAll": ProxyAll,

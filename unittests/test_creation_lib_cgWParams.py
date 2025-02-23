@@ -78,7 +78,7 @@ class TestGlideinParams(unittest.TestCase):
         except RuntimeError as err:
             self.fail(err)
 
-    @unittest.skip("this test doesnt set up subparams so validate_names will fail")
+    @unittest.skip("this test does not set up subparams so validate_names will fail")
     def test_validate_names(self):
         try:
             self.glidein_params.validate_names()

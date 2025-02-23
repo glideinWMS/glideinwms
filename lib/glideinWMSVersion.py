@@ -54,7 +54,7 @@ class GlideinWMSDistro:
             patch = ""
             modifiedFiles = []
 
-            # Load the distro file hastable
+            # Load the distro file hashtable
             distroFileHash = {}
             with open(self.distroChksumFile) as distroChksumFd:
                 for line in distroChksumFd.readlines():

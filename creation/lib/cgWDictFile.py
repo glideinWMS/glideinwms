@@ -82,7 +82,7 @@ class MonitorGroupDictFile(cWDictFile.DictFile):
 
     def parse_val(self, line):
         if len(line) == 0:
-            return  # ignore emoty lines
+            return  # ignore empty lines
         if line[0] == "#":
             return  # ignore comments
         arr = line.split(None, 3)
@@ -131,7 +131,7 @@ class InfoSysDictFile(cWDictFile.DictFile):
 
     def parse_val(self, line):
         if len(line) == 0:
-            return  # ignore emoty lines
+            return  # ignore empty lines
         if line[0] == "#":
             return  # ignore comments
         arr = line.split(None, 3)
@@ -496,7 +496,7 @@ def save_common_dicts(dicts, is_main, set_readonly=True):
         is_main (bool): True if called while saving the main dictionaries (and not entries or entry lists)
         set_readonly (bool): True (default) to also set the dictionary read only
     """
-    # make sure decription is up-to-date
+    # make sure description is up-to-date
     refresh_description(dicts)
     # save the immutable ones
     for k in ("description",):

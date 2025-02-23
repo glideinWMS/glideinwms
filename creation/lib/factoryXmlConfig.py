@@ -169,7 +169,7 @@ class EntrySetElement(EntryElement):
         return self.get_child_list("entries")
 
     def getName(self):
-        """The name for entry sets is actaully called alias"""
+        """The name for entry sets is actually called alias"""
         return self["alias"]
 
 

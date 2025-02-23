@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This module implements the functions needed to advertize
+"""This module implements the functions needed to advertise
    and get commands from the Collector
 """
 
@@ -19,11 +19,11 @@ from glideinwms.lib import classadSupport, condorExe, condorManager, condorMonit
 
 # Define global variables that keep track of the Daemon lifetime
 start_time = time.time()
-# Advertize counter for glidefactory classad
+# Advertise counter for glidefactory classad
 advertizeGFCounter = {}
-# Advertize counter for glidefactoryclient classad
+# Advertise counter for glidefactoryclient classad
 advertizeGFCCounter = {}
-# Advertize counter for glidefactoryglobal classad
+# Advertise counter for glidefactoryglobal classad
 advertizeGlobalCounter = 0
 
 
@@ -222,7 +222,7 @@ def findGroupWork(
     status.require_integrity(True)
     status.glidein_name = glidein_name
 
-    # Serialize access to the Collector accross all the processes
+    # Serialize access to the Collector across all the processes
     # these is a single Collector anyhow
     lock_fname = os.path.join(factoryConfig.lock_dir, "gfi_status.lock")
     if not os.path.exists(lock_fname):
@@ -440,7 +440,7 @@ def findWork(
     status.glidein_name = glidein_name
     status.entry_name = entry_name
 
-    # serialize access to the Collector accross all the processes
+    # serialize access to the Collector across all the processes
     # these is a single Collector anyhow
     lock_fname = os.path.join(factoryConfig.lock_dir, "gfi_status.lock")
     if not os.path.exists(lock_fname):  # create a lock file if needed
@@ -594,7 +594,7 @@ class EntryClassad(classadSupport.Classad):
             entry_name (str): Name of the resource in the glidefactory classad
             trust_domain (str): trust domain for this Entry
             auth_method (str): the authentication methods this entry supports in glidein submission, i.e. grid_proxy, scitoken
-            supported_signtypes (str): suppported sign types, i.e. sha1 (comma separated list)
+            supported_signtypes (str): supported sign types, i.e. sha1 (comma separated list)
             pub_key_obj (_type_, optional): GlideinKey - for the frontend to use in encryption. Defaults to None.
             glidein_submit (dict, optional): Submit attributes in the configuration. Defaults to {}.
             glidein_attrs (dict, optional): glidein attrs to be published, not be overwritten by Frontends. Defaults to {}.
@@ -686,7 +686,7 @@ class FactoryGlobalClassad(classadSupport.Classad):
 
         :param factory_name: Name of the factory
         :param glidein_name: Name of the resource in the glidefactoryglobal classad?
-        :param supported_signtypes: suppported sign types, i.e. sha1
+        :param supported_signtypes: supported sign types, i.e. sha1
         :param pub_key_obj: GlideinKey - for the frontend to use in encryption
         :return:
         """
@@ -723,7 +723,7 @@ def advertizeGlobal(
     @type glidein_name: string
     @param glidein_name: name of the glidein
     @type supported_signtypes: string
-    @param supported_signtypes: suppported sign types, i.e. sha1
+    @param supported_signtypes: supported sign types, i.e. sha1
     @type pub_key_obj: GlideinKey
     @param pub_key_obj: for the frontend to use in encryption
     @type stats_dict: dict
@@ -931,7 +931,7 @@ class MultiAdvertizeGlideinClientMonitoring:
 
     def writeToMultiClassadFile(self, filename=None, append=True):
         # filename: Name of the file to write classads to
-        # append: Wether the classads need to be appended to the file
+        # append: Whether the classads need to be appended to the file
         #         If we create file append is in a way ignored
 
         if filename is None:
@@ -1044,7 +1044,7 @@ def createGlideinClientMonitoringFile(
         raise
 
 
-# Given a file, advertize
+# Given a file, advertise
 # Can throw a CondorExe/ExeError exception
 def advertizeGlideinClientMonitoringFromFile(fname, remove_file=True, is_multi=False, factory_collector=DEFAULT_VAL):
     if os.path.exists(fname):
@@ -1075,7 +1075,7 @@ def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False, factory_co
             os.remove(fname)
     else:
         logSupport.log.warning(
-            "glidefactory classad file %s does not exist. Check if you have atleast one entry enabled" % fname
+            "glidefactory classad file %s does not exist. Check if you have at least one entry enabled" % fname
         )
 
 
@@ -1140,7 +1140,7 @@ def _remove_if_there(fname):
         pass
 
 
-# serialize access to the Collector accross all the processes
+# serialize access to the Collector across all the processes
 # these is a single Collector anyhow
 def exe_condor_advertise(fname, command, is_multi=False, factory_collector=None):
     global factoryConfig
