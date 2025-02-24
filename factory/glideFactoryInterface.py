@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """This module implements the functions needed to advertize
-   and get commands from the Collector
+and get commands from the Collector
 """
 
 import fcntl
