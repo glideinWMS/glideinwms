@@ -229,10 +229,15 @@ class TaskDocumentation(TaskRelease):
 
 
 class TaskTar(TaskRelease):
+    """Task building the release tarball.
+
+    It uses the `PackageExcludes` class to define which paths in the source tree not to include.
+    """
+
     def __init__(self, rel):
         TaskRelease.__init__(self, "GlideinWMSTar", rel)
         self.excludes = PackageExcludes()
-        self.releaseFilename = "glideinWMS_%s.tgz" % self.release.version
+        self.releaseFilename = f"glideinwms_{self.release.version}.tgz"
         self.excludePattern = self.excludes.commonPattern
         self.tarExe = which("tar")
 
@@ -313,11 +318,6 @@ class TaskRPM(TaskTar):
             "frontend_startup_sl7",
             "frontend.xml",
             "glideinWMS.xml",
-            "gwms-factory.conf.httpd",
-            "gwms-factory.sysconfig",
-            "gwms-frontend.conf.httpd",
-            "gwms-frontend.sysconfig",
-            "gwms-logserver.conf.httpd",
         ]
         self.rpmMacros = {
             "_topdir": self.release.rpmbuildDir,
@@ -437,7 +437,10 @@ class TaskRPM(TaskTar):
 
 
 class PackageExcludes:
+    """Defines patterns excluded from tarball files (all, only in Factory, only in Frontend)."""
+
     def __init__(self):
+        # Patterns excluded from all tarballs
         self.commonPattern = [
             "CVS",
             ".DS_Store",
@@ -569,11 +572,14 @@ def execute_cmd(cmd, stdin_data=None):
 
 
 def which(program):
-    """
-    Implementation of which command in python.
+    """Implementation of which command in python.
 
-    @return: Path to the binary
-    @rtype: string
+    Args:
+        program (str): Command to search in the PATH
+
+    Returns:
+        str: Path to the binary
+
     """
 
     def is_exe(fpath):

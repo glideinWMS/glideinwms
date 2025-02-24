@@ -18,12 +18,15 @@ Changes since the last release
     The image must be provided by the job or a future custom script in order not to fail. (PR #482)
 -   APPTAINER_TEST_IMAGE can be set to an always available Singularity/Apptainer image to use for testing.
     Defaults to oras://ghcr.io/apptainer/alpine:latest (PR #482)
+-   The monitoring pages are now redirecting to https if available. This behavior was present in the past but had been lost and now it has been reinstated. (PR #492)
 
 ### Deprecated / removed options and commands
 
 ### Security Related Fixes
 
 ### Bug Fixes
+
+-   Some config files used in the RPM package, including the httpd ones, were obsolete and not the version in the source tree. (PR #492)
 
 ### Testing / Development
 
