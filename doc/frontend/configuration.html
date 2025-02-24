@@ -2787,6 +2787,46 @@ def get_credential(log: logger, group: str, entry: dict, trust_domain: str):
               </ul>
             </td>
           </tr>
+          <tr>
+            <td><b>EntryConditionGenerator</b></td>
+            <td>
+              <p>
+                Allows to return different values depending on the Entry
+                selected to run the jobs. You can pick an Entry attribute as
+                discriminator. If the discriminator is in the dictionary, return
+                the corresponding value. If the discriminator is in the list,
+                return the list_output value. Otherwise, return the default
+                value. Most context has default values and is optional.
+              </p>
+            </td>
+            <td>
+              <ul>
+                <li>
+                  <code>discriminator</code>: The Entry attribute used for the
+                  selection. Valid options are: name (default), gatekeeper,
+                  factory, factory.name, trust_domain.
+                </li>
+                <li>
+                  <code>dict</code>: Dictionary where the keys are discriminator
+                  values and the values are the desired return values. Defaults
+                  to <code>{}</code>
+                </li>
+                <li>
+                  <code>list</code>: List of discriminator values. Defaults to
+                  <code>[]</code>.
+                </li>
+                <li>
+                  <code>list_output</code>: Value returned if the discriminator
+                  is in <code>list</code>. Must be provided if
+                  <code>list</code> is not empty, ignored otherwise.
+                </li>
+                <li>
+                  <code>default</code>: Default value if the discriminator is
+                  not in the dictionary or list. Required.
+                </li>
+              </ul>
+            </td>
+          </tr>
         </table>
       </div>
 
