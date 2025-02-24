@@ -51,16 +51,11 @@ BuildArch:      noarch
 Source:         glideinwms.tar.gz
 Source1:        creation/templates/frontend_startup
 Source2:        %{frontend_xml}
-Source3:        gwms-frontend.conf.httpd
+Source3:        creation/templates/factory_startup
 Source4:        %{factory_xml}
-Source5:        gwms-factory.conf.httpd
-Source6:        creation/templates/factory_startup
 Source7:        chksum.sh
-Source8:        gwms-frontend.sysconfig
-Source9:        gwms-factory.sysconfig
 Source11:       creation/templates/frontend_startup_sl7
 Source12:       creation/templates/factory_startup_sl7
-Source13:       gwms-logserver.conf.httpd
 
 BuildRequires:  python3
 BuildRequires:  python3-devel
@@ -349,7 +344,7 @@ sed -i "s/STARTUP_DIR *=.*/STARTUP_DIR = \"\/var\/lib\/gwms-factory\/web-base\"/
 sed -i "s/STARTUP_DIR *=.*/STARTUP_DIR = \"\/var\/lib\/gwms-factory\/web-base\"/" creation/clone_glidein
 
 #Create the RPM startup files (init.d) from the templates
-creation/create_rpm_startup . frontend_initd_startup_template factory_initd_startup_template %{SOURCE1} %{SOURCE6}
+creation/create_rpm_startup . frontend_initd_startup_template factory_initd_startup_template %{SOURCE1} %{SOURCE3}
 creation/create_rpm_startup . frontend_initd_startup_template_sl7 factory_initd_startup_template_sl7 %{SOURCE11} %{SOURCE12}
 
 # install the executables
@@ -429,8 +424,6 @@ rm -rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/logserver
 # after that, we dont package these, so deleting them here
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/factory_initd_startup_template_sl7
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template_sl7
-rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/gwms-factory.service
-rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/gwms-frontend.service
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/gwms-renew-proxies.cron
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/gwms-renew-proxies.init
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/gwms-renew-proxies.service
@@ -439,8 +432,8 @@ rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/proxies.in
 
 %if 0%{?rhel} >= 7
 install -d $RPM_BUILD_ROOT/%{systemddir}
-install -m 0644 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
-install -m 0644 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
+install -m 0644 install/config/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
+install -m 0644 install/config/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
 install -m 0644 creation/templates/gwms-renew-proxies.service $RPM_BUILD_ROOT/%{systemddir}/
 install -m 0644 creation/templates/gwms-renew-proxies.timer $RPM_BUILD_ROOT/%{systemddir}/
 install -d $RPM_BUILD_ROOT/%{_sbindir}
@@ -451,7 +444,7 @@ install -m 0755 %{SOURCE12} $RPM_BUILD_ROOT/%{_sbindir}/gwms-factory
 install -d $RPM_BUILD_ROOT%{_initrddir}
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/cron.d
 install -m 0755 %{SOURCE1} $RPM_BUILD_ROOT%{_initrddir}/gwms-frontend
-install -m 0755 %{SOURCE6} $RPM_BUILD_ROOT%{_initrddir}/gwms-factory
+install -m 0755 %{SOURCE3} $RPM_BUILD_ROOT%{_initrddir}/gwms-factory
 install -m 0755 creation/templates/gwms-renew-proxies.init $RPM_BUILD_ROOT%{_initrddir}/gwms-renew-proxies
 install -m 0644 creation/templates/gwms-renew-proxies.cron $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/gwms-renew-proxies
 %endif
@@ -522,7 +515,7 @@ install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/hooks.reconfig.pre
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/hooks.reconfig.post
 install -m 0644 %{SOURCE2} $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/frontend.xml
 install -m 0644 creation/templates/proxies.ini $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/proxies.ini
-install -m 0644 %{SOURCE8} $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/gwms-frontend
+install -m 0644 install/config/gwms-frontend.sysconfig $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/gwms-frontend
 cp -arp plugins/* $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/plugin.d
 
 # Install the factory config dir
@@ -531,7 +524,7 @@ install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory/plugin.d
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory/hooks.reconfig.pre
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory/hooks.reconfig.post
 install -m 0644 %{SOURCE4} $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory/glideinWMS.xml
-install -m 0644 %{SOURCE9} $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/gwms-factory
+install -m 0644 install/config/gwms-factory.sysconfig $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/gwms-factory
 # remove the file from python_sitelib as it is put elsewhere; similar to clone_glidein and info_glidein files
 
 # Install the web base
@@ -608,9 +601,9 @@ install -m 0644 etc/checksum.factory $RPM_BUILD_ROOT%{factory_dir}/checksum.fact
 
 # Install web area conf
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d
-install -m 0644 %{SOURCE3} $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
-install -m 0644 %{SOURCE5} $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d/gwms-factory.conf
-install -m 0644 %{SOURCE13} $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d/gwms-logserver.conf
+install -m 0644 install/config/gwms-frontend.conf.httpd $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
+install -m 0644 install/config/gwms-factory.conf.httpd $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d/gwms-factory.conf
+install -m 0644 install/config/gwms-logserver.conf.httpd $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d/gwms-logserver.conf
 
 install -d $RPM_BUILD_ROOT%{web_base}/../creation
 install -d $RPM_BUILD_ROOT%{web_base}/../creation/templates

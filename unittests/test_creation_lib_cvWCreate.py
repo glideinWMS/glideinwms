@@ -54,7 +54,7 @@ class Test_cvWCreate(unittest.TestCase):
     def test_get_template(self):
         # test that we can fetch an existing template
         glideinWMS_dir = ".."
-        template_name = "gwms-factory.service"
+        template_name = "factory_initd_startup_template"
         tmp = get_template(template_name, glideinWMS_dir)
         self.assertNotEqual(tmp, "")
 
