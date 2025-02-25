@@ -132,6 +132,11 @@ SPDX-License-Identifier: Apache-2.0
           <li>
             <a href="#reconfigure_hooks">Running pre/post reconfigure hooks</a>
           </li>
+          <li>
+            <a href="#upgrade"
+              >Upgrading to GlideinWMS 3.11.x (development series)</a
+            >
+          </li>
         </ol>
       </div>
       <div class="related">
@@ -1099,6 +1104,7 @@ SPDX-License-Identifier: Apache-2.0
                 using command line tools.
               </li>
               <li>
+                <a name="auth_method" />
                 <div class="xml">
                   &lt;glidein&gt;&lt;entries&gt;&lt;entry name=&quot;<i
                     >entry name</i
@@ -1176,9 +1182,6 @@ SPDX-License-Identifier: Apache-2.0
                   >(condorsubmit=(universe vanilla)(requirements
                   \&quot;(ISMINOSAFS=?=True)\&quot;))</tt
                 >'). <br />
-                NOTE: If the auth_method contains "+project_id" for a TeraGrid
-                entry, the string "(project=TG_PROJECT_ID)" will be added by the
-                Factory and populated with the project id passed in the request.
               </li>
               <li>
                 <div class="xml">
@@ -3216,6 +3219,27 @@ CONDORCE_COLLECTOR_HOST=&lt;site-local HTCondorCE collector address&gt;</pre
         as user
         <pre>gfactory</pre>
         . Only executable scripts will be executed.
+        <br />
+        <br />
+      </div>
+
+      <div>
+        <a name="upgrade" />
+        <h3 class="western">
+          Upgrading to GlideinWMS 3.11.x (development series)
+        </h3>
+        <p>
+          When upgrading to GlideinWMS 3.11.x, you will not need to make any
+          changes to your Factory configuration. However, you may want to
+          consider using the new
+          <a href="#auth_method"><code>auth_method</code></a> features that
+          allow to specify a combination of credential types and security
+          parameters.
+        </p>
+        <p>
+          The new Factory is back compatible with older versions of the
+          Frontend.
+        </p>
       </div>
 
       <div class="footer">
