@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This module implements functions and classes to handle forking of processes and the collection of results.
-"""
+"""This module implements functions and classes to handle forking of processes and the collection of results."""
 
 # TODO: This could be rewritten so that the polling lists are registered once and the fd are removed only when
 #       not needed anymore (currently there is an external structure and the poll object is a new one each time)

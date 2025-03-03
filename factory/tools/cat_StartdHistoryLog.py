@@ -5,7 +5,7 @@
 
 """Print out the StartdHistoryLog for a glidein output file
 
- Usage: cat_StartdHistoryLog.py logname
+Usage: cat_StartdHistoryLog.py logname
 """
 
 
