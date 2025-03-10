@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Contains the algorithms needed for attribute expansion
-"""
+"""Contains the algorithms needed for attribute expansion"""
 
 import re
 

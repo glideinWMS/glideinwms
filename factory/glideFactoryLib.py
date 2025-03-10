@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """This module implements the functions needed to keep the
-   required number of idle glideins
-   It also has support for glidein sanitizing
+required number of idle glideins
+It also has support for glidein sanitizing
 """
 
 import base64

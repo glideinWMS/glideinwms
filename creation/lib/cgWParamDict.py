@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Glidein creation module.
-   Classes and functions needed to handle dictionary files.
-   created out of the parameter object.
+Classes and functions needed to handle dictionary files.
+created out of the parameter object.
 """
 
 import os
