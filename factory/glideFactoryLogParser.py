@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """This module implements classes to track
-   changes in glidein status logs
+changes in glidein status logs
 """
 
 
