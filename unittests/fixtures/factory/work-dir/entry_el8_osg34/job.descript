@@ -16,6 +16,9 @@ PerEntryMaxHeld 	1000
 DefaultPerFrontendMaxGlideins 	5000
 DefaultPerFrontendMaxIdle 	100
 DefaultPerFrontendMaxHeld 	50
+StaleAgeIdle    1800
+StaleAgeRunning         600
+StaleAgeUnclaimed       300
 MaxSubmitRate 	100
 SubmitCluster 	10
 SubmitSlotsLayout 	fixed

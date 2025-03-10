@@ -10,6 +10,7 @@ Changes since the last release
 ### New features / functionalities
 
 -   Added a test Apptainer image to use when the configured one is not available (PR #482)
+-   Added a new configuration knob, stale_age, for factory entries to control the age of the glideins to be considered stale for certain statuses (PR #494)
 
 ### Changed defaults / behaviours
 

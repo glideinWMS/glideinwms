@@ -131,6 +131,11 @@ class Entry:
         )
         self.gflFactoryConfig.rrd_stats.base_dir = self.monitorDir
 
+        # Configure stale times
+        self.gflFactoryConfig.stale_maxage[1] = int(self.jobDescript.data["StaleAgeIdle"])
+        self.gflFactoryConfig.stale_maxage[2] = int(self.jobDescript.data["StaleAgeRunning"])
+        self.gflFactoryConfig.stale_maxage[-1] = int(self.jobDescript.data["StaleAgeUnclaimed"])
+
         # Add cleaners for the user log directories
         for username in self.frontendDescript.get_all_usernames():
             user_log_dir = self.gflFactoryConfig.get_client_log_dir(self.name, username)
@@ -1100,6 +1105,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
     if done_something == 0:
         entry.log.info("Sanitizing glideins for entry %s" % entry.name)
         glideFactoryLib.sanitizeGlideins(condorQ, log=entry.log, factoryConfig=entry.gflFactoryConfig)
+        glideFactoryLib.sanitizeGlideins(condorQ, log=entry.log)
 
     # This is the only place where rrd_stats.getData(), updating RRD as side effect, is called for clients;
     # totals are updated aslo elsewhere

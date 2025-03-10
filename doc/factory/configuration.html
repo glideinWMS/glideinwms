@@ -307,6 +307,10 @@ SPDX-License-Identifier: Apache-2.0
                   </blockquote>
                   <a href="#config">&lt;/max_jobs&gt;</a><br />
                   <a href="#config"
+                    >&lt;stale_age idle="604800" running="2678400"
+                    unclaimed="7200"&gt;</a
+                  ><br />
+                  <a href="#config"
                     >&lt;release max_per_cycle="20" sleep="0.2"/&gt;</a
                   ><br />
                   <a href="#config"
@@ -1324,6 +1328,8 @@ SPDX-License-Identifier: Apache-2.0
               glideins="5000"/&gt;<br />
               &nbsp;&nbsp;&lt;/per_frontends&gt;<br />
               &lt;max_jobs/&gt;<br />
+              &lt;stale_age idle="604800" running="2678400"
+              unclaimed="7200"&gt;<br />
               &lt;release max_per_cycle="20" sleep="0.2"/&gt;<br />
               &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br />
               &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2"
@@ -1363,6 +1369,11 @@ SPDX-License-Identifier: Apache-2.0
                 All these limits are scaled down by the num_factories attributes
                 (it can be specified here, at the entry level or in the global
                 submit section)
+              </li>
+              <li>
+                The stale_age section controls how long a glidein can be idle,
+                running or unclaimed before it is considered stale and removed.
+                Each attribute is optional and defined in seconds.
               </li>
               <li>
                 Release regulates how many glideins are released per cycle.
@@ -1708,6 +1719,8 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
                     &lt;/per_frontends&gt;<br />
                   </blockquote>
                   &lt;/max_jobs&gt;<br />
+                  &lt;stale_age idle="604800" running="2678400"
+                  unclaimed="7200"&gt;<br />
                   &lt;release max_per_cycle="20" sleep="0.2"/&gt;<br />
                   &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br />
                   &lt;restrictions require_voms_proxy="False"/&gt;<br />
@@ -1787,6 +1800,8 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
                     &lt;/per_frontends&gt;<br />
                   </blockquote>
                   &lt;/max_jobs&gt;<br />
+                  &lt;stale_age idle="604800" running="2678400"
+                  unclaimed="7200"&gt;<br />
                   &lt;release max_per_cycle="20" sleep="0.2"/&gt;<br />
                   &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br />
                   &lt;restrictions require_voms_proxy="False"/&gt;<br />

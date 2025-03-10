@@ -266,7 +266,7 @@ if __name__ == "__main__":
 
             main(conf, update_scripts, update_def_cfg, comment=comment)
 
-        except RuntimeError as e:
+        except (RuntimeError, ValueError) as e:
             raise ReconfigError(str(e)) from e
 
     except ReconfigError as re:
