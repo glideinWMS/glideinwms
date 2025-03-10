@@ -4,6 +4,16 @@
 # Desscription:
 #   This module contains the create_glidein params class
 
+#########################################################################
+# NOTE: This module is currently not used!                              #
+#                                                                       #
+#       Configuration defaults are in creation/lib/factory_defaults.xml #
+#       We should reevaluate the need for this module when refactoring  #
+#       the configuration system. As of now, factory and frontend       #
+#       configurations are done differently.                            #
+#                                                                       #
+#########################################################################
+
 import copy
 import os
 
@@ -126,6 +136,27 @@ class GlideinParams(cWParams.CommonParams):
             max_jobs_per_frontend_defaults,
         )
         entry_config_defaults["max_jobs"] = entry_config_max_jobs_defaults
+
+        stale_age_defaults = cWParams.CommentedOrderedDict()
+        stale_age_defaults["idle"] = (
+            str(7 * 24 * 3600),  # 1 week
+            "seconds",
+            "Max age of idle glideins before they are considered stale.",
+            None,
+        )
+        stale_age_defaults["running"] = (
+            str(31 * 24 * 3600),  # 1 month
+            "seconds",
+            "Max age of running glideins before they are considered stale.",
+            None,
+        )
+        stale_age_defaults["unclaimed"] = (
+            str(2 * 3600),  # 2 hours
+            "seconds",
+            "Max age of unclaimed glideins before they are considered stale.",
+            None,
+        )
+        entry_config_defaults["stale_age"] = stale_age_defaults
 
         entry_config_restrictions_defaults = cWParams.CommentedOrderedDict()
         entry_config_restrictions_defaults["require_voms_proxy"] = (
