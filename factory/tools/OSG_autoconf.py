@@ -25,6 +25,7 @@ from glideinwms.lib.config_util import (
     get_submit_attr_str,
     get_yaml_file_info,
     GLIDEIN_SUPPORTED_VO_MAP,
+    GLIDEIN_SUPPORTED_VO_MAP_GPU,
     ProgramError,
     update,
     write_to_xml_file,
@@ -68,9 +69,10 @@ def get_vos(allowed_vos, GPU_entry=False):
     vos = set()
     for vorg in allowed_vos:
         # Fixup vo found in the collector since there is no consistency with case and presence of quotes
-        fix_vorg = vorg.replace('"', '').lower()
-        if fix_vorg in GLIDEIN_SUPPORTED_VO_MAP:
-            vos.add(GLIDEIN_SUPPORTED_VO_MAP[fix_vorg])
+        fix_vorg = vorg.replace('"', "").lower()
+        vomap = GLIDEIN_SUPPORTED_VO_MAP_GPU if GPU_entry else GLIDEIN_SUPPORTED_VO_MAP
+        if fix_vorg in vomap:
+            vos.add(vomap[fix_vorg])
 
     return vos
 
