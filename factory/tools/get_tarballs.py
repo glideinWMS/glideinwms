@@ -139,8 +139,12 @@ class TarballManager(HTMLParser):
         """Internal method. Override the base class handle_data"""
         if re.match(r"\d+\.\d+\.\d+/", data):
             added = self._add_release(data, "release")
+            # For condor feature releases (i.e., middle number not 0), we allow beta releases
             if not added and data.split(".")[1] != "0":
-                self._add_release(data, "update")
+                added = self._add_release(data, "beta")
+                # Prior to HTCondor version 24 the beta directory was called "update"
+                if not added:
+                    self._add_release(data, "update")
 
     def download_tarballs(self, version):
         """Download a specific set of condor tarballs from the release_url link
