@@ -53,28 +53,19 @@ DEFAULT_ATTRS = {
 
 GLIDEIN_SUPPORTED_VO_MAP = {
     "atlas": "ATLAS",
-    "ATLAS": "ATLAS",
     "cdf": "CDF",
     "cigi": "CIGI",
     "cms": "CMS",
-    '"cms"': "CMS",
-    "CMS": "CMS",
     "engage": "EngageVO",
     "des": "DES",
     "dune": "DUNE",
     "fermilab": "Fermilab",
-    "Fermilab": "Fermilab",
     "glow": "glowVO",
-    "GLOW": "glowVO",
     "gluex": "GLUEX",
-    "Gluex": "GLUEX",
     "hcc": "HCC",
-    "HCC": "HCC",
     "icecube": "IceCube",
-    "IceCube": "IceCube",
     "lbne": "LBNE",
     "ligo": "LIGO",
-    "LIGO": "LIGO",
     "lsst": "LSST",
     "minos": "MINOS",
     "mis": "MIS",
@@ -85,10 +76,23 @@ GLIDEIN_SUPPORTED_VO_MAP = {
     "nwicg": "NWICG",
     "sbgrid": "SBGrid",
     "osg": "OSGVO",
-    "OSG": "OSGVO",
     "osgedu": "OSGEDU",
     "uc3": "UC3VO",
     "virgo": "VIRGO",
+}
+
+GLIDEIN_SUPPORTED_VO_MAP_GPU = {
+    "cms": "CMSGPU",
+    "dune": "DUNEGPU",
+    "fermilab": "FermilabGPU",
+    "glow": "glowGPU",
+    "hcc": "HCCGPU",
+    "icecube": "IceCubeGPU",
+    "ligo": "LIGOGPU",
+    "nova": "NovaGPU",
+    "sbgrid": "SBGridGPU",
+    "osg": "OSGVOGPU",
+    "virgo": "VIRGOGPU",
 }
 
 SUBMISSION_SPEED_MAP = {
