@@ -35,17 +35,14 @@ exit_if_no_token(){
 }
 
 get_proxy_fname() {
-    local cert_fname="$1"
-    if [ -z "$cert_fname" ]; then
-        if [ -n "$X509_USER_PROXY" ]; then
-            cert_fname="$X509_USER_PROXY"
-        # Ignoring the file in /tmp, it may be confusing
-        #else
-        #    cert_fname="/tmp/x509up_u`id -u`"
-        fi
-    fi
+    # 1 - optional certificate file
+    local cert_fname="${1:-$X509_USER_PROXY}"
+    # Ignoring the file in /tmp, it may be confusing
+    #if [ -z "$cert_fname" ]; then
+    #    cert_fname="/tmp/x509up_u`id -u`"
+    #fi
     # should it control if the file exists?
-    echo "Using proxy file $cert_fname (`[ -e "$cert_fname" ] && echo "OK" || echo "No file"`)" 1>&2
+    echo "Using proxy file '$cert_fname' ($([ -e "$cert_fname" ] && echo "OK" || echo "No file"))" 1>&2
     echo "$cert_fname"
 }
 
@@ -60,7 +57,7 @@ create_gridmapfile() {
         if ! id=$(voms-proxy-info -identity 2>/dev/null); then
             # "openssl x509 -noout -issuer .." works for proxies but may be a CA for certificates
             # did not find something to extract the identity, filtering manually
-            cert_fname=$(get_proxy_fname)
+            cert_fname=$(get_proxy_fname "")
             if [[ -z "$cert_fname" ]]; then
                 ERROR="Cannot find the x509 proxy."
                 return 1
@@ -88,27 +85,26 @@ create_gridmapfile() {
 
     touch "$X509_GRIDMAP"
     if [ -e "$GLIDEIN_WORK_DIR/$EXPECTED_GRIDMAP_FNAME" ]; then
-        lines=$(wc -l "$GLIDEIN_WORK_DIR/$EXPECTED_GRIDMAP_FNAME" |awk '{print $1}')
+        lines=$(wc -l < "$GLIDEIN_WORK_DIR/$EXPECTED_GRIDMAP_FNAME")
         cat "$GLIDEIN_WORK_DIR/$EXPECTED_GRIDMAP_FNAME" >> "$X509_GRIDMAP"
         echo "Using factory main grid-mapfile ($lines)" 1>&2
     fi
     if [ -e "$GLIDEIN_ENTRY_WORK_DIR/$EXPECTED_GRIDMAP_FNAME" ]; then
-        lines=$(wc -l "$GLIDEIN_ENTRY_WORK_DIR/$EXPECTED_GRIDMAP_FNAME" |awk '{print $1}')
+        lines=$(wc -l < "$GLIDEIN_ENTRY_WORK_DIR/$EXPECTED_GRIDMAP_FNAME")
         cat "$GLIDEIN_ENTRY_WORK_DIR/$EXPECTED_GRIDMAP_FNAME" >> "$X509_GRIDMAP"
         echo "Using factory entry grid-mapfile ($lines)" 1>&2
     fi
     if [ -e "$GLIDECLIENT_WORK_DIR/$EXPECTED_GRIDMAP_FNAME" ]; then
-        lines=$(wc -l "$GLIDECLIENT_WORK_DIR/$EXPECTED_GRIDMAP_FNAME" |awk '{print $1}')
+        lines=$(wc -l < "$GLIDECLIENT_WORK_DIR/$EXPECTED_GRIDMAP_FNAME")
         cat "$GLIDECLIENT_WORK_DIR/$EXPECTED_GRIDMAP_FNAME" >> "$X509_GRIDMAP"
         echo "Using client main grid-mapfile ($lines)" 1>&2
     fi
     if [ -e "$GLIDECLIENT_GROUP_WORK_DIR/$EXPECTED_GRIDMAP_FNAME" ]; then
-        lines=$(wc -l "$GLIDECLIENT_GROUP_WORK_DIR/$EXPECTED_GRIDMAP_FNAME" |awk '{print $1}')
+        lines=$(wc -l < "$GLIDECLIENT_GROUP_WORK_DIR/$EXPECTED_GRIDMAP_FNAME")
         cat "$GLIDECLIENT_GROUP_WORK_DIR/$EXPECTED_GRIDMAP_FNAME" >> "$X509_GRIDMAP"
         echo "Using client group grid-mapfile ($lines)" 1>&2
     fi
-    echo "\"$idp\"" condor >> "$X509_GRIDMAP"
-    if [ $? -ne 0 ]; then
+    if ! echo "\"$idp\"" condor >> "$X509_GRIDMAP"; then
         ERROR="Cannot add user identity to $X509_GRIDMAP!"
         return 1
     fi
@@ -116,7 +112,9 @@ create_gridmapfile() {
 }
 
 extract_gridmap_DNs() {
-    awk -F '"' '/CN/{dn=$2;if (dns=="") {dns=dn;} else {dns=dns "," dn}}END{print dns}' "$X509_GRIDMAP"
+    if [[ -r "$X509_GRIDMAP" ]]; then
+        awk -F '"' '/CN/{dn=$2;if (dns=="") {dns=dn;} else {dns=dns "," dn}}END{print dns}' "$X509_GRIDMAP"
+    fi
 }
 
 # create a condor_mapfile starting from a grid-mapfile
@@ -127,32 +125,33 @@ create_condormapfile() {
     # make sure there is nothing in place already
     rm -f "$X509_CONDORMAP"
     touch "$X509_CONDORMAP" && chmod go-wx "$X509_CONDORMAP" || { ERROR="Cannot create HTCSS map file '$X509_CONDORMAP'"; return 1; }
-    # copy with formatting the glide-mapfile into condor_mapfile
+    # copy with formatting the grid-mapfile into condor_mapfile
     # filter out lines starting with the comment (#)
     #grep -v "^[ ]*#"  "$X509_GRIDMAP" | while read file
-    while read line
-    do
-        if [[ -n "$line" ]]; then  # ignore empty lines
-            # split between DN and UID
-            # keep the quotes in DN to not loose trailing spaces
-            udn=$(echo "$line" |awk '{print substr($0,1,length($0)-length($NF)-1)}')
-            uid=$(echo "$line" |awk '{print $NF}')
+    if [[ -r "$X509_GRIDMAP" ]]; then
+        while read line
+        do
+            if [[ -n "$line" ]]; then  # ignore empty lines
+                # split between DN and UID
+                # keep the quotes in DN to not loose trailing spaces
+                udn=$(echo "$line" |awk '{print substr($0,1,length($0)-length($NF)-1)}')
+                uid=$(echo "$line" |awk '{print $NF}')
 
-            # encode for regexp
-            edn_wq=$(echo "$udn" | sed 's/[^[:alnum:]]/\\\&/g')
-            # remove backslashes from the first and last quote
-            # and add begin and end matching chars
-            e_dn=$(echo "$edn_wq" | awk '{print "\"^" substr(substr($0,3,length($0)-2),1,length($0)-4) "$\"" }')
+                # encode for regexp
+                edn_wq=$(echo "$udn" | sed 's/[^[:alnum:]]/\\\&/g')
+                # remove backslashes from the first and last quote
+                # and add begin and end matching chars
+                e_dn=$(echo "$edn_wq" | awk '{print "\"^" substr(substr($0,3,length($0)-2),1,length($0)-4) "$\"" }')
 
-            echo "GSI $e_dn $uid" >> "$X509_CONDORMAP"
-            if [ "$X509_SKIP_HOST_CHECK_DNS_REGEX" = "" ]; then
-                X509_SKIP_HOST_CHECK_DNS_REGEX="$edn_wq"
-            else
-                X509_SKIP_HOST_CHECK_DNS_REGEX=$X509_SKIP_HOST_CHECK_DNS_REGEX\|$edn_wq
+                echo "GSI $e_dn $uid" >> "$X509_CONDORMAP"
+                if [ "$X509_SKIP_HOST_CHECK_DNS_REGEX" = "" ]; then
+                    X509_SKIP_HOST_CHECK_DNS_REGEX="$edn_wq"
+                else
+                    X509_SKIP_HOST_CHECK_DNS_REGEX=$X509_SKIP_HOST_CHECK_DNS_REGEX\|$edn_wq
+                fi
             fi
-        fi
-    done < <(grep -v "^[ ]*#"  "$X509_GRIDMAP")
-
+        done < <(grep -v "^[ ]*#"  "$X509_GRIDMAP")
+    fi
     # add local user
     # and deny any other type of traffic
     cat << EOF >> "$X509_CONDORMAP"
@@ -199,8 +198,7 @@ if ! create_gridmapfile; then
         # TODO: check if it makes sense to continue w/ the rest, including defining X509... variables in glidein_config
     else
         #1. "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$ERROR" "command" "$proxy_cmd"
-	    #2. "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$ERROR" "command" "$proxy_cmd"
-        #3. "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$ERROR" "file" "$X509_GRIDMAP"
+        #2. "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$ERROR" "file" "$X509_GRIDMAP"
         "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$ERROR" "command" "$proxy_cmd" "file" "$X509_GRIDMAP"
         exit 1
     fi
