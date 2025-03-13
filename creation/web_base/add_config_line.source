@@ -45,6 +45,7 @@ gconfig_get_toupper() {
 
 # Check for Truth values (case insensitive) from gconfig_get: TRUE, T, YES, Y, 1 (or positive numbers)
 # Anything else, including empty is false
+# Use: if gconfig_get_bool KEY "$glidein_config"; then ....
 gconfig_get_bool() {
     local res
     # sed "s/[\"' \t\r\n]//g" not working on OS X, '\040\011\012\015' = ' '$'\t'$'\r'$'\n'

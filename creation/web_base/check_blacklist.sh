@@ -39,7 +39,7 @@ check_blacklist() {
     return 0
 }
 
-main() {
+_main() {
     # Assume all functions exit on error
     config_file="$1"
     dir_id="$2"
