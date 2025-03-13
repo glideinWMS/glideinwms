@@ -27,6 +27,7 @@ Changes since the last release
 ### Bug Fixes
 
 -   Some config files used in the RPM package, including the httpd ones, were obsolete and not the version in the source tree. (PR #492)
+-   Host IP is now searched in blacklist also when the host command is missing (PR #721)
 
 ### Testing / Development
 
