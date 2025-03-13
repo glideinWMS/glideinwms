@@ -824,6 +824,7 @@ fetch_file() {
     #                  FALSE (never download)
     # 8. config out: condor_config key to use to save the file path or tar dir, FALSE (don't write)
     # The above is the most recent list, below some adaptations for different versions
+    logdebug "FFDB fetch_file $*"
     if [ $# -gt 8 ]; then
         # For compatibility w/ future versions (add new parameters at the end)
         echo "More then 8 arguments, considering the first 8 ($#/${ifs_str}): $*" 1>&2
@@ -1135,6 +1136,7 @@ fetch_file_base() {
         fetch_completed=$?
     fi
 
+    logdebug "FFDB ff_base fetch failed ${fetch_completed}, ${wget_version}, ${curl_version}: $*"
     if [ ${fetch_completed} -ne 0 ]; then
         return ${fetch_completed}
     fi
@@ -1988,6 +1990,8 @@ do
 
     # fetch list file
     fetch_file_regular "${gs_id}" "${gs_file_list}"
+
+    logdebug "FFDB processing list ${gs_file_list} ($(wc "${gs_id_work_dir}/${gs_file_list}"))"
 
     # Fetch files contained in list
     # TODO: $file is actually a list, so it cannot be double-quoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
