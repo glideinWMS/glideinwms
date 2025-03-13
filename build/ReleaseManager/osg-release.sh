@@ -13,7 +13,7 @@ Buold the source tarball and upload it to the OSG library (now using osg-sw-subm
 
 NOTE that when using this script you'll have to authenticate with the CILogon URL and insert the OSG PASSWORD (for AFS/Kerberos) and authenticate with the URL again."
 
-[ "$1" == "-h" ] || [ "$1" == "--help" ] && { echo "$USAGE_STR"; exit 0; }
+[ "$1" = "-h" ] || [ "$1" = "--help" ] && { echo "$USAGE_STR"; exit 0; }
 
 if [ $# -lt 3 ]; then
     echo "ERROR: Missing arguments 'tag', 'user', and 'krb_principal'"
@@ -46,7 +46,7 @@ archive_gwms() {
     cd $gwms_location
     git checkout $gwms_tag
     [ $? -ne 0 ] && { echo "ERROR: Failed to checkout $gwms_tag, aborting. Did you push your commit?"; exit 1; }
-    local archive_tag
+    # local archive_tag # uncomment for bash
     archive_tag="$gwms_tag"
     if [ -x ./build/bigfiles/bigfiles.sh ]; then
         # Add also uncommitted big files instead of links
