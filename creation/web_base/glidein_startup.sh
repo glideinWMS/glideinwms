@@ -1136,7 +1136,7 @@ fetch_file_base() {
         fetch_completed=$?
     fi
 
-    logdebug "FFDB ff_base fetch failed ${fetch_completed}, ${wget_version}, ${curl_version}: $*"
+    logdebug "FFDB ff_base fetch status ${fetch_completed}, ${wget_version}, ${curl_version}: $*"
     if [ ${fetch_completed} -ne 0 ]; then
         return ${fetch_completed}
     fi
@@ -1950,7 +1950,22 @@ fi
 cleanup_script=$(grep "^GLIDEIN_CLEANUP_SCRIPT " "${glidein_config}" | cut -d ' ' -f 2-)
 
 
-logdebug "FFDB using shel $SHELL ($BASH_VERSION): $0"
+logdebug "FFDB using shell $SHELL ($BASH_VERSION): $0"
+
+
+read_wrapper() {
+    local last_file last_read="$file"
+    local infile="${gs_id_work_dir}/${gs_file_list}"
+    if ! read -r file; then
+        last_file=$(tail -n1 "$infile")
+        [[ "$last_read" = "$last_file" ]] && logdebug "FFDB Last line the same" || { logdebug "FFDB Lines differ: '$last_file' VS '$last_read'"; lsof -p $$; }
+        false
+        return
+    fi
+    # echo "FFDB In read wrapper: $file"
+    logdebug "FFDB looping read wrapper ${infile}: $file"
+    true
+}
 
 ##############################
 # Fetch all the other files
@@ -1998,7 +2013,7 @@ do
     # Fetch files contained in list
     # TODO: $file is actually a list, so it cannot be double-quoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
     # shellcheck disable=2086
-    while read -r file
+    while read_wrapper
     do
         logdebug "FFDB looping ${gs_id_work_dir}/${gs_file_list}: $file"
         if [ "${file:0:1}" != "#" ]; then
