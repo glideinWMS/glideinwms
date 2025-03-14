@@ -1950,6 +1950,8 @@ fi
 cleanup_script=$(grep "^GLIDEIN_CLEANUP_SCRIPT " "${glidein_config}" | cut -d ' ' -f 2-)
 
 
+logdebug "FFDB using shel $SHELL ($BASH_VERSION): $0"
+
 ##############################
 # Fetch all the other files
 for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "main at_file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
@@ -1998,10 +2000,16 @@ do
     # shellcheck disable=2086
     while read -r file
     do
+        logdebug "FFDB looping ${gs_id_work_dir}/${gs_file_list}: $file"
         if [ "${file:0:1}" != "#" ]; then
-            fetch_file "${gs_id}" $file
+            for dummy_i in 1; do
+                fetch_file "${gs_id}" $file
+                logdebug "FFDB after fetch $file"
+            done
         fi
     done < "${gs_id_work_dir}/${gs_file_list}"
+
+    logdebug "FFDB completed ${gs_id_work_dir}/${gs_file_list}: ($(grep -v "^#" "${gs_id_work_dir}/${gs_file_list}" | wc) - last: $file - same: $(tail -n 1 "${gs_id_work_dir}/${gs_file_list}") "
 
     # Files to go into the GWMS_PATH
     if [ "$gs_file_id" = "main at_file_list" ]; then
