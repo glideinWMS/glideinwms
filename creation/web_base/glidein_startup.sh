@@ -1954,16 +1954,16 @@ logdebug "FFDB using shell $SHELL ($BASH_VERSION): $0"
 
 
 read_wrapper() {
-    local last_file last_read="$file"
+    local last_file last_read="$file_line_here"
     local infile="${gs_id_work_dir}/${gs_file_list}"
-    if ! read -r file; then
+    if ! read -u 3 -r file_line_here; then
         last_file=$(tail -n1 "$infile")
-        [[ "$last_read" = "$last_file" ]] && logdebug "FFDB Last line the same" || { logdebug "FFDB Lines differ: '$last_file' VS '$last_read'"; lsof -p $$; }
+        [[ "$last_read" = "$last_file" ]] && logdebug "FFDB Last line the same" || { logdebug "FFDB Lines differ: '$last_file' VS '$last_read'"; ls -l /proc/$$/fd/*; lsof -p $$; }
         false
         return
     fi
     # echo "FFDB In read wrapper: $file"
-    logdebug "FFDB looping read wrapper ${infile}: $file"
+    logdebug "FFDB looping read wrapper ${infile}: $file_line_here"
     true
 }
 
@@ -2015,14 +2015,14 @@ do
     # shellcheck disable=2086
     while read_wrapper
     do
-        logdebug "FFDB looping ${gs_id_work_dir}/${gs_file_list}: $file"
-        if [ "${file:0:1}" != "#" ]; then
+        logdebug "FFDB looping ${gs_id_work_dir}/${gs_file_list}: $file_line_here"
+        if [ "${file_line_here:0:1}" != "#" ]; then
             for dummy_i in 1; do
-                fetch_file "${gs_id}" $file
-                logdebug "FFDB after fetch $file"
+                fetch_file "${gs_id}" $file_line_here
+                logdebug "FFDB after fetch $file_line_here"
             done
         fi
-    done < "${gs_id_work_dir}/${gs_file_list}"
+    done 3< "${gs_id_work_dir}/${gs_file_list}"
 
     logdebug "FFDB completed ${gs_id_work_dir}/${gs_file_list}: ($(grep -v "^#" "${gs_id_work_dir}/${gs_file_list}" | wc) - last: $file - same: $(tail -n 1 "${gs_id_work_dir}/${gs_file_list}") "
 
