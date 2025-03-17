@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """This module implements the functions needed
-   to aggregate the monitoring of the Glidein Factory
+to aggregate the monitoring of the Glidein Factory
 """
 
 import json

@@ -5,7 +5,7 @@
 
 """Print out the named HTCondor Log for a glidein output file
 
- Usage: cat_named_log.py [-monitor] HTC_log GWMS_logname
+Usage: cat_named_log.py [-monitor] HTC_log GWMS_logname
 """
 
 
