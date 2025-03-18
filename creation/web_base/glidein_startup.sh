@@ -824,7 +824,6 @@ fetch_file() {
     #                  FALSE (never download)
     # 8. config out: condor_config key to use to save the file path or tar dir, FALSE (don't write)
     # The above is the most recent list, below some adaptations for different versions
-    logdebug "FFDB fetch_file $*"
     if [ $# -gt 8 ]; then
         # For compatibility w/ future versions (add new parameters at the end)
         echo "More then 8 arguments, considering the first 8 ($#/${ifs_str}): $*" 1>&2
@@ -1136,7 +1135,6 @@ fetch_file_base() {
         fetch_completed=$?
     fi
 
-    logdebug "FFDB ff_base fetch status ${fetch_completed}, ${wget_version}, ${curl_version}: $*"
     if [ ${fetch_completed} -ne 0 ]; then
         return ${fetch_completed}
     fi
@@ -1177,10 +1175,11 @@ fetch_file_base() {
             have_dummy_otrx=0
             "${main_dir}"/error_augment.sh -init
             START=$(date +%s)
+            # Redirecting stdin (< /dev/null or :|) to avoid interactions with this calling script. Closing may cause errors
             if [[ "${ffb_file_type}" = "exec:s" ]]; then
-                "${main_dir}/singularity_wrapper.sh" "${ffb_outname}" glidein_config "${ffb_id}"
+                "${main_dir}/singularity_wrapper.sh" "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
             else
-                "${ffb_outname}" glidein_config "${ffb_id}"
+                "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
             fi
             ret=$?
             END=$(date +%s)
@@ -1950,25 +1949,24 @@ fi
 cleanup_script=$(grep "^GLIDEIN_CLEANUP_SCRIPT " "${glidein_config}" | cut -d ' ' -f 2-)
 
 
-logdebug "FFDB using shell $SHELL ($BASH_VERSION): $0"
+##############################
+# Fetch all the other files
 
-
-read_wrapper() {
-    local last_file last_read="$file_line_here"
-    local infile="${gs_id_work_dir}/${gs_file_list}"
-    if ! read -u 3 -r file_line_here; then
-        last_file=$(tail -n1 "$infile")
-        [[ "$last_read" = "$last_file" ]] && logdebug "FFDB Last line the same" || { logdebug "FFDB Lines differ: '$last_file' VS '$last_read'"; ls -l /proc/$$/fd/*; lsof -p $$; }
+line_read_wrapper() {
+    # Reads one line from stdin and stores it in $file_line
+    # Prints a warning if there is a mismatch and is not reading the last line of the file (${gs_id_work_dir}/${gs_file_list})
+    local last_read="$file_line"
+    if ! read -r file_line; then
+        local last_file_line infile="${gs_id_work_dir}/${gs_file_list}"
+        last_file_line=$(tail -n1 "$infile")
+        # further debug: ls -l /proc/$$/fd/*; lsof -p $$
+        [[ "$last_read" = "$last_file_line" ]] || { warn "Some custom scripts may not have been processed. Last line differs for '$infile': '$last_file_line' VS '$last_read'"; }
         false
         return
     fi
-    # echo "FFDB In read wrapper: $file"
-    logdebug "FFDB looping read wrapper ${infile}: $file_line_here"
     true
 }
 
-##############################
-# Fetch all the other files
 for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "main at_file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
 do
     gs_id="$(echo "${gs_file_id}" |awk '{print $1}')"
@@ -2008,23 +2006,15 @@ do
     # fetch list file
     fetch_file_regular "${gs_id}" "${gs_file_list}"
 
-    logdebug "FFDB processing list ${gs_file_list} ($(wc "${gs_id_work_dir}/${gs_file_list}"))"
-
     # Fetch files contained in list
-    # TODO: $file is actually a list, so it cannot be double-quoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
+    # TODO: $file_line (from line_read_wrapper) is actually a list, so it cannot be double-quoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
     # shellcheck disable=2086
-    while read_wrapper
+    while line_read_wrapper
     do
-        logdebug "FFDB looping ${gs_id_work_dir}/${gs_file_list}: $file_line_here"
-        if [ "${file_line_here:0:1}" != "#" ]; then
-            for dummy_i in 1; do
-                fetch_file "${gs_id}" $file_line_here
-                logdebug "FFDB after fetch $file_line_here"
-            done
+        if [ "${file_line:0:1}" != "#" ]; then
+            fetch_file "${gs_id}" $file_line
         fi
-    done 3< "${gs_id_work_dir}/${gs_file_list}"
-
-    logdebug "FFDB completed ${gs_id_work_dir}/${gs_file_list}: ($(grep -v "^#" "${gs_id_work_dir}/${gs_file_list}" | wc) - last: $file - same: $(tail -n 1 "${gs_id_work_dir}/${gs_file_list}") "
+    done < "${gs_id_work_dir}/${gs_file_list}"
 
     # Files to go into the GWMS_PATH
     if [ "$gs_file_id" = "main at_file_list" ]; then

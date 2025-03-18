@@ -156,10 +156,9 @@ gconfig_add() {
 # alias add_config_line=gconfig_add  # This is not working w/ bats
 add_config_line(){ gconfig_add "$@"; }
 
-# Unsafe version, should be used only when sequentiality is guaranteed
-# add_config_line... are the only writing functions
-# only one call at the time happen
-# read may
+# Unsafe version, should be used only when sequentiality is guaranteed,
+# add_config_line... are the only writing functions, and only one call at the time happen.
+# Read may happen in parallel
 gconfig_add_unsafe() {
     [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfog_add. Forcing exit."; exit 1; }
     # Add the value also to a log that will help troubleshoot problems
