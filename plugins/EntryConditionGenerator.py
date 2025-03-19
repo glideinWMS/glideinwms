@@ -7,7 +7,7 @@
 It is a Generator that can be used by credentials or parameters depending on Entry elements.
 """
 
-from typing import Any
+from typing import Any, Mapping, Optional
 
 from glideinwms.lib.generators import export_generator, Generator, GeneratorError
 
@@ -41,7 +41,7 @@ class EntryConditionGenerator(Generator[Any]):
         "trust_domain": "GLIDEIN_TrustDomain",
     }
 
-    def __init__(self, context: Any = None):
+    def __init__(self, context: Optional[Mapping] = None, instance_id: Optional[str] = None):
         super().__init__(context)
         if "list" not in self.context and "dict" not in self.context:
             raise GeneratorError(
