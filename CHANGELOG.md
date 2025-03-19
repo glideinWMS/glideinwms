@@ -26,6 +26,7 @@ Changes since the last release
 
 ### Bug Fixes
 
+-   Protect processing of custom scripts in glidein_startup.sh against stdin interference (PR #498, Issue #500)
 -   Some config files used in the RPM package, including the httpd ones, were obsolete and not the version in the source tree. (PR #492)
 -   Host IP is now searched in blacklist also when the host command is missing (PR #721)
 

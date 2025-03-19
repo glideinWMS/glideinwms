@@ -1175,10 +1175,11 @@ fetch_file_base() {
             have_dummy_otrx=0
             "${main_dir}"/error_augment.sh -init
             START=$(date +%s)
+            # Redirecting stdin (< /dev/null or :|) to avoid interactions with this calling script. Closing may cause errors
             if [[ "${ffb_file_type}" = "exec:s" ]]; then
-                "${main_dir}/singularity_wrapper.sh" "${ffb_outname}" glidein_config "${ffb_id}"
+                "${main_dir}/singularity_wrapper.sh" "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
             else
-                "${ffb_outname}" glidein_config "${ffb_id}"
+                "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
             fi
             ret=$?
             END=$(date +%s)
@@ -1950,6 +1951,22 @@ cleanup_script=$(grep "^GLIDEIN_CLEANUP_SCRIPT " "${glidein_config}" | cut -d ' 
 
 ##############################
 # Fetch all the other files
+
+line_read_wrapper() {
+    # Reads one line from stdin and stores it in $file_line
+    # Prints a warning if there is a mismatch and is not reading the last line of the file (${gs_id_work_dir}/${gs_file_list})
+    local last_read="$file_line"
+    if ! read -r file_line; then
+        local last_file_line infile="${gs_id_work_dir}/${gs_file_list}"
+        last_file_line=$(tail -n1 "$infile")
+        # further debug: ls -l /proc/$$/fd/*; lsof -p $$
+        [[ "$last_read" = "$last_file_line" ]] || { warn "Some custom scripts may not have been processed. Last line differs for '$infile': '$last_file_line' VS '$last_read'"; }
+        false
+        return
+    fi
+    true
+}
+
 for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "main at_file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
 do
     gs_id="$(echo "${gs_file_id}" |awk '{print $1}')"
@@ -1990,12 +2007,12 @@ do
     fetch_file_regular "${gs_id}" "${gs_file_list}"
 
     # Fetch files contained in list
-    # TODO: $file is actually a list, so it cannot be double-quoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
+    # TODO: $file_line (from line_read_wrapper) is actually a list, so it cannot be double-quoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
     # shellcheck disable=2086
-    while read -r file
+    while line_read_wrapper
     do
-        if [ "${file:0:1}" != "#" ]; then
-            fetch_file "${gs_id}" $file
+        if [ "${file_line:0:1}" != "#" ]; then
+            fetch_file "${gs_id}" $file_line
         fi
     done < "${gs_id_work_dir}/${gs_file_list}"
 

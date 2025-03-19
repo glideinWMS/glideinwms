@@ -692,12 +692,15 @@ htc_get_vars_from_env_str() {
 
 
 htc_parse_env_file() {
+    # NOTE: env_str is used in htc_get_vars_from_env_str
+    [[ -r "$1" ]] || return
+    local attr eq
     shopt -s nocasematch
     while read -r attr eq env_str; do
-	if [[ "$attr" = Environment && "$eq" = '=' ]]; then
-	    htc_get_vars_from_env_str
-	    break
-	fi
+        if [[ "$attr" = Environment && "$eq" = '=' ]]; then
+            htc_get_vars_from_env_str
+            break
+        fi
     done < "$1"
     shopt -u nocasematch
 }
