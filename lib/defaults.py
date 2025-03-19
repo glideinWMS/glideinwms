@@ -20,6 +20,7 @@ BINARY_ENCODING_ASCII = "ascii"  # valid aliases: 646, us-ascii
 BINARY_ENCODING_DEFAULT = "utf_8"  # valid aliases: utf-8, utf8 (default Python 3 encoding)
 
 PLUGINS_DIR = "/etc/gwms-frontend/plugin.d"  # TODO: Make this configurable
+CACHE_DIR = "/var/lib/gwms-frontend/vofrontend"
 
 
 def force_bytes(instr, encoding=BINARY_ENCODING_CRYPTO):
