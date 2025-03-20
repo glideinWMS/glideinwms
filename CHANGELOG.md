@@ -18,7 +18,7 @@ Changes since the last release
     The image must be provided by the job or a future custom script in order not to fail. (PR #482)
 -   APPTAINER_TEST_IMAGE can be set to an always available Singularity/Apptainer image to use for testing.
     Defaults to oras://ghcr.io/apptainer/alpine:latest (PR #482)
--   The monitoring pages are now redirecting to https if available. This behavior was present in the past but had been lost and now it has been reinstated. (PR #492)
+-   Monitoring pages are now redirecting to https if available, i.e. mod_ssl is installed and mod_ssl.conf is present. This behavior was present in the past but had been lost and now it has been reinstated. (PR #492, PR #502)
 
 ### Deprecated / removed options and commands
 
@@ -27,8 +27,9 @@ Changes since the last release
 ### Bug Fixes
 
 -   Protect processing of custom scripts in glidein_startup.sh against stdin interference (PR #498, Issue #500)
--   Some config files used in the RPM package, including the httpd ones, were obsolete and not the version in the source tree. (PR #492)
--   Host IP is now searched in blacklist also when the host command is missing (PR #721)
+-   Some config files used in the RPM package, including the httpd ones, were obsolete and not the version in the source tree. (PR #492, PR #502)
+-   Host IP is now searched in blacklist also when the host command is missing (PR #499, Issue #493)
+-   Added missing HTCondor requirements in spec file (PR #502)
 
 ### Testing / Development
 

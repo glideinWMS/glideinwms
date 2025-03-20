@@ -19,23 +19,25 @@
 # ------------------------------------------------------------------------------
 # For Release Candidate builds, check with Software team on release string
 # ------------------------------------------------------------------------------
-%define version __GWMS_RPM_VERSION__
-%define release __GWMS_RPM_RELEASE__
+%global version __GWMS_RPM_VERSION__
+%global release __GWMS_RPM_RELEASE__
 
-%define frontend_xml frontend.xml
-%define factory_xml glideinWMS.xml
-%define web_dir %{_localstatedir}/lib/gwms-frontend/web-area
-%define web_base %{_localstatedir}/lib/gwms-frontend/web-base
-%define frontend_dir %{_localstatedir}/lib/gwms-frontend/vofrontend
-%define frontend_token_dir %{_localstatedir}/lib/gwms-frontend/tokens.d
-%define frontend_passwd_dir %{_localstatedir}/lib/gwms-frontend/passwords.d
-%define factory_web_dir %{_localstatedir}/lib/gwms-factory/web-area
-%define factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
-%define factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
-%define condor_dir %{_localstatedir}/lib/gwms-factory/condor
-%define logserver_dir %{_localstatedir}/lib/gwms-logserver
-%define logserver_web_dir %{_localstatedir}/lib/gwms-logserver/web-area
-%define systemddir %{_prefix}/lib/systemd/system
+%global frontend_xml frontend.xml
+%global factory_xml glideinWMS.xml
+%global web_dir %{_localstatedir}/lib/gwms-frontend/web-area
+%global web_base %{_localstatedir}/lib/gwms-frontend/web-base
+%global frontend_dir %{_localstatedir}/lib/gwms-frontend/vofrontend
+%global frontend_token_dir %{_localstatedir}/lib/gwms-frontend/tokens.d
+%global frontend_passwd_dir %{_localstatedir}/lib/gwms-frontend/passwords.d
+%global factory_web_dir %{_localstatedir}/lib/gwms-factory/web-area
+%global factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
+%global factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
+%global factory_condor_dir %{_localstatedir}/lib/gwms-factory/condor
+%global logserver_dir %{_localstatedir}/lib/gwms-logserver
+%global logserver_web_dir %{_localstatedir}/lib/gwms-logserver/web-area
+%global systemddir %{_prefix}/lib/systemd/system
+# Minimum HTCondor required version
+%global htcss_min_version 8.9.5
 
 Name:           glideinwms
 Version:        %{version}
@@ -67,7 +69,7 @@ resources through a dynamic HTCondor pool of grid-submitted resources.
 
 
 %package vofrontend
-Summary:        The VOFrontend for glideinWMS submission host
+Summary: The VOFrontend for GlideinWMS submission host
 Provides:       GlideinWMSFrontend = %{version}-%{release}
 Obsoletes:      GlideinWMSFrontend < 2.5.1-11
 Requires: glideinwms-vofrontend-standalone = %{version}-%{release}
@@ -84,7 +86,7 @@ vofrontend install (userschedd, usercollector, vofrontend).
 
 
 %package vofrontend-standalone
-Summary:        The VOFrontend for glideinWMS submission host
+Summary: The VOFrontend for GlideinWMS submission host
 Requires: glideinwms-vofrontend-core = %{version}-%{release}
 Requires: glideinwms-vofrontend-httpd = %{version}-%{release}
 %description vofrontend-standalone
@@ -97,8 +99,8 @@ This package is for a standalone vofrontend install
 
 
 %package vofrontend-core
-Summary:        The intelligence logic for GWMS Frontend.
-Requires: condor >= 8.9.5
+Summary: The intelligence logic for GlideinWMS Frontend.
+Requires: condor >= %{htcss_min_version}
 Requires: python3 >= 3.6
 Requires: javascriptrrd >= 1.1.0
 Requires: osg-wn-client
@@ -130,7 +132,7 @@ frontend. Created to separate out the httpd server.
 
 
 %package vofrontend-libs
-Summary:        The Python creation library for GWMS Frontend.
+Summary: The Python creation library for GlideinWMS Frontend.
 Requires: python3 >= 3.6
 Requires: javascriptrrd >= 1.1.0
 Requires: glideinwms-libs = %{version}-%{release}
@@ -140,7 +142,7 @@ This subpackage includes libraries for Frontend-like programs.
 
 
 %package vofrontend-glidein
-Summary:        The Glidein components for GWMS Frontend.
+Summary: The Glidein components for GlideinWMS Frontend.
 Requires: python3 >= 3.6
 Requires: glideinwms-libs = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
@@ -149,7 +151,7 @@ This subpackage includes the Glidein components for the Frontend.
 
 
 %package vofrontend-httpd
-Summary:        The Apache http configuration for GWMS Frontend.
+Summary: The Apache http configuration for GlideinWMS Frontend.
 Requires: httpd
 Requires: mod_ssl
 %description vofrontend-httpd
@@ -158,8 +160,8 @@ serve the Frontend files to the pilot and the monitoring pages.
 
 
 %package usercollector
-Summary:        The VOFrontend glideinWMS collector host
-Requires: condor >= 8.9.5
+Summary: The VOFrontend GlideinWMS collector host
+Requires: condor >= %{htcss_min_version}
 Requires: ganglia
 Requires: glideinwms-minimal-condor = %{version}-%{release}
 Requires: glideinwms-glidecondor-tools = %{version}-%{release}
@@ -169,8 +171,8 @@ It can be installed independently.
 
 
 %package userschedd
-Summary:        The VOFrontend glideinWMS submission host
-Requires: condor >= 8.9.5
+Summary: The VOFrontend GlideinWMS submission host
+Requires: condor >= %{htcss_min_version}
 Requires: glideinwms-minimal-condor = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
 Requires: glideinwms-glidecondor-tools = %{version}-%{release}
@@ -179,7 +181,7 @@ This is a package for a glideinwms submit host.
 
 
 %package libs
-Summary:        The glideinWMS common libraries.
+Summary: The GlideinWMS common libraries.
 Requires: python3 >= 3.6
 Requires: python3-condor
 # was condor-python for python2
@@ -202,37 +204,39 @@ This package provides common libraries used by glideinwms.
 
 
 %package glidecondor-tools
-Summary:        Condor tools useful with the glideinWMS.
+Summary: Condor tools useful with the GlideinWMS.
 Requires: glideinwms-libs = %{version}-%{release}
 %description glidecondor-tools
 This package provides common libraries used by glideinwms.
 
 
 %package minimal-condor
-Summary:        The VOFrontend minimal condor config
-Provides:       gwms-condor-config
+Summary: The VOFrontend minimal condor config
+Provides: gwms-condor-config
 Requires: glideinwms-condor-common-config = %{version}-%{release}
+Requires: condor >= %{htcss_min_version}
 %description minimal-condor
 This is an alternate condor config for just the minimal amount
 needed for VOFrontend.
 
 
 %package condor-common-config
-Summary:        Shared condor config files
+Summary: Shared condor config files
+Requires: condor >= %{htcss_min_version}
 %description condor-common-config
 This contains condor config files shared between alternate
 condor config setups (minimal-condor and factory-condor).
 
 
 %package common-tools
-Summary:        Shared tools
+Summary: Shared tools
 %description common-tools
 This contains tools common to both the glideinwms factory and vofrontend
 standalone packages.
 
 
 %package factory
-Summary:        The Factory for glideinWMS
+Summary: The Factory for GlideinWMS
 Provides:       GlideinWMSFactory = %{version}-%{release}
 Requires: glideinwms-factory-httpd = %{version}-%{release}
 Requires: glideinwms-factory-core = %{version}-%{release}
@@ -245,12 +249,12 @@ for scheduling and job control.
 
 
 %package factory-core
-Summary:        The scripts for the GlideinWMS Factory
+Summary: The scripts for the GlideinWMS Factory
 Requires: glideinwms-factory-condor = %{version}-%{release}
 Requires: glideinwms-libs = %{version}-%{release}
 Requires: glideinwms-glidecondor-tools = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
-Requires: condor >= 8.4.0
+Requires: condor >= %{htcss_min_version}
 Requires: fetch-crl
 Requires: python3 >= 3.6
 # This is in py3 std library - Requires: python-argparse
@@ -276,7 +280,7 @@ Factory. Created to separate out the httpd server.
 
 
 %package factory-httpd
-Summary:        The Apache httpd configuration for the GWMS Factory
+Summary: The Apache httpd configuration for the GlideinWMS Factory
 Requires: httpd
 Requires: mod_ssl
 %description factory-httpd
@@ -285,16 +289,17 @@ serve the Factory files to the pilot and the monitoring pages.
 
 
 %package factory-condor
-Summary:        The GWMS Factory condor config
+Summary: The GlideinWMS Factory condor config
 Provides:       gwms-factory-config
 Requires: glideinwms-condor-common-config = %{version}-%{release}
+Requires: condor >= %{htcss_min_version}
 %description factory-condor
 This is a package including condor_config for a full one-node
 install of wmscollector + wms factory
 
 
 %package logserver
-Summary:        The Glidein Log server and its Apache http configuration.
+Summary: The Glidein Log Server and its Apache httpd configuration.
 Requires: httpd
 Requires: mod_ssl
 Requires: php
@@ -464,7 +469,7 @@ install -d $RPM_BUILD_ROOT%{factory_web_dir}
 install -d $RPM_BUILD_ROOT%{factory_web_dir}/monitor/
 install -d $RPM_BUILD_ROOT%{factory_web_dir}/stage/
 install -d $RPM_BUILD_ROOT%{factory_dir}/lock
-install -d $RPM_BUILD_ROOT%{condor_dir}
+install -d $RPM_BUILD_ROOT%{factory_condor_dir}
 install -d $RPM_BUILD_ROOT%{web_dir}/monitor/lock
 install -d $RPM_BUILD_ROOT%{web_dir}/monitor/jslibs
 install -d $RPM_BUILD_ROOT%{web_dir}/monitor/total
@@ -895,7 +900,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, gfactory, gfactory) %{factory_web_base}
 %attr(-, gfactory, gfactory) %{factory_web_base}/../creation
 %attr(-, gfactory, gfactory) %{factory_dir}
-%attr(-, gfactory, gfactory) %dir %{condor_dir}
+%attr(-, gfactory, gfactory) %dir %{factory_condor_dir}
 %attr(-, gfactory, gfactory) %dir %{_localstatedir}/log/gwms-factory
 %attr(-, gfactory, gfactory) %dir %{_localstatedir}/log/gwms-factory/client
 %attr(-, gfactory, gfactory) %{_localstatedir}/log/gwms-factory/server
