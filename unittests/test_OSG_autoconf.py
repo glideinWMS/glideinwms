@@ -213,7 +213,7 @@ class TestOSGAutoconf(unittest.TestCase):
                 "GLIDEIN_MaxMemMBs": {"value": 8192},
                 "GLIDEIN_Max_Walltime": {"value": 171000},
                 "GLIDEIN_CPUS": {"value": 1},
-                "GLIDEIN_Supported_VOs": {"value": "IceCube"},
+                "GLIDEIN_Supported_VOs": {"value": "IceCubeGPU"},
             },
             "submit_attrs": {"+maxWallTime": 2880, "+xcount": 1, "+maxMemory": 8192, "Request_GPUs": 2},
             "limits": {"entry": {"glideins": 1000}},
