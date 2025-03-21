@@ -38,6 +38,7 @@
 %global systemddir %{_prefix}/lib/systemd/system
 # Minimum HTCondor required version
 %global htcss_min_version 8.9.5
+%global python_min_version 3.6
 
 Name:           glideinwms
 Version:        %{version}
@@ -101,7 +102,7 @@ This package is for a standalone vofrontend install
 %package vofrontend-core
 Summary: The intelligence logic for GlideinWMS Frontend.
 Requires: condor >= %{htcss_min_version}
-Requires: python3 >= 3.6
+Requires: python3 >= %{python_min_version}
 Requires: javascriptrrd >= 1.1.0
 Requires: osg-wn-client
 Requires: vo-client
@@ -125,6 +126,7 @@ Requires: python36-m2crypto
 %endif
 Requires(post): /sbin/service
 Requires(post): /usr/sbin/useradd
+Requires(post): /usr/sbin/usermod
 Requires(post): /sbin/chkconfig
 %description vofrontend-core
 This subpackage includes all the scripts needed to run a
@@ -133,7 +135,7 @@ frontend. Created to separate out the httpd server.
 
 %package vofrontend-libs
 Summary: The Python creation library for GlideinWMS Frontend.
-Requires: python3 >= 3.6
+Requires: python3 >= %{python_min_version}
 Requires: javascriptrrd >= 1.1.0
 Requires: glideinwms-libs = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
@@ -143,7 +145,7 @@ This subpackage includes libraries for Frontend-like programs.
 
 %package vofrontend-glidein
 Summary: The Glidein components for GlideinWMS Frontend.
-Requires: python3 >= 3.6
+Requires: python3 >= %{python_min_version}
 Requires: glideinwms-libs = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
 %description vofrontend-glidein
@@ -182,7 +184,7 @@ This is a package for a glideinwms submit host.
 
 %package libs
 Summary: The GlideinWMS common libraries.
-Requires: python3 >= 3.6
+Requires: python3 >= %{python_min_version}
 Requires: python3-condor
 # was condor-python for python2
 %if 0%{?rhel} >= 8
@@ -256,7 +258,7 @@ Requires: glideinwms-glidecondor-tools = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
 Requires: condor >= %{htcss_min_version}
 Requires: fetch-crl
-Requires: python3 >= 3.6
+Requires: python3 >= %{python_min_version}
 # This is in py3 std library - Requires: python-argparse
 # Is this the same? Requires: python36-configargparse
 Requires: javascriptrrd >= 1.1.0
@@ -273,6 +275,7 @@ Requires: python36-jwt
 Requires: python3-rrdtool
 Requires(post): /sbin/service
 Requires(post): /usr/sbin/useradd
+Requires(post): /usr/sbin/usermod
 Requires(post): /sbin/chkconfig
 %description factory-core
 This subpackage includes all the scripts needed to run a
@@ -718,7 +721,7 @@ getent group frontend >/dev/null || groupadd -r frontend
 getent passwd frontend >/dev/null || \
        useradd -r -g frontend -d /var/lib/gwms-frontend \
 	-c "VO Frontend user" -s /sbin/nologin frontend
-# If the frontend user already exists make sure it is part of frontend group
+# If the frontend user already exists make sure it is part of frontend and glidein group
 usermod --append --groups frontend,glidein frontend >/dev/null
 
 %pre vofrontend-glidein
@@ -996,12 +999,14 @@ rm -rf $RPM_BUILD_ROOT
 %{_initrddir}/gwms-renew-proxies
 %attr(0644, root, root) %{_sysconfdir}/cron.d/gwms-renew-proxies
 %endif
-%attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend
-%attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.pre
-%attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.post
-%attr(-, frontend, frontend) %config(noreplace) %{_sysconfdir}/gwms-frontend/plugin.d
-%attr(-, frontend, frontend) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gwms-frontend/frontend.xml
-%attr(-, frontend, frontend) %config(noreplace) %{_sysconfdir}/gwms-frontend/proxies.ini
+%attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend
+%attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.pre
+%attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.post
+%attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend/plugin.d
+%attr(-, frontend, glidein) %config(noreplace) %{_sysconfdir}/gwms-frontend/plugin.d/
+%attr(-, frontend, glidein) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gwms-frontend/frontend.xml
+# TODO: should these files be moved in the glidein package?
+%attr(-, frontend, glidein) %config(noreplace) %{_sysconfdir}/gwms-frontend/proxies.ini
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-frontend
 %attr(-, frontend, frontend) %{web_base}/../creation
 

@@ -13,6 +13,7 @@ Arguments:
 """
 
 import copy
+import getpass
 import os
 import re
 import socket
@@ -22,6 +23,7 @@ import time
 import traceback
 
 from importlib import import_module
+from pathlib import Path
 
 from glideinwms.frontend import (
     glideinFrontendConfig,
@@ -221,7 +223,9 @@ class glideinFrontendElement:
                 group_dir, glideinFrontendPlugins.createCredentialList(self.elementDescript)
             )
         self.idtoken_lifetime = int(self.elementDescript.merged_data.get("IDTokenLifetime", 24))
-        self.idtoken_keyname = self.elementDescript.merged_data.get("IDTokenKeyname", "FRONTEND")
+        # The default token KEY name is the username uppercase, e.g. FRONTEND or DECISIONENGINE
+        default_key_name = getpass.getuser().upper()
+        self.idtoken_keyname = self.elementDescript.merged_data.get("IDTokenKeyname", default_key_name)
 
         # set the condor configuration and GSI setup globally, so I don't need to worry about it later on
         os.environ["CONDOR_CONFIG"] = self.elementDescript.frontend_data["CondorConfig"]
@@ -1075,8 +1079,10 @@ class glideinFrontendElement:
                 # create a condor token named for entry point site name
 
                 glidein_site = glidein_el["attrs"]["GLIDEIN_Site"]
-                tkn_dir = "/var/lib/gwms-frontend/tokens.d"
-                pwd_dir = "/var/lib/gwms-frontend/passwords.d"
+                # Using the home directory should solve ownership conflicts for different clients (e.g. DE)
+                user_home = Path.home()  # "/var/lib/gwms-frontend"
+                tkn_dir = user_home / "tokens.d"
+                pwd_dir = user_home / "passwords.d"
                 tkn_file = os.path.join(tkn_dir, f"{self.group_name}.{glidein_site}.idtoken")
                 pwd_file = os.path.join(pwd_dir, glidein_site)
                 pwd_default = os.path.join(pwd_dir, self.idtoken_keyname)

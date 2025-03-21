@@ -11,6 +11,7 @@ Changes since the last release
 
 -   Added a test Apptainer image to use when the configured one is not available (PR #482)
 -   Added a new configuration knob, stale_age, for factory entries to control the age of the glideins to be considered stale for certain statuses (PR #494)
+-   Made the Frontend library more friendly to other clients, e.g. Decision Engine (PR #504)
 
 ### Changed defaults / behaviours
 
@@ -19,6 +20,7 @@ Changes since the last release
 -   APPTAINER_TEST_IMAGE can be set to an always available Singularity/Apptainer image to use for testing.
     Defaults to oras://ghcr.io/apptainer/alpine:latest (PR #482)
 -   Monitoring pages are now redirecting to https if available, i.e. mod_ssl is installed and mod_ssl.conf is present. This behavior was present in the past but had been lost and now it has been reinstated. (PR #492, PR #502)
+-   The default Frontend tokens key is now variable, $HOME/passwords.d/UPPERCASE_USERNAME. There is no actual change since this is /var/lib/gwms-frontend/passwords.d/FRONTEND for normal RPM installations. (PR #504)
 
 ### Deprecated / removed options and commands
 
