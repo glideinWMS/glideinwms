@@ -51,6 +51,8 @@ for v in $condor_vars; do
     unset $v
 done
 echo "Removed condor variables $condor_vars" 1>&2
+# removing CONDOR_INHERIT. See https://github.com/glideinWMS/glideinwms/issues/274
+unset CONDOR_INHERIT
 
 # Condor 7.5.6 and above will use the system's gsi-authz.conf.  We don't want that.
 export GSI_AUTHZ_CONF=/dev/null
