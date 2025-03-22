@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Library for analyze_entries,
-   analyze_queues and analyze_frontends.
+analyze_queues and analyze_frontends.
 """
 
 

@@ -6,16 +6,16 @@
 """This file is specialized in updating a proxy file
 
 
- All information is passed via the environment;
-  so it has no arguments
+All information is passed via the environment;
+ so it has no arguments
 
- Env variables used:
-  HEXDATA - b2a_hex(proxy_data)
-  FNAME   - file name to update
+Env variables used:
+ HEXDATA - b2a_hex(proxy_data)
+ FNAME   - file name to update
 
- The python-related environment variables must also
-  be properly set
-  PATH, LD_LIBRARY_PATH, PYTHON_PATH
+The python-related environment variables must also
+ be properly set
+ PATH, LD_LIBRARY_PATH, PYTHON_PATH
 """
 
 import base64
