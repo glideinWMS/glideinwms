@@ -24,13 +24,16 @@ class ExeError(RuntimeError):
 
 
 class Release:
-    def __init__(self, ver, srcDir, relDir, rc, rpmRel, skip_rpm):
+    def __init__(self, ver, srcDir, relDir, rc, rpmRel, skip_rpm, timeout, is_verbose=False, is_debug=False):
         self.version = self.createTarballVersionString(ver, rc)
         self.sourceDir = srcDir
         self.releaseDir = os.path.join(relDir, self.version)
         self.releaseWebDir = os.path.join(self.releaseDir, "www")
         self.tasks = []
         self.rc = rc
+        self.timeout = timeout
+        self.verbose = is_verbose
+        self.debug = is_debug
         self.buildRPMs = False
         try:
             # RPM related info
@@ -223,8 +226,9 @@ class TaskDocumentation(TaskRelease):
         src_dir = f"{self.release.releaseDir}/../src/{self.release.version}/glideinwms"
         # The final directory does not matter. Each command execution starts form the same place
         cmd = f"cd {src_dir} && {self.gitExe} archive HEAD doc > {self.release.releaseDir}/{self.doc_filename}"
-        print("%s" % cmd)
-        execute_cmd(cmd)
+        if self.release.verbose:
+            print("%s" % cmd)
+        execute_cmd(cmd, timeout=self.release.timeout, is_debug=self.release.debug)
         self.status = "COMPLETE"
 
 
@@ -247,20 +251,27 @@ class TaskTar(TaskRelease):
             exclude = "--exclude='" + "' --exclude='".join(self.excludePattern) + "'"
         # cmd = 'cd %s/..; /bin/tar %s -czf %s/%s glideinwms' % \
         #      (self.release.sourceDir, exclude, self.release.releaseDir, self.releaseFilename)
+        # Copy must include .git directory because of documentation archive command
+        copy_command = "cp -r"
+        # if bool(which("rsync")):
+        #     copy_command = f"rsync -al --exclude='.git'"
         src_dir = f"{self.release.releaseDir}/../src/{self.release.version}"
-        cmd = "rm -rf {}; mkdir -p {}; cp -r {} {}/glideinwms; cd {}; {} {} -czf {}/{} glideinwms".format(
+        src_dir_gwms = f"{src_dir}/glideinwms"
+        cmd = "rm -rf {}; mkdir -p {}; {} {}/ {}/; cd {}; {} {} -czf {}/{} glideinwms".format(
             src_dir,
-            src_dir,
+            src_dir_gwms,
+            copy_command,
             self.release.sourceDir,
-            src_dir,
+            src_dir_gwms,
             src_dir,
             self.tarExe,
             exclude,
             self.release.releaseDir,
             self.releaseFilename,
         )
-        print("%s" % cmd)
-        execute_cmd(cmd)
+        if self.release.verbose:
+            print("%s" % cmd)
+        execute_cmd(cmd, timeout=self.release.timeout, is_debug=self.release.debug)
         self.status = "COMPLETE"
 
 
@@ -293,7 +304,7 @@ class TaskVersionFile(TaskRelease):
         )
         # print "--- %s" % chksumFile
         # print "--- %s" % cmd
-        execute_cmd(cmd)
+        execute_cmd(cmd, timeout=self.release.timeout, is_debug=self.release.debug)
 
 
 class TaskRPM(TaskTar):
@@ -373,7 +384,7 @@ class TaskRPM(TaskTar):
             cmd = f'{cmd} --define "{m} {self.rpmMacros[m]}"'
         if self.verbose:
             print(f"Building source RPM: {cmd}")
-        execute_cmd(cmd)
+        execute_cmd(cmd, timeout=self.release.timeout, is_debug=self.release.debug)
 
     def buildRPM(self):
         # Check if mock profiles changed
@@ -387,7 +398,7 @@ class TaskRPM(TaskTar):
         )
         if self.verbose:
             print(f"Build mock environment: {cmd}")
-        execute_cmd(cmd)
+        execute_cmd(cmd, timeout=self.release.timeout, is_debug=self.release.debug)
         cmd = "mock --no-clean -r {}-{}-x86_64 --macro-file={} --resultdir={}/RPMS rebuild {}".format(
             self.release.rpmOSVersion[2],
             self.release.rpmOSVersion[1],
@@ -397,7 +408,7 @@ class TaskRPM(TaskTar):
         )
         if self.verbose:
             print(f"Build RPM with mock: {cmd}")
-        execute_cmd(cmd)
+        execute_cmd(cmd, timeout=self.release.timeout, is_debug=self.release.debug)
 
     def buildRPMWithRPMBuild(self):
         cmd = "rpmbuild -bb %s" % self.specFile
@@ -405,7 +416,7 @@ class TaskRPM(TaskTar):
             cmd = f'{cmd} --define "{m} {self.rpmMacros[m]}"'
         if self.verbose:
             print(f"Build RPM without mock: {cmd}")
-        execute_cmd(cmd)
+        execute_cmd(cmd, timeout=self.release.timeout, is_debug=self.release.debug)
 
     def execute(self):
         if not self.release.buildRPMs:
@@ -531,7 +542,7 @@ def create_dir(dirname, mode=0o755, error_if_exists=False):
 
 
 # can throw ExeError
-def execute_cmd(cmd, stdin_data=None):
+def execute_cmd(cmd, stdin_data=None, timeout=60, is_debug=False):
     """Execute a command in a shell using subprocess.Popen
     The initial directory is the one of the Python script
     (the final directory at the end of the subprocess does not matter)
@@ -539,36 +550,42 @@ def execute_cmd(cmd, stdin_data=None):
     Args:
         cmd (str): string containing the command to execute
         stdin_data (str): optional text written to stdin
+        timeout (int): command timeout in seconds. Defaults to 60
+        is_debug (bool): print debug output if True
 
     Returns:
         str: stdout of the command
     Raises:
         ExeError: when the command fails. The message is the command stderr
     """
+    if is_debug:
+        print(f"About to run: {cmd}")
     child = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if stdin_data is not None:
         child.stdin.write(stdin_data)
 
-    tempOut = child.stdout.readlines()
-    tempErr = child.stderr.readlines()
-    child.communicate()
+    temp_out = child.stdout.readlines()
+    temp_err = child.stderr.readlines()
+    child.communicate(timeout=timeout)
     # child.childerr.close()
     try:
-        errcode = child.wait()
+        errcode = child.wait(timeout)
     except OSError as e:
-        if len(tempOut) != 0:
+        if len(temp_out) != 0:
             # if there was some output, it is probably just a problem of timing
             # have seen a lot of those when running very short processes
             errcode = 0
         else:
-            msg = f"Error running '{cmd}'\nStdout:{tempOut}\nStderr:{tempErr}\nException OSError: {e}"
+            msg = f"Error running '{cmd}'\nStdout:{temp_out}\nStderr:{temp_err}\nException OSError: {e}"
             print(msg)
             raise ExeError(msg)
+    if is_debug:
+        print(f"Completed ({errcode}):{temp_out}\nStderr:{temp_err}")
     if errcode != 0:
-        msg = f"Error running '{cmd}'\nStdout:{tempOut}\nStderr:{tempErr}\nException Error: {errcode}"
+        msg = f"Error running '{cmd}'\nStdout:{temp_out}\nStderr:{temp_err}\nException Error: {errcode}"
         print(msg)
         raise ExeError(msg)
-    return tempOut
+    return temp_out
 
 
 def which(program):

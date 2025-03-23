@@ -1,4 +1,20 @@
-doc/tags.txtv3_10_10
+v3_10_11
+	Added a test Apptainer image to use when the configured one is not available (PR#482)
+	Added a new configuration knob, stale_age, for Factory entries to control the age of the Glideins to be considered stale for certain statuses (PR#494)
+	Update get_tarballs to use new directory called beta (PR#495)
+	Support GPUs in the mapping of OSG_autoconf VOs (PR#496)
+	Made the Frontend library more friendly to other clients, e.g. Decision Engine (PR#504)
+	Bug fix: Protect processing of custom scripts in glidein_startup.sh against stdin interference (PR#498, Issue#500)
+	Bug fix: Some config files used in the RPM package, including the httpd ones, were obsolete and not the version in the source tree. (PR#492, PR#502)
+	Bug fix: Host IP is now searched in blacklist also when the host command is missing (PR#499, Issue#493)
+	Bug fix: Added missing HTCondor requirements in spec file (PR#502)
+	Bug fix: Unset CONDOR_INHERIT before condor startup to avoid any conflict in the condor configurations (PR#503, Issue#274)
+	NOTE: Monitoring pages are now redirecting to https if available, i.e. mod_ssl is installed and mod_ssl.conf is present. This behavior was present in the past but had been lost and now it has been reinstated. (PR#492, PR#502)
+	NOTE-FRONTEND: The default Frontend tokens key is now variable, $HOME/passwords.d/UPPERCASE_USERNAME. There is no actual change since this is /var/lib/gwms-frontend/passwords.d/FRONTEND for normal RPM installations. (PR#504)
+	NOTE-FACTORY: The new variable SINGULARITY_IMAGE_REQUIRED defaults to false and allows to use Singularity/Apptainer also when the configured image is not available. The image must be provided by the job or a future custom script in order not to fail. (PR#482)
+	NOTE-FACTORY: APPTAINER_TEST_IMAGE can be set to an always available Singularity/Apptainer image to use for testing. Defaults to oras://ghcr.io/apptainer/alpine:latest (PR#482)
+
+v3_10_10
 	Improved gfdiff tool interface and changed diff algorithm (PR#476)
 	Added option to check if new HTCondor tarballs are available to get_tarballs (PR#477)
 	Bug fix: Fixed gfdiff issue with mergely interface (PR#476)
