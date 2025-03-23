@@ -249,20 +249,17 @@ class TaskTar(TaskRelease):
         exclude = ""
         if len(self.excludePattern) > 0:
             exclude = "--exclude='" + "' --exclude='".join(self.excludePattern) + "'"
+        src_dir = f"{self.release.releaseDir}/../src/{self.release.version}"
+        # src_dir_gwms = f"{src_dir}/glideinwms"
         # cmd = 'cd %s/..; /bin/tar %s -czf %s/%s glideinwms' % \
         #      (self.release.sourceDir, exclude, self.release.releaseDir, self.releaseFilename)
         # Copy must include .git directory because of documentation archive command
-        copy_command = "cp -r"
+        copy_command = f"mkdir -p {src_dir}; cp -r {self.release.sourceDir} {src_dir}/"
         # if bool(which("rsync")):
-        #     copy_command = f"rsync -al --exclude='.git'"
-        src_dir = f"{self.release.releaseDir}/../src/{self.release.version}"
-        src_dir_gwms = f"{src_dir}/glideinwms"
-        cmd = "rm -rf {}; mkdir -p {}; {} {}/ {}/; cd {}; {} {} -czf {}/{} glideinwms".format(
+        #     copy_command = f"mkdir -p {src_dir_gwms}; rsync -al --exclude='.git' {self.release.sourceDir}/ {src_dir_gwms}/"
+        cmd = "rm -rf {}; {}; cd {}; {} {} -czf {}/{} glideinwms".format(
             src_dir,
-            src_dir_gwms,
             copy_command,
-            self.release.sourceDir,
-            src_dir_gwms,
             src_dir,
             self.tarExe,
             exclude,

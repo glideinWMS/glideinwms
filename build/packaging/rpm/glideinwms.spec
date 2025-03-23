@@ -388,6 +388,7 @@ rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/install
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/doc
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/etc
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/build
+rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.codespell
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/config
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/create_rpm_startup
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.editorconfig
@@ -412,6 +413,7 @@ rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/LICENSES
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/ACKNOWLEDGMENTS.md
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/DEVELOPMENT.md
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/README.md
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/REUSE.toml
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/CHANGELOG.md
 
 # Following files are Put in other places. Remove them from python3_sitelib

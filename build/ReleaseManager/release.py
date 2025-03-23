@@ -123,7 +123,7 @@ def parse_opts(argv):
         help="Python version (default: python36)",
     )
     parser.add_argument(
-        "--timeout", default=60, action="store", help="Set the timeout in seconds for shell commands. Defaults to 60"
+        "--timeout", default=180, action="store", help="Set the timeout in seconds for shell commands. Defaults to 180"
     )
     parser.add_argument("--verbose", action="store_true", help="Set to see more details of the release building")
     parser.add_argument("--debug", action="store_true", help="Set to see debug level details of the release building")
