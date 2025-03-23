@@ -40,7 +40,7 @@ Check the changed defaults, including SINGULARITY_IMAGE_REQUIRED, APPTAINER_TEST
 
 ### Testing / Development
 
--   Added new debug and timeout options to the release building scripts
+-   Added new debug and timeout options to the release building scripts (PR #506)
 
 ### Known Issues
 

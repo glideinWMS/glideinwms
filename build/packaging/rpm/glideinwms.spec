@@ -36,7 +36,7 @@
 %global logserver_dir %{_localstatedir}/lib/gwms-logserver
 %global logserver_web_dir %{_localstatedir}/lib/gwms-logserver/web-area
 %global systemddir %{_prefix}/lib/systemd/system
-# Minimum HTCondor required version
+# Minimum HTCondor and Python required versions
 %global htcss_min_version 8.9.5
 %global python_min_version 3.6
 
@@ -1109,6 +1109,11 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Sat Mar 22 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.11
+- Glideinwms v3.10.11
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_10_11/history.html
+- Release candidates 3.10.11-01.rc1 to 3.10.11-02.rc2
+
 * Fri Jan 24 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.10
 - Glideinwms v3.10.10
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_10_10/history.html
