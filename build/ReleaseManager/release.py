@@ -122,7 +122,11 @@ def parse_opts(argv):
         metavar="<Python version>",
         help="Python version (default: python36)",
     )
+    parser.add_argument(
+        "--timeout", default=180, action="store", help="Set the timeout in seconds for shell commands. Defaults to 180"
+    )
     parser.add_argument("--verbose", action="store_true", help="Set to see more details of the release building")
+    parser.add_argument("--debug", action="store_true", help="Set to see debug level details of the release building")
     parser.add_argument("-v", "--version", action="version", version=manager_version())
 
     options = parser.parse_args()
@@ -140,7 +144,6 @@ def main(argv):
     python_version = options.python_version
     skip_rpm = options.skip_rpm
     use_mock = options.use_mock
-    is_verbose = options.verbose
 
     print("___________________________________________________________________")
     print("Creating following GlideinWMS release")
@@ -150,14 +153,16 @@ def main(argv):
     )
     print("___________________________________________________________________")
     print()
-    rel = ReleaseManagerLib.Release(ver, src_dir, rel_dir, rc, rpm_rel, skip_rpm)
+    rel = ReleaseManagerLib.Release(
+        ver, src_dir, rel_dir, rc, rpm_rel, skip_rpm, options.timeout, options.verbose, options.debug
+    )
 
     rel.addTask(ReleaseManagerLib.TaskClean(rel))
     rel.addTask(ReleaseManagerLib.TaskSetupReleaseDir(rel))
     rel.addTask(ReleaseManagerLib.TaskVersionFile(rel))
     rel.addTask(ReleaseManagerLib.TaskTar(rel))
     rel.addTask(ReleaseManagerLib.TaskDocumentation(rel))
-    rel.addTask(ReleaseManagerLib.TaskRPM(rel, python_version, use_mock, is_verbose))
+    rel.addTask(ReleaseManagerLib.TaskRPM(rel, python_version, use_mock, options.verbose))
 
     rel.executeTasks()
     rel.printReport()

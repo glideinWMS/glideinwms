@@ -36,7 +36,7 @@
 %global logserver_dir %{_localstatedir}/lib/gwms-logserver
 %global logserver_web_dir %{_localstatedir}/lib/gwms-logserver/web-area
 %global systemddir %{_prefix}/lib/systemd/system
-# Minimum HTCondor required version
+# Minimum HTCondor and Python required versions
 %global htcss_min_version 8.9.5
 %global python_min_version 3.6
 
@@ -388,6 +388,7 @@ rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/install
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/doc
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/etc
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/build
+rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.codespell
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/config
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/create_rpm_startup
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.editorconfig
@@ -412,6 +413,7 @@ rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/LICENSES
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/ACKNOWLEDGMENTS.md
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/DEVELOPMENT.md
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/README.md
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/REUSE.toml
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/CHANGELOG.md
 
 # Following files are Put in other places. Remove them from python3_sitelib
@@ -1109,6 +1111,11 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Sat Mar 22 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.11
+- Glideinwms v3.10.11
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_10_11/history.html
+- Release candidates 3.10.11-01.rc1 to 3.10.11-02.rc2
+
 * Fri Jan 24 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.10
 - Glideinwms v3.10.10
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_10_10/history.html
