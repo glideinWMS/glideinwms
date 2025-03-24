@@ -1,11 +1,11 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_11_rc2
+# GLIDEINWMS_VERSION v3_10_11
 ###################################################################
 07a95cd0756d25f95de6047b1a5222a5  ./.codespell/README.md
 32b4bfc3e16d335b71c235d34a819eba  ./.codespell/ignore_lines.txt
 bf1869a9f0e22861757b16f54e1acee9  ./.codespell/ignore_words.txt
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-492769e5ce6ce1a492fcccd99f7e7a9b  ./CHANGELOG.md
+9f16229ef89646fd1ecb148b1c4df2e3  ./CHANGELOG.md
 9b53cfce6b337a8a5b79886c06ba86bb  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
