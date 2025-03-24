@@ -35,6 +35,7 @@ from glideinwms.frontend import (
 )
 from glideinwms.lib import cleanupSupport, condorMonitor, logSupport, pubCrypto, servicePerformance, token_util
 from glideinwms.lib.credentials import create_credential, CredentialPurpose, CredentialType
+from glideinwms.lib.defaults import TOKEN_DIR
 from glideinwms.lib.disk_cache import DiskCache
 from glideinwms.lib.fork import fork_in_bg, ForkManager, wait_for_pids
 from glideinwms.lib.pidSupport import register_sighandler
@@ -818,9 +819,8 @@ class glideinFrontendElement:
                             scaled += 1
 
             key_obj = None
-            for globalid in self.globals_dict:
+            for globalid, globals_el in self.globals_dict.items():
                 if glideid[1].endswith(globalid):
-                    globals_el = self.globals_dict[globalid]
                     if "PubKeyObj" in globals_el["attrs"] and "PubKeyID" in globals_el["attrs"]:
                         key_obj = key_builder.get_key_obj(
                             my_identity, globals_el["attrs"]["PubKeyID"], globals_el["attrs"]["PubKeyObj"]
@@ -832,26 +832,26 @@ class glideinFrontendElement:
 
             # Only advertise if there is a valid key for encryption
             if key_obj is not None:
-                # determine whether to encrypt a condor token or scitoken into the classad
-                # see if site supports condor token
-                token_str = self.refresh_entry_token(glidein_el)
-                expired = token_util.token_str_expired(token_str)
-                entry_token_name = "%s.idtoken" % glidein_el["attrs"].get("EntryName", "condor")
-                if token_str and not expired:
-                    # mark token for encrypted advertisement
-                    logSupport.log.debug("found condor token: %s", entry_token_name)
-                    ctkn = create_credential(
-                        token_str,
-                        cred_type=CredentialType.IDTOKEN,
+                # add callback credential generator if needed
+                if not self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.CALLBACK):
+                    logSupport.log.debug("Custom callback credential not provided. Using default.")
+                    tkn_dir = TOKEN_DIR
+                    if not os.path.exists(tkn_dir):
+                        os.mkdir(tkn_dir, 0o700)
+                    tkn_file = os.path.join(
+                        TOKEN_DIR,
+                        f"{self.group_name}.{glidein_el['attrs']['GLIDEIN_Site']}.idtoken",
+                    )
+                    callback_generator = create_credential(
+                        "IdTokenGenerator",
+                        cred_type=CredentialType.GENERATOR,
                         purpose=CredentialPurpose.CALLBACK,
                         trust_domain=trust_domain,
+                        context={"cache_file": tkn_file},
                     )
-                    self.credentials_plugin.security_bundle.add_credential(ctkn)
+                    self.credentials_plugin.security_bundle.add_credential(callback_generator)
                 else:
-                    if expired:
-                        logSupport.log.debug("found EXPIRED condor token: %s", entry_token_name)
-                    else:
-                        logSupport.log.debug("could NOT find condor token: %s", entry_token_name)
+                    logSupport.log.debug("Custom callback credential provided. Using it.")
 
                 # Generate credentials and parameters
                 self.credentials_plugin.generate_credentials(
@@ -866,23 +866,6 @@ class glideinFrontendElement:
                     group_name=self.group_name,
                     logger=logSupport.log,
                 )
-
-                # TODO: Remove this code once we are sure the new credentials work properly
-                #
-                # look for a local scitoken if no credential was generated
-                # if not stkn:
-                #     stkn = credentials.get_scitoken(self.elementDescript, trust_domain)
-
-                # if stkn:
-                #     if generator_name:
-                #         for cred_el in advertiser.descript_obj.credentials_plugin.cred_list:
-                #             if cred_el.filename == generator_name:
-                #                 cred_el.generated_data = stkn
-                #                 break
-                #     if token_util.token_str_expired(stkn):
-                #         logSupport.log.warning("SciToken is expired, not forwarding.")
-                #     else:
-                #         gp_encrypt["frontend_scitoken"] = stkn
 
                 # now advertise
                 advertiser.add(
@@ -962,6 +945,8 @@ class glideinFrontendElement:
 
         return
 
+    # TODO: This method is deprecated and should be removed
+    # IDTOKENS are now created with IdTokenGenerator
     def refresh_entry_token(self, glidein_el):
         """Create or update a condor token for an entry point
 
