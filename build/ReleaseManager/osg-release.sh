@@ -31,7 +31,9 @@ if [ $# -eq 4 ]; then
 fi
 
 # On August 2024 OSG switched to osg-sw-submit.chtc.wisc.edu. moria and library.cs.wisc.edu are not working any more
-osg_buildmachine="osg-sw-submit.chtc.wisc.edu"
+#osg_buildmachine="osg-sw-submit.chtc.wisc.edu"
+# On March 22 2025 the build host has been moved to osg-sw-submit-old
+osg_buildmachine="osg-sw-submit-old.chtc.wisc.edu"
 osg_uploaddir="/p/vdt/public/html/upstream/glideinwms/$gwms_tag"
 
 work_dir="/tmp/osgrelease.$$"
