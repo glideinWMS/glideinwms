@@ -41,8 +41,7 @@ class EntryConditionGenerator(Generator[Any]):
         "trust_domain": "GLIDEIN_TrustDomain",
     }
 
-    def __init__(self, context: Any = None):
-        super().__init__(context)
+    def setup(self):
         if "list" not in self.context and "dict" not in self.context:
             raise GeneratorError(
                 "list and dict not found in context for EntryConditionGenerator. At least one is required"

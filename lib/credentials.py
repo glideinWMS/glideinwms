@@ -680,6 +680,28 @@ class CredentialGenerator(Credential[Generator]):
             raise CredentialError("Credential not generated.")
         return self._generated_credential.copy()
 
+    def save_to_file(
+        self,
+        path: Optional[str] = None,
+        permissions: int = 0o600,
+        backup: bool = False,
+        compress: bool = False,
+        data_pattern: Optional[bytes] = None,
+        overwrite: bool = True,
+        continue_if_no_path=False,
+    ) -> None:
+        if not self._generated_credential:
+            raise CredentialError("Credential not generated.")
+        self._generated_credential.save_to_file(
+            path=path,
+            permissions=permissions,
+            backup=backup,
+            compress=compress,
+            data_pattern=data_pattern,
+            overwrite=overwrite,
+            continue_if_no_path=continue_if_no_path,
+        )
+
     def invalid_reason(self) -> Optional[str]:
         if self._generated_credential:
             return self._generated_credential.invalid_reason()
@@ -699,8 +721,19 @@ class CredentialGenerator(Credential[Generator]):
 
         if not self._payload:
             raise CredentialError("Credential generator not initialized")
+
+        generated_value = self._payload.generate(**kwargs)
+        if isinstance(generated_value, Credential):
+            generated_value.purpose = self.purpose
+            generated_value.trust_domain = self.trust_domain
+            generated_value.security_class = self.security_class
+            self._generated_credential = generated_value
+            return
+        if not isinstance(generated_value, (str, bytes)):
+            raise CredentialError(f"Invalid generated value: {generated_value}. Expected a string or bytes.")
+
         self._generated_credential = create_credential(
-            string=self._payload.generate(**kwargs),
+            string=generated_value,
             purpose=self.purpose,
             trust_domain=self.trust_domain,
             security_class=self.security_class,

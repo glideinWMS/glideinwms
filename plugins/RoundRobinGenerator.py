@@ -10,16 +10,14 @@ This module contains the RoundRobinGenerator class
 from itertools import cycle
 from typing import Any
 
-from glideinwms.lib.generators import export_generator, Generator, GeneratorError
+from glideinwms.lib.generators import export_generator, Generator
 
 
 class RoundRobinGenerator(Generator[Any]):
     """Round-robin generator"""
 
-    def __init__(self, context: Any = None):
-        super().__init__(context)
-        if "items" not in self.context:
-            raise GeneratorError("items not found in context for RoundRobinGenerator")
+    def setup(self):
+        self.context.validate({"items": (list, None)})
         self.items_cycle = cycle(self.context["items"])
 
     def generate(self, **kwargs) -> Any:
