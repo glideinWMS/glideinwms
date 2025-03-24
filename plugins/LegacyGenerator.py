@@ -17,7 +17,7 @@ class LegacyGenerator(Generator[Any]):
 
     def setup(self):
         self.context.validate({"callout": (str, None)})
-        
+
         self.callout = import_module(self.context["callout"])
         if not hasattr(self.callout, "get_credential"):
             raise GeneratorError("callout module does not have get_credential method")

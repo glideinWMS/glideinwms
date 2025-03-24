@@ -7,15 +7,15 @@
 This module contains the IdTokenGenerator class
 """
 
+import getpass
 import os
 import socket
-import getpass
 
 from glideinwms.lib.credentials import create_credential, credential_type_from_string
+from glideinwms.lib.defaults import PWD_DIR
 from glideinwms.lib.generators import export_generator
 from glideinwms.lib.generators.credentialGenerator import CredentialGenerator
 from glideinwms.lib.token_util import create_and_sign_token
-from glideinwms.lib.defaults import PWD_DIR
 
 
 class IdTokenGenerator(CredentialGenerator):
@@ -26,15 +26,12 @@ class IdTokenGenerator(CredentialGenerator):
 
     def generate(self, **kwargs):
         default_password = os.path.join(
-            PWD_DIR,
-            kwargs["elementDescript"].merged_data.get("IDTokenKeyname", getpass.getuser().upper())
+            PWD_DIR, kwargs["elementDescript"].merged_data.get("IDTokenKeyname", getpass.getuser().upper())
         )
 
         default_scope = "condor:/READ condor:/ADVERTISE_STARTD condor:/ADVERTISE_MASTER"
 
-        default_duration = int(
-            kwargs["elementDescript"].merged_data.get("IDTokenLifetime", 24)
-        ) * 3600
+        default_duration = int(kwargs["elementDescript"].merged_data.get("IDTokenLifetime", 24)) * 3600
 
         default_minimum_lifetime = 0
 
@@ -46,7 +43,7 @@ class IdTokenGenerator(CredentialGenerator):
                 "scope": (str, default_scope),
                 "duration": (int, default_duration),
                 "minimum_lifetime": (int, default_minimum_lifetime),
-                "identity": (str, default_identity)
+                "identity": (str, default_identity),
             }
         )
 

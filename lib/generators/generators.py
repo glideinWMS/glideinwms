@@ -83,13 +83,11 @@ class Generator(ABC, Generic[T]):
         return str(self)
 
     def setup(self):
-        """Setup method to be called at the generator's construction
-        """
+        """Setup method to be called at the generator's construction"""
 
     @abstractmethod
     def generate(self, **kwargs) -> T:
-        """Generate an item using the context and keyword arguments
-        """
+        """Generate an item using the context and keyword arguments"""
 
 
 class CachedGenerator(Generator[T]):

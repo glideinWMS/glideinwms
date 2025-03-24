@@ -25,11 +25,11 @@ class CredentialGenerator(CachedGenerator[Credential]):
     def load_from_cache(self) -> Optional[Credential]:
         if not os.path.exists(self.cache_file):
             return None
-        
+
         cred_type = None
         if "type" in self.context:
             cred_type = credential_type_from_string(self.context["type"])
-        
+
         return create_credential(path=self.cache_file, cred_type=cred_type)
 
     def validate_cache(self, cached_value) -> bool:

@@ -34,11 +34,11 @@ from glideinwms.frontend import (
 # from glideinwms.lib.util import file_tmp2final
 from glideinwms.lib import cleanupSupport, condorMonitor, logSupport, pubCrypto, servicePerformance, token_util
 from glideinwms.lib.credentials import create_credential, CredentialPurpose, CredentialType
+from glideinwms.lib.defaults import TOKEN_DIR
 from glideinwms.lib.disk_cache import DiskCache
 from glideinwms.lib.fork import fork_in_bg, ForkManager, wait_for_pids
 from glideinwms.lib.pidSupport import register_sighandler
 from glideinwms.lib.util import safe_boolcomp
-from glideinwms.lib.defaults import TOKEN_DIR
 
 ###########################################################
 # Support class that mimics the 2.7 collections.Counter class
