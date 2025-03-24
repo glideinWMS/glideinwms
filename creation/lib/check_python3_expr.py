@@ -3,8 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Validate expressions in frontend.xml for compatibility with Python 3
-"""
+"""Validate expressions in frontend.xml for compatibility with Python 3"""
 
 import argparse
 import ast

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Entry class
-   Model and behavior of a Factory Entry (element describing a resource)
+Model and behavior of a Factory Entry (element describing a resource)
 """
 
 import copy
