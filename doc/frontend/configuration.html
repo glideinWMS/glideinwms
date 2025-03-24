@@ -2639,6 +2639,16 @@ def get_credential(log: logger, group: str, entry: dict, trust_domain: str):
           </li>
         </ul>
 
+        <p>
+          NOTE: If muitiple credentials or parameters are defined with the same
+          generator and context, only one instance of the generator will be
+          created and shared among all these credentials or parameters. This
+          behavior is to avoid unnecessary overhead and improve performance. If
+          you need different instances of the same generator, you can use
+          slightly different contexts. For example, you can add a unique key to
+          the context dictionary for each instance.
+        </p>
+
         <h4>Custom Generators</h4>
 
         <p>

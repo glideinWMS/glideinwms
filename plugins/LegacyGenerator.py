@@ -15,13 +15,10 @@ from glideinwms.lib.util import import_module
 class LegacyGenerator(Generator[Any]):
     """Generator that implements support to the legacy callout interface."""
 
-    def __init__(self, context: Any = None):
-        super().__init__(context)
+    def setup(self):
+        self.context.validate({"callout": (str, None)})
 
-        if "callout" not in self.context:
-            raise GeneratorError("callout not found in context for LegacyGenerator")
         self.callout = import_module(self.context["callout"])
-
         if not hasattr(self.callout, "get_credential"):
             raise GeneratorError("callout module does not have get_credential method")
 
