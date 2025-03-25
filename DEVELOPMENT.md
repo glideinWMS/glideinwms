@@ -61,7 +61,7 @@ REUSE is installed as development dependency or you can install it manually
       --license="Apache-2.0" --template=compact FILEPATH
     ```
 -   Files that are not supported and have no comments to add the SPDX notice
-    can be added to the `.reuse/dep5` file
+    can be added to the `REUSE.toml` file
 -   New licenses can be added to the project using `reuse download LCENSEID`. Please
     contact project management if this is needed.
 
