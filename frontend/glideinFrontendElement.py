@@ -13,6 +13,7 @@ Arguments:
 """
 
 import copy
+import getpass
 import os
 import re
 import socket
@@ -20,6 +21,8 @@ import sys
 import tempfile
 import time
 import traceback
+
+from pathlib import Path
 
 from glideinwms.frontend import (
     glideinFrontendConfig,
@@ -30,8 +33,6 @@ from glideinwms.frontend import (
     glideinFrontendPidLib,
     glideinFrontendPlugins,
 )
-
-# from glideinwms.lib.util import file_tmp2final
 from glideinwms.lib import cleanupSupport, condorMonitor, logSupport, pubCrypto, servicePerformance, token_util
 from glideinwms.lib.credentials import create_credential, CredentialPurpose, CredentialType
 from glideinwms.lib.disk_cache import DiskCache
@@ -45,6 +46,7 @@ from glideinwms.lib.util import safe_boolcomp
 # Not a 1-to-1 implementation though... just straight minimum
 # to support auto initialization to 0
 # This can be deleted once we switch to python3
+# TODO: code update. Can this be removed and replaced by collections.Counter?
 
 
 class CounterWrapper:
@@ -103,7 +105,7 @@ class glideinFrontendElement:
         self.signatureDescript = glideinFrontendConfig.GroupSignatureDescript(self.work_dir, self.group_name)
         self.attr_dict = glideinFrontendConfig.AttrsDescript(self.work_dir, self.group_name).data
 
-        # Automatically initialze history object data to dictionaries
+        # Automatically initialize history object data to dictionaries
         # PS: The default initialization is not to CounterWrapper, to avoid
         # saving custom classes to disk
         self.history_obj = glideinFrontendConfig.HistoryFile(self.work_dir, self.group_name, True, dict)
@@ -213,7 +215,9 @@ class glideinFrontendElement:
                 group_dir, glideinFrontendPlugins.createRequestBundle(self.elementDescript.merged_data)
             )
         self.idtoken_lifetime = int(self.elementDescript.merged_data.get("IDTokenLifetime", 24))
-        self.idtoken_keyname = self.elementDescript.merged_data.get("IDTokenKeyname", "FRONTEND")
+        # The default token KEY name is the username uppercase, e.g. FRONTEND or DECISIONENGINE
+        default_key_name = getpass.getuser().upper()
+        self.idtoken_keyname = self.elementDescript.merged_data.get("IDTokenKeyname", default_key_name)
 
         # set the condor configuration and GSI setup globally, so I don't need to worry about it later on
         os.environ["CONDOR_CONFIG"] = self.elementDescript.frontend_data["CondorConfig"]
@@ -314,7 +318,7 @@ class glideinFrontendElement:
             # do it just before the sleep
             cleanupSupport.cleaners.cleanup()
         elif self.action == "deadvertise":
-            logSupport.log.info("Deadvertize my ads")
+            logSupport.log.info("Deadvertise my ads")
             self.deadvertiseAllClassads()
         elif self.action in (
             "removeWait",
@@ -347,14 +351,14 @@ class glideinFrontendElement:
         for factory_pool in self.factory_pools:
             factory_pool_node = factory_pool[0]
             try:
-                glideinFrontendInterface.deadvertizeAllWork(
+                glideinFrontendInterface.deadvertiseAllWork(
                     factory_pool_node, self.published_frontend_name, ha_mode=self.ha_mode
                 )
             except Exception:
                 logSupport.log.warning("Failed to deadvertise work on %s" % factory_pool_node)
 
             try:
-                glideinFrontendInterface.deadvertizeAllGlobals(
+                glideinFrontendInterface.deadvertiseAllGlobals(
                     factory_pool_node, self.published_frontend_name, ha_mode=self.ha_mode
                 )
             except Exception:
@@ -533,7 +537,7 @@ class glideinFrontendElement:
                 self.condorq_dict, condorq_dict_types, self.status_dict, self.status_dict_types
             )
 
-        # here we have all the data needed to build a GroupAdvertizeType object
+        # here we have all the data needed to build a GroupAdvertiseType object
         descript_obj = glideinFrontendInterface.FrontendDescript(
             self.published_frontend_name,
             self.frontend_name,
@@ -550,7 +554,7 @@ class glideinFrontendElement:
         descript_obj.add_monitoring_url(self.monitoring_web_url)
 
         # reuse between loops might be a good idea, but this will work for now
-        key_builder = glideinFrontendInterface.Key4AdvertizeBuilder()
+        key_builder = glideinFrontendInterface.Key4AdvertiseBuilder()
 
         logSupport.log.info("Match")
 
@@ -572,7 +576,7 @@ class glideinFrontendElement:
             )
         )
 
-        advertizer = glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
+        advertiser = glideinFrontendInterface.MultiAdvertiseWork(descript_obj)
         resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser(
             multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi
         )
@@ -585,10 +589,10 @@ class glideinFrontendElement:
                     globals_el["attrs"]["PubKeyID"],
                     globals_el["attrs"]["PubKeyObj"],
                 )
-                advertizer.add_global(globals_el["attrs"]["FactoryPoolNode"], globalid, self.security_name, key_obj)
+                advertiser.add_global(globals_el["attrs"]["FactoryPoolNode"], globalid, self.security_name, key_obj)
 
         # Add glidein config limits to the glideclient classads
-        advertizer.set_glidein_config_limits(self.glidein_config_limits)
+        advertiser.set_glidein_config_limits(self.glidein_config_limits)
 
         # TODO: python2 allows None elements to be sorted putting them on top
         #   recreating the behavior but should check if (None, None, None) is giving problems somewhere else
@@ -871,7 +875,7 @@ class glideinFrontendElement:
 
                 # if stkn:
                 #     if generator_name:
-                #         for cred_el in advertizer.descript_obj.credentials_plugin.cred_list:
+                #         for cred_el in advertiser.descript_obj.credentials_plugin.cred_list:
                 #             if cred_el.filename == generator_name:
                 #                 cred_el.generated_data = stkn
                 #                 break
@@ -881,7 +885,7 @@ class glideinFrontendElement:
                 #         gp_encrypt["frontend_scitoken"] = stkn
 
                 # now advertise
-                advertizer.add(
+                advertiser.add(
                     factory_pool_node,
                     request_name,
                     request_name,
@@ -927,22 +931,22 @@ class glideinFrontendElement:
         pids = []
         # Advertise glideclient and glideclient global classads
         ad_file_id_cache = glideinFrontendInterface.CredentialCache()
-        advertizer.renew_and_load_credentials()
+        advertiser.renew_and_load_credentials()
 
-        ad_factnames = advertizer.get_advertize_factory_list()
-        servicePerformance.startPerfMetricEvent(self.group_name, "advertize_classads")
+        ad_factnames = advertiser.get_advertise_factory_list()
+        servicePerformance.startPerfMetricEvent(self.group_name, "advertise_classads")
 
         for ad_factname in ad_factnames:
             logSupport.log.info("Advertising global and singular requests for factory %s" % ad_factname)
             # they will run in parallel, make sure they don't collide
-            adname = advertizer.initialize_advertize_batch() + "_" + ad_factname
-            g_ads = advertizer.do_global_advertize_one(
+            adname = advertiser.initialize_advertise_batch() + "_" + ad_factname
+            g_ads = advertiser.do_global_advertise_one(
                 ad_factname, adname=adname, create_files_only=True, reset_unique_id=False
             )
-            s_ads = advertizer.do_advertize_one(
+            s_ads = advertiser.do_advertise_one(
                 ad_factname, ad_file_id_cache, adname=adname, create_files_only=True, reset_unique_id=False
             )
-            pids.append(fork_in_bg(advertizer.do_advertize_batch_one, ad_factname, tuple(set(g_ads) | set(s_ads))))
+            pids.append(fork_in_bg(advertiser.do_advertise_batch_one, ad_factname, tuple(set(g_ads) | set(s_ads))))
 
         del ad_file_id_cache
 
@@ -954,7 +958,7 @@ class glideinFrontendElement:
 
         wait_for_pids(pids)
         logSupport.log.info("Done advertising")
-        servicePerformance.endPerfMetricEvent(self.group_name, "advertize_classads")
+        servicePerformance.endPerfMetricEvent(self.group_name, "advertise_classads")
 
         return
 
@@ -979,8 +983,10 @@ class glideinFrontendElement:
                 # create a condor token named for entry point site name
 
                 glidein_site = glidein_el["attrs"]["GLIDEIN_Site"]
-                tkn_dir = "/var/lib/gwms-frontend/tokens.d"
-                pwd_dir = "/var/lib/gwms-frontend/passwords.d"
+                # Using the home directory should solve ownership conflicts for different clients (e.g. DE)
+                user_home = Path.home()  # "/var/lib/gwms-frontend"
+                tkn_dir = user_home / "tokens.d"
+                pwd_dir = user_home / "passwords.d"
                 tkn_file = os.path.join(tkn_dir, f"{self.group_name}.{glidein_site}.idtoken")
                 pwd_file = os.path.join(pwd_dir, glidein_site)
                 pwd_default = os.path.join(pwd_dir, self.idtoken_keyname)
@@ -1310,7 +1316,7 @@ class glideinFrontendElement:
 
         elif effective_idle > 0:
             # don't go over the system-wide max
-            # not perfect, given te number of entries, but better than nothing
+            # not perfect, given the number of entries, but better than nothing
             glidein_min_idle = min(
                 effective_idle,
                 self.max_running - count_status["Total"],
@@ -1335,43 +1341,43 @@ class glideinFrontendElement:
 
             # /2 each time you hit a limit, to do an exponential backoff
             if count_status["Idle"] >= self.curb_vms_idle:
-                glidein_min_idle /= 2  # above first treshold, reduce
+                glidein_min_idle /= 2  # above first threshold, reduce
                 limits_triggered["CurbIdleGlideinsPerEntry"] = "count=%i, curb=%i" % (
                     count_status["Idle"],
                     self.curb_vms_idle,
                 )
             if total_glideins >= self.total_curb_glideins:
-                glidein_min_idle /= 2  # above global treshold, reduce further
+                glidein_min_idle /= 2  # above global threshold, reduce further
                 limits_triggered["CurbTotalGlideinsPerGroup"] = "count=%i, curb=%i" % (
                     total_glideins,
                     self.total_curb_glideins,
                 )
             if total_idle_glideins >= self.total_curb_vms_idle:
-                glidein_min_idle /= 2  # above global treshold, reduce further
+                glidein_min_idle /= 2  # above global threshold, reduce further
                 limits_triggered["CurbIdleGlideinsPerGroup"] = "count=%i, curb=%i" % (
                     total_idle_glideins,
                     self.total_curb_vms_idle,
                 )
             if fe_total_glideins >= self.fe_total_curb_glideins:
-                glidein_min_idle /= 2  # above global treshold, reduce further
+                glidein_min_idle /= 2  # above global threshold, reduce further
                 limits_triggered["CurbTotalGlideinsPerFrontend"] = "count=%i, curb=%i" % (
                     fe_total_glideins,
                     self.fe_total_curb_glideins,
                 )
             if fe_total_idle_glideins >= self.fe_total_curb_vms_idle:
-                glidein_min_idle /= 2  # above global treshold, reduce further
+                glidein_min_idle /= 2  # above global threshold, reduce further
                 limits_triggered["CurbIdleGlideinsPerFrontend"] = "count=%i, curb=%i" % (
                     fe_total_idle_glideins,
                     self.fe_total_curb_vms_idle,
                 )
             if global_total_glideins >= self.global_total_curb_glideins:
-                glidein_min_idle /= 2  # above global treshold, reduce further
+                glidein_min_idle /= 2  # above global threshold, reduce further
                 limits_triggered["CurbTotalGlideinsGlobal"] = "count=%i, curb=%i" % (
                     global_total_glideins,
                     self.global_total_curb_glideins,
                 )
             if global_total_idle_glideins >= self.global_total_curb_vms_idle:
-                glidein_min_idle /= 2  # above global treshold, reduce further
+                glidein_min_idle /= 2  # above global threshold, reduce further
                 limits_triggered["CurbIdleGlideinsGlobal"] = "count=%i, curb=%i" % (
                     global_total_idle_glideins,
                     self.global_total_curb_vms_idle,
@@ -1396,7 +1402,7 @@ class glideinFrontendElement:
         global_total_idle_glideins,
         limits_triggered,
     ):
-        # Identify the limits triggered for advertizing in glideresource
+        # Identify the limits triggered for advertising in glideresource
         if count_status["Total"] >= self.max_running:
             limits_triggered["TotalGlideinsPerEntry"] = "count=%i, limit=%i" % (count_status["Total"], self.max_running)
         if count_status["Idle"] >= self.max_vms_idle:
@@ -1960,9 +1966,9 @@ class glideinFrontendElement:
         # less memory in idle MC slot, there is a possibility that we consider
         # it as an idle resource but non of the jobs would match it.
         # In case of other VOs that require less memory, HTCondor will auto
-        # carve out a slot and there is a chance for over provisioing by a
+        # carve out a slot and there is a chance for over provisioning by a
         # small amount. Over provisioning is by far the worst case than
-        # under provisioing.
+        # under provisioning.
 
         # mc_idle_constraint = '(PartitionableSlot=!=True) || (PartitionableSlot=?=True && cpus > 0 && memory > 2500)'
 

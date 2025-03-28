@@ -1,0 +1,36 @@
+;; SPDX-FileCopyrightText = "2009 Fermi Research Alliance, LLC"
+;; SPDX-License-Identifier = "Apache-2.0"
+;; .github/issue-labeler-config-regexes.yaml
+  - 'Components: *(?:The affected component,? (?:due to this bug|if any, from this feature) *)?\[?.*(\b[Rr]elease\b)'
+  - 'Components: *(?:The affected component,? (?:due to this bug|if any, from this feature) *)?\[?((?:\b(?!The affected|[Ff]rontend [Mm]onitoring|[Ff]actory|[Gg]lidein|[Dd]ocumentation|(CI|ci|[Tt]esting)|[Rr]elease|[Ff]actory [Mm]onitoring|[Ff]rontend)\b)[^, \n\]]+)\]?'
+;; creation/web_base/condor_platform_select.sh
+        "$error_gen" -error "condor_platform_select.sh" "Config" "$STR" "SupportAutodetect" "False" "ArchType" "Unknown"
+;; creation/web_base/singularity_lib.sh
+OSG_SINGULARITY_BINARY_DEFAULT="/cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity"
+[[ -n "$CVMFS_MOUNT_DIR" ]] && OSG_SINGULARITY_BINARY_DEFAULT="${CVMFS_MOUNT_DIR}/oasis.opensciencegrid.org/mis/singularity/bin/singularity"
+;; doc/factory/monitoring.html
+                                            Run    Held    Idle  Unknwn | Pending    Wait   StgIn  StgOut |  RunDiff IdleDiff   %RD
+frontend_vofrontend_service_frontend        Run    Held    Idle  Unknwn | Pending    Wait   StgIn  StgOut |  RunDiff IdleDiff   %RD
+Unknwn : Status Unknown (StatusIdleOther)
+                                            Regd  Claimd Unmtchd | ReqIdle |  JobRun JobHere JobIdle | RunDiff   %UM   %RD
+frontend_vofrontend_service_frontend        Regd  Claimd Unmtchd | ReqIdle |  JobRun JobHere JobIdle | RunDiff   %UM   %RD
+;; doc/factory/custom_vars.html
+                /cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity
+;; factory/tools/manual_glidein_submit.py
+    constraint = 'MyType=="glideclient" && regexp("^{}@.*$", AuthenticatedIdentity) && regexp("^{}@.*$", ReqName) && GroupName=="{}" && GlideinEncParamSubmitProxy isnt undefined'.format(
+;; factory/tools/analyze_queues
+        "Unknwn",
+;; frontend/glideinFrontendLib.py
+# by Benjamin Hass @ UCSD (working under Igor Sfiligoi)
+;; lib/unparser.py
+        "NotIn": "not in",
+;; lib/config_util.py
+    "mis": "MIS",
+    "nees": "NEES",
+;; install/templates/01_gwms_metrics.config
+  Requirements = GLIDEIN_Site isnt null;
+;; unittests/fixtures/factory/log/client/glideFactoryLogParser_glidein_stdout.out
+GLIDECLIENT_Group_Start (ifthenelse(DESIRED_Sites isnt undefined, stringListMember(GLIDEIN_CMSSite,DESIRED_Sites), undefined) || ifthenelse(DESIRED_Gatekeepers isnt undefined, stringListMember(GLIDEIN_Gatekeeper,DESIRED_Gatekeepers), undefined)) && (isUndefined(RequestGPUs) || RequestGPUs =?= 0 )
+;; unittests/fixtures/frontend/ccvd.fixture unittests/fixtures/frontend/vofrontend/frontend.condor_config
+TRANSFERD =
+;;

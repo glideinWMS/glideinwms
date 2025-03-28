@@ -250,7 +250,7 @@ SPDX-License-Identifier: Apache-2.0
           scripts, the base config files and the HTCondor binaries. The list of
           files to load is obtained from the Web server as one of the first
           steps, making the startup script completely generic.<br /><br />Please
-          notice two things. First, all the files transfered over the Web are
+          notice two things. First, all the files transferred over the Web are
           signed using <tt><b>sha1sum</b></tt
           >. This prevents a hacker from tampering with the files while in
           transit. This is especially important for executables and scripts (to
@@ -261,7 +261,7 @@ SPDX-License-Identifier: Apache-2.0
         <p>The signature checking is implemented in two steps:</p>
         <ol>
           <li>
-            The signature of all the files to be transfered is saved in a file
+            The signature of all the files to be transferred is saved in a file
             called <tt><b>signature.sha1</b></tt> and stored on the Web server.
             The signature of the signature file is then passed as one of the
             parameters to the startup script.

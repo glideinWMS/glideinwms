@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # NOTE: any script that imports this script to use the functions defined must also import add_config_line.source
+#       and define glidein_config
 
 ############################################
 # Get entry/client/group work dir

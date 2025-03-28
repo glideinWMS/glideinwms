@@ -427,7 +427,7 @@ class Credential(ABC, Generic[T]):
             text = data_pattern % text
 
         try:
-            # NOTE: NamedTemporaryFile is creted in private mode by default (0600)
+            # NOTE: NamedTemporaryFile is created in private mode by default (0600)
             with tempfile.NamedTemporaryFile(mode="wb", delete=False) as fd:
                 os.chmod(fd.name, permissions)
                 fd.write(text)
@@ -1096,7 +1096,7 @@ class RequestCredential:
 
     Attributes:
         credential (Credential): The credential object.
-        advertize (bool): Flag indicating whether to advertise the credential.
+        advertise (bool): Flag indicating whether to advertise the credential.
         req_idle (int): Number of idle jobs requested.
         req_max_run (int): Maximum number of running jobs requested.
     """
@@ -1106,12 +1106,12 @@ class RequestCredential:
         credential: Credential,
     ):
         self.credential = credential
-        self.advertize: bool = True
+        self.advertise: bool = True
         self.req_idle: int = 0
         self.req_max_run: int = 0
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(credential={self.credential!s}, advertize={self.advertize}, req_idle={self.req_idle}, req_max_run={self.req_max_run})"
+        return f"{self.__class__.__name__}(credential={self.credential!s}, advertise={self.advertise}, req_idle={self.req_idle}, req_max_run={self.req_max_run})"
 
     def __str__(self) -> str:
         return f"{self.credential!s}"

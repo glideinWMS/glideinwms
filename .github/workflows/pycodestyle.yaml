@@ -76,7 +76,7 @@ jobs:
           warnings_updated=false
           test_ok=true
           if [[ -z "$saved_warnings" ]] || [[ "$current_warnings" -lt "$saved_warnings" ]]; then
-            # No previos value, or new lower value, save the current one
+            # No previous value, or new lower value, save the current one
             echo "$current_warnings" > pycodestyle-warnings.txt
             warnings_updated=true
           elif [[ "$current_warnings" -gt "$saved_warnings" ]]; then

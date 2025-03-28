@@ -45,6 +45,7 @@ SPDX-License-Identifier: Apache-2.0
                   <per_frontend glideins="5000" held="50" idle="100"/>
                </per_frontends>
             </max_jobs>
+            <stale_age idle="604800" running="2678400" unclaimed="7200"/>
             <release max_per_cycle="20" sleep="0.2"/>
             <remove max_per_cycle="5" sleep="0.2"/>
             <restrictions require_voms_proxy="False"/>
@@ -94,6 +95,7 @@ SPDX-License-Identifier: Apache-2.0
                   <per_frontend glideins="5000" held="50" idle="100"/>
                </per_frontends>
             </max_jobs>
+            <stale_age idle="604800" running="2678400" unclaimed="7200"/>
             <release max_per_cycle="20" sleep="0.2"/>
             <remove max_per_cycle="5" sleep="0.2"/>
             <restrictions require_voms_proxy="False"/>

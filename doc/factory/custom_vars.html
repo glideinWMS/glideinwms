@@ -264,7 +264,7 @@ MAX_STARTD_LOG          I       10000000        +                               
       <div class="section">
         <h2><a name="vars"></a>Glidein Variables</h2>
         <p>
-          This section defines all the variables that the glideins explicity
+          This section defines all the variables that the glideins explicitly
           use. Please be aware that, apart from the below mentioned variable
           many other variables will be used by the HTCondor daemons, since
           glideins are HTCondor based; see the
@@ -1085,10 +1085,10 @@ MAX_STARTD_LOG          I       10000000        +                               
             <td>EMPTY</td>
             <td>
               <p>
-                Disk amout that the jobs running in the Glidein should use. This
-                is used to configure the HTCondor SLOT_TYPE_ definitions that
-                affect the value of Disk/TotalSlotDisk. Valid values are the
-                ones accepted by HTCondor for the "disk=" keyword in the
+                Disk amount that the jobs running in the Glidein should use.
+                This is used to configure the HTCondor SLOT_TYPE_ definitions
+                that affect the value of Disk/TotalSlotDisk. Valid values are
+                the ones accepted by HTCondor for the "disk=" keyword in the
                 SLOT_TYPE_ definition. The default is an empty string
                 (undefined) which is equivalent to "auto". It seems that for
                 disk, valid values are the "auto" string (that lets HTCondor
@@ -1359,7 +1359,7 @@ MAX_STARTD_LOG          I       10000000        +                               
               <p>
                 Comma separated list of keywords affecting Glidein debug.
                 Possible options are:<br />
-                userjob - prints debug informations on the user job stderr (at
+                userjob - prints debug information on the user job stderr (at
                 the beginning, when invoked with the container -Apptainer-
                 wrapper)<br />
                 nowait - removes the Glidein wait time when it ends with errors.
@@ -1623,7 +1623,7 @@ MAX_STARTD_LOG          I       10000000        +                               
                   <a
                     href="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html?highlight=Policy%20configuration#policy-configuration-for-execute-hosts-and-for-submit-hosts"
                     >a single partitionable slot and let HTCondor do the
-                    spliting as needed</a
+                    splitting as needed</a
                   >
                 </li>
               </ul>
@@ -2458,7 +2458,7 @@ MAX_STARTD_LOG          I       10000000        +                               
             <td>Dynamic</td>
             <td>
               <p>
-                Tells the Glidein wheter Singularity is available. This is not
+                Tells the Glidein whether Singularity is available. This is not
                 set if GWMS_SINGULARITY_STATUS is DISABLE, it is set to 1 (true)
                 if GWMS_SINGULARITY_STATUS is PREFERRED or REQUIRED, and it is
                 set to 0 (false) otherwise. It can change to 0 if
@@ -2481,9 +2481,9 @@ MAX_STARTD_LOG          I       10000000        +                               
                 expressed in any format supported by Singularity. REQUIRED_OS is
                 used to select the platform: the first platform in the list that
                 matches a key will be used. You can use any string to identify
-                the images as lons as you are consistent with REQUIRED_OS, but
+                the images as long as you are consistent with REQUIRED_OS, but
                 we recommend to use standard names like: rhel9 (for RHEL9 or
-                AlmaLinux9), rhel7 (fpr RHEL7 or SL7). The default set in
+                AlmaLinux9), rhel7 (for RHEL7 or SL7). The default set in
                 generic_pre_singularity_setup.sh is
                 "rhel7:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest,rhel6:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest,rhel8:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el8:latest"
                 or by running a pre_singularity setup script.
@@ -2507,7 +2507,7 @@ MAX_STARTD_LOG          I       10000000        +                               
                 this list with GLIDEIN_REQUIRED_OS and use the intersection to
                 select the Singularity image. The first value of the
                 intersection for which there is a key in SINGULARITY_IMAGES_DICT
-                will determin the image (value with that key). 'any' means that
+                will determine the image (value with that key). 'any' means that
                 any Singularity image is OK.
               </p>
             </td>
@@ -2532,7 +2532,39 @@ MAX_STARTD_LOG          I       10000000        +                               
             <td>
               <p>
                 Comma separated list of restrictions on the Singularity images.
-                Possible values are: cvmfs (the image must be on cvmfs).
+                Possible values are: cvmfs (the image must be on cvmfs); remote
+                (it is OK to use remote images via URI); test (if no valid image
+                is found, return the test image and not error).
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td><b>SINGULARITY_IMAGE_REQUIRED</b></td>
+            <td>String (Enum)</td>
+            <td>false</td>
+            <td>Factory Frontend</td>
+            <td>
+              <p>
+                If "false" the Glidein will continue the Singularity/Apptainer
+                setup even if no valid image is found. The setup will use a test
+                image. The user will have to provide the image with a later
+                setup script or in the job. Possible values are: false or true.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td><b>APPTAINER_TEST_IMAGE</b></td>
+            <td>String (Enum)</td>
+            <td>Not set</td>
+            <td>Factory Frontend CE</td>
+            <td>
+              <p>
+                URI (local path or remote URI) of a Singularity/Apptainer image
+                to use for testing. If not set, GWMS_SINGULARITY_IMAGE_DEFAULT,
+                otherwise <tt>oras://ghcr.io/apptainer/alpine:latest</tt>, a
+                small Alpine Linux sif image provided by the Apptainer
+                developers. This can be set in the worker node environment,
+                which takes precedence, or as attribute.
               </p>
             </td>
           </tr>
@@ -2713,7 +2745,7 @@ MAX_STARTD_LOG          I       10000000        +                               
                 in Singularity. Can have a comma separated list (no spaces) of
                 the following values: <br />
                 clearall - clear all from the environment unless other sets are
-                listed (clearing evrything may cause problems also w/ some
+                listed (clearing everything may cause problems also w/ some
                 Glidein functionalities);<br />
                 condorset - preserves HTCondor variables (env variables starting
                 with _CONDOR_ and variables defined in the job ClassAd
@@ -2905,8 +2937,8 @@ MAX_STARTD_LOG          I       10000000        +                               
 
             <td>
               <p>
-                The variable controls wether or not the glidein should accept
-                new jobs. As part of the
+                The variable controls whether the glidein should accept new jobs
+                or not. As part of the
                 <a
                   href="https://twiki.cern.ch/twiki/bin/view/LCG/MachineJobFeatures"
                 >
@@ -2937,8 +2969,8 @@ MAX_STARTD_LOG          I       10000000        +                               
 
             <td>
               <p>
-                The variable controls wether or not the glidein should preempt
-                jobs. This is still part of the
+                The variable controls whether the glidein should preempt jobs or
+                not. This is still part of the
                 <a
                   href="https://twiki.cern.ch/twiki/bin/view/LCG/MachineJobFeatures"
                 >
@@ -3044,11 +3076,11 @@ MAX_STARTD_LOG          I       10000000        +                               
           </li>
           <li>
             <font color="f8d844"><i>Yellow</i></font
-            >: During the yellow period, START will evauluate to FALSE, so no
-            new jobs will start. However, already running jobs will continue to
-            run for GLIDEIN_Job_Max_Time. (Note that the glideins will end
-            during this period if the job ends. They will not idle afterwards
-            since no new jobs can start anyway).
+            >: During the yellow period, START will evaluate to FALSE, so no new
+            jobs will start. However, already running jobs will continue to run
+            for GLIDEIN_Job_Max_Time. (Note that the glideins will end during
+            this period if the job ends. They will not idle afterwards since no
+            new jobs can start anyway).
           </li>
           <li>
             Once this period is done, the DAEMON_SHUTDOWN variable will be true.
@@ -3147,7 +3179,7 @@ MAX_STARTD_LOG          I       10000000        +                               
             the MJF directory. Put the draining deadline unix timestamp in the
             file. Even a distant time in the future is sufficient to cause the
             glidein to set SiteWMS_WN_Draining=True and stop accepting new jobs
-            (this is controled by the <tt>check_wn_drainstate.sh</tt> condor
+            (this is controlled by the <tt>check_wn_drainstate.sh</tt> condor
             CROND script).
           </li>
         </ul>
@@ -3194,9 +3226,10 @@ MAX_STARTD_LOG          I       10000000        +                               
             to the configuration of execute nodes (condor_startup.sh). The
             values are available immediately if the schedd is queried directly
             (START expression, direct query from client or startd cron script).
-            The start expression is updated everytime that job starts. Note that
-            the mentioned probes were introduced in HTCondor 8.7.8, so make sure
-            you have that version or newer in order to get the STARTD stats.
+            The start expression is updated every time that job starts. Note
+            that the mentioned probes were introduced in HTCondor 8.7.8, so make
+            sure you have that version or newer in order to get the STARTD
+            stats.
           </p>
         </ul>
       </div>

@@ -52,7 +52,7 @@ build_cvmfsexec_distros() {
 	# egi for rhel8-x86_64 results in an error - egi does not yet have a centos8 build (as confirmed with Dave)
 	# TODO: verify the logic when egi provides a centos8 build
 
-	# protect aginst non-existence of cvmfsexec/tarballs directory; fresh install of GWMS with first run of factory upgrade
+	# protect against non-existence of cvmfsexec/tarballs directory; fresh install of GWMS with first run of factory upgrade
 	if [[ -d "$work_dir/cvmfsexec/tarballs" ]]; then
 		if [[ -f "$cvmfsexec_tarballs/.cvmfsexec_version" ]]; then
 			curr_ver=$(cat "$cvmfsexec_tarballs"/.cvmfsexec_version)

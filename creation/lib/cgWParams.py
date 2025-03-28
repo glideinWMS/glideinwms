@@ -1,8 +1,18 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Desscription:
+# Description:
 #   This module contains the create_glidein params class
+
+#########################################################################
+# NOTE: This module is currently not used!                              #
+#                                                                       #
+#       Configuration defaults are in creation/lib/factory_defaults.xml #
+#       We should reevaluate the need for this module when refactoring  #
+#       the configuration system. As of now, factory and frontend       #
+#       configurations are done differently.                            #
+#                                                                       #
+#########################################################################
 
 import copy
 import os
@@ -44,7 +54,7 @@ class GlideinParams(cWParams.CommonParams):
         self.attr_defaults["const"] = (
             "True",
             "Bool",
-            "Should it be constant? (Else it can be overriden by the frontend. Used only if parameter is True.)",
+            "Should it be constant? (Else it can be overridden by the frontend. Used only if parameter is True.)",
             None,
         )
 
@@ -126,6 +136,27 @@ class GlideinParams(cWParams.CommonParams):
             max_jobs_per_frontend_defaults,
         )
         entry_config_defaults["max_jobs"] = entry_config_max_jobs_defaults
+
+        stale_age_defaults = cWParams.CommentedOrderedDict()
+        stale_age_defaults["idle"] = (
+            str(7 * 24 * 3600),  # 1 week
+            "seconds",
+            "Max age of idle glideins before they are considered stale.",
+            None,
+        )
+        stale_age_defaults["running"] = (
+            str(31 * 24 * 3600),  # 1 month
+            "seconds",
+            "Max age of running glideins before they are considered stale.",
+            None,
+        )
+        stale_age_defaults["unclaimed"] = (
+            str(2 * 3600),  # 2 hours
+            "seconds",
+            "Max age of unclaimed glideins before they are considered stale.",
+            None,
+        )
+        entry_config_defaults["stale_age"] = stale_age_defaults
 
         entry_config_restrictions_defaults = cWParams.CommentedOrderedDict()
         entry_config_restrictions_defaults["require_voms_proxy"] = (
@@ -284,7 +315,7 @@ class GlideinParams(cWParams.CommonParams):
 
         process_log_defaults = copy.deepcopy(one_log_retention_defaults)
         process_log_defaults["structured"] = ["False", "Bool", "True to use structured logs", None]
-        process_log_defaults["extension"] = ["all", "string", "name of the log extention", None]
+        process_log_defaults["extension"] = ["all", "string", "name of the log extension", None]
         process_log_defaults["msg_types"] = ["INFO, WARN, ERR", "string", "types of log messages", None]
         process_log_defaults["backup_count"] = ["5", "string", "Number of backup logs to keep", None]
         process_log_defaults["compression"] = ["", "string", "Compression for backup log files", None]
@@ -307,7 +338,7 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["log_retention"] = log_retention_defaults
 
         self.defaults["loop_delay"] = ("60", "seconds", "Number of seconds between iterations", None)
-        self.defaults["advertise_delay"] = ("5", "NR", "Advertize evert NR loops", None)
+        self.defaults["advertise_delay"] = ("5", "NR", "Advertise evert NR loops", None)
         self.defaults["restart_attempts"] = (
             "3",
             "NR",
@@ -380,7 +411,7 @@ class GlideinParams(cWParams.CommonParams):
         monitoring_collector_defaults["DN"] = (
             None,
             "dn",
-            "Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",
+            "Factory collector distinguished name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",
             None,
         )
         monitoring_collector_defaults["secondary"] = (

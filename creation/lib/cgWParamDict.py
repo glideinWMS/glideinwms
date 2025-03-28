@@ -866,7 +866,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
         """Create a glidein dictionary w/ main, entries and entry-groups data
 
         Args:
-            conf (glideinConfig): Factory configuartion
+            conf (glideinConfig): Factory configuration
             sub_list (list): list of sub-elements (Entries)
         """
         if sub_list is None:
@@ -961,7 +961,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
     def sortit(self, unsorted_dict):
         """A temporary method for sorting a dictionary based on
         the value of the dictionary item.  In python 2.4+,
-        a 'key' arguement can be used in the 'sort' and 'sorted'
+        a 'key' argument can be used in the 'sort' and 'sorted'
         functions.  This is not available in python 2.3.4/SL4
         platforms.
         Returns a sorted list of the dictionary items based on
@@ -1007,7 +1007,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
     absfname = user_file["absfname"]
 
     if "relfname" not in user_file:
-        relfname = os.path.basename(absfname)  # defualt is the final part of absfname
+        relfname = os.path.basename(absfname)  # default is the final part of absfname
     else:
         relfname = user_file["relfname"]
 
@@ -1156,7 +1156,7 @@ def add_attr_unparsed_real(attr, dicts):
 
     # Validation of consistent combinations od publish, parameter and const has been removed somewhere after
     #  63e06efb33ba0bdbd2df6509e50c6e02d42c482c
-    #  dicts['attrs'] instead of dicts['consts'] was populated when both do_publish and is_parameter are fales
+    #  dicts['attrs'] instead of dicts['consts'] was populated when both do_publish and is_parameter are false
     #  (and is_const is true)
     if do_publish:  # publish in factory ClassAd
         if is_parameter:  # but also push to glidein
@@ -1345,6 +1345,10 @@ def populate_job_descript(
     job_descript_dict.add("DefaultPerFrontendMaxGlideins", int(def_per_fe["glideins"]) // num_factories)
     job_descript_dict.add("DefaultPerFrontendMaxIdle", int(def_per_fe["idle"]) // num_factories)
     job_descript_dict.add("DefaultPerFrontendMaxHeld", int(def_per_fe["held"]) // num_factories)
+    stale_age = config.get_child("stale_age")
+    job_descript_dict.add("StaleAgeIdle", int(stale_age["idle"]))
+    job_descript_dict.add("StaleAgeRunning", int(stale_age["running"]))
+    job_descript_dict.add("StaleAgeUnclaimed", int(stale_age["unclaimed"]))
     submit = config.get_child("submit")
     job_descript_dict.add("MaxSubmitRate", submit["max_per_cycle"])
     job_descript_dict.add("SubmitCluster", submit["cluster_size"])

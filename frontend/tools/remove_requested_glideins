@@ -7,7 +7,7 @@
 
 Arguments:
   -d DIR, --work-dir=DIR         Frontend work dir (default: $FE_WORK_DIR)
-  -t TYPE, --removal-type=TYPE   Type of removal request (defalt: IDLE)
+  -t TYPE, --removal-type=TYPE   Type of removal request (default: IDLE)
 """
 
 import fcntl

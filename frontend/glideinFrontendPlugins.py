@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 from typing import Iterable, List, Mapping, Optional, Union
 
 from glideinwms.frontend import glideinFrontendLib
-from glideinwms.frontend.glideinFrontendInterface import AdvertizeParams
+from glideinwms.frontend.glideinFrontendInterface import AdvertiseParams
 from glideinwms.lib import logSupport, util
 from glideinwms.lib.credentials import (
     AuthenticationSet,
@@ -51,7 +51,7 @@ from glideinwms.lib.credentials import (
 #     If params_obj is NOT None, then this function is responsible for calling
 #     add_usage_details() for each returned credential to determine idle and max run
 #     If called multiple time, it is guaranteed that                           #
-#        if the index is the same, the proxy is (logicaly) the same            #
+#        if the index is the same, the proxy is (logically) the same            #
 #     credential_type will limit the returned credentials to a particular type #
 #     trust_domain will limit the returned credentials to a particular domain  #
 #                                                                              #
@@ -132,7 +132,7 @@ class CredentialsPlugin(ABC):
 
     @abstractmethod
     def assign_work(
-        self, req_creds: Iterable[RequestCredential], params_obj: AdvertizeParams, auth_set: AuthenticationSet
+        self, req_creds: Iterable[RequestCredential], params_obj: AdvertiseParams, auth_set: AuthenticationSet
     ):
         pass
 
@@ -187,13 +187,13 @@ class CredentialsBasic(CredentialsPlugin):
         return req_creds
 
     def assign_work(
-        self, req_creds: Iterable[RequestCredential], params_obj: AdvertizeParams, auth_set: AuthenticationSet
+        self, req_creds: Iterable[RequestCredential], params_obj: AdvertiseParams, auth_set: AuthenticationSet
     ):
         """Assign work to the request credentials
 
         Args:
             req_creds (Iterable[RequestCredential]): request credentials to be assigned work
-            params_obj (AdvertizeParams): parameters to be considered in work assignment
+            params_obj (AdvertiseParams): parameters to be considered in work assignment
             auth_set (AuthenticationSet): authentication set to be considered in work assignment
         """
 
@@ -816,7 +816,7 @@ def fair_assign(cred_list, params_obj):
 ###################################################################
 
 # Being plugins, users are not expected to directly reference the classes
-# They should go throug the dictionaries below to find the appropriate plugin
+# They should go through the dictionaries below to find the appropriate plugin
 
 proxy_plugins = {
     "CredentialsBasic": CredentialsBasic,

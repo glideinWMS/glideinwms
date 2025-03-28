@@ -151,18 +151,18 @@ SPDX-License-Identifier: Apache-2.0
                 <ul>
                   <li>
                     The user pool needs to have IDTOKENS authenticating it from
-                    all of the seperate HTCondor machines it authenticates with.
+                    all of the separate HTCondor machines it authenticates with.
                   </li>
                   <li>
                     This means that if the User Collector, Glidein Pool
                     Collector, User Schedd Nodes, and Glidein Frontend are all
-                    on seperate nodes, they must each provide IDTOKENS to each
+                    on separate nodes, they must each provide IDTOKENS to each
                     other. Admins for the various nodes must coordinate
                     condor_token_request and condor_token_request_approve
                     operations to distribute IDTOKENS as needed.
                   </li>
                   <li>
-                    The recieved tokens are placed in
+                    The received tokens are placed in
                     <font color="orange">/etc/condor/tokens.d</font> with root
                     ownership
                   </li>
@@ -182,7 +182,7 @@ SPDX-License-Identifier: Apache-2.0
                     HTCondor Daemons on distinct machines.
                   </li>
                   <li>
-                    Be aware that if there are multiple collecters for load
+                    Be aware that if there are multiple collectors for load
                     balancing or HA, such as mycollector.fnal.gov and
                     mycollector.cern.ch, the processes should be supplied with
                     two IDTOKENS issued from both mycollector.fnal.gov and

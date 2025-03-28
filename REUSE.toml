@@ -1,0 +1,22 @@
+version = 1
+SPDX-PackageName = "GlideinWMS"
+SPDX-PackageSupplier = "The GlideinWMS Team <glideinwms@fnal.gov>"
+SPDX-PackageDownloadLocation = "https://glideinwms.fnal.gov/"
+
+[[annotations]]
+path = [".codecov.yml", ".codespell/ignore_lines.txt", ".codespell/ignore_words.txt", ".coveragerc", ".editorconfig", ".gitattributes", ".gitignore", ".gitmodules", ".mailmap", ".pep8speaks.yml", ".pre-commit-config.yaml", ".travis.yml", "LICENSE", "requirements.txt", "tox.ini"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2009 Fermi Research Alliance, LLC"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["logserver/logging_config.json", "logserver/composer.json"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2009 Fermi Research Alliance, LLC"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = [".github/ISSUE_TEMPLATE/**", "bigfiles/**", "etc/**", "config/**", "install/config/*.service", "creation/templates/**.service", "creation/templates/**.cron", "creation/templates/**.timer", "doc/tags**txt", "lib/logging.conf", "test/bats/fixtures/**", "unittests/**.fixture", "unittests/fixtures/**"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2009 Fermi Research Alliance, LLC"
+SPDX-License-Identifier = "Apache-2.0"

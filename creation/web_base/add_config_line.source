@@ -16,7 +16,7 @@
 # glidein_config is a key-value file
 # each line is a key (case sensitive ID name), a space, and a value (rest of the line)
 # if there are multiple lines w/ the same key, the last one counts
-# ecah linke can be max 4K
+# each line can be max 4K
 GWSM_CONFIG_LINE_MAX=4k
 # Number of seconds before forcing unlock if the owner process is not there
 UNLOCK_TIMEOUT=60
@@ -32,6 +32,44 @@ TAC=$(command -v tac)
 [[ -z "$TAC" && "$OSTYPE" =~ darwin* ]] && TAC="tail -r"
 PSPID="$(command -v ps) -q"
 [[ "$OSTYPE" =~ darwin* ]] && PSPID="$(command -v ps) -p"  # Quick-pid option not available on Mac/BSD
+
+# Convert to lowercase the output of gconfig_get
+gconfig_get_tolower() {
+    gconfig_get "$@" | tr '[:upper:]' '[:lower:]'
+}
+
+# Convert to uppercase the output of gconfig_get
+gconfig_get_toupper() {
+    gconfig_get "$@" | tr '[:lower:]' '[:upper:]'
+}
+
+# Check for Truth values (case insensitive) from gconfig_get: TRUE, T, YES, Y, 1 (or positive numbers)
+# Anything else, including empty is false
+# Use: if gconfig_get_bool KEY "$glidein_config"; then ....
+gconfig_get_bool() {
+    local res
+    # sed "s/[\"' \t\r\n]//g" not working on OS X, '\040\011\012\015' = ' '$'\t'$'\r'$'\n'
+    res=$(gconfig_get "$@" | tr -d '\040\011\012\015')
+    res=${res^^}
+    re="^[0-9]+$"
+    if [[ "$res" == "TRUE" || "$res" == "T" || "$res" == "YES" || "$res" == "Y" || "$res" == "1" ]]; then
+        true
+    elif [[ "$res" =~ $re ]]; then
+            if [[ $res -eq 0 ]]; then
+                false
+            else
+                true
+            fi
+    else
+        false
+    fi
+}
+
+# Strip from space characters and quotes the gconfig_get output.
+# Remove all space and quote characters in front and at the end of the string.
+gconfig_get_trim() {
+    gconfig_get "$@" | sed -e "s/^[\"' \t\n\r]*//g" -e "s/[\"' \t\n\r]*$//g"
+}
 
 # Return the value stored in glidein_config
 #  1: id (key) of the value to retrieve;
@@ -58,7 +96,8 @@ gconfig_log_name() {
 }
 
 gconfig_log_add() {
-    local log_name=$(gconfig_log_name "$1")
+    local log_name
+    log_name=$(gconfig_log_name "$1")
     shift
     echo "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${log_name}"
 }
@@ -118,10 +157,9 @@ gconfig_add() {
 # alias add_config_line=gconfig_add  # This is not working w/ bats
 add_config_line(){ gconfig_add "$@"; }
 
-# Unsafe version, should be used only when sequentiality is guaranteed
-# add_config_line... are the only writing functions
-# only one call at the time happen
-# read may
+# Unsafe version, should be used only when sequentiality is guaranteed,
+# add_config_line... are the only writing functions, and only one call at the time happen.
+# Read may happen in parallel
 gconfig_add_unsafe() {
     [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfog_add. Forcing exit."; exit 1; }
     # Add the value also to a log that will help troubleshoot problems

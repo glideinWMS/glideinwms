@@ -84,7 +84,7 @@ for glidein in glideins:
     elif txt_type == "Gatekeepers":
         key = glidein_el["attrs"]["GLIDEIN_Gatekeeper"]
     else:
-        raise RuntimeError("Unknwon type '%s'" % txt_type)
+        raise RuntimeError("Unknown type '%s'" % txt_type)
 
     if key in txt_data:
         key_el = txt_data[key]

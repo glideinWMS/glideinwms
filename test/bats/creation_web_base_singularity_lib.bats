@@ -35,7 +35,7 @@ setup() {
     # Mock robust_realpath intercepting some inputs
     # used by singularity_update_path, singularity_setup_inside_env
     eval "$(echo "robust_realpath_orig()"; declare -f robust_realpath | tail -n +2 )"
-    echo "Runnig setup" >&3
+    echo "Running setup" >&3
     robust_realpath() { robust_realpath_mock "$@"; }
 
 }
@@ -59,6 +59,7 @@ setup_nameprint() {
     # At least for Bash <4.1. You can append || false if you must
     [ "$output" = "bar" ]
 }
+
 
 ## Tests for dict_... functions
 @test "Test dictionary values" {
@@ -146,6 +147,25 @@ dit() { echo "TEST:<$1><$2><$3>"; }
 }
 
 
+## Test for utility functions
+@test "Verify uri_is_valid_file_or_remote" {
+    # Remote URI
+    uri_is_valid_file_or_remote http://user@host:port/path/to/file
+    uri_is_valid_file_or_remote ftp://host/path/to/file
+    fixture_dir=$(realpath fixtures)
+    # Local or file:// - both file:// and file:/// are absolute paths
+    # file fixtures/glidein_config is expected to exist
+    uri_is_valid_file_or_remote fixtures/glidein_config
+    uri_is_valid_file_or_remote "$fixture_dir/glidein_config"
+    uri_is_valid_file_or_remote file:/"$fixture_dir/glidein_config"
+    uri_is_valid_file_or_remote file://"$fixture_dir/glidein_config"
+    # file fixtures/this_file_is_not_there is expected NOT to exist
+    ! uri_is_valid_file_or_remote "fixtures/this_file_is_not_there"
+    ! uri_is_valid_file_or_remote "$fixture_dir/this_file_is_not_there"
+    ! uri_is_valid_file_or_remote "file:/$fixture_dir/this_file_is_not_there"
+    ! uri_is_valid_file_or_remote "file://$fixture_dir/this_file_is_not_there"
+}
+
 
 ## Tests for env_... functions
 @test "Verify env_clear_one" {
@@ -154,7 +174,7 @@ dit() { echo "TEST:<$1><$2><$3>"; }
     [ "$TEST_VAR" = "testvalue" ]
     [ "x$GWMS_OLDENV_TEST_VAR" = "x" ]
     env_clear_one TEST_VAR
-    echo "For visual inspection, TEST_VAR sould be gone: `env | grep TEST_VAR`" >&3
+    echo "For visual inspection, TEST_VAR should be gone: `env | grep TEST_VAR`" >&3
     [ -z "${TEST_VAR+x}" ]
     [ "$GWMS_OLDENV_TEST_VAR" = "testvalue" ]
 }
@@ -244,12 +264,12 @@ preset_env() {
     [[ -n "$1" ]] && env_file="$1" || true
     env_sing="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^SINGULARITYENV_ || true)"
     for i in $env_sing ; do
-        #echo "UE unsetting: $i" >&3
+        #echo "ENV Unsetting: $i" >&3
         unset $i
     done
     env_appt="$(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^APPTAINERENV_ || true)"
     for i in $env_appt ; do
-        #echo "UE unsetting: $i" >&3
+        #echo "ENV Unsetting: $i" >&3
         unset $i
     done
     # on GNU:

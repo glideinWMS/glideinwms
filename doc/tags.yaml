@@ -95,7 +95,7 @@ v3_6_2:
     - Broken submission to GCE and AWS
     - Correct how entry_ls detect an rpm installation
     - Adjust size of ClusterId and ProcessId fields for the condor_q custom format
-    - Total of frontend info is 0 in Factory monitring
+    - Total of frontend info is 0 in Factory monitoring
 
 v3_6_3:
   Date: July 16, 2020
@@ -180,7 +180,7 @@ v3_9:
     - Includes all features and fixes of 3.6.3 and 3.7.1
     - Python 3 code, some pitfalls to pay attention to are in the Bug Fix section
   Bug fix:
-    - custom disctionaries with __getattr__ in the creation package (an infinite loop was masked in Python 2)
+    - custom dictionaries with __getattr__ in the creation package (an infinite loop was masked in Python 2)
     - str vs bytes, especially in crypto libraries
     - None cannot be used in sorted string lists and we use (None, None, None) for unmatched jobs in the Frontend
     - Add __repr__ method to SubParams class
@@ -197,7 +197,7 @@ v3_7_2:
     - Includes all features and fixes of 3.6.6
     - Drop GLExec support
     - Mechanism for running custom scripts at the end of glidein execution
-    - OSG_autoconf protection added to prevent failures when CE dissapears from OSG Collector
+    - OSG_autoconf protection added to prevent failures when CE disappears from OSG Collector
   Bug fix:
     - Frontend no longer over-generates tokens for entries
     - Factory does not remove glideins when idle limit is hi
@@ -326,7 +326,7 @@ v3_9_4:
     - Updates license to Apache 2.0
   Bug fix:
     - Updates libraries for compatibility with PyYAML 6.0
-    - Fixes a sring encoding issue affecting the cat log scripts
+    - Fixes a string encoding issue affecting the cat log scripts
     - Fixes AWS/Google metadata encoding error
 
 v3_9_5:
@@ -344,7 +344,7 @@ v3_9_5:
     - Special handling of multiline condor config values
     - Advertise CONTAINERSW_ variables
   Bug fix:
-    - Fixes an issue causing SciTokens transfered to the factory to be corrupted
+    - Fixes an issue causing SciTokens transferred to the factory to be corrupted
     - Fixes to manual_glidein_submit for compatibility with Python 3
     - Fixes to OSG_autoconf for compatibility with Python 3
     - Fixes a minor issue in job.condor
@@ -362,7 +362,7 @@ v3_7_7:
     - Authenticate w/ tokens w/ the HTCondor-CE collector
     - Added CONTINUE_IF_NO_PROXY attribute to control GSI to token transition
   Bug fix:
-    - Fixes an issue causing SciTokens transfered to the factory to be corrupted
+    - Fixes an issue causing SciTokens transferred to the factory to be corrupted
     - Fixes condor_config -dump is not safe if the pool config has multiline entries
     - Add job.condor typo fix for bosco to 3.7.7
   NOTE:
@@ -593,3 +593,29 @@ v3_11_0:
     - Fixed early truncation in log files configuration and inconsistent documentation (Issue#464, PR#462, PR#463)
     - Removed confusing tac broken pipe messages from the Glidein stderr (PR#465)
     - Fixed quotes in glidein command line unpacking and replaced deprecated add_config_line commands (PR#468)
+
+v3_10_11:
+  Date: March 24, 2025
+  Series: Stable
+  Tarball: false
+  Feature:
+    - Added a test Apptainer image to use when the configured one is not available (PR#482)
+    - Added a new configuration knob, stale_age, for Factory entries to control the age of the Glideins to be considered stale for certain statuses (PR#494)
+    - Update get_tarballs to use new directory called beta (PR#495)
+    - Support GPUs in the mapping of OSG_autoconf VOs (PR#496)
+    - Made the Frontend library more friendly to other clients, e.g. Decision Engine (PR#504)
+  Bug fix:
+    - Protect processing of custom scripts in glidein_startup.sh against stdin interference (PR#498, Issue#500)
+    - Some config files used in the RPM package, including the httpd ones, were obsolete and not the version in the source tree. (PR#492, PR#502)
+    - Host IP is now searched in blacklist also when the host command is missing (PR#499, Issue#493)
+    - Added missing HTCondor requirements in spec file (PR#502)
+    - Unset CONDOR_INHERIT before condor startup to avoid any conflict in the condor configurations (PR#503, Issue#274)
+  NOTE:
+    - Monitoring pages are now redirecting to https if available, i.e. mod_ssl is installed and mod_ssl.conf is present. This behavior was present in the past but had been lost and now it has been reinstated. (PR#492, PR#502)
+  NOTE-FRONTEND:
+    - The default Frontend tokens key is now variable, $HOME/passwords.d/UPPERCASE_USERNAME. There is no actual change since this is /var/lib/gwms-frontend/passwords.d/FRONTEND for normal RPM installations. (PR#504)
+  NOTE-FACTORY:
+    - The new variable SINGULARITY_IMAGE_REQUIRED defaults to false and allows to use Singularity/Apptainer also when the configured image is not available.
+      The image must be provided by the job or a future custom script in order not to fail. (PR#482)
+    - APPTAINER_TEST_IMAGE can be set to an always available Singularity/Apptainer image to use for testing.
+      Defaults to oras://ghcr.io/apptainer/alpine:latest (PR#482)

@@ -50,19 +50,19 @@ def usage():
         "- files you changed are kept so",
         "- if using big files you should run 'bigfiles.sh -pr' before invoking this script",
         "  and 'bigfiles -R' after, to ripristinate the symlinks before a commit"
-        "Example: Release Candidate rc3 for v3.2.11 (ie version v3_2_11_rc3)",
-        "         Generate tarball: glideinWMS_v3_2_11_rc3*.tgz",
-        "         Generate rpms   : glideinWMS-*-v3.2.11-0.3.rc3.*.rpm",
-        "release.py --release-version=3_2_11 --rc=3 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release",
-        "Example: Development post Release Candidate rc3 for v3.2.11 (ie version v3_2_11_rc3)",
-        "         Generate tarball: glideinWMS_v3_2_11_rc3*.tgz (same as regular v3_2_11 RC3)",
-        "         Generate rpms   : glideinWMS-*-v3.2.11-0.3.rc3.2.*.rpm (should be between RC3 and RC4)",
-        "release.py --release-version=3_2_11 --rc=3 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=2",
+        "Example: Release Candidate rc3 for v3.10.9 (ie version v3_10_9_rc3)",
+        "         Generate tarball: glideinwms_v3_10_9_rc3*.tgz",
+        "         Generate rpms   : glideinwms-*-v3.10.9-0.3.rc3.*.rpm",
+        "release.py --release-version=3_10_9 --rc=3 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release",
+        "Example: Development post Release Candidate rc3 for v3.10.9 (ie version v3_10_9_rc3)",
+        "         Generate tarball: glideinwms_v3_10_9_rc3*.tgz (same as regular v3_10_9 RC3)",
+        "         Generate rpms   : glideinwms-*-v3.10.9-0.3.rc3.2.*.rpm (should be between RC3 and RC4)",
+        "release.py --release-version=3_10_9 --rc=3 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=2",
         "",
-        "Example: Final Release v3.2.11",
-        "         Generate tarball: glideinWMS_v3_2_11*.tgz",
-        "         Generate rpms   : glideinwms-*-v3.2.11-3.*.rpm",
-        "release.py --release-version=3_2_11 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=3",
+        "Example: Final Release v3.10.9",
+        "         Generate tarball: glideinwms_v3_10_9*.tgz",
+        "         Generate rpms   : glideinwms-*-v3.10.9-3.*.rpm",
+        "release.py --release-version=3_10_9 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=3",
         "",
     ]
     return "\n".join(help_str)
@@ -122,7 +122,11 @@ def parse_opts(argv):
         metavar="<Python version>",
         help="Python version (default: python36)",
     )
+    parser.add_argument(
+        "--timeout", default=180, action="store", help="Set the timeout in seconds for shell commands. Defaults to 180"
+    )
     parser.add_argument("--verbose", action="store_true", help="Set to see more details of the release building")
+    parser.add_argument("--debug", action="store_true", help="Set to see debug level details of the release building")
     parser.add_argument("-v", "--version", action="version", version=manager_version())
 
     options = parser.parse_args()
@@ -140,7 +144,6 @@ def main(argv):
     python_version = options.python_version
     skip_rpm = options.skip_rpm
     use_mock = options.use_mock
-    is_verbose = options.verbose
 
     print("___________________________________________________________________")
     print("Creating following GlideinWMS release")
@@ -150,14 +153,16 @@ def main(argv):
     )
     print("___________________________________________________________________")
     print()
-    rel = ReleaseManagerLib.Release(ver, src_dir, rel_dir, rc, rpm_rel, skip_rpm)
+    rel = ReleaseManagerLib.Release(
+        ver, src_dir, rel_dir, rc, rpm_rel, skip_rpm, options.timeout, options.verbose, options.debug
+    )
 
     rel.addTask(ReleaseManagerLib.TaskClean(rel))
     rel.addTask(ReleaseManagerLib.TaskSetupReleaseDir(rel))
     rel.addTask(ReleaseManagerLib.TaskVersionFile(rel))
     rel.addTask(ReleaseManagerLib.TaskTar(rel))
     rel.addTask(ReleaseManagerLib.TaskDocumentation(rel))
-    rel.addTask(ReleaseManagerLib.TaskRPM(rel, python_version, use_mock, is_verbose))
+    rel.addTask(ReleaseManagerLib.TaskRPM(rel, python_version, use_mock, options.verbose))
 
     rel.executeTasks()
     rel.printReport()

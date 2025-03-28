@@ -43,9 +43,9 @@ GlideinWMS currently supports the usage of generators for secutiry credentials a
 
 Note that credential and parameter generators are specified in the same way as their static counterparts, but there are a few key differences:
 
-- Credential `absfname` and parameter `value` attributes are used to specify the generator plugin to be used. GlideinWMS will look for a generator class, or a plugin module name within its `PYTHON_PATH` to load and execute. Typically, generators are stored in `/etc/gwms-frontend/plugin.d` which is included in the `PYTHON_PATH` by default. Alternatively, you can specify the full path to the plugin file in the `absfname` or `value` attributes.
-- The `context` attribute is used to pass a dictionary of parameters to the generator plugin. The content of this dictionary will depend on the specific generator being used. The `type` key is used to specify the type of credential or parameter being generated.
-- The `type` attribute is set to `generator` to indicate that the credential or parameter is generated at runtime.
+-   Credential `absfname` and parameter `value` attributes are used to specify the generator plugin to be used. GlideinWMS will look for a generator class, or a plugin module name within its `PYTHON_PATH` to load and execute. Typically, generators are stored in `/etc/gwms-frontend/plugin.d` which is included in the `PYTHON_PATH` by default. Alternatively, you can specify the full path to the plugin file in the `absfname` or `value` attributes.
+-   The `context` attribute is used to pass a dictionary of parameters to the generator plugin. The content of this dictionary will depend on the specific generator being used. The `type` key is used to specify the type of credential or parameter being generated.
+-   The `type` attribute is set to `generator` to indicate that the credential or parameter is generated at runtime.
 
 ### Custom Generators
 
@@ -72,11 +72,11 @@ export_generator(RandomGenerator)
 
 Key points to note:
 
-- The custom generator class should inherit from `glideinwms.lib.generators.Generator`. This is an abstract base class that requires the implementation of a `generate` method, which should return the generated value.
-- `self.context` is a dictionary that contains the context passed from the configuration file. This attribute is loaded at the base class constructor.
-- `kwargs` is used to retrieve runtime parameters provided by the Frontend. The arguments currently supported are `elementDescript`, `glidein_el`, `group_name`, and `logger`.
-- The `export_generator` function is used to register the custom generator with the GlideinWMS Generators framework. You can define as many classes as you need in a single plugin file, but only one of them should be exported.
-- The module name is determined by the filename of the plugin. For example, if the plugin is saved as `RandomGenerator.py`, the module name will be `RandomGenerator`. The exported class name does not affect the module name. To use this module in you configuration file, you could specify `RandomGenerator`, `RandomGenerator.py`, or `/path/to/generator/RandomGenerator.py` in the `absfname` or `value` attributes.
+-   The custom generator class should inherit from `glideinwms.lib.generators.Generator`. This is an abstract base class that requires the implementation of a `generate` method, which should return the generated value.
+-   `self.context` is a dictionary that contains the context passed from the configuration file. This attribute is loaded at the base class constructor.
+-   `kwargs` is used to retrieve runtime parameters provided by the Frontend. The arguments currently supported are `elementDescript`, `glidein_el`, `group_name`, and `logger`.
+-   The `export_generator` function is used to register the custom generator with the GlideinWMS Generators framework. You can define as many classes as you need in a single plugin file, but only one of them should be exported.
+-   The module name is determined by the filename of the plugin. For example, if the plugin is saved as `RandomGenerator.py`, the module name will be `RandomGenerator`. The exported class name does not affect the module name. To use this module in you configuration file, you could specify `RandomGenerator`, `RandomGenerator.py`, or `/path/to/generator/RandomGenerator.py` in the `absfname` or `value` attributes.
 
 ### Legacy Generators
 
@@ -95,5 +95,5 @@ The new GlideinWMS Generators framework supports legacy generators that use the 
 
 Key points to note:
 
-- The `callout` key in the `context` dictionary specifies the path to the legacy callout script. As in `absfname` and `value` attributes, you can specify the full path to the script if it is not in `PYTHON_PATH`.
-- If your legacy generator requires additional parameters, you can include them by adding a `kwargs` key to the `context` dictionary.
+-   The `callout` key in the `context` dictionary specifies the path to the legacy callout script. As in `absfname` and `value` attributes, you can specify the full path to the script if it is not in `PYTHON_PATH`.
+-   If your legacy generator requires additional parameters, you can include them by adding a `kwargs` key to the `context` dictionary.

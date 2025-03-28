@@ -60,7 +60,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
         """
         condorLogParser.logSummaryTimings.loadFromLog(self)
         if "Completed" not in self.data:
-            return  # nothing else to fo
+            return  # nothing else to do
         org_completed = self.data["Completed"]
         new_completed = []
         new_waitout = []
@@ -344,7 +344,7 @@ def extractLogData(fname):
         - condor_duration - integer, how long did Condor run
         - stats - dictionary of stats (as in KNOWN_SLOT_STATS), each having
         - jobsnr - integer, number of jobs started
-        - secs   - integer, total number of secods used
+        - secs   - integer, total number of seconds used
     For example {'glidein_duration':20305,'validation_duration':6,'condor_started' : 1, 'condor_duration': 20298, 'stats': {'badSignal': {'secs': 0, 'jobsnr': 0}, 'goodZ': {'secs' : 19481, 'jobsnr': 1}, 'Total': {'secs': 19481, 'jobsnr': 1}, 'goodNZ': {'secs': 0, 'jobsnr': 0}, 'badOther': {'secs': 0, 'jobsnr': 0}}}
     """
 

@@ -190,7 +190,7 @@ concat_file() {
 # --------------------------------------------------------- #
 # locked_concat_file ()                                     #
 # concatenate the augmented file to the list                #
-# making sure that works whith concurrent invocations       #
+# making sure that works with concurrent invocations       #
 # --------------------------------------------------------- #
 locked_concat_file() {
     fpath="otr_outlist.list"

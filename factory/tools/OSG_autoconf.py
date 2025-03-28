@@ -25,6 +25,7 @@ from glideinwms.lib.config_util import (
     get_submit_attr_str,
     get_yaml_file_info,
     GLIDEIN_SUPPORTED_VO_MAP,
+    GLIDEIN_SUPPORTED_VO_MAP_GPU,
     ProgramError,
     update,
     write_to_xml_file,
@@ -56,19 +57,22 @@ def parse_opts():
     return args
 
 
-def get_vos(allowed_vos):
+def get_vos(allowed_vos, GPU_entry=False):
     """This function converts the list of VO from the collector to the frontend ones
 
     Args:
-        allowed_vos (list): The list ov vos in the OSG collector
+        allowed_vos (list): The list of vos in the OSG collector
 
     Returns:
         set: The set of frontend VOs to add to the configuration GLIDEIN_SupportedVOs
     """
     vos = set()
     for vorg in allowed_vos:
-        if vorg in GLIDEIN_SUPPORTED_VO_MAP:
-            vos.add(GLIDEIN_SUPPORTED_VO_MAP[vorg])
+        # Fixup vo found in the collector since there is no consistency with case and presence of quotes
+        fix_vorg = vorg.replace('"', "").lower()
+        vomap = GLIDEIN_SUPPORTED_VO_MAP_GPU if GPU_entry else GLIDEIN_SUPPORTED_VO_MAP
+        if fix_vorg in vomap:
+            vos.add(vomap[fix_vorg])
 
     return vos
 
@@ -121,7 +125,7 @@ def get_pilot(resource, site, pilot_entry):
     Returns:
         dict: A dictionary to be used to generate the xml for this pilot entry
     """
-    vos = get_vos(pilot_entry.get("AllowedVOs", set()))
+    vos = get_vos(pilot_entry.get("AllowedVOs", set()), "GPUs" in pilot_entry)
     cpus = pilot_entry.get("CPUs", None)
     walltime = pilot_entry.get("MaxWallTime", None)
     memory = pilot_entry.get("Memory", None)
@@ -424,7 +428,7 @@ def merge_yaml(config, white_list, args):
                 continue
             if ce_hostname not in osg_info[site]:
                 print(
-                    "Working on whitelisted site %s: cant find ce %s in the generated %s or the missing %s files "
+                    "Working on whitelisted site %s: can't find ce %s in the generated %s or the missing %s files "
                     % (site, ce_hostname, config["OSG_YAML"], config["MISSING_YAML"])
                 )
                 if args.skip_broken:
@@ -436,7 +440,7 @@ def merge_yaml(config, white_list, args):
             for qelem, q_information in ce_information.items():
                 if qelem not in osg_info[site][ce_hostname]:
                     print(
-                        "Working on whitelisted site %s and CE %s: cant find queue %s in the generated %s or the missing %s files "
+                        "Working on whitelisted site %s and CE %s: can't find queue %s in the generated %s or the missing %s files "
                         % (site, ce_hostname, qelem, config["OSG_YAML"], config["MISSING_YAML"])
                     )
                     if qelem == BEST_FIT_TAG:
@@ -593,7 +597,7 @@ def create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_col
                 new_missing[site] = osg_info.get(site) or missing_info[site]
             else:
                 print(
-                    "ERROR! Site %s is in the whitelist file, and I cant neither find it in the OSG YAML saved data, nor the MISSING YAML"
+                    "ERROR! Site %s is in the whitelist file, and I can't neither find it in the OSG YAML saved data, nor the MISSING YAML"
                     % site
                 )
             continue
@@ -610,7 +614,7 @@ def create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_col
                     new_missing[site][celem] = osg_info.get(site, {}).get(celem, False) or missing_info[site][celem]
                 else:
                     print(
-                        "ERROR! CE %s of site %s is in the whitelist file, and I cant neither find it in the OSG YAML saved data, nor the MISSING YAML"
+                        "ERROR! CE %s of site %s is in the whitelist file, and I can't neither find it in the OSG YAML saved data, nor the MISSING YAML"
                         % (celem, site)
                     )
 
@@ -651,7 +655,7 @@ def main(args):
     # Merges different yaml files: the defaults, the generated one, and the factory overrides
     for white_list in sorted(config["OSG_WHITELISTS"]):
         result = merge_yaml(config, white_list, args)
-        # Convert the resoruce dictionary obtained this way into a string (xml)
+        # Convert the resource dictionary obtained this way into a string (xml)
         entries_configuration = get_entries_configuration(result)
         # Write the factory configuration file on the disk
         xmloutdir = os.path.dirname(white_list) if xmloutdir is None else xmloutdir

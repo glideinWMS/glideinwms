@@ -23,6 +23,47 @@ Changes since the last release
 
 ### Known Issues
 
+## v3.10.11 \[2025-03-24\]
+
+stale_age allows to keep Glideins in queues for longer than one week.
+Apptainer test now may be successful even if the default image is not available.
+Check the changed defaults, including SINGULARITY_IMAGE_REQUIRED, APPTAINER_TEST_IMAGE and the redirection to https for monitoring pages.
+
+### New features / functionalities
+
+-   Added a test Apptainer image to use when the configured one is not available (PR #482)
+-   Added a new configuration knob, stale_age, for Factory entries to control the age of the Glideins to be considered stale for certain statuses (PR #494)
+-   Update get_tarballs to use new directory called beta (PR #495)
+-   Support GPUs in the mapping of OSG_autoconf VOs (PR #496)
+-   Made the Frontend library more friendly to other clients, e.g. Decision Engine (PR #504)
+
+### Changed defaults / behaviours
+
+-   The new variable SINGULARITY_IMAGE_REQUIRED defaults to false and allows to use Singularity/Apptainer also when the configured image is not available.
+    The image must be provided by the job or a future custom script in order not to fail. (PR #482)
+-   APPTAINER_TEST_IMAGE can be set to an always available Singularity/Apptainer image to use for testing.
+    Defaults to oras://ghcr.io/apptainer/alpine:latest (PR #482)
+-   Monitoring pages are now redirecting to https if available, i.e. mod_ssl is installed and mod_ssl.conf is present. This behavior was present in the past but had been lost and now it has been reinstated. (PR #492, PR #502)
+-   The default Frontend tokens key is now variable, $HOME/passwords.d/UPPERCASE_USERNAME. There is no actual change since this is /var/lib/gwms-frontend/passwords.d/FRONTEND for normal RPM installations. (PR #504)
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Protect processing of custom scripts in glidein_startup.sh against stdin interference (PR #498, Issue #500)
+-   Some config files used in the RPM package, including the httpd ones, were obsolete and not the version in the source tree. (PR #492, PR #502)
+-   Host IP is now searched in blacklist also when the host command is missing (PR #499, Issue #493)
+-   Added missing HTCondor requirements in spec file (PR #502)
+-   Unset CONDOR_INHERIT before condor startup to avoid any conflict in the condor configurations (PR #503, Issue #274)
+
+### Testing / Development
+
+-   Added new debug and timeout options to the release building scripts (PR #506)
+
+### Known Issues
+
 ## v3.11.0 \[2025-02-18\]
 
 Credentials refactoring
@@ -176,7 +217,7 @@ Added black hole detection and ability to set jobs minimum memory for resource p
 
 ### Known Issues
 
--   We needed to revert PR #401, "Hardening of HTCondor configuraiton. Restricted authentication to exclude unauthenticated beside anonymous (PR #401)" because it broke authentication for normal functionalities
+-   We needed to revert PR #401, "Hardening of HTCondor configuration. Restricted authentication to exclude unauthenticated beside anonymous (PR #401)" because it broke authentication for normal functionalities
 
 ## v3.10.6 \[2024-01-25\]
 

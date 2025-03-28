@@ -298,7 +298,7 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
     """
     data = default
     try:
-        with open(fname, "rb") as fo:
+        with open(fname, "rb") as fout:
             if expiration >= 0:
                 # check date of file and time
                 fname_time = os.path.getmtime(fname)
@@ -317,7 +317,7 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
                     except KeyError:
                         pass
                     last_time[fname] = fname_time
-            data = pickle.load(fo)
+            data = pickle.load(fout)
     except ExpiredFileException:
         if remove_expired:
             # There may be a race removing a file updated in the mean time but
@@ -423,7 +423,7 @@ def file_get_tmp(fname=None, tmp_type=None):
 def safe_boolcomp(value, expected):
     """Safely do a boolean comparison.
 
-    This works even if the value you wantto compare is a string.
+    This works even if the value you want to compare is a string.
 
     Args:
         value: what you want to safely compare.
@@ -492,7 +492,7 @@ def hash_nc(data, len=None):
 
 
 def chmod(*args, **kwargs):
-    """Wrapper for os.chmod that supresses PermissionError exceptions.
+    """Wrapper for os.chmod that suppresses PermissionError exceptions.
 
     Args:
         *args: Positional arguments to pass to os.chmod.

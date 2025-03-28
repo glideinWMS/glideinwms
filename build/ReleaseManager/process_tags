@@ -10,7 +10,7 @@ Parameters:
     ACTION: IN_FORMAT2OUT_FORMAT (Default: yaml2txt), 2 is the separator
             Supported IN_FORMAT: yaml, txt
             Supported OUT_FORMAT: yaml, txt, print, dict, history
-    INFILE: inout file name (Default: tags.IN_FORMAT)
+    INFILE: input file name (Default: tags.IN_FORMAT)
     OUTFILE: output file name (Default: tags.OUT_FORMAT)
 
 """
@@ -73,7 +73,8 @@ def sort_version(inlist, reverse=True):
     The input array is changed in place
 
     Args:
-        inlist: versions list
+        inlist (list): versions list
+        reverse (bool): sort the list in reverse order
 
     Returns:
         list: the sorted array
@@ -308,7 +309,10 @@ def release2html(v, tags):
     """
     tar_string = ""
     if tags["Tarball"]:
-        tar_string = ',<a href="http://glideinwms.fnal.gov/glideinWMS_%s.tgz">Tarball</a>' % tags["Name"]
+        # This link is unreliable for old tarballs, pre 3.10.x and named glideinWMS_%s.tgz; they have been moved
+        # from http://glideinwms.fnal.gov/ to http://glideinwms.fnal.gov/old/
+        # New releases do not include tarballs for now and they would be named all lowercase, glideinwms_%s.tgz
+        tar_string = ',<a href="http://glideinwms.fnal.gov/glideinwms_%s.tgz">Tarball</a>' % tags["Name"]
     tmp = (
         """<li>
   <a id="{Name}"><b>{Name}</b></a> released on {Date} (<a href="http://glideinwms.fnal.gov/doc.{Name}/index.html">Manual</a>,

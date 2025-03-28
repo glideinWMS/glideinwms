@@ -124,17 +124,17 @@ class MultiExeError(condorExe.ExeError):
 #
 ############################################################
 
-# Advertize counter for glideclient
-advertizeGCCounter = {}
+# Advertise counter for glideclient
+advertiseGCCounter = {}
 
-# Advertize counter for glideclientglobal
-advertizeGCGounter = {}
+# Advertise counter for glideclientglobal
+advertiseGCGCounter = {}
 
-# Advertize counter for glideresource
-advertizeGRCounter = {}
+# Advertise counter for glideresource
+advertiseGRCounter = {}
 
-# Advertize counter for glidefrontendmonitor
-advertizeGFMCounter = {}
+# Advertise counter for glidefrontendmonitor
+advertiseGFMCounter = {}
 
 
 ############################################################
@@ -292,7 +292,7 @@ class LegacyCredential:
     def __init__(self, proxy_id, proxy_fname, elementDescript):
         self.req_idle = 0
         self.req_max_run = 0
-        self.advertize = False
+        self.advertise = False
 
         # TODO: refcredential - all these attributes names should not start w/ proxy and the dict names should
         #       be CredentialSomething, not ProxySomething
@@ -381,7 +381,7 @@ class LegacyCredential:
                 condorExe.iexe_cmd(self.creation_script)
             except Exception:
                 logSupport.log.exception("Creating credential using %s failed" % (self.creation_script))
-                self.advertize = False
+                self.advertise = False
 
             # Recreating the credential can result in ID change
             self._id = self.file_id(self.getIdFilename())
@@ -411,7 +411,7 @@ class LegacyCredential:
                 cred_data = data_fd.read()
         except Exception:
             # This credential should not be advertised
-            self.advertize = False
+            self.advertise = False
             logSupport.log.exception("Failed to read credential %s: " % cred_file)
         return cred_data
 
@@ -497,7 +497,7 @@ class LegacyCredential:
         return output
 
 
-# PM: Credential.getId() should be much faster way of geting the Id
+# PM: Credential.getId() should be much faster way of getting the Id
 #     Maybe CredentialCache is now obsolete? Can we get rid of it?
 
 
@@ -568,7 +568,7 @@ class FrontendDescript:
         )
 
 
-class FactoryKeys4Advertize:
+class FactoryKeys4Advertise:
     def __init__(self, classad_identity, factory_pub_key_id, factory_pub_key, glidein_symKey=None):
         """
 
@@ -619,8 +619,8 @@ class FactoryKeys4Advertize:
         return self.glidein_symKey.encrypt_hex(data)
 
 
-class Key4AdvertizeBuilder:
-    """Class for creating FactoryKeys4Advertize objects
+class Key4AdvertiseBuilder:
+    """Class for creating FactoryKeys4Advertise objects
     will reuse the symkey as much as possible
     """
 
@@ -644,7 +644,7 @@ class Key4AdvertizeBuilder:
 
         if glidein_symKey is not None:
             # when a key is explicitly given, cannot reuse a cached one
-            key_obj = FactoryKeys4Advertize(classad_identity, factory_pub_key_id, factory_pub_key, glidein_symKey)
+            key_obj = FactoryKeys4Advertise(classad_identity, factory_pub_key_id, factory_pub_key, glidein_symKey)
             # but I can use it for others
             if cache_id not in self.keys_cache:
                 now = time.time()
@@ -655,7 +655,7 @@ class Key4AdvertizeBuilder:
                 self.keys_cache[cache_id][2] = time.time()
                 return self.keys_cache[cache_id][0]
             else:
-                key_obj = FactoryKeys4Advertize(
+                key_obj = FactoryKeys4Advertise(
                     classad_identity, factory_pub_key_id, factory_pub_key, glidein_symKey=None
                 )
                 now = time.time()
@@ -692,7 +692,7 @@ class Key4AdvertizeBuilder:
 # INTERNAL, do not use directly
 
 
-class AdvertizeParams:
+class AdvertiseParams:
     def __init__(
         self,
         request_name,
@@ -728,7 +728,7 @@ class AdvertizeParams:
         self.security_name = security_name
 
     def __str__(self):
-        output = "\nAdvertizeParams\n"
+        output = "\nAdvertiseParams\n"
         output += "request_name = %s\n" % self.request_name
         output += "glidein_name = %s\n" % self.glidein_name
         output += "min_nr_glideins = %s\n" % self.min_nr_glideins
@@ -745,9 +745,9 @@ class AdvertizeParams:
         return output
 
 
-# Given a file, advertize
+# Given a file, advertise
 # Can throw a CondorExe/ExeError exception
-def advertizeWorkFromFile(factory_pool, fname, remove_file=True, is_multi=False):
+def advertiseWorkFromFile(factory_pool, fname, remove_file=True, is_multi=False):
     try:
         exe_condor_advertise(fname, "UPDATE_MASTER_AD", factory_pool, is_multi=is_multi)
     finally:
@@ -759,7 +759,7 @@ def advertizeWorkFromFile(factory_pool, fname, remove_file=True, is_multi=False)
 ########################################
 
 
-class MultiAdvertizeWork:
+class MultiAdvertiseWork:
     def __init__(self, descript_obj):  # must be of type FrontendDescript
         self.descript_obj = descript_obj
         self.factory_queue = {}  # will have a queue x factory, each element is list of tuples (params_obj, key_obj)
@@ -787,7 +787,7 @@ class MultiAdvertizeWork:
         glidein_params={},
         glidein_monitors={},
         glidein_monitors_per_cred={},
-        key_obj=None,  # must be of type FactoryKeys4Advertize
+        key_obj=None,  # must be of type FactoryKeys4Advertise
         glidein_params_to_encrypt=None,  # params_to_encrypt needs key_obj
         security_name=None,  # needs key_obj
         remove_excess_str=None,
@@ -796,7 +796,7 @@ class MultiAdvertizeWork:
         auth_method="Any",
         ha_mode="master",
     ):
-        params_obj = AdvertizeParams(
+        params_obj = AdvertiseParams(
             request_name,
             glidein_name,
             min_nr_glideins,
@@ -845,50 +845,73 @@ class MultiAdvertizeWork:
             nr_credentials = 0
 
         for cred_el in self.request_credentials:
-            cred_el.advertize = True
+            cred_el.advertise = True
             cred_el.credential.renew()
             cred_el.credential.save_to_file(overwrite=False, continue_if_no_path=True)
 
+        # TODO: Bruno to check. This commented section (re-added by the merge) can be removed, correct?
+        # for i in range(nr_credentials):
+        #     cred_el = self.x509_proxies_data[i]
+        #     cred_el.advertise = True
+        #     cred_el.renew()
+        #     cred_el.createIfNotExist()
+        #
+        #     cred_el.loaded_data = []
+        #     for cred_file in (cred_el.filename, cred_el.key_fname, cred_el.pilot_fname):
+        #         if cred_file:
+        #             try:
+        #                 cred_data = cred_el.generated_data
+        #             except AttributeError:
+        #                 # TODO: credential parsing form file could fail (wrong permission, not found, ...)
+        #                 #  Add message? Handle here or declare raising
+        #                 cred_data = cred_el.getString(cred_file)
+        #             if cred_data:
+        #                 cred_el.loaded_data.append((cred_file, cred_data))
+        #             else:
+        #                 # We encountered error with this credential
+        #                 # Move onto next credential
+        #                 break
+
         return nr_credentials
 
-    def initialize_advertize_batch(self, adname_prefix="gfi_ad_batch"):
+    def initialize_advertise_batch(self, adname_prefix="gfi_ad_batch"):
         """
-        Initialize the variables that are used for batch avertizement
-        Returns the adname to pass to do*advertize methods
+        Initialize the variables that are used for batch advertisement
+        Returns the adname to pass to do*advertise methods
         (will have to set reset_unique_id=False there, too)
         """
         self.unique_id = 1
         return classadSupport.generate_classad_filename(prefix=adname_prefix)
 
-    def do_advertize_batch(self, filename_dict, remove_files=True):
+    def do_advertise_batch(self, filename_dict, remove_files=True):
         """
-        Advertize the classad files in the dictionary provided
+        Advertise the classad files in the dictionary provided
          The keys are the factory names, while the elements are lists of files
         Safe to run in parallel, guaranteed to not modify the self object state.
         """
         for factory_pool in filename_dict:
-            self.do_advertize_batch_one(factory_pool, filename_dict[factory_pool], remove_files)
+            self.do_advertise_batch_one(factory_pool, filename_dict[factory_pool], remove_files)
 
-    def do_advertize_batch_one(self, factory_pool, filename_arr, remove_files=True):
+    def do_advertise_batch_one(self, factory_pool, filename_arr, remove_files=True):
         """
-        Advertize to a factory the clasad files provided
+        Advertise to a Factory the ClassAd files provided
         Safe to run in parallel, guaranteed to not modify the self object state.
         """
-        # Advertize all the files
+        # Advertise all the files
         for filename in filename_arr:
             try:
-                advertizeWorkFromFile(
+                advertiseWorkFromFile(
                     factory_pool, filename, remove_file=remove_files, is_multi=frontendConfig.advertise_use_multi
                 )
             except condorExe.ExeError:
                 logSupport.log.exception("Advertising failed for factory pool %s: " % factory_pool)
 
-    def get_advertize_factory_list(self):
+    def get_advertise_factory_list(self):
         return tuple(set(self.global_pool).union(set(self.factory_queue.keys())))
 
-    def do_global_advertize(self, adname=None, create_files_only=False, reset_unique_id=True):
+    def do_global_advertise(self, adname=None, create_files_only=False, reset_unique_id=True):
         """
-        Advertize globals with credentials
+        Advertise globals with credentials
         Returns a dictionary of files that still need to be advertised.
           The key is the factory pool, while the element is a list of file names
         Expects that the credentials have been already loaded.
@@ -898,14 +921,14 @@ class MultiAdvertizeWork:
             self.unique_id = 1
         for factory_pool in self.global_pool:
             self.unique_id += 1  # make sure ads for different factories don't end in the same file
-            unpublished_files[factory_pool] = self.do_global_advertize_one(
+            unpublished_files[factory_pool] = self.do_global_advertise_one(
                 factory_pool, adname, create_files_only, False
             )
         return unpublished_files
 
-    def do_global_advertize_one(self, factory_pool, adname=None, create_files_only=False, reset_unique_id=True):
+    def do_global_advertise_one(self, factory_pool, adname=None, create_files_only=False, reset_unique_id=True):
         """
-        Advertize globals with credentials to one factory
+        Advertise globals with credentials to one factory
         Returns the list of files that still need to be advertised.
         Expects that the credentials have been already loaded.
         """
@@ -921,28 +944,28 @@ class MultiAdvertizeWork:
         if reset_unique_id:
             self.unique_id = 1
         self.adname = tmpname
-        filename_arr = self.createGlobalAdvertizeWorkFile(factory_pool)
+        filename_arr = self.createGlobalAdvertiseWorkFile(factory_pool)
         if create_files_only:
             return filename_arr
 
-        # Else, advertize all the files (if multi, should only be one)
+        # Else, advertise all the files (if multi, should only be one)
         for filename in filename_arr:
             try:
-                advertizeWorkFromFile(
+                advertiseWorkFromFile(
                     factory_pool, filename, remove_file=True, is_multi=frontendConfig.advertise_use_multi
                 )
             except condorExe.ExeError:
                 logSupport.log.exception("Advertising globals failed for factory pool %s: " % factory_pool)
         return []  # no files left to be advertised
 
-    def createGlobalAdvertizeWorkFile(self, factory_pool):
+    def createGlobalAdvertiseWorkFile(self, factory_pool):
         """
-        Create the advertize file for globals with credentials
+        Create the advertise file for globals with credentials
         Expects the object variables
          adname and x509_proxies_data
         to be set.
         """
-        global advertizeGCGounter
+        global advertiseGCGCounter
 
         tmpname = self.adname
         glidein_params_to_encrypt = {}
@@ -967,7 +990,14 @@ class MultiAdvertizeWork:
             fd.write(f'GroupName = "{self.descript_obj.group_name}"\n')
             fd.write(f'ClientName = "{self.descript_obj.my_name}"\n')
             for cred_el in self.request_credentials:
-                if not cred_el.advertize:
+                if not cred_el.advertise:
+
+                    # TODO: Bruno to check. Reinserted by merge, ok to remove the commented section?
+                    #       Indentation was -2 steps
+                    # for i in range(nr_credentials):
+                    #     cred_el = self.x509_proxies_data[i]
+                    #     if not cred_el.advertise:
+                    #         # end part to comment
                     continue  # we already determined it cannot be used
                 glidein_params_to_encrypt[cred_el.credential.id] = cred_el.credential.string
                 if hasattr(cred_el, "security_class"):
@@ -987,20 +1017,20 @@ class MultiAdvertizeWork:
                     fd.write(f'{frontendConfig.encrypted_param_prefix}{attr} = "{escaped_el}"\n')
 
             # Update Sequence number information
-            if classad_name in advertizeGCGounter:
-                advertizeGCGounter[classad_name] += 1
+            if classad_name in advertiseGCGCounter:
+                advertiseGCGCounter[classad_name] += 1
             else:
-                advertizeGCGounter[classad_name] = 0
-            fd.write(f"UpdateSequenceNumber = {advertizeGCGounter[classad_name]}\n")
+                advertiseGCGCounter[classad_name] = 0
+            fd.write(f"UpdateSequenceNumber = {advertiseGCGCounter[classad_name]}\n")
 
             # add a final empty line... useful when appending
             fd.write("\n")
 
         return [tmpname]
 
-    def do_advertize(self, file_id_cache=None, adname=None, create_files_only=False, reset_unique_id=True):
+    def do_advertise(self, file_id_cache=None, adname=None, create_files_only=False, reset_unique_id=True):
         """
-        Do the advertizing of the requests
+        Do the advertising of the requests
         Returns a dictionary of files that still need to be advertised.
           The key is the factory pool, while the element is a list of file names
         Expects that the credentials have already been loaded.
@@ -1013,16 +1043,16 @@ class MultiAdvertizeWork:
             self.unique_id = 1
         for factory_pool in list(self.factory_queue.keys()):
             self.unique_id += 1  # make sure ads for different factories don't end in the same file
-            unpublished_files[factory_pool] = self.do_advertize_one(
+            unpublished_files[factory_pool] = self.do_advertise_one(
                 factory_pool, file_id_cache, adname, create_files_only, False
             )
         return unpublished_files
 
-    def do_advertize_one(
+    def do_advertise_one(
         self, factory_pool, file_id_cache=None, adname=None, create_files_only=False, reset_unique_id=True
     ):
         """
-        Do the advertizing of requests for one factory
+        Do the advertising of requests for one factory
         Returns the list of files that still need to be advertised.
         Expects that the credentials have already been loaded.
         """
@@ -1049,7 +1079,7 @@ class MultiAdvertizeWork:
         for el in self.factory_queue[factory_pool]:
             params_obj, key_obj = el
             try:
-                filename_arr_el = self.createAdvertizeWorkFile(
+                filename_arr_el = self.createAdvertiseWorkFile(
                     factory_pool, params_obj, key_obj, file_id_cache=file_id_cache
                 )
                 for f in filename_arr_el:
@@ -1076,16 +1106,16 @@ class MultiAdvertizeWork:
         if create_files_only:
             return filename_arr
 
-        # Else, advertize all the files (if multi, should only be one)
+        # Else, advertise all the files (if multi, should only be one)
         for filename in filename_arr:
             try:
-                advertizeWorkFromFile(
+                advertiseWorkFromFile(
                     factory_pool, filename, remove_file=True, is_multi=frontendConfig.advertise_use_multi
                 )
             except condorExe.ExeError:
                 logSupport.log.exception("Advertising request failed for factory pool %s: " % factory_pool)
 
-        return []  # No files left to be advertized
+        return []  # No files left to be advertised
 
     def vm_attribute_from_file(self, filename, prefix):
         """
@@ -1121,17 +1151,29 @@ class MultiAdvertizeWork:
         logSupport.log.debug(f"Found {prefix} = {values[0]} from file {filename}")
         return values[0]
 
-    def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None, file_id_cache=None):
+    def createAdvertiseWorkFile(self, factory_pool, params_obj, key_obj=None, file_id_cache=None):
         """
-        Create the advertize file
+        Create the advertise file
         Expects the object variables
           adname, unique_id and x509_proxies_data
         to be set.
         """
+        # TODO: check for Bruno. OK to remove the commented part re-introduced in the merge?
+        # global frontendConfig
+        # global advertiseGCCounter
+        #
+        # descript_obj = self.descript_obj
+        #
+        # logSupport.log.debug("In create Advertise work")
+        #
+        # factory_trust, factory_auth = self.factory_constraint[params_obj.request_name]
+        #
+        # total_nr_credentials = len(self.x509_proxies_data)
+        # End part reintroduced >>>>>>> master
 
         cred_filename_arr = []
 
-        logSupport.log.debug("In create Advertize work")
+        logSupport.log.debug("In create Advertise work")
 
         # Make sure we have credentials to work with
         if len(self.request_credentials) == 0:
@@ -1172,9 +1214,109 @@ class MultiAdvertizeWork:
         self.descript_obj.credentials_plugin.assign_work(self.request_credentials, params_obj, auth_set)
 
         for request_cred in self.request_credentials:
-            if not request_cred.advertize:
+            if not request_cred.advertise:
+                # TODO: check for Bruno. Check if the reintroduced commented part can be removed =======
+                # req_idle = 0
+                # req_max_run = 0
+                #
+                # # credential_el (Credebtial())
+                # credential_el = credentials_with_requests[i]
+                # logSupport.log.debug(f"Checking Credential file {credential_el.filename} ...")
+                # if not credential_el.advertise:
+                #     # We already determined it cannot be used
+                #     # if hasattr(credential_el,'filename'):
+                #     #    filestr=credential_el.filename
+                #     # logSupport.log.warning("Credential file %s had some earlier problem in loading so not advertising, skipping..."%(filestr))
+                #     continue
+                #
+                # if credential_el.supports_auth_method("scitoken"):
+                #     try:
+                #         # try first for credential generator
+                #         token_expired = token_util.token_str_expired(credential_el.generated_data)
+                #     except AttributeError:
+                #         # then try file stored credential
+                #         token_expired = token_util.token_file_expired(credential_el.filename)
+                #     if token_expired:
+                #         logSupport.log.warning(
+                #             f"Credential file {credential_el.filename} has expired scitoken, skipping"
+                #         )
+                #         continue
+                #     glidein_params_to_encrypt["ScitokenId"] = file_id_cache.file_id(
+                #         credential_el, credential_el.filename
+                #     )
+                #
+                # if params_obj.request_name in self.factory_constraint:
+                #     if (factory_auth != "Any") and (not credential_el.supports_auth_method(factory_auth)):
+                #         logSupport.log.warning(
+                #             "Credential %s does not match auth method %s (for %s), skipping..."
+                #             % (credential_el.type, factory_auth, params_obj.request_name)
+                #         )
+                #         continue
+                #     if (credential_el.trust_domain != factory_trust) and (factory_trust != "Any"):
+                #         logSupport.log.warning(
+                #             "Credential %s does not match %s (for %s) domain, skipping..."
+                #             % (credential_el.trust_domain, factory_trust, params_obj.request_name)
+                #         )
+                #         continue
+                # # Convert the sec class to a string so the Factory can interpret the value correctly
+                # glidein_params_to_encrypt["SecurityClass"] = str(credential_el.security_class)
+                # classad_name = credential_el.file_id(credential_el.filename, ignoredn=True) + "_" + classad_name
+                # if "username_password" in credential_el.type:
+                #     glidein_params_to_encrypt["Username"] = file_id_cache.file_id(credential_el, credential_el.filename)
+                #     glidein_params_to_encrypt["Password"] = file_id_cache.file_id(
+                #         credential_el, credential_el.key_fname
+                #     )
+                # if "grid_proxy" in credential_el.type:
+                #     glidein_params_to_encrypt["SubmitProxy"] = file_id_cache.file_id(
+                #         credential_el, credential_el.filename
+                #     )
+                # if "cert_pair" in credential_el.type:
+                #     glidein_params_to_encrypt["PublicCert"] = file_id_cache.file_id(
+                #         credential_el, credential_el.filename
+                #     )
+                #     glidein_params_to_encrypt["PrivateCert"] = file_id_cache.file_id(
+                #         credential_el, credential_el.key_fname
+                #     )
+                # if "key_pair" in credential_el.type:
+                #     glidein_params_to_encrypt["PublicKey"] = file_id_cache.file_id(
+                #         credential_el, credential_el.filename
+                #     )
+                #     glidein_params_to_encrypt["PrivateKey"] = file_id_cache.file_id(
+                #         credential_el, credential_el.key_fname
+                #     )
+                # if "auth_file" in credential_el.type:
+                #     glidein_params_to_encrypt["AuthFile"] = file_id_cache.file_id(credential_el, credential_el.filename)
+                # if "vm_id" in credential_el.type:
+                #     if credential_el.vm_id_fname:
+                #         glidein_params_to_encrypt["VMId"] = self.vm_attribute_from_file(
+                #             credential_el.vm_id_fname, "VM_ID"
+                #         )
+                #     else:
+                #         glidein_params_to_encrypt["VMId"] = str(credential_el.vm_id)
+                # if "vm_type" in credential_el.type:
+                #     if credential_el.vm_type_fname:
+                #         glidein_params_to_encrypt["VMType"] = self.vm_attribute_from_file(
+                #             credential_el.vm_type_fname, "VM_TYPE"
+                #         )
+                #     else:
+                #         glidein_params_to_encrypt["VMType"] = str(credential_el.vm_type)
+                #     # removing this, was here by mistake? glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
+                #
+                # # Process additional information of the credential
+                # if credential_el.pilot_fname:
+                #     glidein_params_to_encrypt["GlideinProxy"] = file_id_cache.file_id(
+                #         credential_el, credential_el.pilot_fname
+                #     )
+                #
+                # if credential_el.remote_username:  # MM: or "username" in credential_el.type
+                #     glidein_params_to_encrypt["RemoteUsername"] = str(credential_el.remote_username)
+                # if credential_el.project_id:
+                #     glidein_params_to_encrypt["ProjectId"] = str(credential_el.project_id)
+                #
+                # (req_idle, req_max_run) = credential_el.get_usage_details()
+                # end commented part to remove >>>>>>> master
                 logSupport.log.debug(
-                    f"Skipping credential with 'advertize' set to False. ({request_cred.credential.id})"
+                    f"Skipping credential with 'advertise' set to False. ({request_cred.credential.id})"
                 )
                 continue  # We already determined it cannot be used
             if (request_cred.credential.trust_domain != factory_trust) and (factory_trust != "Any"):
@@ -1230,10 +1372,10 @@ class MultiAdvertizeWork:
             )
 
             # Update Sequence number information
-            if classad_name in advertizeGCCounter:
-                advertizeGCCounter[classad_name] += 1
+            if classad_name in advertiseGCCounter:
+                advertiseGCCounter[classad_name] += 1
             else:
-                advertizeGCCounter[classad_name] = 0
+                advertiseGCCounter[classad_name] = 0
 
             fname = f"{self.adname}"
             if not frontendConfig.advertise_use_multi:
@@ -1282,7 +1424,7 @@ class MultiAdvertizeWork:
                             )
                         writeTypedClassadAttrToFile(fd, f"{prefix}{attr_name}", attr_value)
 
-                    fd.write(f"UpdateSequenceNumber = {advertizeGCCounter[classad_name]}\n")
+                    fd.write(f"UpdateSequenceNumber = {advertiseGCCounter[classad_name]}\n")
 
                     # add a final empty line... useful when appending
                     fd.write("\n")
@@ -1291,12 +1433,12 @@ class MultiAdvertizeWork:
                 if os.path.exists(fname):
                     os.remove(fname)
                 raise
-                # TODO: Should we revert the changes done to advertizeGCCounter[classad_name]?
+                # TODO: Should we revert the changes done to advertiseGCCounter[classad_name]?
 
             cred_filename_arr.append(fname)
 
             logSupport.log.debug(
-                f"Advertizing credential {request_cred.credential.path} "  # type: ignore[attr-defined]
+                f"Advertising credential {request_cred.credential.path} "  # type: ignore[attr-defined]
                 f"with ({request_cred.req_idle} idle, {request_cred.req_max_run} max run) for request {params_obj.request_name}"
             )
 
@@ -1323,7 +1465,7 @@ def writeTypedClassadAttrToFile(fd, attr_name, attr_value):
 
 
 # Remove ClassAd from Collector
-def deadvertizeAllWork(factory_pool, my_name, ha_mode="master"):
+def deadvertiseAllWork(factory_pool, my_name, ha_mode="master"):
     """
     Removes all work requests for the client in the factory.
     """
@@ -1347,7 +1489,7 @@ def deadvertizeAllWork(factory_pool, my_name, ha_mode="master"):
         os.remove(tmpnam)
 
 
-def deadvertizeAllGlobals(factory_pool, my_name, ha_mode="master"):
+def deadvertiseAllGlobals(factory_pool, my_name, ha_mode="master"):
     """
     Removes all globals classads for the client in the factory.
     """
@@ -1392,7 +1534,7 @@ class ResourceClassad(classadSupport.Classad):
         @param type: Name of the resource in the glideclient classad
         """
 
-        global advertizeGRCounter
+        global advertiseGRCounter
 
         classadSupport.Classad.__init__(self, "glideresource", "UPDATE_AD_GENERIC", "INVALIDATE_ADS_GENERIC")
 
@@ -1402,11 +1544,11 @@ class ResourceClassad(classadSupport.Classad):
         self.adParams["Name"] = f"{factory_ref}@{frontend_ref}"
         self.adParams["GLIDEIN_In_Downtime"] = "False"
 
-        if self.adParams["Name"] in advertizeGRCounter:
-            advertizeGRCounter[self.adParams["Name"]] += 1
+        if self.adParams["Name"] in advertiseGRCounter:
+            advertiseGRCounter[self.adParams["Name"]] += 1
         else:
-            advertizeGRCounter[self.adParams["Name"]] = 0
-        self.adParams["UpdateSequenceNumber"] = advertizeGRCounter[self.adParams["Name"]]
+            advertiseGRCounter[self.adParams["Name"]] = 0
+        self.adParams["UpdateSequenceNumber"] = advertiseGRCounter[self.adParams["Name"]]
 
     def setFrontendDetails(self, frontend_name, group_name, ha_mode):
         """
@@ -1610,7 +1752,7 @@ class FrontendMonitorClassad(classadSupport.Classad):
         @param type: Name of the resource in the glideclient classad
         """
 
-        global advertizeGFMCounter
+        global advertiseGFMCounter
 
         classadSupport.Classad.__init__(self, "glidefrontendmonitor", "UPDATE_AD_GENERIC", "INVALIDATE_ADS_GENERIC")
 
@@ -1618,11 +1760,11 @@ class FrontendMonitorClassad(classadSupport.Classad):
         self.adParams["Name"] = "%s" % (frontend_ref)
         # self.adParams['GlideFrontend_In_Downtime'] = 'False'
 
-        if self.adParams["Name"] in advertizeGFMCounter:
-            advertizeGFMCounter[self.adParams["Name"]] += 1
+        if self.adParams["Name"] in advertiseGFMCounter:
+            advertiseGFMCounter[self.adParams["Name"]] += 1
         else:
-            advertizeGFMCounter[self.adParams["Name"]] = 0
-        self.adParams["UpdateSequenceNumber"] = advertizeGFMCounter[self.adParams["Name"]]
+            advertiseGFMCounter[self.adParams["Name"]] = 0
+        self.adParams["UpdateSequenceNumber"] = advertiseGFMCounter[self.adParams["Name"]]
 
     def setFrontendDetails(self, frontend_name, groups, ha_mode):
         """

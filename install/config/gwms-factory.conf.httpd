@@ -46,6 +46,9 @@ RewriteCond %{HTTPS} off
 # https://stackoverflow.com/questions/46819390/
 # apache-loads-mod-ssl-but-ifmodule-mod-ssl-c-ignored-in-my-vhosts
 RewriteCond /usr/lib64/httpd/modules/mod_ssl.so -f
+# Some OSG operators remove or zero-out ssl.conf (containing SSLEngine on) when there is no certificate
+# Is there a way to check if SSLEngine on is defined somewhere else?
+RewriteCond /etc/httpd/conf.d/ssl.conf -s
 #=========================
 # Does the URL go to a monitor page?
 RewriteCond %{REQUEST_URI} ^(.+)/monitor(.+)$

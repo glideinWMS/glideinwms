@@ -25,7 +25,7 @@ try:
     # set the CONDOR_CONFIG appropriately before every command. Since import
     # happens before frontend can do anything, htcondor module is initialized
     # without the knowledge of CONDOR_CONFIG. A reload is needed.
-    # Furthemore _CONDOR_ variables are ignored by htcondor and need to be added
+    # Furthermore, _CONDOR_ variables are ignored by htcondor and need to be added
     # manually to htcondor.param.
     # This mandates that we do a htcondor_full_reload() every time to use the bindings.
     import classad  # pylint: disable=import-error
@@ -342,7 +342,7 @@ class AbstractQuery:
         raise NotImplementedError("Load not implemented")
 
     def fetchStored(self, constraint_func=None):
-        """Fetch tha stored query data.
+        """Fetch the stored query data.
 
         Abstract method to be implemented in child classes.
 
@@ -362,7 +362,7 @@ class StoredQuery(AbstractQuery):
     stored_data = {}
 
     def fetchStored(self, constraint_func=None):
-        """Fetch tha stored query data.
+        """Fetch the stored query data.
 
         Abstract method to be implemented in child classes.
 
@@ -1305,7 +1305,7 @@ def list2dict(list_data, attr_name):
        if them or the lowercase is a key in list_el
        BUT from the value ( dict_data[dict_name] ) only exact match is excluded, not the lowercase version
     3. keys (dict_name) may have different cardinality if one or some of the elements is not matching list_el keys
-    4. if 2 or more list_el have the same dict_name (same valies in attr_list attributes), the newest ones overwrite
+    4. if 2 or more list_el have the same dict_name (same values in attr_list attributes), the newest ones overwrite
        the older ones without any warning
        AND the original description mentions ... "and group the results" ... there is no grouping
     5. 'Undefined' attributes are not added to the dict_el (dict elements may have different keys)

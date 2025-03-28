@@ -198,7 +198,7 @@ def lookup_addrs(constr):
 TP_FAIL = False
 
 
-# thrad callback
+# thread callback
 def run_off(addr, off_type):
     global TP_FAIL
     try:
@@ -305,7 +305,7 @@ def main(argv):
     tk_list = started_threads.keys()  # since we are going to modify the dict, cannot use the iterator
     for tk in tk_list:
         started_threads[tk].join(0.01)  # this should return immediately
-        assert not started_threads[tk].isAlive(), "Found a lingering tread!"
+        assert not started_threads[tk].isAlive(), "Found a lingering thread!"
         del started_threads[tk]
 
     if TP_FAIL:

@@ -3,21 +3,15 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 # Description:
 #   This script will setup the knobs that
-#   are related to network tunning, like incoming connections/firewalls
+#   are related to network tuning, like incoming connections/firewalls
 #
 
 glidein_config="$1"
 tmp_fname="${glidein_config}.$$.tmp"
 
-function warn {
+warn() {
     echo "$(date)" "$@" 1>&2
 }
 
@@ -34,8 +28,7 @@ condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
 # check if it should use CCB
 ##########################################################
 out_ccb_str="False"
-use_ccb=$(gconfig_get USE_CCB "$glidein_config")
-if [[ "$use_ccb" == "True" || "$use_ccb" == "TRUE" || "$use_ccb" == "T" || "$use_ccb" == "Yes" || "$use_ccb" == "Y" || "$use_ccb" == "1" ]]; then
+if gconfig_get_bool USE_CCB "$glidein_config"; then
     # ok, we need to define CCB variable
 
     ccb_host=$(gconfig_get GLIDEIN_CCB "$glidein_config")
@@ -60,8 +53,7 @@ fi
 # check if it should use the shared_port_daemon
 ##########################################################
 out_sharedp_str="False"
-use_sharedp=$(gconfig_get USE_SHARED_PORT "$glidein_config")
-if [[ "$use_sharedp" == "True" || "$use_sharedp" == "TRUE" || "$use_sharedp" == "T" || "$use_sharedp" == "Yes" || "$use_sharedp" == "Y" || "$use_sharedp" == "1" ]]; then
+if gconfig_get_bool USE_SHARED_PORT "$glidein_config"; then
     # ok, we need to enable the shared port
     daemon_list=$(gconfig_get DAEMON_LIST "$glidein_config")
     if [ -z "$daemon_list" ]; then

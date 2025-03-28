@@ -284,7 +284,7 @@ class groupStats:
             # files updated recently, no need to redo it
             return
 
-        # write snaphot file
+        # write snapshot file
         xml_str = (
             '<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'
             + "<VOFrontendGroupStats>\n"
@@ -317,7 +317,7 @@ class groupStats:
         return
 
     ################################################
-    # PRIVATE - Used to select the right disctionary
+    # PRIVATE - Used to select the right dictionary
     def get_factory_dict(self, factory):
         if factory in self.states_names:
             factories = self.data["states"]
@@ -427,8 +427,8 @@ class factoryStats:
 
     def logRequest(self, client_name, requests, params):
         """
-        requests is a dictinary of requests
-        params is a dictinary of parameters
+        requests is a dictionary of requests
+        params is a dictionary of parameters
 
         At the moment, it looks only for
           'IdleGlideins'
@@ -454,8 +454,8 @@ class factoryStats:
 
     def logClientMonitor(self, client_name, client_monitor, client_internals):
         """
-        client_monitor is a dictinary of monitoring info
-        client_internals is a dictinary of internals
+        client_monitor is a dictionary of monitoring info
+        client_internals is a dictionary of internals
 
         At the moment, it looks only for
           'Idle'
@@ -578,7 +578,7 @@ class factoryStats:
             # files updated recently, no need to redo it
             return
 
-        # write snaphot file
+        # write snapshot file
         xml_str = (
             '<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'
             + "<glideFactoryEntryQStats>\n"
