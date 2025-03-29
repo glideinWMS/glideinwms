@@ -5,7 +5,7 @@
 
 """Print out the StartdLog for a glidein output file
 
- Usage: cat_StartdLog.py logname
+Usage: cat_StartdLog.py logname
 """
 
 
