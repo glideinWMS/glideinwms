@@ -20,11 +20,11 @@ from glideinwms.lib import classadSupport, condorExe, condorManager, condorMonit
 # Define global variables that keep track of the Daemon lifetime
 start_time = time.time()
 # Advertise counter for glidefactory classad
-advertizeGFCounter = {}
+advertiseGFCounter = {}
 # Advertise counter for glidefactoryclient classad
-advertizeGFCCounter = {}
+advertiseGFCCounter = {}
 # Advertise counter for glidefactoryglobal classad
-advertizeGlobalCounter = 0
+advertiseGlobalCounter = 0
 
 
 ############################################################
@@ -606,7 +606,7 @@ class EntryClassad(classadSupport.Classad):
         """
         # TODO: rename glidein_ to entry_ (entry_monitors)?
 
-        global factoryConfig, advertizeGFCounter
+        global factoryConfig, advertiseGFCounter
 
         classadSupport.Classad.__init__(self, factoryConfig.factory_id, "UPDATE_AD_GENERIC", "INVALIDATE_ADS_GENERIC")
 
@@ -618,8 +618,8 @@ class EntryClassad(classadSupport.Classad):
         self.adParams["EntryName"] = "%s" % entry_name
         self.adParams[factoryConfig.factory_signtype_id] = "%s" % ",".join(supported_signtypes)
         self.adParams["DaemonStartTime"] = int(start_time)
-        advertizeGFCounter[classad_name] = advertizeGFCounter.get(classad_name, -1) + 1
-        self.adParams["UpdateSequenceNumber"] = advertizeGFCounter[classad_name]
+        advertiseGFCounter[classad_name] = advertiseGFCounter.get(classad_name, -1) + 1
+        self.adParams["UpdateSequenceNumber"] = advertiseGFCounter[classad_name]
         self.adParams["GlideinWMSVersion"] = factoryConfig.glideinwms_version
 
         if pub_key_obj is not None:
@@ -691,7 +691,7 @@ class FactoryGlobalClassad(classadSupport.Classad):
         :return:
         """
 
-        global factoryConfig, advertizeGlobalCounter
+        global factoryConfig, advertiseGlobalCounter
 
         classadSupport.Classad.__init__(
             self, factoryConfig.factory_global, "UPDATE_AD_GENERIC", "INVALIDATE_ADS_GENERIC"
@@ -704,15 +704,15 @@ class FactoryGlobalClassad(classadSupport.Classad):
         self.adParams["GlideinName"] = "%s" % glidein_name
         self.adParams[factoryConfig.factory_signtype_id] = "%s" % ",".join(supported_signtypes)
         self.adParams["DaemonStartTime"] = int(start_time)
-        self.adParams["UpdateSequenceNumber"] = advertizeGlobalCounter
-        advertizeGlobalCounter += 1
+        self.adParams["UpdateSequenceNumber"] = advertiseGlobalCounter
+        advertiseGlobalCounter += 1
         self.adParams["GlideinWMSVersion"] = factoryConfig.glideinwms_version
         self.adParams["PubKeyID"] = "%s" % pub_key_obj.pub_key_id
         self.adParams["PubKeyType"] = "%s" % pub_key_obj.key_type
         self.adParams["PubKeyValue"] = "%s" % pub_key_obj.pub_key.get().decode("ascii").replace("\n", "\\n")
 
 
-def advertizeGlobal(
+def advertiseGlobal(
     factory_name, glidein_name, supported_signtypes, pub_key_obj, stats_dict={}, factory_collector=DEFAULT_VAL
 ):
     """
@@ -746,7 +746,7 @@ def advertizeGlobal(
         _remove_if_there(tmpnam)
 
 
-def deadvertizeGlidein(factory_name, glidein_name, entry_name, factory_collector=DEFAULT_VAL):
+def deadvertiseGlidein(factory_name, glidein_name, entry_name, factory_collector=DEFAULT_VAL):
     """
     Removes the glidefactory classad advertising the entry from the WMS Collector.
     """
@@ -765,7 +765,7 @@ def deadvertizeGlidein(factory_name, glidein_name, entry_name, factory_collector
         _remove_if_there(tmpnam)
 
 
-def deadvertizeGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
+def deadvertiseGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
     """
     Removes the glidefactoryglobal classad advertising the factory globals from the WMS Collector.
     """
@@ -784,9 +784,9 @@ def deadvertizeGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL)
         _remove_if_there(tmpnam)
 
 
-def deadvertizeFactory(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
+def deadvertiseFactory(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
     """
-    Deadvertize all entry and global classads for this factory.
+    Deadvertise all entry and global classads for this factory.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix="gfi_de_fact")
     # TODO: use tempfile
@@ -806,7 +806,7 @@ def deadvertizeFactory(factory_name, glidein_name, factory_collector=DEFAULT_VAL
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
-def advertizeGlideinClientMonitoring(
+def advertiseGlideinClientMonitoring(
     factory_name,
     glidein_name,
     entry_name,
@@ -832,10 +832,10 @@ def advertizeGlideinClientMonitoring(
         client_params,
         client_monitors,
     )
-    advertizeGlideinClientMonitoringFromFile(tmpnam, remove_file=True, factory_collector=factory_collector)
+    advertiseGlideinClientMonitoringFromFile(tmpnam, remove_file=True, factory_collector=factory_collector)
 
 
-class MultiAdvertizeGlideinClientMonitoring:
+class MultiAdvertiseGlideinClientMonitoring:
     # glidein_attrs is a dictionary of values to publish
     #  like {"Arch":"INTEL","MinDisk":200000}
     def __init__(self, factory_name, glidein_name, entry_name, glidein_attrs, factory_collector=DEFAULT_VAL):
@@ -859,17 +859,17 @@ class MultiAdvertizeGlideinClientMonitoring:
         }
         self.client_data.append(el)
 
-    # do the actual advertizing
+    # do the actual advertising
     # can throw MultiExeError
-    def do_advertize(self):
+    def do_advertise(self):
         if factoryConfig.advertise_use_multi:
-            self.do_advertize_multi()
+            self.do_advertise_multi()
         else:
-            self.do_advertize_iterate()
+            self.do_advertise_iterate()
         self.client_data = []
 
     # INTERNAL
-    def do_advertize_iterate(self):
+    def do_advertise_iterate(self):
         error_arr = []
 
         tmpnam = classadSupport.generate_classad_filename(prefix="gfi_ad_gfc")
@@ -888,7 +888,7 @@ class MultiAdvertizeGlideinClientMonitoring:
                 el["client_monitors"],
             )
             try:
-                advertizeGlideinClientMonitoringFromFile(
+                advertiseGlideinClientMonitoringFromFile(
                     tmpnam, remove_file=True, factory_collector=self.factory_collector
                 )
             except condorExe.ExeError as e:
@@ -897,7 +897,7 @@ class MultiAdvertizeGlideinClientMonitoring:
         if len(error_arr) > 0:
             raise MultiExeError(error_arr)
 
-    def do_advertize_multi(self):
+    def do_advertise_multi(self):
         tmpnam = classadSupport.generate_classad_filename(prefix="gfi_adm_gfc")
 
         ap = False
@@ -920,7 +920,7 @@ class MultiAdvertizeGlideinClientMonitoring:
         if ap:
             error_arr = []
             try:
-                advertizeGlideinClientMonitoringFromFile(
+                advertiseGlideinClientMonitoringFromFile(
                     tmpnam, remove_file=True, is_multi=True, factory_collector=self.factory_collector
                 )
             except condorExe.ExeError as e:
@@ -981,7 +981,7 @@ def createGlideinClientMonitoringFile(
     do_append=False,
 ):
     global factoryConfig
-    global advertizeGFCCounter
+    global advertiseGFCCounter
 
     if do_append:
         open_type = "a"
@@ -1018,8 +1018,8 @@ def createGlideinClientMonitoringFile(
             fd.write('ReqClientName = "%s"\n' % client_int_name)
             fd.write('ReqClientReqName = "%s"\n' % client_int_req)
             # fd.write('DaemonStartTime = %li\n'%start_time)
-            advertizeGFCCounter[client_name] = advertizeGFCCounter.get(client_name, -1) + 1
-            fd.write("UpdateSequenceNumber = %i\n" % advertizeGFCCounter[client_name])
+            advertiseGFCCounter[client_name] = advertiseGFCCounter.get(client_name, -1) + 1
+            fd.write("UpdateSequenceNumber = %i\n" % advertiseGFCCounter[client_name])
 
             # write out both the attributes, params and monitors
             for prefix, data in (
@@ -1046,7 +1046,7 @@ def createGlideinClientMonitoringFile(
 
 # Given a file, advertise
 # Can throw a CondorExe/ExeError exception
-def advertizeGlideinClientMonitoringFromFile(fname, remove_file=True, is_multi=False, factory_collector=DEFAULT_VAL):
+def advertiseGlideinClientMonitoringFromFile(fname, remove_file=True, is_multi=False, factory_collector=DEFAULT_VAL):
     if os.path.exists(fname):
         try:
             logSupport.log.info("Advertising glidefactoryclient classads")
@@ -1063,7 +1063,7 @@ def advertizeGlideinClientMonitoringFromFile(fname, remove_file=True, is_multi=F
         )
 
 
-def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False, factory_collector=DEFAULT_VAL):
+def advertiseGlideinFromFile(fname, remove_file=True, is_multi=False, factory_collector=DEFAULT_VAL):
     if os.path.exists(fname):
         try:
             logSupport.log.info("Advertising glidefactory classads")
@@ -1084,10 +1084,8 @@ def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False, factory_co
 
 
 # remove classads from Collector
-def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name, factory_collector=DEFAULT_VAL):
-    """
-    Deadvertize  monitoring classads for the given entry.
-    """
+def deadvertiseAllGlideinClientMonitoring(factory_name, glidein_name, entry_name, factory_collector=DEFAULT_VAL):
+    """De-advertise  monitoring classads for the given entry."""
     tmpnam = classadSupport.generate_classad_filename(prefix="gfi_de_gfc")
     # TODO: use tempfile
     try:
@@ -1104,10 +1102,8 @@ def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name
         _remove_if_there(tmpnam)
 
 
-def deadvertizeFactoryClientMonitoring(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
-    """
-    Deadvertize all monitoring classads for this factory.
-    """
+def deadvertiseFactoryClientMonitoring(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
+    """De-advertise all monitoring classads for this factory."""
     tmpnam = classadSupport.generate_classad_filename(prefix="gfi_de_gfc")
     # TODO: use tempfile
     try:
@@ -1148,7 +1144,7 @@ def exe_condor_advertise(fname, command, is_multi=False, factory_collector=None)
     if factory_collector == DEFAULT_VAL:
         factory_collector = factoryConfig.factory_collector
 
-    lock_fname = os.path.join(factoryConfig.lock_dir, "gfi_advertize.lock")
+    lock_fname = os.path.join(factoryConfig.lock_dir, "gfi_advertise.lock")
     if not os.path.exists(lock_fname):  # create a lock file if needed
         try:
             fd = open(lock_fname, "w")

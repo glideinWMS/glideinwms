@@ -263,7 +263,7 @@ class FEElementTestCase(unittest.TestCase):
             ):
                 # also need to mock advertisers so they don't fork off jobs
                 # it has nothing to do with what is being tested here
-                with mock.patch.object(glideinFrontendInterface, "MultiAdvertizeWork"):
+                with mock.patch.object(glideinFrontendInterface, "MultiAdvertiseWork"):
                     with mock.patch(
                         "glideinFrontendInterface.ResourceClassadAdvertiser.advertiseAllClassads", return_value=None
                     ):

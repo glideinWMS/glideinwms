@@ -6,7 +6,6 @@
 # Description:
 #   This is an include file for glidein_startup.sh
 #   It creates a minimal condor_mapfile so that condor_advertise can work in case of problems.
-#
 
 glidein_config="$1"
 
@@ -52,7 +51,7 @@ create_condormapfile
 gconfig_add X509_CONDORMAP "$X509_CONDORMAP"
 
 # this is required by the condor_startup script
-# A star will allow everyone, which is OK for condor_advertize of the error classad
+# A star will allow everyone, which is OK for condor_advertise of the error classad
 gconfig_add X509_GRIDMAP_TRUSTED_DNS "*"
 
 "$error_gen" -ok "create_temp_mapfile.sh"
