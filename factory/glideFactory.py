@@ -433,7 +433,7 @@ def clean_exit(children):
 ############################################################
 def spawn(
     sleep_time,
-    advertize_rate,
+    advertise_rate,
     startup_dir,
     glideinDescript,
     frontendDescript,
@@ -446,7 +446,7 @@ def spawn(
 
     Args:
         sleep_time (int): Delay between iterations in seconds.
-        advertize_rate (int): Rate at which entries advertise their ClassAds.
+        advertise_rate (int): Rate at which entries advertise their ClassAds.
         startup_dir (str): Path to the glideinsubmit directory.
         glideinDescript (glideFactoryConfig.GlideinDescript): Factory config's Glidein description object.
         frontendDescript (glideFactoryConfig.FrontendDescript): Factory config's Frontend description object.
@@ -522,7 +522,7 @@ def spawn(
                 glideFactoryEntryGroup.__file__,
                 str(os.getpid()),
                 str(sleep_time),
-                str(advertize_rate),
+                str(advertise_rate),
                 startup_dir,
                 entry_names,
                 str(group),
@@ -699,7 +699,7 @@ def spawn(
                             glideFactoryEntryGroup.__file__,
                             str(os.getpid()),
                             str(sleep_time),
-                            str(advertize_rate),
+                            str(advertise_rate),
                             startup_dir,
                             entry_names,
                             str(group),
@@ -738,7 +738,7 @@ def spawn(
             # Advertise the global classad with the factory keys and Factory statistics
             try:
                 # KEL TODO need to add factory downtime?
-                glideFactoryInterface.advertizeGlobal(
+                glideFactoryInterface.advertiseGlobal(
                     glideinDescript.data["FactoryName"],
                     glideinDescript.data["GlideinName"],
                     glideFactoryLib.factoryConfig.supported_signtypes,
@@ -773,19 +773,19 @@ def spawn(
                     except OSError:
                         pass  # ignore dead clients
         finally:
-            logSupport.log.info("Deadvertize myself")
+            logSupport.log.info("Deadvertise myself")
             try:
-                glideFactoryInterface.deadvertizeFactory(
+                glideFactoryInterface.deadvertiseFactory(
                     glideinDescript.data["FactoryName"], glideinDescript.data["GlideinName"]
                 )
             except Exception:
-                logSupport.log.exception("Factory deadvertize failed!")
+                logSupport.log.exception("Factory deadvertise failed!")
             try:
-                glideFactoryInterface.deadvertizeFactoryClientMonitoring(
+                glideFactoryInterface.deadvertiseFactoryClientMonitoring(
                     glideinDescript.data["FactoryName"], glideinDescript.data["GlideinName"]
                 )
             except Exception:
-                logSupport.log.exception("Factory Monitoring deadvertize failed!")
+                logSupport.log.exception("Factory Monitoring deadvertise failed!")
         logSupport.log.info("All EntryGroups should be terminated")
 
 
@@ -901,7 +901,7 @@ def main(startup_dir):
         "1",
     )
     sleep_time = int(glideinDescript.data["LoopDelay"])
-    advertize_rate = int(glideinDescript.data["AdvertiseDelay"])
+    advertise_rate = int(glideinDescript.data["AdvertiseDelay"])
     restart_attempts = int(glideinDescript.data["RestartAttempts"])
     restart_interval = int(glideinDescript.data["RestartInterval"])
 
@@ -941,7 +941,7 @@ def main(startup_dir):
             # Spawn the EntryGroup processes handling the work
             spawn(
                 sleep_time,
-                advertize_rate,
+                advertise_rate,
                 startup_dir,
                 glideinDescript,
                 frontendDescript,

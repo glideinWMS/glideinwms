@@ -45,9 +45,9 @@ from glideinwms.lib.credentials import (
 #     Update usermap.  This is called once per iteration                       #
 #   get_credentials(params_obj=None,
 #           credential_type=None, trust_domain=None)                           #
-#     Return a list of credenital that match the input criteria                #
+#     Return a list of credential that match the input criteria                #
 #     This is called in two places, once in globals to return all credentials  #
-#     and once when advertizing actual requests.
+#     and once when advertising actual requests.
 #     If params_obj is NOT None, then this function is responsible for calling
 #     add_usage_details() for each returned credential to determine idle and max run
 #     If called multiple time, it is guaranteed that                           #

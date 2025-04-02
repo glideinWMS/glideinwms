@@ -849,29 +849,6 @@ class MultiAdvertiseWork:
             cred_el.credential.renew()
             cred_el.credential.save_to_file(overwrite=False, continue_if_no_path=True)
 
-        # TODO: Bruno to check. This commented section (re-added by the merge) can be removed, correct?
-        # for i in range(nr_credentials):
-        #     cred_el = self.x509_proxies_data[i]
-        #     cred_el.advertise = True
-        #     cred_el.renew()
-        #     cred_el.createIfNotExist()
-        #
-        #     cred_el.loaded_data = []
-        #     for cred_file in (cred_el.filename, cred_el.key_fname, cred_el.pilot_fname):
-        #         if cred_file:
-        #             try:
-        #                 cred_data = cred_el.generated_data
-        #             except AttributeError:
-        #                 # TODO: credential parsing form file could fail (wrong permission, not found, ...)
-        #                 #  Add message? Handle here or declare raising
-        #                 cred_data = cred_el.getString(cred_file)
-        #             if cred_data:
-        #                 cred_el.loaded_data.append((cred_file, cred_data))
-        #             else:
-        #                 # We encountered error with this credential
-        #                 # Move onto next credential
-        #                 break
-
         return nr_credentials
 
     def initialize_advertise_batch(self, adname_prefix="gfi_ad_batch"):
@@ -991,13 +968,6 @@ class MultiAdvertiseWork:
             fd.write(f'ClientName = "{self.descript_obj.my_name}"\n')
             for cred_el in self.request_credentials:
                 if not cred_el.advertise:
-
-                    # TODO: Bruno to check. Reinserted by merge, ok to remove the commented section?
-                    #       Indentation was -2 steps
-                    # for i in range(nr_credentials):
-                    #     cred_el = self.x509_proxies_data[i]
-                    #     if not cred_el.advertise:
-                    #         # end part to comment
                     continue  # we already determined it cannot be used
                 glidein_params_to_encrypt[cred_el.credential.id] = cred_el.credential.string
                 if hasattr(cred_el, "security_class"):
@@ -1158,19 +1128,6 @@ class MultiAdvertiseWork:
           adname, unique_id and x509_proxies_data
         to be set.
         """
-        # TODO: check for Bruno. OK to remove the commented part re-introduced in the merge?
-        # global frontendConfig
-        # global advertiseGCCounter
-        #
-        # descript_obj = self.descript_obj
-        #
-        # logSupport.log.debug("In create Advertise work")
-        #
-        # factory_trust, factory_auth = self.factory_constraint[params_obj.request_name]
-        #
-        # total_nr_credentials = len(self.x509_proxies_data)
-        # End part reintroduced >>>>>>> master
-
         cred_filename_arr = []
 
         logSupport.log.debug("In create Advertise work")
@@ -1215,106 +1172,6 @@ class MultiAdvertiseWork:
 
         for request_cred in self.request_credentials:
             if not request_cred.advertise:
-                # TODO: check for Bruno. Check if the reintroduced commented part can be removed =======
-                # req_idle = 0
-                # req_max_run = 0
-                #
-                # # credential_el (Credebtial())
-                # credential_el = credentials_with_requests[i]
-                # logSupport.log.debug(f"Checking Credential file {credential_el.filename} ...")
-                # if not credential_el.advertise:
-                #     # We already determined it cannot be used
-                #     # if hasattr(credential_el,'filename'):
-                #     #    filestr=credential_el.filename
-                #     # logSupport.log.warning("Credential file %s had some earlier problem in loading so not advertising, skipping..."%(filestr))
-                #     continue
-                #
-                # if credential_el.supports_auth_method("scitoken"):
-                #     try:
-                #         # try first for credential generator
-                #         token_expired = token_util.token_str_expired(credential_el.generated_data)
-                #     except AttributeError:
-                #         # then try file stored credential
-                #         token_expired = token_util.token_file_expired(credential_el.filename)
-                #     if token_expired:
-                #         logSupport.log.warning(
-                #             f"Credential file {credential_el.filename} has expired scitoken, skipping"
-                #         )
-                #         continue
-                #     glidein_params_to_encrypt["ScitokenId"] = file_id_cache.file_id(
-                #         credential_el, credential_el.filename
-                #     )
-                #
-                # if params_obj.request_name in self.factory_constraint:
-                #     if (factory_auth != "Any") and (not credential_el.supports_auth_method(factory_auth)):
-                #         logSupport.log.warning(
-                #             "Credential %s does not match auth method %s (for %s), skipping..."
-                #             % (credential_el.type, factory_auth, params_obj.request_name)
-                #         )
-                #         continue
-                #     if (credential_el.trust_domain != factory_trust) and (factory_trust != "Any"):
-                #         logSupport.log.warning(
-                #             "Credential %s does not match %s (for %s) domain, skipping..."
-                #             % (credential_el.trust_domain, factory_trust, params_obj.request_name)
-                #         )
-                #         continue
-                # # Convert the sec class to a string so the Factory can interpret the value correctly
-                # glidein_params_to_encrypt["SecurityClass"] = str(credential_el.security_class)
-                # classad_name = credential_el.file_id(credential_el.filename, ignoredn=True) + "_" + classad_name
-                # if "username_password" in credential_el.type:
-                #     glidein_params_to_encrypt["Username"] = file_id_cache.file_id(credential_el, credential_el.filename)
-                #     glidein_params_to_encrypt["Password"] = file_id_cache.file_id(
-                #         credential_el, credential_el.key_fname
-                #     )
-                # if "grid_proxy" in credential_el.type:
-                #     glidein_params_to_encrypt["SubmitProxy"] = file_id_cache.file_id(
-                #         credential_el, credential_el.filename
-                #     )
-                # if "cert_pair" in credential_el.type:
-                #     glidein_params_to_encrypt["PublicCert"] = file_id_cache.file_id(
-                #         credential_el, credential_el.filename
-                #     )
-                #     glidein_params_to_encrypt["PrivateCert"] = file_id_cache.file_id(
-                #         credential_el, credential_el.key_fname
-                #     )
-                # if "key_pair" in credential_el.type:
-                #     glidein_params_to_encrypt["PublicKey"] = file_id_cache.file_id(
-                #         credential_el, credential_el.filename
-                #     )
-                #     glidein_params_to_encrypt["PrivateKey"] = file_id_cache.file_id(
-                #         credential_el, credential_el.key_fname
-                #     )
-                # if "auth_file" in credential_el.type:
-                #     glidein_params_to_encrypt["AuthFile"] = file_id_cache.file_id(credential_el, credential_el.filename)
-                # if "vm_id" in credential_el.type:
-                #     if credential_el.vm_id_fname:
-                #         glidein_params_to_encrypt["VMId"] = self.vm_attribute_from_file(
-                #             credential_el.vm_id_fname, "VM_ID"
-                #         )
-                #     else:
-                #         glidein_params_to_encrypt["VMId"] = str(credential_el.vm_id)
-                # if "vm_type" in credential_el.type:
-                #     if credential_el.vm_type_fname:
-                #         glidein_params_to_encrypt["VMType"] = self.vm_attribute_from_file(
-                #             credential_el.vm_type_fname, "VM_TYPE"
-                #         )
-                #     else:
-                #         glidein_params_to_encrypt["VMType"] = str(credential_el.vm_type)
-                #     # removing this, was here by mistake? glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
-                #
-                # # Process additional information of the credential
-                # if credential_el.pilot_fname:
-                #     glidein_params_to_encrypt["GlideinProxy"] = file_id_cache.file_id(
-                #         credential_el, credential_el.pilot_fname
-                #     )
-                #
-                # if credential_el.remote_username:  # MM: or "username" in credential_el.type
-                #     glidein_params_to_encrypt["RemoteUsername"] = str(credential_el.remote_username)
-                # if credential_el.project_id:
-                #     glidein_params_to_encrypt["ProjectId"] = str(credential_el.project_id)
-                #
-                # (req_idle, req_max_run) = credential_el.get_usage_details()
-                # end commented part to remove >>>>>>> master
                 logSupport.log.debug(
                     f"Skipping credential with 'advertise' set to False. ({request_cred.credential.id})"
                 )

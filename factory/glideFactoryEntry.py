@@ -614,7 +614,7 @@ class Entry:
         # Advertise the monitoring, use the downtime found in
         # validation of the credentials
 
-        advertizer = gfi.MultiAdvertizeGlideinClientMonitoring(
+        advertiser = gfi.MultiAdvertiseGlideinClientMonitoring(
             self.gflFactoryConfig.factory_name,
             self.gflFactoryConfig.glidein_name,
             self.name,
@@ -647,7 +647,7 @@ class Entry:
                 if p in list(params.keys()):
                     params[p] = fparams[p]
 
-            advertizer.add(
+            advertiser.add(
                 client_internals["CompleteName"],
                 client_name,
                 client_internals["ReqName"],
@@ -657,7 +657,7 @@ class Entry:
             )
 
         try:
-            advertizer.writeToMultiClassadFile(gfc_filename)
+            advertiser.writeToMultiClassadFile(gfc_filename)
         except Exception:
             self.log.warning("Writing monitoring classad to file %s failed" % gfc_filename)
 
@@ -679,10 +679,10 @@ class Entry:
         self.writeClassadsToFile(downtime_flag, gf_filename, gfc_filename)
 
         # ADVERTISE: glidefactory classads
-        gfi.advertizeGlideinFromFile(gf_filename, remove_file=True, is_multi=True)
+        gfi.advertiseGlideinFromFile(gf_filename, remove_file=True, is_multi=True)
 
         # ADVERTISE: glidefactoryclient classads
-        gfi.advertizeGlideinClientMonitoringFromFile(gfc_filename, remove_file=True, is_multi=True)
+        gfi.advertiseGlideinClientMonitoringFromFile(gfc_filename, remove_file=True, is_multi=True)
         return
 
     def writeStats(self):
