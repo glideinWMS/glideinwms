@@ -1128,6 +1128,7 @@ class MultiAdvertiseWork:
           adname, unique_id and x509_proxies_data
         to be set.
         """
+
         cred_filename_arr = []
 
         logSupport.log.debug("In create Advertise work")

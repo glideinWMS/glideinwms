@@ -598,6 +598,8 @@ class CredentialGenerator(Credential[Generator]):
         purpose: Optional[CredentialPurpose] = None,
         trust_domain: Optional[str] = None,
         security_class: Optional[str] = None,
+        creation_script: Optional[str] = None,
+        minimum_lifetime: Optional[str] = None,
         context: Optional[Mapping] = None,
     ) -> None:
         """Initialize a Credentials object.
@@ -618,6 +620,11 @@ class CredentialGenerator(Credential[Generator]):
         self.purpose = purpose
         self.trust_domain = trust_domain
         self.security_class = security_class
+        self.creation_script = creation_script
+        try:
+            self.minimum_lifetime = int(minimum_lifetime) if minimum_lifetime else None
+        except ValueError as err:
+            raise ParameterError(f"Invalid minimum lifetime: {minimum_lifetime}") from err
         if string or path:
             self.load(string, path, context)
 
