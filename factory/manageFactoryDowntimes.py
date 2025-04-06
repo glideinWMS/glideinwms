@@ -3,16 +3,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#  This program allows to add announced downtimes
-#  as well as handle unexpected downtimes
-#
+"""This program allows to add announced downtimes as well as handle unexpected downtimes.
+
+Usage:
+  manageFactoryDowntimes.py -dir factory_dir -entry ['all'|'factory'|'entries'|entry_name] -cmd [command] [options]
+  manageFactoryDowntimes -help   Foe more detailed information
+"""
+
 
 import os
 import sys
@@ -24,6 +21,7 @@ from glideinwms.lib import condorMonitor
 
 
 def usage():
+    """Prints usage instructions to standard output."""
     print("Usage:")
     print(
         "  manageFactoryDowntimes.py -dir factory_dir -entry ['all'|'factory'|'entries'|entry_name] -cmd [command] [options]"
@@ -49,6 +47,16 @@ def usage():
 
 # [[[YYYY-]MM-]DD-]HH:MM[:SS]
 def strtxt2time(timeStr):
+    """Converts a time string with optional date to a Unix timestamp.
+
+    The input string may be in the format "[[YYYY-]MM-]DD-HH:MM[:SS]".
+
+    Args:
+        timeStr (str): Time string to convert.
+
+    Returns:
+        float: Unix timestamp corresponding to the given time.
+    """
     deftime = time.localtime(time.time())
     year = deftime[0]
     month = deftime[1]
@@ -77,6 +85,17 @@ def strtxt2time(timeStr):
 # or
 # unix_time
 def str2time(timeStr):
+    """Converts a time string or a Unix time string to an integer timestamp.
+
+    If the input contains a colon, it is assumed to be a textual time representation;
+    otherwise, it is assumed to be a Unix timestamp.
+
+    Args:
+        timeStr (str): Time string.
+
+    Returns:
+        int: Unix timestamp.
+    """
     # if (timeStr is None) or (timeStr=="None") or (timeStr==""):
     #    return time.localtime(time.time())
     if len(timeStr.split(":", 1)) > 1:
@@ -90,6 +109,14 @@ def str2time(timeStr):
 
 # Create an array for each value in the frontend descript file
 def get_security_classes(factory_dir):
+    """Retrieve a list of security classes from the Frontend descript file.
+
+    Args:
+        factory_dir (str): Path to the Factory directory.
+
+    Returns:
+        list: List of security classes found in the Frontend descript file.
+    """
     sec_array = []
     frontendDescript = glideFactoryConfig.ConfigFile(factory_dir + "/frontend.descript", lambda s: s)
     for fe in list(frontendDescript.data.keys()):
@@ -100,12 +127,28 @@ def get_security_classes(factory_dir):
 
 # Create an array for each frontend in the frontend descript file
 def get_frontends(factory_dir):
+    """Retrieve a list of Frontend names from the Frontend descript file.
+
+    Args:
+        factory_dir (str): Path to the Factory directory.
+
+    Returns:
+        list: List of Frontend names.
+    """
     frontendDescript = glideFactoryConfig.ConfigFile(factory_dir + "/frontend.descript", lambda s: s)
     return list(frontendDescript.data.keys())
 
 
 # Create an array for each entry in the glidein descript file
 def get_entries(factory_dir):
+    """Retrieve a list of entries from the glidein descript file.
+
+    Args:
+        factory_dir (str): Path to the Factory directory.
+
+    Returns:
+        list: List of entries.
+    """
     glideinDescript = glideFactoryConfig.GlideinDescript()
     # glideinDescript=glideFactoryConfig.ConfigFile(factory_dir+"/glidein.descript",lambda s:s)
     return glideinDescript.data["Entries"].split(",")
@@ -114,6 +157,18 @@ def get_entries(factory_dir):
 #
 #
 def get_downtime_fd(entry_name, cmdname):
+    """Return a downtime file object for a given entry.
+
+    Args:
+        entry_name (str): The entry name.
+        cmdname (str): Command name (unused in this function).
+
+    Returns:
+        DowntimeFile: A downtime file object.
+
+    Raises:
+        RuntimeError: If the configuration for the entry cannot be loaded.
+    """
     try:
         # New style has config all in the factory file
         # if entry_name=='factory':
@@ -128,6 +183,16 @@ def get_downtime_fd(entry_name, cmdname):
 
 
 def get_downtime_fd_dict(entry_or_id, cmdname, opt_dict):
+    """Construct a dictionary mapping entries or IDs to their downtime file objects.
+
+    Args:
+        entry_or_id (str): Either a specific entry name, "entries", or "All".
+        cmdname (str): Command name.
+        opt_dict (dict): Options dictionary.
+
+    Returns:
+        dict: Dictionary mapping entry names to downtime file objects.
+    """
     out_fds = {}
     if entry_or_id in ("entries", "All"):
         glideinDescript = glideFactoryConfig.GlideinDescript()
@@ -143,12 +208,21 @@ def get_downtime_fd_dict(entry_or_id, cmdname, opt_dict):
 
 
 def add(entry_name, opt_dict):
+    """Add a scheduled downtime period for an entry.
+
+    Args:
+        entry_name (str): The entry name.
+        opt_dict (dict): Dictionary of options including keys "dir", "start", "end", "sec", "frontend", and "comment".
+
+    Returns:
+        int: 0 on success.
+    """
     down_fd = get_downtime_fd(entry_name, opt_dict["dir"])
     start_time = str2time(opt_dict["start"])
     end_time = str2time(opt_dict["end"])
     sec_name = opt_dict["sec"]
     frontend = opt_dict["frontend"]
-    down_fd.addPeriod(
+    down_fd.add_period(
         start_time=start_time,
         end_time=end_time,
         entry=entry_name,
@@ -161,6 +235,14 @@ def add(entry_name, opt_dict):
 
 # [HHh][MMm][SS[s]]
 def delay2time(delayStr):
+    """Convert a delay string in the format [HHh][MMm][SS[s]] to seconds.
+
+    Args:
+        delayStr (str): Delay string.
+
+    Returns:
+        int: Total delay in seconds.
+    """
     hours = 0
     minutes = 0
     seconds = 0
@@ -181,6 +263,15 @@ def delay2time(delayStr):
 
 
 def down(entry_name, opt_dict):
+    """Put an entry into downtime immediately (with an optional delay).
+
+    Args:
+        entry_name (str): The entry name.
+        opt_dict (dict): Dictionary of options including "dir", "delay", "start", "end", "frontend", "sec", and "comment".
+
+    Returns:
+        int: 0 if downtime was started, otherwise prints a message and returns 0.
+    """
     down_fd = get_downtime_fd(entry_name, opt_dict["dir"])
     when = delay2time(opt_dict["delay"])
     if opt_dict["start"] == "None":
@@ -193,9 +284,9 @@ def down(entry_name, opt_dict):
         end_time = str2time(opt_dict["end"])
     frontend = opt_dict["frontend"]
     sec_name = opt_dict["sec"]
-    if not down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when):
+    if not down_fd.check_downtime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when):
         # only add a new line if not in downtime at that time
-        return down_fd.startDowntime(
+        return down_fd.start_downtime(
             start_time=when,
             end_time=end_time,
             frontend=frontend,
@@ -209,6 +300,15 @@ def down(entry_name, opt_dict):
 
 
 def up(entry_name, opt_dict):
+    """Bring an entry out of downtime immediately (with an optional delay).
+
+    Args:
+        entry_name (str): The entry name.
+        opt_dict (dict): Dictionary of options including "dir", "delay", "end", "sec", "frontend", and "comment".
+
+    Returns:
+        int: 0 if the entry was brought up, 1 if the entry was not in downtime.
+    """
     down_fd = get_downtime_fd(entry_name, opt_dict["dir"])
     when = delay2time(opt_dict["delay"])
     sec_name = opt_dict["sec"]
@@ -223,7 +323,7 @@ def up(entry_name, opt_dict):
     # -cmd up and -security All, etc, it should clear out all downtimes
     # if (down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when)or (sec_name=="All")):
 
-    rtn = down_fd.endDowntime(
+    rtn = down_fd.end_downtime(
         end_time=when, entry=entry_name, frontend=frontend, security_class=sec_name, comment=comment
     )
     if rtn > 0:
@@ -238,18 +338,42 @@ def up(entry_name, opt_dict):
 # and parse it to determine whether the downtime is relevant to the
 # security class
 def printtimes(entry_or_id, opt_dict):
+    """Print downtime status for entries at a specified check time.
+
+    This function will read the downtimes file and parse it to determine whether the downtime
+    is relevant to the security class.
+
+    Args:
+        entry_or_id (str): Entry identifier or "all".
+        opt_dict (dict): Dictionary of options including "dir" and "delay".
+
+    Returns:
+        None
+    """
     config_els = get_downtime_fd_dict(entry_or_id, opt_dict["dir"], opt_dict)
     when = delay2time(opt_dict["delay"]) + int(time.time())
     entry_keys = sorted(config_els.keys())
     for entry in entry_keys:
         down_fd = config_els[entry]
-        down_fd.printDowntime(entry=entry, check_time=when)
+        down_fd.print_downtime(entry=entry, check_time=when)
 
 
 # This function is now deprecated, replaced by printtimes
 # as it does not take into account that an entry can be down for
 # only some security classes.
 def check(entry_or_id, opt_dict):
+    """Deprecated: Check the downtime status of entries considering security classes.
+
+    This function is deprecated and replaced by printtimes() because
+    it does not take into account that an entry can be down for only some security classes.
+
+    Args:
+        entry_or_id (str): Entry identifier.
+        opt_dict (dict): Dictionary of options including "dir", "delay", and "sec".
+
+    Returns:
+        int: 0 after printing the status of each entry.
+    """
     config_els = get_downtime_fd_dict(entry_or_id, opt_dict["dir"], opt_dict)
     when = delay2time(opt_dict["delay"])
     sec_name = opt_dict["sec"]
@@ -258,7 +382,7 @@ def check(entry_or_id, opt_dict):
     entry_keys = sorted(config_els.keys())
     for entry in entry_keys:
         down_fd = config_els[entry]
-        in_downtime = down_fd.checkDowntime(entry=entry, security_class=sec_name, check_time=when)
+        in_downtime = down_fd.check_downtime(entry=entry, security_class=sec_name, check_time=when)
         if in_downtime:
             print("%s\tDown" % entry)
         else:
@@ -268,17 +392,35 @@ def check(entry_or_id, opt_dict):
 
 
 def vacuum(entry_or_id, opt_dict):
+    """Remove all expired downtime periods for the specified entry or entries.
+
+    Args:
+        entry_or_id (str): Entry identifier or "all".
+        opt_dict (dict): Dictionary of options including "dir".
+
+    Returns:
+        int: 0 on success.
+    """
     config_els = get_downtime_fd_dict(entry_or_id, opt_dict["dir"], opt_dict)
 
     entry_keys = sorted(config_els.keys())
     for entry in entry_keys:
         down_fd = config_els[entry]
-        down_fd.purgeOldPeriods()
+        down_fd.purge_old_periods()
 
     return 0
 
 
 def get_production_ress_entries(server, ref_dict_list):
+    """Get a list of production entries based on RESS status.
+
+    Args:
+        server (str): The server name.
+        ref_dict_list (list): List of dictionaries containing reference information.
+
+    Returns:
+        list: List of entry names that are in production.
+    """
     production_entries = []
 
     condor_obj = condorMonitor.CondorStatus(pool_name=server)
@@ -297,6 +439,16 @@ def get_production_ress_entries(server, ref_dict_list):
 
 
 def infosys_based(entry_name, opt_dict, infosys_types):
+    """Manage downtime based on data from the Information System.
+
+    Args:
+        entry_name (str): The entry name.
+        opt_dict (dict): Dictionary of options including "dir", "delay", "sec", etc.
+        infosys_types (list): List of compatible infosys types.
+
+    Returns:
+        int: 0 on success.
+    """
     # find out which entries I need to look at
     # gather downtime fds for them
     config_els = {}
@@ -380,6 +532,14 @@ def infosys_based(entry_name, opt_dict, infosys_types):
 
 
 def get_args(argv):
+    """Parse command line arguments into a dictionary.
+
+    Args:
+        argv (list): List of command line arguments.
+
+    Returns:
+        dict: Dictionary of options.
+    """
     # defaults
     opt_dict = {"comment": "", "sec": "All", "delay": "0", "end": "None", "start": "None", "frontend": "All"}
     index = 0
@@ -416,6 +576,14 @@ def get_args(argv):
 
 
 def main(argv):
+    """Main function to process command line arguments and execute commands.
+
+    Args:
+        argv (list): List of command line arguments.
+
+    Returns:
+        int: Exit status (0 for success, non-zero for failure).
+    """
     if len(argv) < 3:
         usage()
         return 1

@@ -1,6 +1,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+"""
+GlideFactory Credentials Module.
+
+This module provides functions to retrieve and process the global credentials
+ClassAds for the GlideinWMS factory.
+"""
+
 import base64
 import gzip
 import io
@@ -27,19 +34,34 @@ SUPPORTED_AUTH_METHODS = [
 
 
 class CredentialError(Exception):
-    """defining new exception so that we can catch only the credential errors here
-    and let the "real" errors propagate up
+    """Exception raised for credential-related errors.
+
+    This exception is defined so that only credential errors are caught here,
+    while other errors can propagate up.
     """
 
     pass
 
 
 class SubmitCredentials:
-    """
-    Data class containing all information needed to submit a glidein.
+    """Data class containing all information needed to submit a glidein.
+
+    Attributes:
+        username (str): The username for submission.
+        security_class: The security class for submission. (Seems redundant info)
+        id: The identifier used for tracking the submit credentials.
+        cred_dir (str): The directory location of credentials.
+        security_credentials (dict): Dictionary mapping credential types to file paths.
+        identity_credentials (dict): Dictionary mapping identity credential types to strings.
     """
 
     def __init__(self, username, security_class):
+        """Initialize a SubmitCredentials instance.
+
+        Args:
+            username (str): The username for submission.
+            security_class: The security class for submission.
+        """
         self.username = username
         self.security_class = security_class  # Seems redundant info
         self.id = None  # id used for tracking the submit credentials
@@ -48,8 +70,14 @@ class SubmitCredentials:
         self.identity_credentials = {}  # identity information passed by frontend
 
     def add_security_credential(self, cred_type, filename):
-        """
-        Adds a security credential.
+        """Add a security credential.
+
+        Args:
+            cred_type (str): The type of credential.
+            filename (str): The filename of the credential.
+
+        Returns:
+            bool: True if the credential was successfully added, False otherwise.
         """
         if not glideFactoryLib.is_str_safe(filename):
             return False
@@ -62,8 +90,14 @@ class SubmitCredentials:
         return True
 
     def add_factory_credential(self, cred_type, absfname):
-        """
-        Adds a factory provided security credential.
+        """Add a factory provided security credential.
+
+        Args:
+            cred_type (str): The type of credential.
+            absfname (str): The absolute filename of the credential.
+
+        Returns:
+            bool: True if the credential was successfully added, False otherwise.
         """
         if not os.path.isfile(absfname):
             return False
@@ -72,13 +106,24 @@ class SubmitCredentials:
         return True
 
     def add_identity_credential(self, cred_type, cred_str):
-        """
-        Adds an identity credential.
+        """Add an identity credential.
+
+        Args:
+            cred_type (str): The type of identity credential.
+            cred_str (str): The credential string.
+
+        Returns:
+            bool: True if the identity credential was successfully added.
         """
         self.identity_credentials[cred_type] = cred_str
         return True
 
     def __repr__(self):
+        """Return a string representation of the SubmitCredentials instance.
+
+        Returns:
+            str: The string representation of the instance.
+        """
         output = "SubmitCredentials"
         output += "username = %s; " % self.username
         output += "security class = %s; " % str(self.security_class)
@@ -94,16 +139,20 @@ class SubmitCredentials:
 
 
 def update_credential_file(username, client_id, credential_data, request_clientname):
-    """
-    Updates the credential file
+    """Update the credential file.
 
-    :param username: credentials' username
-    :param client_id: id used for tracking the submit credentials
-    :param credential_data: the credentials to be advertised
-    :param request_clientname: client name passed by frontend
-    :return:the credential file updated
-    """
+    This function updates the credential files by writing the new credential data in one file and
+    a compressed version of the glidein credentials in a second file.
 
+    Args:
+        username (str): The credentials' username.
+        client_id (str): The id used for tracking the submit credentials.
+        credential_data (bytes): The credentials to be advertised.
+        request_clientname (str): The client name passed by the frontend.
+
+    Returns:
+        tuple: A tuple containing the credential file name and the compressed file name.
+    """
     proxy_dir = glideFactoryLib.factoryConfig.get_client_proxies_dir(username)
     fname_short = f"credential_{request_clientname}_{glideFactoryLib.escapeParam(client_id)}"
     fname = os.path.join(proxy_dir, fname_short)
@@ -133,6 +182,14 @@ def update_credential_file(username, client_id, credential_data, request_clientn
 # This functionality should really be in glideFactoryInterface module
 # Making a minimal patch now to get the desired functionality
 def get_globals_classads(factory_collector=glideFactoryInterface.DEFAULT_VAL):
+    """Retrieve global classads for glidein credentials.
+
+    Args:
+        factory_collector (str): The factory collector. If default, it is obtained from the factory configuration.
+
+    Returns:
+        dict: A dictionary containing the stored classads.
+    """
     if factory_collector == glideFactoryInterface.DEFAULT_VAL:
         factory_collector = glideFactoryInterface.factoryConfig.factory_collector
 
@@ -148,6 +205,19 @@ def get_globals_classads(factory_collector=glideFactoryInterface.DEFAULT_VAL):
 
 
 def process_global(classad, glidein_descript, frontend_descript):
+    """Process a global credentials classad.
+
+    This function processes a global classad, updating credential files based on the decrypted
+    information contained in the classad.
+
+    Args:
+        classad (dict): A dictionary representation of the classad.
+        glidein_descript (glideFactoryConfig.GlideinDescript): The glidein description object.
+        frontend_descript (glideFactoryConfig.FrontendDescript): The frontend description object.
+
+    Raises:
+        CredentialError: If the factory has no public key or if any decryption error occurs.
+    """
     # Factory public key must exist for decryption
     pub_key_obj = glidein_descript.data["PubKeyObj"]
     if pub_key_obj is None:
@@ -191,13 +261,17 @@ def process_global(classad, glidein_descript, frontend_descript):
 
 
 def get_key_obj(pub_key_obj, classad):
-    """
-    Gets the symmetric key object from the request classad
+    """Get the symmetric key object from the request classad.
 
-    @type pub_key_obj: object
-    @param pub_key_obj: The factory public key object.  This contains all the encryption and decryption methods
-    @type classad: dictionary
-    @param classad: a dictionary representation of the classad
+    Args:
+        pub_key_obj (object): The factory public key object containing encryption and decryption methods.
+        classad (dict): A dictionary representation of the classad.
+
+    Returns:
+        object: The symmetric key object.
+
+    Raises:
+        CredentialError: If symmetric key extraction fails.
     """
     if "ReqEncKeyCode" in classad:
         try:
@@ -214,22 +288,24 @@ def get_key_obj(pub_key_obj, classad):
 
 
 def validate_frontend(classad, frontend_descript, pub_key_obj):
+    """Validate the frontend advertising the classad.
+
+    This function ensures that the Frontend is allowed to communicate with the Factory by
+    verifying that the claimed identity matches the authenticated identity.
+
+    Args:
+        classad (dict): A dictionary representation of the classad.
+        frontend_descript (glideFactoryConfig.FrontendDescript): Object containing Frontend information.
+        pub_key_obj (object): The Factory public key object with encryption/decryption methods.
+
+    Returns:
+        tuple: A tuple containing:
+            - sym_key_obj (object): The symmetric key object used for decryption.
+            - frontend_sec_name (str): The frontend security name used for determining the username.
+
+    Raises:
+        CredentialError: If decryption fails or if the frontend is not authorized.
     """
-    Validates that the frontend advertising the classad is allowed and that it
-    claims to have the same identity that Condor thinks it has.
-
-    @type classad: dictionary
-    @param classad: a dictionary representation of the classad
-    @type frontend_descript: class object
-    @param frontend_descript: class object containing all the frontend information
-    @type pub_key_obj: object
-    @param pub_key_obj: The factory public key object.  This contains all the encryption and decryption methods
-
-    @return: sym_key_obj - the object containing the symmetric key used for decryption
-    @return: frontend_sec_name - the frontend security name, used for determining
-    the username to use.
-    """
-
     # we can get classads from multiple frontends, each with their own
     # sym keys.  So get the sym_key_obj for each classad
     sym_key_obj = get_key_obj(pub_key_obj, classad)
@@ -269,20 +345,22 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
 
 
 def check_security_credentials(auth_method, params, client_int_name, entry_name, scitoken_passthru=False):
-    """
-    Verify that only credentials for the given auth method are in the params
+    """Check that only the credentials for the given authentication method are in the parameters list.
+
+    This function verifies that the provided parameters contain only those credentials
+    that are required by the specified authentication method.
 
     Args:
-        auth_method: (string): authentication method of an entry, defined in the config
-        params: (dictionary): decrypted params passed in a frontend (client) request
-        client_int_name (string): internal client name
-        entry_name: (string): name of the entry
-        scitoken_passthru: (bool): if True, scitoken present in credential. Override checks
-                                   for 'auth_method' and proceed with glidein request
-    Raises:
-       CredentialError: if the credentials in params don't match what is defined for the auth method
-    """
+        auth_method (str): This entry authentication method defined in the configuration.
+        params (dict): Decrypted parameters from the Frontend (client) request.
+        client_int_name (str): The internal client name.
+        entry_name (str): The name of the entry.
+        scitoken_passthru (bool, optional): If True, allows a scitoken to override checks for the authentication method.
+            Defaults to False.
 
+    Raises:
+        CredentialError: If the credentials in params do not match what is required for the authentication method.
+    """
     auth_method_list = auth_method.split("+")
     if not set(auth_method_list) & set(SUPPORTED_AUTH_METHODS):
         logSupport.log.warning(
@@ -413,32 +491,36 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name,
 
 
 def compress_credential(credential_data):
-    cfile = io.BytesIO()
-    f = gzip.GzipFile(fileobj=cfile, mode="wb")
-    f.write(credential_data)
-    f.close()
-    return base64.b64encode(cfile.getvalue())
+    """Compress credential data using gzip and encode it in base64.
+
+    Args:
+        credential_data (bytes): The credential data to compress.
+
+    Returns:
+        bytes: The compressed and base64-encoded credential data.
+    """
+    with io.BytesIO() as cfile:
+        with gzip.GzipFile(fileobj=cfile, mode="wb") as f:
+            # Calling a GzipFile object's close() method does not close fileobj, so cfile is available outside
+            f.write(credential_data)
+        return base64.b64encode(cfile.getvalue())
 
 
-# TODO: replace comppress_credentials - for when py2.6 is no more supported (v3.7)
-# def compress_credential(credential_data):
-#     with cStringIO.StringIO() as cfile:
-#         with gzip.GzipFile(fileobj=cfile, mode='wb') as f:
-#             # Calling a GzipFile object's close() method does not close fileobj, so cfile is available outside
-#             f.write(credential_data)
-#         return base64.b64encode(cfile.getvalue())
-
-
-# TODO: py2.7 , v3.7, add with for the 2 os.open calls
 def safe_update(fname, credential_data):
+    """Safely update a file with the provided credential data.
+
+    If the file does not exist, it is created. If it exists, the file is updated
+    only if the content has changed, with a backup created if necessary.
+
+    Args:
+        fname (str): The filename of the credential file.
+        credential_data (bytes or str): The credential data to write.
+    """
     logSupport.log.debug(f"Creating/updating credential file {fname}")
     if not os.path.isfile(fname):
         # new file, create
-        fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
-        try:
+        with os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600) as fd:
             os.write(fd, credential_data)
-        finally:
-            os.close(fd)
     else:
         # old file exists, check if same content
         with open(fname) as fl:
@@ -454,11 +536,8 @@ def safe_update(fname, credential_data):
                 pass  # just protect
 
             # create new file
-            fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600)
-            try:
+            with os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600) as fd:
                 os.write(fd, credential_data)
-            finally:
-                os.close(fd)
 
             # copy the old file to a tmp bck and rename new one to the official name
             try:

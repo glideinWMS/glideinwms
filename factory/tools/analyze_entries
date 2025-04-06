@@ -19,6 +19,25 @@ sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 
 
 def frontend_print(frontend, fe_mode, d, div, to_be_printed, fe_sorting, fe_attr_list, fe_sort_attribute):
+    """Append a formatted string with frontend metrics to a list for printing.
+
+    The function calculates a sorter value based on a specified attribute and then
+    creates a formatted string line containing various metrics for the frontend.
+    This formatted line is appended to the provided list.
+
+    Args:
+        frontend (str): The Frontend identifier.
+        fe_mode (int): Mode indicator for Frontend display.
+        d (dict): Dictionary containing metrics for the Frontend.
+        div (float): Divisor used in percentage and rate calculations.
+        to_be_printed (list): List of tuples that will be printed later.
+        fe_sorting (int): Flag indicating whether to sort Frontend data.
+        fe_attr_list (list): List of attribute names used for Frontend metrics.
+        fe_sort_attribute (int): Index into fe_attr_list specifying the attribute used for sorting.
+
+    Returns:
+        list: The updated list with the new formatted tuple appended.
+    """
     fdiv = 1
     if fe_attr_list[fe_sort_attribute] in ["total_time", "val", "used", "idle", "waste", "badput"]:
         fdiv = float(div)
@@ -54,6 +73,17 @@ def frontend_print(frontend, fe_mode, d, div, to_be_printed, fe_sorting, fe_attr
 
 
 def blockprint(title, d, p, pd):
+    """Print a block of summary information.
+
+    The function prints a formatted block of summary statistics using the provided
+    title and dictionaries with metrics.
+
+    Args:
+        title (str): The title of the block.
+        d (dict): Dictionary containing detailed metrics.
+        p (int): Parameter used in formatting the output.
+        pd (dict): Dictionary containing overall metrics for comparison.
+    """
     if pd != 0:
         s = " - %.1f%% of total" % (float(d["glideins"]) / float(pd["glideins"]) * 100.0)
         t = ""
@@ -136,6 +166,25 @@ LINEPRINT_HEADER = LINEPRINT_HEADER_FMT % (
 
 
 def lineprint(entry_name, entry, g_entry, g, to_be_printed, attr_list, sort_attribute, min_limit, totals=None):
+    """Append a formatted line of entry information to a list for later printing.
+
+    This function formats a line of text for a given entry using various metrics,
+    calculates a sorting value, and appends the tuple (sorter, formatted line) to the list.
+
+    Args:
+        entry_name (str): The entry name.
+        entry (dict): Dictionary containing entry-specific metrics.
+        g_entry (dict): Dictionary containing global entry metrics.
+        g (int): Flag indicating the grouping mode (e.g., 0 for entry mode, 1 for total mode).
+        to_be_printed (list): List to which the formatted output is appended.
+        attr_list (list): List of attribute names used for formatting.
+        sort_attribute (int): Index in attr_list used for sorting.
+        min_limit (dict): Dictionary with minimum limit values for filtering.
+        totals (dict, optional): Dictionary to accumulate totals. Defaults to None.
+
+    Returns:
+        list: The updated list with the new formatted tuple appended.
+    """
     if g == 1:
         s = "Lasted"
     else:
@@ -219,6 +268,13 @@ def lineprint(entry_name, entry, g_entry, g, to_be_printed, attr_list, sort_attr
 
 
 def main():
+    """Main function to parse command-line arguments and display glidein log analysis.
+
+    This function uses getopt to parse various command-line options for sorting,
+    filtering, and display preferences. It loads RRD XML files from a source directory,
+    aggregates and organizes the data by periods, frontends, and entries, and then prints
+    out summary statistics in a formatted layout.
+    """
     usage = """
 USAGE:
     -x [#] : interval to do verbose stats (default 24)

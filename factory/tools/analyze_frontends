@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """ analyze_frontends
+
 Focuses mostly on Client Info
 """
 
@@ -22,6 +23,21 @@ sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 
 
 def list_print(frontend, zero_supp, entry_data, sorting, attr_list, sort_attribute, div):
+    """Print a formatted list of entry data.
+
+    This function builds and prints a formatted list for a given Frontend based on the
+    provided entry data. It computes additional percentages, sorts the entries if required,
+    and prints a header along with each formatted entry line.
+
+    Args:
+        frontend (str): The Frontend name.
+        zero_supp (int): Zero suppression flag; if 1, entries with all zero attributes are skipped.
+        entry_data (dict): Dictionary of entry data for the Frontend.
+        sorting (int): Flag to enable sorting (1 to sort).
+        attr_list (list): List of attribute keys to consider.
+        sort_attribute (int or str): The attribute (or its index) used for sorting.
+        div (int or float): The divisor for normalizing values in the output.
+    """
     to_be_printed = []
     sum2 = 0
 
@@ -104,6 +120,12 @@ def list_print(frontend, zero_supp, entry_data, sorting, attr_list, sort_attribu
 
 
 def main():
+    """Main function to parse arguments and perform Frontend analysis.
+
+    Parses command-line arguments to set various flags for sorting, filtering, and output formatting.
+    Loads RRD data from a specified source, rearranges the data into a structured format, and prints
+    both summary and detailed statistics about the client (Frontend) status attributes.
+    """
     usage = """
 USAGE:
     -x [#] : interval to do verbose stats (default 24)

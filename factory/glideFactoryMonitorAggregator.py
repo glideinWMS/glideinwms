@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This module implements the functions needed
-   to aggregate the monitoring of the Glidein Factory
+"""This module implements the functions needed to aggregate the monitoring of the Glidein Factory.
 """
 
 import json
@@ -21,7 +20,19 @@ from glideinwms.lib import logSupport, rrdSupport, xmlFormat, xmlParse
 
 
 class MonitorAggregatorConfig:
+    """Configuration for aggregating monitoring data.
+
+    Attributes:
+        monitor_dir (str): Directory where monitoring files are located.
+        entries (list): List of entry names.
+        status_relname (str): Filename for the status file.
+        logsummary_relname (str): Filename for the log summary file.
+        jobsummary_relname (str): Filename for the job summary pickle file.
+        completed_data_relname (str): Filename for the completed data JSON file.
+    """
+
     def __init__(self):
+        """Initializes a new MonitorAggregatorConfig with default values."""
         # The name of the attribute that identifies the glidein
         self.monitor_dir = "monitor/"
 
@@ -35,6 +46,13 @@ class MonitorAggregatorConfig:
         self.completed_data_relname = "completed_data.json"
 
     def config_factory(self, monitor_dir, entries, log):
+        """Configure factory monitoring parameters.
+
+        Args:
+            monitor_dir (str): The monitoring directory.
+            entries (list): The list of entry names.
+            log (logging.Logger): Logger to use for monitoring.
+        """
         self.monitor_dir = monitor_dir
         self.entries = entries
         glideFactoryMonitoring.monitoringConfig.monitor_dir = monitor_dir
@@ -47,6 +65,14 @@ monitorAggregatorConfig = MonitorAggregatorConfig()
 
 
 def rrd_site(name):
+    """Return the RRD filename for a given site.
+
+    Args:
+        name (str): A name string that typically contains a dot.
+
+    Returns:
+        str: The RRD filename in the format "rrd_<first_part>.xml".
+    """
     sname = name.split(".")[0]
     return "rrd_%s.xml" % sname
 
@@ -81,18 +107,18 @@ type_strings = {"Status": "Status", "Requested": "Req", "ClientMonitor": "Client
 
 
 def verifyRRD(fix_rrd=False, backup=True):
-    """
-    Go through all known monitoring rrds and verify that they
-    match existing schema (could be different if an upgrade happened)
-    If fix_rrd is true, then also attempt to add any missing attributes.
+    """Verify that all known monitoring RRDs match the existing schema.
+
+    If the schema does not match (could be different if an upgrade happened) and fix_rrd is True,
+    this function will attempt to add any missing attributes.
+    Optionally, the old RRD is backed up before any modifications if backup is True.
 
     Args:
-        fix_rrd (bool): if True, will attempt to add missing attrs
-        backup (bool): if True, backup the old RRD before fixing
+        fix_rrd (bool): If True, will attempt to add missing attributes.
+        backup (bool): If True, backup the old RRD before fixing.
 
     Returns:
-        bool: True if all OK, False if there is a problem w/ RRD files
-
+        bool: True if all RRD files are OK; False if there is a problem.
     """
     rrd_problems_found = False
     mon_dir = monitorAggregatorConfig.monitor_dir
@@ -143,17 +169,17 @@ def verifyRRD(fix_rrd=False, backup=True):
 
 ##############################################################################
 def aggregateStatus(in_downtime):
+    """Aggregate status files and return overall status information.
+
+    This function creates an aggregate of individual status files, writes it to an aggregate status file,
+    and returns a dictionary containing the aggregate status information.
+
+    Args:
+        in_downtime (bool): Entry downtime information.
+
+    Returns:
+        dict: Dictionary of aggregated status information.
     """
-    Create an aggregate of status files, write it in an aggregate status file
-    and in the end return the values
-
-    @type in_downtime: boolean
-    @param in_downtime: Entry downtime information
-
-    @rtype: dict
-    @return: Dictionary of status information
-    """
-
     global monitorAggregatorConfig
 
     avgEntries = ("InfoAge",)
@@ -435,8 +461,18 @@ def aggregateStatus(in_downtime):
 
 ######################################################################################
 def aggregateJobsSummary():
-    """Loads the job summary pickle files for each entry, aggregates them per schedd/collector pair, and return them.
-    :return: A dictionary containing the needed information that looks like:
+    """Aggregate job summary pickle files for each entry.
+
+    This function loads the job summary pickle files for each entry, aggregates them per schedd/collector
+    pair, and returns a dictionary with the aggregated information.
+
+    Returns:
+        dict: Dictionary of aggregated job summaries with keys as (schedd_name, collector_name) tuples.
+              Each value is a dictionary mapping job identifiers (e.g. '2994.000') to a dictionary with stat keys
+              such as 'condor_duration', 'glidein_duration', 'condor_started', and 'numjobs'.
+
+    Example of return value:
+        ```
         {
             ('schedd_name','collector_name') : {
                 '2994.000': {'condor_duration': 1328, 'glidein_duration': 1334, 'condor_started': 1, 'numjobs': 0},
@@ -449,6 +485,7 @@ def aggregateJobsSummary():
                 ...
             }
         }
+        ```
     """
     jobinfo = {}
     for entry in monitorAggregatorConfig.entries:
@@ -477,11 +514,14 @@ def aggregateJobsSummary():
 
 ######################################################################################
 def aggregateLogSummary():
-    """
-    Create an aggregate of log summary files, write it in an aggregate log
-    summary file and in the end return the values
-    """
+    """Aggregate log summary files and write an aggregate log summary.
 
+    This function creates an aggregate of log summary files from all entries, writes the aggregate log summary XML file,
+    and returns the aggregated status dictionary.
+
+    Returns:
+        dict: Dictionary containing aggregated log summary information.
+    """
     global monitorAggregatorConfig
 
     # initialize global counters
@@ -721,6 +761,14 @@ def aggregateLogSummary():
 
 
 def sumDictInt(indict, outdict):
+    """Sum the integer values from one dictionary into another.
+
+    The input dictionary must contain only integers or nested dictionaries with the same constraint.
+
+    Args:
+        indict (dict): Input dictionary with integer values (or nested dictionaries).
+        outdict (dict): Output dictionary where summed values will be stored.
+    """
     for orgi in indict:
         i = str(orgi)  # RRDs don't like unicode, so make sure we use strings
         if isinstance(indict[i], int):
@@ -731,11 +779,19 @@ def sumDictInt(indict, outdict):
             # assume it is a dictionary
             if i not in outdict:
                 outdict[i] = {}
-
             sumDictInt(indict[i], outdict[i])
 
 
 def writeLogSummaryRRDs(fe_dir, status_el):
+    """Write aggregated log summary RRDs to disk.
+
+    This function writes various RRD files (for counts, completed stats, and waste time - e.g. Log_Counts,
+    Log_Completed, etc.) using the aggregated status data.
+
+    Args:
+        fe_dir (str): Directory path where RRDs will be written.
+        status_el (dict): Aggregated status data.
+    """
     updated = time.time()
 
     sdata = status_el["Current"]
@@ -812,12 +868,14 @@ def writeLogSummaryRRDs(fe_dir, status_el):
 
 
 def aggregateRRDStats(log=logSupport.log):
-    """Create an aggregate of RRD stats, write it files
+    """Aggregate RRD statistics from monitoring and write the aggregate files.
+
+    This function reads and aggregates RRD stats from each entry in the monitoring directory and writes the aggregate
+    XML file for RRD statistics.
 
     Args:
-        log (logging.Logger): logger to use
+        log (logging.Logger): Logger to use.
     """
-
     global monitorAggregatorConfig
     # not-used, no side effect. Leave in case want to add more monitoring: factoryStatusData = glideFactoryMonitoring.FactoryStatusData()
     rrdstats_relname = glideFactoryMonitoring.RRD_LIST
