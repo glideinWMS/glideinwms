@@ -3,19 +3,18 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-This script download HTCondor tarballs from the official condor website.
+"""This script downloads HTCondor tarballs from the official HTCondor website.
 
-# Exit codes:
-# 0: All good
-# 1: Configuration file does not exist
-# 2 if the XML file specified in XML_OUT is missing or cannot write XML_OUT file on disk.
-# 3 Cannot find XML_OUT file when using --checklatest.
-# 4 XML file needs to be updated since a newer version is present on the website.
+Exit codes:
+  0: All good.
+  1: Configuration file does not exist.
+  2: The XML file specified in XML_OUT is missing or cannot be written to disk.
+  3: Cannot find XML_OUT file when using --checklatest.
+  4: XML file needs to be updated because a newer version is present on the website.
 
 A configuration file is specified through the GET_TARBALLS_CONFIG environment variable.
 Alternatively, the script looks for a file named get_tarballs.yaml in the same directory
-of get_tarball.py
+as get_tarballs.py.
 
 This is a sample configuration file:
 
@@ -63,7 +62,7 @@ import yaml
 
 
 class TarballManager(HTMLParser):
-    """This class manages the HTCondor tarballs for a major release (e.g.: 23.0).
+    """Manages HTCondor tarballs for a major release (e.g.: 23.0).
 
     In the constructor, it builds a list of releases by parsing the major
     release web page looking for minor releases (e.g.: 23.0.0) that have
@@ -73,26 +72,37 @@ class TarballManager(HTMLParser):
     It then offers a method to download a tarball and save it locally,
     and a method to generate the xml snippet to add to the glideinWMS.xml
     tarball configuration section.
+
+    Attributes:
+        releases (list): List of release version strings.
+        release_dirs (dict): Mapping from release version to its corresponding directory (e.g., "release", "beta").
+        filenames (list): List of tarball filename templates.
+        release_url (str): Base URL for the major release.
+        destination (str): Local destination directory for downloads.
+        downloaded_files (list): List of paths to successfully downloaded tarballs.
+        latest_version (str): Latest version found among the available releases.
+        verbose (bool): If True, prints verbose messages.
     """
 
     def __init__(self, release_url, filenames, destination, verbose=False):
-        """Create a TarballManager object. Parses the tarball htcondor web page to get
-        the list of releases. The available releases gets saved into self.releases.
+        """Create a TarballManager object.
 
-        It calls the .feed() function from HTMLParser that in turn calls the overridden
+        Parses the tarball HTCondor web page to build a list of available releases,
+        saved into self.releases.
+        Calls the .feed() function from HTMLParser that in turn calls the overridden
         handle_data() function.
 
         Args:
-          release_url: The main url where to begin looking for releases. It has to be the url
-                       of a major release, for example: https://research.cs.wisc.edu/htcondor/tarball/23.0/
-                       The list of available releases are here: https://research.cs.wisc.edu/htcondor/tarball/
-          filenames: A list of strings indicating the tarballs that need to be downloaded for each release found.
-                     As an example, [ "condor-{version}-x86_64_CentOS7-stripped.tar.gz", "condor-{version}-x86_64_CentOS8-stripped.tar.gz" ]
-                     will download the x86_64 CentOS7 and CeontOS8 tarballs by looking for urls that looks like:
-                     https://research.cs.wisc.edu/htcondor/tarball/23.0/23.0.0/release/condor-23.0.0-x86_64_CentOS7-stripped.tar.gz
-                     The substring {version} gets expanded to the current version.
-          destination: the directory where files will be downloaded when the download_tarballs method is called
-          verbose: More printouts when files are being downloaded if True
+            release_url (str): The main url where to begin looking for releases. It has to be the url
+                of a major release, for example: https://research.cs.wisc.edu/htcondor/tarball/23.0/
+                The list of available releases are here: https://research.cs.wisc.edu/htcondor/tarball/
+            filenames (list): A list of strings indicating the tarballs that need to be downloaded for each release found.
+                As an example, [ "condor-{version}-x86_64_CentOS7-stripped.tar.gz", "condor-{version}-x86_64_CentOS8-stripped.tar.gz" ]
+                will download the x86_64 CentOS7 and CeontOS8 tarballs by looking for urls that looks like:
+                https://research.cs.wisc.edu/htcondor/tarball/23.0/23.0.0/release/condor-23.0.0-x86_64_CentOS7-stripped.tar.gz
+                The substring {version} gets expanded to the current version.
+          destination (str): the directory where files will be downloaded when the download_tarballs method is called
+          verbose (bool, optional): More printouts when files are being downloaded if True. Defaults to False.
         """
         super().__init__()
         self.releases = []
@@ -114,14 +124,16 @@ class TarballManager(HTMLParser):
             self.latest_version = self.releases[-1]
 
     def _add_release(self, version, release_dir):
-        """Internal function that downloads a release and adds it to self.releases
+        """Attempt to add a release version if its directory exists. Private function.
+
+        Adds the release to `self.releases`
 
         Args:
-          version: The condor version to download among this major release. E.g.: "23.0.1"
-          release_dir: Which release dir to look into (e.g.: "release", "update"
+            version (str): Condor version string, e.g., "23.0.1".
+            release_dir (str): Directory to check for the release (e.g., "release", "beta", "update").
 
         Returns:
-          True if successful, False if the release is not found
+            bool: True if the release directory exists and the release was added; False otherwise.
         """
         try:
             request.urlopen(self.release_url + "/" + version + release_dir)
@@ -136,7 +148,13 @@ class TarballManager(HTMLParser):
         return False
 
     def handle_data(self, data):
-        """Internal method. Override the base class handle_data"""
+        """Handle HTML data to extract release version information.
+
+        Internal method. Overrides HTMLParser.handle_data().
+
+        Args:
+            data (str): A string containing HTML data.
+        """
         if re.match(r"\d+\.\d+\.\d+/", data):
             added = self._add_release(data, "release")
             # For condor feature releases (i.e., middle number not 0), we allow beta releases
@@ -147,17 +165,19 @@ class TarballManager(HTMLParser):
                     self._add_release(data, "update")
 
     def download_tarballs(self, version):
-        """Download a specific set of condor tarballs from the release_url link
-         All the OS and architecture tarballs for the specified condor version are downloaded.
-         The set of OS and architecture files are specified in the constructor using filenames
+        """Download tarballs for a specific HTCondor version.
 
-         The method also checks the tarball checksum (by downloading the sha256sum.txt file)
-         If a tarball already exist and its checksum is correct then it is skipped.
-         If a specific os/architecture tarball is not available it is skipped, and a message is
-         printed on stdout if verbose has been set to True in the constructor.
+        Download a specific set of condor tarballs from the release_url link
+        All the OS and architecture tarballs for the specified condor version are downloaded.
+        The set of OS and architecture files are specified in the constructor using filenames
+
+        The method also checks the tarball checksum (by downloading the sha256sum.txt file)
+        If a tarball already exist and its checksum is correct then it is skipped.
+        If a specific os/architecture tarball is not available it is skipped, and a message is
+        printed on stdout if verbose has been set to True in the constructor.
 
         Args:
-          version: The condor version to download among this major release. E.g.: "23.0.1"
+            version (str): The HTCondor version to download (e.g., "23.0.1").
         """
         desturl = os.path.join(
             self.release_url, version, self.release_dirs[version] + "/"
@@ -205,7 +225,15 @@ class TarballManager(HTMLParser):
                 )
 
     def verify_checksum(self, tname, checksums):
-        """Internal function to verify the checksum of a file"""
+        """Verify the SHA256 checksum of a downloaded tarball. Internal function.
+
+        Args:
+            tname (str): The tarball filename.
+            checksums (dict): Dictionary mapping filenames to their expected SHA256 hashes.
+
+        Returns:
+            bool or None: True if the checksum matches, False if it does not, None if the expected checksum is missing.
+        """
         dest_file = os.path.join(self.destination, tname)
         with open(dest_file, "rb") as f:
             tar_content = f.read()
@@ -217,16 +245,23 @@ class TarballManager(HTMLParser):
             return None
 
     def generate_xml(self, os_map, arch_map, whitelist, blacklist, default_tarball_version):
-        """Generate the XML snipped to be used in the <tarball> section of the glideinWMS.xml configuration.
+        """Generate an XML snippet for the tarball configuration.
+
+        The XML snippet is intended for inclusion in the <condor_tarballs> section of the glideinWMS.xml file.
 
         Args:
-          os_map: A map that indicates how to translate the OS in the tarball filename to the os attribute in the xml.
-                  See OS_MAP in the configuration template.
-          arch_map: A map that indicates how to translate the ARCH in the tarball filename to the os attribute in the xml.
-                    See ARCH_MAP in the configuration template.
-          whitelist: The whitelist that tells the method which versions of condor have been downloaded. Can be "latest".
-          blacklist: The blacklist in case it was used.
-          default_tarball_version: The default condor tarball version, "default" will be added to the version attribute in the xml
+            os_map (dict): Mapping of OS names in tarball filenames to XML os attribute values.
+                See OS_MAP in the configuration template.
+            arch_map (dict): Mapping of architecture names in tarball filenames to XML arch attribute values.
+                See ARCH_MAP in the configuration template.
+            whitelist (list): List of versions to include. If non-empty, only these versions are used.
+                Can be "latest" to download the latest version.
+            blacklist (list): List of versions to exclude.
+            default_tarball_version (list): List of default tarball versions. If a version is in this list,
+                ",default" will be added to the version attribute in the XML.
+
+        Returns:
+            str: An XML snippet containing multiple <condor_tarball> elements.
         """
         xml_snippet = '      <condor_tarball arch="{arch}" os="{os}" tar_file="{dest_file}" version="{version}"/>\n'
 
@@ -251,8 +286,11 @@ class TarballManager(HTMLParser):
 
 
 class Config(UserDict):
-    """Used to store information about the configuration file. yaml file gets converted
-    to a dictionary by using yaml.load.
+    """Configuration container for tarball download settings.
+
+    Loads configuration from a YAML file, validates it and stores it into a dictionary.
+    The configuration file is determined by the GET_TARBALLS_CONFIG environment variable
+    or by a default file (get_tarballs.yaml) in the script directory.
     """
 
     def __init__(self):
@@ -271,7 +309,10 @@ class Config(UserDict):
         self.validate()
 
     def validate(self):
-        """Validate the configuration file, sort the whitelists and blacklists, etc"""
+        """Validate and normalize the configuration.
+
+        Sorts whitelists and blacklists for each major release in the configuration.
+        """
         for major_dict in self["CONDOR_TARBALL_LIST"]:
             if "WHITELIST" not in major_dict:
                 major_dict["WHITELIST"] = []
@@ -285,8 +326,11 @@ class Config(UserDict):
 
 
 def save_xml(dest_xml, xml):
-    """Wrapper function to save the tarball xml snippet to disk. Also adds
-    the necessary xml tags.
+    """Save the generated XML snippet to disk with proper XML structure.
+
+    Args:
+        dest_xml (str): The destination file path for the XML output.
+        xml (str): The XML snippet to save.
     """
     with open(dest_xml, "w") as fd:
         fd.write("<glidein>\n")
@@ -297,7 +341,15 @@ def save_xml(dest_xml, xml):
 
 
 def parse_opts():
-    """Parse the command line using ArgumentParser. Only option is --verbose"""
+    """Parse command-line options for the tarball downloader.
+
+    Options:
+        --verbose: Enable verbose logging.
+        --checklatest: Check that each major version 'latest' is present in the XML output.
+
+    Returns:
+        argparse.Namespace: Parsed command-line options.
+    """
     parser = argparse.ArgumentParser(
         prog="get_tarballs", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -321,12 +373,12 @@ def checklatest(config, verbose):
         verbose (bool): If True, prints detailed logs for debugging purposes.
 
     Returns:
-        int:
-            - 0 if all "latest" tarball versions are up to date.
-            - 1 if any "latest" tarball version is missing in the XML file.
-            - 2 if the XML file specified in XML_OUT is missing or cannot write XML_OUT file on disk.
-            - 3 Cannot find XML_OUT file when using --checklatest.
-            - 4 XML file needs to be updated since a newer version is present on the website.
+        int: Exit code:
+            0 if all "latest" tarball versions are up to date.
+            1 if any "latest" tarball version is missing in the XML.
+            2 if the XML file specified in XML_OUT is missing or cannot be written.
+            3 if the XML file cannot be found when using --checklatest.
+            4 if the XML file needs updating due to a newer version on the website.
 
     Behavior:
         - Parses the XML file specified in `XML_OUT` to extract the versions of the current tarballs.
@@ -372,7 +424,19 @@ def checklatest(config, verbose):
 
 
 def main():
-    """The main. You happy pylint?"""
+    """Main function for downloading HTCondor tarballs.
+
+    Parses command-line options and loads configuration. If the --checklatest option is
+    specified, it checks that the XML output is up to date. Otherwise, it downloads tarballs
+    for each major release, verifies checksums, generates an XML snippet for the tarball configuration,
+    and saves the XML snippet to the file specified in XML_OUT.
+
+    Returns:
+        int: Exit code:
+            0: Success.
+            2: XML output file error.
+            4: XML file needs update.
+    """
     args = parse_opts()
     config = Config()
     release_url = config["TARBALL_BASE_URL"]

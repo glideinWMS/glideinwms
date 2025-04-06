@@ -3,6 +3,12 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+"""manual_glidein_submit
+
+Submit a test pilot for a particular entry.
+The pilot will be submitted from the Factory without the need for a Frontend request.
+"""
+
 import argparse
 import logging  # This script is using straight logging instead of logSupport or structlog
 import os
@@ -23,7 +29,11 @@ except ImportError:
 
 
 def parse_opts():
-    """Parse the command line options for this command"""
+    """Parse the command line options for this command.
+
+    Returns:
+        argparse.Namespace: An object containing all parsed command-line options.
+    """
     description = "Submit a test pilot for a particular entry\n\n"
 
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawTextHelpFormatter)
@@ -88,6 +98,15 @@ def parse_opts():
 
 
 def log_debug(msg, header=""):
+    """Log a debug message with an optional header.
+
+    Used to print the glideclient classad.
+
+    Args:
+        msg: The message to log (can be any object; it will be pretty-printed).
+        header (str, optional): An optional header to prepend to the log message.
+            If provided, it will be printed between separator lines. Defaults to an empty string.
+    """
     """Simple utility log function to print the glideclient classad"""
     if header:
         logging.debug("=" * (len(header) + 2))
@@ -97,6 +116,20 @@ def log_debug(msg, header=""):
 
 
 def get_reqname(collector, fe_name, group_name, entry_name):
+    """Retrieve the request name from the collector for the specified frontend and entry.
+
+    Args:
+        collector (htcondor.Collector): The HTCondor collector object.
+        fe_name (str): The name of the frontend client.
+        group_name (str): The name of the frontend group.
+        entry_name (str): The name of the entry.
+
+    Returns:
+        str: The request name for the specified parameters.
+
+    Raises:
+        SystemExit: If no matching frontend request is found.
+    """
     constraint = 'MyType=="glideclient" && regexp("^{}@.*$", AuthenticatedIdentity) && regexp("^{}@.*$", ReqName) && GroupName=="{}" && GlideinEncParamSubmitProxy isnt undefined'.format(
         fe_name,
         entry_name,
@@ -113,7 +146,18 @@ def get_reqname(collector, fe_name, group_name, entry_name):
 
 
 def main():
-    """The main module"""
+    """Main function to submit a test pilot for a specified entry.
+
+    This function performs the following steps:
+      1. Changes the working directory to the factory directory.
+      2. Parses the configuration file.
+      3. Parses command-line options.
+      4. Retrieves the necessary credentials and configuration information.
+      5. Submits the pilot using the submitGlideins function.
+
+    Returns:
+        int: 0 if successful, or a non-zero error code otherwise.
+    """
     # Move to the working directory
     try:
         if "GLIDEIN_FACTORY_DIR" in os.environ:

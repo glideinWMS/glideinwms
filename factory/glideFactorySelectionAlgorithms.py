@@ -1,29 +1,29 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+"""This package contains a function to select which resource (entry) to use when the Glideins
+can be submitted to multiple resources.
+"""
+
 import random
 import time
 
 
 def selectionAlgoDefault(submit_files, status_sf, jobDescript, nr_glideins, log):
-    """
-    Given the list of sub entries (aka submit files), and the status of each sub entry (how many idle + running etc)
-    figures out how many glideins to submit for each sub entry.
-    1) Shuffle the submit_files list
-    2) Try to "depth-wise" fill all the subentries untillimits are reached
+    """Determines the number of glideins to submit for each sub entry.
 
-    @type submit_files: list
-    @param submit_files: list of strings containing the name of the submit files for this entry set
-    @type status_sf: dict
-    @param status_sf: dictionary where the keys are the submit files and the values is a condor states dict
-    @type jobDescript: object
-    @param jobDescript: will read here maximum number of idle/total fglideins for each sub entry
-    @type nr_glideins: int
-    @param nr_glideins: total number of glideins to submit to all the entries
-    @type log: object
-    @param log: logging object
+    Given a list of sub entries (i.e. submit files) and the current status of each sub entry (number of idle and running glideins),
+    this function shuffles the submit_files list and then assigns glideins in a round-robin (depth-wise) fashion until the limits are reached.
 
-    Return a dictionary where keys are the submit files, and values are int indicating how many glideins to submit
+    Args:
+        submit_files (list of str): List of strings containing the names of the submit files for this entry set.
+        status_sf (dict): Dictionary where the keys are the submit file names and the values are condor state dictionaries.
+        jobDescript (object): An object that contains Frontend description data. It is used to read the maximum number of idle and total glideins for each sub entry.
+        nr_glideins (int): Total number of glideins to submit across all the entries.
+        log (object): Logging object.
+
+    Returns:
+        dict: A dictionary where the keys are the submit file names and the values are integers indicating how many glideins to submit.
     """
     log.debug(
         "submit_files %s, status_sf %s, jobDescript %s, nr_glideins %s, log %s"

@@ -32,7 +32,25 @@ RRD_LIST = (
 
 
 class MonitoringConfig:
+    """Configuration for monitoring the glidein factory.
+
+    This class stores default values for RRD parameters, log directories, and provides methods to write monitoring files.
+
+    Attributes:
+        rrd_step (int): The step (in seconds) for the RRD. Default is 300 seconds.
+        rrd_heartbeat (int): The heartbeat (in seconds) for the RRD. Default is 1800 seconds.
+        rrd_ds_name (str): The data source name for the RRD. Default is "val".
+        rrd_archives (list): A list of tuples defining the RRD archive parameters.
+        monitor_dir (str): The directory where monitoring files are stored. Default is "monitor/".
+        log_dir (str): The directory where log files are stored. Default is "log/".
+        logCleanupObj: An object for cleaning up log files (initially None).
+        rrd_obj: An instance of rrdSupport.rrdSupport() for creating/updating RRD files.
+        my_name (str): The name of the monitor (default "Unknown").
+        log: The logger to use.
+    """
+
     def __init__(self, log=logSupport.log):
+        """Initialize a MonitoringConfig with default values."""
         # set default values
         # user should modify if needed
         self.rrd_step = 300  # default to 5 minutes
@@ -55,6 +73,14 @@ class MonitoringConfig:
         self.log = log
 
     def config_log(self, log_dir, max_days, min_days, max_mbs):
+        """Configure the log directory and cleanup parameters.
+
+        Args:
+            log_dir (str): The directory for log files.
+            max_days (int or float): Maximum retention time in days.
+            min_days (int or float): Minimum retention time in days.
+            max_mbs (int or float): Maximum size in MB.
+        """
         self.log_dir = log_dir
         cleaner = cleanupSupport.DirCleanupWSpace(
             log_dir,
@@ -66,17 +92,17 @@ class MonitoringConfig:
         cleanupSupport.cleaners.add_cleaner(cleaner)
 
     def logCompleted(self, client_name, entered_dict):
-        """
-        This function takes all newly completed glideins and
-        logs them in logs/entry_Name/completed_jobs_date.log in an
-        XML-like format.
+        """Log newly completed glideins in an XML-like format.
 
-        It counts the jobs completed on a glidein but does not keep track of the cores received or used by the jobs
+        This function takes all newly completed glideins and logs them in an XML-like file named
+        "completed_jobs_<date>.log" in the log directory (logs/entry_Name/). It counts the jobs completed on a glidein
+        but does not keep track of the cores received or used by the jobs.
 
-        @type client_name: String
-        @param client_name: the name of the frontend client
-        @type entered_dict: Dictionary of dictionaries
-        @param entered_dict: This is the dictionary of all jobs that have "Entered" the "Completed" states.  It is indexed by job_id.  Each data is an info dictionary containing the keys: username, jobs_duration (subkeys:total,goodput,terminated), wastemill (subkeys:validation,idle,nosuccess,badput) , duration, condor_started, condor_duration, jobsnr
+        Args:
+            client_name (str): The name of the frontend client.
+            entered_dict (dict): A dictionary (keyed by job_id) of dictionaries for all jobs that have "Entered" the "Completed"
+                states. Each inner dictionary contains keys such as "username", "jobs_duration" (with subkeys "total", "goodput", "terminated"),
+                "wastemill" (with subkeys "validation", "idle", "nosuccess", "badput"), "duration", "condor_started", "condor_duration", and "jobsnr".
         """
         now = time.time()
 
@@ -129,12 +155,11 @@ class MonitoringConfig:
                 )
 
     def write_file(self, relative_fname, output_str):
-        """Write out a string or bytes to a file
+        """Write a string or bytes to a file.
 
         Args:
-            relative_fname (AnyStr): The relative path name to write out
-            output_str (AnyStr): the string (unicode str or bytes) to write to the file
-
+            relative_fname (str): The relative file path to write to.
+            output_str (str or bytes): The content to write.
         """
         # TODO: Fix str/bytes confusion in the pathname
         fname = os.path.join(self.monitor_dir, relative_fname)
@@ -155,13 +180,13 @@ class MonitoringConfig:
         return
 
     def write_completed_json(self, relative_fname, time, val_dict):
-        """
-        Write val_dict to a json file, creating if needed
-        relative_fname: location of json relative to self.monitor_dir
-        time: typically self.updated
-        val_dict: dictionary object to be dumped to file
-        """
+        """Write a dictionary to a JSON file.
 
+        Args:
+            relative_fname (str): The relative JSON file name (without extension) relative to self.monitor_dir.
+            time (float): The timestamp, typically self.updated.
+            val_dict (dict): The dictionary to dump as JSON.
+        """
         fname = os.path.join(self.monitor_dir, relative_fname + ".json")
         data = {}
         data["time"] = time
@@ -182,14 +207,29 @@ class MonitoringConfig:
         return
 
     def establish_dir(self, relative_dname):
+        """Ensure that a directory exists within the monitor directory.
+
+        Args:
+            relative_dname (str): The relative directory name.
+
+        Returns:
+            str: The full directory path.
+        """
         dname = os.path.join(self.monitor_dir, relative_dname)
         # make a directory, its parents and rise no exception if already there
         os.makedirs(dname, exist_ok=True)
         return
 
     def write_rrd_multi(self, relative_fname, ds_type, time, val_dict, min_val=None, max_val=None):
-        """
-        Create a RRD file, using rrdtool.
+        """Create or update an RRD file using rrdtool.
+
+        Args:
+            relative_fname (str): Relative file name (without extension) for the RRD file.
+            ds_type (str): Data source type (e.g., "GAUGE").
+            time (float): Timestamp for the RRD update.
+            val_dict (dict): Dictionary of values to update.
+            min_val (optional): Minimum value, default "U".
+            max_val (optional): Maximum value, default "U".
         """
         if self.rrd_obj.isDummy():
             return  # nothing to do, no rrd bin no rrd creation
@@ -223,10 +263,18 @@ class MonitoringConfig:
         return
 
     def write_rrd_multi_hetero(self, relative_fname, ds_desc_dict, time, val_dict):
-        """Create a RRD file, using rrdtool.
-        Like write_rrd_multi, but with each ds having each a specified type
-        each element of ds_desc_dict is a dictionary with any of ds_type, min, max
+        """Create or update an RRD file with heterogeneous data source definitions.
+
+        This function is similar to write_rrd_multi but allows each data source (ds) to have its own type,
+        minimum, and maximum values.
+        Each element of ds_desc_dict is a dictionary with any of ds_type, min, max;
         if ds_desc_dict[name] is not present, the defaults are {'ds_type':'GAUGE', 'min':'U', 'max':'U'}
+
+        Args:
+            relative_fname (str): Relative file name (without extension) for the RRD file.
+            ds_desc_dict (dict): Dictionary mapping data source names to their definitions.
+            time (float): Timestamp for the update.
+            val_dict (dict): Dictionary of values to update.
         """
         if self.rrd_obj.isDummy():
             return  # nothing to do, no rrd bin no rrd creation
@@ -273,7 +321,25 @@ class MonitoringConfig:
 # TODO: ['Downtime'] is added to the self.data[client_name] dictionary only if logRequest is called before logSchedd, logClientMonitor
 #       This is inconsistent and should be changed, Redmine [#17244]
 class condorQStats:
+    """Handles aggregated HTCondor statistics from condor_q data.
+
+    Attributes:
+        data (dict): Aggregated statistics data.
+        updated (float): Timestamp of the last update.
+        log: Logger instance.
+        files_updated: Timestamp when files were last updated.
+        attributes (dict): Dictionary defining attributes for different categories.
+        downtime (str): Global downtime status.
+        expected_cores (int): Expected number of cores per glidein.
+    """
+
     def __init__(self, log=logSupport.log, cores=1):
+        """Initialize condorQStats with empty data and default values.
+
+        Args:
+            log: Logger instance.
+            cores (int, optional): Expected cores per glidein. Defaults to 1.
+        """
         self.data = {}
         self.updated = time.time()
         self.log = log
@@ -312,13 +378,16 @@ class condorQStats:
         )
 
     def logSchedd(self, client_name, qc_status, qc_status_sf):
-        """Create or update a dictionary with aggregated HTCondor stats
+        """Aggregate and log in a dictionary HTCondor schedd-level statistics for a client.
 
-        client_name is the client requesting the glideins
-        qc_status is a dictionary of condor_status:nr_jobs
-        qc_status_sf is a dictionary of submit_file:qc_status
-        OUTPUT: self.data[client_name]['Status'] is the status for all Glideins
-                self.data[client_name]['StatusEntries'] is the Glidein status by Entry
+        Args:
+            client_name (str): The name of the client requesting the glideins.
+            qc_status (dict): Dictionary mapping numeric statuses to job counts.
+            qc_status_sf (dict): Dictionary mapping submit files to their qc_status dictionaries.
+
+        Output via sideeffect:
+            self.data[client_name]['Status'] is the status for all Glideins
+            self.data[client_name]['StatusEntries'] is the Glidein status by Entry
         """
         if client_name in self.data:
             t_el = self.data[client_name]
@@ -348,8 +417,16 @@ class condorQStats:
 
     @staticmethod
     def getEntryFromSubmitFile(submitFile):
-        """Extract the entry name from submit files that look like:
+        """Extract the entry name from a submit file name.
+
+        The submit file name is expected to be of the form:
         'entry_T2_CH_CERN/job.CMSHTPC_T2_CH_CERN_ce301.condor'
+
+        Args:
+            submitFile (str): The submit file name.
+
+        Returns:
+            str: The extracted entry name, or an empty string if the pattern is not matched.
         """
         # Matches: anything that is not a dot, a dot, anything that is not a dot (captured),
         # another dot, and finally anything that is not a dot
@@ -357,10 +434,10 @@ class condorQStats:
         return m.group(1) if m else ""
 
     def get_zero_data_element(self):
-        """
-        Return a dictionary with the keys defined in self.attributes, and all values to 0
+        """Return a dictionary with keys defined in self.attributes, all set to 0.
 
-        :return: data element w/ all 0 values
+        Returns:
+            dict: A dictionary with zero-initialized integer values.
         """
         empty_data = {}
         for k in self.attributes:
@@ -370,9 +447,11 @@ class condorQStats:
         return empty_data
 
     def aggregateStates(self, qc_status, el):
-        """For each status in the condor_q count status dictionary (qc_status)
-        add the count to the el dictionary (whose keys are state like 'Idle'
-        instead of its number: 1)
+        """Aggregate state counts from a qc_status dictionary (condor_q) into another dictionary using state names.
+
+        Args:
+            qc_status (dict): Dictionary mapping numeric status codes to counts.
+            el (dict): Dictionary to accumulate counts, with state names (e.g. 'Idle' instead of 1) as keys.
         """
         # Listing pairs with jobs counting as 1. Avoid duplicates with the list below
         # These numbers must be consistent w/ the one used to build qc_status
@@ -406,16 +485,17 @@ class condorQStats:
                 el[status] += qc_status[nr] * self.expected_cores
 
     def logRequest(self, client_name, requests):
-        """
-        requests is a dictionary of requests
-        params is a dictionary of parameters
+        """Log client glidein requests.
 
-        At the moment, it looks only for
-          'IdleGlideins'
-          'MaxGlideins'
+        `requests` is a dictionary of requests. `params` is a dictionary of parameters
+        Request contains only that (no real cores info). It is evaluated using GLIDEIN_CPUS
 
-        Request contains only that (no real cores info)
-        It is evaluated using GLIDEIN_CPUS
+        Args:
+            client_name (str): The client name.
+            requests (dict): Dictionary of requests, expected to have keys 'IdleGlideins' and 'MaxGlideins'.
+
+        Updates:
+            self.data[client_name]['Requested'] with the request counts.
         """
         if client_name in self.data:
             t_el = self.data[client_name]
@@ -452,10 +532,7 @@ class condorQStats:
         self.updated = time.time()
 
     def logClientMonitor(self, client_name, client_monitor, client_internals, fraction=1.0):
-        """
-        client_monitor is a dictionary of monitoring info (GlideinMonitor... from glideclient ClassAd)
-        client_internals is a dictionary of internals  (from glideclient ClassAd)
-        If fraction is specified it will be used to extract partial info
+        """Log monitoring data from the glideclient for a client.
 
         At the moment, it looks only for
           'Idle'
@@ -466,9 +543,14 @@ class condorQStats:
           'GlideinsTotal', 'GlideinsTotalCores'
           'LastHeardFrom'
 
-        updates go in self.data (self.data[client_name]['ClientMonitor'])
-        """
+        Updates go in self.data (self.data[client_name]['ClientMonitor'])
 
+        Args:
+            client_name (str): The client name.
+            client_monitor (dict): Monitoring data (GlideinMonitor... attributes from the glideclient ClassAd).
+            client_internals (dict): Internal data (from the glideclient ClassAd).
+            fraction (float, optional): Scaling factor for the values. Defaults to 1.0.
+        """
         if client_name in self.data:
             t_el = self.data[client_name]
         else:
@@ -514,6 +596,7 @@ class condorQStats:
 
     # call this after the last logClientMonitor
     def finalizeClientMonitor(self):
+        """Round all client monitor values to the nearest integer."""
         # convert all ClinetMonitor numbers in integers
         # needed due to fraction calculations
         for client_name in list(self.data.keys()):
@@ -524,6 +607,11 @@ class condorQStats:
         return
 
     def get_data(self):
+        """Return a deep copy of the monitoring data with internal average counters removed.
+
+        Returns:
+            dict: The monitoring data.
+        """
         data1 = copy.deepcopy(self.data)
         for f in list(data1.keys()):
             fe = data1[f]
@@ -537,12 +625,15 @@ class condorQStats:
 
     @staticmethod
     def get_xml_data(data, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
-        """
-        Return a string with the XML formatted statistic data
-        @param data: self.get_data()
-        @param indent_tab: indentation space
-        @param leading_tab: leading space
-        @return: XML string
+        """Convert monitoring data to an XML formatted string.
+
+        Args:
+            data (dict): The monitoring data (`self.get_data()`).
+            indent_tab (str, optional): The indentation string. Defaults to xmlFormat.DEFAULT_TAB.
+            leading_tab (str, optional): The leading indentation string. Defaults to "".
+
+        Returns:
+            str: XML formatted string.
         """
         return xmlFormat.dict2string(
             data,
@@ -556,6 +647,15 @@ class condorQStats:
         )
 
     def get_total(self, history={"set_to_zero": False}):
+        """Compute and return a total summary of the monitoring data.
+
+        Args:
+            history (dict, optional): A dictionary used to track if totals have been set to zero.
+                Defaults to {"set_to_zero": False}.
+
+        Returns:
+            dict: A dictionary with keys "Status", "Requested", and "ClientMonitor" containing aggregated counts.
+        """
         total = {"Status": None, "Requested": None, "ClientMonitor": None}
         set_to_zero = False
 
@@ -613,36 +713,60 @@ class condorQStats:
 
     @staticmethod
     def get_xml_total(total, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
-        """
-        Return formatted XML for the total statistics
-        @param total: self.get_total()
-        @param indent_tab: indentation space
-        @param leading_tab: leading space
-        @return: XML string
+        """Convert the total summary data to an XML string.
+
+        Args:
+            total (dict): The total summary data (`self.get_total()`).
+            indent_tab (str, optional): Indentation for XML formatting. Defaults to xmlFormat.DEFAULT_TAB.
+            leading_tab (str, optional): Leading indentation. Defaults to "".
+
+        Returns:
+            str: XML formatted total summary.
         """
         return xmlFormat.class2string(total, inst_name="total", indent_tab=indent_tab, leading_tab=leading_tab)
 
     def get_xml_updated(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
+        """Return an XML formatted string of the last update time.
+
+        Args:
+            indent_tab (str, optional): Indentation for XML formatting. Defaults to xmlFormat.DEFAULT_TAB.
+            leading_tab (str, optional): Leading indentation. Defaults to "".
+
+        Returns:
+            str: XML formatted update time.
+        """
         return xmlFormat.time2xml(self.updated, "updated", indent_tab, leading_tab)
 
     def set_downtime(self, in_downtime):
+        """Set the downtime status.
+
+        Args:
+            in_downtime (bool): Downtime status.
+        """
         self.downtime = str(in_downtime)
         return
 
     def get_xml_downtime(self, leading_tab=xmlFormat.DEFAULT_TAB):
+        """Return an XML formatted string of the downtime status.
+
+        Args:
+            leading_tab (str, optional): Leading indentation. Defaults to xmlFormat.DEFAULT_TAB.
+
+        Returns:
+            str: XML formatted downtime information.
+        """
         xml_downtime = xmlFormat.dict2string(
             {}, dict_name="downtime", el_name="", params={"status": self.downtime}, leading_tab=leading_tab
         )
         return xml_downtime
 
     def write_file(self, monitoringConfig=None, alt_stats=None):
-        """
-        Calculate a summary for the entry and write statistics to files
-        @param monitoringConfig: used to pass information from the Entry
-        @param alt_stats: an alternative condorQStats object to use if self has no data
-        @return:
-        """
+        """Calculate a summary for the entry and write statistics to files.
 
+        Args:
+            monitoringConfig (MonitoringConfig, optional): Monitoring configuration object. Defaults to global monitoringConfig.
+            alt_stats (condorQStats, optional): Alternative condorQStats object if self has no data.
+        """
         if monitoringConfig is None:
             monitoringConfig = globals()["monitoringConfig"]
 
@@ -725,11 +849,18 @@ class condorQStats:
 
 
 class condorLogSummary:
-    """
-    This class handles the data obtained from parsing the glidein log files
+    """Handles the data obtained from parsing the glidein log files.
+
+    This class stores and aggregates statistics from parsed glidein log files,
+    allowing the detection of state changes (e.g. completed jobs) across iterations.
     """
 
     def __init__(self, log=logSupport.log):
+        """Initialize a condorLogSummary instance.
+
+        Args:
+            log: Logger instance to use (default: logSupport.log).
+        """
         self.data = {}  # not used
         self.updated = time.time()
         self.updated_year = time.localtime(self.updated)[0]
@@ -743,12 +874,12 @@ class condorLogSummary:
         self.log = log
 
     def reset(self):
-        """
-        Replaces old_stats_data with current_stats_data
-        Sets current_stats_data to empty.
-        This is called every iteration in order to later
-        compare the diff of the previous iteration and current one
-        to find any newly changed jobs (ie newly completed jobs)
+        """Reset the current statistics and prepare for a new iteration.
+
+        This method replaces the old statistics data (`old_stats_data`) with the current statistics
+        data (`current_stats_data`), resets the current statistics to an empty dictionary, and clears the differences.
+        It is called at the beginning of each iteration to allow later to compare with the previous iteration
+        and find any newly changed jobs (ie newly completed jobs).
         """
         # reserve only those that has been around this time
         new_stats_data = {}
@@ -763,6 +894,19 @@ class condorLogSummary:
         self.stats_diff = {}
 
     def diffTimes(self, end_time, start_time):
+        """Compute the difference in seconds between two time strings.
+
+        The time strings are expected to be in a format where the first two characters
+        represent minutes (or similar) and so on; if a ValueError or TypeError occurs,
+        -1 is returned.
+
+        Args:
+            end_time (str): The ending time string.
+            start_time (str): The starting time string.
+
+        Returns:
+            int: The difference in seconds between end_time and start_time, or -1 if invalid.
+        """
         year = self.updated_year
         try:
             start_list = [
@@ -809,13 +953,13 @@ class condorLogSummary:
         return end_ctime - start_ctime
 
     def logSummary(self, client_name, stats):
-        """
-        log_stats taken during during an iteration of perform_work are
-        added/merged into the condorLogSummary class here.
+        """Merge log statistics from a new iteration of `perform_work()` into `current_stats_data`.
 
-        @type stats: dictionary of glideFactoryLogParser.dirSummaryTimingsOut
-        @param stats: Dictionary keyed by "username:client_int_name"
-        client_int_name is needed for frontends with multiple groups
+        Args:
+            client_name (str): The client name.
+            stats (dict): Dictionary keyed by "username:client_int_name" containing log statistics
+                (expected to be from a glideFactoryLogParser.dirSummaryTimingsOut instance via its
+                get_simple() method).
         """
         if client_name not in self.current_stats_data:
             self.current_stats_data[client_name] = {}
@@ -830,15 +974,16 @@ class condorLogSummary:
         self.updated_year = time.localtime(self.updated)[0]
 
     def computeDiff(self):
-        """
-        This function takes the current_stats_data from the current iteration
-        and the old_stats_data from the last iteration (see reset() function)
-        to create a diff of the data in the stats_diff dictionary.
+        """Compute the difference between the current and previous iterations of log data.
 
-        This stats_diff will be a dictionary with two entries for each
-        status: "Entered" and "Exited" denoting which job ids have recently
-        changed status, ie.
-        stats_diff[frontend][username:client_int_name]["Completed"]["Entered"]
+        This method compares `current_stats_data` with `old_stats_data` (set via reset())
+        and populates `stats_diff` with two entries for each status ("Entered" and "Exited")
+        indicating which job ids have recently changed status.
+
+        Example:
+            `stats_diff[frontend][username:client_int_name]["Completed"]["Entered"]`
+
+        `self.stats_diff` is created or updated
         """
         for client_name in list(self.current_stats_data.keys()):
             self.stats_diff[client_name] = {}
@@ -851,12 +996,13 @@ class condorLogSummary:
                         )
 
     def get_stats_data_summary(self):
-        """
-        Summarizes current_stats_data:
-        Adds up current_stats_data[frontend][user:client][status]
-        across all username keys.
+        """Summarize the current log statistics data by aggregating counts over usernames.
 
-        @return: returns dictionary stats_data[frontend][status]=count
+        Adds up `current_stats_data[frontend][user:client][status]` across all username keys.
+
+        Returns:
+            dict: A dictionary mapping each client (Frontend) to a dictionary of counts for each status.
+                  For example: {client_name: {"Running": count, "Idle": count, ...}}
         """
         stats_data = {}
         for client_name in list(self.current_stats_data.keys()):
@@ -874,6 +1020,15 @@ class condorLogSummary:
         return stats_data
 
     def get_xml_stats_data(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
+        """Convert the summarized log statistics data into an XML string.
+
+        Args:
+            indent_tab (str, optional): Indentation string. Defaults to xmlFormat.DEFAULT_TAB.
+            leading_tab (str, optional): Leading indentation string. Defaults to "".
+
+        Returns:
+            str: XML formatted statistics data.
+        """
         data = self.get_stats_data_summary()
         return xmlFormat.dict2string(
             data,
@@ -885,8 +1040,29 @@ class condorLogSummary:
         )
 
     # in: entered_list=self.stats_diff[*]['Entered']
-    # out: entered_list[job_id]{'duration','condor_started','condor_duration','jobsnr',wastemill':{'validation','idle','nosuccess','badput'}}
+    # out: entered_list[job_id]{'duration','condor_started','condor_duration','jobsnr','wastemill':{'validation','idle','nosuccess','badput'}}
     def get_completed_stats(self, entered_list):
+        """Extract completed job statistics from a list of job entries.
+
+        Each job entry in entered_list is expected to be a tuple where:
+          - Index 0 is the job ID.
+          - Index 2 is the job's running time.
+          - Index 3 is the job's last time.
+          - Index 4 is a dictionary of additional statistics.
+
+        Args:
+            entered_list (list): List of job entries for which to extract statistics.
+                For example: `self.stats_diff[*]['Entered']`
+
+        Returns:
+            dict: Dictionary mapping job IDs to their statistics, including duration, condor info,
+                  number of jobs, jobs duration breakdown, and waste metrics.
+                  For example:
+                    ```
+                    entered_list[job_id]{'duration','condor_started','condor_duration','jobsnr',
+                                         'wastemill':{'validation','idle','nosuccess','badput'}}
+                    ```
+        """
         out_list = {}
 
         for enle in entered_list:
@@ -986,6 +1162,20 @@ class condorLogSummary:
     # out: {'Lasted':{'2hours':...,...},'Sum':{...:12,...},'JobsNr':...,
     #       'Waste':{'validation':{'0m':...,...},...},'WasteTime':{...:{...},...}}
     def summarize_completed_stats(self, entered_list):
+        """Summarize completed job statistics from a list of job entries.
+
+        Args:
+            entered_list (list): List of job entries (as returned by get_completed_stats).
+
+        Returns:
+            dict: A dictionary summarizing completed statistics with keys:
+                - 'Lasted': counts of jobs by time range.
+                - 'JobsNr': counts of jobs by job range.
+                - 'Sum': overall totals.
+                - 'JobsDuration': counts by job duration range.
+                - 'Waste': waste metrics per category.
+                - 'WasteTime': waste time metrics per category.
+        """
         # summarize completed data
         count_entered_times = {}
         for enle_timerange in getAllTimeRanges():
@@ -1080,14 +1270,17 @@ class condorLogSummary:
         }
 
     def get_data_summary(self):
-        """
-        Summarizes stats_diff data (computeDiff should have
-        already been called)
-        Sums over username in the dictionary
-        stats_diff[frontend][username][entered/exited][status]
-        to make stats_data[client_name][entered/exited][status]=count
+        """Summarize the differential statistics data across all clients.
 
-        @return: dictionary[client_name][entered/exited][status]=count
+        This method aggregates the stats_diff dictionary over all usernames for each client,
+        resulting in a summary with counts for "Current", "Entered", and "Exited" for each status.
+
+        Sums over username in the dictionary `stats_diff[frontend][username][entered/exited][status]`
+        to make `stats_data[client_name][entered/exited][status]=count`.
+
+        Returns:
+            dict: Dictionary of summarized data in the form:
+                  {client_name: {"Current": {...}, "Entered": {...}, "Exited": {...}}}
         """
         stats_data = {}
         for client_name in list(self.stats_diff.keys()):
@@ -1123,6 +1316,15 @@ class condorLogSummary:
         return stats_data
 
     def get_xml_data(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
+        """Convert the summarized differential data to an XML formatted string.
+
+        Args:
+            indent_tab (str, optional): Indentation string. Defaults to xmlFormat.DEFAULT_TAB.
+            leading_tab (str, optional): Leading indentation string. Defaults to "".
+
+        Returns:
+            str: XML formatted string of the summarized data.
+        """
         data = self.get_data_summary()
         return xmlFormat.dict2string(
             data,
@@ -1134,8 +1336,10 @@ class condorLogSummary:
         )
 
     def get_stats_total(self):
-        """
-        @return: Dictionary with keys (wait,idle,running,held)
+        """Aggregate and return total statistics data for all clients.
+
+        Returns:
+            dict: Dictionary with keys (e.g. "Wait", "Idle", "Running", "Held") mapped to lists of data.
         """
         total = {"Wait": None, "Idle": None, "Running": None, "Held": None}
         for k in list(total.keys()):
@@ -1149,6 +1353,11 @@ class condorLogSummary:
         return total
 
     def get_stats_total_summary(self):
+        """Compute a summary of the total statistics.
+
+        Returns:
+            dict: Dictionary mapping each status to the count of items in the total data.
+        """
         in_total = self.get_stats_total()
         out_total = {}
         for k in list(in_total.keys()):
@@ -1156,14 +1365,24 @@ class condorLogSummary:
         return out_total
 
     def get_xml_stats_total(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
+        """Convert the total statistics summary to an XML formatted string.
+
+        Args:
+            indent_tab (str, optional): Indentation string. Defaults to xmlFormat.DEFAULT_TAB.
+            leading_tab (str, optional): Leading indentation string. Defaults to "".
+
+        Returns:
+            str: XML formatted string of the total statistics.
+        """
         total = self.get_stats_total_summary()
         return xmlFormat.class2string(total, inst_name="total", indent_tab=indent_tab, leading_tab=leading_tab)
 
     def get_diff_summary(self):
-        """
-        Flattens stats_diff differential data.
+        """Flatten and return the differential statistics (stats_diff) data.
 
-        @return: Dictionary of client_name with sub_keys Wait,Idle,Running,Held,Completed,Removed
+        Returns:
+            dict: A dictionary mapping client names to sub-dictionaries with keys "Wait", "Idle", "Running",
+                  "Held", "Completed", and "Removed", each containing "Entered" and "Exited" lists.
         """
         out_data = {}
         for client_name in list(self.stats_diff.keys()):
@@ -1188,6 +1407,12 @@ class condorLogSummary:
         return out_data
 
     def get_diff_total(self):
+        """Aggregate the differential statistics across all clients.
+
+        Returns:
+            dict: Dictionary with keys "Wait", "Idle", "Running", "Held", "Completed", "Removed"
+                  each containing aggregated "Entered" and "Exited" lists.
+        """
         total = {"Wait": None, "Idle": None, "Running": None, "Held": None, "Completed": None, "Removed": None}
         for k in list(total.keys()):
             total[k] = {"Entered": [], "Exited": []}
@@ -1203,6 +1428,11 @@ class condorLogSummary:
         return total
 
     def get_total_summary(self):
+        """Compute a total summary by combining current statistics with differential statistics.
+
+        Returns:
+            dict: Dictionary with keys "Current", "Entered", and "Exited" for each status.
+        """
         stats_total = self.get_stats_total()
         diff_total = self.get_diff_total()
         out_total = {"Current": {}, "Entered": {}, "Exited": {}}
@@ -1222,6 +1452,15 @@ class condorLogSummary:
         return out_total
 
     def get_xml_total(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
+        """Convert the total summary to an XML formatted string.
+
+        Args:
+            indent_tab (str, optional): Indentation string. Defaults to xmlFormat.DEFAULT_TAB.
+            leading_tab (str, optional): Leading indentation string. Defaults to "".
+
+        Returns:
+            str: XML formatted total summary.
+        """
         total = self.get_total_summary()
         return xmlFormat.class2string(
             total,
@@ -1232,9 +1471,24 @@ class condorLogSummary:
         )
 
     def get_xml_updated(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
+        """Return an XML formatted string of the last update time.
+
+        Args:
+            indent_tab (str, optional): Indentation string. Defaults to xmlFormat.DEFAULT_TAB.
+            leading_tab (str, optional): Leading indentation string. Defaults to "".
+
+        Returns:
+            str: XML formatted update time.
+        """
         return xmlFormat.time2xml(self.updated, "updated", indent_tab, leading_tab)
 
     def write_file(self, monitoringConfig=None):
+        """Write a snapshot XML file, log_summary.xml, for the log summary data and update the corresponding RRDs.
+
+        Args:
+            monitoringConfig (MonitoringConfig, optional): Monitoring configuration object.
+                Defaults to the global monitoringConfig.
+        """
         if monitoringConfig is None:
             monitoringConfig = globals()["monitoringConfig"]
 
@@ -1367,12 +1621,14 @@ class condorLogSummary:
         return
 
     def aggregate_frontend_data(self, updated, diff_summary):
-        """
-        This goes into each frontend in the current entry and aggregates
-        the completed/stats/wastetime data into completed_data.json
-        at the entry level
-        """
+        """Aggregate frontend log data from individual Frontends into a single entry level file.
 
+        Aggregates the completed/stats/wastetime data into completed_data.json.
+
+        Args:
+            updated (float): The update timestamp.
+            diff_summary (dict): Differential summary data from get_diff_summary().
+        """
         entry_data = {"frontends": {}}
 
         for frontend in list(diff_summary.keys()):
@@ -1405,10 +1661,18 @@ class condorLogSummary:
         monitoringConfig.write_completed_json("completed_data", updated, entry_data)
 
     def write_job_info(self, scheddName, collectorName):
-        """The method iterates over the stats_diff dictionary looking for
-        completed jobs and then fills out a dictionary that contains the
-        monitoring information needed for this job. Those info looks like:
+        """Extract and write job monitoring information for completed jobs.
 
+        This method iterates over the differential statistics (stats_diff) and collects monitoring
+        information for completed jobs. It then completes a dictionary with the following keys and
+        writes it into a pickle file:
+            - 'schedd_name': scheddName
+            - 'collector_name': collectorName
+            - 'joblist': A dictionary mapping job IDs to monitoring information (condor_duration, glidein_duration,
+              condor_started, numjobs, activation_claims, etc.).
+
+        Example dictionary:
+        ```
         {
             'schedd_name': 'name',
             'collector_name': 'name',
@@ -1418,9 +1682,11 @@ class condorLogSummary:
                 ...
             }
         }
+        ```
 
-        :param scheddName: The schedd name to update the job
-        :param collectorName: The collector name to update the job
+        Args:
+            scheddName (str): The HTCondor schedd name.
+            collectorName (str): The collector name.
         """
         jobinfo = {
             "schedd_name": scheddName,
@@ -1462,9 +1728,26 @@ class condorLogSummary:
 
 
 class FactoryStatusData:
-    """this class handles the data obtained from the rrd files"""
+    """Handles data obtained from RRD files for the Factory status.
+
+    Attributes:
+        data (dict): Dictionary to store RRD data.
+        updated (float): Last update timestamp.
+        tab (str): Indentation string for XML formatting.
+        resolution (tuple): Tuple of resolutions (in seconds).
+        total (str): Identifier for total data.
+        frontends (list): List of frontend identifiers.
+        base_dir (str): Base directory for monitoring data.
+        log: Logger instance.
+    """
 
     def __init__(self, log=logSupport.log, base_dir=None):
+        """Initialize FactoryStatusData with default values.
+
+        Args:
+            log: Logger instance.
+            base_dir (str, optional): Base directory for monitoring files. Defaults to monitorAggregatorConfig.monitor_dir.
+        """
         self.data = {}
         for rrd in RRD_LIST:
             self.data[rrd] = {}
@@ -1479,18 +1762,31 @@ class FactoryStatusData:
         self.log = log
 
     def getUpdated(self):
-        """returns the time of last update"""
+        """Return an XML formatted string representing the last update time.
+
+        Returns:
+            str: XML formatted update time.
+        """
         return xmlFormat.time2xml(self.updated, "updated", indent_tab=self.tab, leading_tab=self.tab)
 
     def fetchData(self, rrd_file, pathway, res, start, end):
-        """Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
+        """Fetch data from an RRD file using rrdtool.
 
-        rrdtool fetch returns 3 tuples: a[0], a[1], & a[2].
+        rrdtool fetch returns 3 tuples: a[0], a[1], and a[2].
         [0] lists the resolution, start and end time, which can be specified as arguments of fetchData.
         [1] returns the names of the datasets.  These names are listed in the key.
         [2] is a list of tuples. each tuple contains data from every dataset.  There is a tuple for each time data was collected.
-        """
 
+        Args:
+            rrd_file (str): The RRD file name.
+            pathway (str): The path to the RRD file.
+            res (int): Resolution.
+            start (int): Start time.
+            end (int): End time.
+
+        Returns:
+            dict: Dictionary with dataset names as keys and lists of data as values. There is a list for each element.
+        """
         # use rrdtool to fetch data
         baseRRDSupport = rrdSupport.rrdSupport()
         try:
@@ -1531,6 +1827,14 @@ class FactoryStatusData:
             return data_sets
 
     def average(self, input_list):
+        """Calculate the average of a list of numbers.
+
+        Args:
+            input_list (list): A list of numeric values.
+
+        Returns:
+            float: The average value, or 0 if the list is empty.
+        """
         try:
             if len(input_list) > 0:
                 avg_list = sum(input_list) / len(input_list)
@@ -1542,16 +1846,22 @@ class FactoryStatusData:
             return
 
     def getData(self, input_val, monitoringConfig=None):
-        """Return the data fetched by rrdtool as a dictionary
+        """Retrieve RRD data for the specified client fetched by rrdtool.
 
-        This also modifies the rrd data dictionary for the client (input_val) in all RRD files
-        and appends the client to the list of frontends
+        This function updates the internal RRD data dictionary for the client and
+        appends the client to the list of frontends if not there. It also returns the data dictionary.
 
         Where this side effect is used:
         - totals are updated in Entry.writeStats (writing the XML)
         - frontend data in check_and_perform_work
-        """
 
+        Args:
+            input_val (str): The data identifier (totals or a client).
+            monitoringConfig (MonitoringConfig, optional): Monitoring configuration. Defaults to global monitoringConfig.
+
+        Returns:
+            dict: Dictionary containing the RRD data.
+        """
         if monitoringConfig is None:
             monitoringConfig = globals()["monitoringConfig"]
 
@@ -1596,16 +1906,18 @@ class FactoryStatusData:
         return self.data
 
     def getXMLData(self, rrd):
-        """Return a XML formatted string the specific RRD file for the data fetched from a given site (all clients+total).
+        """Return an XML formatted string for the specified RRD data (all clients and total from a given site).
 
-        This also has side effects in the getData(self.total) invocation:
+        This method also triggers the side effect of updating the internal total data (from `getData(self.total)`):
         - modifies the rrd data dictionary (all RRDs) for the total for this entry
         - and appends the total (self.total aka 'total/') to the list of clients (frontends)
 
-        @param rrd:
-        @return: XML formatted string with stats data
-        """
+        Args:
+            rrd (str): The RRD file name.
 
+        Returns:
+            str: XML formatted string of the RRD data.
+        """
         # create a string containing the total data
         total_xml_str = self.tab + "<total>\n"
         # this is invoked to trigger the side effect but the data is retrieved directly from self.data dict below
@@ -1654,15 +1966,15 @@ class FactoryStatusData:
         return data_str
 
     def writeFiles(self, monitoringConfig=None):
-        """Write an xml file for the data fetched from a given site.
-        Write rrd files
+        """Write XML and RRD files for the site (Factory entry) status data.
 
-        NOTE: writeFiles triggers the side effect of updating the rrd for totals (via getXMLData/getData)
+        This method writes an XML file for the fetched data and updates the RRD files.
 
-        @param monitoringConfig:
-        @return: None
+        NOTE: this method triggers the side effect of updating the rrd for totals (via getXMLData/getData)
+
+        Args:
+            monitoringConfig (MonitoringConfig, optional): The monitoring configuration object. Defaults to global monitoringConfig.
         """
-
         if monitoringConfig is None:
             monitoringConfig = globals()["monitoringConfig"]
 
@@ -1692,14 +2004,24 @@ class FactoryStatusData:
 
 
 class Descript2XML:
-    """
-    create an XML file out of glidein.descript, frontend.descript,
-    entry.descript, attributes.cfg, and params.cfg
+    """Create the descript.xml XML file from configuration files.
+
+    This class creates an XML file using data from glidein.descript, frontend.descript,
+    entry.descript, attributes.cfg, and params.cfg. The resulting XML file will contain
+    the elements glideFactoryDescript and glideFactoryEntryDescript.
+
     TODO: The XML is used by ... "the monioring page"?
-    The file created is descript.xml, w/ glideFactoryDescript and glideFactoryEntryDescript elements
+
+    Attributes:
+        tab (str): Indentation string for XML formatting.
+        entry_descript_blacklist (tuple): Keys to remove from entry descriptions.
+        frontend_blacklist (tuple): Keys to remove from frontend descriptions.
+        glidein_whitelist (tuple): Keys to include from the glidein description.
+        log: Logger instance.
     """
 
     def __init__(self, log=logSupport.log):
+        """Initialize Descript2XML with default blacklists and whitelists."""
         self.tab = xmlFormat.DEFAULT_TAB
         self.entry_descript_blacklist = ("DowntimesFile", "EntryName", "Schedd")
         self.frontend_blacklist = ("usermap",)
@@ -1716,6 +2038,14 @@ class Descript2XML:
         self.log = log
 
     def frontendDescript(self, fe_dict):
+        """Process the frontend description dictionary by removing blacklisted keys and convert it to XML.
+
+        Args:
+            fe_dict (dict): Dictionary of frontend descriptions.
+
+        Returns:
+            str: XML formatted string of frontend descriptions.
+        """
         for key in self.frontend_blacklist:
             try:
                 for frontend in fe_dict:
@@ -1735,6 +2065,14 @@ class Descript2XML:
             return
 
     def entryDescript(self, e_dict):
+        """Process the entry description dictionary by removing blacklisted keys and convert it to XML.
+
+        Args:
+            e_dict (dict): Dictionary of entry descriptions.
+
+        Returns:
+            str: XML formatted string of entry descriptions.
+        """
         for key in self.entry_descript_blacklist:
             try:
                 for entry in e_dict:
@@ -1758,6 +2096,14 @@ class Descript2XML:
             return
 
     def glideinDescript(self, g_dict):
+        """Process the glidein description dictionary, filtering by the whitelist, and convert it to XML.
+
+        Args:
+            g_dict (dict): Glidein description dictionary.
+
+        Returns:
+            str: XML formatted string for the glidein description.
+        """
         w_dict = {}
         for key in self.glidein_whitelist:
             try:
@@ -1777,10 +2123,22 @@ class Descript2XML:
             return
 
     def getUpdated(self):
-        """returns the time of last update"""
+        """Return an XML formatted string representing the time of last update (current time).
+
+        Returns:
+            str: XML string with the current update time.
+        """
         return xmlFormat.time2xml(time.time(), "updated", indent_tab=self.tab, leading_tab=self.tab)
 
     def writeFile(self, path, xml_str, singleEntry=False):
+        """Write the XML content to the descript.xml file.
+
+        Args:
+            path (str): Directory path where the file will be written.
+            xml_str (str): The XML content.
+            singleEntry (bool, optional): If True, use "glideFactoryEntryDescript" as root element;
+                otherwise use "glideFactoryDescript". Defaults to False.
+        """
         if singleEntry:
             root_el = "glideFactoryEntryDescript"
         else:
@@ -1810,10 +2168,20 @@ class Descript2XML:
 
 ##################################################
 def getAllJobTypes():
+    """Return a tuple of all job types.
+
+    Returns:
+        tuple: ("validation", "idle", "badput", "nosuccess")
+    """
     return ("validation", "idle", "badput", "nosuccess")
 
 
 def getLogCompletedDefaults():
+    """Return default values for completed log statistics, all set to 0.
+
+    Returns:
+        dict: Default completed statistics.
+    """
     return {
         "Glideins": 0,
         "Lasted": 0,
@@ -1827,6 +2195,14 @@ def getLogCompletedDefaults():
 
 
 def getTimeRange(absval):
+    """Return a time range label based on the absolute value.
+
+    Args:
+        absval (int): Absolute time value.
+
+    Returns:
+        str: A label such as "Minutes", "Days", or a formatted string.
+    """
     if absval < 1:
         return "Unknown"
     if absval < (25 * 60):
@@ -1843,10 +2219,23 @@ def getTimeRange(absval):
 
 
 def getAllTimeRanges():
-    return ("Unknown", "Minutes", "30mins", "2hours", "8hours", "32hours", "Days")
+    """Return a tuple of all time range labels.
+
+    Returns:
+        tuple: ("Unknown", "Minutes", "30mins", "2hours", "8hours", "32hours", "Days")
+    """
+    return "Unknown", "Minutes", "30mins", "2hours", "8hours", "32hours", "Days"
 
 
 def getJobRange(absval):
+    """Return a job range label based on the absolute value.
+
+    Args:
+        absval (int): Absolute job number.
+
+    Returns:
+        str: A label such as "1job", "2jobs", "4jobs", etc.
+    """
     if absval < 1:
         return "None"
     if absval == 1:
@@ -1862,10 +2251,23 @@ def getJobRange(absval):
 
 
 def getAllJobRanges():
-    return ("None", "1job", "2jobs", "4jobs", "16jobs", "Many")
+    """Return a tuple of all job range labels.
+
+    Returns:
+        tuple: ("None", "1job", "2jobs", "4jobs", "16jobs", "Many")
+    """
+    return "None", "1job", "2jobs", "4jobs", "16jobs", "Many"
 
 
 def getMillRange(absval):
+    """Return a minutes (mill) range label based on the absolute value.
+
+    Args:
+        absval (int): Absolute mill value.
+
+    Returns:
+        str: A label such as "5m", "25m", "100m", etc.
+    """
     if absval < 2:
         return "None"
     if absval < 15:
@@ -1885,11 +2287,21 @@ def getMillRange(absval):
 
 
 def getAllMillRanges():
-    return ("None", "5m", "25m", "100m", "250m", "500m", "Most", "All")
+    """Return a tuple of all minutes (mill) range labels.
+
+    Returns:
+        tuple: ("None", "5m", "25m", "100m", "250m", "500m", "Most", "All")
+    """
+    return "None", "5m", "25m", "100m", "250m", "500m", "Most", "All"
 
 
 ##################################################
 def get_completed_stats_xml_desc():
+    """Return a dictionary describing the XML structure for completed stats.
+
+    Returns:
+        dict: XML descriptor for completed stats.
+    """
     return {
         "dicts_params": {
             "Lasted": {"el_name": "TimeRange"},

@@ -3,8 +3,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Entry class
-   Model and behavior of a Factory Entry (element describing a resource)
+"""Entry class.
+
+Model and behavior of a Factory Entry (an element describing a resource).
 """
 
 import copy
@@ -25,21 +26,13 @@ from glideinwms.lib.util import chmod
 ############################################################
 class Entry:
     def __init__(self, name, startup_dir, glidein_descript, frontend_descript):
-        """
-        Class constructor
+        """Construct an Entry instance.
 
-        @type name: string
-        @param name: Name of the entry
-
-        @type startup_dir: string
-        @param startup_dir: Factory workspace
-
-        @type glidein_descript: dict
-        @param glidein_descript: Factory glidein config values
-
-        @type frontend_descript: dict
-        @param frontend_descript: Security mappings for frontend identities,
-        and security classes
+        Args:
+            name (str): Name of the entry.
+            startup_dir (str): Path to the Factory workspace.
+            glidein_descript (dict): Factory glidein configuration values.
+            frontend_descript (dict): Security mappings for Frontend identities and security classes.
         """
         self.limits_triggered = {}
         self.name = name
@@ -167,11 +160,12 @@ class Entry:
         write_descript(self.name, self.jobDescript, self.jobAttributes, self.jobParams, self.monitorDir)
 
     def loadContext(self):
-        """
-        Load context for this entry object so monitoring and logs are
-        written correctly. This should be called in every method for now.
-        """
+        """Load the context for this entry.
 
+        Sets up the monitoring configuration, factory configuration,
+        and logging configuration for this entry. Should be called at the start
+        of each method that needs to operate within the correct context.
+        """
         glideFactoryMonitoring.monitoringConfig = self.monitoringConfig
         gfi.factoryConfig = self.gfiFactoryConfig
         glideFactoryLib.factoryConfig = self.gflFactoryConfig
@@ -179,13 +173,17 @@ class Entry:
     # TODO: This function should return the same number as getGlideinCpusNum(glidein) in glideinFrontendLib
     # TODO: consider moving getGlideinCpusNum to shared lib (and wrap it to avoid ValueError)
     def getGlideinExpectedCores(self):
-        """
-        Return the number of cores expected for each glidein.
-         This is the GLIDEIN_CPU attribute when > 0,
-         GLIDEIN_ESTIMATED_CPUS when GLIDEIN_CPU <= 0 or auto/node/slot,
-         or 1 if not set
-         The actual cores received will depend on the RSL or HTCondor attributes and the Entry
-         and could also vary over time.
+        """Return the expected number of cores for each glidein.
+
+        This returns the value of the GLIDEIN_CPU attribute if > 0;
+        otherwise, it returns the GLIDEIN_ESTIMATED_CPUS value when GLIDEIN_CPU <= 0
+        or a string (auto/node/slot) or 1 if not set.
+        Note that this number is used in provisioning and set in HTCondor. The actual
+        number of cores used will depend on the RSL or HTCondor attributes and the Entry
+        and could also vary over time.
+
+        Returns:
+            int: The expected number of cores.
         """
         try:
             cpus = str(self.jobAttributes.data["GLIDEIN_CPUS"])
@@ -203,10 +201,11 @@ class Entry:
             return 1
 
     def loadWhitelist(self):
-        """
-        Load the whitelist info for this entry
-        """
+        """Load the whitelist information for this entry.
 
+        Retrieves the allowed VOs and corresponding security classes from the job description.
+        If whitelist mode is enabled, populates the securityList attribute.
+        """
         # Get information about which VOs to allow for this entry point.
         # This will be a comma-delimited list of pairs
         # vofrontendname:security_class,vofrontend:sec_class, ...
@@ -226,98 +225,103 @@ class Entry:
         # self.allowedProxySource = self.glideinDescript.data['AllowedJobProxySource'].split(',')
 
     def loadDowntimes(self):
-        """
-        Load the downtime info for this entry
-        """
+        """Load downtime information for this entry.
 
+        Loads downtime data from the downtime file specified in the glidein description
+        and updates the job attributes with the downtime comment.
+        """
         self.downtimes = glideFactoryDowntimeLib.DowntimeFile(self.glideinDescript.data["DowntimesFile"])
-        self.downtimes.checkDowntime(entry=self.name)
+        self.downtimes.check_downtime(entry=self.name)
         self.jobAttributes.data["GLIDEIN_Downtime_Comment"] = self.downtimes.downtime_comment
 
     def isClientBlacklisted(self, client_sec_name):
-        """
-        Check if the frontend whitelist is enabled and client is not in
-        whitelist
+        """Check if a client (Frontend) is blacklisted. I.e. the whitelist is enable and the client is not in the list.
 
-        @rtype: boolean
-        @return: True if the client's security name is blacklist
-        """
+        Args:
+            client_sec_name (str): The security name of the client.
 
+        Returns:
+            bool: True if the frontend whitelist is enabled and the client is not in the whitelist, False otherwise.
+        """
         return (self.frontendWhitelist == "On") and (not self.isClientInWhitelist(client_sec_name))
 
     def isClientWhitelisted(self, client_sec_name):
-        """
-        Check if the client's security name is in the whitelist of this entry
-        and the frontend whitelist is enabled
+        """Check if a client (Frontend) is whitelisted.
 
-        @rtype: boolean
-        @return: True if the client's security name is whitelisted
-        """
+        Args:
+            client_sec_name (str): The security name of the client.
 
+        Returns:
+            bool: True if the clients whitelist is enabled and the client is in the whitelist, False otherwise.
+        """
         return (self.frontendWhitelist == "On") and (self.isClientInWhitelist(client_sec_name))
 
     def isClientInWhitelist(self, client_sec_name):
-        """
-        Check if the client's security name is in the whitelist of this entry
+        """Check if a client's security name is in the whitelist of this entry.
 
-        @rtype: boolean
-        @return: True if the client's security name is in the whitelist
-        """
+        Args:
+            client_sec_name (str): The security name of the client.
 
+        Returns:
+            bool: True if the client is in the whitelist, False otherwise.
+        """
         return client_sec_name in self.securityList
 
     def isSecurityClassAllowed(self, client_sec_name, proxy_sec_class):
-        """
-        Check if the security class is allowed
+        """Check if a proxy security class is allowed for a client.
 
-        @rtype: boolean
-        @return: True if the security class is allowed
-        """
+        Args:
+            client_sec_name (str): The client's security name.
+            proxy_sec_class (str): The security class of the proxy.
 
+        Returns:
+            bool: True if the security class is allowed for the client, False otherwise.
+        """
         return (proxy_sec_class in self.securityList[client_sec_name]) or ("All" in self.securityList[client_sec_name])
 
     def isInDowntime(self):
-        """
-        Check the downtime file to find out if entry is in downtime
+        """Determine if the entry is currently in downtime.
 
-        @rtype: boolean
-        @return: True if the entry is in downtime
+        Returns:
+            bool: True if the entry is in downtime, False otherwise.
         """
-
-        return self.downtimes.checkDowntime(entry=self.name)
+        return self.downtimes.check_downtime(entry=self.name)
 
     def isSecurityClassInDowntime(self, client_security_name, security_class):
-        """
-        Check if the security class is in downtime in the Factory or in this Entry
+        """Check if a security class is in downtime in the Factory or in this Entry.
 
-        @rtype: boolean
-        @return: True if the security class is in downtime
-        """
+        Args:
+            client_security_name (str): The client's security name.
+            security_class (str): The security class to check.
 
+        Returns:
+            bool: True if the security class is in downtime in the Factory or this entry, False otherwise.
+        """
         return (
-            self.downtimes.checkDowntime(entry="factory", frontend=client_security_name, security_class=security_class)
+            self.downtimes.check_downtime(entry="factory", frontend=client_security_name, security_class=security_class)
         ) or (
-            self.downtimes.checkDowntime(entry=self.name, frontend=client_security_name, security_class=security_class)
+            self.downtimes.check_downtime(entry=self.name, frontend=client_security_name, security_class=security_class)
         )
 
     def setDowntime(self, downtime_flag):
-        """
-        Check if we are in downtime and set info accordingly
+        """Check if the entry or Factory is in downtime and set the job status accordingly.
 
-        @type downtime_flag: boolean
-        @param downtime_flag: Downtime flag
-        """
+        Updates the job attributes with the downtime status. If either the provided flag is True or the entry
+        is in downtime, the attribute "GLIDEIN_In_Downtime" is updated accordingly.
 
+        Args:
+            downtime_flag (bool): The downtime flag.
+        """
         self.jobAttributes.data["GLIDEIN_In_Downtime"] = downtime_flag or self.isInDowntime()
 
     def initIteration(self, factory_in_downtime):
-        """
-        Perform the resetting of stats as required before every iteration
+        """Initialize the entry for a new iteration.
 
-        @type factory_in_downtime: boolean
-        @param factory_in_downtime: Downtime flag for the factory
-        """
+        Resets statistics, updates downtime status, and initializes client statistics.
 
+        Args:
+            factory_in_downtime (bool): Flag indicating if the factory is in downtime.
+        """
         self.loadContext()
 
         self.setDowntime(factory_in_downtime)
@@ -336,23 +340,20 @@ class Entry:
         self.log.info("Iteration initialized")
 
     def unsetInDowntime(self):
-        """
-        Clear the downtime status of this entry
-        """
-
+        """Clear the downtime status for the entry."""
         del self.jobAttributes.data["GLIDEIN_In_Downtime"]
 
     def queryQueuedGlideins(self):
-        """
-        Query WMS schedd (on Factory) and get glideins info. Re-raise in case of failures.
+        """Query the HTCondor schedd for glidein job information.
+
+        Query the WMS schedd (on Factory) and get glideins info. Re-raise exceptions in case of failures.
         Return a loaded condorMonitor.CondorQ object using the entry attributes (name, schedd, ...).
-        Consists of a fetched dictionary w/ jobs (keyed by job cluster, ID) in .stored_data,
+        Consists of a fetched dictionary with jobs (keyed by job cluster, ID) in .stored_data,
         some query attributes and the ability to reload (load/fetch)
 
-        @rtype: condorMonitor.CondorQ already loaded
-        @return: Information about the jobs in condor_schedd
+        Returns:
+            condorMonitor.CondorQ: A loaded CondorQ object with job information.
         """
-
         try:
             return glideFactoryLib.getCondorQData(self.name, None, self.scheddName, factoryConfig=self.gflFactoryConfig)
         except Exception:
@@ -362,14 +363,18 @@ class Entry:
             raise
 
     def glideinsWithinLimits(self, condorQ):
-        """
-        Check the condorQ info and see we are within limits & init entry limits
+        """Check if glidein submission is within allowed limits.
 
-        @rtype: boolean
-        @return: True if glideins are in limits and we can submit more
-        """
+        This function checks both entry-level and frontend-level limits based on the Condor queue.
+        It also updates the limits_triggered attribute with details of any exceeded limits.
 
-        # Flag that says whether or not we can submit any more
+        Args:
+            condorQ (condorMonitor.CondorQ): The CondorQ object with job information.
+
+        Returns:
+            bool: True if additional glideins can be submitted, False otherwise.
+        """
+        # Flag that says whether we can submit or not more glideins
         can_submit_glideins = True
 
         # Initialize entry and frontend limit dicts
@@ -441,10 +446,11 @@ class Entry:
         return can_submit_glideins
 
     def getGlideinConfiguredLimits(self):
-        """
-        Extract the required info to write to classads
-        """
+        """Extract the configured glidein limits for advertisement in ClassAds.
 
+        Returns:
+            dict: A dictionary containing the configured limits.
+        """
         configured_limits = {}
 
         # Create list of attributes upfrontend and iterate over them.
@@ -494,23 +500,19 @@ class Entry:
         return configured_limits
 
     def writeClassadsToFile(self, downtime_flag, gf_filename, gfc_filename, append=True):
+        """Write the glidefactory and glidefactoryclient ClassAds to files.
+
+        This function creates ClassAds for the Factory and client monitoring,
+        and writes them to the specified files.
+        Advertising is done in a separate function.
+
+        Args:
+            downtime_flag (bool): Downtime flag.
+            gf_filename (str): Filename to write the glidefactory classads.
+            gfc_filename (str): Filename to write the glidefactoryclient classads.
+            append (bool, optional): If True, append to existing files (i.e Multi ClassAds file);
+                otherwise, overwrite. Defaults to True.
         """
-        Create the glidefactory and glidefactoryclient classads to advertise
-        but do not advertise
-
-        @type downtime_flag: boolean
-        @param downtime_flag: downtime flag
-
-        @type gf_filename: string
-        @param gf_filename: Filename to write glidefactory classads
-
-        @type gfc_filename: string
-        @param gfc_filename: Filename to write glidefactoryclient classads
-
-        @type append: boolean
-        @param append: True to append new classads. i.e Multi classads file
-        """
-
         self.loadContext()
 
         trust_domain = self.jobDescript.data["TrustDomain"]
@@ -652,13 +654,11 @@ class Entry:
         return
 
     def advertise(self, downtime_flag):
-        """
-        Advertises the glidefactory and the glidefactoryclient classads.
+        """Advertise the glidefactory and glidefactoryclient classads.
 
-        @type downtime_flag: boolean
-        @param downtime_flag: Downtime flag
+        Args:
+            downtime_flag (bool): Downtime flag.
         """
-
         self.loadContext()
 
         # Classad files to use
@@ -674,23 +674,17 @@ class Entry:
         return
 
     def writeStats(self):
+        """Write statistics for the current iteration.
+
+        Computes and writes log statistics, qc statistics, and rrd statistics:
+        - log stats: That come from parsing the condor_activity
+          and job logs.  This is computed every iteration
+          (in perform_work()) and diff-ed to see any newly
+          changed job statuses (i.e. newly completed jobs)
+        - qc stats: From condor_q data.
+        - rrd stats: Used in monitoring statistics for javascript rrd graphs.
         """
-        Calls the statistics functions to record and write stats for this
-        iteration.
-
-        There are several main types of statistics:
-
-        log stats: That come from parsing the condor_activity
-        and job logs.  This is computed every iteration
-        (in perform_work()) and diff-ed to see any newly
-        changed job statuses (ie. newly completed jobs)
-
-        qc stats: From condor_q data.
-
-        rrd stats: Used in monitoring statistics for javascript rrd graphs.
-        """
-
-        global log_rrd_thread, qc_rrd_thread
+        # Not found anywhere:  global log_rrd_thread, qc_rrd_thread
 
         self.loadContext()
 
@@ -722,33 +716,34 @@ class Entry:
         return
 
     def getLogStatsOldStatsData(self):
-        """
+        """Get the old log statistics data.
+
         Returns the gflFactoryConfig.log_stats.old_stats_data that can be pickled
 
-        @rtype: glideFactoryMonitoring.condorLogSummary
-        @return: condorLogSummary from previous iteration
+        Returns:
+            glideFactoryMonitoring.condorLogSummary: The log statistics data from the previous iteration.
         """
-
         return self.getLogStatsData(self.gflFactoryConfig.log_stats.old_stats_data)
 
     def getLogStatsCurrentStatsData(self):
-        """
+        """Get the current log statistics data.
+
         Returns the gflFactoryConfig.log_stats.current_stats_data that can be pickled
 
-        @rtype: glideFactoryMonitoring.condorLogSummary
-        @return: condorLogSummary from current iteration
+        Returns:
+            glideFactoryMonitoring.condorLogSummary: The current log statistics data.
         """
-
         return self.getLogStatsData(self.gflFactoryConfig.log_stats.current_stats_data)
 
     def getLogStatsData(self, stats_data):
-        """
-        Returns the stats_data(stats_data[frontend][user].data) that can be pickled
+        """Retrieve normalized log statistics data, `stats_data(stats_data[frontend][user].data)`, for pickling.
 
-        @rtype: dict
-        @return: Relevant stats data to pickle
-        """
+        Args:
+            stats_data (dict): Dictionary of statistics data keyed by Frontend and user.
 
+        Returns:
+            dict: Normalized log statistics data.
+        """
         return_dict = {}
 
         for frontend in stats_data:
@@ -758,36 +753,28 @@ class Entry:
         return return_dict
 
     def setLogStatsOldStatsData(self, new_data):
-        """
-        Set old_stats_data or current_stats_data from pickled info
+        """Set the old log statistics data from pickled information.
 
-        @type new_data: glideFactoryMonitoring.condorLogSummary
-        @param new_data: Data from pickled object to load
+        Args:
+            new_data (glideFactoryMonitoring.condorLogSummary): The pickled statistics data.
         """
-
         self.setLogStatsData(self.gflFactoryConfig.log_stats.old_stats_data, new_data)
 
     def setLogStatsCurrentStatsData(self, new_data):
-        """
-        Set gflFactoryConfig.log_stats.current_stats_data from pickled info
+        """Set the current log statistics data (gflFactoryConfig.log_stats.current_stats_data) from pickled information.
 
-        @type new_data: glideFactoryMonitoring.condorLogSummary
-        @param new_data: Data from pickled object to load
+        Args:
+            new_data (glideFactoryMonitoring.condorLogSummary): The pickled statistics data to use.
         """
-
         self.setLogStatsData(self.gflFactoryConfig.log_stats.current_stats_data, new_data)
 
     def setLogStatsData(self, stats_data, new_data):
+        """Set log statistics data, `stats_data(stats_data[frontend][user].data)`, from pickled information.
+
+        Args:
+            stats_data (dict): The existing statistics data.
+            new_data (dict): The new statistics data from the pickled object.
         """
-        Sets the stats_data(stats_data[frontend][user].data) from pickled info
-
-        @type stats_data: dict
-        @param stats_data: Stats data
-
-        @type new_data: dict
-        @param new_data: Stats data from pickled info
-        """
-
         for frontend in new_data:
             stats_data[frontend] = {}
             for user in new_data[frontend]:
@@ -802,13 +789,12 @@ class Entry:
                 stats_data[frontend][user].data = new_data
 
     def getState(self):
-        """
-        Compile a dictionary containing useful state information
+        """Compile state information for this entry.
 
-        @rtype: dict
-        @return: Useful state information that can be pickled and restored
+        Returns:
+            dict: A dictionary containing state information (e.g., client internals, totals, limits, statistics)
+                  that can be pickled and later restored.
         """
-
         # Set logger to None else we can't pickle file objects
         self.gflFactoryConfig.client_stats.log = None
         self.gflFactoryConfig.qc_stats.log = None
@@ -827,10 +813,10 @@ class Entry:
         return state
 
     def setState_old(self, state):
-        """Load the post work state from the pickled info
+        """Load the post work state from pickled information.
 
         Args:
-            state (dict): Picked state after doing work
+            state (dict): The pickled state after work has been performed.
         """
         self.gflFactoryConfig.client_stats = state.get("client_stats")
         self.gflFactoryConfig.qc_stats = state.get("qc_stats")
@@ -840,10 +826,10 @@ class Entry:
         self.gflFactoryConfig.log_stats = state["log_stats"]
 
     def setState(self, state):
-        """Load the post work state from the pickled info
+        """Load the post work state from pickled information.
 
         Args:
-            state (dict): Pickled state after doing work
+            state (dict): The pickled state after work has been performed.
         """
         self.gflFactoryConfig.client_stats = state.get("client_stats")
         if self.gflFactoryConfig.client_stats:
@@ -881,6 +867,11 @@ class Entry:
     # Debugging functions
     #####################
     def logLogStats(self, marker=""):
+        """Log detailed log statistics for debugging.
+
+        Args:
+            marker (str, optional): A marker string to prefix the debug logs. Defaults to an empty string.
+        """
         self.log.debug(marker)
         self.log.debug("data = %s" % self.gflFactoryConfig.log_stats.data)
         self.log.debug("updated = %s" % self.gflFactoryConfig.log_stats.updated)
@@ -892,81 +883,26 @@ class Entry:
         self.log.debug(marker)
 
 
-# TODO: NOT USED - to be removed - Unused debug method. Commented out
-#    def dump(self):
-#       # return
-#        stdout = sys.stdout
-#        #sys.stdout = self.log.debug_log
-#        dump_obj(self)
-#        sys.stdout = stdout
-
-# end class Entry
-
-# TODO: NOT USED - to be removed - Was used only in Entry.dump that has been commented out
-# def dump_obj(obj):
-#     import types
-#     print(obj.__dict__)
-#     print("======= START: %s ======" % obj)
-#     for key in obj.__dict__:
-#         if not isinstance(obj.__dict__[key], types.InstanceType):
-#             print("%s = %s" % (key, obj.__dict__[key]))
-#         else:
-#             dump_obj(obj.__dict__[key])
-#     print("======= END: %s ======" % obj)
-
-
-# ###############################################################################
-# # TODO: NOT USED - to be removed
-#
-# class X509Proxies:
-#
-#     def __init__(self, frontendDescript, client_security_name):
-#         self.frontendDescript=frontendDescript
-#         self.client_security_name=client_security_name
-#         self.usernames={}
-#         self.fnames={}
-#         self.count_fnames=0  # len of sum(fnames)
-#         return
-#
-#     # Return None, if cannot convert
-#     def get_username(self, x509_proxy_security_class):
-#         if x509_proxy_security_class not in self.usernames:
-#             # lookup only the first time
-#             x509_proxy_username=self.frontendDescript.get_username(self.client_security_name, x509_proxy_security_class)
-#             if x509_proxy_username is None:
-#                 # but don't cache misses
-#                 return None
-#             self.usernames[x509_proxy_security_class]=x509_proxy_username
-#         return self.usernames[x509_proxy_security_class][:]
-#
-#     def add_fname(self, x509_proxy_security_class, x509_proxy_identifier, x509_proxy_fname):
-#         if x509_proxy_security_class not in self.fnames:
-#             self.fnames[x509_proxy_security_class]={}
-#         self.fnames[x509_proxy_security_class][x509_proxy_identifier]=x509_proxy_fname
-#         self.count_fnames+=1
-#
-
 ###############################################################################
 # Functions to serve work requests (invoked from glideFactoryEntryGroup)
 ###############################################################################
 
 
 def check_and_perform_work(factory_in_downtime, entry, work):
+    """Check and perform work requests for the entry.
+
+    This function checks if work needs to be done for the entry and processes each work request
+    using the v3 protocol. It updates credentials, checks downtimes and whitelisting, and submits work.
+    It is called by a child process per entry
+
+    Args:
+        factory_in_downtime (bool): True if the factory is in downtime.
+        entry (Entry): The Entry object.
+        work (dict): A dictionary of work requests for the entry.
+
+    Returns:
+        int: The total work done (e.g., the number of glideins submitted).
     """
-    Check if we need to do the work and then do the work. Called by child
-    process per entry
-
-    @param factory_in_downtime: Flag if factory is in downtime
-
-    @type entry: glideFactoryEntry.Entry
-    @param entry: Entry object
-
-    @param work: all the work requests for the Entry
-
-    :return:
-
-    """
-
     entry.loadContext()
 
     # Query glidein queue
@@ -1142,19 +1078,25 @@ def unit_work_v3(
 ):
     """Perform a single work unit using the v3 protocol.
 
-    :param entry: Entry
-    :param work: work requests
-    :param client_name: work_key (key used in the work request)
-    :param client_int_name: client name declared in the request
-    :param client_int_req: name of the request (declared in the request)
-    :param client_expected_identity:
-    :param decrypted_params:
-    :param params:
-    :param in_downtime:
-    :param condorQ: list of HTCondor jobs for this entry as returned by entry.queryQueuedGlideins()
-    :return: Return dictionary w/ success, security_names and work_done
-    """
+    Args:
+        entry (Entry): The entry object.
+        work (dict): The work request data.
+        client_name (str): The client name (work key).
+        client_int_name (str): The internal client name. Client name declared in the request.
+        client_int_req (str): The request name, as declared in the request.
+        client_expected_identity (str): The expected identity of the client.
+        decrypted_params (dict): Decrypted parameters from the frontend request.
+        params (dict): Original parameters from the frontend request.
+        in_downtime (bool): True if the system is in downtime.
+        condorQ (condorMonitor.CondorQ): The CondorQ object with job information.
+            List of HTCondor jobs for this entry as returned by entry.queryQueuedGlideins().
 
+    Returns:
+        dict: A dictionary with keys:
+            - "success" (bool): True if work was performed successfully.
+            - "security_names" (set): A set of security name tuples processed.
+            - "work_done" (int): The number of units of work performed.
+    """
     # Return dictionary. Only populate information to be passed at the end
     # just before returning.
     return_dict = {
@@ -1740,54 +1682,32 @@ def perform_work_v3(
     client_web,
     params,
 ):
-    """Perform the work (Submit or remove glideins)
+    """Perform work (Submit or remove Glideins).
 
-    @type entry: glideFactoryEntry.Entry
-    @param entry: Entry object
+    This function computes log statistics, logs work request information,
+    and invokes glideFactoryLib.keepIdleGlideins to submit or remove Glideins.
 
-    @type condorQ: condorMonitor.CondorQ
-    @param condorQ: Information about the jobs in condor_schedd (entry values sub-query from glideFactoryLib.getQCredentials())
+    Args:
+        entry (Entry): The entry object.
+        condorQ (condorMonitor.CondorQ): The CondorQ object with job information.
+            Information about the jobs in condor_schedd (entry values sub-query from glideFactoryLib.getQCredentials())
+        client_name (str): The client name (work key).
+        client_int_name (str): The internal client name.
+        client_security_name (str): The client's security name.
+        submit_credentials (SubmitCredentials): The submit credentials object.
+        remove_excess (tuple): Tuple to control Glidein removal: remove_excess_str, remove_excess_margin
+        idle_glideins (int): Number of idle glideins.
+        max_glideins (int): Maximum number of glideins allowed.
+        idle_lifetime: The idle lifetime of glideins.
+        credential_username (str): Username associated with credentials.
+        glidein_totals: The glideinTotals object.
+        frontend_name (str): Frontend name for monitoring.
+        client_web (ClientWeb): The client web information object.
+        params (dict): Parameters from the request.
 
-    @type client_int_name: string
-    @param client_in_name: Internal name of the client
-
-    @type client_securty_name: string
-    @param client_security_name: Security name of the client
-
-    @type submit_credentials:
-    @param submit_credentials: credentials used
-
-    @type remove_excess: tuple
-    @param remove_excess: remove_excess_str, remove_excess_margin; if frontend wants us to remove excess glideins
-
-    @type idle_glideins: int
-    @param idle_glideins: Number of idle glideins
-
-    @type max_glideins: int
-    @param max_glideins: Maximum number of running glideins
-
-    @type idle_lifetime:
-    @param idle_lifetime:
-
-    @type credential_username: string
-    @param credential_username: Credential username
-
-    @type glidein_totals: object
-    @param glidein_totals: glidein_totals object
-
-    @type frontend_name: string
-    @param frontend_name: Name of the frontend
-
-    @type client_web: string
-    @param client_web: Client's web location
-
-    @type params: object
-    @param params: Params object
-
-    @return: 1 if something was submitted, 0 otherwise
-
+    Returns:
+        int: The number of glideins submitted (returns 1 if any were submitted, 0 otherwise).
     """
-
     # find out the users it is using
     log_stats = {}
     log_stats[credential_username + ":" + client_int_name] = glideFactoryLogParser.dirSummaryTimingsOut(
@@ -1843,16 +1763,24 @@ def perform_work_v3(
 
 
 def update_entries_stats(factory_in_downtime, entry_list):
-    """
-    Update client_stats for the entries in the list.
-    Used for entries with no job requests
-    TODO: #22163, skip update when in downtime?
-    NOTE: qc_stats cannot be updated because the frontend certificate information are missing
-    @param factory_in_downtime: True if the Factory is in downtime, here for future needs (not used now)
-    @param entry_list: list of entry names for the entries to update
-    @return: list of names of the entries that have been updated (subset of entry_list)
-    """
+    """Update client statistics for entries with no work requests.
 
+    For each entry in the list, queries the glidein queue, sanitizes glideins,
+    and updates log statistics.
+
+    TODO: #22163, skip update when in downtime?
+
+    Note:
+        qc_stats cannot be updated because the frontend certificate information are missing
+
+    Args:
+        factory_in_downtime (bool): True if the factory is in downtime.
+            Here for future needs (not used now)
+        entry_list (list): List of Entry objects to update.
+
+    Returns:
+        list: A list of Entry objects that were updated (subset of entry_list).
+    """
     updated_entries = []
     for entry in entry_list:
         # Add a heuristic to improve efficiency. Skip if no changes in the entry
@@ -1910,6 +1838,18 @@ def update_entries_stats(factory_in_downtime, entry_list):
 
 # added by C.W. Murphy for glideFactoryEntryDescript
 def write_descript(entry_name, entryDescript, entryAttributes, entryParams, monitor_dir):
+    """Write the entry description XML file.
+
+    Generates an XML description for the entry using the provided job description,
+    attributes, and parameters, and writes the result to the specified monitor directory.
+
+    Args:
+        entry_name (str): Name of the entry.
+        entryDescript: Entry job description object.
+        entryAttributes: Entry job attributes object.
+        entryParams: Entry job parameters object.
+        monitor_dir (str): Directory to write the XML file.
+    """
     entry_data = {entry_name: {}}
     entry_data[entry_name]["descript"] = copy.deepcopy(entryDescript.data)
     entry_data[entry_name]["attributes"] = copy.deepcopy(entryAttributes.data)
@@ -1938,6 +1878,12 @@ def write_descript(entry_name, entryDescript, entryAttributes, entryParams, moni
 
 
 def termsignal(signr, frame):
+    """Signal handler that raises KeyboardInterrupt.
+
+    Args:
+        signr (int): The signal number.
+        frame: The current stack frame.
+    """
     raise KeyboardInterrupt("Received signal %s" % signr)
 
 

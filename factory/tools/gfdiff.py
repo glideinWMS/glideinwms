@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-""" This script allows to compare two different entries
+""" This script allows to compare two different entries in the GlideinWMS Factory.
 """
 
 
@@ -18,7 +18,11 @@ from glideinwms.creation.lib.factoryXmlConfig import _parse
 
 
 def parse_opts():
-    """Parse the command line options for this command"""
+    """Parse the command line options for this command.
+
+    Returns:
+        argparse.Namespace: Parsed command-line options.
+    """
     description = "Do a diff of two entries\n\n"
 
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawTextHelpFormatter)
@@ -54,7 +58,15 @@ def parse_opts():
 
 
 def get_entry_text(entry, conf):
-    """Get an entry text from the xml configuration file"""
+    """Extract the XML snippet for the specified entry from the configuration file.
+
+    Args:
+        entry (str): The name of the entry to extract.
+        conf (str): Path to the configuration XML file.
+
+    Returns:
+        str: The XML snippet corresponding to the entry.
+    """
     with open(conf) as fdesc:
         text = fdesc.read()
         # pylint: disable=no-member, maybe-no-member
@@ -62,8 +74,12 @@ def get_entry_text(entry, conf):
 
 
 def handle_diff(text_a, text_b):
-    """Function that prints the differences using the diff command"""
+    """Print the unified diff between two texts using the diff command.
 
+    Args:
+        text_a (str): The first text.
+        text_b (str): The second text.
+    """
     lines_a = text_a.splitlines()
     lines_b = text_b.splitlines()
 
@@ -76,8 +92,12 @@ def handle_diff(text_a, text_b):
 
 
 def handle_mergely(text_a, text_b):
-    """Function that prints the link to the mergely website"""
+    """Print a mergely.com link for the diff between two texts.
 
+    Args:
+        text_a (str): The left-hand side text.
+        text_b (str): The right-hand side text.
+    """
     url = "https://mergely.com/ajax/handle_save.php"
 
     payload = {"config": {}, "lhs_title": "", "lhs": text_a, "rhs_title": "", "rhs": text_b}
@@ -100,7 +120,12 @@ def handle_mergely(text_a, text_b):
 
 
 def main():
-    """The main"""
+    """Main function to compare two entries.
+
+    Parses command-line options, extracts XML snippets for two entries from their
+    respective configuration files, prints the unified diff between them, and if the
+    '--mergely' flag is set, prints a link to the mergely.com diff page.
+    """
     options = parse_opts()
 
     entry_a = options.entry_a

@@ -3,12 +3,15 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# entry_q
-#
-# Similar to condor_q, but look for a specific entry
-#
-# Usage: entry_q entry|-l [-dir <dir>] [-printschedd] [condor_q options]
+"""Entry Queue (entry_q) Utility
 
+This script is similar to condor_q but is designed to look for jobs related to a specific entry.
+It allows listing available entries or executing a condor_q command with constraints specific to a
+glidein Factory entry.
+
+Usage:
+    entry_q entry|-l [-dir <dir>] [-printschedd] [condor_q options]
+"""
 
 import os
 import sys
@@ -23,6 +26,14 @@ USAGE = "Usage: entry_q entry|-l [-dir <dir>] [-printschedd] [condor_q options]"
 
 
 def print_entries(entries, want_schedd):
+    """Print the available entries.
+
+    If `want_schedd` is True, also prints the schedd name associated with each entry.
+
+    Args:
+        entries (str): A comma-separated string of entry names.
+        want_schedd (bool): Flag indicating whether to print the schedd names.
+    """
     print("Available entries:")
     for entry in entries.split(","):
         if not want_schedd:
@@ -34,6 +45,17 @@ def print_entries(entries, want_schedd):
 
 
 def main(argv):
+    """Main entry point for the entry_q utility.
+
+    Parses command-line arguments, changes to the specified factory directory,
+    and executes a condor_q command with constraints based on the provided entry.
+
+    Args:
+        argv (list): List of command-line arguments.
+
+    Raises:
+        SystemExit: If the usage is incorrect or the factory directory is invalid.
+    """
     if len(argv) < 2:
         print(USAGE)
         sys.exit(1)

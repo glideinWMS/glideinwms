@@ -3,12 +3,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# entry_rm
-#
-# Similar to condor_rm, but look for a specific entry
-#
-# Usage: entry_rm entry|-l [-dir <dir>] [-printschedd] [condor_rm options]
+"""entry_rm
 
+Command similar to condor_rm, but look for a specific Factory entry
+
+Usage:
+    entry_rm entry|-l [-dir <dir>] [-printschedd] [condor_rm options]
+"""
 
 import os
 import sys
@@ -24,6 +25,15 @@ USAGE = "Usage: entry_rm entry|-l [-dir <dir>] [-printschedd] [condor_rm options
 
 
 def print_entries(entries, want_schedd):
+    """Print available entries.
+
+    This function prints the list of available entries. If the 'want_schedd' flag
+    is True, it prints each entry along with its corresponding schedd name.
+
+    Args:
+        entries (str): A comma-separated string of entry names.
+        want_schedd (bool): If True, prints the schedd name along with each entry.
+    """
     print("Available entries:")
     for entry in entries.split(","):
         if not want_schedd:
@@ -35,6 +45,19 @@ def print_entries(entries, want_schedd):
 
 
 def main(argv):
+    """Main entry point for the entry_rm utility.
+
+    This function parses the command-line arguments, changes to the specified factory
+    directory, and then executes a 'condor_rm' command with constraints specific to the
+    given entry. If the "-l" option is provided as the entry argument, it prints a list
+    of available entries.
+
+    Args:
+        argv (list): List of command-line arguments.
+
+    Raises:
+        SystemExit: If required arguments are missing or the specified directory is invalid.
+    """
     if len(argv) < 2:
         print(USAGE)
         sys.exit(1)

@@ -3,13 +3,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Print out the XML Result for a glidein output file
+"""Print out the XML Result for a glidein output file.
 
-Usage: cat_XMLResult.py [-raw] [-forcemulti] logname+
-        If -raw is present, do not wrap multiple XMLs into a ResultSet
-        If -forcemulti is present, make it a ResultSet even if only one file present
+Usage:
+    cat_XMLResult.py [-raw] [-forcemulti] <logname>+
+    If -raw is present, do not wrap multiple XMLs into a ResultSet.
+    If -forcemulti is present, make it a ResultSet even if only one file is present.
 """
-
 
 import os.path
 import sys
@@ -23,6 +23,19 @@ USAGE = "Usage: cat_XMLResult.py -h|[-raw] [-forcemulti] <logname>+"
 
 
 def main(args):
+    """Parse command-line arguments and print the XML result(s) for glidein output file(s).
+
+    This function processes the command-line arguments to determine whether to output
+    a single XML result or combine multiple XML results into a ResultSet. If the "-raw"
+    flag is provided, it omits XML comments. If the "-forcemulti" flag is provided, it
+    forces the output to be a ResultSet even if only one log file is specified.
+
+    Args:
+        args (list): List of command-line arguments (excluding the script name).
+
+    Raises:
+        SystemExit: If no logname is provided or if there is an error reading a file.
+    """
     raw_out = False
     force_multi = False
 
