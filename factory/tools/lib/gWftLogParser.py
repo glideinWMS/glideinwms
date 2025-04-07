@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Module with factory/tool specific condorLogs helper functions
+"""Module with factory/tool specific condor logs helper functions.
 
 Contains functions to locate the glidein log files and to extract sections and
-embedded log files form them.
+embedded log files from them.
 """
 
 import binascii
@@ -115,7 +115,7 @@ def get_glidein_logs(factory_dir, entries, date_arr, time_arr, ext="err"):
 
 
 # extract the blob from a glidein log file starting from position
-def get_Compressed_raw(log_fname, start_str, start_pos=0):
+def get_compressed_raw(log_fname, start_str, start_pos=0):
     """Extract the raw base64-encoded blob from a glidein log file starting from a specific header.
 
     This function memory maps the log file, searches for a header that matches the start_str (followed by a
@@ -154,10 +154,10 @@ def get_Compressed_raw(log_fname, start_str, start_pos=0):
 
 
 # extract the blob from a glidein log file
-def get_Compressed(log_fname, start_str):
+def get_compressed(log_fname, start_str):
     """Extract and decompress a blob from a glidein log file.
 
-    This function extracts a base64-encoded blob from the log file by calling get_Compressed_raw.
+    This function extracts a base64-encoded blob from the log file by calling `get_compressed_raw`.
     If data is found, it decodes the base64 string, decompresses it using gzip, and returns the resulting text.
 
     Args:
@@ -167,7 +167,7 @@ def get_Compressed(log_fname, start_str):
     Returns:
         str: The decompressed data from the log file, or an empty string if no data is found.
     """
-    raw_data = get_Compressed_raw(log_fname, start_str)
+    raw_data = get_compressed_raw(log_fname, start_str)
     if raw_data != "":
         gzip_data = binascii.a2b_base64(raw_data)
         del raw_data
@@ -179,7 +179,7 @@ def get_Compressed(log_fname, start_str):
 
 
 # extract the blob from a glidein log file
-def get_Simple(log_fname, start_str, end_str):
+def get_simple(log_fname, start_str, end_str):
     """Extract a simple text blob from a glidein log file between specified markers.
 
     This function uses memory mapping to read the log file, searches for the start marker (start_str) and the end marker
@@ -219,10 +219,10 @@ def get_Simple(log_fname, start_str, end_str):
 
 # extract the Condor Log from a glidein log file
 # condor_log_id should be something like "StartdLog"
-def get_CondorLog(log_fname, condor_log_id):
+def get_condor_log(log_fname, condor_log_id):
     """Extract the Condor log from a glidein log file.
 
-    Constructs a start string using the provided condor_log_id and calls get_Compressed to extract and decompress
+    Constructs a start string using the provided condor_log_id and calls `get_compressed` to extract and decompress
     the corresponding Condor log section from the file.
 
     Args:
@@ -233,11 +233,11 @@ def get_CondorLog(log_fname, condor_log_id):
         str: The decompressed Condor log section.
     """
     start_str = "^%s\n======== gzip . uuencode =============" % condor_log_id
-    return get_Compressed(log_fname, start_str)
+    return get_compressed(log_fname, start_str)
 
 
 # extract the XML Result from a glidein log file
-def get_XMLResult(log_fname):
+def get_xml_result(log_fname):
     """Extract the XML result from a glidein log file.
 
     First attempts to extract an encoded XML description of glidein activity from the log file.
@@ -250,21 +250,21 @@ def get_XMLResult(log_fname):
         str: The XML result as a string, or an empty string if not found.
     """
     start_str = "^=== Encoded XML description of glidein activity ==="
-    s = get_Compressed(log_fname, start_str)
+    s = get_compressed(log_fname, start_str)
     if s != "":
         return s
     # not found, try the uncompressed version
     start_str = "^=== XML description of glidein activity ==="
     end_str = "^=== End XML description of glidein activity ==="
-    return get_Simple(log_fname, start_str, end_str)
+    return get_simple(log_fname, start_str, end_str)
 
 
 # extract slot names
-def get_StarterSlotNames(log_fname, condor_log_id="(StarterLog.slot[0-9]*[_]*[0-9]*)"):
+def get_starter_slot_names(log_fname, condor_log_id="(StarterLog.slot[0-9]*[_]*[0-9]*)"):
     """Extract slot names from a glidein log file.
 
     Searches for slot names matching the provided condor_log_id pattern in the log file. The slot names are
-    extracted from base64 encoded sections and returned as a list of strings.
+    extracted from base64-encoded sections and returned as a list of strings.
 
     Args:
         log_fname (str): The path to the log file.

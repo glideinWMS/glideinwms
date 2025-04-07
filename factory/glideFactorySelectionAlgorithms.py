@@ -12,6 +12,7 @@ import time
 def selectionAlgoDefault(submit_files, status_sf, jobDescript, nr_glideins, log):
     """Determines the number of glideins to submit for each sub entry.
 
+    Each entry can have multiple submit files (sub entries).
     Given a list of sub entries (i.e. submit files) and the current status of each sub entry (number of idle and running glideins),
     this function shuffles the submit_files list and then assigns glideins in a round-robin (depth-wise) fashion until the limits are reached.
 

@@ -723,7 +723,7 @@ class cacheDirClass:
         fnames = self.getFileList(active_only=True)
         for fname in fnames:
             if (self.wrapperClass is not None) and (self.username is not None):
-                obj = self.wrapperClass.getObj(
+                obj = self.wrapperClass.get_obj(
                     logname=os.path.join(self.dirname, fname), cache_dir=self.cache_dir, username=self.username
                 )
             else:
@@ -758,7 +758,7 @@ class cacheDirClass:
                 continue  # skip empty files
             last_mod = os.path.getmtime(absfname)
             if (self.wrapperClass is not None) and (self.username is not None):
-                obj = self.wrapperClass.getObj(logname=absfname, cache_dir=self.cache_dir, username=self.username)
+                obj = self.wrapperClass.get_obj(logname=absfname, cache_dir=self.cache_dir, username=self.username)
             else:
                 obj = self.logClass(absfname, self.cache_dir)
             obj.load()
@@ -788,7 +788,7 @@ class cacheDirClass:
             dict: The differences between `self.data` and `other_data`.
         """
         if (self.wrapperClass is not None) and (self.username is not None):
-            dummyobj = self.wrapperClass.getObj(os.path.join(self.dirname, "dummy.txt"), self.cache_dir, self.username)
+            dummyobj = self.wrapperClass.get_obj(os.path.join(self.dirname, "dummy.txt"), self.cache_dir, self.username)
         else:
             dummyobj = self.logClass(os.path.join(self.dirname, "dummy.txt"), self.cache_dir)
 

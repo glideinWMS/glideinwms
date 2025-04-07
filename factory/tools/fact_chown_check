@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# TODO: This can be removed, there are mo more Factories older than v3.5
+# TODO: This can be removed, there are no more Factories older than v3.5
 """Check if the Factory setup is 3.5 ready.
 
 This script verifies that the client and proxy directories in the Factory

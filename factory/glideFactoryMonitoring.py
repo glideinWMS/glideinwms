@@ -50,7 +50,7 @@ class MonitoringConfig:
     """
 
     def __init__(self, log=logSupport.log):
-        """Initialize a MonitoringConfig with default values."""
+        """Initialize a MonitoringConfig object with default values."""
         # set default values
         # user should modify if needed
         self.rrd_step = 300  # default to 5 minutes
@@ -183,8 +183,8 @@ class MonitoringConfig:
         """Write a dictionary to a JSON file.
 
         Args:
-            relative_fname (str): The relative JSON file name (without extension) relative to self.monitor_dir.
-            time (float): The timestamp, typically self.updated.
+            relative_fname (str): The relative JSON file name (without extension) relative to `self.monitor_dir`.
+            time (float): The timestamp, typically `self.updated`.
             val_dict (dict): The dictionary to dump as JSON.
         """
         fname = os.path.join(self.monitor_dir, relative_fname + ".json")
@@ -334,7 +334,7 @@ class condorQStats:
     """
 
     def __init__(self, log=logSupport.log, cores=1):
-        """Initialize condorQStats with empty data and default values.
+        """Initialize condorQStats object with empty data and default values.
 
         Args:
             log: Logger instance.
@@ -434,7 +434,7 @@ class condorQStats:
         return m.group(1) if m else ""
 
     def get_zero_data_element(self):
-        """Return a dictionary with keys defined in self.attributes, all set to 0.
+        """Return a dictionary with keys defined in `self.attributes`, all set to 0.
 
         Returns:
             dict: A dictionary with zero-initialized integer values.
@@ -543,7 +543,7 @@ class condorQStats:
           'GlideinsTotal', 'GlideinsTotalCores'
           'LastHeardFrom'
 
-        Updates go in self.data (self.data[client_name]['ClientMonitor'])
+        Updates go in `self.data` (``self.data[client_name]['ClientMonitor']``)
 
         Args:
             client_name (str): The client name.
@@ -765,7 +765,7 @@ class condorQStats:
 
         Args:
             monitoringConfig (MonitoringConfig, optional): Monitoring configuration object. Defaults to global monitoringConfig.
-            alt_stats (condorQStats, optional): Alternative condorQStats object if self has no data.
+            alt_stats (condorQStats, optional): Alternative condorQStats object if `self` has no data.
         """
         if monitoringConfig is None:
             monitoringConfig = globals()["monitoringConfig"]
@@ -1738,14 +1738,14 @@ class FactoryStatusData:
         total (str): Identifier for total data.
         frontends (list): List of frontend identifiers.
         base_dir (str): Base directory for monitoring data.
-        log: Logger instance.
+        log (logging.Logger): Logger instance.
     """
 
     def __init__(self, log=logSupport.log, base_dir=None):
-        """Initialize FactoryStatusData with default values.
+        """Initialize FactoryStatusData object with default values.
 
         Args:
-            log: Logger instance.
+            log (logging.Logger): Logger instance.
             base_dir (str, optional): Base directory for monitoring files. Defaults to monitorAggregatorConfig.monitor_dir.
         """
         self.data = {}
@@ -2017,11 +2017,11 @@ class Descript2XML:
         entry_descript_blacklist (tuple): Keys to remove from entry descriptions.
         frontend_blacklist (tuple): Keys to remove from frontend descriptions.
         glidein_whitelist (tuple): Keys to include from the glidein description.
-        log: Logger instance.
+        log (logging.Logger): Logger instance.
     """
 
     def __init__(self, log=logSupport.log):
-        """Initialize Descript2XML with default blacklists and whitelists."""
+        """Initialize a Descript2XML object with default blacklists and whitelists."""
         self.tab = xmlFormat.DEFAULT_TAB
         self.entry_descript_blacklist = ("DowntimesFile", "EntryName", "Schedd")
         self.frontend_blacklist = ("usermap",)

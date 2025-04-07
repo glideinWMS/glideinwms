@@ -61,7 +61,7 @@ def main(args):
         # single file, just pass through
         try:
             fname = args[0]
-            out = gWftLogParser.get_XMLResult(fname)
+            out = gWftLogParser.get_xml_result(fname)
         except OSError as e:
             sys.stderr.write("Error reading file: %s\n" % e)
             sys.exit(1)
@@ -84,7 +84,7 @@ def main(args):
         for i in range(len(args)):
             try:
                 fname = args[i]
-                rawx = gWftLogParser.get_XMLResult(fname)
+                rawx = gWftLogParser.get_xml_result(fname)
                 if rawx == "":
                     # nothing found, warn
                     sys.stderr.write("No XML in file %s\n" % fname)

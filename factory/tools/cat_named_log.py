@@ -44,7 +44,7 @@ def main():
         fname = sys.argv[2]
 
     try:
-        print(gWftLogParser.get_CondorLog(fname, condor_log_id))
+        print(gWftLogParser.get_condor_log(fname, condor_log_id))
     except Exception:
         sys.stderr.write("%s\n" % USAGE)
         sys.exit(1)

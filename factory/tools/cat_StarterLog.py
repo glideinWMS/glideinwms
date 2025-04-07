@@ -50,11 +50,11 @@ def main():
             fname = sys.argv[len(sys.argv) - 1]
             condor_log_id = "((StarterLog)|(StarterLog.vm2))"
 
-        matches = gWftLogParser.get_StarterSlotNames(fname)
+        matches = gWftLogParser.get_starter_slot_names(fname)
         if len(matches):
             logs = ", ".join(matches)
             print("StarterLogs available for slots: %s" % logs.replace("StarterLog.", ""))
-        print(gWftLogParser.get_CondorLog(fname, condor_log_id))
+        print(gWftLogParser.get_condor_log(fname, condor_log_id))
     except Exception:
         sys.stderr.write("%s\n" % USAGE)
         sys.exit(1)

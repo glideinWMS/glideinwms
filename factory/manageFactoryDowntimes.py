@@ -7,7 +7,7 @@
 
 Usage:
   manageFactoryDowntimes.py -dir factory_dir -entry ['all'|'factory'|'entries'|entry_name] -cmd [command] [options]
-  manageFactoryDowntimes -help   Foe more detailed information
+  manageFactoryDowntimes -help   For more detailed information
 """
 
 
@@ -161,7 +161,7 @@ def get_downtime_fd(entry_name, cmdname):
 
     Args:
         entry_name (str): The entry name.
-        cmdname (str): Command name (unused in this function).
+        cmdname (str): Command directory to locate the downtime file (unused in this function).
 
     Returns:
         DowntimeFile: A downtime file object.
@@ -187,8 +187,8 @@ def get_downtime_fd_dict(entry_or_id, cmdname, opt_dict):
 
     Args:
         entry_or_id (str): Either a specific entry name, "entries", or "All".
-        cmdname (str): Command name.
-        opt_dict (dict): Options dictionary.
+        cmdname (str): Command directory, usable to locate the downtime file.
+        opt_dict (dict): Command line options dictionary.
 
     Returns:
         dict: Dictionary mapping entry names to downtime file objects.

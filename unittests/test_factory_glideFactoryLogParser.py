@@ -19,12 +19,12 @@ import unittest
 
 import xmlrunner
 
-from glideinwms.factory.glideFactoryLogParser import extractLogData
+from glideinwms.factory.glideFactoryLogParser import _extract_log_data
 
 
 class TestUtils(unittest.TestCase):
     def test_extractLogData(self):
-        out = extractLogData("fixtures/factory/log/client/glideFactoryLogParser_glidein_stdout.out")
+        out = _extract_log_data("fixtures/factory/log/client/glideFactoryLogParser_glidein_stdout.out")
         # Expected output is:
         # {'condor_started': 1, 'validation_duration': 63, 'glidein_duration': 8376, 'activations_claims': 34, 'condor_duration': 8307, 'stats': {}}
         self.assertEqual(out["condor_started"], 1)

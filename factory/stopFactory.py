@@ -7,7 +7,7 @@
 
 This program stops a running glideinFactory by killing its process group.
 It expects one argument: the glidein submit directory (i.e. factory dir).
-Option "-force" uses a hard kill (SiGKiLL) after trying a soft one (SIGTERM).
+Option "-force" uses a hard kill (SIGKILL) after trying a soft one (SIGTERM).
 
 Usage: stopFactory [-f|-force] submit_dir
 """

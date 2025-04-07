@@ -227,12 +227,6 @@ class TestEntry(unittest.TestCase):
         state = self.entry.getState()
         self.entry.setState(state)
 
-    @unittest.skip("for now")
-    def test_setState_old(self):
-        # entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
-        # self.assertEqual(expected, entry.setState_old(state))
-        assert False  # TODO: implement your test here
-
     def test_unsetInDowntime(self):
         self.entry.setDowntime(True)
         self.entry.unsetInDowntime()

@@ -507,7 +507,8 @@ def spawn(
         the inherited limits from the parent process are used.
 
         Note:
-            It is possible to raise limits up to [hard_l, hard_l] but once lowered they cannot be raised.
+            It is possible to raise limits up to [hard_l, hard_l], i.e. soft limit can be raised by a non-root user up
+            to the current process hard limit, but once lowered they cannot be raised.
             It may be better to omit calling this function from subprocesses so that they inherit limits from the parent.
 
         Args:

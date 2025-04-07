@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# TODO: ahouls this file be deprecated?
+# TODO: should this file be deprecated?
 """fact_chown
 
 Change the ownership of frontend directories to the specified user.
@@ -168,7 +168,7 @@ def chown_dir(path, uid, gid, fuid, test):
 def fix_jobqueue(jobqueue_file, user, options):
     """Fix the owner in the HTCondor job_queue file.
 
-    This function replaces the owner name in the job queue file with the specified
+    This function replaces the owner name in the job queue file (job_queue.log by default) with the specified
     user. Optionally, a backup of the file is created before modification. In test mode,
     the function logs the intended action without applying changes.
 
