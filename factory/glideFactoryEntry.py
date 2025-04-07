@@ -175,11 +175,11 @@ class Entry:
     def getGlideinExpectedCores(self):
         """Return the expected number of cores for each glidein.
 
-        This returns the value of the GLIDEIN_CPU attribute if > 0;
-        otherwise, it returns the GLIDEIN_ESTIMATED_CPUS value when GLIDEIN_CPU <= 0
+        This returns the value of the GLIDEIN_CPUS attribute if > 0;
+        otherwise, it returns the GLIDEIN_ESTIMATED_CPUS value when GLIDEIN_CPUS <= 0
         or a string (auto/node/slot) or 1 if not set.
         Note that this number is used in provisioning and set in HTCondor. The actual
-        number of cores used will depend on the RSL or HTCondor attributes and the Entry
+        number of cores used will depend on the RSL or HTCondor attributes, on the Entry,
         and could also vary over time.
 
         Returns:
@@ -235,7 +235,7 @@ class Entry:
         self.jobAttributes.data["GLIDEIN_Downtime_Comment"] = self.downtimes.downtime_comment
 
     def isClientBlacklisted(self, client_sec_name):
-        """Check if a client (Frontend) is blacklisted. I.e. the whitelist is enable and the client is not in the list.
+        """Check if a client (Frontend) is blacklisted. I.e. the whitelist is enabled and the client is not in the list.
 
         Args:
             client_sec_name (str): The security name of the client.
@@ -507,7 +507,7 @@ class Entry:
         Advertising is done in a separate function.
 
         Args:
-            downtime_flag (bool): Downtime flag.
+            downtime_flag (bool): Flag indicating whether the Factory is in downtime or not.
             gf_filename (str): Filename to write the glidefactory classads.
             gfc_filename (str): Filename to write the glidefactoryclient classads.
             append (bool, optional): If True, append to existing files (i.e Multi ClassAds file);
@@ -657,7 +657,7 @@ class Entry:
         """Advertise the glidefactory and glidefactoryclient classads.
 
         Args:
-            downtime_flag (bool): Downtime flag.
+            downtime_flag (bool): Flag indicating whether the Factory is in downtime or not.
         """
         self.loadContext()
 
@@ -736,7 +736,7 @@ class Entry:
         return self.getLogStatsData(self.gflFactoryConfig.log_stats.current_stats_data)
 
     def getLogStatsData(self, stats_data):
-        """Retrieve normalized log statistics data, `stats_data(stats_data[frontend][user].data)`, for pickling.
+        """Retrieve normalized log statistics data, ``stats_data[frontend][user].data``, for pickling.
 
         Args:
             stats_data (dict): Dictionary of statistics data keyed by Frontend and user.
@@ -769,7 +769,7 @@ class Entry:
         self.setLogStatsData(self.gflFactoryConfig.log_stats.current_stats_data, new_data)
 
     def setLogStatsData(self, stats_data, new_data):
-        """Set log statistics data, `stats_data(stats_data[frontend][user].data)`, from pickled information.
+        """Set log statistics data, ``stats_data[frontend][user].data``, from pickled information.
 
         Args:
             stats_data (dict): The existing statistics data.
@@ -811,19 +811,6 @@ class Entry:
             "log_stats": self.gflFactoryConfig.log_stats,
         }
         return state
-
-    def setState_old(self, state):
-        """Load the post work state from pickled information.
-
-        Args:
-            state (dict): The pickled state after work has been performed.
-        """
-        self.gflFactoryConfig.client_stats = state.get("client_stats")
-        self.gflFactoryConfig.qc_stats = state.get("qc_stats")
-        self.gflFactoryConfig.rrd_stats = state.get("rrd_stats")
-        self.gflFactoryConfig.client_internals = state.get("client_internals")
-        self.glideinTotals = state.get("glidein_totals")
-        self.gflFactoryConfig.log_stats = state["log_stats"]
 
     def setState(self, state):
         """Load the post work state from pickled information.
@@ -867,7 +854,7 @@ class Entry:
     # Debugging functions
     #####################
     def logLogStats(self, marker=""):
-        """Log detailed log statistics for debugging.
+        """Log detailed statistics for debugging.
 
         Args:
             marker (str, optional): A marker string to prefix the debug logs. Defaults to an empty string.
@@ -893,7 +880,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
 
     This function checks if work needs to be done for the entry and processes each work request
     using the v3 protocol. It updates credentials, checks downtimes and whitelisting, and submits work.
-    It is called by a child process per entry
+    It is called by a child process per entry.
 
     Args:
         factory_in_downtime (bool): True if the factory is in downtime.
@@ -1771,7 +1758,8 @@ def update_entries_stats(factory_in_downtime, entry_list):
     TODO: #22163, skip update when in downtime?
 
     Note:
-        qc_stats cannot be updated because the frontend certificate information are missing
+        `qc_stats` (the client queue information) cannot be updated because the
+        Frontend certificate information are missing.
 
     Args:
         factory_in_downtime (bool): True if the factory is in downtime.

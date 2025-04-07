@@ -154,7 +154,7 @@ v3_4:
     - Increased testing (more than doubled unit tests coverage and testing more files
       w/ pylint)
   NOTE:
-    - The type of the GLIDEIN_CPU attr is String (to accommodate the keywords auto, slot,
+    - The type of the GLIDEIN_CPUS attr is String (to accommodate the keywords auto, slot,
       node). Documentation was reporting Int incorrectly. Make sure your configuration
       uses the correct type or you may get a reconfig/upgrade error.
     - If you use HTCondor 8.7.2 or bigger with the GlideinWMS Factory, you must install
@@ -452,7 +452,7 @@ v3_2_19:
       to multiple schedds on the Factory"
     - Clarified attribute types and fixed globbing behavior
     - RPM verification fails when config files are changed
-    - 'GLIDEIN_CPU settings "node" and "slot" supported also in Frontend,
+    - 'GLIDEIN_CPUS settings "node" and "slot" supported also in Frontend,
 
       better documented and improved to compensate for PBS misconfiguration'
     - Fixed submission to AWS which uses key_pair as auth_method

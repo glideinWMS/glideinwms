@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-""" analyze_frontends
+"""Command analyze_frontends, to analyze and print Frontend (client) statistics.
 
 Focuses mostly on Client Info
 """
@@ -55,12 +55,12 @@ def list_print(frontend, zero_supp, entry_data, sorting, attr_list, sort_attribu
         entry["RD"] = rundiff_percent
 
         if zero_supp == 1:
-            sum = 0
+            sum_in = 0
             for a in attr_list:
-                sum += entry[a]
-            if sum == 0:
+                sum_in += entry[a]
+            if sum_in == 0:
                 continue
-            sum2 += sum
+            sum2 += sum_in
 
         to_be_printed.append(
             (
@@ -145,7 +145,7 @@ USAGE:
 
     # flags
     x = 24
-    dir = os.getcwd()
+    w_dir = os.getcwd()
     sorting = 0
     sort_attribute = 0
     filter_frontend = 0
@@ -163,7 +163,7 @@ USAGE:
         if o == "-x":
             x = a
         elif o == "--source":
-            dir = a
+            w_dir = a
         elif o in ("-h", "-help"):
             print(usage)
             return
@@ -240,10 +240,10 @@ USAGE:
     rrd_data = {}
     rrd = "rrd_Status_Attributes.xml"
 
-    if "http" in dir:
-        file_dir = os.path.join(dir, rrd)
+    if "http" in w_dir:
+        file_dir = os.path.join(w_dir, rrd)
     else:
-        file_dir = os.path.join(dir, "monitor", rrd)
+        file_dir = os.path.join(w_dir, "monitor", rrd)
 
         if not os.path.exists(file_dir):
             # Try RPM location
@@ -253,15 +253,19 @@ USAGE:
                 print("\nCannot open", file_dir)
                 print("Please set --source to the factory work dir and try again.")
                 sys.exit(1)
-            if dir != os.getcwd():
+            if w_dir != os.getcwd():
                 # Directory explicitly set, print warning
                 print("\nWARNING: Cannot open", file_dir)
                 print("Using RPM default %s instead" % rpmfile_dir)
-            dir = rpmdir
+            w_dir = rpmdir
             file_dir = rpmfile_dir
 
     try:
-        u = urlopen(file_dir)
+        # request.urlopen cannot handle local files
+        if file_dir.startswith("http"):
+            u = urlopen(file_dir)
+        else:
+            u = open(file_dir)
         rrd_data = xmlParse.xmlfile2dict(u)
     except Exception:
         print("\nCannot open", file_dir, "\n\tor", rrd, "was not found there.\n")
@@ -318,7 +322,7 @@ USAGE:
                         pass
 
     # data[period[frontend[entry[element[value]]]]]
-    #'data' numbers verified by hand
+    # 'data' numbers verified by hand
     # debug_print_dict(data)
 
     #####################################################################
@@ -378,7 +382,7 @@ Status Attributes (Clients) analysis for %s - %s
     ######################################################################
 
     # sort periods from least to greatest, with 24 hours at the top
-    period_list = period_data.keys()
+    period_list = list(period_data.keys())
     period_list.sort()
     period_list.remove(86400)
     period_list.insert(0, 86400)

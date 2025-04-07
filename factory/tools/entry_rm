@@ -3,9 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""entry_rm
-
-Command similar to condor_rm, but look for a specific Factory entry
+"""Command entry_rm, similar to condor_rm, but look for a specific Factory entry
 
 Usage:
     entry_rm entry|-l [-dir <dir>] [-printschedd] [condor_rm options]
@@ -27,7 +25,7 @@ USAGE = "Usage: entry_rm entry|-l [-dir <dir>] [-printschedd] [condor_rm options
 def print_entries(entries, want_schedd):
     """Print available entries.
 
-    This function prints the list of available entries. If the 'want_schedd' flag
+    This function prints the list of available entries. If the `want_schedd` flag
     is True, it prints each entry along with its corresponding schedd name.
 
     Args:
@@ -48,7 +46,7 @@ def main(argv):
     """Main entry point for the entry_rm utility.
 
     This function parses the command-line arguments, changes to the specified factory
-    directory, and then executes a 'condor_rm' command with constraints specific to the
+    directory, and then executes a condor_rm command with constraints specific to the
     given entry. If the "-l" option is provided as the entry argument, it prints a list
     of available entries.
 

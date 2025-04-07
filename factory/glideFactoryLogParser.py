@@ -26,7 +26,7 @@ class logSummaryTimingsOutWrapper:
         """Initialize the wrapper with a None object."""
         self.obj = None
 
-    def getObj(self, logname=None, cache_dir=None, username="all"):
+    def get_obj(self, logname=None, cache_dir=None, username="all"):
         """Return a logSummaryTimingsOut object, creating it if necessary.
 
         Args:
@@ -52,9 +52,9 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
     """
 
     def __init__(self, logname, cache_dir, username):
-        """Initialize a logSummaryTimingsOut instance.
+        """Initialize a `logSummaryTimingsOut` instance.
 
-        This method uses the condorLogParser clInit function to initialize the log summary.
+        This method uses the `condorLogParser` `clInit` function to initialize the log summary.
         It also sets the directory name, cache directory, and current time information.
 
         Args:
@@ -213,7 +213,8 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
     # return data[status]['Entered'|'Exited'] - list of jobs
     # completed jobs are augmented with data from the log
     def diff(self, other_data):
-        """Compute the difference between current data and other_data.
+        """Compute the difference between current data and other_data to compare the current
+        iteration data with previous iteration.
 
         Augments the "Entered" jobs in the "Completed" category with additional log data
         from the corresponding output file.
@@ -235,7 +236,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                 job_fullname = sel_e[-1] + ".out"
 
                 try:
-                    fdata = extractLogData(job_fullname)
+                    fdata = _extract_log_data(job_fullname)
                 except Exception:
                     fdata = copy.deepcopy(EMPTY_LOG_DATA)  # just protect
 
@@ -262,18 +263,18 @@ class dirSummarySimple:
         self.wrapperClass = obj.wrapperClass
 
         if obj.wrapperClass is not None:
-            self.logClass = obj.wrapperClass.getObj()
+            self.logClass = obj.wrapperClass.get_obj()
         else:
             logSupport.log.debug("== MISHANDLED LogParser Object! ==")
 
-    def mkTempLogObj(self):
+    def mk_temp_log_obj(self):
         """Create a temporary log object based on the current data.
 
         Returns:
             A temporary log object with its data set to the current summary.
         """
         if self.wrapperClass is not None:
-            dummyobj = self.wrapperClass.getObj(logname=os.path.join("/tmp", "dummy.txt"), cache_dir="/tmp")
+            dummyobj = self.wrapperClass.get_obj(logname=os.path.join("/tmp", "dummy.txt"), cache_dir="/tmp")
         else:
             dummyobj = self.logClass(os.path.join("/tmp", "dummy.txt"), "/tmp")
         # dummyobj=self.logClass(os.path.join('/tmp','dummy.txt'),'/tmp')
@@ -289,7 +290,7 @@ class dirSummarySimple:
         Returns:
             The difference data computed by the temporary log object.
         """
-        dummyobj = self.mkTempLogObj()
+        dummyobj = self.mk_temp_log_obj()
         return dummyobj.diff(other.data)
 
     def merge(self, other):
@@ -299,9 +300,9 @@ class dirSummarySimple:
             other: Another dirSummarySimple object.
 
         Returns:
-            None. The data is merged into self.data.
+            None. The data is merged into the `data` attribute of the object invoking this method.
         """
-        dummyobj = self.mkTempLogObj()
+        dummyobj = self.mk_temp_log_obj()
         dummyobj.merge(copy.deepcopy(other.data))
         self.data = dummyobj.data
 
@@ -309,7 +310,7 @@ class dirSummarySimple:
 class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
     """A class to summarize timings from condor_activity logs with output file checking.
 
-    This class initializes an instance of cacheDirClass that selects all condor_activity files
+    This class initializes an instance of cacheDirClass that selects all files named condor_activity...
     in a directory corresponding to a particular client and adds extra information from the job's output file.
     """
 
@@ -321,7 +322,7 @@ class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
             cache_dir (str): Directory for caching.
             client_name (str): Client name.
             user_name (str): Username used to form the file suffix.
-            inactive_files (optional): List of inactive files. Defaults to None.
+            inactive_files (list, optional): List of inactive files. Defaults to None.
             inactive_timeout (int, optional): Timeout in seconds for inactive files. Defaults to 24*3600.
         """
         self.cdInit(
@@ -355,8 +356,8 @@ class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
 class dirSummaryTimingsOutFull(condorLogParser.cacheDirClass):
     """A class to summarize timings from all condor_activity logs in a directory.
 
-    This class uses a lambda function to initialize an instance of cacheDirClass.
-    Unlike dirSummaryTimingsOut, this class does not filter by client name.
+    This class uses a lambda function to initialize an instance of `cacheDirClass`.
+    Unlike `dirSummaryTimingsOut`, this class does not filter by client name.
     """
 
     def __init__(self, dirname, cache_dir, inactive_files=None, inactive_timeout=24 * 3600):
@@ -365,7 +366,7 @@ class dirSummaryTimingsOutFull(condorLogParser.cacheDirClass):
         Args:
             dirname (str): Directory containing log files.
             cache_dir (str): Directory for caching.
-            inactive_files (optional): List of inactive files. Defaults to None.
+            inactive_files (list, optional): List of inactive files. Defaults to None.
             inactive_timeout (int, optional): Timeout in seconds for inactive files. Defaults to 24*3600.
         """
         self.cdInit(
@@ -409,7 +410,7 @@ KNOWN_SLOT_STATS = ["Total", "goodZ", "goodNZ", "badSignal", "badOther"]
 EMPTY_LOG_DATA = {"condor_started": 0, "glidein_duration": 0}
 
 
-def extractLogData(fname):
+def _extract_log_data(fname):
     """Extract job log statistics from a job output file.
 
     Given a filename of a job file "path/job.NUMBER.out", extract statistics such as:

@@ -3,9 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""entry_ls
-
-Command for listing and printing job log information for a specific entry.
+"""Command entry_ls, for listing and printing job log information for a specific entry.
 
 This script is used to list and display error/output files for a given entry,
 user and date. It parses an XML file that wraps the log file lines and prints

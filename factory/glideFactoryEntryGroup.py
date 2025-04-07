@@ -243,7 +243,7 @@ def find_and_perform_work(do_advertize, factory_in_downtime, glideinDescript, fr
         glideinDescript (dict): Factory glidein configuration values.
         frontendDescript (dict): Security mappings for Frontend identities, security classes, and usernames.
         group_name (str): Name of the group.
-        my_entries (dict): Dictionary of entry objects (Entry) keyed by entry name.
+        my_entries (dict): Dictionary of entry objects (`glideFactoryEntry.Entry`) keyed by entry name.
 
     Returns:
         dict: Dictionary of work done, keyed by entry name.
@@ -613,7 +613,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_names, group
         startup_dir (str|Path): The "home" directory for the entry.
         entry_names (str): Colon-separated list of entry names to process.
         group_id (str): Group ID (normally a number, with the "group_" prefix it forms the group name).
-            It can change between Factory reconfigurations
+            It can change between Factory reconfigurations.
     """
     # Assume name to be group_[0,1,2] etc. Only required to create log_dir
     # where tasks common to the group will be stored. There is no other

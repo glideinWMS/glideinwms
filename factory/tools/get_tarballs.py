@@ -98,7 +98,7 @@ class TarballManager(HTMLParser):
                 The list of available releases are here: https://research.cs.wisc.edu/htcondor/tarball/
             filenames (list): A list of strings indicating the tarballs that need to be downloaded for each release found.
                 As an example, [ "condor-{version}-x86_64_CentOS7-stripped.tar.gz", "condor-{version}-x86_64_CentOS8-stripped.tar.gz" ]
-                will download the x86_64 CentOS7 and CeontOS8 tarballs by looking for urls that looks like:
+                will download the x86_64 CentOS7 and CentOS8 tarballs by looking for urls that looks like:
                 https://research.cs.wisc.edu/htcondor/tarball/23.0/23.0.0/release/condor-23.0.0-x86_64_CentOS7-stripped.tar.gz
                 The substring {version} gets expanded to the current version.
           destination (str): the directory where files will be downloaded when the download_tarballs method is called
@@ -150,7 +150,7 @@ class TarballManager(HTMLParser):
     def handle_data(self, data):
         """Handle HTML data to extract release version information.
 
-        Internal method. Overrides HTMLParser.handle_data().
+        Internal method. Overrides `HTMLParser.handle_data()`.
 
         Args:
             data (str): A string containing HTML data.
@@ -167,11 +167,11 @@ class TarballManager(HTMLParser):
     def download_tarballs(self, version):
         """Download tarballs for a specific HTCondor version.
 
-        Download a specific set of condor tarballs from the release_url link
+        Download a specific set of condor tarballs from the release_url link.
         All the OS and architecture tarballs for the specified condor version are downloaded.
-        The set of OS and architecture files are specified in the constructor using filenames
+        The set of OS and architecture files are specified in the constructor using filenames.
 
-        The method also checks the tarball checksum (by downloading the sha256sum.txt file)
+        The method also checks the tarball checksum (by downloading the sha256sum.txt file).
         If a tarball already exist and its checksum is correct then it is skipped.
         If a specific os/architecture tarball is not available it is skipped, and a message is
         printed on stdout if verbose has been set to True in the constructor.
@@ -325,14 +325,14 @@ class Config(UserDict):
             major_dict["BLACKLIST"].sort(key=StrictVersion)
 
 
-def save_xml(dest_xml, xml):
+def save_xml(dest_xml_file, xml):
     """Save the generated XML snippet to disk with proper XML structure.
 
     Args:
-        dest_xml (str): The destination file path for the XML output.
+        dest_xml_file (str): The destination file path for the XML output.
         xml (str): The XML snippet to save.
     """
-    with open(dest_xml, "w") as fd:
+    with open(dest_xml_file, "w") as fd:
         fd.write("<glidein>\n")
         fd.write("   <condor_tarballs>\n")
         fd.write(xml)

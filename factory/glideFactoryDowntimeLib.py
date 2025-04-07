@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This module implements the functions needed to handle the downtimes
+"""This module implements the functions needed to handle the downtimes.
 """
 
 import fcntl
@@ -23,8 +23,8 @@ class DowntimeFile:
     Each non-comment line in the file must have at least two space-separated entries (start_time and end_time),
     expressed in Unix time (seconds since epoch). If end_time is "None", the downtime does not have
     a set expiration (i.e. it runs forever). Additional entries may be used to limit the scope
-    (Entry, Frontend, Sec_Class names) and to add a comment. Missing values or, respectively "factory",
-    "All", "All" mean that there are no scope restrictions.
+    (Entry, Frontend, Sec_Class names) and to add a comment. Missing scope values or, respectively, the keywords
+    "factory", "All", "All" mean that there are no scope restrictions.
     """
 
     def __init__(self, fname):
@@ -124,8 +124,8 @@ class DowntimeFile:
     ):
         """Start a downtime period with an indefinite end time.
 
-        If start_time is None, the current time is used. The default values for entry, frontend,
-        and security_class are "All", meaning that there are no scope restrictions.
+        If `start_time` is None, the current time is used. The default values for `entry`, `frontend`,
+        and `security_class` are "All", meaning that there are no scope restrictions.
 
         Args:
             start_time (int or None): The start time in seconds since the epoch.
@@ -140,7 +140,7 @@ class DowntimeFile:
                 Defaults to True.
 
         Returns:
-            int: The result of addPeriod (typically 0).
+            int: The result of `add_period` (typically 0).
         """
         if start_time is None:
             start_time = int(time.time())
@@ -149,8 +149,8 @@ class DowntimeFile:
     def end_downtime(self, end_time=None, entry="All", frontend="All", security_class="All", comment=""):
         """End an active downtime period.
 
-        If end_time is None, the current time is used. "All" (default) is a wildcard for entry,
-        frontend, and security_class.
+        If `end_time` is None, the current time is used. "All" (default) is a wildcard for `entry`,
+        `frontend`, and `security_class`, meaning that there are no scope restrictions.
 
         Args:
             end_time (int or None): The end time in seconds since the epoch.
@@ -329,9 +329,10 @@ def _print_downtime(fname, entry="Any", check_time=None):
 def _check_downtime(fname, entry="Any", frontend="Any", security_class="Any", check_time=None):
     """Check if a downtime period is active at the specified time.
 
-    If check_time is None, the current time is used.
-    entry, frontend, and security_class can be used to restrict the scope.
-    "All" is used as a wildcard for entry, frontend, and security_class.
+    If `check_time` is None, the current time is used.
+    `entry`, `frontend`, and `security_class` can be used to restrict the scope.
+    "All" is used as a wildcard for `entry`, `frontend`, and `security_class`,
+    to avoid scope restrictions.
 
     Args:
         fname (str or Path): The downtime file.
@@ -396,7 +397,7 @@ def _add_period(
         int: 0 upon successful addition.
 
     Raises:
-        FileNotFoundError: if there is no downtime file and create_if_empty is False
+        FileNotFoundError: if there is no downtime file and create_if_empty is False.
     """
     exists = os.path.isfile(fname)
     if (not exists) and (not create_if_empty):
@@ -523,8 +524,9 @@ def _purge_old_periods(fname, cut_time=None, raise_on_error=False):
 def _end_downtime(fname, end_time=None, entry="All", frontend="All", security_class="All", comment=""):
     """End an active downtime period.
 
-    If end_time is None, the current time is used.
-    "All" (default) is used as a wildcard for entry, frontend, and security_class.
+    If `end_time` is None, the current time is used.
+    "All" (default) is used as a wildcard for `entry`, `frontend`, and `security_class`,
+    to avoid scope restrictions.
 
     Args:
         fname (str or Path): The downtime file.

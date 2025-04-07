@@ -37,7 +37,7 @@ def parse_args():
         ValueError: If there are not enough arguments or if the provided factory directory is invalid.
 
     Returns:
-        GlideinDescript: An instance of GlideinDescript with its factory_dir, date_arr, and time_arr attributes set.
+        glideFactoryConfig.GlideinDescript: An instance of GlideinDescript with its factory_dir, date_arr, and time_arr attributes set.
     """
     if len(sys.argv) < 3:
         raise ValueError("Not enough arguments!")
@@ -64,7 +64,7 @@ def parse_args():
 def main():
     """Retrieve and print log file paths for the specified Factory and date.
 
-    This function parses command-line arguments to configure a GlideinDescript object,
+    This function parses command-line arguments to configure a glideFactoryConfig.GlideinDescript object,
     retrieves the list of log files corresponding to the specified entries, date, and time,
     and then prints each log file path.
 

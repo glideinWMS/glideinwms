@@ -48,7 +48,7 @@ class SubmitCredentials:
 
     Attributes:
         username (str): The username for submission.
-        security_class: The security class for submission. (Seems redundant info)
+        security_class: The security class for submission.
         id: The identifier used for tracking the submit credentials.
         cred_dir (str): The directory location of credentials.
         security_credentials (dict): Dictionary mapping credential types to file paths.
@@ -212,8 +212,8 @@ def process_global(classad, glidein_descript, frontend_descript):
 
     Args:
         classad (dict): A dictionary representation of the classad.
-        glidein_descript (glideFactoryConfig.GlideinDescript): The glidein description object.
-        frontend_descript (glideFactoryConfig.FrontendDescript): The frontend description object.
+        glidein_descript (glideFactoryConfig.GlideinDescript): Factory configuration's Glidein description object.
+        frontend_descript (glideFactoryConfig.FrontendDescript): Factory configuration's Frontend description object.
 
     Raises:
         CredentialError: If the factory has no public key or if any decryption error occurs.
@@ -295,7 +295,7 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
 
     Args:
         classad (dict): A dictionary representation of the classad.
-        frontend_descript (glideFactoryConfig.FrontendDescript): Object containing Frontend information.
+        frontend_descript (glideFactoryConfig.FrontendDescript): Factory configuration's Frontend description object.
         pub_key_obj (object): The Factory public key object with encryption/decryption methods.
 
     Returns:

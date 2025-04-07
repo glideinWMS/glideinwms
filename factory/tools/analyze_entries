@@ -82,9 +82,9 @@ def blockprint(title, d, p, pd):
         title (str): The title of the block.
         d (dict): Dictionary containing detailed metrics.
         p (int): Parameter used in formatting the output.
-        pd (dict): Dictionary containing overall metrics for comparison.
+        pd (dict, None): Dictionary containing overall metrics for comparison.
     """
-    if pd != 0:
+    if pd is not None:
         s = " - %.1f%% of total" % (float(d["glideins"]) / float(pd["glideins"]) * 100.0)
         t = ""
     else:
@@ -191,16 +191,16 @@ def lineprint(entry_name, entry, g_entry, g, to_be_printed, attr_list, sort_attr
         s = "total_time"
 
     # For Sorting
-    list = dict(entry, **g_entry)  # combine the two dictionaries
+    e_list = dict(entry, **g_entry)  # combine the two dictionaries
     div = 1
     if attr_list[sort_attribute] in ["FailedNr", "JobsNr_None"]:
         div = float(g_entry["glideins"])
     elif attr_list[sort_attribute] in ["validation_All", "validation", "idle", "wst", "badput"]:
         div = float(entry[s])
     if attr_list[sort_attribute] == "wst":
-        sorter = int((float(list["waste"]) / div) * 100)
+        sorter = int((float(e_list["waste"]) / div) * 100)
     else:
-        sorter = int((float(list[attr_list[sort_attribute]]) / div) * 100)
+        sorter = int((float(e_list[attr_list[sort_attribute]]) / div) * 100)
 
     if totals is not None:
         ekeys = ("FailedNr", "validation_All", "JobsNr_None", s)
@@ -297,7 +297,7 @@ USAGE:
 
     # flags
     x = 24
-    dir = os.getcwd()
+    w_dir = os.getcwd()
     sorting = 0
     fe_sorting = 0
     sort_attribute = 0
@@ -318,7 +318,7 @@ USAGE:
         if o == "-x":
             x = a
         elif o == "--source":
-            dir = a
+            w_dir = a
         elif o in ("-h", "-help"):
             print(usage)
             return
@@ -411,10 +411,10 @@ USAGE:
         "wastemill_data": "rrd_Log_Completed_WasteTime.xml",
     }
 
-    if "http" in dir:
-        file_dir = os.path.join(dir)
+    if "http" in w_dir:
+        file_dir = os.path.join(w_dir)
     else:
-        file_dir = os.path.join(dir, "monitor")
+        file_dir = os.path.join(w_dir, "monitor")
         if not os.path.isdir(file_dir):
             # Try RPM location
             rpmdir = "/var/lib/gwms-factory/work-dir"
@@ -423,17 +423,20 @@ USAGE:
                 print("\nCannot open", file_dir)
                 print("Please set --source to the factory work dir and try again.")
                 sys.exit(1)
-            if dir != os.getcwd():
+            if w_dir != os.getcwd():
                 # Directory explicitly set, print warning
                 print("\nWARNING: Cannot open", file_dir)
                 print("Using RPM default %s instead" % rpmfile_dir)
-            dir = rpmdir
+            w_dir = rpmdir
             file_dir = rpmfile_dir
 
     for name, xml in rrd_list.items():
         try:
             file_loc = os.path.join(file_dir, xml)
-            u = urlopen("file://" + file_loc)
+            if "://" in file_loc:
+                u = urlopen(file_loc)
+            else:
+                u = open(file_loc)
             data[name] = xmlParse.xmlfile2dict(u)
         except Exception:
             print("\nCannot open", file_loc)
@@ -613,7 +616,7 @@ Glidein log analysis for frontend %s - %s
     ######################################################################
 
     # sort periods from least to greatest, with 24 hours at the top
-    period_list = sorted(period_data.keys())
+    period_list = sorted(list(period_data.keys()))
     period_list.remove(86400)
     period_list.insert(0, 86400)
 
@@ -643,7 +646,7 @@ Glidein log analysis for frontend %s - %s
 
         if show_block:
             print("----------------------------------------\n%s:\n" % title)
-            blockprint(title, period_data[p], p, 0)
+            blockprint(title, period_data[p], p, None)
 
     ################################################################################
     #    Print per entry stats (all frontends)
@@ -671,9 +674,19 @@ Per Entry (all frontends) stats for the past %s hours.\n"""
                 entry["validation"] = 1
 
             lineprint(entry_name, entry, entry, 0, to_be_printed, attr_list, sort_attribute, min_limit, totals)
-        lineprint(
-            "Total/Average", totals["entry"], totals["g_entry"], 0, totals_to_be_printed, attr_list, sort_attribute, {}
-        )
+        if len(totals) > 0:
+            lineprint(
+                "Total/Average",
+                totals["entry"],
+                totals["g_entry"],
+                0,
+                totals_to_be_printed,
+                attr_list,
+                sort_attribute,
+                {},
+            )
+        else:
+            print("No Entries with Glideins.")
         print(totals_to_be_printed[0][1])
         print(LINEPRINT_HEADER_DIV)
 
@@ -697,7 +710,7 @@ Per Entry (all frontends) stats for the past %s hours.\n"""
 ---------------------------------------
 ---------------------------------------
 Per Entry (per frontend) stats for the past %s hours.\n"""
-            % (x)
+            % x
         )
     else:
         units = ["Slots", "Seconds", "Hours"]
@@ -706,7 +719,7 @@ Per Entry (per frontend) stats for the past %s hours.\n"""
 ---------------------------------------
 ---------------------------------------
 Frontend stats for the past %s hours.\n"""
-            % (x)
+            % x
         )
         print(
             "%-25s%7s %7s %3s %7s %3s %7s %3s %7s %3s %7s %3s %4s\n"

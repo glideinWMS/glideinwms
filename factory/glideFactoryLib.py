@@ -48,7 +48,7 @@ class FactoryConfig:
     """
 
     def __init__(self):
-        """Initialize a FactoryConfig with default values.
+        """Initialize a FactoryConfig object with default values.
 
         Users should modify these attributes if needed.
         """
@@ -169,7 +169,7 @@ class FactoryConfig:
 
         Args:
             entry_name (str): Name of the entry.
-            username (str): Username.
+            username (str): Client username.
 
         Returns:
             str: Full path to the client log directory.
@@ -183,7 +183,7 @@ class FactoryConfig:
         """Get the client credentials directory.
 
         Args:
-            username (str): Username.
+            username (str): Client username.
 
         Returns:
             str: Full path to the client credentials directory.
@@ -346,6 +346,7 @@ def getQCredentials(condorq, client_name, creds, client_sa, cred_secclass_sa, cr
     return entry_condorQ
 
 
+# TODO: this was for v2 protocol - check if it is still used or to remove
 def getQProxSecClass(
     condorq,
     client_name,
@@ -357,7 +358,7 @@ def getQProxSecClass(
     """Get the current queue status for a client and a security class.
 
     Args:
-        condorq: Condor queue object.
+        condorq (condorMonitor.CondorQ): Condor queue object.
         client_name (str): Client name.
         proxy_security_class (str): Credentials security class.
         client_schedd_attribute (str, optional): Schedd attribute for client name. Defaults to global config.
@@ -433,7 +434,7 @@ def getQStatusSF(condorq):
     Use `getQStatus` for more detailed statuses.
 
     Args:
-        condorq: Condor queue query object.
+        condorq (condorMonitor.CondorQ): Condor queue query object.
 
     Returns:
         dict: Dictionary where keys are GlideinEntrySubmitFile(s) and values are dictionaries of jobStatus to number of jobs.
@@ -457,7 +458,7 @@ def getQStatus(condorq):
     1100 is used for unknown GridJobStatus.
 
     Args:
-        condorq: Condor queue query object.
+        condorq (condorMonitor.CondorQ): Condor queue query object.
 
     Returns:
         dict: Dictionary mapping detailed job statuses (as returned by hash_status) to counts.
@@ -472,7 +473,7 @@ def getQStatusStale(condorq):
     stale_info is 1 if the status information is old.
 
     Args:
-        condorq: Condor queue query object.
+        condorq (condorMonitor.CondorQ): Condor queue query object.
 
     Returns:
         dict: Dictionary mapping job statuses to counts, where each status includes a flag indicating if the status is stale.
@@ -560,8 +561,8 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data, factoryC
 
     The file is updated safely (with a backup) if the new proxy data differs from the current data.
     The file path is constructed as directory and name:
-      `f"{factoryConfig.client_proxies_base_dir}/user_{username}/glidein_{factoryConfig.glidein_name}/entry_{entry_name}"`
-      `"x509_%s.proxy" % escapeParam(client_id)"`
+      ``f"{factoryConfig.client_proxies_base_dir}/user_{username}/glidein_{factoryConfig.glidein_name}/entry_{entry_name}"``
+      ``"x509_%s.proxy" % escapeParam(client_id)"``
 
     Proxy DN and VOMS extension are extracted but never used (?!)
 
@@ -969,7 +970,7 @@ def clean_glidein_queue(
     This is not adjusting the glidein totals with what has been removed from the queue.  It may take a cycle (or more)
     for these totals to update so it would be difficult to reflect the true state of the system.
 
-    TODO: req_min_idle=0 when remove_excess_tp.frontend_req_min_idle is not means that a limit was reached in the Factory
+    TODO: req_min_idle=0 when remove_excess_tp.frontend_req_min_idle does not mean that a limit was reached in the Factory
         or some component (Factory/Entry) is in downtime. Check if the removal behavior should change
 
     Args:
@@ -981,7 +982,7 @@ def clean_glidein_queue(
             if an entry is in downtime, or the Factory limits are reached. We do not want to remove idle pilots in
             these cases!
         glidein_totals (GlideinTotals): Totals of glideins for the entry and Frontends.
-        condorQ: Condor queue object.
+        condorQ (condorMonitor.CondorQ): Condor queue object.
         req_min_idle (int): Minimum idle glideins requested by the frontend.
             (NOT USED, using frontend_req_min_idle in remove_excess_tp instead to avoid Factory limits effects)
         req_max_glideins (int): Maximum glideins allowed by the frontend.
@@ -991,9 +992,9 @@ def clean_glidein_queue(
 
     Returns:
         int: 1 if some glideins were removed, 0 otherwise.
-
-    TODO: could return the number of glideins removed
     """
+    # TODO: could return the number of glideins removed
+
     remove_excess_str, remove_excess_margin, frontend_req_min_idle = remove_excess_tp
 
     if factoryConfig is None:
@@ -1138,8 +1139,8 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
     and held glideins within limits, and removes them accordingly.
 
     Args:
-        condorq: Condor queue object.
-        log: Logger.
+        condorq (condorMonitor.CondorQ): Condor queue object.
+        log (logging.Logger): Logger.
         factoryConfig (FactoryConfig, optional): Factory configuration.
 
     Returns:
@@ -1211,10 +1212,10 @@ def logStatsAll(condorq, log=logSupport.log, factoryConfig=None):
     Do that for all the clients that have jobs on this entry
 
     Args:
-        condorq: Condor queue object containing jobs for the entry (`data` attribute).
-        log: Logger.
+        condorq (condorMonitor.CondorQ): Condor queue object containing jobs for the entry (`data` attribute).
+        log (logging.Logger): Logger.
         factoryConfig (FactoryConfig, optional): Factory configuration. Defaults to the global one.
-            It contains schedd statistics (client_stats, qc_stats)
+            It contains schedd statistics (client_stats, qc_stats).
     """
     if factoryConfig is None:
         factoryConfig = globals()["factoryConfig"]
@@ -1256,11 +1257,11 @@ def logStats(
     to the values already stored in factoryConfig.client_stats, factoryConfig.qc_stats
 
     Args:
-        condorq: Condor queue object.
+        condorq (condorMonitor.CondorQ): Condor queue object.
         client_int_name (str): Client internal name (the requester/Frontend).
         client_security_name (str): Client security name.
         proxy_security_class (str): Credential security class of the client.
-        log: Logger.
+        log (logging.Logger): Logger.
         factoryConfig (FactoryConfig, optional): Factory configuration. Defaults to the global one.
             It includes schedd statistics (client_stats, qc_stats).
     """
@@ -1302,16 +1303,16 @@ def logWorkRequest(
     """Log work requests from a client.
 
     Args:
-        client_int_name: Client internal name.
-        client_security_name: Client security name.
-        proxy_security_class: Credential security class.
-        req_idle: Requested number of idle glideins.
-        req_max_run: Maximum number of running glideins.
+        client_int_name (str): Client internal name.
+        client_security_name (str): Client security name.
+        proxy_security_class (str): Credential security class.
+        req_idle (int): Requested number of idle glideins.
+        req_max_run (int): Maximum number of running glideins.
         remove_excess (tuple): Tuple with remove_excess_str (str), and remove_excess_margin (int).
-        work_el: Work request element (dictionary with request details).
+        work_el (dict): Work request element (dictionary with request details).
             Temporary workaround, the requests should always be processed at the caller level.
         fraction (float): Fraction for this entry.
-        log: Logger.
+        log (logging.Logger): Logger.
         factoryConfig (FactoryConfig, optional): Factory configuration. Defaults to the global one.
     """
     if factoryConfig is None:
@@ -1520,7 +1521,7 @@ def extractStaleSimple(q, factoryConfig=None):
     So we are looking for glideins where hash_statusStale is [1, 1].
 
     Args:
-        q: Condor queue object.
+        q (condorMonitor.CondorQ): Condor queue object.
         factoryConfig (FactoryConfig, optional): Factory configuration. Defaults to global configuration.
 
     Returns:
@@ -1541,7 +1542,7 @@ def extractUnrecoverableHeldSimple(q, factoryConfig=None):
     to understand if a held glidein is recoverable.
 
     Args:
-        q: Condor queue object.
+        q (condorMonitor.CondorQ): Condor queue object.
         factoryConfig (FactoryConfig, optional): Factory configuration. Defaults to global configuration.
 
     Returns:
@@ -1558,7 +1559,7 @@ def extractUnrecoverableHeldForceX(q, factoryConfig=None):
     """Extract job IDs of unrecoverable held glideins that have been held for more than 20 iterations.
 
     Args:
-        q: Condor queue object.
+        q (condorMonitor.CondorQ): Condor queue object.
         factoryConfig (FactoryConfig, optional): Factory configuration. Defaults to global configuration.
 
     Returns:
@@ -1579,10 +1580,10 @@ def extractUnrecoverableHeldForceX(q, factoryConfig=None):
 def extractRecoverableHeldSimple(q, factoryConfig=None):
     """Extract job IDs of recoverable held glideins from the queue.
 
-    Held jobs have HTCondor status 5
+    Held jobs have HTCondor status 5.
 
     Args:
-        q: Condor queue object.
+        q (condorMonitor.CondorQ): Condor queue object.
         factoryConfig (FactoryConfig, optional): Factory configuration. Defaults to global configuration.
 
     Returns:
@@ -1601,7 +1602,7 @@ def extractRecoverableHeldSimpleWithinLimits(q, factoryConfig=None):
     """Extract job IDs of recoverable held glideins within specified limits from the queue.
 
     Args:
-        q: Condor queue object.
+        q (condorMonitor.CondorQ): Condor queue object.
         factoryConfig (FactoryConfig, optional): Factory configuration. Defaults to global configuration.
 
     Returns:
@@ -1623,7 +1624,7 @@ def extractHeldSimple(q, factoryConfig=None):
     """Extract all held glideins (JobStatus == 5) from the queue.
 
     Args:
-        q: Condor queue object (dictionary of Glideins from condor_q).
+        q (condorMonitor.CondorQ): Condor queue object (dictionary of Glideins from condor_q).
         factoryConfig (FactoryConfig, optional): Factory configuration. Defaults to global configuration.
             Not used, kept to maintain a uniform interface.
 
@@ -1640,7 +1641,7 @@ def extractIdleSimple(q, factoryConfig=None):
     """Extract all idle glideins (JobStatus == 1) from the queue.
 
     Args:
-        q: Condor queue object.
+        q (condorMonitor.CondorQ): Condor queue object.
         factoryConfig (FactoryConfig, optional): Factory configuration. Defaults to global configuration.
             Not used, kept to maintain a uniform interface.
 
@@ -1656,10 +1657,10 @@ def extractIdleSimple(q, factoryConfig=None):
 def extractIdleUnsubmitted(q, factoryConfig=None):
     """Extract from the queue idle glideins that are not yet submitted (Unsubmitted, aka Waiting - hash_status == 1001).
 
-    hash_status 1xxx implies JobStatus 1
+    hash_status 1xxx implies JobStatus 1.
 
     Args:
-        q: Condor queue object.
+        q (condorMonitor.CondorQ): Condor queue object.
         factoryConfig (FactoryConfig, optional): Factory configuration. Defaults to global configuration.
             Not used, kept to maintain a uniform interface.
 
@@ -1674,10 +1675,10 @@ def extractIdleUnsubmitted(q, factoryConfig=None):
 def extractIdleQueued(q, factoryConfig=None):
     """Extract from the queue idle glideins that have been submitted (hash_status in {1002, 1010, 1100}).
 
-    hash_status 1xxx (i.e. JobStatus 1) except 1001
+    hash_status 1xxx (i.e. JobStatus 1) except 1001.
 
     Args:
-        q: Condor queue object.
+        q (condorMonitor.CondorQ): Condor queue object.
         factoryConfig (FactoryConfig, optional): Factory configuration. Defaults to global configuration.
             Not used, kept to maintain a uniform interface.
 
@@ -1693,7 +1694,7 @@ def extractNonRunSimple(q, factoryConfig=None):
     """Extract all non-running glideins (JobStatus != 2) from the queue.
 
     Args:
-        q: Condor queue object.
+        q (condorMonitor.CondorQ): Condor queue object.
         factoryConfig (FactoryConfig, optional): Factory configuration.
 
     Returns:
@@ -1708,7 +1709,7 @@ def extractRunSimple(q, factoryConfig=None):
     """Extract all running glideins (JobStatus == 2) from the queue.
 
     Args:
-        q: Condor queue object.
+        q (condorMonitor.CondorQ): Condor queue object.
         factoryConfig (FactoryConfig, optional): Factory configuration.
 
     Returns:
@@ -1726,7 +1727,7 @@ def extractRunStale(q, factoryConfig=None):
     A glidein is considered running and stale if its hash_statusStale is [2, 1].
 
     Args:
-        q: Condor queue object.
+        q (condorMonitor.CondorQ): Condor queue object.
         factoryConfig (FactoryConfig, optional): Factory configuration.
 
     Returns:
@@ -1864,8 +1865,8 @@ def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
     """Submit glideins using the condor_submit command in a custom environment.
 
     Args:
-        log: Logger object.
-        factoryConfig: Factory configuration.
+        log (logging.Logger): Logger object.
+        factoryConfig (FactoryConfig): Factory configuration.
         username (str): Username for the credential.
         schedd (str): HTCondor schedd name.
         exe_env (list): List of environment variables.
@@ -1922,7 +1923,7 @@ def submitGlideins(
         client_web (ClientWeb): Client web object (or None).
         params (dict): Parameters from the entry or Frontend configuration.
         status_sf (dict): Dictionary with keys as GlideinEntrySubmitFile(s) and values as job status counts.
-        log: Logger. Defaults to the global logger.
+        log (logging.Logger): Logger. Defaults to the global logger.
         factoryConfig (FactoryConfig, optional): Factory configuration.
     """
     if factoryConfig is None:
@@ -2019,7 +2020,7 @@ def removeGlideins(schedd_name, jid_list, force=False, log=logSupport.log, facto
         schedd_name (str): HTCondor schedd name.
         jid_list (list): List of job IDs (tuples) to remove.
         force (bool, optional): If True, force removal. Defaults to False.
-        log: Logger. Defaults to the global logger.
+        log (logging.Logger): Logger. Defaults to the global logger.
         factoryConfig (FactoryConfig, optional): Factory configuration.
     """
     if factoryConfig is None:
@@ -2066,8 +2067,8 @@ def releaseGlideins(schedd_name, jid_list, log=logSupport.log, factoryConfig=Non
     Args:
         schedd_name (str): HTCondor schedd name.
         jid_list (list): List of job IDs (tuples) to release.
-        log: Logger.
-        factoryConfig: Factory configuration (optional).
+        log (logging.Logger): Logger.
+        factoryConfig (FactoryConfig, optional): Factory configuration.
     """
     if factoryConfig is None:
         factoryConfig = globals()["factoryConfig"]
@@ -2127,7 +2128,7 @@ def get_submit_environment(
         client_web (ClientWeb): Client web object (or None).
         params (dict): Parameters from the entry configuration or frontend.
         idle_lifetime (int): Idle lifetime for glideins.
-        log: Logger.
+        log (logging.Logger): Logger.
         factoryConfig (FactoryConfig, optional): Factory configuration. Defaults to global configuration.
 
     Returns:
@@ -2404,7 +2405,7 @@ email_logs = False
 def isGlideinWithinHeldLimits(jobInfo, factoryConfig=None):
     """Determine whether a glidein job is within held limits.
 
-    Looks at the glidein job's information and returns if the CondorG job can be released,
+    Looks at the glidein job's information and returns if the CondorG (Grid universe) job can be released,
     e.g. it has not been released too many times or too recently.
     This is useful to limit how often held jobs are released.
 
@@ -2451,12 +2452,12 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None, glideinDescript=None):
     exit codes specified in glideinDescript. If the job's codes are not listed as recoverable, the job is considered
     unrecoverable.
     Condor hold codes are available at:
-    https://htcondor.readthedocs.io/en/v8_9_4/classad-attributes/job-classad-attributes.html
+    https://htcondor.readthedocs.io/en/latest/classad-attributes/job-classad-attributes.html
 
     In v3.6.2 the behavior of the function changed. Instead of having a list
     of unrecoverable codes in the function (that got outdated once the Globus Toolkit was
     deprecated), we consider each code unrecoverable by default and give the operators
-    the possibility of specify a list of recoverable codes in the configuration.
+    the possibility to specify a list of recoverable codes in the configuration.
 
     Args:
         jobInfo (dict): Dictionary containing glidein job's classad information.
@@ -2567,14 +2568,14 @@ class GlideinTotals:
     """Class to keep track of all glidein totals for an entry and frontends."""
 
     def __init__(self, entry_name, frontendDescript, jobDescript, entry_condorQ, log=logSupport.log):
-        """Initialize GlideinTotals.
+        """Initialize GlideinTotals object.
 
         Args:
             entry_name (str): Name of the entry.
-            frontendDescript: Frontend description object.
-            jobDescript: Job description object.
-            entry_condorQ: Condor queue object for the entry.
-            log: Logger.
+            frontendDescript (FrontendDescript): Frontend description object.
+            jobDescript (glideFactoryConfig.JobDescript): Job description object.
+            entry_condorQ (condorMonitor.CondorQ): Condor queue object for the entry.
+            log (logging.Logger): Logger.
         """
         # Initialize entry limits
         self.entry_name = entry_name
@@ -2674,7 +2675,7 @@ class GlideinTotals:
         Args:
             nr_glideins (int): Number of additional glideins proposed.
             frontend_name (str): Frontend name (frontend:security class key).
-            log: Logger.
+            log (loggng.Logger): Logger.
             factoryConfig (FactoryConfig, optional): Factory configuration.
 
         Returns:

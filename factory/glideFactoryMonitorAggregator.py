@@ -68,10 +68,10 @@ def rrd_site(name):
     """Return the RRD filename for a given site.
 
     Args:
-        name (str): A name string that typically contains a dot.
+        name (str): A name string that typically contains a dot. The first part is until the first dot.
 
     Returns:
-        str: The RRD filename in the format "rrd_<first_part>.xml".
+        str: The RRD filename in the format "rrd_<first_part_of_name>.xml".
     """
     sname = name.split(".")[0]
     return "rrd_%s.xml" % sname
@@ -468,8 +468,8 @@ def aggregateJobsSummary():
 
     Returns:
         dict: Dictionary of aggregated job summaries with keys as (schedd_name, collector_name) tuples.
-              Each value is a dictionary mapping job identifiers (e.g. '2994.000') to a dictionary with stat keys
-              such as 'condor_duration', 'glidein_duration', 'condor_started', and 'numjobs'.
+              Each value is a dictionary mapping job identifiers (e.g. '2994.000') to a dictionary with statistics
+              keys such as 'condor_duration', 'glidein_duration', 'condor_started', and 'numjobs'.
 
     Example of return value:
         ```
@@ -517,7 +517,7 @@ def aggregateLogSummary():
     """Aggregate log summary files and write an aggregate log summary.
 
     This function creates an aggregate of log summary files from all entries, writes the aggregate log summary XML file,
-    and returns the aggregated status dictionary.
+    and returns the aggregated log summary dictionary.
 
     Returns:
         dict: Dictionary containing aggregated log summary information.

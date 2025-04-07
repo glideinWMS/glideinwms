@@ -42,7 +42,7 @@ advertizeGlobalCounter = 0
 
 class FactoryConfig:
     def __init__(self):
-        """Initialize a FactoryConfig with default values.
+        """Initialize a FactoryConfig object with default values.
 
         Users should modify the attributes if needed.
         """
@@ -125,13 +125,13 @@ DEFAULT_VAL = "default"
 # Exception thrown when multiple executions are used
 # Helps handle partial failures
 class MultiExeError(condorExe.ExeError):
-    """Exception thrown when multiple executions are used
+    """Exception thrown when multiple executions are used.
 
     Helps to handle partial failures.
     """
 
     def __init__(self, arr):
-        """Initialize MultiExeError with a list of exceptions.
+        """Initialize MultiExeError object with a list of exceptions.
 
         Args:
             arr (list): List of ExeError exceptions.
@@ -178,7 +178,7 @@ def findGroupWork(
         supported_signtypes (list): List of supported sign types (e.g. ['sha1']).
             Supports only one kind of signtype, 'sha1'. Default is None
         pub_key_obj (str, optional): Public key object (e.g. RSA key). Defaults to None.
-            Supports only one kind of public key, 'RSA'
+            Supports only one kind of public key, 'RSA'.
         additional_constraints (str, optional): Additional constraints for querying the WMS Collector. Defaults to None.
         factory_collector (str, optional): The collector to query. Special value "default" uses the global config.
 
@@ -360,11 +360,11 @@ def workGroupByEntries(work):
     """Group work items by entry.
 
     Args:
-        work (dict): Dictionary of work items.
+        work (dict): Dictionary of work items for each client.
 
     Returns:
         dict: Dictionary of work items grouped by entry.
-              Example: grouped_work[entry][w]
+              Example: ``grouped_work[entry][client]``
     """
     grouped_work = {}
 
@@ -409,7 +409,7 @@ def findWork(
         glidein_name (str): Name of the glidein instance.
         entry_name (str): Name of the Factory entry.
         supported_signtypes (list): List of supported sign types (supports only 'sha1' - e.g., ['sha1']). Defaults to None.
-        pub_key_obj (optional): Public key object used for decryption (supports only RSA). Defaults to None.
+        pub_key_obj (glideFactoryConfig.GlideinKey, optional): Public key object used for decryption (supports only RSA). Defaults to None.
         additional_constraints (str, optional): Additional constraints for querying the WMS collector. Defaults to None.
         factory_collector (str or None): The collector to query. The special value 'default' will retrieve it from the global configuration.
 
@@ -588,7 +588,7 @@ class EntryClassad(classadSupport.Classad):
         glidein_web_attrs={},
         glidein_config_limits={},
     ):
-        """Initialize an EntryClassad.
+        """Initialize an EntryClassad object.
 
         glidein_attrs is a dictionary of values to publish like {"Arch":"INTEL","MinDisk":200000}
         similar for glidein_submits, glidein_params, glidein_monitor_monitors and the other dictionaries.
@@ -600,9 +600,9 @@ class EntryClassad(classadSupport.Classad):
             trust_domain (str): Trust domain for this entry.
             auth_method (str): Authentication methods supported in glidein submission (e.g. grid_proxy, scitoken).
             supported_signtypes (list): Supported sign types (e.g. ['sha1']).
-            pub_key_obj (optional): Public key object for encryption. Defaults to None.
+            pub_key_obj (glideFactoryConfig.GlideinKey, optional): Public key object for encryption. Defaults to None.
             glidein_submit (dict, optional): Dictionary of submit attributes in the configuration. Defaults to {}.
-            glidein_attrs (dict, optional): Dictionary of glidein attributes to publish. These are not be overwritten
+            glidein_attrs (dict, optional): Dictionary of glidein attributes to publish. These are never overwritten
                 by clients (Frontends). Defaults to {}.
             glidein_params (dict, optional): Dictionary of parameters to publish. Can be overwritten by clients
                 (Frontends). Defaults to {}.
@@ -688,13 +688,13 @@ class FactoryGlobalClassad(classadSupport.Classad):
     """
 
     def __init__(self, factory_name, glidein_name, supported_signtypes, pub_key_obj):
-        """Initialize a FactoryGlobalClassad.
+        """Initialize a FactoryGlobalClassad object.
 
         Args:
             factory_name (str): Name of the Factory.
             glidein_name (str): Name of the resource in the classad.
             supported_signtypes (list): List of supported sign types (e.g. ['sha1']).
-            pub_key_obj: Public key object (GlideinKey) used for encryption by the client (Frontend).
+            pub_key_obj (glideFactoryConfig.GlideinKey): Public key object (GlideinKey) used for encryption by the client (Frontend).
         """
         global factoryConfig, advertizeGlobalCounter
 
@@ -729,11 +729,9 @@ def advertizeGlobal(
         pub_key_obj (GlideinKey): Public key object for encryption in the client (Frontend).
         stats_dict (dict, optional): Completed jobs statistics. Defaults to {}.
         factory_collector (str or None): The collector to query. Special value 'default' retrieves it from the global configuration.
-
-    Todo:
-        Add support for factory downtime.
-
     """
+    # TODO: Add support for Factory downtime.
+
     tmpnam = classadSupport.generate_classad_filename(prefix="gfi_ad_gfg")
 
     gfg_classad = FactoryGlobalClassad(factory_name, glidein_name, supported_signtypes, pub_key_obj)
@@ -1152,7 +1150,7 @@ def advertizeGlideinClientMonitoringFromFile(fname, remove_file=True, is_multi=F
         factory_collector (str or None): Collector to use; if DEFAULT_VAL, uses global config.
 
     Raises:
-        CondorExe or ExeError: if advertising fails
+        CondorExe or ExeError: if advertising fails.
     """
     if os.path.exists(fname):
         try:

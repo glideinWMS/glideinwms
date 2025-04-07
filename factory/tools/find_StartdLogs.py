@@ -65,7 +65,7 @@ def parse_args():
 def main():
     """Main function to print out the StartdLogs for a given factory and date.
 
-    This function parses command-line arguments to create a GlideinDescript object,
+    This function parses command-line arguments to create a glideFactoryConfig.GlideinDescript object,
     retrieves the list of log file paths using the provided factory directory,
     date, and optional time, and then prints each log file path followed by a separator
     and the contents of the Condor log identified by "CondorLog".
@@ -86,7 +86,7 @@ def main():
     for fname in log_list:
         sys.stdout.write("%s\n" % fname)
         sys.stdout.write("===========================================================\n")
-        sys.stdout.write("%s\n" % gWftLogParser.get_CondorLog(fname, "CondorLog"))
+        sys.stdout.write("%s\n" % gWftLogParser.get_condor_log(fname, "CondorLog"))
 
 
 if __name__ == "__main__":

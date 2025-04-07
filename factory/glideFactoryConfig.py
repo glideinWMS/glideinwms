@@ -71,7 +71,7 @@ class ConfigFile:
     Loads a file composed of
         NAME VAL
     lines and creates a dictionary where each key is assigned the value produced
-    by applying the conversion function to the corresponding string. The default
+    by applying the conversion function to the corresponding value string. The default
     conversion is repr, but a custom conversion function can be provided:
         self.data[NAME]=convert_function(VAL)
     It also defines:
@@ -90,7 +90,7 @@ class ConfigFile:
 
         Args:
             config_file (str): The path to the configuration file.
-            convert_function (Callable, optional): Function to convert string values.
+            convert_function (Callable, optional): Function to convert value strings.
                 Defaults to repr.
         """
         self.config_file = config_file
@@ -163,7 +163,7 @@ class EntryConfigFile(ConfigFile):
     Attributes:
         config_file (str): Name of file with entry directory (from parent ConfigFile)
         entry_name (str): Entry name
-        config_file_short(str): Name of file (just the file name since the other had the directory)
+        config_file_short (str): Name of file (just the file name since the other had the directory)
     """
 
     def __init__(self, entry_name, config_file, convert_function=repr):
@@ -188,7 +188,7 @@ class JoinConfigFile(ConfigFile):
     This class does not support saving changes to disk.
 
     Attributes:
-        config_file(str): Name of both files, with and without entry directory, with " AND " in the middle.
+        config_file (str): Name of both files, with and without entry directory, with " AND " in the middle.
             It is not an actual file. (from parent ConfigFile, different value)
         data (dict): Will contain the joint items (initially the common one, then is updated using
             the content of `entry_obj.data`) (from parent ConfigFile, different value)
@@ -303,7 +303,7 @@ class GlideinKey:
         return self.pub_key_id[0:]
 
     def extract_sym_key(self, enc_sym_key):
-        """Extract the symmetric key from an encrypted value (Fronted attribute).
+        """Extract the symmetric key from an encrypted value (Frontend attribute).
 
         Args:
             enc_sym_key (str): Encrypted symmetric key as an ASCII string (AnyStrASCII).

@@ -287,7 +287,7 @@ def get_entries_configuration(data):
     """Generate the factory XML configuration from a resource dictionary.
 
     Args:
-        data (dict): A dictionary similar to that returned by ``get_information``.
+        data (dict): A dictionary similar to that returned by `get_information`.
 
     Returns:
         str: The Factory XML configuration as a string.
@@ -422,7 +422,7 @@ def merge_yaml(config, white_list, args):
         args (argparse.Namespace): Parsed command line arguments.
 
     Returns:
-        dict: A dictionary similar to that returned by ``get_information``, with defaults and overrides applied.
+        dict: A dictionary similar to that returned by `get_information`, with defaults and overrides applied.
               Only whitelisted entries are returned.
     """
     out = get_yaml_file_info(white_list)
