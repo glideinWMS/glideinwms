@@ -9,13 +9,13 @@ Changes since the last release
 
 ### New features / functionalities
 
-- Added a generator to set credentials or parameters depending on the Entry selected (PR #489)
-- Added a generator to set credentials or parameters depending on the Entry selected (PR #489)
-- Added IdTokenGenerator to standardize the generation of ID tokens and allow for operator customization
-- Added CachedGenerator base class to implement generators with automatic cache management
-- Added CredentialGenerator base generator class to implement cached credential generators
-- Added GeneratorContext class to implement context validation
-- Updated some builtin generators to avoid redefining \_\_init\_\_ making them more flexible
+-   Added a generator to set credentials or parameters depending on the Entry selected (PR #489)
+-   Added a generator to set credentials or parameters depending on the Entry selected (PR #489)
+-   Added IdTokenGenerator to standardize the generation of ID tokens and allow for operator customization
+-   Added CachedGenerator base class to implement generators with automatic cache management
+-   Added CredentialGenerator base generator class to implement cached credential generators
+-   Added GeneratorContext class to implement context validation
+-   Updated some builtin generators to avoid redefining \_\_init\_\_ making them more flexible
 
 ### Changed defaults / behaviours
 
