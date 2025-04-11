@@ -1842,6 +1842,10 @@ if ! {
 } >> "${glidein_config}"; then
     early_glidein_failure "Failed in updating '${glidein_config}'"
 fi
+# Export these variables to these are available in the environment for the Glidein and invoked scripts
+export GLIDEIN_Name="${glidein_name}"
+export GLIDEIN_UUID="${glidein_uuid}"
+
 # shellcheck disable=SC2086
 params2file ${params}
 
@@ -2046,7 +2050,7 @@ glog_write "glidein_startup.sh" "file" "${glidein_config}" "debug"
 if ! glog_send; then          # checkpoint
     echo "Failed to checkpoint Glidein Logging"
 fi
-echo "# --- Last Script values ---" >> glidein_config
+echo "# --- Last Script values ---" >> "${glidein_config}"
 last_startup_time=$(date +%s)
 ((validation_time=last_startup_time-startup_time)) || true
 echo "=== Last script starting $(date) (${last_startup_time}) after validating for ${validation_time} ==="
