@@ -3,6 +3,27 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+
+Changes since the last release
+
+### New features / functionalities
+
+-   Exporting GLIDEIN_Name and GLIDEIN_UUID to the Glidein environment, for all scripts running inside the Glidein (PR #512)
+-   item N
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+### Testing / Development
+
+### Known Issues
+
 ## v3.10.11 \[2025-03-24\]
 
 stale_age allows to keep Glideins in queues for longer than one week.
