@@ -3,14 +3,14 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+## v3.10.12 \[2025-04-25\]
 
-Changes since the last release
+Added the ability to use a config directory for the Glidein's HTCondor
 
 ### New features / functionalities
 
 -   Exporting GLIDEIN_Name and GLIDEIN_UUID to the Glidein environment, for all scripts running inside the Glidein (PR #512)
--   item N
+-   HTCondor LOCAL_CONFIG_DIR support for the Glidein HTCondor demons (PR #515)
 
 ### Changed defaults / behaviours
 
@@ -21,6 +21,8 @@ Changes since the last release
 ### Bug Fixes
 
 ### Testing / Development
+
+-   Improved docstrings in the Factory module (PR #511)
 
 ### Known Issues
 
