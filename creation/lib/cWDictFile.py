@@ -503,12 +503,12 @@ class DictFileTwoKeys(DictFile):
     def __init__(self, dir, fname, sort_keys=False, order_matters=False, fname_idx=None):
         """constructor
 
-        :param dir: directory
-        :param fname: file name
-        :param sort_keys: should the keys be sorted? (Default: False)
-        :param order_matters: order is important (Default: False)
-        :param fname_idx: fname ID, use fname if None (Default: None)
-        :return:
+        Args:
+            dir: directory
+            fname (str): file name
+            sort_keys (bool): should the keys be sorted? (Default: False)
+            order_matters (bool): order is important (Default: False)
+            fname_idx (str): fname ID, use fname if None (Default: None)
         """
         DictFile.__init__(self, dir, fname, sort_keys, order_matters, fname_idx)
         self.keys2 = []
@@ -517,16 +517,22 @@ class DictFileTwoKeys(DictFile):
     def has_key2(self, key):
         """Check reverse dictionary keys
 
-        :param key: reverse key (value)
-        :return: reverse key in value list
+        Args:
+            key: reverse key (value)
+
+        Returns:
+            str: reverse key in value list
         """
         return key in self.keys2
 
     def get_val2(self, key):
         """Retrieve value associated with reverse key
 
-        :param key: reverse key (value)
-        :return: value associated with reverse key (key)
+        Args:
+            key: reverse key (value)
+
+        Returns:
+            str: value associated with reverse key (key)
         """
         return self.vals2[key]
 
@@ -536,7 +542,7 @@ class DictFileTwoKeys(DictFile):
         self.vals2 = {}
 
     def add(self, key, val, allow_overwrite=False):
-        """
+        """Add a value to the dictionary
 
         Args:
             key:
@@ -545,7 +551,6 @@ class DictFileTwoKeys(DictFile):
 
         Raises:
             DictFileError
-
         """
         if key in self.keys:
             if self.vals[key] == val:
@@ -586,7 +591,7 @@ class DictFileTwoKeys(DictFile):
         self.changed = True
 
     def remove(self, key, fail_if_missing=False):
-        """
+        """Remove a value from the dictionary
 
         Args:
             key:
@@ -594,7 +599,6 @@ class DictFileTwoKeys(DictFile):
 
         Raises:
             DictFileError: KeyError, the key does not exist
-
         """
         if key not in self.keys:
             if fail_if_missing:
@@ -611,13 +615,17 @@ class DictFileTwoKeys(DictFile):
         self.changed = True
 
     def is_equal(self, other, compare_dir=False, compare_fname=False, compare_keys=None):
-        """Compare two DictFileDoubleKey objects (and optionally their file)
+        """Compares two `DictFileDoubleKey` objects, optionally comparing also the file attributes.
 
-        :param other: other dictionary, object of the same class
-        :param compare_dir: if True compare also the file directory (Default: False)
-        :param compare_fname: if True compare also the file name (Default: False)
-        :param compare_keys: if True compare also the keys lists. If None, use order_matters (Default: False)
-        :return:
+        Args:
+            other (DictFileDoubleKey): Another object of the same class to compare with.
+            compare_dir (bool, optional): If True, also compares the file directory. Defaults to False.
+            compare_fname (bool, optional): If True, also compares the file name. Defaults to False.
+            compare_keys (bool or None, optional): If True, compares the key lists (`keys` and `keys2`).
+                If None, uses the value of `self.order_matters`. Defaults to None.
+
+        Returns:
+            bool: True if the objects are considered equal based on the comparison criteria, False otherwise.
         """
         if compare_dir and (self.dir != other.dir):
             return False
@@ -659,7 +667,7 @@ class DescriptionDictFile(DictFileTwoKeys):
 
 
 class GridMapDict(DictFileTwoKeys):
-    """Dictionary file (:class:DictFile) with the GrigMap file information
+    """Dictionary file (`:class:DictFile`) with the GridMap file information
 
     The dictionary is keyed both by DN and user
     """
@@ -692,7 +700,7 @@ class GridMapDict(DictFileTwoKeys):
 
 
 class SHA1DictFile(DictFile):
-    """Dictionary file (:class:DictFile) with SHA1 signatures of files
+    """Dictionary file (`:class:DictFile`) with SHA1 signatures of files
 
     This is used to send to the Glidein files checksums.
     Saved as "SHA1   FNAME" lines
@@ -747,7 +755,7 @@ class SHA1DictFile(DictFile):
 
 
 class SummarySHA1DictFile(DictFile):
-    """Dictionary file (:class:DictFile) with a Summary w/ SHA1 signatures
+    """Dictionary file (`:class:DictFile`) with a Summary w/ SHA1 signatures
 
     Values are (sha1, fname2)
     Saved as "SHA1   FNAME2   FNAME" lines
@@ -822,7 +830,7 @@ class SummarySHA1DictFile(DictFile):
 
 
 class SimpleFileDictFile(DictFile):
-    """Dictionary (:class:DictFile) of files that holds also the content of the file as the last element in the values.
+    """Dictionary (`:class:DictFile`) of files that holds also the content of the file as the last element in the values.
 
     Value is a tuple.
     The dictionary is serialized using a file (dictionary file), one item per line.
@@ -1013,14 +1021,18 @@ class FileDictFile(SimpleFileDictFile):
     the key is used as key for the dictionary and the data (file content) is added reading the file.
     Here the attributes stored as tuple in the dictionary value:
     1. real_fname, i.e file name
-    2. cache/exec/... keyword identifying the file type: regular, nocache, exec (:s modifier to run in singularity), untar, wrapper
-    3. period period in seconds at which an executable is re-invoked (only for periodic executables, 0 otherwise)
-    4. prefix startd_cron variables prefix (default is GLIDEIN_PS_)
+    2. cache/exec/... keyword identifying the file type: regular, nocache, exec (:s modifier to run in singularity),
+        config (:c_type with config type, e.g. :condor), untar, wrapper
+    3. period - period in seconds at which an executable is re-invoked (only for periodic executables, 0 otherwise)
+    4. prefix - startd_cron variables prefix (default is GLIDEIN_PS_)
     5. cond_download has a special value of TRUE
     6. config_out has a special value of FALSE
     7. data - String containing the data extracted from the file (real_fname) (not in the serialized dictionary)
     For placeholders, the real_name is empty (and the tuple starts w/ an empty string). Placeholders cannot be
     serialized (saved into file). Empty strings would cause error when parsed back.
+
+    TODO: the period will become "time", a comma-separated list of execution-time names (with optional qualifiers)
+        for custom scripts
     """
 
     DATA_LENGTH = 7  # Length of value (attributes + data)
@@ -1035,18 +1047,25 @@ class FileDictFile(SimpleFileDictFile):
 
     @staticmethod
     def make_val_tuple(file_name, file_type, period=0, prefix="GLIDEIN_PS_", cond_download="TRUE", config_out="FALSE"):
-        """Make a tuple with the DATA_LENGTH-1 attributes in the correct order using the defaults
+        """Creates a tuple with the DATA_LENGTH-1 attributes in the correct order using default values.
 
-        :param file_name: name of the file (aka real_fname)
-        :param file_type: type of the file (regular, nocache, exec, untar, wrapper). 'exec allows modifiers like ':s'
-        :param period: period for periodic executables (ignored otherwise, default: 0)
-        :param prefix: prefix for periodic executables (ignored otherwise, default: GLIDEIN_PS_)
-        :param cond_download: conditional download (default: 'TRUE')
-        :param config_out: config out (default: 'FALSE')
-        :return: tuple with the DATA_LENGTH-1 attributes
-        See class definition for more information about the attributes
+        Args:
+            file_name (str): Name of the file (also known as real_fname).
+            file_type (str): Type of the file. Options include 'regular', 'nocache', 'exec', 'config', 'untar',
+                or 'wrapper'. 'exec' and 'config' allow modifiers like ':s', or ':condor'.
+            period (int, optional): Period for periodic executables. Ignored for other types. Defaults to 0.
+            prefix (str, optional): Prefix for periodic executables. Ignored for other types. Defaults to "GLIDEIN_PS_".
+            cond_download (str, optional): Conditional download flag. Defaults to "TRUE".
+            config_out (str, optional): Config output flag. Defaults to "FALSE".
+
+        Returns:
+            tuple: A tuple containing the DATA_LENGTH-1 attributes in the specified order.
+
+        Note:
+            See the class definition for more details about the attributes.
         """
         # TODO: should it do some value checking? valid constant, int, ...
+        # TODO(time): period will become time, a comma-separated lis
         return file_name, file_type, period, prefix, cond_download, config_out  # python constructs the tuple
 
     @staticmethod
@@ -1196,16 +1215,9 @@ class FileDictFile(SimpleFileDictFile):
             return  # empty key
 
         if len(arr) != self.DATA_LENGTH:
-            # compatibility w/ old formats
+            # Removed compatibility code for 3.2.x
             # 3.2.13 (no prefix): key, fname, type, period, cond_download, config_out
             # 3.2.10 (no period, prefix): key, fname, type, cond_download, config_out
-            # TODO: remove in 3.3 or after a few version (will break upgrade)
-            if len(arr) == self.DATA_LENGTH - 1:
-                # For upgrade from 3.2.13 to 3.2.11
-                return self.add(arr[0], [arr[1], arr[2], arr[3], "GLIDEIN_PS_", arr[4], arr[5]])
-            elif len(arr) == self.DATA_LENGTH - 2:
-                # For upgrade from 3.2.10 or earlier
-                return self.add(arr[0], [arr[1], arr[2], 0, "GLIDEIN_PS_", arr[3], arr[4]])
             raise RuntimeError(
                 "Not a valid file line (expected %i, found %i elements): '%s'" % (self.DATA_LENGTH, len(arr), line)
             )

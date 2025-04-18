@@ -11,6 +11,8 @@
 
 LOG = $(WORK_DIR)/log
 EXECUTE = $(WORK_DIR)/execute
+# Optional configuration files. This directory is created and populated in glidein_startup.sh
+LOCAL_CONFIG_DIR = $(WORK_DIR)/condor_config.d
 COLLECTOR_HOST = $(HEAD_NODE),$(GLIDEIN_Site_Collector)
 FILESYSTEM_DOMAIN = $(HOSTNAME)
 UID_DOMAIN = $(HOSTNAME)

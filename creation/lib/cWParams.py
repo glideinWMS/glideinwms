@@ -491,11 +491,17 @@ class CommonParams(Params):
         self.file_defaults["type"] = (
             None,
             "string",
-            'File type (regular,run,source). Allows modifiers like ":singularity" to run in singularity.',
+            'File type (regular,run,source,config,wrapper,tarball). Allows modifiers like ":singularity" to run in singularity or ":condor" for condor configuration files.',
             None,
         )
         # TODO: consider adding "time" setup, prejob, postjob, cleanup, periodic. setup & cleanup w/ qualifier :bebg-aeag before/after entry + before/after group og na (group positioning does not apply to factory files)
         # to add check scripts around jobs: self.file_defaults["job_wrap"]=("no","pre|post|no",'Run the executable before (pre) or after (post) each job.',None)
+        self.file_defaults["time"] = (
+            "setup",
+            "string",
+            "Comma separated list of when to run an executable (setup, prejob, postjob, cleanup, periodic). Allows modifiers for setup and cleanup, :QeQg for e/g entry/group Q is b/a/o/n before/after/on/NA (group positioning does not apply to Factory files)",
+            None,
+        )
 
         untar_defaults = CommentedOrderedDict()
         untar_defaults["cond_attr"] = (

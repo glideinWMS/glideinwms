@@ -305,7 +305,7 @@ print_tail() {
     final_result_long="$3"
 
     glidein_end_time=$(date +%s)
-    let total_time=${glidein_end_time}-${startup_time}
+    ((total_time=glidein_end_time-startup_time))
     echo "=== Glidein ending $(date) (${glidein_end_time}) with code ${exit_code} after ${total_time} ==="
     echo ""
     echo "=== XML description of glidein activity ==="
@@ -423,7 +423,8 @@ glidein_exit() {
 
 
         # wait a bit in case of error, to reduce lost glideins
-        let "dl=$(date +%s) + ${sleep_time}"
+        # let "dl=$(date +%s) + ${sleep_time}"
+        ((dl=$(date +%s) + sleep_time))
         dlf=$(date --date="@${dl}")
         gconfig_add "GLIDEIN_ADVERTISE_ONLY" "1"
         gconfig_add "GLIDEIN_Failed" "True"
@@ -466,14 +467,14 @@ glidein_exit() {
             fi
 
             # sleep for about 5 mins... but randomize a bit
-            let "ds=250+${RANDOM}%100"
-            let "as=$(date +%s) + ${ds}"
-            if [ ${as} -gt ${dl} ]; then
+            ((ds=250+RANDOM%100))
+            ((as=$(date +%s) + ds))
+            if [ "${as}" -gt "${dl}" ]; then
                 # too long, shorten to the deadline
-                let "ds=${dl} - $(date +%s)"
+                ((ds = dl - $(date +%s)))
             fi
             warn "Sleeping ${ds}"
-            sleep ${ds}
+            sleep "${ds}"
         done
 
         if [ -e "${main_work_dir}/${last_script}" ] && [ "${do_report}" = "1" ]; then
@@ -703,13 +704,15 @@ check_file_signature() {
     local cfs_id="$1"
     local cfs_fname="$2"
 
-    local cfs_work_dir="$(get_work_dir "${cfs_id}")"
+    local cfs_work_dir
+    cfs_work_dir="$(get_work_dir "${cfs_id}")"
 
     local cfs_desc_fname="${cfs_work_dir}/${cfs_fname}"
     local cfs_signature="${cfs_work_dir}/signature.sha1"
 
     if [[ -z "${disable_check_signature}" ]]; then # disable_check_signature is global for simplicity
-        local tmp_signname="${cfs_signature}_$$_$(date +%s)_${RANDOM}"
+        local tmp_signname
+        tmp_signname="${cfs_signature}_$$_$(date +%s)_${RANDOM}"
         if ! grep " ${cfs_fname}$" "${cfs_signature}" > "${tmp_signname}"; then
             rm -f "${tmp_signname}"
             echo "No signature for ${cfs_desc_fname}." 1>&2
@@ -802,6 +805,31 @@ EOF
     [ "xNOPREFIX" != "x${s_cc_prefix}" ] && echo "STARTD_CRON_${s_name}_PREFIX = ${s_cc_prefix}" >> ${include_fname}
     gconfig_add "GLIDEIN_condor_config_startd_cron_include" "${include_fname}"
     gconfig_add "# --- Lines starting with ${s_cc_prefix} are from periodic scripts ---"
+}
+
+# Add a custom script to a well known config file directory
+add_config_file() {
+    # 1 - File type ("config..."). Defined in cWParamDict.py. Valid values (config:c for HTCondor)
+    # 2 - File name (including path)
+    # 3 - ID, telling it the file comes form the Factory or a client
+    # 4 - name at destination (basename by default)
+    # Should check that starts with config? Values are normalized in cWParamDict.py
+    local config_type config_dir config_fname
+    config_type="${1}"
+    config_fname="${4:-$(basename "$2")}"
+    if [[ "$config_type" = "config:c" ]]; then
+        config_dir="$condor_config_dir"
+    else
+        warn "Unknown configuration file type: $config_type"
+        # return or glidein_exit?
+        return 1
+    fi
+    # Assume that the configuration directory already exists
+    if ! mv "$2" "$config_dir/$config_fname" ; then
+        warn "Unable to move in place the configuration file $config_dir/$config_fname"
+        # return or glidein_exit?
+        return 1
+    fi
 }
 
 #####################
@@ -1042,14 +1070,13 @@ perform_curl() {
 
 fetch_file_base() {
     # Perform the file download and corresponding action (untar, execute, ...)
-    ffb_id="$1"
-    ffb_target_fname="$2"
-    ffb_real_fname="$3"
-    ffb_file_type="$4"
-    ffb_config_out="$5"
-    ffb_period=$6
-    # condor cron prefix, used only for periodic executables
-    ffb_cc_prefix="$7"
+    ffb_id="$1"  # file ID (main, client, client_group, ...)
+    ffb_target_fname="$2"  # File name on the file system (saved in ID-dependent ffb_work_dir by default)
+    ffb_real_fname="$3"  # File name on the URL and after the download (includes unique hash)
+    ffb_file_type="$4"  # File type (exec:, wrapper, tarball, config: ...)
+    ffb_config_out="$5"  # Eventual name to save path in glidein_config
+    ffb_period=$6  # Eventual period, if periodic executable
+    ffb_cc_prefix="$7"  # Eventual condor cron prefix, used only for periodic executables
 
     ffb_work_dir="$(get_work_dir "${ffb_id}")"
 
@@ -1198,6 +1225,9 @@ fetch_file_base() {
                 fi
             fi
         fi
+    elif [[ "${ffb_file_type}" = "config" || "${ffb_file_type}" = "config:"* ]]; then
+        # config file
+        add_config_file "${ffb_file_type}" "${ffb_outname}" "${ffb_id}"
     elif [ "${ffb_file_type}" = "wrapper" ]; then
         echo "${ffb_outname}" >> "${wrapper_list}"
     elif [ "${ffb_file_type}" = "untar" ]; then
@@ -1277,7 +1307,7 @@ fixup_condor_dir() {
 
     # Check if the condor dir has only one subdir, the one like "condor-9.0.11-1-x86_64_CentOS7-stripped"
     # See https://stackoverflow.com/questions/32429333/how-to-test-if-a-linux-directory-contain-only-one-subdirectory-and-no-other-file
-    if [ $(find "${gs_id_work_dir}/condor" -maxdepth 1 -type d -printf 1 | wc -m) -eq 2 ]; then
+    if [ "$(find "${gs_id_work_dir}/condor" -maxdepth 1 -type d -printf 1 | wc -m)" -eq 2 ]; then
         echo "Fixing directory structure of condor tarball"
         mv "${gs_id_work_dir}"/condor/condor*/* "${gs_id_work_dir}"/condor > /dev/null
     else
@@ -1722,6 +1752,12 @@ short_main_dir=main
 main_dir="${work_dir}/${short_main_dir}"
 if ! mkdir "${main_dir}"; then
     early_glidein_failure "Cannot create '${main_dir}'"
+fi
+
+short_condor_config_dir=condor_config.d
+condor_config_dir="${main_dir}/${short_condor_config_dir}"
+if ! mkdir "${condor_config_dir}"; then
+    early_glidein_failure "Cannot create '${condor_config_dir}'"
 fi
 
 short_entry_dir=entry_${glidein_entry}

@@ -289,14 +289,38 @@ class FileElement(DictElement):
         is_exec = eval(self["executable"])
         is_wrapper = eval(self["wrapper"])
         is_tar = eval(self["untar"])
+        if "type" in self:
+            if self["type"] not in ["regular", "wrapper", "untar", "source"] and not self["type"].startswith(
+                ("exec", "config")
+            ):  # a qualifier may follow
+                raise RuntimeError(
+                    self.err_str('type must be "regular", "run", "source", "config", "wrapper", or "untar"')
+                )
+            is_config = self["type"].startswith("config")
+        else:
+            is_config = False
+        if "time" in self:
+            for i in map(str.strip, self["time"].split(",")):  # comma-separated list of time values
+                if (
+                    i != "prejob"
+                    and i != "postjob"
+                    and not i.startswith("periodic")  # period value may follow as qualifier
+                    and not i.startswith("setup")
+                    and not i.startswith("cleanup")
+                ):
+                    raise RuntimeError(
+                        self.err_str('time must be "setup", "prejob", "postjob", "cleanup", or "periodic"')
+                    )
 
         try:
             period = int(self["period"])
         except ValueError:
             raise RuntimeError(self.err_str("period must be an int")) from None
 
-        if is_exec + is_wrapper + is_tar > 1:
-            raise RuntimeError(self.err_str('must be exactly one of type "executable", "wrapper", or "untar"'))
+        if is_exec + is_config + is_wrapper + is_tar > 1:
+            raise RuntimeError(
+                self.err_str('must be exactly one of type "executable", "config", "wrapper", or "untar"')
+            )
 
         if (is_exec or is_wrapper or is_tar) and not eval(self["const"]):
             raise RuntimeError(self.err_str('type "executable", "wrapper", or "untar" requires const="True"'))
