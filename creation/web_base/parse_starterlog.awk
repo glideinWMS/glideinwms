@@ -166,10 +166,23 @@ END {
   if (tcnt>tj) {tgz=tgz-(tcnt-tj); tcnt=tj;}
   # please notice that the percentages will still be accurate
 
+  # uncomment the following block of code in case reporting of real numbers are requested in the future. when uncommented, move this code block after the "=================" below
+  # historically, the reporting has/is been based on normalized numbers, so was decided to retain this form of reporting unless operators request for reporting metrics based off of real totals
+  #print "(Real) Total goodZ jobs",goodjobsZ, " (" percent(goodjobsZ,ended_jobs) "%)","utilization",int(goodputZ) " (" percent(goodputZ,total_used) "%)";
+  #print "(Real) Total goodNZ jobs",goodjobsNZ, " (" percent(goodjobsNZ,ended_jobs) "%)","utilization",int(goodputNZ) " (" percent(goodputNZ,total_used) "%)";
+  #print "(Real) Total badSignal jobs",badjobsSignal, " (" percent(badjobsSignal,ended_jobs) "%)","utilization",int(badputSignal) " (" percent(badputSignal,total_used) "%)";
+  #print "(Real) Total badOther jobs",badjobsOther, " (" percent(badjobsOther,ended_jobs) "%)","utilization",int(badputOther) " (" percent(badputOther,total_used) "%)";
+  # end of comment block
+
   print "=================";
-  print "Total jobs",tj,"utilization",int(total_used/parallelism);
-  print "Total goodZ jobs",tgz, " (" percent(goodjobsZ,ended_jobs) "%)","utilization",int(goodputZ/parallelism) " (" percent(goodputZ,total_used) "%)";
-  print "Total goodNZ jobs",tgnz, " (" percent(goodjobsNZ,ended_jobs) "%)","utilization",int(goodputNZ/parallelism) " (" percent(goodputNZ,total_used) "%)";
-  print "Total badSignal jobs",tbjs, " (" percent(badjobsSignal,ended_jobs) "%)","utilization",int(badputSignal/parallelism) " (" percent(badputSignal,total_used) "%)";
-  print "Total badOther jobs",tbjo, " (" percent(badjobsOther,ended_jobs) "%)","utilization",int(badputOther/parallelism) " (" percent(badputOther,total_used) "%)";
+  print "Normalization [parallelism] factor",parallelism;
+  # printing real numbers (without normalization)
+  print "(Real) Total jobs",ended_jobs,"utilization",int(total_used);
+
+  # printing below normalized numbers for metrics reporting (historically, this form of reporting has been used)
+  print "(Normalized) Total jobs",tj,"utilization",int(total_used/parallelism);
+  print "(Normalized) Total goodZ jobs",tgz, " (" percent(goodjobsZ,ended_jobs) "%)","utilization",int(goodputZ/parallelism) " (" percent(goodputZ,total_used) "%)";
+  print "(Normalized) Total goodNZ jobs",tgnz, " (" percent(goodjobsNZ,ended_jobs) "%)","utilization",int(goodputNZ/parallelism) " (" percent(goodputNZ,total_used) "%)";
+  print "(Normalized) Total badSignal jobs",tbjs, " (" percent(badjobsSignal,ended_jobs) "%)","utilization",int(badputSignal/parallelism) " (" percent(badputSignal,total_used) "%)";
+  print "(Normalized) Total badOther jobs",tbjo, " (" percent(badjobsOther,ended_jobs) "%)","utilization",int(badputOther/parallelism) " (" percent(badputOther,total_used) "%)";
 }

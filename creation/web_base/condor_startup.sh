@@ -1129,6 +1129,8 @@ if [[ "$use_multi_monitor" -ne 1 ]]; then
     fi
     main_starter_log='log/StarterLog'
     main_condor_log='log/StartdLog'
+    new_starter_log='log/StarterLog.testing'
+    history_log='log/StartdHistoryLog'
 else
     main_starter_log='log/StarterLog.vm2'
     monitor_starter_log='log/StarterLog.vm1'
@@ -1247,7 +1249,7 @@ log_dir='log'
 
 echo "Total jobs/goodZ jobs/goodNZ jobs/badSignal jobs/badOther jobs below are normalized to 1 Core"
 echo "=== Stats of main ==="
-if slotlogs=$(ls -1 ${main_starter_log} ${main_starter_log}.slot* 2>/dev/null); then
+if slotlogs=$(ls -1 ${main_starter_log}.slot* ${new_starter_log} ${history_log}); then
     echo "===NewFile===" > separator_log.txt
     listtoparse="separator_log.txt"
     for slotlog in $slotlogs
@@ -1257,7 +1259,7 @@ if slotlogs=$(ls -1 ${main_starter_log} ${main_starter_log}.slot* 2>/dev/null); 
     parsed_out=$(cat $listtoparse | awk -v parallelism=${GLIDEIN_CPUS} -f "${main_stage_dir}/parse_starterlog.awk")
     echo "$parsed_out"
 
-    parsed_metrics=$(echo "$parsed_out" | awk 'BEGIN{p=0;}/^Total /{if (p==1) {if ($2=="jobs") {t="Total";n=$3;m=$5;} else {t=$2;n=$4;m=$7;} print t "JobsNr " n " " t "JobsTime " m;}}/^====/{p=1;}')
+    parsed_metrics=$(echo "$parsed_out" | awk 'BEGIN{p=0;}/^\(Normalized\) /{if ($3=="jobs") {t="Total";n=$4;m=$6;} else {t=$3;n=$5;m=$8;} print t "JobsNr " n " " t "JobsTime " m}')
     # use echo to strip newlines
     metrics+=$(echo " " $parsed_metrics)
 fi
