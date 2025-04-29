@@ -1249,7 +1249,8 @@ log_dir='log'
 
 echo "Total jobs/goodZ jobs/goodNZ jobs/badSignal jobs/badOther jobs below are normalized to 1 Core"
 echo "=== Stats of main ==="
-if slotlogs=$(ls -1 ${main_starter_log}.slot* ${new_starter_log} ${history_log}); then
+# the following if block has been tested with condor version 24.0.2, where 'log/StarterLog' no longer exists and has changed to 'log/StarterLog.testing' (as confirmed by Cole Bollig of HTCondor team). If 'log/StarterLog' is included to be listed, the error message 'log'StarterLog': No such file or directory' occurs but ends up being silently redirected to `/dev/null`
+if slotlogs=$(ls -1 ${main_starter_log} ${main_starter_log}.slot* ${new_starter_log} ${history_log} 2>/dev/null); then
     echo "===NewFile===" > separator_log.txt
     listtoparse="separator_log.txt"
     for slotlog in $slotlogs
@@ -1259,7 +1260,7 @@ if slotlogs=$(ls -1 ${main_starter_log}.slot* ${new_starter_log} ${history_log})
     parsed_out=$(cat $listtoparse | awk -v parallelism=${GLIDEIN_CPUS} -f "${main_stage_dir}/parse_starterlog.awk")
     echo "$parsed_out"
 
-    parsed_metrics=$(echo "$parsed_out" | awk 'BEGIN{p=0;}/^\(Normalized\) /{if ($3=="jobs") {t="Total";n=$4;m=$6;} else {t=$3;n=$5;m=$8;} print t "JobsNr " n " " t "JobsTime " m}')
+    parsed_metrics=$(echo "$parsed_out" | awk 'BEGIN{p=0;}/^\(Normalized\) Total /{if (p==1) {if ($3=="jobs") {t="Total";n=$4;m=$6;} else {t=$3;n=$5;m=$8;} print t "JobsNr " n " " t "JobsTime " m}}/^====/{p=1;}')
     # use echo to strip newlines
     metrics+=$(echo " " $parsed_metrics)
 fi
