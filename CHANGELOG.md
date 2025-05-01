@@ -20,6 +20,8 @@ Added the ability to use a config directory for the Glidein's HTCondor
 
 ### Bug Fixes
 
+- Fixed misleading counts related to the number of jobs that run in the Glidein (PR #516, Issue #456)
+
 ### Testing / Development
 
 -   Improved docstrings in the Factory module (PR #511)
