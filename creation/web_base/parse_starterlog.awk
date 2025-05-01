@@ -172,10 +172,10 @@ END {
   print "(Real) Total jobs", ended_jobs, "utilization", int(total_used);
   # uncomment the following block of code in case reporting of real numbers are requested in the future.
   # historically, the reporting has/is been based on normalized numbers, so was decided to retain this form of reporting unless operators request for reporting metrics based off of real totals
-  #print "(Real) Total goodZ jobs", goodjobsZ, "(" percent(goodjobsZ,ended_jobs) "%)", "utilization", int(goodputZ) "(" percent(goodputZ,total_used) "%)";
-  #print "(Real) Total goodNZ jobs", goodjobsNZ, "(" percent(goodjobsNZ,ended_jobs) "%)", "utilization", int(goodputNZ) "(" percent(goodputNZ,total_used) "%)";
-  #print "(Real) Total badSignal jobs", badjobsSignal, "(" percent(badjobsSignal,ended_jobs) "%)", "utilization", int(badputSignal) "(" percent(badputSignal,total_used) "%)";
-  #print "(Real) Total badOther jobs", badjobsOther, "(" percent(badjobsOther,ended_jobs) "%)", "utilization", int(badputOther) "(" percent(badputOther,total_used) "%)";
+  #print "(Real) Total goodZ jobs", goodjobsZ, "(" percent(goodjobsZ,ended_jobs) "%)", "utilization", int(goodputZ), "(" percent(goodputZ,total_used) "%)";
+  #print "(Real) Total goodNZ jobs", goodjobsNZ, "(" percent(goodjobsNZ,ended_jobs) "%)", "utilization", int(goodputNZ), "(" percent(goodputNZ,total_used) "%)";
+  #print "(Real) Total badSignal jobs", badjobsSignal, "(" percent(badjobsSignal,ended_jobs) "%)", "utilization", int(badputSignal), "(" percent(badputSignal,total_used) "%)";
+  #print "(Real) Total badOther jobs", badjobsOther, "(" percent(badjobsOther,ended_jobs) "%)", "utilization", int(badputOther), "(" percent(badputOther,total_used) "%)";
   # end of comment block
 
   # printing below normalized numbers for metrics reporting (historically, this form of reporting has been used)
