@@ -1248,7 +1248,8 @@ log_dir='log'
 echo "Total jobs/goodZ jobs/goodNZ jobs/badSignal jobs/badOther jobs below are normalized to 1 Core"
 echo "=== Stats of main ==="
 # the following if block has been tested with condor version 24.0.2, where 'log/StarterLog' no longer exists and has changed to 'log/StarterLog.testing' (as confirmed by Cole Bollig of HTCondor team)
-if slotlogs=$(ls -1 ${main_starter_log} ${main_starter_log}.slot* 2>/dev/null); then
+slotlogs=$(ls -1 ${main_starter_log} ${main_starter_log}.slot* 2>/dev/null)
+if [[ -n "$slotlogs" ]]; then
     echo "===NewFile===" > separator_log.txt
     listtoparse="separator_log.txt"
     for slotlog in $slotlogs
@@ -1262,8 +1263,7 @@ if slotlogs=$(ls -1 ${main_starter_log} ${main_starter_log}.slot* 2>/dev/null); 
     # use echo to strip newlines
     metrics+=$(echo " " $parsed_metrics)
 else
-    # when any of 'log/StarterLog' or 'log/StarterLog.slot*' files are missing
-    # since error message about the missing file(s) gets silently redirected to `/dev/null` with a non-zero exit code, report the same appropriately
+    # when all of 'log/StarterLog' or 'log/StarterLog.slot*' files are missing; report it and continue
     echo "One/more HTCondor starter logs missing; skipping calculation of metrics" 1>&2
     echo "Proceeding with rest of the condor shutdown process..." 1>&2
 fi
