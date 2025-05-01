@@ -1129,8 +1129,6 @@ if [[ "$use_multi_monitor" -ne 1 ]]; then
     fi
     main_starter_log='log/StarterLog'
     main_condor_log='log/StartdLog'
-    new_starter_log='log/StarterLog.testing'
-    history_log='log/StartdHistoryLog'
 else
     main_starter_log='log/StarterLog.vm2'
     monitor_starter_log='log/StarterLog.vm1'
@@ -1249,8 +1247,8 @@ log_dir='log'
 
 echo "Total jobs/goodZ jobs/goodNZ jobs/badSignal jobs/badOther jobs below are normalized to 1 Core"
 echo "=== Stats of main ==="
-# the following if block has been tested with condor version 24.0.2, where 'log/StarterLog' no longer exists and has changed to 'log/StarterLog.testing' (as confirmed by Cole Bollig of HTCondor team). If 'log/StarterLog' is included to be listed, the error message 'log'StarterLog': No such file or directory' occurs but ends up being silently redirected to `/dev/null`
-if slotlogs=$(ls -1 ${main_starter_log} ${main_starter_log}.slot* ${new_starter_log} ${history_log} 2>/dev/null); then
+# the following if block has been tested with condor version 24.0.2, where 'log/StarterLog' no longer exists and has changed to 'log/StarterLog.testing' (as confirmed by Cole Bollig of HTCondor team)
+if slotlogs=$(ls -1 ${main_starter_log} ${main_starter_log}.slot* 2>/dev/null); then
     echo "===NewFile===" > separator_log.txt
     listtoparse="separator_log.txt"
     for slotlog in $slotlogs
@@ -1263,6 +1261,11 @@ if slotlogs=$(ls -1 ${main_starter_log} ${main_starter_log}.slot* ${new_starter_
     parsed_metrics=$(echo "$parsed_out" | awk 'BEGIN{p=0;}/^\(Normalized\) Total /{if (p==1) {if ($3=="jobs") {t="Total";n=$4;m=$6;} else {t=$3;n=$5;m=$8;} print t "JobsNr " n " " t "JobsTime " m}}/^====/{p=1;}')
     # use echo to strip newlines
     metrics+=$(echo " " $parsed_metrics)
+else
+    # when any of 'log/StarterLog' or 'log/StarterLog.slot*' files are missing
+    # since error message about the missing file(s) gets silently redirected to `/dev/null` with a non-zero exit code, report the same appropriately
+    echo "One/more HTCondor starter logs missing; skipping calculation of metrics" 1>&2
+    echo "Proceeding with rest of the condor shutdown process..." 1>&2
 fi
 echo "=== End Stats of main ==="
 
