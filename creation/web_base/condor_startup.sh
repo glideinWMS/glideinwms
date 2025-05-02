@@ -1247,7 +1247,9 @@ log_dir='log'
 
 echo "Total jobs/goodZ jobs/goodNZ jobs/badSignal jobs/badOther jobs below are normalized to 1 Core"
 echo "=== Stats of main ==="
-if slotlogs=$(ls -1 ${main_starter_log} ${main_starter_log}.slot* 2>/dev/null); then
+# the following if block has been tested with condor version 24.0.2, where 'log/StarterLog' no longer exists and has changed to 'log/StarterLog.testing' (as confirmed by Cole Bollig of HTCondor team)
+slotlogs=$(ls -1 ${main_starter_log} ${main_starter_log}.slot* 2>/dev/null)
+if [[ -n "$slotlogs" ]]; then
     echo "===NewFile===" > separator_log.txt
     listtoparse="separator_log.txt"
     for slotlog in $slotlogs
@@ -1257,9 +1259,13 @@ if slotlogs=$(ls -1 ${main_starter_log} ${main_starter_log}.slot* 2>/dev/null); 
     parsed_out=$(cat $listtoparse | awk -v parallelism=${GLIDEIN_CPUS} -f "${main_stage_dir}/parse_starterlog.awk")
     echo "$parsed_out"
 
-    parsed_metrics=$(echo "$parsed_out" | awk 'BEGIN{p=0;}/^Total /{if (p==1) {if ($2=="jobs") {t="Total";n=$3;m=$5;} else {t=$2;n=$4;m=$7;} print t "JobsNr " n " " t "JobsTime " m;}}/^====/{p=1;}')
+    parsed_metrics=$(echo "$parsed_out" | awk 'BEGIN{p=0;}/^\(Normalized\) Total /{if (p==1) {if ($3=="jobs") {t="Total";n=$4;m=$6;} else {t=$3;n=$5;m=$8;} print t "JobsNr " n " " t "JobsTime " m}}/^====/{p=1;}')
     # use echo to strip newlines
     metrics+=$(echo " " $parsed_metrics)
+else
+    # when all of 'log/StarterLog' or 'log/StarterLog.slot*' files are missing; report it and continue
+    echo "One/more HTCondor starter logs missing; skipping calculation of metrics" 1>&2
+    echo "Proceeding with rest of the condor shutdown process..." 1>&2
 fi
 echo "=== End Stats of main ==="
 
