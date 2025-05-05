@@ -19,9 +19,9 @@ from glideinwms.lib import logSupport, util
 from glideinwms.lib.credentials import (
     AuthenticationSet,
     Credential,
-    CredentialGenerator,
     CredentialPurpose,
     CredentialType,
+    DynamicCredential,
     Parameter,
     ParameterGenerator,
     ParameterName,
@@ -104,7 +104,7 @@ class CredentialsPlugin(ABC):
         """
 
         for cred in self.cred_list:
-            if isinstance(cred, CredentialGenerator):
+            if isinstance(cred, DynamicCredential):
                 cred.generate(**kwargs)
 
     def generate_parameters(self, **kwargs):

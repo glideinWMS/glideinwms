@@ -14,7 +14,7 @@ import socket
 from glideinwms.lib.credentials import create_credential, credential_type_from_string
 from glideinwms.lib.defaults import PWD_DIR
 from glideinwms.lib.generators import export_generator
-from glideinwms.lib.generators.credentialGenerator import CredentialGenerator
+from glideinwms.lib.generators.credential_generator import CredentialGenerator
 from glideinwms.lib.token_util import create_and_sign_token
 
 

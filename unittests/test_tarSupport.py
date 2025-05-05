@@ -24,7 +24,7 @@ from glideinwms.lib.tarSupport import GlideinTar
 from glideinwms.unittests.unittest_utils import create_random_string, create_temp_file, TestImportError
 
 try:
-    from glideinwms.lib.hashCrypto import extract_md5
+    from glideinwms.lib.hash_crypto import extract_md5
 except ImportError as err:
     raise TestImportError(str(err))
 
