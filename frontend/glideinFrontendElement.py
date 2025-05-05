@@ -33,8 +33,14 @@ from glideinwms.frontend import (
     glideinFrontendPidLib,
     glideinFrontendPlugins,
 )
-from glideinwms.lib import cleanupSupport, condorMonitor, logSupport, pubCrypto, servicePerformance, token_util
-from glideinwms.lib.credentials import create_credential, CredentialPurpose, CredentialType
+from glideinwms.lib import cleanupSupport, condorMonitor, logSupport, servicePerformance, token_util
+from glideinwms.lib.credentials import (
+    create_credential,
+    CredentialError,
+    CredentialPurpose,
+    CredentialType,
+    RSAPublicKey,
+)
 from glideinwms.lib.defaults import TOKEN_DIR
 from glideinwms.lib.disk_cache import DiskCache
 from glideinwms.lib.fork import fork_in_bg, ForkManager, wait_for_pids
@@ -833,7 +839,13 @@ class glideinFrontendElement:
             # Only advertise if there is a valid key for encryption
             if key_obj is not None:
                 # add callback credential generator if needed
-                if not self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.CALLBACK):
+                callback_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.CALLBACK)
+                has_callback_cred = False
+                for cred in callback_creds:
+                    if cred.subject.split("@")[0] == glidein_el["attrs"]["GLIDEIN_Site"]:
+                        has_callback_cred = True
+                        break
+                if not has_callback_cred:
                     logSupport.log.debug("Custom callback credential not provided. Using default.")
                     tkn_dir = TOKEN_DIR
                     if not os.path.exists(tkn_dir):
@@ -844,7 +856,7 @@ class glideinFrontendElement:
                     )
                     callback_generator = create_credential(
                         "IdTokenGenerator",
-                        cred_type=CredentialType.GENERATOR,
+                        cred_type=CredentialType.DYNAMIC,
                         purpose=CredentialPurpose.CALLBACK,
                         trust_domain=trust_domain,
                         context={"cache_file": tkn_file},
@@ -1029,8 +1041,8 @@ class glideinFrontendElement:
         bad_id_list = []
         for globalid, globals_el in self.globals_dict.items():
             try:
-                globals_el["attrs"]["PubKeyObj"] = pubCrypto.PubRSAKey(globals_el["attrs"]["PubKeyValue"])
-            except pubCrypto.PubCryptoError as e:
+                globals_el["attrs"]["PubKeyObj"] = RSAPublicKey(globals_el["attrs"]["PubKeyValue"])
+            except CredentialError as e:
                 # if no valid key
                 # if key needed, will handle the error later on
                 logSupport.log.warning(f"Factory Globals '{globalid}', invalid RSA key: {e}")

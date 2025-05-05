@@ -30,8 +30,6 @@ import urllib.request
 
 import jwt
 
-from M2Crypto.RSA import RSAError
-
 from glideinwms.factory import (
     glideFactoryConfig,
     glideFactoryCredentials,
@@ -45,6 +43,7 @@ from glideinwms.factory import (
 )
 from glideinwms.lib import cleanupSupport, condorMonitor, glideinWMSVersion, logSupport, util
 from glideinwms.lib.condorMonitor import CondorQEdit, QueryError
+from glideinwms.lib.credentials import CredentialError
 
 FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 
@@ -871,7 +870,7 @@ def main(startup_dir):
             glideinDescript.load_pub_key(recreate=False)
             logSupport.log.info("Loading old key")
             glideinDescript.load_old_rsa_key()
-    except RSAError as e:
+    except CredentialError as e:
         logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
         key_fname = getattr(e, "key_fname", None)
         cwd = getattr(e, "cwd", None)
