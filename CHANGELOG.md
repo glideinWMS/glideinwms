@@ -3,9 +3,9 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.10.12 \[2025-04-25\]
+## v3.10.12 \[2025-05-05\]
 
-Added the ability to use a config directory for the Glidein's HTCondor
+Added the ability to use a config directory for the Glidein's HTCondor. Clarified Glidein Job metrics.
 
 ### New features / functionalities
 
@@ -20,7 +20,7 @@ Added the ability to use a config directory for the Glidein's HTCondor
 
 ### Bug Fixes
 
-- Fixed misleading counts related to the number of jobs that run in the Glidein (PR #516, Issue #456)
+-   Fixed misleading counts related to the number of jobs that run in the Glidein (PR #516, Issue #456)
 
 ### Testing / Development
 
