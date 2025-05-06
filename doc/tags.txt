@@ -1,3 +1,9 @@
+v3_10_12
+	Exporting GLIDEIN_Name and GLIDEIN_UUID to the Glidein environment, for all scripts running inside the Glidein (PR#512)
+	HTCondor LOCAL_CONFIG_DIR support for the Glidein HTCondor daemons (PR#515)
+	Improved docstrings in the Factory module (PR#511)
+	Bug fix: Fixed misleading counts related to the number of jobs that run in the Glidein (PR#516, Issue#456)
+
 v3_10_11
 	Added a test Apptainer image to use when the configured one is not available (PR#482)
 	Added a new configuration knob, stale_age, for Factory entries to control the age of the Glideins to be considered stale for certain statuses (PR#494)

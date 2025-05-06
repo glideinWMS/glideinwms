@@ -3,14 +3,14 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.10.12 \[2025-04-25\]
+## v3.10.12 \[2025-05-05\]
 
-Added the ability to use a config directory for the Glidein's HTCondor
+Added the ability to use a config directory for the Glidein's HTCondor. Clarified Glidein Job metrics.
 
 ### New features / functionalities
 
 -   Exporting GLIDEIN_Name and GLIDEIN_UUID to the Glidein environment, for all scripts running inside the Glidein (PR #512)
--   HTCondor LOCAL_CONFIG_DIR support for the Glidein HTCondor demons (PR #515)
+-   HTCondor LOCAL_CONFIG_DIR support for the Glidein HTCondor daemons (PR #515)
 
 ### Changed defaults / behaviours
 
@@ -20,7 +20,7 @@ Added the ability to use a config directory for the Glidein's HTCondor
 
 ### Bug Fixes
 
-- Fixed misleading counts related to the number of jobs that run in the Glidein (PR #516, Issue #456)
+-   Fixed misleading counts related to the number of jobs that run in the Glidein (PR #516, Issue #456)
 
 ### Testing / Development
 
