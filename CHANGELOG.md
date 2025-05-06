@@ -10,7 +10,7 @@ Added the ability to use a config directory for the Glidein's HTCondor. Clarifie
 ### New features / functionalities
 
 -   Exporting GLIDEIN_Name and GLIDEIN_UUID to the Glidein environment, for all scripts running inside the Glidein (PR #512)
--   HTCondor LOCAL_CONFIG_DIR support for the Glidein HTCondor demons (PR #515)
+-   HTCondor LOCAL_CONFIG_DIR support for the Glidein HTCondor daemons (PR #515)
 
 ### Changed defaults / behaviours
 
