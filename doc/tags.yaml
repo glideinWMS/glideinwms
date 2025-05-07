@@ -611,3 +611,10 @@ v3_10_12:
     - Improved docstrings in the Factory module (PR#511)
   Bug fix:
     - Fixed misleading counts related to the number of jobs that run in the Glidein (PR#516, Issue#456)
+
+v3_10_13:
+  Date: May 7, 2025
+  Series: Stable
+  Tarball: false
+  Bug fix:
+    - Fixed a credential rewriting error caused by PR#511 and a path error in PR#515 (PR#519)

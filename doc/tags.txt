@@ -1,3 +1,6 @@
+v3_10_13
+	Bug fix: Fixed a credential rewriting error caused by PR#511 and a path error in PR#515 (PR#519)
+
 v3_10_12
 	Exporting GLIDEIN_Name and GLIDEIN_UUID to the Glidein environment, for all scripts running inside the Glidein (PR#512)
 	HTCondor LOCAL_CONFIG_DIR support for the Glidein HTCondor daemons (PR#515)

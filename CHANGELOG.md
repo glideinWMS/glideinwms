@@ -3,6 +3,26 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## v3.10.13 \[2025-05-07\]
+
+Quick release. Fixed a couple of bugs in 3.10.12
+
+### New features / functionalities
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Fixed a credential rewriting error caused by PR#511 and a path error in PR#515 (PR #519)
+
+### Testing / Development
+
+### Known Issues
+
 ## v3.10.12 \[2025-05-05\]
 
 Added the ability to use a config directory for the Glidein's HTCondor. Clarified Glidein Job metrics.

@@ -1,11 +1,11 @@
 ###################################################################
-# GLIDEINWMS_VERSION 3_10_12
+# GLIDEINWMS_VERSION v3_10_13
 ###################################################################
 07a95cd0756d25f95de6047b1a5222a5  ./.codespell/README.md
 32b4bfc3e16d335b71c235d34a819eba  ./.codespell/ignore_lines.txt
 bf1869a9f0e22861757b16f54e1acee9  ./.codespell/ignore_words.txt
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
-682efe9cc603814b6c559c20fe61de39  ./CHANGELOG.md
+d912eaa692437a8a8c665947fe1ad5cd  ./CHANGELOG.md
 001104ac9050d95a870b0841d238723a  ./DEVELOPMENT.md
 3b83ef96387f14655fc854ddc3c6bd57  ./LICENSE
 c846ebb396f8b174b10ded4771514fcc  ./LICENSES/Apache-2.0.txt
@@ -26,7 +26,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./creation/lib/__init__.py
 249c493075e6aaedf56bd3ef9342601c  ./creation/lib/cWConsts.py
 78e575d4725fba81fd6377752d9155e1  ./creation/lib/cWDictFile.py
 a3eec79ba2d348cbb5cecbd4c6bc39ea  ./creation/lib/cWExpand.py
-297f6deebd3bdbbb52b418a467741800  ./creation/lib/cWParamDict.py
+59a85e5822cca642371e98c0df13e670  ./creation/lib/cWParamDict.py
 2d74da53cceeefe29e393e90a3544d5e  ./creation/lib/cWParams.py
 f1f760110bec1da82594d336339ba001  ./creation/lib/check_config_frontend.py
 f3e8c0c2d0bf76c4f1d09030393ee1fc  ./creation/lib/check_python3_expr.py
