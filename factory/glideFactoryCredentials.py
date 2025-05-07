@@ -518,9 +518,12 @@ def safe_update(fname, credential_data):
     """
     logSupport.log.debug(f"Creating/updating credential file {fname}")
     if not os.path.isfile(fname):
-        # new file, create
-        with os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600) as fd:
+        # new file, create - os.open() returns a file descriptor (int), cannot use context/with
+        fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
+        try:
             os.write(fd, credential_data)
+        finally:
+            os.close(fd)
     else:
         # old file exists, check if same content
         with open(fname) as fl:
@@ -535,9 +538,12 @@ def safe_update(fname, credential_data):
             except OSError:
                 pass  # just protect
 
-            # create new file
-            with os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600) as fd:
+            # create new file - os.open() returns a file descriptor (int), cannot use context/with
+            fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600)
+            try:
                 os.write(fd, credential_data)
+            finally:
+                os.close(fd)
 
             # copy the old file to a tmp bck and rename new one to the official name
             try:
