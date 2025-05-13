@@ -4,7 +4,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """analyze_queues
-focuses on statuses (less on client stats)
+
+This tool focuses on statuses (less on client stats)
 """
 
 import datetime
@@ -22,6 +23,21 @@ sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 
 
 def list_print(frontend, zero_supp, entry_data, sorting, attr_list, sort_attribute, div):
+    """Prints formatted statistics for a Frontend.
+
+    This function computes additional statistics (such as run difference and idle difference) for each entry in the
+    provided entry_data dictionary, formats the values into a printable string, and appends them to a list.
+    If sorting is enabled, the list is sorted and then printed. A header line is also printed.
+
+    Args:
+        frontend (str): The Frontend name.
+        zero_supp (int): Zero-suppression flag; if set to 1, entries with all zero attributes are skipped.
+        entry_data (dict): Dictionary of entry statistics keyed by entry name.
+        sorting (int): Flag to enable sorting (1 to sort, 0 to not sort).
+        attr_list (list): List of attribute names used for formatting and sorting.
+        sort_attribute (int): The index into attr_list used to sort the entries.
+        div (int or float): The divisor used to normalize the numerical values.
+    """
     to_be_printed = []
     sum2 = 0
 
@@ -107,6 +123,12 @@ def list_print(frontend, zero_supp, entry_data, sorting, attr_list, sort_attribu
 
 
 def main():
+    """Main function for analyze_queues.
+
+    Parses command-line arguments to set various flags for sorting, filtering, and output formatting.
+    Reads RRD data from the specified source, reorganizes the data into structured dictionaries, and then
+    prints both summary and list-style statistics for each period and Frontend.
+    """
     usage = """
 USAGE:
     -x [#] : interval to do verbose stats (default 24)

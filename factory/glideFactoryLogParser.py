@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This module implements classes to track
-   changes in glidein status logs
+"""This module implements classes to track changes in glidein status logs.
 """
 
 
@@ -21,28 +20,47 @@ rawTime2cTime = condorLogParser.rawTime2cTime
 
 
 class logSummaryTimingsOutWrapper:
+    """A wrapper class to lazily instantiate a logSummaryTimingsOut object."""
+
     def __init__(self):
+        """Initialize the wrapper with a None object."""
         self.obj = None
 
-    def getObj(self, logname=None, cache_dir=None, username="all"):
+    def get_obj(self, logname=None, cache_dir=None, username="all"):
+        """Return a logSummaryTimingsOut object, creating it if necessary.
+
+        Args:
+            logname (str, optional): The log file name.
+            cache_dir (str, optional): Directory to cache parsed results.
+            username (str, optional): Username used in the file suffix. Defaults to "all".
+
+        Returns:
+            logSummaryTimingsOut: The instantiated logSummaryTimingsOut object.
+        """
         if (logname is not None) and (cache_dir is not None):
             self.obj = logSummaryTimingsOut(logname, cache_dir, username)
         return self.obj
 
 
 class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
-    """
-    Class logSummaryTimingsOut logs timing and status of a job.
-    It declares a job complete only after the output file has been received
-    The format is slightly different than the one of logSummaryTimings;
-    we add the dirname in the job id
-    When a output file is found, it adds a 4th parameter to the completed jobs
-    See extractLogData below for more details
+    """Logs timing and status of a job.
+
+    This class declares a job complete only after the output file has been received.
+    The format is slightly different from that of logSummaryTimings; it adds the directory name
+    in the job ID. When an output file is found, it adds a 4th parameter to the completed jobs.
+    See the extractLogData function for more details.
     """
 
     def __init__(self, logname, cache_dir, username):
-        """
-        This class uses the condorLogParser clInit function to initialize
+        """Initialize a `logSummaryTimingsOut` instance.
+
+        This method uses the `condorLogParser` `clInit` function to initialize the log summary.
+        It also sets the directory name, cache directory, and current time information.
+
+        Args:
+            logname (str): Path to the log file.
+            cache_dir (str): Directory for caching log data.
+            username (str): Username used to form the file suffix.
         """
         self.clInit(logname, cache_dir, ".%s.ftstpk" % username)
         self.dirname = os.path.dirname(logname)
@@ -51,12 +69,16 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
         self.year = time.localtime(self.now)[0]
 
     def loadFromLog(self):
-        """
-        This class inherits from cachedLogClass.  So, load() will
-        first check the cached files.  If changed, it will call this function.
-        This uses the condorLogParser to load the log, then does
-        some post-processing to check the job.NUMBER.out files
-        to see if the job has finished and to extract some data.
+        """Load and post-process the log file.
+
+        This method first calls the parent loadFromLog() to load the log content (from file or from cache).
+        If new completed jobs exist, it performs post‑processing by checking the corresponding job output
+        files (job.NUMBER.out) to verify if the job has finished and to extract additional data.
+        It then updates the "Completed" and "CompletedNoOut" fields in self.data and
+        appends the full job filename.
+
+        Returns:
+            None
         """
         condorLogParser.logSummaryTimings.loadFromLog(self)
         if "Completed" not in self.data:
@@ -117,15 +139,18 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
         return
 
     def diff_raw(self, other):
-        """
-        Diff self.data with other info,
-        add glidein log data to Entered/Exited.
-        Used to compare current data with previous iteration.
+        """Compute the symmetric difference between self.data and other.
 
-        Uses symmetric difference of sets to compare the two dictionaries.
+        The method compares the job IDs in the two datasets and identifies for each status jobs that have
+        either entered or exited that status between the two iterations.
 
-        @type other: dictionary of statuses -> jobs
-        @return: data[status]['Entered'|'Exited'] - list of jobs
+        Args:
+            other (dict): A dictionary of statuses to job lists representing previous iteration data.
+
+        Returns:
+            dict: A dictionary where each key corresponds to a status and each value is a dict with keys:
+                  'Entered' (jobs present in self.data but not in other) and
+                  'Exited' (jobs present in other but not in self.data).
         """
         if other is None:
             outdata = {}
@@ -188,14 +213,19 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
     # return data[status]['Entered'|'Exited'] - list of jobs
     # completed jobs are augmented with data from the log
     def diff(self, other_data):
-        """Diff self.data with other_data for use in comparing current
+        """Compute the difference between current data and other_data to compare the current
         iteration data with previous iteration.
 
+        Augments the "Entered" jobs in the "Completed" category with additional log data
+        from the corresponding output file.
         Uses diff_raw to perform symmetric difference of self.data
         and other_data and puts it into data[status]['Entered'|'Exited']
-        Completed jobs are augmented with data from the log
 
-        @return: data[status]['Entered'|'Exited'] - list of jobs
+        Args:
+            other_data (dict): Previous iteration data.
+
+        Returns:
+            dict: Dictionary mapping each status to a dict with keys 'Entered' and 'Exited' containing job lists.
         """
         outdata = self.diff_raw(other_data)
         if "Completed" in outdata:
@@ -206,7 +236,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                 job_fullname = sel_e[-1] + ".out"
 
                 try:
-                    fdata = extractLogData(job_fullname)
+                    fdata = _extract_log_data(job_fullname)
                 except Exception:
                     fdata = copy.deepcopy(EMPTY_LOG_DATA)  # just protect
 
@@ -215,53 +245,86 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
 
 
 class dirSummarySimple:
-    """
-    dirSummary Simple
+    """A simple summary of directory log data.
 
-    for now it is just a constructor wrapper
-    Further on it will need to implement glidein exit code checks
+    This class acts as a wrapper around a log parser object and returns
+    a simplified version of its data.
+    Further work on this will need to implement glidein exit code checks
     """
 
     def __init__(self, obj):
+        """Initialize the dirSummarySimple object.
+
+        Args:
+            obj: An object with a 'data' attribute (e.g., a log parser instance).
+        """
         self.data = copy.deepcopy(obj.data)
         self.logClass = obj.logClass
         self.wrapperClass = obj.wrapperClass
 
         if obj.wrapperClass is not None:
-            self.logClass = obj.wrapperClass.getObj()
+            self.logClass = obj.wrapperClass.get_obj()
         else:
             logSupport.log.debug("== MISHANDLED LogParser Object! ==")
 
-    def mkTempLogObj(self):
+    def mk_temp_log_obj(self):
+        """Create a temporary log object based on the current data.
+
+        Returns:
+            A temporary log object with its data set to the current summary.
+        """
         if self.wrapperClass is not None:
-            dummyobj = self.wrapperClass.getObj(logname=os.path.join("/tmp", "dummy.txt"), cache_dir="/tmp")
+            dummyobj = self.wrapperClass.get_obj(logname=os.path.join("/tmp", "dummy.txt"), cache_dir="/tmp")
         else:
             dummyobj = self.logClass(os.path.join("/tmp", "dummy.txt"), "/tmp")
         # dummyobj=self.logClass(os.path.join('/tmp','dummy.txt'),'/tmp')
         dummyobj.data = self.data  # a little rough but works
         return dummyobj
 
-    # diff self data with other info
     def diff(self, other):
-        dummyobj = self.mkTempLogObj()
+        """Compute the difference between this summary and another.
+
+        Args:
+            other: Another dirSummarySimple object.
+
+        Returns:
+            The difference data computed by the temporary log object.
+        """
+        dummyobj = self.mk_temp_log_obj()
         return dummyobj.diff(other.data)
 
-    # merge other into myself
     def merge(self, other):
-        dummyobj = self.mkTempLogObj()
+        """Merge another summary into this one.
+
+        Args:
+            other: Another dirSummarySimple object.
+
+        Returns:
+            None. The data is merged into the `data` attribute of the object invoking this method.
+        """
+        dummyobj = self.mk_temp_log_obj()
         dummyobj.merge(copy.deepcopy(other.data))
         self.data = dummyobj.data
 
 
 class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
-    """
-    This class uses a lambda function to initialize an instance
-    of cacheDirClass.
-    The function chooses all condor_activity files in a directory
-    that correspond to a particular client.
+    """A class to summarize timings from condor_activity logs with output file checking.
+
+    This class initializes an instance of cacheDirClass that selects all files named condor_activity...
+    in a directory corresponding to a particular client and adds extra information from the job's output file.
     """
 
     def __init__(self, dirname, cache_dir, client_name, user_name, inactive_files=None, inactive_timeout=24 * 3600):
+        """Initialize the dirSummaryTimingsOut instance.
+
+        Args:
+            dirname (str): Directory containing log files.
+            cache_dir (str): Directory for caching.
+            client_name (str): Client name.
+            user_name (str): Username used to form the file suffix.
+            inactive_files (list, optional): List of inactive files. Defaults to None.
+            inactive_timeout (int, optional): Timeout in seconds for inactive files. Defaults to 24*3600.
+        """
         self.cdInit(
             None,
             dirname,
@@ -276,6 +339,11 @@ class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
         )
 
     def get_simple(self):
+        """Return a simplified directory summary for the desired client.
+
+        Returns:
+            dirSummarySimple: A simplified summary object.
+        """
         try:
             obj = dirSummarySimple(self)
         except Exception:
@@ -286,14 +354,21 @@ class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
 
 
 class dirSummaryTimingsOutFull(condorLogParser.cacheDirClass):
-    """
-    This class uses a lambda function to initialize an instance
-    of cacheDirClass.
-    The function chooses all condor_activity files in a directory
-    regardless of client name.
+    """A class to summarize timings from all condor_activity logs in a directory.
+
+    This class uses a lambda function to initialize an instance of `cacheDirClass`.
+    Unlike `dirSummaryTimingsOut`, this class does not filter by client name.
     """
 
     def __init__(self, dirname, cache_dir, inactive_files=None, inactive_timeout=24 * 3600):
+        """Initialize the dirSummaryTimingsOutFull instance.
+
+        Args:
+            dirname (str): Directory containing log files.
+            cache_dir (str): Directory for caching.
+            inactive_files (list, optional): List of inactive files. Defaults to None.
+            inactive_timeout (int, optional): Timeout in seconds for inactive files. Defaults to 24*3600.
+        """
         self.cdInit(
             lambda ln, cd: logSummaryTimingsOut(ln, cd, "all"),
             dirname,
@@ -306,6 +381,11 @@ class dirSummaryTimingsOutFull(condorLogParser.cacheDirClass):
         )
 
     def get_simple(self):
+        """Return a simplified directory summary for all logs.
+
+        Returns:
+            dirSummarySimple: A simplified summary object.
+        """
         return dirSummarySimple(self)
 
 
@@ -330,24 +410,43 @@ KNOWN_SLOT_STATS = ["Total", "goodZ", "goodNZ", "badSignal", "badOther"]
 EMPTY_LOG_DATA = {"condor_started": 0, "glidein_duration": 0}
 
 
-def extractLogData(fname):
-    """
-    Given a filename of a job file "path/job.NUMBER.out"
-    extract the statistics of the job duration, etc.
+def _extract_log_data(fname):
+    """Extract job log statistics from a job output file.
 
-    @param fname: Filename to extract
-    @return: a dictionary with keys:
-        - glidein_duration - integer, how long did the glidein run
-        - validation_duration - integer, how long before starting condor
-        - condor_started - Boolean, did condor even start
-          (if false, no further entries)
-        - condor_duration - integer, how long did Condor run
-        - stats - dictionary of stats (as in KNOWN_SLOT_STATS), each having
-        - jobsnr - integer, number of jobs started
-        - secs   - integer, total number of seconds used
-    For example {'glidein_duration':20305,'validation_duration':6,'condor_started' : 1, 'condor_duration': 20298, 'stats': {'badSignal': {'secs': 0, 'jobsnr': 0}, 'goodZ': {'secs' : 19481, 'jobsnr': 1}, 'Total': {'secs': 19481, 'jobsnr': 1}, 'goodNZ': {'secs': 0, 'jobsnr': 0}, 'badOther': {'secs': 0, 'jobsnr': 0}}}
-    """
+    Given a filename of a job file "path/job.NUMBER.out", extract statistics such as:
+      - glidein_duration: How long the glidein ran.
+      - validation_duration: How long the validation step took before HTCondor started.
+      - condor_started: Boolean flag indicating whether HTCondor started.
+      - condor_duration: How long HTCondor ran.
+      - stats: A dictionary of various slot statistics (e.g. Total, goodZ, etc.), counting the jobs and duration
+        (keys 'jobsnr' and 'secs').
+    The last two are present only if condor_duration is True (1).
 
+    Args:
+        fname (str): Full path to the job output file.
+
+    Returns:
+        dict: A dictionary with keys:
+            - glidein_duration (int): How long the glidein ran.
+            - validation_duration (int): How long the validation step took before HTCondor started.
+            - condor_started (int): Should be bool, 1 if HTCondor started, 0 otherwise
+            - condor_duration (int): How long HTCondor ran
+            - stats (dict): Detailed slot statistics (as in KNOWN_SLOT_STATS).
+
+    Example of return value:
+            ```
+            {'glidein_duration':20305, 'validation_duration':6, 'condor_started':1,
+             'condor_duration': 20298,
+             'stats': {'badSignal': {'secs': 0, 'jobsnr': 0},
+                       'goodZ': {'secs' : 19481, 'jobsnr': 1},
+                       'Total': {'secs': 19481, 'jobsnr': 1},
+                       'goodNZ': {'secs': 0, 'jobsnr': 0},
+                       'badOther': {'secs': 0, 'jobsnr': 0}
+                       }
+            }
+            ```
+
+    """
     condor_starting = 0
     condor_duration = None
     validation_duration = None

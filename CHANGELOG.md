@@ -3,9 +3,9 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+## v3.11.1 \[2025-05-14\]
 
-Changes since the last release
+Improvement and hardening of the refactored credentials.
 
 ### New features / functionalities
 
@@ -34,6 +34,51 @@ Changes since the last release
 -   Fixed a bug that could cause the Frontend not to generate IDTOKENS to some Factory entries. (PR #514)
 
 ### Testing / Development
+
+### Known Issues
+
+## v3.10.13 \[2025-05-07\]
+
+Quick release. Fixed a couple of bugs in 3.10.12
+
+### New features / functionalities
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Fixed a credential rewriting error caused by PR#511 and a path error in PR#515 (PR #519)
+
+### Testing / Development
+
+### Known Issues
+
+## v3.10.12 \[2025-05-05\]
+
+Added the ability to use a config directory for the Glidein's HTCondor. Clarified Glidein Job metrics.
+
+### New features / functionalities
+
+-   Exporting GLIDEIN_Name and GLIDEIN_UUID to the Glidein environment, for all scripts running inside the Glidein (PR #512)
+-   HTCondor LOCAL_CONFIG_DIR support for the Glidein HTCondor daemons (PR #515)
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Fixed misleading counts related to the number of jobs that run in the Glidein (PR #516, Issue #456)
+
+### Testing / Development
+
+-   Improved docstrings in the Factory module (PR #511)
 
 ### Known Issues
 

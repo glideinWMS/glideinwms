@@ -2827,11 +2827,33 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
             <td>
               <p>
                 File type, must be one of the valid types (regular, run, source,
-                wrapper, untar). Can have qualifiers depending on the type after
-                a colon (":"). Valid qualifier for <i>run</i> is "singularity"
-                causes setup scripts to run in Singularity. Currently
-                <i>type</i> is ignored for non executables and the only values
-                used are "run" or "run:singularity". Default is empty
+                config, wrapper, untar). Can have qualifiers depending on the
+                type after a colon (":"). Valid qualifier for <i>run</i> is
+                "singularity" causes setup scripts to run in Singularity. Valid
+                qualifier for <i>config</i> is "condor", for HTCondor
+                configuration files. Currently, <i>type</i> is ignored for non
+                executables and non config files. The only values used are
+                "run", "run:singularity", "config", or "config:condor". Default
+                is "regular".
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p><b>time</b></p>
+            </td>
+            <td>
+              <p>
+                NOT IMPLEMENTED - will replace after_group and pre_entry. File
+                time, must be one of the valid timing names (setup, prejob,
+                postjob, cleanup, periodic). Can have qualifiers depending on
+                the type after a colon (":"). Valid qualifier for
+                <i>setup</i> and <i>cleanup</i> are strings like QeQg specifying
+                the order respect the entry (e) or group (g). "singularity" Q
+                specifies the positioning using any of b/a/o/n
+                before/after/on/NA (group positioning does not apply to Factory
+                files). <i>periodic</i> can have the period as qualifier.
+                Currently <i>time</i> is ignored. Default is "setup"
               </p>
             </td>
           </tr>

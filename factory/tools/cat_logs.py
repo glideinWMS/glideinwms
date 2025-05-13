@@ -24,6 +24,19 @@ USAGE = "Usage: cat_logs.py <factory> YY/MM/DD [hh:mm:ss]"
 # return a GlideinDescript with
 # factory_dir, date_arr and time_arr
 def parse_args():
+    """Parse command-line arguments and return a GlideinDescript object with Factory information.
+
+    This function expects at least two command-line arguments: the factory directory and a date string in the format YY/MM/DD.
+    Optionally, a time string in the format hh:mm:ss can be provided. It updates the factory configuration file path and
+    creates a `glideFactoryConfig.GlideinDescript` object with attributes for factory_dir, date_arr, and time_arr.
+    GlideinDescript is needed in the reminder of this script to retrieve Factory information.
+
+    Raises:
+        ValueError: If not enough arguments are provided or if the factory directory is invalid.
+
+    Returns:
+        glideFactoryConfig.GlideinDescript: The configured GlideinDescript object.
+    """
     if len(sys.argv) < 3:
         raise ValueError("Not enough arguments!")
 
@@ -47,6 +60,13 @@ def parse_args():
 
 
 def main():
+    """Main function for printing glidein logs for a specific date.
+
+    This function calls `parse_args()` to obtain a `glideFactoryConfig.GlideinDescript` object, retrieves the list
+    of entries from it, and then uses `gWftLogParser.get_glidein_logs()` to obtain a list of log file paths with
+    extension "err".
+    Finally, it prints the path and content of each log file to stdout.
+    """
     try:
         glideinDescript = parse_args()
     except ValueError as e:

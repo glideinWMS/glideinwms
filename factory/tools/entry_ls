@@ -3,6 +3,29 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+"""Command entry_ls, for listing and printing job log information for a specific entry.
+
+This script is used to list and display error/output files for a given entry,
+user and date. It parses an XML file that wraps the log file lines and prints
+out details based on various command-line options.
+
+The script requires the environment variable GLIDEIN_FACTORY_DIR to be set to
+the gwms factory instance location (or it must be run in that directory).
+
+Usage:
+  entry_ls [OPTIONS] ENTRY USER DATE
+
+Options:
+  -o           Append .out extension instead of .err extension.
+  -t           Show only jobs where condor_started == 'True'.
+  -f           Show only jobs where condor_started == 'False'.
+  -e HOUR      Show jobs that ended before HOUR of the day (0-23).
+  -E HOUR      Show jobs that ended on or after HOUR of the day (0-23).
+  -d DURATION  Show jobs that lasted up to DURATION seconds.
+  -D DURATION  Show jobs that lasted at least DURATION seconds.
+  -h           Display this help message.
+"""
+
 import getopt
 import os
 import stat
@@ -20,6 +43,18 @@ import xml.parsers.expat
 # suffix
 # long
 def start_element(name, attrs):
+    """Handle a start element event from the XML parser.
+
+    This function is registered as the StartElementHandler for the expat
+    XML parser. It evaluates a global expression (compiled in 'match_exp') against
+    the element attributes. If the expression evaluates to True, it constructs a log file
+    path using globals and prints information about the log file. If the file does not exist,
+    an error is written to stderr.
+
+    Args:
+        name (str): The name of the XML element.
+        attrs (dict): A dictionary of attributes for the element.
+    """
     # if name == 'job' and attrs['username'] == user:
     if eval(match_exp):
         cluster, proc = attrs["id"].split(".")
@@ -37,6 +72,11 @@ def start_element(name, attrs):
 
 
 def print_help():
+    """Print the usage message for the script.
+
+    This function outputs a detailed help message explaining how to use the
+    script and what options are available.
+    """
     print(
         """\
 Usage: entry_ls [OPTIONS] ENTRY USER DATE

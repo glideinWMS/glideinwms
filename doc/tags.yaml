@@ -619,3 +619,21 @@ v3_10_11:
       The image must be provided by the job or a future custom script in order not to fail. (PR#482)
     - APPTAINER_TEST_IMAGE can be set to an always available Singularity/Apptainer image to use for testing.
       Defaults to oras://ghcr.io/apptainer/alpine:latest (PR#482)
+
+v3_10_12:
+  Date: May 5, 2025
+  Series: Stable
+  Tarball: false
+  Feature:
+    - Exporting GLIDEIN_Name and GLIDEIN_UUID to the Glidein environment, for all scripts running inside the Glidein (PR#512)
+    - HTCondor LOCAL_CONFIG_DIR support for the Glidein HTCondor daemons (PR#515)
+    - Improved docstrings in the Factory module (PR#511)
+  Bug fix:
+    - Fixed misleading counts related to the number of jobs that run in the Glidein (PR#516, Issue#456)
+
+v3_10_13:
+  Date: May 7, 2025
+  Series: Stable
+  Tarball: false
+  Bug fix:
+    - Fixed a credential rewriting error caused by PR#511 and a path error in PR#515 (PR#519)

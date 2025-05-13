@@ -3,9 +3,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Print out the StarterLog for a glidein output file
+"""Print out the StarterLog for a glidein output file.
 
- Usage: cat_StarterLog.py logname
+ Usage:
+    cat_StarterLog.py [-monitor]|[-slot <slotname>] <logname>
 """
 
 
@@ -21,6 +22,18 @@ USAGE = "Usage: cat_StarterLog.py [-monitor]|[-slot <slotname>] <logname>"
 
 
 def main():
+    """Extract and print the StarterLog from a glidein output file.
+
+    This function determines the appropriate Condor log identifier based on the
+    command-line arguments. If the first argument is "-monitor", it uses the
+    "StartdLog.monitor" identifier; otherwise, it uses "StartdLog". The function
+    then prints the content of the corresponding log file to standard output. If
+    an error occurs during log retrieval, it prints a usage message to standard
+    error and exits with a non-zero status.
+
+    Raises:
+        Exception: If an error occurs during log retrieval.
+    """
     try:
         if sys.argv[1] == "-monitor":
             fname = sys.argv[2]
@@ -37,11 +50,11 @@ def main():
             fname = sys.argv[len(sys.argv) - 1]
             condor_log_id = "((StarterLog)|(StarterLog.vm2))"
 
-        matches = gWftLogParser.get_StarterSlotNames(fname)
+        matches = gWftLogParser.get_starter_slot_names(fname)
         if len(matches):
             logs = ", ".join(matches)
             print("StarterLogs available for slots: %s" % logs.replace("StarterLog.", ""))
-        print(gWftLogParser.get_CondorLog(fname, condor_log_id))
+        print(gWftLogParser.get_condor_log(fname, condor_log_id))
     except Exception:
         sys.stderr.write("%s\n" % USAGE)
         sys.exit(1)

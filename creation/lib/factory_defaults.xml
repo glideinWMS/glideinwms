@@ -66,7 +66,7 @@ SPDX-License-Identifier: Apache-2.0
           </attrs>
           <files>
              <!-- required: absfname; optional: relfname -->
-             <file const="True" executable="False" period="0" prefix="GLIDEIN_PS_" wrapper="False" untar="False">
+             <file const="True" executable="False" period="0" prefix="GLIDEIN_PS_" wrapper="False" untar="False" type="regular" time="setup">
                 <!-- optional: dir, absdir_outattr -->
                 <untar_options cond_attr="TRUE"/>
              </file>
@@ -117,7 +117,7 @@ SPDX-License-Identifier: Apache-2.0
          </attrs>
          <files>
             <!-- required: absfname; optional: relfname -->
-            <file const="True" executable="False" period="0" prefix="GLIDEIN_PS_" wrapper="False" untar="False">
+            <file const="True" executable="False" period="0" prefix="GLIDEIN_PS_" wrapper="False" untar="False" type="regular" time="setup">
                <!-- optional: dir, absdir_outattr -->
                <untar_options cond_attr="TRUE"/>
             </file>
@@ -147,7 +147,7 @@ SPDX-License-Identifier: Apache-2.0
    <files>
       <!-- required: absfname; optional: relfname -->
       <!-- global file has additional after_entry field -->
-      <file after_entry="False" const="True" executable="False" period="0" prefix="GLIDEIN_PS_" wrapper="False" untar="False">
+      <file after_entry="False" const="True" executable="False" period="0" prefix="GLIDEIN_PS_" wrapper="False" untar="False" type="regular" time="setup">
          <!-- optional: dir, absdir_outattr -->
          <untar_options cond_attr="TRUE"/>
       </file>

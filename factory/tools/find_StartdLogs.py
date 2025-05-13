@@ -3,9 +3,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Print out the StartdLogs for a certain date
+"""Print out the StartdLogs for a certain date.
 
-Usage: find_StartdLogs.py <factory> YY/MM/DD [hh:mm:ss]
+Usage:
+    find_StartdLogs.py <factory> YY/MM/DD [hh:mm:ss]
 """
 
 import os
@@ -25,6 +26,20 @@ USAGE = "Usage: find_StartdLogs.py <factory> YY/MM/DD [hh:mm:ss]"
 # return a GlideinDescript with
 # factory_dir, date_arr and time_arr
 def parse_args():
+    """Parse command-line arguments to configure a GlideinDescript object.
+
+    Expects at least two command-line arguments: the factory directory and a date
+    in the format YY/MM/DD. Optionally, a time in the format hh:mm:ss can be provided.
+    If the time is not provided, it defaults to (0, 0, 0).
+
+    Raises:
+        ValueError: If fewer than 3 command-line arguments are provided.
+        ValueError: If the specified factory directory is not valid.
+
+    Returns:
+        glideFactoryConfig.GlideinDescript: A configured GlideinDescript object with the
+            attributes 'factory_dir', 'date_arr', and 'time_arr' set.
+    """
     if len(sys.argv) < 3:
         raise ValueError("Not enough arguments!")
 
@@ -48,6 +63,16 @@ def parse_args():
 
 
 def main():
+    """Main function to print out the StartdLogs for a given factory and date.
+
+    This function parses command-line arguments to create a glideFactoryConfig.GlideinDescript object,
+    retrieves the list of log file paths using the provided factory directory,
+    date, and optional time, and then prints each log file path followed by a separator
+    and the contents of the Condor log identified by "CondorLog".
+
+    If argument parsing fails, the usage message is printed to stderr and the process exits
+    with a non-zero status code.
+    """
     try:
         glideinDescript = parse_args()
     except ValueError as e:
@@ -61,7 +86,7 @@ def main():
     for fname in log_list:
         sys.stdout.write("%s\n" % fname)
         sys.stdout.write("===========================================================\n")
-        sys.stdout.write("%s\n" % gWftLogParser.get_CondorLog(fname, "CondorLog"))
+        sys.stdout.write("%s\n" % gWftLogParser.get_condor_log(fname, "CondorLog"))
 
 
 if __name__ == "__main__":

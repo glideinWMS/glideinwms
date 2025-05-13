@@ -37,14 +37,25 @@ def has_file_wrapper_params(file_params):
 
 
 def add_file_unparsed(user_file, dicts, is_factory):
-    """Add a user file residing in the stage area
-    file as described by Params.file_defaults
-    :param user_file: file from the config files "files" sections
-    :param dicts: parameters dictionaries
-    :param is_factory: True if invoked for the factory (cgWParamDict.py), false for the frontend (cvWParamDict.py)
-    :return: None (dictionaries are modified)
-    """
+    """Adds a user file residing in the staging area to the appropriate internal dictionary.
 
+    This function processes a file element defined in the configuration, categorizes it
+    (e.g., executable, wrapper, untar, regular), and inserts it into the correct section of
+    the parameter dictionaries. It handles both Factory and Frontend (client) contexts.
+
+    Args:
+        user_file (object): A file configuration object from the "files" section of the XML config.
+        dicts (dict): A set of internal parameter dictionaries that will be modified by this function.
+        is_factory (bool): True if invoked in the Factory context (e.g., `cgWParamDict.py`),
+            False if invoked in the Frontend (client) context (e.g., `cvWParamDict.py`).
+
+    Returns:
+        None: The function modifies the provided `dicts` in place.
+
+    Raises:
+        RuntimeError: If the file configuration is invalid (e.g., missing paths, conflicting flags, or
+            incompatible type combinations such as an executable tar file or a wrapper marked non-constant).
+    """
     absfname = user_file.absfname
     if absfname is None:
         raise RuntimeError("Found a file element without an absname: %s" % user_file)
@@ -57,6 +68,9 @@ def add_file_unparsed(user_file, dicts, is_factory):
 
     is_const = is_true(user_file.const)
     is_executable = is_true(user_file.executable)
+    is_config = False
+    if user_file.type:
+        is_config = user_file.type.startswith("config")
     is_wrapper = is_true(user_file.wrapper)
     do_untar = is_true(user_file.untar)
     try:
@@ -109,7 +123,13 @@ def add_file_unparsed(user_file, dicts, is_factory):
             ),
             absfname,
         )
-
+    elif is_config:  # a configuration file (e.g. HTCondor config)
+        file_type = user_file.type
+        if file_type == "config:condor" or file_type == "config":
+            file_type = "config:c"
+        dicts[file_list_idx].add_from_file(
+            relfname, cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), file_type), absfname
+        )
     elif is_wrapper:  # a source-able script for the wrapper
         if not is_const:
             raise RuntimeError("A file cannot be a wrapper if it is not constant: %s" % user_file)

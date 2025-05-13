@@ -3,21 +3,14 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   Stop a running glideinFactory
-#
-# Arguments:
-#   $1 = glidein submit_dir (i.e. factory dir)
-#
-# Author:
-#   Igor Sfiligoi May 6th 2008
-#
+"""Stop a running glideinFactory.
+
+This program stops a running glideinFactory by killing its process group.
+It expects one argument: the glidein submit directory (i.e. factory dir).
+Option "-force" uses a hard kill (SIGKILL) after trying a soft one (SIGTERM).
+
+Usage: stopFactory [-f|-force] submit_dir
+"""
 
 
 import os
@@ -30,6 +23,14 @@ from glideinwms.factory import glideFactoryPidLib
 
 
 def all_pids_in_pgid_dead(pgid):
+    """Check if all processes in the given process group are dead.
+
+    Args:
+        pgid (int): Process group ID.
+
+    Returns:
+        int: 1 if no processes in the process group are alive, 0 otherwise.
+    """
     # return 1 if there are no pids in the pgid still alive
     # 0 otherwise
     devnull = os.open(os.devnull, os.O_RDWR)
@@ -37,9 +38,23 @@ def all_pids_in_pgid_dead(pgid):
 
 
 def kill_and_check_pgid(pgid, signr=signal.SIGTERM, retries=100, retry_interval=0.5):
+    """Send a signal to the process group and check until all processes are dead.
+
+    This function sends the given signal (default SIGTERM) to all processes in the
+    specified process group and then checks repeatedly until no processes remain.
+    It retries a specified number of times (default 100) with a specified interval (default 0.5 seconds).
+
+    Args:
+        pgid (int): Process group ID.
+        signr (int, optional): Signal number to send. Defaults to SIGTERM.
+        retries (int, optional): Number of retry attempts. Defaults to 100.
+        retry_interval (float, optional): Interval in seconds between retries. Defaults to 0.5.
+
+    Returns:
+        int: 0 if all processes in the group are dead within the timeout, 1 otherwise.
+    """
     # return 0 if all pids in pgid are dead
     # 50 sec timeout by default
-
     try:
         os.killpg(pgid, signr)
     except OSError:
@@ -53,11 +68,24 @@ def kill_and_check_pgid(pgid, signr=signal.SIGTERM, retries=100, retry_interval=
             return 0
         else:
             time.sleep(retry_interval)
-
     return 1
 
 
 def main(startup_dir, force=True):
+    """Stop the glideinFactory process.
+
+    This function retrieves the factory PID from the specified startup directory, verifies that
+    the factory is running, and then attempts to kill its process group gracefully. If the graceful
+    termination fails and force is True, it escalates to a hard kill.
+
+    Args:
+        startup_dir (str): The startup directory (factory directory).
+        force (bool, optional): If True, force kill if graceful termination fails. Defaults to True.
+
+    Returns:
+        int: Exit code, where 0 indicates success, 1 indicates failure to stop, and 2 indicates that
+             the factory was not running.
+    """
     # get the pids
     try:
         factory_pid = glideFactoryPidLib.get_factory_pid(startup_dir)

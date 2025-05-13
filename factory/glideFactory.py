@@ -3,7 +3,14 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This is the main of the glideinFactory
+"""
+GlideFactory Module.
+
+This module manages the main execution loop of the GlideinWMS Factory (glideFactory.py).
+It is responsible for setting up the environment (e.g. creating lock files,
+setting up cache directories and XML files, etc.), handling signals for
+graceful termination, and continuously updating the Factory status and XML
+representation while handling frontend requests.
 
 Arguments:
    $1 = glidein submit_dir
@@ -50,12 +57,16 @@ FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 
 ############################################################
 def aggregate_stats(in_downtime):
-    """
-    Aggregate all the monitoring stats
+    """Aggregate all the monitoring statistics.
 
-    @type in_downtime: boolean
-    @param in_downtime: Entry downtime information
-    :return stats dictionary
+    This function aggregates monitoring statistics from various components.
+    It attempts to aggregate status, log summaries, and RRD stats.
+
+    Args:
+        in_downtime (bool): Entry downtime information.
+
+    Returns:
+        dict: Dictionary containing aggregated statistics.
     """
     stats = {}
     try:
@@ -77,8 +88,10 @@ def aggregate_stats(in_downtime):
 
 
 def update_classads():
-    """Load the aggregate job summary pickle files, and then
-    quedit the finished jobs adding a new classad called MONITOR_INFO with the monitor information.
+    """Load aggregate job summary pickle files and update finished jobs.
+
+    This function loads the aggregate job summary pickle files and then uses CondorQEdit
+    to update finished jobs by adding a new classad called MONITOR_INFO with the monitoring information.
     """
     jobinfo = glideFactoryMonitorAggregator.aggregateJobsSummary()
     for cnames, joblist in jobinfo.items():
@@ -96,12 +109,14 @@ def update_classads():
 
 
 def save_stats(stats, fname):
-    """Serialize and save aggregated statistics so that each component (Factory and Entries)
-    can retrieve and use them for logging and advertising.
+    """Serialize and save aggregated statistics.
+
+    This function serializes and saves aggregated statistics so that each component
+    (Factory and Entries) can retrieve and use them for logging and advertising.
 
     Args:
-        stats (dict): Aggregated Factory statistics dictionary. stats is a dictionary pickled in binary format
-            stats['LogSummary'] - log summary aggregated info
+        stats (dict): Aggregated Factory statistics dictionary. It is a dictionary pickled in binary format.
+            For example, `stats['LogSummary']` contains aggregated log summary information.
         fname (str): Name of the file to store the serialized data.
     """
     util.file_pickle_dump(
@@ -114,11 +129,10 @@ def write_descript(glideinDescript, frontendDescript, monitor_dir):
     """Write the descript.xml file to the specified monitoring directory.
 
     Args:
-        glideinDescript (glideFactoryConfig.GlideinDescript): Factory config's Glidein description object.
-        frontendDescript (glideFactoryConfig.FrontendDescript): Factory config's Frontend description object.
+        glideinDescript (glideFactoryConfig.GlideinDescript): Factory configuration's Glidein description object.
+        frontendDescript (glideFactoryConfig.FrontendDescript): Factory configuration's Frontend description object.
         monitor_dir (str): Path to the monitoring directory.
     """
-
     glidein_data = copy.deepcopy(glideinDescript.data)
     frontend_data = copy.deepcopy(frontendDescript.data)
     entry_data = {}
@@ -151,20 +165,21 @@ def write_descript(glideinDescript, frontendDescript, monitor_dir):
 
 
 def generate_log_tokens(startup_dir, glidein_descript):
-    """Generate the JSON Web Tokens used to authenticate with the remote HTTP log server.
-    Note: tokens were generated for disabled entries too, not now
+    """Generate JSON Web Tokens (JWT) for log server authentication.
+
+    This function generates JWT tokens used to authenticate with the remote HTTP log server.
+    Note: Tokens are generated for both enabled and disabled Entries.
 
     Args:
-        startup_dir (str|Path): Path to the glideinsubmit directory
-        glidein_descript (glideFactoryConfig.GlideinDescript): Factory config's Glidein description object
+        startup_dir (str | Path): Path to the glideinsubmit directory.
+        glidein_descript (glideFactoryConfig.GlideinDescript): Factory configuration's Glidein description object.
 
     Returns:
         None
 
     Raises:
-        IOError: If it can't open/read/write a file (key/token)
+        IOError: If there is an error opening, reading, or writing a file (key/token).
     """
-
     logSupport.log.info("Generating JSON Web Tokens for authentication with log server")
 
     # Get a list of all entries, enabled and disabled
@@ -290,53 +305,48 @@ def generate_log_tokens(startup_dir, glidein_descript):
 
 
 def entry_grouper(size, entries):
+    """Group entries into smaller subgroups.
+
+    Groups the entries into sublists of the specified size.
+    KNOWN ISSUE: The grouping algorithm may need improvement for better grouping in certain cases.
+    TODO: Migrate to itertools when only supporting Python 2.6 and higher.
+
+    Args:
+        size (int): Size of each subgroup.
+        entries (list): List of entries.
+
+    Returns:
+        list: A list of grouped entries, where each group is a list.
     """
-    Group the entries into n smaller groups
-    KNOWN ISSUE: Needs improvement to do better grouping in certain cases
-    TODO: Migrate to itertools when only supporting python 2.6 and higher
-
-    @type size: long
-    @param size: Size of each subgroup
-    @type entries: list
-    @param size: List of entries
-
-    @rtype: list
-    @return: List of grouped entries. Each group is a list
-    """
-
-    list = []
+    g_list = []
 
     if size == 0:
-        return list
+        return g_list
 
     if len(entries) <= size:
-        list.insert(0, entries)
+        g_list.insert(0, entries)
     else:
         for group in range(len(entries) // size):
-            list.insert(group, entries[group * size : (group + 1) * size])
+            g_list.insert(group, entries[group * size : (group + 1) * size])
 
-        if size * len(list) < len(entries):
-            list.insert(group + 1, entries[(group + 1) * size :])
+        if size * len(g_list) < len(entries):
+            g_list.insert(group + 1, entries[(group + 1) * size :])
 
-    return list
+    return g_list
 
 
 ############################################################
 def is_crashing_often(startup_time, restart_interval, restart_attempts):
+    """Determine if the entry process is crashing or dying too frequently.
+
+    Args:
+        startup_time (list): List of startup times (in seconds) for the entry process.
+        restart_interval (int): Allowed restart interval in seconds.
+        restart_attempts (int): Number of allowed restart attempts within the interval.
+
+    Returns:
+        bool: True if the entry process is crashing/dying too often, False otherwise.
     """
-    Check if the entry is crashing/dying often
-
-    @type startup_time: long
-    @param startup_time: Startup time of the entry process in second
-    @type restart_interval: long
-    @param restart_interval: Allowed restart interval in second
-    @type restart_attempts: long
-    @param restart_attempts: Number of allowed restart attempts in the interval
-
-    @rtype: bool
-    @return: True if entry process is crashing/dying often
-    """
-
     crashing_often = True
 
     if len(startup_time) < restart_attempts:
@@ -355,16 +365,14 @@ def is_crashing_often(startup_time, restart_interval, restart_attempts):
 
 
 def is_file_old(filename, allowed_time):
-    """
-    Check if the file is older than given time
+    """Check if a file is older than a specified allowed time.
 
-    @type filename: String
-    @param filename: Full path to the file
-    @type allowed_time: long
-    @param allowed_time: Time is second
+    Args:
+        filename (str): Full path to the file.
+        allowed_time (int): Allowed time in seconds.
 
-    @rtype: bool
-    @return: True if file is older than the given time, else False
+    Returns:
+        bool: True if the file is older than the allowed time, otherwise False.
     """
     if time.time() > (os.path.getmtime(filename) + allowed_time):
         return True
@@ -373,6 +381,15 @@ def is_file_old(filename, allowed_time):
 
 ############################################################
 def clean_exit(children):
+    """Cleanly exit by terminating child processes.
+
+    This function attempts to gracefully terminate all child processes (EntryGroups)
+    by sending SIGTERM signals repeatedly and then forcefully killing any remaining processes.
+    It logs the termination status of each EntryGroup.
+
+    Args:
+        children (dict): Dictionary of child processes.
+    """
     count = 100000000  # set it high, so it is triggered at the first iteration
     sleep_time = 0.1  # start with very little sleep
     while len(list(children.keys())) > 0:
@@ -440,20 +457,20 @@ def spawn(
     restart_attempts,
     restart_interval,
 ):
-    """
-    Spawn and track entry processes, restarting them as needed. Advertise glidefactoryglobal ClassAds every iteration.
+    """Spawn and track entry processes, restarting them as needed.
+
+    Also advertises the global ClassAds (glidefactoryglobal) for every iteration.
 
     Args:
         sleep_time (int): Delay between iterations in seconds.
         advertise_rate (int): Rate at which entries advertise their ClassAds.
         startup_dir (str): Path to the glideinsubmit directory.
-        glideinDescript (glideFactoryConfig.GlideinDescript): Factory config's Glidein description object.
-        frontendDescript (glideFactoryConfig.FrontendDescript): Factory config's Frontend description object.
+        glideinDescript (glideFactoryConfig.GlideinDescript): Factory configuration's Glidein description object.
+        frontendDescript (glideFactoryConfig.FrontendDescript): Factory configuration's Frontend description object.
         entries (list): Sorted list of entry names.
-        restart_interval (int): Allowed restart interval in seconds.
         restart_attempts (int): Number of allowed restart attempts within the interval.
+        restart_interval (int): Allowed restart interval in seconds.
     """
-
     children = {}
 
     # Number of glideFactoryEntry processes to spawn and directly relates to
@@ -483,21 +500,23 @@ def spawn(
     entry_groups = entry_grouper(group_size, entries)
 
     def _set_rlimit(soft_l=None, hard_l=None):
-        """Set new hard and soft open file limits
+        """Set new hard and soft open file limits.
 
-        If setting limits fails or no input parameters use inherited limits from parent process
-        NOTE1: it is possible to raise limits up to [hard_l,hard_l] but once lowered they cannot be raised
-        NOTE2: it may be better just to omit calling this function at all from subprocess -
-               in which case it inherits limits from the parent process
+        If setting limits fails or no input parameters are provided,
+        the inherited limits from the parent process are used.
+
+        Note:
+            It is possible to raise limits up to [hard_l, hard_l], i.e. soft limit can be raised by a non-root user up
+            to the current process hard limit, but once lowered they cannot be raised.
+            It may be better to omit calling this function from subprocesses so that they inherit limits from the parent.
 
         Args:
-            soft_l (int): soft limit
-            hard_l (int): hard limit
+            soft_l (int, optional): Soft limit.
+            hard_l (int, optional): Hard limit.
 
         Raises:
-            Exception: if the limit setting fails
+            Exception: If setting the new limits fails.
         """
-
         lim = resource.getrlimit(resource.RLIMIT_NOFILE)
         if soft_l is not None or hard_l is not None:
             if not hard_l:
@@ -722,7 +741,7 @@ def spawn(
 
             # Aggregate Monitoring data periodically
             logSupport.log.info("Aggregate monitoring data")
-            stats = aggregate_stats(factory_downtimes.checkDowntime())
+            stats = aggregate_stats(factory_downtimes.check_downtime())
             save_stats(stats, os.path.join(startup_dir, glideFactoryConfig.factoryConfig.aggregated_stats_file))
 
             # Aggregate job data periodically
@@ -789,7 +808,11 @@ def spawn(
 
 
 def increase_process_limit(new_limit=10000):
-    """Raise RLIMIT_NPROC to new_limit"""
+    """Raise RLIMIT_NPROC to a new limit.
+
+    Args:
+        new_limit (int, optional): New process limit. Defaults to 10000.
+    """
     (soft, hard) = resource.getrlimit(resource.RLIMIT_NPROC)
     if soft < new_limit:
         try:
@@ -803,11 +826,10 @@ def increase_process_limit(new_limit=10000):
 
 ############################################################
 def main(startup_dir):
-    """
-    Reads in the configuration file and starts up the factory
+    """Read configuration file and start up the Factory.
 
-    @type startup_dir: String
-    @param startup_dir: Path to glideinsubmit directory
+    Args:
+        startup_dir (str): Path to the glideinsubmit directory.
     """
     # Force integrity checks on all condor operations
     glideFactoryLib.set_condor_integrity_checks()
@@ -989,18 +1011,32 @@ def main(startup_dir):
 #
 ############################################################
 class HUPException(Exception):
-    """Used to catch SIGHUP and trigger a reconfig"""
+    """Exception raised to trigger a reconfiguration upon receiving SIGHUP."""
 
     pass
 
 
 def termsignal(signr, frame):
-    """Signal handler. Raise KeyboardInterrupt when receiving SIGTERN or SIGQUIT"""
+    """Signal handler for SIGTERM or SIGQUIT.
+
+    Raises a KeyboardInterrupt when one of these signals is received.
+
+    Args:
+        signr (int): The signal number.
+        frame: The current stack frame.
+    """
     raise KeyboardInterrupt("Received signal %s" % signr)
 
 
 def hupsignal(signr, frame):
-    """Signal handler. Raise HUPException when receiving SIGHUP. Used to trigger a reconfig and restart."""
+    """Signal handler for SIGHUP.
+
+    Raises a HUPException to trigger a reconfiguration and restart.
+
+    Args:
+        signr (int): The signal number.
+        frame: The current stack frame.
+    """
     signal.signal(signal.SIGHUP, signal.SIG_IGN)
     raise HUPException("Received signal %s" % signr)
 

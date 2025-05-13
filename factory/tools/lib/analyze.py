@@ -1,8 +1,11 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Library for analyze_entries,
-   analyze_queues and analyze_frontends.
+"""Library for analyze_entries, analyze_queues and analyze_frontends.
+
+This module provides helper functions for converting large numbers into a human‐readable
+format (e.g., kilo/mega), printing dictionaries for debugging, and formatting summary
+lines for output.
 """
 
 
@@ -11,6 +14,20 @@
 # Example: km(123456) returns "123 K"
 #      and km(1234567) returns "1.23 M"
 def km(z):
+    """Convert a large number into a string with kilo, mega, or giga units.
+
+    Keeps 3 significant figures.
+
+    Examples:
+        km(123456) returns "123.5K"
+        km(1234567) returns "1.2M"
+
+    Args:
+        z (float or int): The number to convert.
+
+    Returns:
+        str: The converted number as a string with units.
+    """
     if z < 0:
         neg = "-"
     else:
@@ -37,6 +54,16 @@ def km(z):
 
 
 def debug_print_dict(data):
+    """Print a nested dictionary with indentation for debugging.
+
+    The dictionary is printed with newlines and tab characters to improve readability.
+
+    Args:
+        data (dict): The dictionary to print.
+
+    Returns:
+        None
+    """
     for period, p in data.items():
         print(period)
         for frontend, f in p.items():
@@ -55,6 +82,22 @@ def debug_print_dict(data):
 
 
 def printline(x, div, period):
+    """Format a summary line for display.
+
+    Returns a formatted string containing the value of 'x' in human-readable units,
+    along with its conversion to hours and slots, and optionally the percentage of total.
+
+    For example, printline(1234, 7200, total) might return:
+    " 1.2K (  0.3 hours -  0.2 slots -  XX% of total)"
+
+    Args:
+        x (float or int): The value to be converted.
+        div (float or int): The divisor used for calculating percentages. Set div = 1 to omit percentage.
+        period (float or int): The total period value used in slot calculation.
+
+    Returns:
+        str: A formatted string representing the summary line.
+    """
     if div == 1:
         sp = ""
     else:

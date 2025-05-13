@@ -1,8 +1,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This module implements the functions needed to advertise
-   and get commands from the Collector
+"""Module for advertising and retrieving commands from the Collector.
+
+This module implements the functions needed to advertise ClassAds and get commands
+from the Collector.
 """
 
 import fcntl
@@ -40,6 +42,10 @@ advertiseGlobalCounter = 0
 
 class FactoryConfig:
     def __init__(self):
+        """Initialize a FactoryConfig object with default values.
+
+        Users should modify the attributes if needed.
+        """
         # set default values
         # user should modify if needed
 
@@ -118,12 +124,17 @@ DEFAULT_VAL = "default"
 #####################################################
 # Exception thrown when multiple executions are used
 # Helps handle partial failures
-
-
 class MultiExeError(condorExe.ExeError):
+    """Exception thrown when multiple executions are used.
+
+    Helps to handle partial failures.
+    """
+
     def __init__(self, arr):
-        """
-        arr is a list of ExeError exceptions
+        """Initialize MultiExeError object with a list of exceptions.
+
+        Args:
+            arr (list): List of ExeError exceptions.
         """
         self.arr = arr
 
@@ -153,36 +164,28 @@ def findGroupWork(
     additional_constraints=None,
     factory_collector=DEFAULT_VAL,
 ):
-    """
-    Find request classAds that have my (factory, glidein name, entries) and
-    create the dictionary of dictionary of work request information.
+    """Find work requests for the specified group.
+
+    This function queries the Collector for request ClassAds that match the
+    given factory, glidein, and entry names. The result is returned as a dictionary
+    of work to perform, grouped by entry and client.
     Example: work[entry_name][frontend] = {'params':'value', 'requests':'value}
 
-    @type factory_name: string
-    @param factory_name: name of the factory
+    Args:
+        factory_name (str): Name of the Factory.
+        glidein_name (str): Name of the glidein instance.
+        entry_names (list): List of Factory entry names.
+        supported_signtypes (list): List of supported sign types (e.g. ['sha1']).
+            Supports only one kind of signtype, 'sha1'. Default is None
+        pub_key_obj (str, optional): Public key object (e.g. RSA key). Defaults to None.
+            Supports only one kind of public key, 'RSA'.
+        additional_constraints (str, optional): Additional constraints for querying the WMS Collector. Defaults to None.
+        factory_collector (str, optional): The collector to query. Special value "default" uses the global config.
 
-    @type glidein_name: string
-    @param glidein_name: name of the glidein instance
-
-    @type entry_names: list
-    @param entry_names: list of factory entry names
-
-    @type supported_signtypes: list
-    @param supported_signtypes: only support one kind of signtype, 'sha1', default is None
-
-    @type pub_key_obj: string
-    @param pub_key_obj: only support 'RSA', defaults to None
-
-    @type additional_constraints: string
-    @param additional_constraints: any additional constraints to include for querying the WMS collector, default is None
-
-    @type factory_collector: string or None
-    @param factory_collector: the collector to query, special value 'default' will get it from the global config
-
-    @rtype: dict
-    @return: Dictionary of work to perform. Return format is work[entry_name][frontend] = {'params':'value', 'requests':'value}
+    Returns:
+        dict: Dictionary of work to perform in the format:
+            work[entry_name][frontend] = {'params': 'value', 'requests': 'value'}
     """
-
     global factoryConfig
 
     if factory_collector == DEFAULT_VAL:
@@ -354,11 +357,15 @@ def findGroupWork(
 
 
 def workGroupByEntries(work):
-    """
-    Given the dictionary of work items, group the work based on the entry
-    Example: grouped_work[entry][w]
-    """
+    """Group work items by entry.
 
+    Args:
+        work (dict): Dictionary of work items for each client.
+
+    Returns:
+        dict: Dictionary of work items grouped by entry.
+              Example: ``grouped_work[entry][client]``
+    """
     grouped_work = {}
 
     for w in work:
@@ -390,28 +397,26 @@ def findWork(
     additional_constraints=None,
     factory_collector=DEFAULT_VAL,
 ):
+    """Find request classAds and create work request information.
+
+    This function queries the WMS collector for request classAds that match the specified
+    factory, glidein name, and entry name. It returns a dictionary where each key is the name
+    of a client (Frontend), and each corresponding value is a dictionary containing the keys "requests"
+    and "params" that hold ClassAd information about the work request.
+
+    Args:
+        factory_name (str): Name of the Factory.
+        glidein_name (str): Name of the glidein instance.
+        entry_name (str): Name of the Factory entry.
+        supported_signtypes (list): List of supported sign types (supports only 'sha1' - e.g., ['sha1']). Defaults to None.
+        pub_key_obj (glideFactoryConfig.GlideinKey, optional): Public key object used for decryption (supports only RSA). Defaults to None.
+        additional_constraints (str, optional): Additional constraints for querying the WMS collector. Defaults to None.
+        factory_collector (str or None): The collector to query. The special value 'default' will retrieve it from the global configuration.
+
+    Returns:
+        dict: A dictionary where each key is the name of a Frontend. Each value is a dictionary
+              with keys "requests" and "params", both containing ClassAd dictionaries.
     """
-    Find request classAds that have my (factory, glidein name, entry name) and create the dictionary of work request information.
-
-    @type factory_name: string
-    @param factory_name: name of the factory
-    @type glidein_name: string
-    @param glidein_name: name of the glidein instance
-    @type entry_name: string
-    @param entry_name: name of the factory entry
-    @type supported_signtypes: list
-    @param supported_signtypes: only support one kind of signtype, 'sha1', default is None
-    @type pub_key_obj: string
-    @param pub_key_obj: only support 'RSA'
-    @type additional_constraints: string
-    @param additional_constraints: any additional constraints to include for querying the WMS collector, default is None
-
-    @type factory_collector: string or None
-    @param factory_collector: the collector to query, special value 'default' will get it from the global config
-
-    @return: dictionary, each key is the name of a frontend.  Each value has a 'requests' and a 'params' key.  Both refer to classAd dictionaries.
-    """
-
     global factoryConfig
     logSupport.log.debug("Querying collector for requests")
 
@@ -561,9 +566,9 @@ def findWork(
 
 
 class EntryClassad(classadSupport.Classad):
-    """
-    This class describes the glidefactory classad. Factory advertises the
-    glidefactory classad to the user pool as an UPDATE_AD_GENERIC type classad
+    """Class representing a glidefactory classad for an entry.
+
+    Factory advertises the glidefactory classad to the user pool as an UPDATE_AD_GENERIC type classad.
     """
 
     def __init__(
@@ -583,26 +588,28 @@ class EntryClassad(classadSupport.Classad):
         glidein_web_attrs={},
         glidein_config_limits={},
     ):
-        """Class Constructor
+        """Initialize an EntryClassad object.
 
         glidein_attrs is a dictionary of values to publish like {"Arch":"INTEL","MinDisk":200000}
         similar for glidein_submits, glidein_params, glidein_monitor_monitors and the other dictionaries.
 
         Args:
-            factory_name (str): Name of the factory
-            glidein_name (str): Name of the resource in the glideclient classad
-            entry_name (str): Name of the resource in the glidefactory classad
-            trust_domain (str): trust domain for this Entry
-            auth_method (str): the authentication methods this entry supports in glidein submission, i.e. grid_proxy, scitoken
-            supported_signtypes (str): supported sign types, i.e. sha1 (comma separated list)
-            pub_key_obj (_type_, optional): GlideinKey - for the frontend to use in encryption. Defaults to None.
-            glidein_submit (dict, optional): Submit attributes in the configuration. Defaults to {}.
-            glidein_attrs (dict, optional): glidein attrs to be published, not be overwritten by Frontends. Defaults to {}.
-            glidein_params (dict, optional): params to be published, can be overwritten by Frontends. Defaults to {}.
-            glidein_monitors (dict, optional): monitor attrs to be published. Defaults to {}.
-            glidein_stats (dict, optional): aggregated Entry(entry) and Factory(total) statistics to be published. Defaults to {}.
-            glidein_web_attrs (dict, optional): Web attributes to be published. Defaults to {}.
-            glidein_config_limits (dict, optional): Factory configuration limits to be published. Defaults to {}.
+            factory_name (str): Name of the Factory.
+            glidein_name (str): Name of the resource in the glideclient classad.
+            entry_name (str): Name of the resource in the glidefactory classad.
+            trust_domain (str): Trust domain for this entry.
+            auth_method (str): Authentication methods supported in glidein submission (e.g. grid_proxy, scitoken).
+            supported_signtypes (list): Supported sign types (e.g. ['sha1']).
+            pub_key_obj (glideFactoryConfig.GlideinKey, optional): Public key object for encryption. Defaults to None.
+            glidein_submit (dict, optional): Dictionary of submit attributes in the configuration. Defaults to {}.
+            glidein_attrs (dict, optional): Dictionary of glidein attributes to publish. These are never overwritten
+                by clients (Frontends). Defaults to {}.
+            glidein_params (dict, optional): Dictionary of parameters to publish. Can be overwritten by clients
+                (Frontends). Defaults to {}.
+            glidein_monitors (dict, optional): Dictionary of monitor attributes to publish. Defaults to {}.
+            glidein_stats (dict, optional): Aggregated Entry(entry) and Factory(total) statistics. Defaults to {}.
+            glidein_web_attrs (dict, optional): Dictionary of web attributes. Defaults to {}.
+            glidein_config_limits (dict, optional): Dictionary of configured limits. Defaults to {}.
         """
         # TODO: rename glidein_ to entry_ (entry_monitors)?
 
@@ -673,24 +680,22 @@ class EntryClassad(classadSupport.Classad):
 
 
 class FactoryGlobalClassad(classadSupport.Classad):
-    """
-    This class describes the glidefactoryglobal classad. Factory advertises the
-    glidefactoryglobal classad to the user pool as an UPDATE_AD_GENERIC type classad
+    """Class representing the glidefactoryglobal ClassAd.
 
-    glidefactory and glidefactoryglobal classads must be of the same type because they may be
-    invalidated together (with a single command)
+    Factory advertises this ClassAd to the user pool as an UPDATE_AD_GENERIC type ClassAd.
+    The glidefactory and glidefactoryglobal ClassAds must be of the same type because they
+    may be invalidated together (with a single command).
     """
 
     def __init__(self, factory_name, glidein_name, supported_signtypes, pub_key_obj):
-        """Class Constructor
+        """Initialize a FactoryGlobalClassad object.
 
-        :param factory_name: Name of the factory
-        :param glidein_name: Name of the resource in the glidefactoryglobal classad?
-        :param supported_signtypes: supported sign types, i.e. sha1
-        :param pub_key_obj: GlideinKey - for the frontend to use in encryption
-        :return:
+        Args:
+            factory_name (str): Name of the Factory.
+            glidein_name (str): Name of the resource in the classad.
+            supported_signtypes (list): List of supported sign types (e.g. ['sha1']).
+            pub_key_obj (glideFactoryConfig.GlideinKey): Public key object (GlideinKey) used for encryption by the client (Frontend).
         """
-
         global factoryConfig, advertiseGlobalCounter
 
         classadSupport.Classad.__init__(
@@ -715,24 +720,17 @@ class FactoryGlobalClassad(classadSupport.Classad):
 def advertiseGlobal(
     factory_name, glidein_name, supported_signtypes, pub_key_obj, stats_dict={}, factory_collector=DEFAULT_VAL
 ):
-    """
-    Creates the glidefactoryglobal classad and advertises.
+    """Create and advertise the glidefactoryglobal ClassAd.
 
-    @type factory_name: string
-    @param factory_name: the name of the factory
-    @type glidein_name: string
-    @param glidein_name: name of the glidein
-    @type supported_signtypes: string
-    @param supported_signtypes: supported sign types, i.e. sha1
-    @type pub_key_obj: GlideinKey
-    @param pub_key_obj: for the frontend to use in encryption
-    @type stats_dict: dict
-    @param stats_dict: completed jobs statistics
-    @type factory_collector: string or None
-    @param factory_collector: the collector to query, special value 'default' will get it from the global config
-
-    @todo add factory downtime?
+    Args:
+        factory_name (str): The name of the Factory.
+        glidein_name (str): The name of the glidein (entry).
+        supported_signtypes (list): Supported sign types (e.g. ['sha1']).
+        pub_key_obj (GlideinKey): Public key object for encryption in the client (Frontend).
+        stats_dict (dict, optional): Completed jobs statistics. Defaults to {}.
+        factory_collector (str or None): The collector to query. Special value 'default' retrieves it from the global configuration.
     """
+    # TODO: Add support for Factory downtime.
 
     tmpnam = classadSupport.generate_classad_filename(prefix="gfi_ad_gfg")
 
@@ -747,8 +745,13 @@ def advertiseGlobal(
 
 
 def deadvertiseGlidein(factory_name, glidein_name, entry_name, factory_collector=DEFAULT_VAL):
-    """
-    Removes the glidefactory classad advertising the entry from the WMS Collector.
+    """Remove from the WMS Collector the glidefactory classad advertising the entry.
+
+    Args:
+        factory_name (str): Name of the factory.
+        glidein_name (str): Name of the glidein.
+        entry_name (str): Name of the entry.
+        factory_collector (str or None): The collector to query.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix="gfi_de_gf")
     # TODO: use tempfile
@@ -766,8 +769,12 @@ def deadvertiseGlidein(factory_name, glidein_name, entry_name, factory_collector
 
 
 def deadvertiseGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
-    """
-    Removes the glidefactoryglobal classad advertising the factory globals from the WMS Collector.
+    """Remove from the WMS Collector the glidefactoryglobal classad advertising the Factory globals.
+
+    Args:
+        factory_name (str): The name of the factory.
+        glidein_name (str): The name of the glidein.
+        factory_collector (str or None): The collector to query.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix="gfi_de_gfg")
     # TODO: use tempfile
@@ -785,8 +792,12 @@ def deadvertiseGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL)
 
 
 def deadvertiseFactory(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
-    """
-    Deadvertise all entry and global classads for this factory.
+    """De-advertise all entry and global classads for the specified Factory.
+
+    Args:
+        factory_name (str): The name of the factory.
+        glidein_name (str): The name of the glidein.
+        factory_collector (str or None): The collector to query.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix="gfi_de_fact")
     # TODO: use tempfile
@@ -818,6 +829,22 @@ def advertiseGlideinClientMonitoring(
     client_monitors={},
     factory_collector=DEFAULT_VAL,
 ):
+    """Advertise glidefactoryclient classads.
+
+    Creates the glidefactoryclient classad file and advertises it.
+
+    Args:
+        factory_name (str): The name of the factory.
+        glidein_name (str): The name of the glidein.
+        entry_name (str): The name of the entry.
+        client_name (str): The client name.
+        client_int_name (str): The internal client name.
+        client_int_req (str): The request name.
+        glidein_attrs (dict, optional): Glidein attributes. Defaults to {}.
+        client_params (dict, optional): Client parameters. Defaults to {}.
+        client_monitors (dict, optional): Client monitors. Defaults to {}.
+        factory_collector (str or None): The collector to query. Defaults to DEFAULT_VAL.
+    """
     tmpnam = classadSupport.generate_classad_filename(prefix="gfi_adm_gfc")
 
     createGlideinClientMonitoringFile(
@@ -836,9 +863,23 @@ def advertiseGlideinClientMonitoring(
 
 
 class MultiAdvertiseGlideinClientMonitoring:
+    """Class for multi-advertising of glidefactoryclient classads.
+
+    This class aggregates multiple client monitoring data items and advertises them in a single multi-classad.
+    """
+
     # glidein_attrs is a dictionary of values to publish
     #  like {"Arch":"INTEL","MinDisk":200000}
     def __init__(self, factory_name, glidein_name, entry_name, glidein_attrs, factory_collector=DEFAULT_VAL):
+        """Initialize a MultiAdvertizeGlideinClientMonitoring instance.
+
+        Args:
+            factory_name (str): The name of the factory.
+            glidein_name (str): The name of the glidein.
+            entry_name (str): The name of the entry.
+            glidein_attrs (dict): Glidein attributes, e.g. `{"Arch":"INTEL","MinDisk":200000}`.
+            factory_collector (str or None): The collector to query. Defaults to DEFAULT_VAL.
+        """
         self.factory_name = factory_name
         self.glidein_name = glidein_name
         self.entry_name = entry_name
@@ -849,6 +890,16 @@ class MultiAdvertiseGlideinClientMonitoring:
     def add(
         self, client_name, client_int_name, client_int_req, client_params={}, client_monitors={}, limits_triggered={}
     ):
+        """Add a client monitoring record.
+
+        Args:
+            client_name (str): The client name.
+            client_int_name (str): The internal client name.
+            client_int_req (str): The request name.
+            client_params (dict, optional): Client parameters. Defaults to {}.
+            client_monitors (dict, optional): Client monitor data. Defaults to {}.
+            limits_triggered (dict, optional): Limits triggered data. Defaults to {}.
+        """
         el = {
             "client_name": client_name,
             "client_int_name": client_int_name,
@@ -862,6 +913,13 @@ class MultiAdvertiseGlideinClientMonitoring:
     # do the actual advertising
     # can throw MultiExeError
     def do_advertise(self):
+        """Advertise the collected client monitoring classads.
+
+        Chooses between multi-advertising or iterative advertising based on configuration.
+
+        Raises:
+            MultiExeError: If one or more advertisement executions fail.
+        """
         if factoryConfig.advertise_use_multi:
             self.do_advertise_multi()
         else:
@@ -870,6 +928,11 @@ class MultiAdvertiseGlideinClientMonitoring:
 
     # INTERNAL
     def do_advertise_iterate(self):
+        """Iteratively advertise each client monitoring record.
+
+        Raises:
+            MultiExeError: If one or more advertisement executions fail.
+        """
         error_arr = []
 
         tmpnam = classadSupport.generate_classad_filename(prefix="gfi_ad_gfc")
@@ -898,6 +961,11 @@ class MultiAdvertiseGlideinClientMonitoring:
             raise MultiExeError(error_arr)
 
     def do_advertise_multi(self):
+        """Advertise client monitoring records as a multi-classad.
+
+        Raises:
+            MultiExeError: If advertisement fails.
+        """
         tmpnam = classadSupport.generate_classad_filename(prefix="gfi_adm_gfc")
 
         ap = False
@@ -930,6 +998,15 @@ class MultiAdvertiseGlideinClientMonitoring:
                 raise MultiExeError(error_arr)
 
     def writeToMultiClassadFile(self, filename=None, append=True):
+        """Write all client monitoring records to a multi-classad file.
+
+        Args:
+            filename (str, optional): The file to write to. If None, a new filename is generated.
+            append (bool, optional): Whether to append to the file. Defaults to True.
+
+        Returns:
+            str: The filename where classads were written.
+        """
         # filename: Name of the file to write classads to
         # append: Whether the classads need to be appended to the file
         #         If we create file append is in a way ignored
@@ -953,7 +1030,7 @@ class MultiAdvertiseGlideinClientMonitoring:
                 el["limits_triggered"],
                 do_append=append,
             )
-            # Append from here on anyways
+            # Append from here on anyway
             append = True
 
         return filename
@@ -980,6 +1057,22 @@ def createGlideinClientMonitoringFile(
     limits_triggered={},
     do_append=False,
 ):
+    """Create a file for glidein client monitoring classad advertisement.
+
+    Args:
+        fname (str): Filename to write classad information.
+        factory_name (str): Name of the factory.
+        glidein_name (str): Name of the glidein.
+        entry_name (str): Name of the entry.
+        client_name (str): Client name.
+        client_int_name (str): Internal client name.
+        client_int_req (str): Request name.
+        glidein_attrs (dict, optional): Glidein attributes to publish. Defaults to {}.
+        client_params (dict, optional): Client parameters to publish. Defaults to {}.
+        client_monitors (dict, optional): Monitoring data to publish. Defaults to {}.
+        limits_triggered (dict, optional): Triggered limits data. Defaults to {}.
+        do_append (bool, optional): If True, append to the file; otherwise, overwrite. Defaults to False.
+    """
     global factoryConfig
     global advertiseGFCCounter
 
@@ -1047,6 +1140,17 @@ def createGlideinClientMonitoringFile(
 # Given a file, advertise
 # Can throw a CondorExe/ExeError exception
 def advertiseGlideinClientMonitoringFromFile(fname, remove_file=True, is_multi=False, factory_collector=DEFAULT_VAL):
+    """Advertise glidefactoryclient classads from a file.
+
+    Args:
+        fname (str): Filename containing the classads.
+        remove_file (bool, optional): If True, remove the file after advertisement. Defaults to True.
+        is_multi (bool, optional): True if advertising a multi-classad; otherwise, False. Defaults to False.
+        factory_collector (str or None): Collector to use; if DEFAULT_VAL, uses global config.
+
+    Raises:
+        CondorExe or ExeError: if advertising fails.
+    """
     if os.path.exists(fname):
         try:
             logSupport.log.info("Advertising glidefactoryclient classads")
@@ -1064,6 +1168,14 @@ def advertiseGlideinClientMonitoringFromFile(fname, remove_file=True, is_multi=F
 
 
 def advertiseGlideinFromFile(fname, remove_file=True, is_multi=False, factory_collector=DEFAULT_VAL):
+    """Advertise glidefactory classads from a file.
+
+    Args:
+        fname (str): Filename containing the classads.
+        remove_file (bool, optional): If True, remove the file after advertisement. Defaults to True.
+        is_multi (bool, optional): True if advertising a multi-classad; otherwise, False. Defaults to False.
+        factory_collector (str or None): Collector to use; if DEFAULT_VAL, uses global config.
+    """
     if os.path.exists(fname):
         try:
             logSupport.log.info("Advertising glidefactory classads")
@@ -1085,7 +1197,14 @@ def advertiseGlideinFromFile(fname, remove_file=True, is_multi=False, factory_co
 
 # remove classads from Collector
 def deadvertiseAllGlideinClientMonitoring(factory_name, glidein_name, entry_name, factory_collector=DEFAULT_VAL):
-    """De-advertise  monitoring classads for the given entry."""
+    """De-advertise monitoring classads for the given entry.
+
+    Args:
+        factory_name (str): The name of the factory.
+        glidein_name (str): The name of the glidein.
+        entry_name (str): The name of the entry.
+        factory_collector (str or None): Collector to use; if DEFAULT_VAL, uses global config.
+    """
     tmpnam = classadSupport.generate_classad_filename(prefix="gfi_de_gfc")
     # TODO: use tempfile
     try:
@@ -1103,7 +1222,13 @@ def deadvertiseAllGlideinClientMonitoring(factory_name, glidein_name, entry_name
 
 
 def deadvertiseFactoryClientMonitoring(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
-    """De-advertise all monitoring classads for this factory."""
+    """De-advertise all monitoring classads for this Factory.
+
+    Args:
+        factory_name (str): The name of the factory.
+        glidein_name (str): The name of the glidein.
+        factory_collector (str or None): Collector to use; if DEFAULT_VAL, uses global config.
+    """
     tmpnam = classadSupport.generate_classad_filename(prefix="gfi_de_gfc")
     # TODO: use tempfile
     try:
@@ -1128,7 +1253,11 @@ def deadvertiseFactoryClientMonitoring(factory_name, glidein_name, factory_colle
 
 
 def _remove_if_there(fname):
-    """Remove the file and ignore errors (e.g. file not there)"""
+    """Remove the specified file, ignoring errors (e.g. file not there).
+
+    Args:
+        fname (str): The filename to remove.
+    """
     try:
         os.remove(fname)
     except OSError:
@@ -1139,6 +1268,17 @@ def _remove_if_there(fname):
 # serialize access to the Collector across all the processes
 # these is a single Collector anyhow
 def exe_condor_advertise(fname, command, is_multi=False, factory_collector=None):
+    """Execute condorAdvertise on the given file.
+
+    Args:
+        fname (str): The filename containing the classad.
+        command (str): The advertisement command.
+        is_multi (bool, optional): True if advertising a multi-classad; otherwise, False. Defaults to False.
+        factory_collector (str or None): The collector to use; if DEFAULT_VAL, uses global config.
+
+    Returns:
+        object: The result of the condorAdvertise command.
+    """
     global factoryConfig
 
     if factory_collector == DEFAULT_VAL:

@@ -3,18 +3,21 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This is the glideinFactoryEntryGroup. Common Tasks like querying collector
-   and advertising the work done by group are done here
+"""glideinFactoryEntryGroup module.
 
-Arguments:
-   $1 = parent_pid (int): The pid for the Factory daemon
-   $2 = sleep_time (int): The number of seconds to sleep between iterations
-   $3 = advertise_rate (int): The rate at which advertising should occur (every $3 loops)
-   $4 = startup_dir (str|Path): The "home" directory for the entry.
-   $5 = entry_names (str): Colon separated list with the names of the entries this process should work on
-   $6 = group_id (str): Group id, normally a number (with the "group_" prefix it forms the group name),
-             It can change between Factory reconfigurations
+This module implements common tasks for an entry group, such as querying the collector
+and advertising the work performed by the group.
+
+Command line arguments:
+    1. parent_pid (int): The PID for the Factory daemon.
+    2. sleep_time (int): The number of seconds to sleep between iterations.
+    3. advertise_rate (int): The rate at which advertising should occur (every advertise_rate loops).
+    4. startup_dir (str|Path): The "home" directory for the entry.
+    5. entry_names (str): Colon-separated list of entry names to process.
+    6. group_id (str): Group ID, normally a number (with the "group_" prefix it forms the group name).
+       It may change between Factory reconfigurations.
 """
+
 
 import os
 import os.path
@@ -32,10 +35,9 @@ from glideinwms.lib.fork import fetch_fork_result_list, ForkManager, print_child
 from glideinwms.lib.pidSupport import register_sighandler, unregister_sighandler
 
 ############################################################
-# Memory foot print of a entry process when forked for check_and_perform_work
+# Memory foot print of an entry process when forked for check_and_perform_work
 # Set a conservative limit of 500 MB (based on USCD 2.6 factory Pss of 115 MB)
 #   plus a safety factor of 2
-
 ENTRY_MEM_REQ_BYTES = 500000000 * 2
 ############################################################
 
@@ -47,22 +49,19 @@ class EntryGroup:
 
 ############################################################
 def check_parent(parent_pid, glideinDescript, my_entries):
+    """Check if the process is orphaned and exit if the parent has died.
+
+    If the Factory daemon (parent process) is not found, de-advertise all entries
+    to clean up and raise a KeyboardInterrupt to exit.
+
+    Args:
+        parent_pid (int): PID for the Factory daemon process.
+        glideinDescript (glideFactoryConfig.GlideinDescript): Object encapsulating glidein.descript in the Factory root directory.
+        my_entries (dict): Dictionary of entry objects keyed by entry name.
+
+    Raises:
+        KeyboardInterrupt: If the Factory daemon cannot be found.
     """
-    Check to make sure that we aren't an orphaned process.  If Factory
-    daemon has died, then clean up after ourselves and kill ourselves off.
-
-    @type parent_pid: int
-    @param parent_pid: pid for the Factory daemon process
-
-    @type glideinDescript: glideFactoryConfig.GlideinDescript
-    @param glideinDescript: Object that encapsulates glidein.descript in the Factory root directory
-
-    @type my_entries: dict
-    @param my_entries: Dictionary of entry objects keyed on entry name
-
-    @raise KeyboardInterrupt: Raised when the Factory daemon cannot be found
-    """
-
     if os.path.exists("/proc/%s" % parent_pid):
         return  # parent still exists, we are fine
 
@@ -91,28 +90,18 @@ def check_parent(parent_pid, glideinDescript, my_entries):
 
 ############################################################
 def find_work(factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries):
+    """Find work for all entries in the group.
+
+    Args:
+        factory_in_downtime (bool): True if the factory is in downtime.
+        glideinDescript (dict): Factory glidein configuration values.
+        frontendDescript (dict): Security mappings for frontend identities, security classes, and usernames.
+        group_name (str): Name of the group.
+        my_entries (dict): Dictionary of entry objects keyed by entry name.
+
+    Returns:
+        dict: Dictionary of work to do, keyed on entry name.
     """
-    Find work for all the entries in the group
-
-    @type factory_in_downtime:  boolean
-    @param factory_in_downtime:  True if factory is in downtime
-
-    @type glideinDescript: dict
-    @param glideinDescript: Factory glidein config values
-
-    @type frontendDescript: dict
-    @param frontendDescript: Security mappings for frontend identities, security classes, and usernames
-
-    @type group_name: string
-    @param group_name: Name of the group
-
-    @type my_entries: dict
-    @param my_entries: Dictionary of entry objects keyed on entry name
-
-    @return: Dictionary of work to do keyed on entry name
-    @rtype: dict
-    """
-
     pub_key_obj = glideinDescript.data["PubKeyObj"]
     old_pub_key_obj = glideinDescript.data["OldPubKeyObj"]
 
@@ -161,6 +150,12 @@ def find_work(factory_in_downtime, glideinDescript, frontendDescript, group_name
 
 
 def log_work_info(work, key=""):
+    """Log work information grouped by entry.
+
+    Args:
+        work (dict): Dictionary of work tasks keyed by entry name.
+        key (str, optional): Key identifier for logging. Defaults to an empty string.
+    """
     if key.strip() != "":
         logSupport.log.info(f"Work tasks grouped by entries using {key} factory key")
     else:
@@ -173,16 +168,14 @@ def log_work_info(work, key=""):
 
 
 def get_work_count(work):
+    """Get the total work count across all entries.
+
+    Args:
+        work (dict): Dictionary of work to do keyed by entry name.
+
+    Returns:
+        int: Total work count.
     """
-    Get total work to do i.e. sum of work to do for every entry
-
-    @type work: dict
-    @param work: Dictionary of work to do keyed on entry name
-
-    @rtype: int
-    @return: Total work to do.
-    """
-
     count = 0
     for entry in work:
         count += len(work[entry])
@@ -190,40 +183,44 @@ def get_work_count(work):
 
 
 def forked_check_and_perform_work(factory_in_downtime, entry, work):
-    """
-    Do the work assigned to an entry (glidein requests)
-    @param factory_in_downtime: flag, True if the Factory is in downtime
-    @param entry: entry object (glideFactoryEntry.Entry)
-    @param work: work requests for the entry
-    @return: dictionary with entry state + work_done
+    """Perform work for an entry (glidein requests) in a forked process.
+
+    Args:
+        factory_in_downtime (bool): True if the factory is in downtime.
+        entry (glideFactoryEntry.Entry): Entry object.
+        work (dict): Work requests for the entry.
+
+    Returns:
+        dict: Dictionary with updated entry state and work_done.
     """
     work_done = glideFactoryEntry.check_and_perform_work(factory_in_downtime, entry, work)
 
     # entry object now has updated info in the child process
     # This info is required for monitoring and advertising
     # Compile the return info from the updated entry object
-    # Can't dumps the entry object directly, so need to extract
-    # the info required.
+    # Can't dump the entry object directly, so need to extract
+    # the info required. Making the entries pickle-friendly
     return_dict = compile_pickle_data(entry, work_done)
     return return_dict
 
 
 def forked_update_entries_stats(factory_in_downtime, entries_list):
-    """Update statistics for entries that have no work to do
+    """Update statistics for entries with no work.
 
-    :param factory_in_downtime:
-    :param entries_list:
-    :return:
+    Args:
+        factory_in_downtime (bool): True if the factory is in downtime.
+        entries_list (list): List of entry objects.
+
+    Returns:
+        dict: Dictionary of updated entries' statistics.
     """
     entries_updated = glideFactoryEntry.update_entries_stats(factory_in_downtime, entries_list)
 
     # entry objects now have updated info in the child process
     # This info is required for monitoring and advertising
     # Compile the return info from the updated entry object
-    # Can't dumps the entry object directly, so need to extract
-    # the info required.
-    # Making the entries pickle-friendly
-
+    # Can't dump the entry object directly, so need to extract
+    # the info required. Making the entries pickle-friendly
     return_dict = {"entries": [(e.name, e.getState()) for e in entries_updated]}
     # should set also e['work_done'] = 0 ?
     return return_dict
@@ -234,20 +231,21 @@ def forked_update_entries_stats(factory_in_downtime, entries_list):
 
 
 def find_and_perform_work(do_advertise, factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries):
-    """For all entries in this group, find work requests from the WMS collector,
-    validate credentials, and requests Glideins.
-    If an entry is in downtime, requested Glideins is zero.
+    """Find and perform work for all entries in the group.
+
+    For each entry, this function finds work requests from the WMS collector, validates credentials,
+    and submits glideins. If an entry is in downtime, no glideins are submitted for that entry.
 
     Args:
-        do_advertise (bool): Advertise (publish the gfc ClassAd) event if no work is performed
-        factory_in_downtime (bool): True if factory is in downtime
-        glideinDescript (dict): Factory glidein config values
-        frontendDescript (dict): Security mappings for frontend identities, security classes, and usernames
-        group_name (str): Name of the group
-        my_entries (dict): Dictionary of entry objects (glideFactoryEntry.Entry) keyed on entry name
+        do_advertise (bool): True to advertise (publish the gfc ClassAd) even if no work is performed.
+        factory_in_downtime (bool): True if the Factory is in downtime.
+        glideinDescript (dict): Factory glidein configuration values.
+        frontendDescript (dict): Security mappings for Frontend identities, security classes, and usernames.
+        group_name (str): Name of the group.
+        my_entries (dict): Dictionary of entry objects (`glideFactoryEntry.Entry`) keyed by entry name.
 
     Returns:
-        dict: Dictionary of work to do keyed using entry name
+        dict: Dictionary of work done, keyed by entry name.
     """
     # Work done by group keyed by entry name. This will be returned back
     groupwork_done = {}
@@ -377,18 +375,18 @@ def find_and_perform_work(do_advertise, factory_in_downtime, glideinDescript, fr
 
 
 def iterate_one(do_advertise, factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries):
-    """One iteration of the entry group
+    """Perform one iteration of the entry group.
 
     Args:
-        do_advertise (bool): True if glidefactory classads should be advertised
-        factory_in_downtime (bool): True if factory is in downtime
-        glideinDescript (dict): Factory glidein config values
-        frontendDescript (dict): Security mappings for frontend identities, security classes, and usernames
-        group_name (str): Name of the group
-        my_entries (dict): Dictionary of entry objects (glideFactoryEntry.Entry) keyed on entry name
+        do_advertise (bool): True if glidefactory ClassAds should be advertised.
+        factory_in_downtime (bool): True if the Factory is in downtime.
+        glideinDescript (dict): Factory glidein configuration values.
+        frontendDescript (dict): Security mappings for frontend identities, security classes, and usernames.
+        group_name (str): Name of the group.
+        my_entries (dict): Dictionary of entry objects (glideFactoryEntry.Entry) keyed by entry name.
 
     Returns:
-        int: Units of work performed (0 if no Glidein was submitted)
+        int: Units of work performed (0 if no Glidein was submitted).
     """
     groupwork_done = {}
     done_something = 0
@@ -445,17 +443,19 @@ def iterate_one(do_advertise, factory_in_downtime, glideinDescript, frontendDesc
 
 ############################################################
 def iterate(parent_pid, sleep_time, advertise_rate, glideinDescript, frontendDescript, group_name, my_entries):
-    """Iterate over set of tasks until it is time to quit or die.
-    The main "worker" function for the Factory Entry Group.
+    """Main iteration loop for the Factory Entry Group.
+
+    Continues iterating over sets of tasks until a termination condition is met, checking for parent existence,
+    performing work, updating statistics, and advertising ClassAds.
 
     Args:
-        parent_pid (int): The pid for the Factory daemon
-        sleep_time (int): The number of seconds to sleep between iterations
-        advertise_rate (int): The rate at which advertising should occur
-        glideinDescript (glideFactoryConfig.GlideinDescript): glidein.descript object in the Factory root dir
-        frontendDescript (glideFactoryConfig.FrontendDescript): frontend.descript object in the Factory root dir
-        group_name (str): Name of the group
-        my_entries (dict): Dictionary of entry objects keyed on entry name
+        parent_pid (int): PID for the Factory daemon.
+        sleep_time (int): Seconds to sleep between iterations.
+        advertise_rate (int): Rate at which advertising should occur.
+        glideinDescript (glideFactoryConfig.GlideinDescript): glidein.descript object from the Factory root directory.
+        frontendDescript (glideFactoryConfig.FrontendDescript): frontend.descript object from the Factory root directory.
+        group_name (str): Name of the group.
+        my_entries (dict): Dictionary of entry objects keyed by entry name.
     """
     is_first = True  # In first iteration
     count = 0
@@ -488,7 +488,7 @@ def iterate(parent_pid, sleep_time, advertise_rate, glideinDescript, frontendDes
 
         # Check if the factory is in downtime. Group is in downtime only if the
         # factory is in downtime. Entry specific downtime is handled in entry
-        factory_in_downtime = factory_downtimes.checkDowntime(entry="factory")
+        factory_in_downtime = factory_downtimes.check_downtime(entry="factory")
 
         # Record the iteration start time
         iteration_stime = time.time()
@@ -600,22 +600,20 @@ def iterate(parent_pid, sleep_time, advertise_rate, glideinDescript, frontendDes
 
 
 def main(parent_pid, sleep_time, advertise_rate, startup_dir, entry_names, group_id):
-    """GlideinFactoryEntryGroup main function
+    """Main function for GlideinFactoryEntryGroup.
 
-    Setup logging, monitoring, and configuration information. Starts the Entry
-    group main loop and handles cleanup at shutdown.
+    Sets up logging, monitoring, and configuration; starts the entry group loop;
+    and handles cleanup on shutdown.
 
     Args:
-        parent_pid (int): The pid for the Factory daemon
-        sleep_time (int): The number of seconds to sleep between iterations
-        advertise_rate (int): The rate at which advertising should occur
+        parent_pid (int): The PID for the Factory daemon.
+        sleep_time (int): Seconds to sleep between iterations.
+        advertise_rate (int): Rate at which advertising should occur.
         startup_dir (str|Path): The "home" directory for the entry.
-        entry_names (str): Colon separated list with the names of the entries this process should work on
-        group_id (str): Group id, normally a number (with the "group_" prefix forms the group name),
-            It can change between Factory reconfigurations
-
+        entry_names (str): Colon-separated list of entry names to process.
+        group_id (str): Group ID (normally a number, with the "group_" prefix it forms the group name).
+            It can change between Factory reconfigurations.
     """
-
     # Assume name to be group_[0,1,2] etc. Only required to create log_dir
     # where tasks common to the group will be stored. There is no other
     # significance to the group_name and number of entries supported by a group
@@ -688,14 +686,14 @@ def main(parent_pid, sleep_time, advertise_rate, startup_dir, entry_names, group
 
 
 def compile_pickle_data(entry, work_done):
-    """Extract the state of the entry after doing work
+    """Compile pickle-friendly state data for an entry after doing work.
 
     Args:
-        entry (Entry): Entry object
-        work_done (int): Work done info
+        entry (Entry): The entry object.
+        work_done (int): Work done information.
 
     Returns:
-        dict: pickle-friendly version of the Entry (state of the Entry)
+        dict: A dictionary representing the state of the entry that is pickle-friendly, including work_done.
     """
     return_dict = entry.getState()
     return_dict["work_done"] = work_done

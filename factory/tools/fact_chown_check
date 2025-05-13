@@ -3,10 +3,15 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-The script check if the factory setup is 3.5 ready. This means the client and proxies
-directories are owned user running this process, and jobs owner is this user as well.
-It further checks that there are no GT2 entries enabled in the configuration.
+# TODO: This can be removed, there are no more Factories older than v3.5
+"""Check if the Factory setup is 3.5 ready.
+
+This script verifies that the client and proxy directories in the Factory
+configuration are owned by the current user, that the jobs are running with the
+same owner, and that no Globus GT2 entries are enabled in the configuration.
+
+This is needed for the transition from multi-users Factory to a Factory running
+under a single user.
 """
 
 import os
@@ -22,13 +27,28 @@ VERBOSE = False
 
 
 def log(*args):
-    """print success messages only when verbose, no --quiet option"""
+    """Print success messages when verbose mode is enabled (no --quiet option).
+
+    Args:
+        *args: Variable length argument list to be printed.
+    """
     if VERBOSE:
         print(*args)
 
 
 def main():
-    """ The main function
+    """Check if the factory configuration is 3.5 ready.
+
+    Loads the configuration file, verifies that the client and proxy directories
+    are owned by the current user, checks that all jobs are owned by the current user,
+    and ensures that no GT2 entries are enabled.
+
+    Returns:
+        int: 0 if all checks pass;
+             1 if a directory ownership mismatch is found;
+             2 if jobs are owned by multiple users;
+             3 if jobs are not owned by the current user;
+             4 if any GT2 entries are enabled.
     """
     conf_file = '/etc/gwms-factory/glideinWMS.xml'
     log('Loading configuration file %s' % conf_file)

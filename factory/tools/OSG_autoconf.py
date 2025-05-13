@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-""" Allows to retrieve information from the OSG collector and generate the factory xml file
+"""Allows to retrieve information from the OSG collector and generate the factory XML file.
 """
 
 
@@ -35,7 +35,11 @@ from glideinwms.lib.util import is_true
 
 
 def parse_opts():
-    """Load few parameters from the configuration file"""
+    """Load a few parameters from the configuration file.
+
+    Returns:
+        argparse.Namespace: Parsed command line arguments.
+    """
     parser = argparse.ArgumentParser(prog="OSG_autoconf")
 
     parser.add_argument("config", nargs=1, help="The configuration file")
@@ -58,13 +62,14 @@ def parse_opts():
 
 
 def get_vos(allowed_vos, GPU_entry=False):
-    """This function converts the list of VO from the collector to the frontend ones
+    """Convert the list of VOs from the collector to the Frontend ones.
 
     Args:
-        allowed_vos (list): The list of vos in the OSG collector
+        allowed_vos (list): The list of VOs as returned by the OSG collector.
+        GPU_entry (bool, optional): Flag to use GPU VO map. Defaults to False.
 
     Returns:
-        set: The set of frontend VOs to add to the configuration GLIDEIN_SupportedVOs
+        set: A set of Frontend VOs to add to the configuration GLIDEIN_SupportedVOs.
     """
     vos = set()
     for vorg in allowed_vos:
@@ -78,14 +83,18 @@ def get_vos(allowed_vos, GPU_entry=False):
 
 
 def get_bestfit_pilot(celem, resource, site):
-    """Site admins did not specify a pilot section. Let's go through the resource catalog sections
-    and find the pilot parameters that best fit the CE.
+    """Find the best-fitting pilot parameters from the resource catalog sections.
+
+    Site admins did not specify a pilot section. This function goes through the resource catalog
+    sections and finds the pilot parameters that best fit the CE.
 
     Args:
-        celem (list): List of resource catalog dictionaries as returned by the OSG collector
+        celem (list): List of resource catalog dictionaries as returned by the OSG collector.
+        resource (str): The resource name.
+        site (str): The site name.
 
     Returns:
-        dict: A dictionary to be used to generate the xml for this CE
+        dict: A dictionary to be used to generate the XML for this CE.
     """
     vos = set()
     memory = None
@@ -119,11 +128,18 @@ def get_bestfit_pilot(celem, resource, site):
 
 
 def get_pilot(resource, site, pilot_entry):
-    """Site admins specified a pilot entry section in the OSG configure file. Prepare
-    the xml pilot dictionary based on the OSG collector information
+    """Prepare the XML pilot dictionary based on OSG collector information.
+
+    Site admins specified a pilot entry section in the OSG configuration file. This function
+    prepares the XML pilot dictionary using that information.
+
+    Args:
+        resource (str): The resource name.
+        site (str): The site name.
+        pilot_entry (dict): Pilot entry information from the OSG configuration file.
 
     Returns:
-        dict: A dictionary to be used to generate the xml for this pilot entry
+        dict: A dictionary to be used to generate the XML for this pilot entry.
     """
     vos = get_vos(pilot_entry.get("AllowedVOs", set()), "GPUs" in pilot_entry)
     cpus = pilot_entry.get("CPUs", None)
@@ -155,7 +171,19 @@ def get_pilot(resource, site, pilot_entry):
 
 
 def get_entry_dictionary(resource, site, vos, cpus, walltime, memory):
-    """Utility function that converts some variable into an xml pilot dictionary"""
+    """Convert parameters into an XML pilot dictionary.
+
+    Args:
+        resource (str): The resource name.
+        site (str): The site name.
+        vos (set): Set of supported VOs.
+        cpus (int or None): Number of CPUs.
+        walltime (int or None): Maximum wall time (in minutes).
+        memory (int or None): Memory in MB.
+
+    Returns:
+        dict: An XML pilot dictionary with attributes and submit attributes.
+    """
     # Assigning this to an entry dict variable to shorten the line
     edict = {}  # Entry dict
     edict["gridtype"] = "condor"
@@ -180,19 +208,19 @@ def get_entry_dictionary(resource, site, vos, cpus, walltime, memory):
 
 
 def get_information(host):
-    """Query the OSG collector and get information about the known HTCondor-CE.
+    """Query the OSG collector for information on known HTCondor-CEs.
 
-    The OSG collector is queried with the -sched option to get information about
-    all the HTCondorCEs. The relevant OSG resource information is then organized
-    in a dict.
+    The OSG collector is queried with the -sched option to obtain information about all HTCondor-CEs.
+    Relevant resource information is organized into a dictionary.
 
     Args:
-        host (str): The hostname where the OSG collector is running
+        host (str): The hostname of the OSG collector.
 
     Returns:
-        dict: A resource dictionary whose keys are the resources ('cedar', 'UCHICAGO', 'NMSU')
-            and its values are the needed information to create the entry. For example:
-
+        dict: A resource dictionary with keys as resource names (e.g., 'cedar', 'UCHICAGO', 'NMSU')
+              and values containing the necessary information to create the entry.
+              For example:
+        ```
             {'hosted-ce32.grid.uchicago.edu':
                      {'DEFAULT_ENTRY': {'attrs': {'GLIDEIN_CPUS': {'value': 16L},
                                                   'GLIDEIN_MaxMemMBs': {'value': 163840L},
@@ -204,6 +232,7 @@ def get_information(host):
                                         'submit_attrs': {'+maxMemory': 163840L,
                                                          '+maxWallTime': 2880L,
                                                          '+xcount': 16L}}}}
+        ```
     """
     collector = htcondor.Collector(host)
     ces = collector.query(
@@ -213,7 +242,14 @@ def get_information(host):
 
 
 def get_information_internal(ces):
-    """Query the OSG collector and get information about the known HTCondor-CE (internal function)"""
+    """Internal function to process collector ads and retrieve HTCondor-CE information.
+
+    Args:
+        ces (list): List of collector ads about HTCondor-CEs from the OSG collector.
+
+    Returns:
+        dict: A dictionary of resource information organized by resource and gatekeeper.
+    """
     result = {}
     entry = "DEFAULT_ENTRY"
     for celem in ces:
@@ -248,13 +284,13 @@ def get_information_internal(ces):
 
 
 def get_entries_configuration(data):
-    """Given the dictionary of resources, returns the generated factory xml file
+    """Generate the factory XML configuration from a resource dictionary.
 
     Args:
-        data (dict): A dictionary similar to the one returned by ``get_information``
+        data (dict): A dictionary similar to that returned by `get_information`.
 
     Returns:
-        str: The factory xml file as a string
+        str: The Factory XML configuration as a string.
     """
     entries_configuration = ""
     for _, site_information in sorted(data.items()):
@@ -307,13 +343,13 @@ def get_entries_configuration(data):
 
 
 def sanitize(whitelist_info):
-    """Sanitize the yaml file edited by factory operators.
+    """Sanitize the YAML file edited by Factory operators.
 
-    In particular, make sure that entry information is a dictionary and not None.
+    Ensures that entry information is a dictionary and not None.
     The function will be expanded in the future with more checks.
 
     Args:
-        whitelist_info (dict): the data coming from the whitelist file edited by ops
+        whitelist_info (dict): Data from the whitelist file edited by operators.
     """
     for site, site_information in whitelist_info.items():
         for ce_hostname, ce_information in site_information.items():
@@ -326,14 +362,13 @@ def sanitize(whitelist_info):
 
 
 def manage_common_entry_fields(whitelist_info):
-    """Manage the common entry fields
+    """Manage common entry fields.
 
-    Iterates over the yaml file that factory operators manually edit, and
-    expand the common entry fields found at the site level. Those fields are
-    copied to all the entries of the site
+    Iterates over the whitelist YAML file edited by Factory operators and expands the common entry fields
+    found at the site level, copying them to all entries of the site.
 
     Args:
-        whitelist_info (dict): the data coming from the whitelist file edited by ops
+        whitelist_info (dict): Data from the whitelist file edited by operators.
     """
     for site, site_information in whitelist_info.items():
         if "common_entry_fields" in site_information:
@@ -347,17 +382,15 @@ def manage_common_entry_fields(whitelist_info):
 
 
 def manage_append_values(whitelist_info, osg_info):
-    """Manage attributes that have ``append_value`` instead of ``value``
+    """Manage attributes that use `append_value` instead of `value`.
 
-    Iterates over the yaml file that factory operators manually edit, and if an
-    attribute with an ``append_value`` is found then update the corresponding
-    ``value`` attribute by appending the values
+    Iterate over the YAML whitelist file that factory operators manually edit, and if an
+    attribute with an `append_value` is found, update the corresponding `value` by
+    appending the values from the OSG collector data.
 
     Args:
-        whitelist_info (dict): the data coming from the whitelist file edited by ops
-
-        osg_info (dict): the data coming from the OSG collector as returned by ``get_information``
-
+        whitelist_info (dict): Data from the whitelist file edited by operators.
+        osg_info (dict): Data from the OSG collector YAML file as returned by `get_information`.
     """
     for site, site_information in whitelist_info.items():
         for ce_hostname, ce_information in site_information.items():
@@ -372,18 +405,25 @@ def manage_append_values(whitelist_info, osg_info):
 
 
 def merge_yaml(config, white_list, args):
-    """Merges different yaml file and return the corresponding resource dictionary
+    """Merge different YAML files and return the corresponding resource dictionary.
 
-    Three different yam files are merged. First we read the factory white list/override file that
-    contains the list of entries operators want to generate, with the parameters they want to
-    override.
-    Then the yaml generated from the OSG collector and the default yaml file are read.
-    For each entry all the operator information are "updated" with the information coming from
-    the collector first, and from the default file next.
+    Three YAML files are merged:
+      1. The factory whitelist/override file containing operator-specified entries, with the parameters
+         they want to override.
+      2. The YAML generated from the OSG collector.
+      3. The default YAML file.
+
+    For each entry, operator provided information are "updated" with collector information first,
+    then with default file information.
+
+    Args:
+        config (dict): The configuration dictionary.
+        white_list (str): Path to the whitelist YAML file.
+        args (argparse.Namespace): Parsed command line arguments.
 
     Returns:
-        dict: a dict similar to the one returned by ``get_information``, but with all the defaults
-            and the operators overrides in place (only whitelisted entries are returned).
+        dict: A dictionary similar to that returned by `get_information`, with defaults and overrides applied.
+              Only whitelisted entries are returned.
     """
     out = get_yaml_file_info(white_list)
     sanitize(out)
@@ -485,13 +525,14 @@ def merge_yaml(config, white_list, args):
 
 
 def set_gpu_entry(entry_information, want_whole_node):
-    """Set gpu entry
+    """Set GPU-specific entry attributes.
 
     Args:
-        entry_information (dict): a dictionary of entry information from white list file
+        entry_information (dict): A dictionary of entry information from the whitelist file.
+        want_whole_node (bool): Flag indicating whether whole node settings are desired.
 
     Returns:
-        dict: a dictionary of entry information from white list file with gpu settings
+        dict: Updated entry information dictionary with GPU settings.
     """
     if "attrs" not in entry_information:
         entry_information["attrs"] = {}
@@ -506,13 +547,13 @@ def set_gpu_entry(entry_information, want_whole_node):
 
 
 def set_whole_node_entry(entry_information):
-    """Set whole node entry
+    """Configure an entry for whole node usage.
 
     Args:
-        entry_information (dict): a dictionary of entry information from white list file
+        entry_information (dict): A dictionary of entry information from the whitelist file.
 
     Returns:
-        dict: a dictionary of entry information from white list file with whole node settings
+        dict: Updated entry information dictionary with whole node settings.
     """
     if "submit_attrs" in entry_information:
         if "+xcount" not in entry_information["submit_attrs"]:
@@ -535,15 +576,15 @@ def set_whole_node_entry(entry_information):
 
 
 def update_submit_attrs(entry_information, attr, submit_attr):
-    """Update submit attribute according to produced attribute if submit attribute is not defined
+    """Update the submit attribute based on a corresponding attribute if not already defined.
 
     Args:
-        entry_information (dict): a dictionary of entry information from white list file
-        attr (str): attribute name
-        submit_attr (str): submit attribute name
+        entry_information (dict): A dictionary of entry information from the whitelist file.
+        attr (str): The attribute name.
+        submit_attr (str): The submit attribute name.
 
     Returns:
-        dict: a dictionary of entry information from white list file with possible updated submit attribute
+        dict: Updated entry information dictionary with the possibly updated submit attribute.
     """
     if attr in entry_information["attrs"] and entry_information["attrs"][attr]:
         if "submit_attrs" not in entry_information:
@@ -557,8 +598,14 @@ def update_submit_attrs(entry_information, attr, submit_attr):
 
 
 def create_missing_file(config, osg_collector_data):
-    """Create the missing yaml file."""
+    """Create the missing YAML file based on configuration and OSG collector data.
 
+    Generates a YAML file containing information about missing sites and CEs.
+
+    Args:
+        config (dict): The configuration dictionary.
+        osg_collector_data (dict): Data obtained from the OSG collector.
+    """
     print("Generating the missing file")
 
     new_missing = {}
@@ -583,7 +630,17 @@ def create_missing_file(config, osg_collector_data):
 
 
 def create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data):
-    """Create the missing yaml file (internal function)."""
+    """Internal function to create the missing YAML file.
+
+    Args:
+        missing_info (dict): Existing missing information.
+        osg_info (dict): Data from the OSG collector YAML file.
+        whitelist_info (dict): Data from the whitelist file edited by operators.
+        osg_collector_data (dict): Data from the OSG collector.
+
+    Returns:
+        dict: Updated missing information dictionary.
+    """
     new_missing = {}
     for site, site_information in whitelist_info.items():
         if site_information is None:
@@ -633,7 +690,14 @@ def create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_col
 
 
 def main(args):
-    """The main"""
+    """The main function.
+
+    Reads configuration and OSG collector data to generate factory XML configuration files,
+    merging information from multiple YAML sources and applying operator overrides.
+
+    Args:
+        args (argparse.Namespace): Parsed command line arguments.
+    """
     config = get_yaml_file_info(args.config[0])
     xmloutdir = config.get("XML_OUTDIR", None)
     try:
