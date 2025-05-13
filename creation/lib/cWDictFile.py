@@ -16,7 +16,7 @@ import re
 import shutil
 import socket
 
-from glideinwms.lib import hashCrypto
+from glideinwms.lib import hash_crypto
 from glideinwms.lib.defaults import BINARY_ENCODING
 from glideinwms.lib.util import chmod
 
@@ -709,7 +709,7 @@ class SHA1DictFile(DictFile):
         Returns:
 
         """
-        sha1 = hashCrypto.extract_sha1(filepath)
+        sha1 = hash_crypto.extract_sha1(filepath)
         if key is None:
             key = os.path.basename(filepath)
         self.add(key, sha1, allow_overwrite)
@@ -782,7 +782,7 @@ class SummarySHA1DictFile(DictFile):
         Returns:
 
         """
-        sha1 = hashCrypto.extract_sha1(filepath)
+        sha1 = hash_crypto.extract_sha1(filepath)
         if key is None:
             key = os.path.basename(filepath)
         if fname2 is None:

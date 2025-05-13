@@ -27,7 +27,14 @@ from glideinwms.lib import (  # in codice commentato:, x509Support
     logSupport,
     timeConversion,
 )
-from glideinwms.lib.credentials import cred_path, CredentialPair, CredentialPurpose, CredentialType, ParameterName
+from glideinwms.lib.credentials import (
+    cred_path,
+    CredentialPair,
+    CredentialPairType,
+    CredentialPurpose,
+    CredentialType,
+    ParameterName,
+)
 from glideinwms.lib.defaults import BINARY_ENCODING
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
@@ -2237,7 +2244,7 @@ def get_submit_environment_v3_11(
             except KeyError:
                 pass
             private_key = submit_credentials.security_credentials.find(
-                cred_type=CredentialType.RSA_KEY, purpose=CredentialPurpose.REQUEST
+                cred_type=CredentialType.RSA_PRIVATE_KEY, purpose=CredentialPurpose.REQUEST
             )
             if private_key:
                 exe_env.append("GRID_RESOURCE_OPTIONS=--rgahp-key %s --rgahp-nopass" % cred_path(private_key[-1]))
@@ -2280,7 +2287,7 @@ def get_submit_environment_v3_11(
                 exe_env.append("INSTANCE_TYPE=%s" % submit_credentials.parameters[ParameterName.VM_TYPE])
                 if grid_type == "ec2":
                     key_pair = submit_credentials.security_credentials.find(
-                        cred_type=CredentialType.RSA_KEY, purpose=CredentialPurpose.REQUEST
+                        cred_type=CredentialPairType.KEY_PAIR, purpose=CredentialPurpose.REQUEST
                     )
                     if key_pair:
                         exe_env.append("ACCESS_KEY_FILE=%s" % cred_path(key_pair[-1]))

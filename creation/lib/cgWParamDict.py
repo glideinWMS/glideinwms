@@ -10,7 +10,8 @@ import os
 import os.path
 import shutil
 
-from glideinwms.lib import pubCrypto, subprocessSupport
+from glideinwms.lib import subprocessSupport
+from glideinwms.lib.credentials import RSAPrivateKey
 from glideinwms.lib.util import str2bool
 
 from . import cgWConsts, cgWCreate, cgWDictFile, cWConsts, cWDictFile, cWExpand, factoryXmlConfig
@@ -524,15 +525,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
             if not os.path.isfile(rsa_key_fname):
                 # create the key only once
-
-                # touch the file with correct flags first
-                # I have no way to do it in  RSAKey class
-                fd = os.open(rsa_key_fname, os.O_CREAT, 0o600)
-                os.close(fd)
-
-                key_obj = pubCrypto.RSAKey()
+                key_obj = RSAPrivateKey()
                 key_obj.new(int(sec_el["key_length"]))
-                key_obj.save(rsa_key_fname)
+                key_obj.save_to_file(rsa_key_fname, permissions=0o600)
         else:
             raise RuntimeError("Invalid value for security.pub_key(%s), must be either None or RSA" % sec_el["pub_key"])
 

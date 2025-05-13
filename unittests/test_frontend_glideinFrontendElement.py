@@ -25,7 +25,7 @@ from glideinwms.frontend.glideinFrontendElement import (
     log_and_sum_factory_line,
     log_factory_header,
 )
-from glideinwms.lib.credentials import X509Cert
+from glideinwms.lib.credentials import RSAPublicKey, X509Cert
 from glideinwms.unittests.unittest_utils import FakeLogger
 
 LOG_DATA = []
@@ -258,7 +258,7 @@ class TestGlideinFrontendElement(unittest.TestCase):
         self.gfe.globals_dict = {"my_global_id": globals_el}
         self.gfe.populate_pubkey()
         key_obj = self.gfe.globals_dict["my_global_id"]["attrs"]["PubKeyObj"]
-        self.assertTrue(isinstance(key_obj, glideinwms.lib.pubCrypto.PubRSAKey))
+        self.assertTrue(isinstance(key_obj, RSAPublicKey))
 
     def test_populate_status_dict_types(self):
         self.gfe.status_dict = {}

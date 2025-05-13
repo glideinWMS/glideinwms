@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""hashCrypto - This module defines classes to perform hash based cryptography.
+"""hash_crypto - This module defines classes to perform hash based cryptography.
 
-It uses M2Crypto: https://github.com/mcepl/M2Crypto
-a wrapper around OpenSSL: https://www.openssl.org/docs/man1.1.1/man3/
+It uses cryptography: https://cryptography.io/en/latest/
 
 NOTE: get_hash() and extract_hash() both return Unicode utf-8 (defaults.BINARY_ENCODING_CRYPTO) strings and
 get_hash() accepts byte-like objects or utf-8 encoded Unicode strings.
@@ -15,7 +14,8 @@ Other class methods and functions use bytes for input and output.
 
 import binascii
 
-import M2Crypto.EVP
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
 
 from . import defaults
 
@@ -36,7 +36,6 @@ class Hash:
         'sha1'
         'sha224'
         'sha256'
-        'ripemd160'
         'md5'
     """
 
@@ -47,6 +46,7 @@ class Hash:
             hash_algo (str): The hash algorithm to use.
         """
         self.hash_algo = hash_algo
+        self._hash_constructor = self._get_hash_constructor(hash_algo)
 
     def redefine(self, hash_algo):
         """Redefines the hash algorithm.
@@ -55,6 +55,19 @@ class Hash:
             hash_algo (str): The new hash algorithm to use.
         """
         self.hash_algo = hash_algo
+        self._hash_constructor = self._get_hash_constructor(hash_algo)
+
+    def _get_hash_constructor(self, hash_algo):
+        """Maps hash algorithm names to cryptography hash constructors."""
+        hash_map = {
+            "sha1": hashes.SHA1,
+            "sha224": hashes.SHA224,
+            "sha256": hashes.SHA256,
+            "md5": hashes.MD5,
+        }
+        if hash_algo not in hash_map:
+            raise ValueError(f"Unsupported hash algorithm: {hash_algo}")
+        return hash_map[hash_algo]
 
     def compute(self, data):
         """Compute hash inline.
@@ -63,11 +76,11 @@ class Hash:
             data (bytes): Data to calculate the hash of.
 
         Returns:
-            bytes: Digest value as bytes string (OpenSSL final and digest together).
+            bytes: Digest value as bytes string.
         """
-        h = M2Crypto.EVP.MessageDigest(self.hash_algo)
-        h.update(data)
-        return h.final()
+        digest = hashes.Hash(self._hash_constructor(), backend=default_backend())
+        digest.update(data)
+        return digest.finalize()
 
     def compute_base64(self, data):
         """Computes hash inline and returns base64 encoded result.
@@ -99,17 +112,16 @@ class Hash:
             block_size (int): Block size for reading the file.
 
         Returns:
-            bytes: Digest value as bytes string (OpenSSL final and digest together).
+            bytes: Digest value as bytes string.
         """
-        h = M2Crypto.EVP.MessageDigest(self.hash_algo)
+        digest = hashes.Hash(self._hash_constructor(), backend=default_backend())
         with open(fname, "rb") as fd:
             while True:
                 data = fd.read(block_size)
                 if data == b"":
                     break  # No more data, stop reading
-                # Should check update return? -1 for Python error, 1 for success, 0 for OpenSSL failure
-                h.update(data)
-        return h.final()
+                digest.update(data)
+        return digest.finalize()
 
     def extract_base64(self, fname, block_size=1048576):
         """Extracts hash from a file and returns base64 encoded result.

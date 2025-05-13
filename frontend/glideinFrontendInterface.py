@@ -11,7 +11,6 @@ import os
 import pickle
 import time
 
-from glideinwms.lib import symCrypto  # pubCrypto was removed because unused
 from glideinwms.lib import (
     classadSupport,
     condorExe,
@@ -22,7 +21,7 @@ from glideinwms.lib import (
     logSupport,
     x509Support,
 )
-from glideinwms.lib.credentials import AuthenticationMethod, CredentialPurpose
+from glideinwms.lib.credentials import AuthenticationMethod, CredentialPurpose, SymmetricKey
 from glideinwms.lib.util import hash_nc
 
 ############################################################
@@ -583,8 +582,8 @@ class FactoryKeys4Advertise:
         self.factory_pub_key = factory_pub_key
 
         if glidein_symKey is None:
-            glidein_symKey = symCrypto.SymAES256Key()
-        if not glidein_symKey.is_valid():
+            glidein_symKey = SymmetricKey()
+        if not glidein_symKey.valid:
             glidein_symKey = copy.deepcopy(glidein_symKey)
             glidein_symKey.new()
         self.glidein_symKey = glidein_symKey
@@ -640,7 +639,7 @@ class Key4AdvertiseBuilder:
         Returns:
 
         """
-        cache_id = factory_pub_key.get()
+        cache_id = factory_pub_key.string
 
         if glidein_symKey is not None:
             # when a key is explicitly given, cannot reuse a cached one
