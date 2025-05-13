@@ -1755,7 +1755,7 @@ if ! mkdir "${main_dir}"; then
 fi
 
 short_condor_config_dir=condor_config.d
-condor_config_dir="${main_dir}/${short_condor_config_dir}"
+condor_config_dir="${work_dir}/${short_condor_config_dir}"
 if ! mkdir "${condor_config_dir}"; then
     early_glidein_failure "Cannot create '${condor_config_dir}'"
 fi

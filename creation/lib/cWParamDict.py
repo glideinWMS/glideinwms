@@ -124,8 +124,12 @@ def add_file_unparsed(user_file, dicts, is_factory):
             absfname,
         )
     elif is_config:  # a configuration file (e.g. HTCondor config)
-        if user_file.type == "config:condor" or user_file.type == "config":
+        file_type = user_file.type
+        if file_type == "config:condor" or file_type == "config":
             file_type = "config:c"
+        dicts[file_list_idx].add_from_file(
+            relfname, cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), file_type), absfname
+        )
     elif is_wrapper:  # a source-able script for the wrapper
         if not is_const:
             raise RuntimeError("A file cannot be a wrapper if it is not constant: %s" % user_file)
