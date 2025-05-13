@@ -10,7 +10,7 @@ import urllib.parse
 import urllib.request
 
 from glideinwms.creation.lib.matchPolicy import MatchPolicy
-from glideinwms.lib import hashCrypto, util
+from glideinwms.lib import hash_crypto, util
 
 ############################################################
 #
@@ -116,7 +116,7 @@ class ConfigFile:
             OSError: if the hash calculated is different from the provided one
         """
         if validate is not None:
-            vhash = hashCrypto.get_hash(validate[0], data)
+            vhash = hash_crypto.get_hash(validate[0], data)
             self.hash_value = vhash
             if (validate[1] is not None) and (vhash != validate[1]):
                 raise OSError(

@@ -8,6 +8,7 @@
 
 
 import os
+import sys
 import unittest
 
 from unittest import mock
@@ -17,6 +18,7 @@ import xmlrunner
 
 import glideinwms.lib.condorExe
 import glideinwms.lib.condorMonitor as condorMonitor
+import glideinwms.plugins
 
 from glideinwms.frontend import glideinFrontendInterface, glideinFrontendMonitoring
 from glideinwms.lib.fork import ForkManager
@@ -241,6 +243,9 @@ class FEElementTestCase(unittest.TestCase):
 
              are being evaluated correctly
         """
+
+        plugins_dir = glideinwms.plugins.__path__[0]
+        sys.path.append(plugins_dir)
 
         self.gfe.stats = {"group": glideinFrontendMonitoring.groupStats()}
         self.gfe.published_frontend_name = f"{self.gfe.frontend_name}.XPVO_{self.gfe.group_name}"

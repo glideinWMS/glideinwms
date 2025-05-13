@@ -1150,9 +1150,9 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         except glideFactoryLib.condorExe.ExeError:
             # Never fail for monitoring. Just log
             entry.log.exception("get_RRD_data failed with HTCondor error: ")
-        except Exception:
+        except Exception as e:
             # Never fail for monitoring. Just log
-            entry.log.exception("get_RRD_data failed with unknown error: ")
+            entry.log.exception(f"get_RRD_data failed with unknown error: {e}")
 
     return done_something
 
@@ -2037,7 +2037,7 @@ def unit_work_v3_11(
     # Gather the information to be returned back
     return_dict["success"] = True
     return_dict["work_done"] = done_something
-    return_dict["security_names"] = {client_security_name, credential_security_class}
+    return_dict["security_names"] = {(client_security_name, credential_security_class)}
 
     return return_dict
 
