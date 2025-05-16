@@ -639,7 +639,7 @@ v3_10_13:
     - Fixed a credential rewriting error caused by PR#511 and a path error in PR#515 (PR#519)
 
 v3_11_1:
-  Date: May 14, 2025
+  Date: May 16, 2025
   Series: Development
   Tarball: false
   Feature:
@@ -658,3 +658,4 @@ v3_11_1:
     - Stopped using M2Crypto in favor of the cryptography module. (PR #514)
   Bug fix:
     - Fixed a bug that could cause the Frontend not to generate IDTOKENS to some Factory entries. (PR #514)
+    - Fixed a bug that could cause the Frontend to send dynamic credentials to the Factory instead of the generated ones. (PR #526)
