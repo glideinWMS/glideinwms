@@ -2205,7 +2205,7 @@ SPDX-License-Identifier: Apache-2.0
           <!-- starting 3.7 generated via tags.yaml -->
           <!-- start development -->
 <li>
-  <a id="v3_11_1"><b>v3_11_1</b></a> released on May 14, 2025 (<a href="http://glideinwms.fnal.gov/doc.v3_11_1/index.html">Manual</a>,
+  <a id="v3_11_1"><b>v3_11_1</b></a> released on May 16, 2025 (<a href="http://glideinwms.fnal.gov/doc.v3_11_1/index.html">Manual</a>,
   <a href="http://glideinwms.fnal.gov/doc.v3_11_1/install.html">Installation instructions</a>)<br>
     <ul>
     <li>Added a generator to set credentials or parameters depending on the Entry selected (PR</li>
@@ -2222,6 +2222,7 @@ SPDX-License-Identifier: Apache-2.0
     <li>Added the new RSAPublicKey, RSAPrivateKey, and Symmetric credential types to replace the legacy pubCrypto and symCrypto modules. (PR</li>
     <li>Stopped using M2Crypto in favor of the cryptography module. (PR</li>
     <li>Bug fix: Fixed a bug that could cause the Frontend not to generate IDTOKENS to some Factory entries. (PR</li>
+    <li>Bug fix: Fixed a bug that could cause the Frontend to send dynamic credentials to the Factory instead of the generated ones. (PR</li>
     </ul>
 </li>
 <li>
