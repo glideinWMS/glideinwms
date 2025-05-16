@@ -1134,7 +1134,7 @@ class MultiAdvertiseWork:
 
         # Make sure we have credentials to work with
         if len(self.request_credentials) == 0:
-            logSupport.log.warning(f"No credentials match for factory pool {factory_pool}, not advertising request")
+            logSupport.log.warning("No credentials found. Not advertising request.")
             raise NoCredentialException
 
         # Determine required credentials for the entry
@@ -1142,6 +1142,7 @@ class MultiAdvertiseWork:
         factory_auth = AuthenticationMethod(factory_auth)
         auth_set = factory_auth.match(self.descript_obj.credentials_plugin.security_bundle)
         if not auth_set:
+            logSupport.log.debug(f"The available credentials do not match the requirements of factory pool {factory_pool}. Not advertising request.")
             raise NoCredentialException
         params_obj.glidein_params_to_encrypt["AuthSet"] = pickle.dumps(auth_set)
 
@@ -1201,7 +1202,7 @@ class MultiAdvertiseWork:
                 glidein_params_to_encrypt = copy.deepcopy(params_obj.glidein_params_to_encrypt)
 
             # Add request specific parameters
-            glidein_params_to_encrypt["RequestCredentials"] = pickle.dumps([request_cred.credential])
+            glidein_params_to_encrypt["RequestCredentials"] = pickle.dumps([request_cred.credential.copy()])
 
             # Convert the security class to a string so the Factory can interpret the value correctly
             glidein_params_to_encrypt["SecurityClass"] = str(request_cred.credential.security_class)

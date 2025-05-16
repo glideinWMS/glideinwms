@@ -196,7 +196,7 @@ class Credential(ABC, Generic[T]):
             self.minimum_lifetime = int(minimum_lifetime) if minimum_lifetime else None
         except ValueError as err:
             raise CredentialError(f"Invalid minimum lifetime: {minimum_lifetime}") from err
-        if string or (path and os.path.isfile(path)):
+        if string or path:
             self.load(string, path)
 
     def __repr__(self) -> str:
