@@ -1,3 +1,19 @@
+v3_11_1
+	Added a generator to set credentials or parameters depending on the Entry selected (PR
+	Added a generator to set credentials or parameters depending on the Entry selected (PR
+	Added IdTokenGenerator to standardize the generation of ID tokens and allow for operator customization
+	Added CachedGenerator base class to implement generators with automatic cache management
+	Added CredentialGenerator base generator class to implement cached credential generators
+	Added GeneratorContext class to implement context validation
+	Updated some builtin generators to avoid redefining \_\_init\_\_ making them more flexible
+	Updated the CredentialPair class and its subclasses to support credential pairs with different types. (PR
+	Refactored the credentials module into a python package including modules for base classes and specific credential types. (PR
+	Renamed the credentialGenerator and hashCrypto modules to credential_generator and hash_crypto. (PR
+	Renamed CredentialGenerator credentials to DynamicCredential and added the new alias "generator" to the newly renamed "dynamic" credential type. (PR
+	Added the new RSAPublicKey, RSAPrivateKey, and Symmetric credential types to replace the legacy pubCrypto and symCrypto modules. (PR
+	Stopped using M2Crypto in favor of the cryptography module. (PR
+	Bug fix: Fixed a bug that could cause the Frontend not to generate IDTOKENS to some Factory entries. (PR
+
 v3_11_0
 	Introduces the new credentials model.
 	Add new hierarchical credential classes for a number of credential types
@@ -11,6 +27,15 @@ v3_11_0
 	Bug fix: Fixed early truncation in log files configuration and inconsistent documentation (Issue#464, PR#462, PR#463)
 	Bug fix: Removed confusing tac broken pipe messages from the Glidein stderr (PR#465)
 	Bug fix: Fixed quotes in glidein command line unpacking and replaced deprecated add_config_line commands (PR#468)
+
+v3_10_13
+	Bug fix: Fixed a credential rewriting error caused by PR#511 and a path error in PR#515 (PR#519)
+
+v3_10_12
+	Exporting GLIDEIN_Name and GLIDEIN_UUID to the Glidein environment, for all scripts running inside the Glidein (PR#512)
+	HTCondor LOCAL_CONFIG_DIR support for the Glidein HTCondor daemons (PR#515)
+	Improved docstrings in the Factory module (PR#511)
+	Bug fix: Fixed misleading counts related to the number of jobs that run in the Glidein (PR#516, Issue#456)
 
 v3_10_11
 	Added a test Apptainer image to use when the configured one is not available (PR#482)
