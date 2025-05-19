@@ -67,13 +67,15 @@ findversion_debian() {
   dist_id_line=$(grep "DISTRIB_ID" /etc/lsb-release)
   dist_rel_line=$(grep "DISTRIB_RELEASE" /etc/lsb-release)
   if [[ ${dist_id_line} == *"Debian"* ]]; then
-    [[ ${dist_rel_line:16:3} = "12." ]] && condor_os='linux-debian11' && return
+    [[ ${dist_rel_line:16:3} = "13." ]] && condor_os='linux-debian13' && return
+    [[ ${dist_rel_line:16:3} = "12." ]] && condor_os='linux-debian12' && return
     [[ ${dist_rel_line:16:3} = "11." ]] && condor_os='linux-debian11' && return
     [[ ${dist_rel_line:16:3} = "10." ]] && condor_os='linux-debian10' && return
     [[ ${dist_rel_line:16:2} = "9." ]] && condor_os='linux-debian9' && return
     [[ ${dist_rel_line:16:2} = "8." ]] && condor_os='linux-debian8' && return
     [[ ${dist_rel_line:16:2} = "7." ]] && condor_os='linux-debian7' && return
   elif [[ ${dist_id_line} == *"Ubuntu"* ]]; then
+    [[ ${dist_rel_line:16:3} = "24." ]] && condor_os='linux-ubuntu24' && return
     [[ ${dist_rel_line:16:3} = "22." ]] && condor_os='linux-ubuntu22' && return
     [[ ${dist_rel_line:16:3} = "20." ]] && condor_os='linux-ubuntu20' && return
     [[ ${dist_rel_line:16:3} = "18." ]] && condor_os='linux-ubuntu18' && return

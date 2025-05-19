@@ -9,8 +9,7 @@ Changes since the last release
 
 ### New features / functionalities
 
--   item one of the list
--   item N
+-   Added support for Ubuntu 24 workers (PR #529)
 
 ### Changed defaults / behaviours
 
