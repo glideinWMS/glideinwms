@@ -2007,7 +2007,7 @@ line_read_wrapper() {
     true
 }
 
-for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "main at_file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
+for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "main precvmfs_file_list" "main at_file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
 do
     gs_id="$(echo "${gs_file_id}" |awk '{print $1}')"
 

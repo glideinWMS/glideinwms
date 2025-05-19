@@ -175,7 +175,7 @@ perform_system_check() {
 	unshare -U true &>/dev/null
 	GWMS_IS_UNPRIV_USERNS_ENABLED=$?
 
-	[[ $GWMS_OS_VERSION_MAJOR -ge 9 ]] && dnf list installed fuse3* &>/dev/null || yum list installed fuse &>/dev/null
+	[[ $GWMS_OS_VERSION_MAJOR -ge 9 ]] && dnf list installed fuse3 &>/dev/null || yum list installed fuse &>/dev/null
 	GWMS_IS_FUSE_INSTALLED=$?
 
 	[[ $GWMS_OS_VERSION_MAJOR -ge 9 ]] && fusermount3 -V &>/dev/null || fusermount -V &>/dev/null
