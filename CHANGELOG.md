@@ -5,13 +5,15 @@ SPDX-License-Identifier: Apache-2.0
 
 ## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
 
-Changes since the last release
+Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-demand CVMFS setup.
 
 ### New features / functionalities
 
 -   Added support for Ubuntu 24 workers (PR #529)
 
 ### Changed defaults / behaviours
+
+-   Updated download/execution order of `cvmfs_setup.sh` during glidein startup using a new priority `precvmfs_file_list` (PR #528).
 
 ### Deprecated / removed options and commands
 
