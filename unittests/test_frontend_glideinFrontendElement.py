@@ -130,8 +130,7 @@ class TestGlideinFrontendElement(unittest.TestCase):
         b_ccm = os.environ.get(v)
         v = "X509_USER_PROXY"
         b_xup = os.environ.get(v)
-        with mock.patch("glideinwms.lib.credentials.create_credential") as mock_create_credential:
-            mock_create_credential.return_value = X509Cert()
+        with mock.patch("glideinwms.lib.credentials.utils.create_credential", return_value=X509Cert()):
             self.gfe.configure()
         if self.verbose:
             print("\nc.glideinFrontendElement=%s" % self.gfe)
@@ -200,8 +199,7 @@ class TestGlideinFrontendElement(unittest.TestCase):
         assert False  # TODO: implement your test here
 
     def test_deadvertiseAllClassads(self):
-        with mock.patch("glideinwms.lib.credentials.create_credential") as mock_create_credential:
-            mock_create_credential.return_value = X509Cert()
+        with mock.patch("glideinwms.lib.credentials.utils.create_credential", return_value=X509Cert()):
             self.gfe.configure()
         self.gfe.deadvertiseAllClassads()
 
