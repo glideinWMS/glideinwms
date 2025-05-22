@@ -38,8 +38,7 @@ class CredentialGenerator(CachedGenerator[Credential]):
         self.cache_discriminator = self.context["cache_discriminator"] or None
         if self.cache_discriminator and self.cache_discriminator not in self.DISCRIMINATOR_VALUES:
             raise GeneratorError(
-                "invalid discriminator in context for CredentialGenerator."
-                f" Must be in {self.DISCRIMINATOR_VALUES}"
+                "invalid discriminator in context for CredentialGenerator." f" Must be in {self.DISCRIMINATOR_VALUES}"
             )
 
     def dynamic_cache_file(self, **kwargs):
