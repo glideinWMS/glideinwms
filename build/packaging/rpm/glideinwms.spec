@@ -29,6 +29,7 @@
 %global frontend_dir %{_localstatedir}/lib/gwms-frontend/vofrontend
 %global frontend_token_dir %{_localstatedir}/lib/gwms-frontend/tokens.d
 %global frontend_passwd_dir %{_localstatedir}/lib/gwms-frontend/passwords.d
+%global frontend_cache_dir %{_localstatedir}/lib/gwms-frontend/cache
 %global factory_web_dir %{_localstatedir}/lib/gwms-factory/web-area
 %global factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
 %global factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
@@ -463,6 +464,7 @@ install -m 0644 creation/templates/gwms-renew-proxies.cron $RPM_BUILD_ROOT%{_sys
 install -d $RPM_BUILD_ROOT%{frontend_dir}
 install -d $RPM_BUILD_ROOT%{frontend_token_dir}
 install -d $RPM_BUILD_ROOT%{frontend_passwd_dir}
+install -d $RPM_BUILD_ROOT%{frontend_cache_dir}
 install -d $RPM_BUILD_ROOT%{web_base}
 install -d $RPM_BUILD_ROOT%{web_dir}
 install -d $RPM_BUILD_ROOT%{web_dir}/monitor/
@@ -961,6 +963,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, frontend, frontend) %dir %{_localstatedir}/lib/gwms-frontend
 %attr(700, frontend, frontend) %{frontend_token_dir}
 %attr(700, frontend, frontend) %{frontend_passwd_dir}
+%attr(700, frontend, frontend) %{frontend_cache_dir}
 %attr(-, frontend, frontend) %{_localstatedir}/log/gwms-frontend
 %defattr(-,root,root,-)
 %{python3_sitelib}/glideinwms/frontend/glideinFrontendDowntimeLib.py
