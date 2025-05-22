@@ -103,38 +103,75 @@ class CachedGenerator(Generator[T]):
             }
         )
         self.cache_file = self.context["cache_file"]
+        self.saved_cache_files = set()
 
     def _cached_generate(self, **kwargs) -> T:
-        loaded_value = self.load_from_cache()
+        cache_file = self.dynamic_cache_file(**kwargs) or self.cache_file
+        loaded_value = self.load_from_cache(cache_file)
         if loaded_value is not None:
             if self.validate_cache(loaded_value):
                 return loaded_value
         generated_value = self._generate(**kwargs)
-        self.save_to_cache(generated_value)
+        self.save_to_cache(cache_file, generated_value)
+        self.saved_cache_files.add(cache_file)
         return generated_value
 
     def clear_cache(self):
         """Remove the cache file"""
 
-        if os.path.exists(self.cache_file):
-            os.remove(self.cache_file)
+        for cache_file in self.saved_cache_files:
+            if os.path.exists(cache_file):
+                os.remove(cache_file)
+        self.saved_cache_files.clear()
+
+    def dynamic_cache_file(self, **kwargs) -> Optional[str]:
+        """Set a dynamic cache file name
+
+        This method returns None by default. Override it in subclasses to provide
+        a custom cache file name.
+        When generating a cache file, the generator will first try to use the dynamic
+        cache file name. If it is None, it will use the cache_file defined in the
+        context or the default one.
+
+        Args:
+            **kwargs: keyword arguments passed to the generate method
+
+        Returns:
+            Optional[str]: the dynamic cache file name or None
+        """
 
     @abstractmethod
-    def save_to_cache(self, generated_value: T):
+    def save_to_cache(self, cache_file: str, generated_value: T):
         """
         Save an item to the cache
+
+        Args:
+            cache_file (str): the cache file name
+            generated_value (T): the item to save
         """
 
     @abstractmethod
-    def load_from_cache(self) -> Optional[T]:
+    def load_from_cache(self, cache_file: str) -> Optional[T]:
         """
         Load an item from the cache
+
+        Args:
+            cache_file (str): the cache file name
+
+        Returns:
+            Optional[T]: the cached item or None if the cache file does not exist
         """
 
     @abstractmethod
     def validate_cache(self, cached_value: T) -> bool:
         """
         Validate the cache
+
+        Args:
+            cached_value (T): the cached item
+
+        Returns:
+            bool: True if the cache is valid, False otherwise
         """
 
 
