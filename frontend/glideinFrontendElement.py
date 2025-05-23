@@ -165,6 +165,8 @@ class glideinFrontendElement:
         self.removal_requests_tracking = self.elementDescript.element_data["RemovalRequestsTracking"]
         self.removal_margin = int(self.elementDescript.element_data["RemovalMargin"])
 
+        self.schedd_cache = {"timestamp": None, "data": None}
+
         # Default behavior: Use factory proxies unless configure overrides it
         self.x509_proxy_plugin = None
 
@@ -394,7 +396,7 @@ class glideinFrontendElement:
 
         ## schedd
         idx = 0
-        for schedd_name in self.elementDescript.merged_data["JobSchedds"]:
+        for schedd_name in self.getScheddList():
             idx += 1
             forkm_obj.add_fork(("schedd", idx), self.get_condor_q, schedd_name)
 
@@ -955,6 +957,38 @@ class glideinFrontendElement:
 
         return
 
+    def getScheddList(self):
+        # Get the original list from config
+        schedd_list = self.elementDescript.merged_data.get("JobSchedds", [])
+
+        if schedd_list != ["ALL"]:
+            # If the frontend admin specified a scheduler list use it.
+            return schedd_list
+
+        # logSupport.log.info("Getting list of schedulers from collector since 'ALL' has been used") # Too verbose. Keeping it around until production deployment
+        # If the admin specified ALL then query the condor collector to get the list of schedulers
+        res = glideinFrontendLib.getCondorStatusSchedds([None], constraint=None, format_list=[])
+
+        if res and None in res:
+            schedds = list(res[None].fetchStored().keys())
+
+            # Cache the result with timestamp
+            self.schedd_cache["data"] = schedds
+            self.schedd_cache["timestamp"] = time.time()
+
+            return schedds
+        else:
+            # Fall back to cached data if available
+            logSupport.log.warning(
+                "Cannot get the list of scheduler with 'condor_status -sched'. Using cached schedd list."
+            )
+            if self.schedd_cache["data"] is not None:
+                return self.schedd_cache["data"]
+            else:
+                logSupport.log.warning("No valid schedd list available and fetch returned empty.")
+
+        return {}
+
     def get_scitoken(self, elementDescript, trust_domain):
         """Look for a local SciToken specified for the trust domain.
 
@@ -1177,7 +1211,7 @@ class glideinFrontendElement:
             for schedd in coll_status_schedd_dict:
                 # Only consider global or group specific schedds
                 # To be on the safe side add them to blacklist_schedds
-                if schedd not in self.elementDescript.merged_data["JobSchedds"]:
+                if schedd not in self.getScheddList():
                     logSupport.log.debug("Ignoring schedd %s for this group based on the configuration" % (schedd))
                     self.blacklist_schedds.add(schedd)
                     continue

@@ -1097,7 +1097,8 @@ def populate_common_descript(descript_dict, params):
         # Would be useful to have a WARNING message, but the current implementation allows only fail/continue
         # Still raising an invalid configuration exception if no schedd is in DNS
         try:
-            cWDictFile.validate_node(el["fullname"], check_dns=False)
+            # If schedd is ALL we don't validate and check the DNS
+            el["fullname"] == "ALL" or cWDictFile.validate_node(el["fullname"], check_dns=False)
             valid_schedd = True  # skipped if exception is risen
         except RuntimeWarning:
             undefined_schedds += 1
