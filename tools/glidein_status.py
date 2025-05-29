@@ -3,8 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Equivalent to condor_status, but with glidein specific info
-"""
+"""Equivalent to condor_status, but with glidein specific info"""
 
 import argparse
 import os.path

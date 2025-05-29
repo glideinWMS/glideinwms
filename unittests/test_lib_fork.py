@@ -3,8 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit test for glideinwms/lib/fork.py
-"""
+"""Unit test for glideinwms/lib/fork.py"""
 
 import os
 import sys

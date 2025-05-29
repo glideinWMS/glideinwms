@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+## Changes Since Last Release OR v3.10.14 \[2025-06-09\]
 
 Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-demand CVMFS setup.
 
@@ -21,9 +21,13 @@ Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-dem
 
 ### Bug Fixes
 
+-   Removed incorrect warning when setting SINGULARITY_BIN to keyword (PR #534)
+-   Added `--skip-broken` to yumalldeps to avoid an error when incompatible packages are in the list (PR #534)
 -   Added explicit retrieval from glidein_config of GLIDEIN_CONTAINER_ENV and GLIDEIN_CONTAINER_ENV_CLEARLIST in singularity_lib.sh (PR #535)
 
 ### Testing / Development
+
+-   Updated black and pre-commit actions to latest versions still supporting Python 3.6 (PR #534)
 
 ### Known Issues
 

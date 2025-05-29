@@ -8,8 +8,8 @@
 # create a simplified function by extracting only the AST nodes used
 
 """Usage (for testing, will do roundtrips on the files):
-  unparse.py <path to source files>
-  unparse.py --testdir <path to source files directories>
+unparse.py <path to source files>
+unparse.py --testdir <path to source files directories>
 """
 import ast
 import os

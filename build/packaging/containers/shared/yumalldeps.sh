@@ -49,7 +49,7 @@ mylog() {
 getdep() {
     tmp_all="$(yum deplist $YUM_OPTIONS $* | awk '/provider/ {print $2}' | sort -u )"
     # Printing all packages that can provide the requirement may result in including in the list multiple providers
-    # incompatible with each others. An install command will result in error unless "--skip-broken" is added
+    # incompatible with one another. An install command will result in error unless "--skip-broken" is added
     remaining="$(echo "$tmp_all" | grep "$PKG_FAMILY" | sed ':a;N;$!ba;s/\n/ /g' )"
     if [[ -n "$remaining" ]]; then
         mylog "- recurse $remaining"

@@ -3,8 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This is a collection of utilities functions for file handling and other
-"""
+"""This is a collection of utilities functions for file handling and other"""
 
 import contextlib
 import os
