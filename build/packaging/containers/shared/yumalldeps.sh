@@ -35,8 +35,8 @@ parse_options() {
         y) YUM_OPTIONS="$OPTARG";;
         i) YUM_INSTALL=yes;;
         : ) logerror "illegal option: -$OPTARG requires an argument"; help_msg 1>&2; exit 1;;
-        *) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
         \?) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
+        *) logerror "illegal long option: -$OPTARG"; help_msg 1>&2; exit 1;;
         esac
     done
 
@@ -48,7 +48,9 @@ mylog() {
 
 getdep() {
     tmp_all="$(yum deplist $YUM_OPTIONS $* | awk '/provider/ {print $2}' | sort -u )"
-    remaining="$(echo "$tmp_all" | grep $PKG_FAMILY | sed ':a;N;$!ba;s/\n/ /g' )"
+    # Printing all packages that can provide the requirement may result in including in the list multiple providers
+    # incompatible with each others. An install command will result in error unless "--skip-broken" is added
+    remaining="$(echo "$tmp_all" | grep "$PKG_FAMILY" | sed ':a;N;$!ba;s/\n/ /g' )"
     if [[ -n "$remaining" ]]; then
         mylog "- recurse $remaining"
         retv="$(getdep $remaining )"
@@ -77,7 +79,8 @@ _main() {
     mylog "$(echo "$all" | sort -u )"
     mylog "Result:"
     if [[ -n "$YUM_INSTALL" ]]; then
-        yum install -y $YUM_OPTIONS $(echo "$all" | sort -u | sed ':a;N;$!ba;s/\n/ /g' )
+        # --skip-broken is needed. The list may contain conflicting dependencies, e.g. coreutils and coreutils-single
+        yum install -y --skip-broken $YUM_OPTIONS $(echo "$all" | sort -u | sed ':a;N;$!ba;s/\n/ /g' )
     else
         echo "$(echo "$all" | sort -u | sed ':a;N;$!ba;s/\n/ /g' )"
     fi
