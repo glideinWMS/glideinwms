@@ -4,10 +4,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-    Project: glideinwms
-    File:    test_creation_lib_cgWDictFile.py
-    Purpose: unit test of glideinwms/creation/lib/cgWDictFile.py
-    Author:  Dennis Box, dbox@fnal.gov
+Project: glideinwms
+File:    test_creation_lib_cgWDictFile.py
+Purpose: unit test of glideinwms/creation/lib/cgWDictFile.py
+Author:  Dennis Box, dbox@fnal.gov
 """
 
 

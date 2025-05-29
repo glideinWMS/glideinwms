@@ -3,8 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit test for glideinwms/lib/exprParser.py
-"""
+"""Unit test for glideinwms/lib/exprParser.py"""
 
 
 import ast

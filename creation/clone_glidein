@@ -3,8 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This program clones (a subset of) entries from a remote xml config into a local one
-"""
+"""This program clones (a subset of) entries from a remote xml config into a local one"""
 
 import copy
 import os

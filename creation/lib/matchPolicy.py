@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This module contains the Match Policy related class
-"""
+"""This module contains the Match Policy related class"""
 
 import os
 import os.path

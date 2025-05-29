@@ -3,12 +3,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
 
 export GLIDEIN_USER=`id -u -n`
 

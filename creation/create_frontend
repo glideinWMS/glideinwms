@@ -3,8 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This program creates a frontend directory structure based on a configuration file
-"""
+"""This program creates a frontend directory structure based on a configuration file"""
 
 
 import os

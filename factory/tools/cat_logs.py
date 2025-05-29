@@ -5,7 +5,8 @@
 
 """Print out the logs for a certain date
 
- Usage: cat_logs.py <factory> YY/MM/DD [hh:mm:ss]
+Usage:
+    cat_logs.py <factory> YY/MM/DD [hh:mm:ss]
 """
 
 import os
