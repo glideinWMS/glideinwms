@@ -30,11 +30,11 @@ repos:
       - id: python-check-blanket-type-ignore
       - id: python-use-type-annotations
   - repo: "https://github.com/pycqa/isort"
-    rev: 5.13.2
+    rev: 6.0.1
     hooks:
       - id: isort
   - repo: "https://github.com/psf/black"
-    rev: 24.10.0
+    rev: 25.1.0
     hooks:
       - id: black
   - repo: "https://github.com/pre-commit/mirrors-prettier"
@@ -50,7 +50,7 @@ repos:
           - "prettier-plugin-toml@0.3.1"
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.8.3
+    rev: v0.11.11
     hooks:
       # Run the linter.
       - id: ruff
@@ -68,7 +68,7 @@ repos:
         args:
           - "--py36-plus"
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.4
+    rev: v2.4.1
     hooks:
       - id: codespell
         args: [
