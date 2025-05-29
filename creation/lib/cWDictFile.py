@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Classes needed to handle dictionary files
-   And other support functions
+And other support functions
 """
 
 # TODO: in this file there are several directory creation functions. Use what's available in

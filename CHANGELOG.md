@@ -21,7 +21,12 @@ Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-dem
 
 ### Bug Fixes
 
+-   Removed incorrect warning when setting SINGULARITY_BIN to keyword (PR #534)
+-   Added `--skip-broken` to yumalldeps to avoid an error when incompatible packages are in the list (PR #534)
+
 ### Testing / Development
+
+-   Updated black and pre-commit actions to latest versions still supporting Python 3.6 (PR #534)
 
 ### Known Issues
 
