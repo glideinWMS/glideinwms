@@ -978,14 +978,16 @@ class glideinFrontendElement:
 
             return schedds
         else:
-            # Fall back to cached data if available
-            logSupport.log.warning(
-                "Cannot get the list of scheduler with 'condor_status -sched'. Using cached schedd list."
-            )
-            if self.schedd_cache["data"] is not None:
+            msg = "Cannot get the list of scheduler with 'condor_status -sched'. "
+            # Cache valid for 1 hour
+            now = time.time()
+            if self.schedd_cache["timestamp"] and (now - self.schedd_cache["timestamp"] < 3600):
+                msg += "Using cached schedd list."
+                logSupport.log.warning(msg)
                 return self.schedd_cache["data"]
             else:
-                logSupport.log.warning("No valid schedd list available and fetch returned empty.")
+                msg += "Schedd cache empty or expired."
+                logSupport.log.warning(msg)
 
         return {}
 
