@@ -693,8 +693,13 @@ SPDX-License-Identifier: Apache-2.0
               When you provide the user pool collector to the installer, it will
               find all the available schedds. You can specify which schedds to
               monitor here for user jobs. The schedd fullname is the name under
-              which schedd is registered with the user pool collector.&nbsp;
+              which schedd is registered with the user pool collector.&nbsp;<br />
+              In order to use all the schedds that are found in the collector
+              you can specify:
             </p>
+            <blockquote>
+              &lt;schedd DN="ALL" fullname="ALL" /&gt;<br />
+            </blockquote>
           </li>
 
           <li>
