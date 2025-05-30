@@ -579,6 +579,8 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
 
         # Apply group specific singularity policy
         validate_singularity(self.dicts, sub_params, params, self.sub_name)
+        validate_schedds(main_dicts["frontend_descript"]["JobSchedds"], self.dicts["group_descript"]["JobSchedds"])
+
         apply_group_singularity_policy(self.dicts["group_descript"], sub_params, params)
 
         # look up global descript value, and if they need to be expanded, move them in the entry
@@ -985,6 +987,36 @@ def validate_singularity(descript_dict, sub_params, params, name):
                     "Error: group %s allows Singularity (%s) but has no wrapper file in the files list"
                     % (name, glidein_singularity_use)
                 )
+
+
+def validate_schedds(main_list, group_list):
+    """
+    Validates the use of 'ALL' in schedd configurations.
+
+    If 'ALL' is used, it must be the only entry in `main_list`, and `group_list` must be empty.
+    Any other combination is considered invalid and will raise a RuntimeError.
+
+    Args:
+        main_list (str): Comma-separated schedd hostnames in the global configuration.
+        group_list (str): Comma-separated schedd hostnames in a group configuration.
+
+    Raises:
+        RuntimeError: If 'ALL' is used incorrectly (e.g. mixed with other schedds or with a non-empty group list).
+    """
+    main_items = main_list.split(",")
+    group_items = group_list.split(",")
+
+    if "ALL" in main_items or "ALL" in group_items:
+        if main_items != ["ALL"] or group_items:
+            raise RuntimeError(
+                f"""It seems you want to use the '<scheddDN="ALL" fullname="ALL">' feature.
+In order to do so, you need to define it in the global schedd configuration,
+and all the schedds in the frontend groups must be empty.
+
+Found:
+  global configuration: '{main_list}'
+  group configuration:  '{group_list}'"""
+            )
 
 
 def apply_multicore_policy(descript_dict):
