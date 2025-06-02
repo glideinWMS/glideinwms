@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Handle factory pids
-"""
+"""Handle factory pids"""
 
 import os
 import os.path

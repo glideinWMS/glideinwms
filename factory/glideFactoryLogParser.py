@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This module implements classes to track changes in glidein status logs.
-"""
+"""This module implements classes to track changes in glidein status logs."""
 
 
 import copy
