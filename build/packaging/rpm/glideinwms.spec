@@ -119,6 +119,7 @@ Requires: rrdtool
 # Recommends: python3-rrdtool - this would be ideal but is supported only in Fedora>=24 and not RHEL
 # Remove the line below for the OSG 3.5 build (no python3-rrdtool there)
 Requires: python3-rrdtool
+Requires: python3-scitokens
 %if 0%{?rhel} >= 8
 Requires: initscripts
 Requires: python3-m2crypto

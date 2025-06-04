@@ -16,7 +16,7 @@ import time
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import Any, Generic, Mapping, Optional, Tuple, Type, TypeVar
+from typing import Any, Generic, Mapping, Optional, Tuple, Type, TypeVar, Union
 
 from glideinwms.lib.defaults import CACHE_DIR, PLUGINS_DIR
 from glideinwms.lib.util import hash_nc, import_module
@@ -97,10 +97,9 @@ class CachedGenerator(Generator[T]):
         super().__init__(context, instance_id)
         self._generate = self.generate
         self.generate = self._cached_generate
+        file_type = context.get("type", "cache")
         self.context.validate(
-            {
-                "cache_file": (str, os.path.join(CACHE_DIR, f"{self.instance_id}_{self.__class__.__name__}.cache")),
-            }
+            {"cache_file": (str, os.path.join(CACHE_DIR, f"{self.instance_id}_{self.__class__.__name__}.{file_type}"))}
         )
         self.cache_file = self.context["cache_file"]
         self.saved_cache_files = set()
@@ -173,6 +172,47 @@ class CachedGenerator(Generator[T]):
         Returns:
             bool: True if the cache is valid, False otherwise
         """
+
+    @classmethod
+    def cache_discriminator(cls, discriminator: Union[str, list[str]], separator: str = ".", **kwargs) -> Optional[str]:
+        """Generate a cache discriminator string based on the provided discriminator and runtime arguments.
+        This method constructs a string that uniquely identifies the cache entry based on the provided
+        discriminator values and the attributes of the glidein element.
+
+        Args:
+            discriminator (Union[str, list[str]]): a string or a list of strings that specify the discriminator values
+            separator (str): a string used to separate the discriminator values in the resulting string
+            **kwargs: runtime arguments that include the glidein element and other necessary attributes
+
+        Returns:
+            Optional[str]: a string that uniquely identifies the cache entry, or None if the discriminator is not provided
+
+        Raises:
+            GeneratorError: if the discriminator is invalid or not in the expected format
+        """
+
+        discriminator_values = ["name", "group", "gatekeeper", "factory", "trust_domain"]
+        entry_mapping = {
+            "name": kwargs["glidein_el"]["attrs"].get("EntryName"),
+            "group": kwargs["group_name"],
+            "gatekeeper": kwargs["glidein_el"]["attrs"].get("GLIDEIN_Gatekeeper"),
+            "factory": kwargs["glidein_el"]["attrs"].get("AuthenticatedIdentity"),
+            "trust_domain": kwargs["glidein_el"]["attrs"].get("GLIDEIN_TrustDomain"),
+        }
+
+        if discriminator is None:
+            return None
+
+        if isinstance(discriminator, str):
+            discriminator = [discriminator]
+
+        for disc in discriminator:
+            if disc not in discriminator_values:
+                raise GeneratorError(f"Invalid discriminator '{disc}'. Must be in {discriminator_values}.")
+
+        discriminator_str = separator.join(str(entry_mapping[disc]) for disc in discriminator if disc in entry_mapping)
+
+        return discriminator_str
 
 
 def load_generator(module: str, context: Optional[Mapping] = None) -> Generator:
