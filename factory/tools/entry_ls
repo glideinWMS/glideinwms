@@ -13,7 +13,7 @@ The script requires the environment variable GLIDEIN_FACTORY_DIR to be set to
 the gwms factory instance location (or it must be run in that directory).
 
 Usage:
-  entry_ls [OPTIONS] ENTRY USER DATE
+    entry_ls [OPTIONS] ENTRY USER DATE
 
 Options:
   -o           Append .out extension instead of .err extension.

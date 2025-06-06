@@ -769,7 +769,7 @@ env_clearlist() {
 
 
 env_clear() {
-    # If requested in the env options, clear the PATH vasiables and add the singularity option
+    # If requested in the env options, clear the PATH variables and add the singularity option
     # In
     #  1 - list of environment options (see env_process_options)
     #  2 - singularity options (GWMS_SINGULARITY_EXTRA_OPTS)
@@ -1593,7 +1593,7 @@ singularity_locate_bin() {
             test_out=$(singularity_test_bin "${s_step},${s_location}/$test_out" "$s_image") &&
                 HAS_SINGULARITY=True
             bread_crumbs+="${test_out##*@}"
-        else
+        elif [[ ! ",PATH,CONDOR,OSG," = *",$s_location,"* ]]; then  # Don't print error for keywords
             [[ "$s_location" = NONE ]] &&
                 warn "SINGULARITY_BIN = NONE is no more a valid value, use GLIDEIN_SINGULARITY_REQUIRE to control the use of Singularity"
             info "Suggested path (SINGULARITY_BIN?) '$1' ($s_location) is not a directory or does not contain singularity."
