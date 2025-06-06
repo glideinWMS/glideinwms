@@ -21,6 +21,8 @@ Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-dem
 
 ### Bug Fixes
 
+-   Added explicit retrieval from glidein_config of GLIDEIN_CONTAINER_ENV and GLIDEIN_CONTAINER_ENV_CLEARLIST in singularity_lib.sh (PR #535)
+
 ### Testing / Development
 
 ### Known Issues
