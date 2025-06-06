@@ -10,6 +10,7 @@ Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-dem
 ### New features / functionalities
 
 -   Added support for Ubuntu 24 workers (PR #529)
+-   Add keyword ALL to query all schedulers known to the collector (PR #529, Issue #510)
 
 ### Changed defaults / behaviours
 
