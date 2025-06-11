@@ -47,6 +47,7 @@ class DynamicCredential(Credential[Generator]):
             context (Optional[Mapping]): The context of the generator.
         """
 
+        self._snapshots = {}
         self._string = None
         self._context = context
         self._generated_credential: Optional[Credential] = None
@@ -150,10 +151,11 @@ class DynamicCredential(Credential[Generator]):
             return None
         return "Credential not initialized."
 
-    def generate(self, **kwargs):
+    def generate(self, snapshot: str = None, **kwargs):
         """Generate a credential using the generator.
 
         Args:
+            snapshot (str): If provided, creates a snapshot of the generated credential.
             **kwargs: Additional keyword arguments to pass to the generator.
 
         Raises:
@@ -169,14 +171,27 @@ class DynamicCredential(Credential[Generator]):
             generated_value.trust_domain = self.trust_domain
             generated_value.security_class = self.security_class
             self._generated_credential = generated_value
-            return
-        if not isinstance(generated_value, (str, bytes)):
+        elif isinstance(generated_value, (str, bytes)):
+            self._generated_credential = create_credential(
+                string=generated_value,
+                purpose=self.purpose,
+                trust_domain=self.trust_domain,
+                security_class=self.security_class,
+                cred_type=self.cred_type,
+            )
+        else:
             raise CredentialError(f"Invalid generated value: {generated_value}. Expected a string or bytes.")
 
-        self._generated_credential = create_credential(
-            string=generated_value,
-            purpose=self.purpose,
-            trust_domain=self.trust_domain,
-            security_class=self.security_class,
-            cred_type=self.cred_type,
-        )
+        if snapshot:
+            self._snapshots[snapshot] = self._generated_credential.copy()
+
+    def get_snapshot(self, snapshot: str) -> Optional[Credential]:
+        """Retrieve a snapshot of the generated credential.
+
+        Args:
+            snapshot (str): The name of the snapshot to retrieve.
+
+        Returns:
+            Optional[Credential]: The snapshot of the generated credential, or None if not found.
+        """
+        return self._snapshots.get(snapshot, None)
