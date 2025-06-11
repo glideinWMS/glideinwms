@@ -1150,24 +1150,32 @@ class MultiAdvertiseWork:
 
         # Pack payload credentials to send with the request
         payload_creds = [
-            cred.copy()
+            cred
             for cred in self.descript_obj.credentials_plugin.get_credentials(
-                trust_domain=factory_trust, credential_purpose=CredentialPurpose.PAYLOAD
+                trust_domain=factory_trust,
+                credential_purpose=CredentialPurpose.PAYLOAD,
+                dynamic_snapshot=params_obj.glidein_name,
             )
         ]
         payload_creds.extend(
             [
-                cred.copy()
+                cred
                 for cred in self.descript_obj.credentials_plugin.get_credentials(
-                    trust_domain=factory_trust, credential_purpose=CredentialPurpose.CALLBACK
+                    trust_domain=factory_trust,
+                    credential_purpose=CredentialPurpose.CALLBACK,
+                    dynamic_snapshot=params_obj.glidein_name,
                 )
-                if cred.subject.split("@")[0] == params_obj.request_name.split("@")[0]
             ]
         )
         params_obj.glidein_params_to_encrypt["PayloadCredentials"] = pickle.dumps(payload_creds)
 
         # Pack parameters to send to the request
-        security_params = [param.copy() for param in self.descript_obj.credentials_plugin.params_dict.values()]
+        security_params = [
+            param
+            for param in self.descript_obj.credentials_plugin.get_parameters(
+                dynamic_snapshot=params_obj.glidein_name
+            ).values()
+        ]
         params_obj.glidein_params_to_encrypt["SecurityParameters"] = pickle.dumps(security_params)
 
         # Assign work to the credentials per the plugin policy
@@ -1204,7 +1212,13 @@ class MultiAdvertiseWork:
                 glidein_params_to_encrypt = copy.deepcopy(params_obj.glidein_params_to_encrypt)
 
             # Add request specific parameters
-            glidein_params_to_encrypt["RequestCredentials"] = pickle.dumps([request_cred.credential.copy()])
+            glidein_params_to_encrypt["RequestCredentials"] = pickle.dumps(
+                [
+                    self.descript_obj.credentials_plugin.get_credential(
+                        request_cred.credential.id, dynamic_snapshot=params_obj.glidein_name
+                    )
+                ]
+            )
 
             # Convert the security class to a string so the Factory can interpret the value correctly
             glidein_params_to_encrypt["SecurityClass"] = str(request_cred.credential.security_class)

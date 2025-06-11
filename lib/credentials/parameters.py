@@ -70,7 +70,7 @@ class ParameterName(enum.Enum):
 class ParameterType(enum.Enum):
     """Enum representing different types of parameters."""
 
-    GENERATOR = "generator"
+    DYNAMIC = "dynamic"
     INTEGER = "integer"
     EXPRESSION = "expression"
     STRING = "string"
@@ -89,7 +89,7 @@ class ParameterType(enum.Enum):
             ParameterError: If the string does not match any known ParameterType.
         """
 
-        extended_map = {"int": cls.INTEGER, "expr": cls.EXPRESSION, "str": cls.STRING}
+        extended_map = {"int": cls.INTEGER, "expr": cls.EXPRESSION, "str": cls.STRING, "generator": cls.DYNAMIC}
         extended_map.update({param.value.lower(): param for param in cls})
 
         string = string.lower()
@@ -182,7 +182,7 @@ class Parameter(ABC, Generic[T]):
         return f"{self.name.value}={self.value}"
 
 
-class ParameterGenerator(Parameter, Generator):
+class DynamicParameter(Parameter, Generator):
     """A class representing a generator parameter.
 
     This class inherits from the base `Parameter` class and is used to define parameters
@@ -194,11 +194,11 @@ class ParameterGenerator(Parameter, Generator):
         value (str): The value of the parameter.
     """
 
-    param_type = ParameterType.GENERATOR
+    param_type = ParameterType.DYNAMIC
 
     # noinspection PyMissingConstructor
     def __init__(self, name: ParameterName, value: str, context: Optional[Mapping] = None):
-        """Initialize a ParameterGenerator object.
+        """Initialize a DynamicParameter object.
 
         Args:
             name (ParameterName): The name of the parameter.
@@ -209,6 +209,7 @@ class ParameterGenerator(Parameter, Generator):
         if not isinstance(name, ParameterName):
             raise TypeError("Parameter name must be a ParameterName")
 
+        self._snapshots = {}
         self._generated_parameter: Optional[Parameter] = None
         self._name = name
         self._value = self.parse_value(value, context)
@@ -262,14 +263,29 @@ class ParameterGenerator(Parameter, Generator):
 
         return create_parameter(self.name, self.value, self.param_type)
 
-    def generate(self, **kwargs):
+    def generate(self, snapshot: str = None, **kwargs):
         """Generate the parameter value using the generator function.
 
         Args:
+            snapshot (str): If provided, creates a snapshot of the generated parameter.
             **kwargs: Additional keyword arguments to pass to the generator function.
         """
 
         self._generated_parameter = create_parameter(self._name, self._value.generate(**kwargs), self.param_type)
+        if snapshot:
+            self._snapshots[snapshot] = self._generated_parameter.copy()
+
+    def get_snapshot(self, snapshot: str) -> Optional[Parameter]:
+        """Retrieve a snapshot of the generated parameter.
+
+        Args:
+            snapshot (str): The name of the snapshot.
+
+        Returns:
+            Parameter: The snapshot of the generated parameter, or None if not found.
+        """
+
+        return self._snapshots.get(snapshot, None)
 
 
 class IntegerParameter(Parameter[int]):

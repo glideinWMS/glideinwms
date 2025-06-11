@@ -97,9 +97,17 @@ class CachedGenerator(Generator[T]):
         super().__init__(context, instance_id)
         self._generate = self.generate
         self.generate = self._cached_generate
-        file_type = context.get("type", "cache")
+        file_type = self.context.get("type", "cache")
         self.context.validate(
-            {"cache_file": (str, os.path.join(CACHE_DIR, f"{self.instance_id}_{self.__class__.__name__}.{file_type}"))}
+            {
+                "cache_dir": (str, CACHE_DIR),
+                "cache_file": (
+                    str,
+                    os.path.join(
+                        self.context["cache_dir"], f"{self.instance_id}_{self.__class__.__name__}.{file_type}"
+                    ),
+                ),
+            }
         )
         self.cache_file = self.context["cache_file"]
         self.saved_cache_files = set()

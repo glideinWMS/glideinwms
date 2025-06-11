@@ -24,13 +24,13 @@ from .credentials import (
 from .dynamic import DynamicCredential
 from .parameters import (
     create_parameter,
+    DynamicParameter,
     ExpressionParameter,
     IntegerParameter,
     Parameter,
     parameter_of_type,
     ParameterDict,
     ParameterError,
-    ParameterGenerator,
     ParameterName,
     ParameterType,
     StringParameter,
