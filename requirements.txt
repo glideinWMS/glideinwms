@@ -8,6 +8,7 @@ requests
 structlog
 pyyaml
 pyjwt
+scitokens
 
 #for verifications
 pylint
