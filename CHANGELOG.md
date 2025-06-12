@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR v3.10.14 \[2025-06-09\]
+## Changes Since Last Release OR v3.10.14 \[2025-06-12\]
 
 Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-demand CVMFS setup.
 
@@ -14,7 +14,7 @@ Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-dem
 
 ### Changed defaults / behaviours
 
--   Updated download/execution order of `cvmfs_setup.sh` during glidein startup using a new priority `precvmfs_file_list` (PR #528).
+-   Updated download/execution order of `cvmfs_setup.sh` during glidein startup using a new priority `precvmfs_file_list` (PR #528)
 
 ### Deprecated / removed options and commands
 
