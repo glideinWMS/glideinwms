@@ -150,10 +150,11 @@ class DynamicCredential(Credential[Generator]):
             return None
         return "Credential not initialized."
 
-    def generate(self, **kwargs):
+    def generate(self, snapshot: Optional[str] = None, **kwargs):
         """Generate a credential using the generator.
 
         Args:
+            snapshot (str): If provided, creates a snapshot of the generated credential.
             **kwargs: Additional keyword arguments to pass to the generator.
 
         Raises:
@@ -163,20 +164,43 @@ class DynamicCredential(Credential[Generator]):
         if not self._payload:
             raise CredentialError("Credential generator not initialized")
 
-        generated_value = self._payload.generate(**kwargs)
+        generated_value = self._payload.generate(snapshot, **kwargs)
         if isinstance(generated_value, Credential):
             generated_value.purpose = self.purpose
             generated_value.trust_domain = self.trust_domain
             generated_value.security_class = self.security_class
             self._generated_credential = generated_value
-            return
-        if not isinstance(generated_value, (str, bytes)):
+        elif isinstance(generated_value, (str, bytes)):
+            self._generated_credential = create_credential(
+                string=generated_value,
+                purpose=self.purpose,
+                trust_domain=self.trust_domain,
+                security_class=self.security_class,
+                cred_type=self.cred_type,
+            )
+        else:
             raise CredentialError(f"Invalid generated value: {generated_value}. Expected a string or bytes.")
 
-        self._generated_credential = create_credential(
-            string=generated_value,
-            purpose=self.purpose,
-            trust_domain=self.trust_domain,
-            security_class=self.security_class,
-            cred_type=self.cred_type,
-        )
+    def get_snapshot(self, snapshot: str, default: Optional[any] = None) -> Optional[Credential]:
+        """Retrieve a snapshot of the generated credential.
+
+        Args:
+            snapshot (str): The name of the snapshot to retrieve.
+
+        Returns:
+            Optional[Credential]: The snapshot of the generated credential, or None if not found.
+        """
+
+        snapshot_value = self._payload.get_snapshot(snapshot, default) if self._payload else None
+        if not snapshot_value:
+            return None
+        elif isinstance(snapshot_value, Credential):
+            return snapshot_value
+        else:
+            return create_credential(
+                string=snapshot_value,
+                purpose=self.purpose,
+                trust_domain=self.trust_domain,
+                security_class=self.security_class,
+                cred_type=self.cred_type,
+            )

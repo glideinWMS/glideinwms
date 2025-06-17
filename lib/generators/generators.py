@@ -72,6 +72,7 @@ class Generator(ABC, Generic[T]):
     """Base class for generators"""
 
     def __init__(self, context: Optional[Mapping] = None, instance_id: Optional[str] = None):
+        self.snapshots = {}
         self.context = GeneratorContext(context)
         self.instance_id = instance_id or hash_nc(f"{time.time()}", 8)
         self.setup()
@@ -84,10 +85,56 @@ class Generator(ABC, Generic[T]):
 
     def setup(self):
         """Setup method to be called at the generator's construction"""
+        try:
+            self._setup()
+        except NotImplementedError:
+            pass
+
+    def generate(self, snapshot: Optional[str] = None, **kwargs) -> T:
+        """
+        Generates an item using the current context and any provided keyword arguments.
+
+        Args:
+            snapshot (str, optional): An optional identifier for the snapshot or state to use during generation. Defaults to None.
+            **kwargs: Additional keyword arguments that may be used to customize the generation process.
+
+        Returns:
+            T: The generated item of type T, as determined by the implementation.
+        """
+
+        generated_value = self._generate(**kwargs)
+        if snapshot:
+            self.snapshots[snapshot] = generated_value
+
+        return generated_value
+
+    def get_snapshot(self, snapshot: str, default: Optional[any] = None) -> Optional[T]:
+        """
+        Retrieves a previously generated snapshot.
+
+        Args:
+            snapshot (str): The identifier for the snapshot to retrieve.
+            default (Optional[any]): A default value to return if the snapshot does not exist.
+
+        Returns:
+            T: The previously generated item of type T, or None if the snapshot does not exist.
+
+        Raises:
+            GeneratorError: If the snapshot does not exist.
+        """
+
+        return self.snapshots.get(snapshot, default)
+
+    def _setup(self):
+        """Internal setup method to be called at the generator's construction"""
+        raise NotImplementedError(
+            f"{self.__class__.__name__} does not implement the _setup method. " "Please implement it in the subclass."
+        )
 
     @abstractmethod
-    def generate(self, **kwargs) -> T:
-        """Generate an item using the context and keyword arguments"""
+    def _generate(self, **kwargs) -> T:
+        """Internal method to generate an item using the context and keyword arguments"""
+        return self.generate(**kwargs)
 
 
 class CachedGenerator(Generator[T]):
@@ -95,22 +142,30 @@ class CachedGenerator(Generator[T]):
 
     def __init__(self, context: Optional[Mapping] = None, instance_id: Optional[str] = None):
         super().__init__(context, instance_id)
-        self._generate = self.generate
-        self.generate = self._cached_generate
-        file_type = context.get("type", "cache")
+        file_type = self.context.get("type", "cache")
         self.context.validate(
-            {"cache_file": (str, os.path.join(CACHE_DIR, f"{self.instance_id}_{self.__class__.__name__}.{file_type}"))}
+            {
+                "cache_dir": (str, CACHE_DIR),
+                "cache_file": (
+                    str,
+                    os.path.join(
+                        self.context["cache_dir"], f"{self.instance_id}_{self.__class__.__name__}.{file_type}"
+                    ),
+                ),
+            }
         )
         self.cache_file = self.context["cache_file"]
         self.saved_cache_files = set()
 
-    def _cached_generate(self, **kwargs) -> T:
+    def generate(self, snapshot: Optional[str] = None, **kwargs) -> T:
         cache_file = self.dynamic_cache_file(**kwargs) or self.cache_file
         loaded_value = self.load_from_cache(cache_file)
         if loaded_value is not None:
             if self.validate_cache(loaded_value):
+                if snapshot:
+                    self.snapshots[snapshot] = loaded_value
                 return loaded_value
-        generated_value = self._generate(**kwargs)
+        generated_value = super().generate(snapshot, **kwargs)
         self.save_to_cache(cache_file, generated_value)
         self.saved_cache_files.add(cache_file)
         return generated_value

@@ -21,40 +21,40 @@ from glideinwms.lib.token_util import create_and_sign_token
 class IdTokenGenerator(CredentialGenerator):
     """IDTOKEN generator"""
 
-    def setup(self):
+    def _setup(self):
+        self.context.validate(
+            {
+                "password": (str, ""),
+                "scope": (str, ""),
+                "duration": (int, 0),
+                "minimum_lifetime": (int, 0),
+                "identity": (str, ""),
+            }
+        )
         self.context["type"] = "idtoken"
 
-    def generate(self, **kwargs):
-        default_password = os.path.join(
+    def _generate(self, **kwargs):
+        password = self.context["password"] or os.path.join(
             PWD_DIR, kwargs["elementDescript"].merged_data.get("IDTokenKeyname", getpass.getuser().upper())
         )
 
-        default_scope = "condor:/READ condor:/ADVERTISE_STARTD condor:/ADVERTISE_MASTER"
+        scope = self.context["scope"] or "condor:/READ condor:/ADVERTISE_STARTD condor:/ADVERTISE_MASTER"
 
-        default_duration = int(kwargs["elementDescript"].merged_data.get("IDTokenLifetime", 24)) * 3600
-
-        default_minimum_lifetime = 0
-
-        default_identity = f"{kwargs['glidein_el']['attrs']['GLIDEIN_Site']}@{socket.gethostname()}"
-
-        self.context.validate(
-            {
-                "password": (str, default_password),
-                "scope": (str, default_scope),
-                "duration": (int, default_duration),
-                "minimum_lifetime": (int, default_minimum_lifetime),
-                "identity": (str, default_identity),
-            }
+        duration = (
+            self.context["duration"] or int(kwargs["elementDescript"].merged_data.get("IDTokenLifetime", 24)) * 3600
         )
+
+        identity = self.context["identity"] or f"{kwargs['glidein_el']['attrs']['GLIDEIN_Site']}@{socket.gethostname()}"
+
+        minimum_lifetime = self.context["minimum_lifetime"] or 0
 
         idtoken_str = create_and_sign_token(
-            pwd_file=self.context["password"],
-            scope=self.context["scope"],
-            duration=self.context["duration"],
-            identity=self.context["identity"],
+            pwd_file=password,
+            scope=scope,
+            duration=duration,
+            identity=identity,
         )
 
-        minimum_lifetime = self.context["minimum_lifetime"]
         if minimum_lifetime <= 0:
             minimum_lifetime = None
 

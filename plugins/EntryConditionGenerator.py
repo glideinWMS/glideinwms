@@ -41,7 +41,7 @@ class EntryConditionGenerator(Generator[Any]):
         "trust_domain": "GLIDEIN_TrustDomain",
     }
 
-    def setup(self):
+    def _setup(self):
         if "list" not in self.context and "dict" not in self.context:
             raise GeneratorError(
                 "list and dict not found in context for EntryConditionGenerator. At least one is required"
@@ -66,7 +66,7 @@ class EntryConditionGenerator(Generator[Any]):
         if not isinstance(self.discriminator_dict, dict):
             raise GeneratorError("invalid dict in context for EntryConditionGenerator.")
 
-    def generate(self, **kwargs) -> Any:
+    def _generate(self, **kwargs) -> Any:
         """Generate the Entry-determined value.
 
         This function is by choice not using "entry" from kwargs. All values are in "glidein_el".
