@@ -16,7 +16,7 @@ import time
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import Any, Generic, Mapping, Optional, Tuple, Type, TypeVar
+from typing import Any, Generic, Mapping, Optional, Tuple, Type, TypeVar, Union
 
 from glideinwms.lib.defaults import CACHE_DIR, PLUGINS_DIR
 from glideinwms.lib.util import hash_nc, import_module
@@ -72,6 +72,7 @@ class Generator(ABC, Generic[T]):
     """Base class for generators"""
 
     def __init__(self, context: Optional[Mapping] = None, instance_id: Optional[str] = None):
+        self.snapshots = {}
         self.context = GeneratorContext(context)
         self.instance_id = instance_id or hash_nc(f"{time.time()}", 8)
         self.setup()
@@ -84,10 +85,56 @@ class Generator(ABC, Generic[T]):
 
     def setup(self):
         """Setup method to be called at the generator's construction"""
+        try:
+            self._setup()
+        except NotImplementedError:
+            pass
+
+    def generate(self, snapshot: Optional[str] = None, **kwargs) -> T:
+        """
+        Generates an item using the current context and any provided keyword arguments.
+
+        Args:
+            snapshot (str, optional): An optional identifier for the snapshot or state to use during generation. Defaults to None.
+            **kwargs: Additional keyword arguments that may be used to customize the generation process.
+
+        Returns:
+            T: The generated item of type T, as determined by the implementation.
+        """
+
+        generated_value = self._generate(**kwargs)
+        if snapshot:
+            self.snapshots[snapshot] = generated_value
+
+        return generated_value
+
+    def get_snapshot(self, snapshot: str, default: Optional[any] = None) -> Optional[T]:
+        """
+        Retrieves a previously generated snapshot.
+
+        Args:
+            snapshot (str): The identifier for the snapshot to retrieve.
+            default (Optional[any]): A default value to return if the snapshot does not exist.
+
+        Returns:
+            T: The previously generated item of type T, or None if the snapshot does not exist.
+
+        Raises:
+            GeneratorError: If the snapshot does not exist.
+        """
+
+        return self.snapshots.get(snapshot, default)
+
+    def _setup(self):
+        """Internal setup method to be called at the generator's construction"""
+        raise NotImplementedError(
+            f"{self.__class__.__name__} does not implement the _setup method. " "Please implement it in the subclass."
+        )
 
     @abstractmethod
-    def generate(self, **kwargs) -> T:
-        """Generate an item using the context and keyword arguments"""
+    def _generate(self, **kwargs) -> T:
+        """Internal method to generate an item using the context and keyword arguments"""
+        return self.generate(**kwargs)
 
 
 class CachedGenerator(Generator[T]):
@@ -95,47 +142,132 @@ class CachedGenerator(Generator[T]):
 
     def __init__(self, context: Optional[Mapping] = None, instance_id: Optional[str] = None):
         super().__init__(context, instance_id)
-        self._generate = self.generate
-        self.generate = self._cached_generate
+        file_type = self.context.get("type", "cache")
         self.context.validate(
             {
-                "cache_file": (str, os.path.join(CACHE_DIR, f"{self.instance_id}_{self.__class__.__name__}.cache")),
+                "cache_dir": (str, CACHE_DIR),
+                "cache_file": (
+                    str,
+                    os.path.join(
+                        self.context["cache_dir"], f"{self.instance_id}_{self.__class__.__name__}.{file_type}"
+                    ),
+                ),
             }
         )
         self.cache_file = self.context["cache_file"]
+        self.saved_cache_files = set()
 
-    def _cached_generate(self, **kwargs) -> T:
-        loaded_value = self.load_from_cache()
+    def generate(self, snapshot: Optional[str] = None, **kwargs) -> T:
+        cache_file = self.dynamic_cache_file(**kwargs) or self.cache_file
+        loaded_value = self.load_from_cache(cache_file)
         if loaded_value is not None:
             if self.validate_cache(loaded_value):
+                if snapshot:
+                    self.snapshots[snapshot] = loaded_value
                 return loaded_value
-        generated_value = self._generate(**kwargs)
-        self.save_to_cache(generated_value)
+        generated_value = super().generate(snapshot, **kwargs)
+        self.save_to_cache(cache_file, generated_value)
+        self.saved_cache_files.add(cache_file)
         return generated_value
 
     def clear_cache(self):
         """Remove the cache file"""
 
-        if os.path.exists(self.cache_file):
-            os.remove(self.cache_file)
+        for cache_file in self.saved_cache_files:
+            if os.path.exists(cache_file):
+                os.remove(cache_file)
+        self.saved_cache_files.clear()
+
+    def dynamic_cache_file(self, **kwargs) -> Optional[str]:
+        """Set a dynamic cache file name
+
+        This method returns None by default. Override it in subclasses to provide
+        a custom cache file name.
+        When generating a cache file, the generator will first try to use the dynamic
+        cache file name. If it is None, it will use the cache_file defined in the
+        context or the default one.
+
+        Args:
+            **kwargs: keyword arguments passed to the generate method
+
+        Returns:
+            Optional[str]: the dynamic cache file name or None
+        """
 
     @abstractmethod
-    def save_to_cache(self, generated_value: T):
+    def save_to_cache(self, cache_file: str, generated_value: T):
         """
         Save an item to the cache
+
+        Args:
+            cache_file (str): the cache file name
+            generated_value (T): the item to save
         """
 
     @abstractmethod
-    def load_from_cache(self) -> Optional[T]:
+    def load_from_cache(self, cache_file: str) -> Optional[T]:
         """
         Load an item from the cache
+
+        Args:
+            cache_file (str): the cache file name
+
+        Returns:
+            Optional[T]: the cached item or None if the cache file does not exist
         """
 
     @abstractmethod
     def validate_cache(self, cached_value: T) -> bool:
         """
         Validate the cache
+
+        Args:
+            cached_value (T): the cached item
+
+        Returns:
+            bool: True if the cache is valid, False otherwise
         """
+
+    @classmethod
+    def cache_discriminator(cls, discriminator: Union[str, list[str]], separator: str = ".", **kwargs) -> Optional[str]:
+        """Generate a cache discriminator string based on the provided discriminator and runtime arguments.
+        This method constructs a string that uniquely identifies the cache entry based on the provided
+        discriminator values and the attributes of the glidein element.
+
+        Args:
+            discriminator (Union[str, list[str]]): a string or a list of strings that specify the discriminator values
+            separator (str): a string used to separate the discriminator values in the resulting string
+            **kwargs: runtime arguments that include the glidein element and other necessary attributes
+
+        Returns:
+            Optional[str]: a string that uniquely identifies the cache entry, or None if the discriminator is not provided
+
+        Raises:
+            GeneratorError: if the discriminator is invalid or not in the expected format
+        """
+
+        discriminator_values = ["name", "group", "gatekeeper", "factory", "trust_domain"]
+        entry_mapping = {
+            "name": kwargs["glidein_el"]["attrs"].get("EntryName"),
+            "group": kwargs["group_name"],
+            "gatekeeper": kwargs["glidein_el"]["attrs"].get("GLIDEIN_Gatekeeper"),
+            "factory": kwargs["glidein_el"]["attrs"].get("AuthenticatedIdentity"),
+            "trust_domain": kwargs["glidein_el"]["attrs"].get("GLIDEIN_TrustDomain"),
+        }
+
+        if discriminator is None:
+            return None
+
+        if isinstance(discriminator, str):
+            discriminator = [discriminator]
+
+        for disc in discriminator:
+            if disc not in discriminator_values:
+                raise GeneratorError(f"Invalid discriminator '{disc}'. Must be in {discriminator_values}.")
+
+        discriminator_str = separator.join(str(entry_mapping[disc]) for disc in discriminator if disc in entry_mapping)
+
+        return discriminator_str
 
 
 def load_generator(module: str, context: Optional[Mapping] = None) -> Generator:

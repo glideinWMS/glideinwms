@@ -22,7 +22,7 @@ BINARY_ENCODING_ASCII = "ascii"  # valid aliases: 646, us-ascii
 BINARY_ENCODING_DEFAULT = "utf_8"  # valid aliases: utf-8, utf8 (default Python 3 encoding)
 
 PLUGINS_DIR = "/etc/gwms-frontend/plugin.d"  # TODO: Make this configurable
-CACHE_DIR = f"{Path.home()}/vofrontend"
+CACHE_DIR = f"{Path.home()}/cache"
 PWD_DIR = f"{Path.home()}/passwords.d"
 TOKEN_DIR = f"{Path.home()}/tokens.d"
 
