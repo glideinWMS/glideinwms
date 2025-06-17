@@ -25,6 +25,8 @@ Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-dem
 -   Removed incorrect warning when setting SINGULARITY_BIN to keyword (PR #534)
 -   Added `--skip-broken` to yumalldeps to avoid an error when incompatible packages are in the list (PR #534)
 -   Added explicit retrieval from glidein_config of GLIDEIN_CONTAINER_ENV and GLIDEIN_CONTAINER_ENV_CLEARLIST in singularity_lib.sh (PR #535)
+-   Fixed handling of Apptainer environment and image restrictions
+-   Added workaround for HTCondor setting PATH only as variable and not in the environment
 
 ### Testing / Development
 

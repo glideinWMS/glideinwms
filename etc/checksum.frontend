@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_14_rc1
+# GLIDEINWMS_VERSION v3_10_14_rc2
 ###################################################################
 78bb68217a24e977bdc5850e7d607960  ./__init__.py
 32b4bfc3e16d335b71c235d34a819eba  ./.codespell/ignore_lines.txt
@@ -98,7 +98,7 @@ a07332de53ae9fb905f7cc97e08ef37f  ./creation/web_base/nodes.blacklist
 8ab7dc0a6cdba761067faeea83d3973c  ./creation/web_base/setup_network.sh
 214d7ed29a9a5f92453191b9c4089f12  ./creation/web_base/setup_prejob.sh
 44ddb239979e4592e0fc77ec8a21efd7  ./creation/web_base/setup_script.sh
-3aab012cafcc47de25b917681fe2f9e9  ./creation/web_base/singularity_lib.sh
+2bc442bde9ad5100f5f9292b4d6c5c5c  ./creation/web_base/singularity_lib.sh
 09cb7472f92efcac002ee7166f9d4ae4  ./creation/web_base/singularity_wrapper.sh
 1feebbec48bdd2edece16d9b9167a03c  ./creation/web_base/smart_partitionable.sh
 6391319a5eddce73d17ed4003eed439e  ./creation/web_base/update_proxy.py

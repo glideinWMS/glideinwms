@@ -3,7 +3,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-""" ":
+# fmt: off
+# Must be 4 attached quotes, otherwise shell gives problems  .../gconfig.py: line 6:  :: command not found
+"""":
 # Shell preamble to find the Python interpreter (type OK, command -v is POSIX)
 if [ -f "$(dirname "$0")"/gwms-python ]; then
     exec "$(dirname "$0")"/gwms-python "$0" "$@"
@@ -27,7 +29,7 @@ Using a singleton (`_GLIDEIN_CONFIG`)
 A previous implementation by CMS was incomplete and had some bugs (when attributes start w/ another attribute)
 https://gitlab.cern.ch/CMSSI/CMSglideinWMSValidation/-/blob/production/export_siteconf_info.py
 """  # "
-
+# fmt: on
 
 import argparse
 import os
