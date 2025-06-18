@@ -1,7 +1,15 @@
-#!/bin/bash
+#!/bin/sh
 
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
+
+# shellcheck disable=SC2039
+# If not running Bash and Bash is available, use it
+[ -z "$BASH_VERSION" ] && which bash > /dev/null 2>&1 && exec bash "$0" "$@"
+# Supposing Bash or Busybox ash/dash shell
+# use let instead of (( )), use $(eval "echo \"\$${var##*[!0-9_a-z_A-Z]*}\"") instead of ${!var}
+# and for assignment `eval "new_var=\$${var##*[!0-9_a-z_A-Z]*}"`
+# [[ ]] is OK, variables manipulation OK
 
 # GlideinWMS singularity wrapper. Invoked by HTCondor as user_job_wrapper
 # default_singularity_wrapper USER_JOB [job options and arguments]
@@ -17,7 +25,7 @@ export GWMS_AUX_SUBDIR
 GWMS_SUBDIR=${GWMS_SUBDIR:-".gwms.d"}
 export GWMS_SUBDIR
 
-GWMS_VERSION_SINGULARITY_WRAPPER=20201013
+GWMS_VERSION_SINGULARITY_WRAPPER=20250618
 # Updated using OSG wrapper #5d8b3fa9b258ea0e6640727405f20829d2c5d4b9
 # https://github.com/opensciencegrid/osg-flock/blob/master/job-wrappers/user-job-wrapper.sh
 # Link to the CMS wrapper
@@ -33,7 +41,8 @@ GWMS_VERSION_SINGULARITY_WRAPPER=20201013
 
 # To avoid GWMS debug and info messages in the job stdout/err (unless userjob option is set)
 [[ ! ",${GLIDEIN_DEBUG_OPTIONS}," = *,userjob,* ]] && GLIDEIN_QUIET=True
-[[ ! ",${GLIDEIN_DEBUG_OPTIONS}," = *,nowait,* ]] && EXITSLEEP=2m # leave 2min to update classad
+[[ ",${GLIDEIN_DEBUG_OPTIONS}," = *,usertrace,* ]] && set -x
+[[ ",${GLIDEIN_DEBUG_OPTIONS}," = *,nowait,* ]] && EXITSLEEP=2m # leave 2min to update classad
 
 # When failing we need to tell HTCondor to put the job back in the queue by creating
 # a file in the PATH pointed by $_CONDOR_WRAPPER_ERROR_FILE
@@ -108,7 +117,21 @@ else
     exit_wrapper "Wrapper script $GWMS_THIS_SCRIPT failed: Unable to source singularity_lib.sh" 1
 fi
 # shellcheck source=../singularity_lib.sh
-. "${GWMS_AUX_DIR}"/singularity_lib.sh
+if [[ -z "$GWMS_SINGULARITY_REEXEC" ]] || [[ -n "$BASH_VERSION" ]]; then
+    . "${GWMS_AUX_DIR}"/singularity_lib.sh
+    GWMS_SHELL_MODE="Bash"
+else
+    # Inside Apptainer and no Bash:  source and skip parts incompatible with Busybox, to be compatible w/ all containers
+    # Lines ending in "# START bash" and "END bash" delimit Bash only sections
+    eval "$(sed '/.*# START bash$/,/.*# END bash$/d' "${GWMS_AUX_DIR}"/singularity_lib.sh)"
+    GWMS_SHELL_MODE="Busybox-compatibility"
+fi
+# These singularity_lib.sh functions must be Busybox compatible (are used inside the container)
+# - info_dbg
+# - setup_classad_variables
+# - cvmfs_test_and_open
+# - singularity_setup_inside
+# - gwms_process_scripts
 
 # Directory to use for bin, lib, exec, ... full path
 if [[ -n "$GWMS_DIR" && -e "$GWMS_DIR/bin" ]]; then
@@ -128,7 +151,7 @@ export GWMS_DIR
 
 # Calculating full version number, including md5 sums form the wrapper and singularity_lib
 GWMS_VERSION_SINGULARITY_WRAPPER="${GWMS_VERSION_SINGULARITY_WRAPPER}_$(md5sum "$GWMS_THIS_SCRIPT" 2>/dev/null | cut -d ' ' -f1)_$(md5sum "${GWMS_AUX_DIR}/singularity_lib.sh" 2>/dev/null | cut -d ' ' -f1)"
-info_dbg "GWMS singularity wrapper ($GWMS_VERSION_SINGULARITY_WRAPPER) starting, $(date). Imported singularity_lib.sh. glidein_config ($glidein_config)."
+info_dbg "GWMS singularity wrapper ($GWMS_VERSION_SINGULARITY_WRAPPER) starting, $(date). Imported singularity_lib.sh ($GWMS_SHELL_MODE). glidein_config ($glidein_config)."
 info_dbg "$GWMS_THIS_SCRIPT, in $(pwd), list: $(ls -al)"
 
 #################### main ###################
@@ -225,7 +248,7 @@ gwms_process_scripts "$GWMS_DIR" prejob "$glidein_config"
 # Aux dir in the future mounted read only. Remove the directory if in Singularity
 # TODO: should always auxdir be copied and removed? Should be left for the job?
 # shellcheck disable=SC2015    # OK if the directory is not there
-[[ "$GWMS_AUX_SUBDIR/" == /srv/* ]] && rm -rf "${GWMS_AUX_SUBDIR:?}/" >/dev/null 2>&1 || true
+[[ "$GWMS_AUX_SUBDIR/" = /srv/* ]] && rm -rf "${GWMS_AUX_SUBDIR:?}/" >/dev/null 2>&1 || true
 rm -f .gwms-user-job-wrapper.sh >/dev/null 2>&1 || true
 
 ##############################
