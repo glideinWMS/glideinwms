@@ -673,7 +673,7 @@ def process_and_advertise_glideins(self):
 
     Logs:
         Glidein totals, curbs, idles, proxy update info, and matching summaries.
-    """        
+    """
  logSupport.log.info(
             "Group glideins found total %i limit %i curb %i; of these idle %i limit %i curb %i running %i"
             % (
@@ -1548,7 +1548,7 @@ def log_and_prepare_glidein_stats(self, glideid, glideid_str, glidein_el, factor
     Updates:
         self.condorq_dict_types (dict): A mapping of job categories to their respective classad dicts and counts.
         self.condorq_dict_running (dict): Subset of condorq with running jobs only.
-    """      
+    """
  # create a dictionary that does not contain the blacklisted schedds
         good_condorq_dict = self.condorq_dict.copy()  # simple copy enough, will only modify keys
         for k in self.blacklist_schedds:
@@ -1587,7 +1587,7 @@ def log_and_prepare_glidein_stats(self, glideid, glideid_str, glidein_el, factor
     Populates the `status_dict_types` attribute with categorized information about glidein slot statuses.
 
     This method generates multiple filtered views of the Condor status dictionary to classify
-    glidein slots into categories such as Total, Idle, Running, and Failed, and calculates 
+    glidein slots into categories such as Total, Idle, Running, and Failed, and calculates
     both slot counts and core counts for each category.
 
     The categories include:
