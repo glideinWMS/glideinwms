@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR v3.10.14 \[2025-06-09\]
+## Changes Since Last Release OR v3.10.14 \[2025-06-12\]
 
 Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-demand CVMFS setup.
 
@@ -14,7 +14,7 @@ Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-dem
 
 ### Changed defaults / behaviours
 
--   Updated download/execution order of `cvmfs_setup.sh` during glidein startup using a new priority `precvmfs_file_list` (PR #528).
+-   Updated download/execution order of `cvmfs_setup.sh` during glidein startup using a new priority `precvmfs_file_list` (PR #528)
 
 ### Deprecated / removed options and commands
 
@@ -25,6 +25,8 @@ Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-dem
 -   Removed incorrect warning when setting SINGULARITY_BIN to keyword (PR #534)
 -   Added `--skip-broken` to yumalldeps to avoid an error when incompatible packages are in the list (PR #534)
 -   Added explicit retrieval from glidein_config of GLIDEIN_CONTAINER_ENV and GLIDEIN_CONTAINER_ENV_CLEARLIST in singularity_lib.sh (PR #535)
+-   Fixed handling of Apptainer environment and image restrictions
+-   Added workaround for HTCondor setting PATH only as variable and not in the environment
 
 ### Testing / Development
 

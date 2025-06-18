@@ -234,7 +234,7 @@ dict_items_iterator() {
     local val
     for i in "${arr[@]}"  # ${arr[*]} separates also by spaces
     do
-        [[ "$i" = *\:* ]] && val="${i#*:}" || val=   # to protect against empty val and no :
+        [[ "$i" = *:* ]] && val="${i#*:}" || val=   # to protect against empty val and no :
         # function key value
         "$@" "${i%%:*}" "$val"
     done
@@ -715,7 +715,7 @@ env_clear_one() {
         info "GWMS Singularity wrapper: $1 is set to ${!1} outside Singularity. This will not be propagated to inside the container instance."
         export "${varname}"="${!1}"
         case $1 in
-            PATH) PATH=$_DEFAULT_PATH ;;
+            PATH) export PATH="$_DEFAULT_PATH" ;;
                *) unset "$1" ;;
         esac
     fi
@@ -786,7 +786,7 @@ env_clear() {
     if [[ "${env_options}" = *",clearall,"* || "${env_options}" = *",clearpaths,"* ]]; then
         # clear the ...PATH variables
         # PATH should be cleared also by Singularity, but the behavior is inconsistent across versions
-        for i in PATH LD_LIBRARY_PATH PYTHONPATH ; do
+        for i in PATH LD_LIBRARY_PATH PYTHONPATH LD_PRELOAD ; do
             env_clear_one ${i}
         done
     fi
@@ -959,7 +959,7 @@ env_restorelist() {
 
 
 env_restore() {
-    # Restore the environment if the Singularity invocation fails
+    # Restore the environment (path variables) if the Singularity invocation fails
     # Nothing to do for the env cleared by Singularity, we are outside of it.
     # The PATH... variables may need to be restored.
     #
@@ -973,10 +973,10 @@ env_restore() {
     if [[ "${env_options}" = *",clearall,"* || "${env_options}" = *",clearpaths,"* ]]; then
         # clear the ...PATH variables
         # PATH should be cleared also by Singularity, but the behavior is inconsistent across versions
-        info "Restoring the cleared PATH, LD_LIBRARY_PATH, PYTHONPATH"
-        for i in PATH LD_LIBRARY_PATH PYTHONPATH ; do
+        info "Restoring the cleared PATH, LD_LIBRARY_PATH, PYTHONPATH, LD_PRELOAD"
+        for i in PATH LD_LIBRARY_PATH PYTHONPATH LD_PRELOAD ; do
             varname="GWMS_OLDENV_$i"
-            export ${i}="${!varname}"
+            [[ -n "${!varname}" ]] && export ${i}="${!varname}" || true
         done
     fi
 }
@@ -1017,7 +1017,7 @@ cvmfs_test_and_open() {
         for x in $1; do  # Spaces in file name are OK, separator is comma
             if eval "exec ${holdfd}<${cvmfs_mount}/\"$x\""; then
                 echo "\"${cvmfs_mount}/$x\" exists and available"
-                let "holdfd=holdfd+1"
+                ((holdfd=holdfd+1))
             else
                 echo "\"${cvmfs_mount}/$x\" NOT available"
                 # [ -n "$2" ] && { $2 } || { echo 1; }
@@ -1281,25 +1281,53 @@ singularity_exec() {
             "$singularity_opts ${singularity_binds:+"--bind" "\"$singularity_binds\""} " \
             "\"$singularity_image\"" "${@}" "[ $# arguments ]"
     local error
+    if [[ ! ",${execution_opt}," = *,noenv,* ]]; then
+        # Clean/preserve environment
+        # Add --clearenv if requested and clear PATH variables
+        # Always (unless keepall) disabling outside LD_LIBRARY_PATH, PATH, PYTHONPATH and LD_PRELOAD to avoid problems w/ different OS
+        # Singularity is supposed to handle this, but different versions behave differently
+        # Restore them only if continuing after singularity invocation (end of this function)
+        [[ -n "$GLIDEIN_CONTAINER_ENV" ]] || GLIDEIN_CONTAINER_ENV=$(gwms_from_config GLIDEIN_CONTAINER_ENV "")
+        [[ -n "$GLIDEIN_CONTAINER_ENV_CLEARLIST" ]] || GLIDEIN_CONTAINER_ENV_CLEARLIST=$(gwms_from_config GLIDEIN_CONTAINER_ENV_CLEARLIST "")
+        singularity_opts=$(env_clear "${GLIDEIN_CONTAINER_ENV}" "${singularity_opts}")
+        env_clearlist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
+        # If there is clearenv protect the variables (it may also have been added by the custom Singularity options)
+        if env_gets_cleared "${GWMS_SINGULARITY_EXTRA_OPTS}"; then
+            env_preserve "${GLIDEIN_CONTAINER_ENV}"
+        fi
+    fi
     if [[ ",${execution_opt}," = *,exec,* ]]; then
+        # shellcheck disable=SC2093
+        # shellcheck disable=SC2086
         exec "$singularity_bin" ${singularity_global_opts} exec --home "$PWD":/srv --pwd /srv \
-            ${singularity_opts} ${singularity_binds:+"--bind" "$singularity_binds"} \
+            ${singularity_opts} ${singularity_binds:+--bind "$singularity_binds"} \
             "$singularity_image" "${@}"
         error=$?
         [[ -n "$_CONDOR_WRAPPER_ERROR_FILE" ]] && echo "Failed to exec singularity ($error): exec \"$singularity_bin\" $singularity_global_opts exec --home \"$PWD\":/srv --pwd /srv " \
-            "$singularity_opts ${singularity_binds:+"--bind" "\"$singularity_binds\""} " \
-            "\"$singularity_image\"" "${@}" >> $_CONDOR_WRAPPER_ERROR_FILE
+            "$singularity_opts ${singularity_binds:+--bind \"$singularity_binds\"} " \
+            "\"$singularity_image\"" "${@}" >> "$_CONDOR_WRAPPER_ERROR_FILE"
         warn "exec of singularity failed: exit code $error"
+        if [[ ! ",${execution_opt}," = *,noenv,* ]]; then
+            # Clean/restore environment
+            env_restore "${GLIDEIN_CONTAINER_ENV}"
+            env_restorelist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
+        fi
         return ${error}
     else
+        # shellcheck disable=SC2086
         "$singularity_bin" ${singularity_global_opts} exec --home "$PWD":/srv --pwd /srv \
             ${singularity_opts} ${singularity_binds:+"--bind" "$singularity_binds"} \
             "$singularity_image" "${@}"
+        if [[ ! ",${execution_opt}," = *,noenv,* ]]; then
+            # Restore environment (path vars, list)
+            env_restore "${GLIDEIN_CONTAINER_ENV}"
+            env_restorelist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
+        fi
         return $?
     fi
     # Code should never get here
     warn "ERROR Inconsistency in Singularity invocation functions. Failing"
-    [[ -n "$_CONDOR_WRAPPER_ERROR_FILE" ]] && echo "ERROR: Inconsistency in GWMS Singularity invocation. Failing." >> $_CONDOR_WRAPPER_ERROR_FILE
+    [[ -n "$_CONDOR_WRAPPER_ERROR_FILE" ]] && echo "ERROR: Inconsistency in GWMS Singularity invocation. Failing." >> "$_CONDOR_WRAPPER_ERROR_FILE"
     exit 1
 }
 
@@ -1465,14 +1493,14 @@ singularity_test_bin() {
         [[ -n "$sin_path" ]] && module_name=$sin_path
         module load "$module_name" >/dev/null 2>&1
         # message on error?
-        sin_path=$(which "$sin_binary_name")
+        sin_path=$(which "$sin_binary_name" 2>/dev/null)
         # should check also CVMFS_MOUNT_DIR beside /cvmfs but not adding complication just for the warning message
         [[ -z "$sin_path" && "$LMOD_CMD" = /cvmfs/* ]] &&
             warn "$sin_binary_name not found in module. OSG OASIS module from module-init.sh used. May override a system module."
     elif [[ "$step" = PATH ]]; then
         # find the full path
         [[ -n "$sin_path" ]] && sin_binary_name="$sin_path"
-        sin_path=$(which "$sin_binary_name")
+        sin_path=$(which "$sin_binary_name" 2>/dev/null)
     fi
     if [[ -z "$sin_path" ]] && [[ "$step" = module || "$step" = PATH ]]; then
         info_dbg "which failed ($PATH). Trying command: command -v \"$sin_binary_name\""
@@ -1593,7 +1621,7 @@ singularity_locate_bin() {
             test_out=$(singularity_test_bin "${s_step},${s_location}/$test_out" "$s_image") &&
                 HAS_SINGULARITY=True
             bread_crumbs+="${test_out##*@}"
-        elif [[ ! ",PATH,CONDOR,OSG," = *",$s_location,"* ]]; then  # Don't print error for keywords
+        elif [[ ! ",PATH,CONDOR,OSG,," = *",$1,"* ]]; then  # Don't print error for keywords or empty value
             [[ "$s_location" = NONE ]] &&
                 warn "SINGULARITY_BIN = NONE is no more a valid value, use GLIDEIN_SINGULARITY_REQUIRE to control the use of Singularity"
             info "Suggested path (SINGULARITY_BIN?) '$1' ($s_location) is not a directory or does not contain singularity."
@@ -1872,7 +1900,7 @@ singularity_exit_or_fallback () {
             # TODO: also this?: touch ../../.stop-glidein.stamp >/dev/null 2>&1
             [[ -n "$1" ]] && warn "exit_wrapper not defined, printing message and exiting: $1" ||
                 warn "exit_wrapper not defined, exiting"
-            exit ${2:-1}
+            exit "${2:-1}"
         fi
     fi
 }
@@ -1971,9 +1999,16 @@ ERROR   If you get this error when you did not specify required OS, your VO does
     #     singularity_exit_or_fallback "User provided image not in CVMFS" 1
     # fi
 
-    # Whether user-provided or default image, we make sure it exists and make sure CVMFS has not fallen over
-    # images in CVMFS can also be compressed (former expansion requirement is inconsistent w/ following lines)
-    if ! singularity_verify_image "$GWMS_SINGULARITY_IMAGE" ok_compressed; then
+    if singularity_verify_image "$GWMS_SINGULARITY_IMAGE" ok_compressed; then
+        # Whether user-provided or default image, we make sure it exists and make sure CVMFS has not fallen over
+        # images in CVMFS can also be compressed (former expansion requirement is inconsistent w/ following lines)
+        info_dbg "Verified local file or CVMFS image $GWMS_SINGULARITY_IMAGE"
+    elif [[ ",${GWMS_SINGULARITY_IMAGE_RESTRICTIONS}," = *",remote,"* ]] && uri_is_valid_file_or_remote "$GWMS_SINGULARITY_IMAGE"; then
+        info_dbg "Verified remote or local image $GWMS_SINGULARITY_IMAGE"
+    elif [[ ",${GWMS_SINGULARITY_IMAGE_RESTRICTIONS}," = *",test,"* ]]; then
+        info_dbg "Invalid image $GWMS_SINGULARITY_IMAGE, but test execution, using default image"
+        GWMS_SINGULARITY_IMAGE=$(singularity_get_image_default)
+    else
         msg="\
 ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         Site and node: $OSG_SITE_NAME $(hostname -f)"
@@ -2114,67 +2149,66 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     info_dbg "about to invoke singularity, pwd is $PWD"
     export GWMS_SINGULARITY_REEXEC=1
 
-    # Always disabling outside LD_LIBRARY_PATH, PATH, PYTHONPATH and LD_PRELOAD to avoid problems w/ different OS
-    # Singularity is supposed to handle this, but different versions behave differently
-    # Restore them only if continuing after the exec of singularity failed (end of this function)
-    local old_ld_library_path=
-    if [[ -n "$LD_LIBRARY_PATH" ]]; then
-        old_ld_library_path=$LD_LIBRARY_PATH
-        info "GWMS Singularity wrapper: LD_LIBRARY_PATH is set to $LD_LIBRARY_PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
-        unset LD_LIBRARY_PATH
-    fi
-    local old_path=
-    if [[ -n "$PATH" ]]; then
-        old_path=$PATH
-        info "GWMS Singularity wrapper: PATH is set to $PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
-        PATH=$_DEFAULT_PATH
-    fi
-    local old_pythonpath=
-    if [[ -n "$PYTHONPATH" ]]; then
-        old_pythonpath=$PYTHONPATH
-        info "GWMS Singularity wrapper: PYTHONPATH is set to $PYTHONPATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
-        unset PYTHONPATH
-    fi
-    if [[ -n "$LD_PRELOAD" ]]; then
-        old_ld_preload=$LD_PRELOAD
-        info "GWMS Singularity wrapper: LD_PRELOAD is set to $LD_PRELOAD outside Singularity. This will not be propagated to inside the container instance." 1>&2
-        unset LD_PRELOAD
-    fi
+# Duplicate of env_clear
+#    # Always disabling outside LD_LIBRARY_PATH, PATH, PYTHONPATH and LD_PRELOAD to avoid problems w/ different OS
+#    # Singularity is supposed to handle this, but different versions behave differently
+#    # Restore them only if continuing after the exec of singularity failed (end of this function)
+#    local old_ld_library_path=
+#    if [[ -n "$LD_LIBRARY_PATH" ]]; then
+#        old_ld_library_path=$LD_LIBRARY_PATH
+#        info "GWMS Singularity wrapper: LD_LIBRARY_PATH is set to $LD_LIBRARY_PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
+#        unset LD_LIBRARY_PATH
+#    fi
+#    local old_path=
+#    if [[ -n "$PATH" ]]; then
+#        old_path=$PATH
+#        info "GWMS Singularity wrapper: PATH is set to $PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
+#        PATH=$_DEFAULT_PATH
+#    fi
+#    local old_pythonpath=
+#    if [[ -n "$PYTHONPATH" ]]; then
+#        old_pythonpath=$PYTHONPATH
+#        info "GWMS Singularity wrapper: PYTHONPATH is set to $PYTHONPATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
+#        unset PYTHONPATH
+#    fi
+#    if [[ -n "$LD_PRELOAD" ]]; then
+#        old_ld_preload=$LD_PRELOAD
+#        info "GWMS Singularity wrapper: LD_PRELOAD is set to $LD_PRELOAD outside Singularity. This will not be propagated to inside the container instance." 1>&2
+#        unset LD_PRELOAD
+#    fi
 
-    # Add --clearenv if requested
-    [[ -n "$GLIDEIN_CONTAINER_ENV" ]] || GLIDEIN_CONTAINER_ENV=$(gwms_from_config GLIDEIN_CONTAINER_ENV "")
-    [[ -n "$GLIDEIN_CONTAINER_ENV_CLEARLIST" ]] || GLIDEIN_CONTAINER_ENV_CLEARLIST=$(gwms_from_config GLIDEIN_CONTAINER_ENV_CLEARLIST "")
-    GWMS_SINGULARITY_EXTRA_OPTS=$(env_clear "${GLIDEIN_CONTAINER_ENV}" "${GWMS_SINGULARITY_EXTRA_OPTS}")
-    env_clearlist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
-
-    # If there is clearenv protect the variables (it may also have been added by the custom Singularity options)
-    if env_gets_cleared "${GWMS_SINGULARITY_EXTRA_OPTS}"; then
-        env_preserve "${GLIDEIN_CONTAINER_ENV}"
-    fi
+# Added to singularity_exec
+#    # Add --clearenv if requested
+#    [[ -n "$GLIDEIN_CONTAINER_ENV" ]] || GLIDEIN_CONTAINER_ENV=$(gwms_from_config GLIDEIN_CONTAINER_ENV "")
+#    [[ -n "$GLIDEIN_CONTAINER_ENV_CLEARLIST" ]] || GLIDEIN_CONTAINER_ENV_CLEARLIST=$(gwms_from_config GLIDEIN_CONTAINER_ENV_CLEARLIST "")
+#    GWMS_SINGULARITY_EXTRA_OPTS=$(env_clear "${GLIDEIN_CONTAINER_ENV}" "${GWMS_SINGULARITY_EXTRA_OPTS}")
+#    env_clearlist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
+#
+#    # If there is clearenv protect the variables (it may also have been added by the custom Singularity options)
+#    if env_gets_cleared "${GWMS_SINGULARITY_EXTRA_OPTS}"; then
+#        env_preserve "${GLIDEIN_CONTAINER_ENV}"
+#    fi
 
     # The new OSG wrapper is not exec-ing singularity to continue after and inspect if it ran correctly or not
     # This may be causing problems w/ signals (sig-term/quit) propagation - [#24306]
-    if [[ -z "$GWMS_SINGULARITY_LIB_VERSION" ]]; then
-        # GWMS 3.4.5 or lower, no GWMS_SINGULARITY_GLOBAL_OPTS, no GWMS_SINGULARITY_LIB_VERSION
-        singularity_exec "$GWMS_SINGULARITY_PATH" "$GWMS_SINGULARITY_IMAGE" "$singularity_binds" \
-            "$GWMS_SINGULARITY_EXTRA_OPTS" "exec" "$JOB_WRAPPER_SINGULARITY" \
-            "${GWMS_RETURN[@]}"
-    else
-        singularity_exec "$GWMS_SINGULARITY_PATH" "$GWMS_SINGULARITY_IMAGE" "$singularity_binds" \
-            "$GWMS_SINGULARITY_EXTRA_OPTS" "$GWMS_SINGULARITY_GLOBAL_OPTS" "exec" "$JOB_WRAPPER_SINGULARITY" \
-            "${GWMS_RETURN[@]}"
-    fi
+# Assuming no more GWMS < 3.4.5
+    singularity_exec "$GWMS_SINGULARITY_PATH" "$GWMS_SINGULARITY_IMAGE" "$singularity_binds" \
+        "$GWMS_SINGULARITY_EXTRA_OPTS" "$GWMS_SINGULARITY_GLOBAL_OPTS" "exec" "$JOB_WRAPPER_SINGULARITY" \
+        "${GWMS_RETURN[@]}"
+
     # Continuing here only if exec of singularity failed
     GWMS_SINGULARITY_REEXEC=0
-    env_restore "${GLIDEIN_CONTAINER_ENV}"
-    env_restorelist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
+# Added to singularity_exec
+#    env_restore "${GLIDEIN_CONTAINER_ENV}"
+#    env_restorelist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
 
-    # Restoring paths that are always cleared before invoking Singularity,
-    # may contain something used for error communication
-    [[ -n "$old_path" ]] && PATH=$old_path
-    [[ -n "$old_ld_library_path" ]] && LD_LIBRARY_PATH=$old_ld_library_path
-    [[ -n "$old_pythonpath" ]] && PYTHONPATH=$old_pythonpath
-    [[ -n "$old_ld_preload" ]] && LD_PRELOAD=$old_ld_preload
+# Added to singularity_exec
+#    # Restoring paths that are always cleared before invoking Singularity,
+#    # may contain something used for error communication
+#    [[ -n "$old_path" ]] && PATH=$old_path
+#    [[ -n "$old_ld_library_path" ]] && LD_LIBRARY_PATH=$old_ld_library_path
+#    [[ -n "$old_pythonpath" ]] && PYTHONPATH=$old_pythonpath
+#    [[ -n "$old_ld_preload" ]] && LD_PRELOAD=$old_ld_preload
     # Exit or return to run w/o Singularity
     singularity_exit_or_fallback "exec of singularity failed" $?
 }
@@ -2261,6 +2295,7 @@ setup_from_environment() {
     fi
 }
 
+# shellcheck disable=SC2155  # Declare and assign separately
 setup_classad_variables() {
     # Retrieve variables from Machine and Job ClassAds
     # Set up environment to know if Singularity is enabled and so we can execute Singularity
@@ -2309,7 +2344,7 @@ setup_classad_variables() {
     # Jobs with SingularityImage make Singularity REQUIRED
     [[ -n "$GWMS_SINGULARITY_IMAGE" ]] && export GWMS_SINGULARITY_STATUS_EFFECTIVE="REQUIRED_Singularity_image_in_job"
     # If not provided default to whatever is Singularity availability
-    export GWMS_SINGULARITY_AUTOLOAD=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityAutoLoad ${HAS_SINGULARITY})
+    export GWMS_SINGULARITY_AUTOLOAD=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityAutoLoad "${HAS_SINGULARITY}")
     export GWMS_SINGULARITY_BIND_CVMFS=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityBindCVMFS 1)
     export GWMS_SINGULARITY_BIND_GPU_LIBS=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityBindGPULibs 1)
     export CVMFS_REPOS_LIST=$(get_prop_str ${_CONDOR_JOB_AD} CVMFSReposList)
@@ -2325,8 +2360,8 @@ setup_classad_variables() {
         export MODULE_USE=$(get_prop_bool ${_CONDOR_JOB_AD} MODULE_USE 0)
         export InitializeModulesEnv=$(get_prop_bool ${_CONDOR_JOB_AD} InitializeModulesEnv 0)
     else
-        export MODULE_USE=$(get_prop_bool ${_CONDOR_JOB_AD} MODULE_USE ${MODULE_USE})
-        export InitializeModulesEnv=$(get_prop_bool ${_CONDOR_JOB_AD} InitializeModulesEnv ${MODULE_USE})
+        export MODULE_USE=$(get_prop_bool ${_CONDOR_JOB_AD} MODULE_USE "${MODULE_USE}")
+        export InitializeModulesEnv=$(get_prop_bool ${_CONDOR_JOB_AD} InitializeModulesEnv "${MODULE_USE}")
     fi
 
     export LoadModules=$(get_prop_str ${_CONDOR_JOB_AD} LoadModules)   # List of modules to load

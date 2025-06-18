@@ -13,10 +13,12 @@
 # Default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
 IFS=$' \t\n'
 
-# Some sites empty PATH. Setting a reasonable default
+# Some sites have empty PATH, some have only the variable but not the environment (env | grep ^PATH=).
+# Setting a reasonable default and exporting (so subprocesses work)
 if [[ -z "$PATH" ]]; then
-    export PATH="/bin:/usr/bin"
+    PATH="/bin:/usr/bin"
 fi
+export PATH
 
 global_args="$*"
 # GWMS_STARTUP_SCRIPT=$0
