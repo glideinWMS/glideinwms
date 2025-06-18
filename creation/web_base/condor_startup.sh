@@ -146,14 +146,14 @@ wrapper_list=$(gconfig_get WRAPPER_LIST "$config_file")
 # TODO: should it skip the wrapper if WRAPPER_LIST is empty?
 condor_job_wrapper="condor_job_wrapper.sh"
 cat > "$condor_job_wrapper" <<EOF
-#!/bin/bash
+#!/bin/sh
 
 # This script is started just before the user job
 # It is referenced by the USER_JOB_WRAPPER
 
 EOF
 
-for fname in `cat "$wrapper_list"`;
+for fname in $(cat "$wrapper_list");
 do
     cat "$fname" >> "$condor_job_wrapper"
 done

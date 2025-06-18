@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
@@ -12,6 +12,13 @@
 # This script will also be invoked right after the download, no need to do test, ... here. No $3
 # $1 - glidien_config
 # $2 - entry_id main, ...
+
+# shellcheck disable=SC2039
+# If not running Bash and Bash is available, use it
+[ -z "$BASH_VERSION" ] && which bash > /dev/null 2>&1 && exec bash "$0" "$@"
+# Supposing Bash or Busybox ash/dash shell
+# use let instead of (( )), use $(eval "echo \$${var}") instead of ${!var}
+# [[ ]] is OK, variables manipulation OK
 
 GWMS_THIS_SCRIPT="$0"
 GWMS_THIS_SCRIPT_DIR=$(dirname "$0")
@@ -119,7 +126,15 @@ else
     exit_wrapper "Wrapper script $GWMS_THIS_SCRIPT failed: Unable to source singularity_lib.sh" 1
 fi
 # shellcheck source=./singularity_lib.sh
-. "${GWMS_AUX_DIR}"/singularity_lib.sh
+if [[ -z "$GWMS_SINGULARITY_REEXEC" ]] || [[ -n "$BASH_VERSION" ]]; then
+    . "${GWMS_AUX_DIR}"/singularity_lib.sh
+    GWMS_SHELL_MODE="Bash"
+else
+    # Inside Apptainer and no Bash:  source and skip parts incompatible with Busybox, to be compatible w/ all containers
+    # Lines ending in "# START bash" and "END bash" delimit Bash only sections
+    eval "$(sed '/.*# START bash$/,/.*# END bash$/d' "${GWMS_AUX_DIR}"/singularity_lib.sh)"
+    GWMS_SHELL_MODE="Busybox-compatibility"
+fi
 
 # Directory to use for bin, lib, exec, ... full path
 # echo "DEBUG: checking for GWMS_DIR: env:$GWMS_DIR, `[[ -n "$GWMS_DIR" && -e "$GWMS_DIR/bin" ]] && echo OK`, $GWMS_THIS_SCRIPT_DIR/../$GWMS_SUBDIR/bin: `[[ -e $(dirname "$GWMS_THIS_SCRIPT_DIR")/$GWMS_SUBDIR/bin ]] && echo OK`, /srv/$GWMS_SUBDIR/bin : `[[ -e /srv/$GWMS_SUBDIR/bin ]] && echo OK`, /srv/$GWMS_BASE_SUBDIR/$GWMS_SUBDIR/bin: `[[ -e /srv/$GWMS_BASE_SUBDIR/$GWMS_SUBDIR/bin ]] && echo OK`, $GWMS_AUX_DIR/../$GWMS_SUBDIR/bin: `[[ -e /srv/$(dirname "$GWMS_AUX_DIR")/$GWMS_SUBDIR/bin ]] && echo OK`"
@@ -141,7 +156,7 @@ fi
 
 # Calculating full version number, including md5 sums form the wrapper and singularity_lib
 GWMS_VERSION_SINGULARITY_WRAPPER="${GWMS_VERSION_SINGULARITY_WRAPPER}_$(md5sum "$GWMS_THIS_SCRIPT" 2>/dev/null | cut -d ' ' -f1)_$(md5sum "${GWMS_AUX_DIR}/singularity_lib.sh" 2>/dev/null | cut -d ' ' -f1)"
-info_dbg "GWMS singularity wrapper ($GWMS_VERSION_SINGULARITY_WRAPPER) starting, $(date). Imported singularity_lib.sh. glidein_config ($glidein_config)."
+info_dbg "GWMS singularity wrapper ($GWMS_VERSION_SINGULARITY_WRAPPER) starting, $(date). Imported singularity_lib.sh ($GWMS_SHELL_MODE). glidein_config ($glidein_config)."
 info_dbg "$GWMS_THIS_SCRIPT, in $(pwd), list: $(ls -al)"
 
 
