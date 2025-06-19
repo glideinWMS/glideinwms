@@ -428,6 +428,24 @@ gwms_from_config() {
 }
 
 
+uri_is_valid_file_or_remote() {
+    # Return true if URI is not local or if it is a readable file
+    # Return false for empty values or non readable local URI/files
+    # In:
+    #  1: URI to check, can be a path or a URI
+    [[ -n "$1" ]] || { false; return; }
+    local uri=$1
+    if [[ ! "${uri}" = *"://"* ]] || [[ "${uri}" = "file://"* ]]; then
+        # file:// are absolute paths, protect for 2 or 3 slashes
+        uri="${uri#file:/}"
+        [[ -r "${uri/\/\//\/}" ]]
+        return
+    fi
+    true
+    return
+}
+
+
 #######################################
 #
 # GWMS aux functions
@@ -691,7 +709,7 @@ env_clear_one() {
         info "GWMS Singularity wrapper: $1 is set to ${!1} outside Singularity. This will not be propagated to inside the container instance."
         export "${varname}"="${!1}"
         case $1 in
-            PATH) PATH=$_DEFAULT_PATH ;;
+            PATH) export PATH="$_DEFAULT_PATH" ;;
                *) unset "$1" ;;
         esac
     fi
@@ -762,7 +780,7 @@ env_clear() {
     if [[ "${env_options}" = *",clearall,"* || "${env_options}" = *",clearpaths,"* ]]; then
         # clear the ...PATH variables
         # PATH should be cleared also by Singularity, but the behavior is inconsistent across versions
-        for i in PATH LD_LIBRARY_PATH PYTHONPATH ; do
+        for i in PATH LD_LIBRARY_PATH PYTHONPATH LD_PRELOAD ; do
             env_clear_one ${i}
         done
     fi
@@ -949,10 +967,10 @@ env_restore() {
     if [[ "${env_options}" = *",clearall,"* || "${env_options}" = *",clearpaths,"* ]]; then
         # clear the ...PATH variables
         # PATH should be cleared also by Singularity, but the behavior is inconsistent across versions
-        info "Restoring the cleared PATH, LD_LIBRARY_PATH, PYTHONPATH"
-        for i in PATH LD_LIBRARY_PATH PYTHONPATH ; do
+        info "Restoring the cleared PATH, LD_LIBRARY_PATH, PYTHONPATH, LD_PRELOAD"
+        for i in PATH LD_LIBRARY_PATH PYTHONPATH LD_PRELOAD ; do
             varname="GWMS_OLDENV_$i"
-            export ${i}="${!varname}"
+            [[ -n "${!varname}" ]] && export ${i}="${!varname}" || true
         done
     fi
 }
@@ -1253,6 +1271,21 @@ singularity_exec() {
         export SINGULARITY_TMPDIR="${APPTAINER_TMPDIR}"
     fi
 
+    if [[ ! ",${execution_opt}," = *,noenv,* ]]; then
+        # Clean/preserve environment
+        # Add --clearenv if requested and clear PATH variables
+        # Always (unless keepall) disabling outside LD_LIBRARY_PATH, PATH, PYTHONPATH and LD_PRELOAD to avoid problems w/ different OS
+        # Singularity is supposed to handle this, but different versions behave differently
+        # Restore them only if continuing after singularity invocation (end of this function)
+        [[ -n "$GLIDEIN_CONTAINER_ENV" ]] || GLIDEIN_CONTAINER_ENV=$(gwms_from_config GLIDEIN_CONTAINER_ENV "")
+        [[ -n "$GLIDEIN_CONTAINER_ENV_CLEARLIST" ]] || GLIDEIN_CONTAINER_ENV_CLEARLIST=$(gwms_from_config GLIDEIN_CONTAINER_ENV_CLEARLIST "")
+        singularity_opts=$(env_clear "${GLIDEIN_CONTAINER_ENV}" "${singularity_opts}")
+        env_clearlist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
+        # If there is clearenv protect the variables (it may also have been added by the custom Singularity options)
+        if env_gets_cleared "${GWMS_SINGULARITY_EXTRA_OPTS}"; then
+            env_preserve "${GLIDEIN_CONTAINER_ENV}"
+        fi
+    fi
     info_dbg  "$execution_opt \"$singularity_bin\" $singularity_global_opts exec --home \"$PWD\":/srv --pwd /srv " \
             "$singularity_opts ${singularity_binds:+"--bind" "\"$singularity_binds\""} " \
             "\"$singularity_image\"" "${@}" "[ $# arguments ]"
@@ -1266,11 +1299,21 @@ singularity_exec() {
             "$singularity_opts ${singularity_binds:+"--bind" "\"$singularity_binds\""} " \
             "\"$singularity_image\"" "${@}" >> $_CONDOR_WRAPPER_ERROR_FILE
         warn "exec of singularity failed: exit code $error"
+        if [[ ! ",${execution_opt}," = *,noenv,* ]]; then
+            # Clean/restore environment
+            env_restore "${GLIDEIN_CONTAINER_ENV}"
+            env_restorelist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
+        fi
         return ${error}
     else
         "$singularity_bin" ${singularity_global_opts} exec --home "$PWD":/srv --pwd /srv \
             ${singularity_opts} ${singularity_binds:+"--bind" "$singularity_binds"} \
             "$singularity_image" "${@}"
+        if [[ ! ",${execution_opt}," = *,noenv,* ]]; then
+            # Restore environment (path vars, list)
+            env_restore "${GLIDEIN_CONTAINER_ENV}"
+            env_restorelist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
+        fi
         return $?
     fi
     # Code should never get here
@@ -1569,7 +1612,7 @@ singularity_locate_bin() {
             test_out=$(singularity_test_bin "${s_step},${s_location}/$test_out" "$s_image") &&
                 HAS_SINGULARITY=True
             bread_crumbs+="${test_out##*@}"
-        else
+        elif [[ ! ",PATH,CONDOR,OSG,," = *",$1,"* ]]; then  # Don't print error for keywords or empty value
             [[ "$s_location" = NONE ]] &&
                 warn "SINGULARITY_BIN = NONE is no more a valid value, use GLIDEIN_SINGULARITY_REQUIRE to control the use of Singularity"
             info "Suggested path (SINGULARITY_BIN?) '$1' ($s_location) is not a directory or does not contain singularity."
@@ -2066,41 +2109,6 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     info_dbg "about to invoke singularity, pwd is $PWD"
     export GWMS_SINGULARITY_REEXEC=1
 
-    # Always disabling outside LD_LIBRARY_PATH, PATH, PYTHONPATH and LD_PRELOAD to avoid problems w/ different OS
-    # Singularity is supposed to handle this, but different versions behave differently
-    # Restore them only if continuing after the exec of singularity failed (end of this function)
-    local old_ld_library_path=
-    if [[ -n "$LD_LIBRARY_PATH" ]]; then
-        old_ld_library_path=$LD_LIBRARY_PATH
-        info "GWMS Singularity wrapper: LD_LIBRARY_PATH is set to $LD_LIBRARY_PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
-        unset LD_LIBRARY_PATH
-    fi
-    local old_path=
-    if [[ -n "$PATH" ]]; then
-        old_path=$PATH
-        info "GWMS Singularity wrapper: PATH is set to $PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
-        PATH=$_DEFAULT_PATH
-    fi
-    local old_pythonpath=
-    if [[ -n "$PYTHONPATH" ]]; then
-        old_pythonpath=$PYTHONPATH
-        info "GWMS Singularity wrapper: PYTHONPATH is set to $PYTHONPATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
-        unset PYTHONPATH
-    fi
-    if [[ -n "$LD_PRELOAD" ]]; then
-        old_ld_preload=$LD_PRELOAD
-        info "GWMS Singularity wrapper: LD_PRELOAD is set to $LD_PRELOAD outside Singularity. This will not be propagated to inside the container instance." 1>&2
-        unset LD_PRELOAD
-    fi
-
-    # Add --clearenv if requested
-    GWMS_SINGULARITY_EXTRA_OPTS=$(env_clear "${GLIDEIN_CONTAINER_ENV}" "${GWMS_SINGULARITY_EXTRA_OPTS}")
-    env_clearlist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
-
-    # If there is clearenv protect the variables (it may also have been added by the custom Singularity options)
-    if env_gets_cleared "${GWMS_SINGULARITY_EXTRA_OPTS}"; then
-        env_preserve "${GLIDEIN_CONTAINER_ENV}"
-    fi
 
     # The new OSG wrapper is not exec-ing singularity to continue after and inspect if it ran correctly or not
     # This may be causing problems w/ signals (sig-term/quit) propagation - [#24306]
@@ -2116,15 +2124,6 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     fi
     # Continuing here only if exec of singularity failed
     GWMS_SINGULARITY_REEXEC=0
-    env_restore "${GLIDEIN_CONTAINER_ENV}"
-    env_restorelist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
-
-    # Restoring paths that are always cleared before invoking Singularity,
-    # may contain something used for error communication
-    [[ -n "$old_path" ]] && PATH=$old_path
-    [[ -n "$old_ld_library_path" ]] && LD_LIBRARY_PATH=$old_ld_library_path
-    [[ -n "$old_pythonpath" ]] && PYTHONPATH=$old_pythonpath
-    [[ -n "$old_ld_preload" ]] && LD_PRELOAD=$old_ld_preload
     # Exit or return to run w/o Singularity
     singularity_exit_or_fallback "exec of singularity failed" $?
 }
