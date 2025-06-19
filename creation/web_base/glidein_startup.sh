@@ -17,6 +17,7 @@ IFS=$' \t\n'
 if [[ -z "$PATH" ]]; then
     export PATH="/bin:/usr/bin"
 fi
+export PATH
 
 global_args="$*"
 # GWMS_STARTUP_SCRIPT=$0
