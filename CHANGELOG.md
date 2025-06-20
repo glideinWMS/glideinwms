@@ -3,14 +3,16 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR v3.10.14 \[2025-06-12\]
+## Changes Since Last Release OR v3.10.14 \[2025-06-20\]
 
 Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-demand CVMFS setup.
 
 ### New features / functionalities
 
 -   Added support for Ubuntu 24 workers (PR #529)
--   Add keyword ALL to query all schedulers known to the collector (PR #529, Issue #510)
+-   Add keyword ALL to query all schedulers known to the collector without listing them explicitly (Issue #510, PR #532)
+-   Add keyword usertrace to the GLIDEIN_DEBUG_OPTIONS custom variable to enable shell tracing in user jobs and wrapper (PR #540)
+-   Glideins can start containers with Busybox and no Bash, e.g Alpine Linux. The Glidein itself still requires Bash (Issue #538, PR #540)
 
 ### Changed defaults / behaviours
 
@@ -18,15 +20,17 @@ Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-dem
 
 ### Deprecated / removed options and commands
 
+-   Removed compatibility with GWMS < 3.4.5
+
 ### Security Related Fixes
 
 ### Bug Fixes
 
 -   Removed incorrect warning when setting SINGULARITY_BIN to keyword (PR #534)
--   Added `--skip-broken` to yumalldeps to avoid an error when incompatible packages are in the list (PR #534)
+-   Added `--skip-broken` to yumalldeps to avoid an error when incompatible packages are in the list (Issue #530, PR #534)
 -   Added explicit retrieval from glidein_config of GLIDEIN_CONTAINER_ENV and GLIDEIN_CONTAINER_ENV_CLEARLIST in singularity_lib.sh (PR #535)
--   Fixed handling of Apptainer environment and image restrictions
--   Added workaround for HTCondor setting PATH only as variable and not in the environment
+-   Fixed handling of Apptainer environment and image restrictions (PR #535, PR #539)
+-   Added workaround for HTCondor setting PATH only as variable and not in the environment (PR #539)
 
 ### Testing / Development
 
@@ -71,7 +75,7 @@ Added the ability to use a config directory for the Glidein's HTCondor. Clarifie
 
 ### Bug Fixes
 
--   Fixed misleading counts related to the number of jobs that run in the Glidein (PR #516, Issue #456)
+-   Fixed misleading counts related to the number of jobs that run in the Glidein (Issue #456, PR #516)
 
 ### Testing / Development
 

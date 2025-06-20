@@ -610,7 +610,7 @@ v3_10_12:
     - HTCondor LOCAL_CONFIG_DIR support for the Glidein HTCondor daemons (PR#515)
     - Improved docstrings in the Factory module (PR#511)
   Bug fix:
-    - Fixed misleading counts related to the number of jobs that run in the Glidein (PR#516, Issue#456)
+    - Fixed misleading counts related to the number of jobs that run in the Glidein (Issue#456, PR#516)
 
 v3_10_13:
   Date: May 7, 2025
@@ -620,16 +620,21 @@ v3_10_13:
     - Fixed a credential rewriting error caused by PR#511 and a path error in PR#515 (PR#519)
 
 v3_10_14:
-  Date: June 12, 2025
+  Date: June 20, 2025
   Series: Stable
   Tarball: false
   Feature:
     - Added support for Ubuntu 24 workers (PR#529)
-    - Add keyword ALL to query all schedulers known to the collector (PR#529, Issue#510)
+    - Add keyword ALL to query all schedulers known to the collector without listing them explicitly (Issue#510, PR#532)
     - Updated download/execution order of `cvmfs_setup.sh` during glidein startup using a new priority `precvmfs_file_list` (PR#528)
+    - Add keyword usertrace to the GLIDEIN_DEBUG_OPTIONS custom variable to enable shell tracing in user jobs and wrapper (PR#540)
+    - Glideins can start containers with Busybox and no Bash, e.g Alpine Linux. The Glidein itself still requires Bash (Issue#538, PR#540)
   Bug fix:
     - Removed incorrect warning when setting SINGULARITY_BIN to keyword (PR#534)
-    - Added `--skip-broken` to yumalldeps to avoid an error when incompatible packages are in the list (PR#534)
+    - Added `--skip-broken` to yumalldeps to avoid an error when incompatible packages are in the list (Issue#530, PR#534)
     - Added explicit retrieval from glidein_config of GLIDEIN_CONTAINER_ENV and GLIDEIN_CONTAINER_ENV_CLEARLIST in singularity_lib.sh (PR#535)
+    - Fixed handling of Apptainer environment and image restrictions (PR#535, PR#539)
+    - Added workaround for HTCondor setting PATH only as variable and not in the environment (PR#539)
   NOTE:
     - In the Glidein, `cvmfs_setup.sh` is now executing earlier, right after entry scripts (PR#528)
+    - Removed compatibility with GWMS<3.4.5. GlideinWMS v3.4.6 up to v3.10.14 Factories and Frontend are interoperable.
