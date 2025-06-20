@@ -18,7 +18,14 @@ from glideinwms.lib import logSupport, rrdSupport, xmlFormat, xmlParse
 
 
 class MonitorAggregatorConfig:
+ """
+ Configuration class for monitoring aggregation.
+
+ Holds paths and group data used during the aggregation of frontend monitoring data.
+ """
+
     def __init__(self):
+        """Initialize the MonitorAggregatorConfig with default settings."""
         # The name of the attribute that identifies the glidein
         self.monitor_dir = "monitor/"
 
@@ -29,6 +36,13 @@ class MonitorAggregatorConfig:
         self.status_relname = "frontend_status.xml"
 
     def config_frontend(self, monitor_dir, groups):
+        """
+        Configure the monitor directory and groups for aggregation.
+
+        Args:
+            monitor_dir (str): Path to the monitor directory.
+            groups (list): List of frontend groups to be aggregated.
+        """
         self.monitor_dir = monitor_dir
         self.groups = groups
         glideinFrontendMonitoring.monitoringConfig.monitor_dir = monitor_dir
@@ -131,6 +145,18 @@ def verifyRRD(fix_rrd=False, backup=False):
 # PRIVATE - Used by aggregateStatus
 # Write one RRD
 def write_one_rrd(name, updated, data, fact=0):
+   """
+    Write monitoring data to a single RRD file.
+
+    Initializes and writes monitoring values to a round-robin database (RRD) file
+    for a specific factory or overall system state.
+
+    Args:
+        name (str): The name or path of the RRD file to write.
+        updated (float): Timestamp representing the time of data collection.
+        data (dict): Dictionary containing monitoring data to write.
+        fact (int, optional): Indicates type of data source (0 for total, 1 for factory). Defaults to 0.
+    """
     if fact == 0:
         type_strings = frontend_total_type_strings
     else:
@@ -171,6 +197,32 @@ def write_one_rrd(name, updated, data, fact=0):
 # create an aggregate of status files, write it in an aggregate status file
 # end return the values
 def aggregateStatus():
+"""
+    Aggregate monitoring data from multiple frontend groups and factories.
+
+    This function reads each group's status XML file, combines job and glidein metrics from all
+    groups, and writes the aggregated result into a unified XML and multiple RRD files.
+    The aggregation includes total metrics and per-factory/per-state breakdowns.
+
+    The output includes:
+        - Aggregated totals across all groups
+        - Group-specific statistics
+        - Factory and state breakdowns
+
+    Returns:
+        dict: A nested dictionary containing the aggregated monitoring data structure.
+              Structure:
+              {
+                  "groups": {
+                      "group_name": {
+                          "factories": {...},
+                          "states": {...},
+                          "total": {...}
+                      }
+                  },
+                  "total": {...}
+              }
+"""
     global monitorAggregatorConfig
 
     type_strings = {
