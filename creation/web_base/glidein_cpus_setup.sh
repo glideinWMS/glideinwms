@@ -30,6 +30,7 @@ condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
 # Use GLIDEIN_CPUS if configured by the factory
 GLIDEIN_CPUS=$(gconfig_get GLIDEIN_CPUS "$glidein_config")
 GLIDEIN_OVERLOAD_CPUS=$(gconfig_get GLIDEIN_OVERLOAD_CPUS "$glidein_config")
+GLIDEIN_OVERLOAD_ENABLED=$(gconfig_get GLIDEIN_OVERLOAD_ENABLED "$glidein_config")
 
 # 3.2.16 Meaning of "auto" changed from "node" to "slot"
 # node and 0 mean the same thing - detect the hardware resources
@@ -162,6 +163,42 @@ function detect_slot_cpus {
     return 1
 }
 
+function setup_overload {
+   local should_enable_overload=false
+
+    if [[ -n "$GLIDEIN_OVERLOAD_ENABLED" ]]; then
+        local value="${GLIDEIN_OVERLOAD_ENABLED,,}"  # Normalize to lowercase
+
+        if [[ "$value" == "true" ]]; then
+            should_enable_overload=true
+        elif [[ "$value" == "false" ]]; then
+            should_enable_overload=false
+        elif [[ "$value" =~ ^([0-9]{1,3})%$ ]]; then
+            local percent="${BASH_REMATCH[1]}"
+            if (( percent > 0 && percent <= 100 )); then
+                local rand=$(( RANDOM % 100 + 1 ))  # 1 to 100
+                if (( rand <= percent )); then
+                    should_enable_overload=true
+                    echo "GLIDEIN_OVERLOAD_ENABLED set to $GLIDEIN_OVERLOAD_ENABLED: random=$rand <= $percent, enabling overload."
+                else
+                    echo "GLIDEIN_OVERLOAD_ENABLED set to $GLIDEIN_OVERLOAD_ENABLED: random=$rand > $percent, not enabling overload."
+                fi
+            fi
+        fi
+        gconfig_add GLIDEIN_OVERLOAD_ENABLED "${should_enable_overload}"
+        add_condor_vars_line GLIDEIN_OVERLOAD_ENABLED "C" "-" "+" "N" "N" "-"
+    fi
+
+    if [[ "$should_enable_overload" == "true" && -n "$GLIDEIN_OVERLOAD_CPUS" ]]; then
+        echo "GLIDEIN_OVERLOAD_CPUS is set to $GLIDEIN_OVERLOAD_CPUS. Adjusting GLIDEIN_CPUS from base value $GLIDEIN_CPUS"
+        # Multiply the two variables using bc
+        local result
+        result=$(bc <<< "scale=2; $GLIDEIN_CPUS * $GLIDEIN_OVERLOAD_CPUS")
+        # Round up the result
+        GLIDEIN_CPUS=$(printf "%.0f" "$result")
+    fi
+}
+
 # default is 1 (was slot CPUs, -1, in 3.2.16)
 if [ "X${GLIDEIN_CPUS}" = "X" ]; then
     echo "`date` GLIDEIN_CPUS not set in $glidein_config. Setting to default of 1."
@@ -193,13 +230,7 @@ if [ "${GLIDEIN_CPUS}" = "0" ]; then
     glidein_cpus_how="(host cpus)"
 fi
 
-if [[ -n "$GLIDEIN_OVERLOAD_CPUS" ]]; then
-    echo "GLIDEIN_OVERLOAD_CPUS has been set to $GLIDEIN_OVERLOAD_CPUS . Adjusting GLIDEIN_CPUS from base value $GLIDEIN_CPUS"
-    # Multiply the two variables using bc
-    result=$(bc <<< "scale=2; $GLIDEIN_CPUS * $GLIDEIN_OVERLOAD_CPUS")
-    # Round up the result
-    GLIDEIN_CPUS=$(printf "%.0f" "$result")
-fi
+setup_overload
 
 # export the GLIDEIN_CPUS
 echo "`date` Setting GLIDEIN_CPUS=$GLIDEIN_CPUS $glidein_cpus_how"
