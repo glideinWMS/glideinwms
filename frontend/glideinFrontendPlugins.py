@@ -22,8 +22,8 @@ from glideinwms.lib.credentials import (
     CredentialPurpose,
     CredentialType,
     DynamicCredential,
+    DynamicParameter,
     Parameter,
-    ParameterGenerator,
     ParameterName,
     RequestCredential,
     SecurityBundle,
@@ -70,6 +70,10 @@ class CredentialsPlugin(ABC):
         return list(self.security_bundle.credentials.values())
 
     @property
+    def cred_dict(self) -> Mapping[str, Credential]:
+        return self.security_bundle.credentials
+
+    @property
     def params_dict(self) -> Mapping[ParameterName, Parameter]:
         return self.security_bundle.parameters
 
@@ -95,35 +99,51 @@ class CredentialsPlugin(ABC):
         for cred in self.cred_list:
             cred.renew()
 
-    def generate_credentials(self, **kwargs):
+    def generate_credentials(self, snapshot: Optional[str] = None, **kwargs):
         """
         Generate all credentials that are generators
 
         Args:
+            snapshot (str, optional): creates a snapshot of the generated credentials
             **kwargs: keyword arguments to be passed to the generator
         """
 
         for cred in self.cred_list:
             if isinstance(cred, DynamicCredential):
-                cred.generate(**kwargs)
+                cred.generate(snapshot, **kwargs)
 
-    def generate_parameters(self, **kwargs):
+    def generate_parameters(self, snapshot: Optional[str] = None, **kwargs):
         """
         Generate all parameters that are generators
 
         Args:
+            snapshot (str, optional): creates a snapshot of the generated parameters
             **kwargs: keyword arguments to be passed to the generator
         """
 
         for param in self.params_dict.values():
-            if isinstance(param, ParameterGenerator):
-                param.generate(**kwargs)
+            if isinstance(param, DynamicParameter):
+                param.generate(snapshot, **kwargs)
 
     def update_usermap(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
         return
 
     @abstractmethod
-    def get_credentials(self, credential_type=None, trust_domain=None, credential_purpose=None) -> List[Credential]:
+    def get_credential(self, cred_id: str, snapshot: Optional[str] = None) -> Optional[Credential]:
+        pass
+
+    @abstractmethod
+    def get_parameter(self, param_name: ParameterName, snapshot: Optional[str] = None) -> Optional[Parameter]:
+        pass
+
+    @abstractmethod
+    def get_credentials(
+        self, credential_type=None, trust_domain=None, credential_purpose=None, snapshot: Optional[str] = None
+    ) -> List[Credential]:
+        pass
+
+    @abstractmethod
+    def get_parameters(self, snapshot: Optional[str] = None) -> Mapping[ParameterName, Parameter]:
         pass
 
     @abstractmethod
@@ -143,11 +163,24 @@ class CredentialsBasic(CredentialsPlugin):
     This is can be a very useful default policy
     """
 
+    def get_credential(self, cred_id, snapshot=None):
+        cred = self.cred_dict.get(cred_id, None)
+        if snapshot and isinstance(cred, DynamicCredential):
+            cred = cred.get_snapshot(snapshot, cred)
+        return cred if cred else None
+
+    def get_parameter(self, param_name: ParameterName, snapshot: Optional[str] = None) -> Optional[Parameter]:
+        param = self.params_dict.get(param_name, None)
+        if snapshot and isinstance(param, DynamicParameter):
+            param = param.get_snapshot(snapshot, param)
+        return param if param else None
+
     def get_credentials(
         self,
         credential_type: Optional[Union[CredentialType, List[CredentialType]]] = None,
         trust_domain: Optional[str] = None,
         credential_purpose: Optional[Union[CredentialPurpose, List[CredentialPurpose]]] = None,
+        snapshot: Optional[str] = None,
     ) -> List[Credential]:
         """Get the credentials, given the condor_q and condor_status data
 
@@ -155,6 +188,7 @@ class CredentialsBasic(CredentialsPlugin):
             credential_type (CredentialType, List(CredentialType)): optional credential type to match with a supported auth_metod
             trust_domain (str): optional trust domain
             credential_purpose (CredentialPurpose, List(CredentialPurpose)): optional credential purpose
+            snapshot (str, optional): get credentials from a dynamic snapshot if available
 
         Returns:
             list: list of credentials
@@ -165,7 +199,7 @@ class CredentialsBasic(CredentialsPlugin):
         if credential_purpose and not isinstance(credential_purpose, list):
             credential_purpose = [credential_purpose]
 
-        rtnlist = []
+        cred_list = []
         for cred in self.cred_list:
             if trust_domain and cred.trust_domain != trust_domain:
                 continue
@@ -173,8 +207,27 @@ class CredentialsBasic(CredentialsPlugin):
                 continue
             if credential_purpose and cred.purpose not in credential_purpose:
                 continue
-            rtnlist.append(cred)
-        return rtnlist
+            if isinstance(cred, DynamicCredential) and snapshot:
+                cred = cred.get_snapshot(snapshot, cred)
+            cred_list.append(cred)
+        return cred_list
+
+    def get_parameters(self, snapshot: Optional[str] = None) -> Mapping[ParameterName, Parameter]:
+        """Get the parameters, given the condor_q and condor_status data
+
+        Args:
+            snapshot (str, optional): get parameters from a dynamic snapshot if available
+
+        Returns:
+            Mapping[ParameterName, Parameter]: mapping of parameter names to parameters
+        """
+
+        params_dict = {}
+        for param in self.params_dict.values():
+            if isinstance(param, DynamicParameter) and snapshot:
+                param = param.get_snapshot(snapshot, param)
+            params_dict[param.name] = param
+        return params_dict
 
     def get_request_credentials(self) -> List[RequestCredential]:
         """Get the request credentials

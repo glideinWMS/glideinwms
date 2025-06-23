@@ -9,7 +9,7 @@ This module contains the CredentialGenerator base class
 
 import os
 
-from typing import Mapping, Optional
+from typing import Optional
 
 from glideinwms.lib.credentials import create_credential, Credential, credential_type_from_string
 
@@ -18,26 +18,6 @@ from .generators import CachedGenerator
 
 class CredentialGenerator(CachedGenerator[Credential]):
     """Base class for credential generators"""
-
-    def __init__(self, context: Optional[Mapping] = None, instance_id: Optional[str] = None):
-        super().__init__(context, instance_id)
-        self.context.validate(
-            {
-                "cache_discriminator": (str, ""),
-            }
-        )
-
-        if self.context["cache_discriminator"] == "":
-            self.discriminator_list = []
-        else:
-            self.discriminator_list = [d.strip() for d in self.context["cache_discriminator"].split(",")]
-
-    def dynamic_cache_file(self, **kwargs):
-        if not self.discriminator_list:
-            return None
-
-        file_name, file_ext = os.path.splitext(self.context["cache_file"])
-        return f"{file_name}.{self.cache_discriminator(self.discriminator_list, **kwargs)}{file_ext}"
 
     def save_to_cache(self, cache_file: str, generated_value: Credential):
         generated_value.save_to_file(path=cache_file)

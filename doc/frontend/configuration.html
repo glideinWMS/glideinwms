@@ -2666,7 +2666,7 @@ def get_credential(log: logger, group: str, entry: dict, trust_domain: str):
       class RandomGenerator(Generator[Any]):
           """Random generator"""
 
-          def generate(self, **kwargs) -> Any:
+          def _generate(self, **kwargs) -> Any:
         items = self.context.get("items", [])
         if not items:
             raise GeneratorError("No items provided for generation")
@@ -2682,7 +2682,7 @@ def get_credential(log: logger, group: str, entry: dict, trust_domain: str):
             The custom generator class should inherit from
             <code>glideinwms.lib.generators.Generator</code>. This is an
             abstract base class that requires the implementation of a
-            <code>generate</code> method, which should return the generated
+            <code>_generate</code> method, which should return the generated
             value.
           </li>
           <li>

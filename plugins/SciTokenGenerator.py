@@ -30,7 +30,7 @@ class SciTokenGenerator(CredentialGenerator):
         - tkn_dir: Directory to store the generated tokens (default: /var/lib/gwms-frontend/tokens.d)
     """
 
-    def setup(self):
+    def _setup(self):
         self.context.validate(
             {
                 "key_file": (str, None),
@@ -44,6 +44,7 @@ class SciTokenGenerator(CredentialGenerator):
                 "tkn_dir": (str, "/var/lib/gwms-frontend/tokens.d"),
             }
         )
+        self.context["type"] = "scitoken"
 
         self.key_pass = self.context["key_pass"].encode() or None
 
@@ -51,7 +52,7 @@ class SciTokenGenerator(CredentialGenerator):
             os.mkdir(self.context["tkn_dir"], 0o700)
         self.context["cache_dir"] = self.context["tkn_dir"]
 
-    def generate(self, **kwargs):
+    def _generate(self, **kwargs):
         logger = kwargs["logger"]
         entry_name = kwargs["glidein_el"]["attrs"].get("EntryName")
         gatekeeper = kwargs["glidein_el"]["attrs"].get("GLIDEIN_Gatekeeper")

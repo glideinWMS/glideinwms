@@ -72,6 +72,7 @@ class Generator(ABC, Generic[T]):
     """Base class for generators"""
 
     def __init__(self, context: Optional[Mapping] = None, instance_id: Optional[str] = None):
+        self.snapshots = {}
         self.context = GeneratorContext(context)
         self.instance_id = instance_id or hash_nc(f"{time.time()}", 8)
         self.setup()
@@ -84,10 +85,56 @@ class Generator(ABC, Generic[T]):
 
     def setup(self):
         """Setup method to be called at the generator's construction"""
+        try:
+            self._setup()
+        except NotImplementedError:
+            pass
+
+    def generate(self, snapshot: Optional[str] = None, **kwargs) -> T:
+        """
+        Generates an item using the current context and any provided keyword arguments.
+
+        Args:
+            snapshot (str, optional): An optional identifier for the snapshot or state to use during generation. Defaults to None.
+            **kwargs: Additional keyword arguments that may be used to customize the generation process.
+
+        Returns:
+            T: The generated item of type T, as determined by the implementation.
+        """
+
+        generated_value = self._generate(**kwargs)
+        if snapshot:
+            self.snapshots[snapshot] = generated_value
+
+        return generated_value
+
+    def get_snapshot(self, snapshot: str, default: Optional[any] = None) -> Optional[T]:
+        """
+        Retrieves a previously generated snapshot.
+
+        Args:
+            snapshot (str): The identifier for the snapshot to retrieve.
+            default (Optional[any]): A default value to return if the snapshot does not exist.
+
+        Returns:
+            T: The previously generated item of type T, or None if the snapshot does not exist.
+
+        Raises:
+            GeneratorError: If the snapshot does not exist.
+        """
+
+        return self.snapshots.get(snapshot, default)
+
+    def _setup(self):
+        """Internal setup method to be called at the generator's construction"""
+        raise NotImplementedError(
+            f"{self.__class__.__name__} does not implement the _setup method. " "Please implement it in the subclass."
+        )
 
     @abstractmethod
-    def generate(self, **kwargs) -> T:
-        """Generate an item using the context and keyword arguments"""
+    def _generate(self, **kwargs) -> T:
+        """Internal method to generate an item using the context and keyword arguments"""
+        return self.generate(**kwargs)
 
 
 class CachedGenerator(Generator[T]):
@@ -95,22 +142,32 @@ class CachedGenerator(Generator[T]):
 
     def __init__(self, context: Optional[Mapping] = None, instance_id: Optional[str] = None):
         super().__init__(context, instance_id)
-        self._generate = self.generate
-        self.generate = self._cached_generate
-        file_type = context.get("type", "cache")
+        file_type = self.context.get("type", "cache")
         self.context.validate(
-            {"cache_file": (str, os.path.join(CACHE_DIR, f"{self.instance_id}_{self.__class__.__name__}.{file_type}"))}
+            {
+                "cache_dir": (str, CACHE_DIR),
+                "cache_file": (
+                    str,
+                    os.path.join(
+                        self.context["cache_dir"], f"{self.__class__.__name__}_{self.instance_id}.{file_type}"
+                    ),
+                ),
+                "cache_discriminator": (str, "snapshot"),
+            }
         )
         self.cache_file = self.context["cache_file"]
         self.saved_cache_files = set()
+        self.discriminator_list = [d.strip() for d in self.context["cache_discriminator"].split(",") if d.strip()]
 
-    def _cached_generate(self, **kwargs) -> T:
-        cache_file = self.dynamic_cache_file(**kwargs) or self.cache_file
+    def generate(self, snapshot: Optional[str] = None, **kwargs) -> T:
+        cache_file = self.dynamic_cache_file(snapshot, **kwargs) or self.cache_file
         loaded_value = self.load_from_cache(cache_file)
         if loaded_value is not None:
             if self.validate_cache(loaded_value):
+                if snapshot:
+                    self.snapshots[snapshot] = loaded_value
                 return loaded_value
-        generated_value = self._generate(**kwargs)
+        generated_value = super().generate(snapshot, **kwargs)
         self.save_to_cache(cache_file, generated_value)
         self.saved_cache_files.add(cache_file)
         return generated_value
@@ -123,7 +180,7 @@ class CachedGenerator(Generator[T]):
                 os.remove(cache_file)
         self.saved_cache_files.clear()
 
-    def dynamic_cache_file(self, **kwargs) -> Optional[str]:
+    def dynamic_cache_file(self, snapshot: Optional[str] = None, **kwargs) -> Optional[str]:
         """Set a dynamic cache file name
 
         This method returns None by default. Override it in subclasses to provide
@@ -133,11 +190,19 @@ class CachedGenerator(Generator[T]):
         context or the default one.
 
         Args:
+            snapshot (Optional[str]): an optional snapshot identifier
             **kwargs: keyword arguments passed to the generate method
 
         Returns:
             Optional[str]: the dynamic cache file name or None
         """
+
+        discriminator = self.cache_discriminator(self.discriminator_list, snapshot=snapshot, **kwargs)
+        if not discriminator:
+            return None
+
+        file_name, file_ext = os.path.splitext(self.cache_file)
+        return f"{file_name}.{discriminator}{file_ext}"
 
     @abstractmethod
     def save_to_cache(self, cache_file: str, generated_value: T):
@@ -174,7 +239,9 @@ class CachedGenerator(Generator[T]):
         """
 
     @classmethod
-    def cache_discriminator(cls, discriminator: Union[str, list[str]], separator: str = ".", **kwargs) -> Optional[str]:
+    def cache_discriminator(
+        cls, discriminator_list: Union[str, list[str]], separator: str = ".", snapshot: Optional[str] = None, **kwargs
+    ) -> Optional[str]:
         """Generate a cache discriminator string based on the provided discriminator and runtime arguments.
         This method constructs a string that uniquely identifies the cache entry based on the provided
         discriminator values and the attributes of the glidein element.
@@ -191,28 +258,30 @@ class CachedGenerator(Generator[T]):
             GeneratorError: if the discriminator is invalid or not in the expected format
         """
 
-        discriminator_values = ["name", "group", "gatekeeper", "factory", "trust_domain"]
-        entry_mapping = {
+        discriminator_mapping = {
             "name": kwargs["glidein_el"]["attrs"].get("EntryName"),
             "group": kwargs["group_name"],
             "gatekeeper": kwargs["glidein_el"]["attrs"].get("GLIDEIN_Gatekeeper"),
             "factory": kwargs["glidein_el"]["attrs"].get("AuthenticatedIdentity"),
             "trust_domain": kwargs["glidein_el"]["attrs"].get("GLIDEIN_TrustDomain"),
+            "snapshot": snapshot,
+            "none": None,
         }
 
-        if discriminator is None:
+        if discriminator_list is None:
             return None
 
-        if isinstance(discriminator, str):
-            discriminator = [discriminator]
+        if isinstance(discriminator_list, str):
+            discriminator_list = [discriminator_list]
 
-        for disc in discriminator:
-            if disc not in discriminator_values:
-                raise GeneratorError(f"Invalid discriminator '{disc}'. Must be in {discriminator_values}.")
+        for d in discriminator_list:
+            if d not in discriminator_mapping:
+                raise GeneratorError(f"Invalid discriminator '{d}'. Must be in {list(discriminator_mapping.keys())}.")
 
-        discriminator_str = separator.join(str(entry_mapping[disc]) for disc in discriminator if disc in entry_mapping)
-
-        return discriminator_str
+        return (
+            separator.join(str(discriminator_mapping[d]) for d in discriminator_list if discriminator_mapping[d])
+            or None
+        )
 
 
 def load_generator(module: str, context: Optional[Mapping] = None) -> Generator:
