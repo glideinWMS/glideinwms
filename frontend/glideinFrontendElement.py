@@ -840,26 +840,17 @@ class glideinFrontendElement:
             if key_obj is not None:
                 # add callback credential generator if needed
                 callback_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.CALLBACK)
-                has_callback_cred = False
-                for cred in callback_creds:
-                    if cred.subject.split("@")[0] == glidein_el["attrs"]["GLIDEIN_Site"]:
-                        has_callback_cred = True
-                        break
-                if not has_callback_cred:
+                if not callback_creds:
                     logSupport.log.debug("Custom callback credential not provided. Using default.")
                     tkn_dir = TOKEN_DIR
                     if not os.path.exists(tkn_dir):
                         os.mkdir(tkn_dir, 0o700)
-                    tkn_file = os.path.join(
-                        TOKEN_DIR,
-                        f"{self.group_name}.{glidein_el['attrs']['GLIDEIN_Site']}.idtoken",
-                    )
                     callback_generator = create_credential(
                         "IdTokenGenerator",
                         cred_type=CredentialType.DYNAMIC,
                         purpose=CredentialPurpose.CALLBACK,
                         trust_domain=trust_domain,
-                        context={"cache_file": tkn_file},
+                        context={"cache_dir": tkn_dir},
                     )
                     self.credentials_plugin.security_bundle.add_credential(callback_generator)
                 else:
@@ -871,12 +862,14 @@ class glideinFrontendElement:
                     glidein_el=glidein_el,
                     group_name=self.group_name,
                     logger=logSupport.log,
+                    snapshot=glidein_el["attrs"]["EntryName"],
                 )
                 self.credentials_plugin.generate_parameters(
                     elementDescript=self.elementDescript,
                     glidein_el=glidein_el,
                     group_name=self.group_name,
                     logger=logSupport.log,
+                    snapshot=glidein_el["attrs"]["EntryName"],
                 )
 
                 # now advertise
@@ -2210,13 +2203,12 @@ class glideinFrontendElement:
         """
         out = ()
 
-        submit_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.REQUEST)
-
         count_status_multi = {}
         # Count distribution per credentials
         count_status_multi_per_cred = {}
         for glideid in glidein_list:
             request_name = glideid[1]
+            submit_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.REQUEST)
 
             count_status_multi[request_name] = {}
             count_status_multi_per_cred[request_name] = {}

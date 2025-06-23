@@ -67,7 +67,7 @@ class X509Cert(Credential[x509.Certificate]):
             return "Certificate not yet valid."
         if datetime.now(self.not_after_time.tzinfo) > self.not_after_time:
             return "Certificate expired."
-        if self.minimum_lifetime and (self.not_after_time - datetime.now()).total_seconds() < self.minimum_lifetime:
+        if (self.not_after_time - datetime.now()).total_seconds() < self.minimum_lifetime:
             return "Certificate lifetime too short."
 
 

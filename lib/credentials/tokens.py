@@ -72,7 +72,7 @@ class Token(Credential[Mapping]):
             return "Token not yet valid."
         if datetime.now() > self.expiration_time:
             return "Token expired."
-        if self.minimum_lifetime and (self.expiration_time - datetime.now()).total_seconds() < self.minimum_lifetime:
+        if (self.expiration_time - datetime.now()).total_seconds() < self.minimum_lifetime:
             return "Token lifetime too short."
 
 

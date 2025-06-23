@@ -174,7 +174,7 @@ class Credential(ABC, Generic[T]):
         trust_domain: Optional[str] = None,
         security_class: Optional[str] = None,
         creation_script: Optional[str] = None,
-        minimum_lifetime: Optional[str] = None,
+        minimum_lifetime: Union[int, str] = 0,
     ) -> None:
         """Initialize a Credentials object.
 
@@ -184,6 +184,8 @@ class Credential(ABC, Generic[T]):
             purpose (Optional[CredentialPurpose]): The purpose of the credential.
             trust_domain (Optional[str]): The trust domain of the credential.
             security_class (Optional[str]): The security class of the credential.
+            creation_script (Optional[str]): The script to create the credential.
+            minimum_lifetime (Union[int, str]): The minimum lifetime of the credential in seconds.
         """
 
         self._string = None
@@ -193,7 +195,7 @@ class Credential(ABC, Generic[T]):
         self.security_class = security_class
         self.creation_script = creation_script
         try:
-            self.minimum_lifetime = int(minimum_lifetime) if minimum_lifetime else None
+            self.minimum_lifetime = int(minimum_lifetime)
         except ValueError as err:
             raise CredentialError(f"Invalid minimum lifetime: {minimum_lifetime}") from err
         if string or path:
@@ -681,7 +683,7 @@ def create_credential(
     security_class: Optional[str] = None,
     cred_type: Optional[CredentialType] = None,
     creation_script: Optional[str] = None,
-    minimum_lifetime: Optional[int] = None,
+    minimum_lifetime: Union[int, str] = 0,
     context: Optional[Mapping] = None,
 ) -> Credential:
     """Creates a credential object.
@@ -693,6 +695,8 @@ def create_credential(
         trust_domain (str, optional): The trust domain of the credential.
         security_class (str, optional): The security class of the credential.
         cred_type (CredentialType, optional): The type of the credential.
+        creation_script (str, optional): The script used to create the credential.
+        minimum_lifetime (Union[int, str], optional): The minimum lifetime of the credential in seconds.
         context (Mapping, optional): The context to use for decoding the credential.
 
     Returns:
@@ -728,7 +732,7 @@ def create_credential_pair(
     security_class: Optional[str] = None,
     cred_type: Optional[CredentialPairType] = None,
     creation_script: Optional[str] = None,
-    minimum_lifetime: Optional[int] = None,
+    minimum_lifetime: Union[int, str] = 0,
     context: Optional[Mapping] = None,
 ) -> CredentialPair:
     """Creates a credential pair object.
@@ -742,6 +746,8 @@ def create_credential_pair(
         trust_domain (str, optional): The trust domain of the credentials.
         security_class (str, optional): The security class of the credentials.
         cred_type (CredentialPairType, optional): The type of the credential pair.
+        creation_script (str, optional): The script used to create the credentials.
+        minimum_lifetime (Union[int, str], optional): The minimum lifetime of the credentials in seconds.
         context (Mapping, optional): The context to use for decoding the credentials.
 
     Returns:
