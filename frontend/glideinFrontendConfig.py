@@ -9,7 +9,7 @@ import urllib.parse
 import urllib.request
 
 from glideinwms.creation.lib.matchPolicy import MatchPolicy
-from glideinwms.lib import hashCrypto, util
+from glideinwms.lib import hash_crypto, util
 
 ############################################################
 #
@@ -115,7 +115,7 @@ class ConfigFile:
             OSError: if the hash calculated is different from the provided one
         """
         if validate is not None:
-            vhash = hashCrypto.get_hash(validate[0], data)
+            vhash = hash_crypto.get_hash(validate[0], data)
             self.hash_value = vhash
             if (validate[1] is not None) and (vhash != validate[1]):
                 raise OSError(
@@ -426,25 +426,32 @@ class ElementMergedDescript:
                 if t in data:
                     self.merged_data[t] = data[t]
 
-        proxies = []
+        # TODO: Rename to credentials
+        proxies = []  # TODO: Investigate how to merge global and group credentials.
+        parameters = {}
         # switching the order, so that the group credential will
         # be chosen before the global credential when ProxyFirst is used.
         for data in (self.element_data, self.frontend_data):
             if "Proxies" in data:
                 proxies += eval(data["Proxies"])
+            if "Parameters" in data:
+                parameters.update(eval(data["Parameters"]))
         self.merged_data["Proxies"] = proxies
+        self.merged_data["Parameters"] = parameters
 
         proxy_descript_attrs = [
             "ProxySecurityClasses",
             "ProxyTrustDomains",
             "ProxyTypes",
+            "CredentialPurposes",
+            "CredentialContexts",
             "CredentialGenerators",
             "ProxyKeyFiles",
             "ProxyPilotFiles",
             "ProxyVMIds",
             "ProxyVMTypes",
-            "ProxyCreationScripts",
-            "ProxyUpdateFrequency",
+            "CredentialCreationScripts",
+            "CredentialMinimumLifetime",
             "ProxyVMIdFname",
             "ProxyVMTypeFname",
             "ProxyRemoteUsernames",

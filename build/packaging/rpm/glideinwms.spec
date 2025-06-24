@@ -29,6 +29,7 @@
 %global frontend_dir %{_localstatedir}/lib/gwms-frontend/vofrontend
 %global frontend_token_dir %{_localstatedir}/lib/gwms-frontend/tokens.d
 %global frontend_passwd_dir %{_localstatedir}/lib/gwms-frontend/passwords.d
+%global frontend_cache_dir %{_localstatedir}/lib/gwms-frontend/cache
 %global factory_web_dir %{_localstatedir}/lib/gwms-factory/web-area
 %global factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
 %global factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
@@ -118,6 +119,7 @@ Requires: rrdtool
 # Recommends: python3-rrdtool - this would be ideal but is supported only in Fedora>=24 and not RHEL
 # Remove the line below for the OSG 3.5 build (no python3-rrdtool there)
 Requires: python3-rrdtool
+Requires: python3-scitokens
 %if 0%{?rhel} >= 8
 Requires: initscripts
 Requires: python3-m2crypto
@@ -463,6 +465,7 @@ install -m 0644 creation/templates/gwms-renew-proxies.cron $RPM_BUILD_ROOT%{_sys
 install -d $RPM_BUILD_ROOT%{frontend_dir}
 install -d $RPM_BUILD_ROOT%{frontend_token_dir}
 install -d $RPM_BUILD_ROOT%{frontend_passwd_dir}
+install -d $RPM_BUILD_ROOT%{frontend_cache_dir}
 install -d $RPM_BUILD_ROOT%{web_base}
 install -d $RPM_BUILD_ROOT%{web_dir}
 install -d $RPM_BUILD_ROOT%{web_dir}/monitor/
@@ -961,6 +964,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, frontend, frontend) %dir %{_localstatedir}/lib/gwms-frontend
 %attr(700, frontend, frontend) %{frontend_token_dir}
 %attr(700, frontend, frontend) %{frontend_passwd_dir}
+%attr(700, frontend, frontend) %{frontend_cache_dir}
 %attr(-, frontend, frontend) %{_localstatedir}/log/gwms-frontend
 %defattr(-,root,root,-)
 %{python3_sitelib}/glideinwms/frontend/glideinFrontendDowntimeLib.py
@@ -1111,6 +1115,11 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Jun 24 2025 Bruno Coimbra <coimbra@fnal.gov> - 3.11.1
+- Glideinwms v3.11.1
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_11_1/history.html
+- Release candidates 3.11.1-01.rc1 to 3.11.1-02.rc3
+
 * Fri Jun 20 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.14
 - Glideinwms v3.10.14
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_10_14/history.html
@@ -1130,6 +1139,11 @@ rm -rf $RPM_BUILD_ROOT
 - Glideinwms v3.10.11
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_10_11/history.html
 - Release candidates 3.10.11-01.rc1 to 3.10.11-02.rc2
+
+* Tue Feb 18 2025 Bruno Coimbra <coimbra@fnal.gov> - 3.11.0
+- Glideinwms v3.11.0
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_11_0/history.html
+- Release candidates 3.11.0-01.rc1 to 3.11.0-09.rc9
 
 * Fri Jan 24 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.10
 - Glideinwms v3.10.10

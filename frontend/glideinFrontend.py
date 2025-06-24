@@ -373,7 +373,7 @@ def spawn_cleanup(work_dir, frontendDescript, groups, frontend_name, ha_mode):
 ############################################################
 def spawn(
     sleep_time,
-    advertize_rate,
+    advertise_rate,
     work_dir,
     frontendDescript,
     groups,
@@ -388,7 +388,7 @@ def spawn(
 
     Args:
         sleep_time (float): Time (in seconds) to sleep between iterations.
-        advertize_rate (int): Rate at which to advertise classads.
+        advertise_rate (int): Rate at which to advertise classads.
         work_dir (str): The working directory for the frontend.
         frontendDescript (FrontendDescript): The frontend descriptor object.
         groups (list): List of groups to manage.
@@ -464,14 +464,14 @@ def spawn(
                     if hibernate:
                         active = False
                         logSupport.log.info("Master frontend %s is back online" % master_frontend_name)
-                        logSupport.log.info("Deadvertize my ads and enter hibernation cycle")
+                        logSupport.log.info("Deadvertise my ads and enter hibernation cycle")
                         spawn_cleanup(work_dir, frontendDescript, groups, frontendDescript.data["FrontendName"], mode)
                     else:
                         logSupport.log.info("Master frontend %s is still offline" % master_frontend_name)
 
     finally:
         # We have been asked to terminate
-        logSupport.log.info("Deadvertize my ads")
+        logSupport.log.info("Deadvertise my ads")
         spawn_cleanup(work_dir, frontendDescript, groups, frontendDescript.data["FrontendName"], mode)
 
 
@@ -684,7 +684,7 @@ def main(work_dir, action):
         os.environ["CONDOR_CONFIG"] = frontendDescript.data["CondorConfig"]
 
         sleep_time = int(frontendDescript.data["LoopDelay"])
-        advertize_rate = int(frontendDescript.data["AdvertiseDelay"])
+        advertise_rate = int(frontendDescript.data["AdvertiseDelay"])
         max_parallel_workers = int(frontendDescript.data["GroupParallelWorkers"])
         restart_attempts = int(frontendDescript.data["RestartAttempts"])
         restart_interval = int(frontendDescript.data["RestartInterval"])
@@ -720,7 +720,7 @@ def main(work_dir, action):
         if action == "run":
             spawn(
                 sleep_time,
-                advertize_rate,
+                advertise_rate,
                 work_dir,
                 frontendDescript,
                 groups,

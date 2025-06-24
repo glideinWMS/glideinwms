@@ -3,6 +3,8 @@
 
 """Collections of constants that are used throughout the GlideinWMS project."""
 
+from pathlib import Path
+
 # GlideinWMS has to be compatible across versions running on different Python interpreters
 # Python 2 text files are the same as binary files except some newline handling
 # and strings are the same as bytes
@@ -17,6 +19,11 @@ BINARY_ENCODING = "latin_1"  # valid aliases (case insensitive): latin-1, latin1
 BINARY_ENCODING_CRYPTO = "utf_8"  # valid aliases: utf-8, utf8
 BINARY_ENCODING_ASCII = "ascii"  # valid aliases: 646, us-ascii
 BINARY_ENCODING_DEFAULT = "utf_8"  # valid aliases: utf-8, utf8 (default Python 3 encoding)
+
+PLUGINS_DIR = "/etc/gwms-frontend/plugin.d"  # TODO: Make this configurable
+CACHE_DIR = f"{Path.home()}/cache"
+PWD_DIR = f"{Path.home()}/passwords.d"
+TOKEN_DIR = f"{Path.home()}/tokens.d"
 
 
 def force_bytes(instr, encoding=BINARY_ENCODING_CRYPTO):

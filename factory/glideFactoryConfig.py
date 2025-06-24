@@ -21,7 +21,7 @@ import os
 import os.path
 import shutil
 
-from glideinwms.lib import pubCrypto, symCrypto
+from glideinwms.lib import credentials, pubCrypto, symCrypto
 
 ############################################################
 #
@@ -223,7 +223,7 @@ class JoinConfigFile(ConfigFile):
 ############################################################
 
 
-class GlideinKey:
+class GlideinKey:  # NOTE: This class doesn't seem to be used anywhere
     """Handles public key operations for the GlideinWMS factory.
 
     Supports creation, loading, and retrieval of RSA keys.
@@ -380,7 +380,7 @@ class GlideinDescript(ConfigFile):
 
         if self.data["OldPubKeyType"] is not None:
             try:
-                self.data["OldPubKeyObj"] = GlideinKey(self.data["OldPubKeyType"], key_fname=self.backup_rsakey_fname)
+                self.data["OldPubKeyObj"] = credentials.RSAPrivateKey(path=self.backup_rsakey_fname)
             except Exception:
                 self.data["OldPubKeyType"] = None
                 self.data["OldPubKeyObj"] = None
@@ -406,9 +406,9 @@ class GlideinDescript(ConfigFile):
                 Defaults to False.
         """
         if self.data["PubKeyType"] is not None:
-            self.data["PubKeyObj"] = GlideinKey(
-                self.data["PubKeyType"], key_fname=self.default_rsakey_fname, recreate=recreate
-            )
+            self.data["PubKeyObj"] = credentials.RSAPrivateKey(path=self.default_rsakey_fname)
+            if recreate:
+                self.data["PubKeyObj"].recreate()
         else:
             self.data["PubKeyObj"] = None
         return

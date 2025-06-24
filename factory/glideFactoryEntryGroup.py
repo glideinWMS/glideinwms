@@ -3,7 +3,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-
 """glideinFactoryEntryGroup module.
 
 This module implements common tasks for an entry group, such as querying the collector
@@ -69,22 +68,22 @@ def check_parent(parent_pid, glideinDescript, my_entries):
     logSupport.log.info("Parent died, exit.")
 
     # there is nobody to clean up after ourselves... do it here
-    logSupport.log.info("Deadvertize myself")
+    logSupport.log.info("Deadvertise myself")
 
     for entry in list(my_entries.values()):
         # Deadvertise glidefactory classad
         try:
-            gfi.deadvertizeGlidein(glideinDescript.data["FactoryName"], glideinDescript.data["GlideinName"], entry.name)
+            gfi.deadvertiseGlidein(glideinDescript.data["FactoryName"], glideinDescript.data["GlideinName"], entry.name)
         except Exception:
-            logSupport.log.warning("Failed to deadvertize entry '%s'" % entry.name)
+            logSupport.log.warning("Failed to deadvertise entry '%s'" % entry.name)
 
         # Deadvertise glidefactoryclient classad
         try:
-            gfi.deadvertizeAllGlideinClientMonitoring(
+            gfi.deadvertiseAllGlideinClientMonitoring(
                 glideinDescript.data["FactoryName"], glideinDescript.data["GlideinName"], entry.name
             )
         except Exception:
-            logSupport.log.warning("Failed to deadvertize monitoring for entry '%s'" % entry.name)
+            logSupport.log.warning("Failed to deadvertise monitoring for entry '%s'" % entry.name)
 
     raise KeyboardInterrupt("Parent died. Quitting.")
 
@@ -231,14 +230,14 @@ def forked_update_entries_stats(factory_in_downtime, entries_list):
 # Functions managing the Entries life-cycle
 
 
-def find_and_perform_work(do_advertize, factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries):
+def find_and_perform_work(do_advertise, factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries):
     """Find and perform work for all entries in the group.
 
     For each entry, this function finds work requests from the WMS collector, validates credentials,
     and submits glideins. If an entry is in downtime, no glideins are submitted for that entry.
 
     Args:
-        do_advertize (bool): True to advertise (publish the gfc ClassAd) even if no work is performed.
+        do_advertise (bool): True to advertise (publish the gfc ClassAd) even if no work is performed.
         factory_in_downtime (bool): True if the Factory is in downtime.
         glideinDescript (dict): Factory glidein configuration values.
         frontendDescript (dict): Security mappings for Frontend identities, security classes, and usernames.
@@ -264,7 +263,7 @@ def find_and_perform_work(do_advertize, factory_in_downtime, glideinDescript, fr
     work_count = get_work_count(work)
     if work_count == 0:
         logSupport.log.info("No work found")
-        if do_advertize:
+        if do_advertise:
             logSupport.log.info("Continuing to update monitoring info")
         else:
             return groupwork_done
@@ -313,7 +312,7 @@ def find_and_perform_work(do_advertize, factory_in_downtime, glideinDescript, fr
     # TODO: #22163, check if this is causing too much load
     # Since glideins only decrease for entries not receiving requests, a more efficient way
     # could be to advertise entries that had non 0 # of glideins at the previous round
-    if do_advertize and len(entries_without_work) > 0:
+    if do_advertise and len(entries_without_work) > 0:
         forkm_obj.add_fork(
             "GWMS_ENTRIES_WITHOUT_WORK",
             forked_update_entries_stats,
@@ -375,11 +374,11 @@ def find_and_perform_work(do_advertize, factory_in_downtime, glideinDescript, fr
     return groupwork_done
 
 
-def iterate_one(do_advertize, factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries):
+def iterate_one(do_advertise, factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries):
     """Perform one iteration of the entry group.
 
     Args:
-        do_advertize (bool): True if glidefactory ClassAds should be advertised.
+        do_advertise (bool): True if glidefactory ClassAds should be advertised.
         factory_in_downtime (bool): True if the Factory is in downtime.
         glideinDescript (dict): Factory glidein configuration values.
         frontendDescript (dict): Security mappings for frontend identities, security classes, and usernames.
@@ -397,7 +396,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript, frontendDesc
 
     try:
         groupwork_done = find_and_perform_work(
-            do_advertize, factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries
+            do_advertise, factory_in_downtime, glideinDescript, frontendDescript, group_name, my_entries
         )
     except Exception:
         logSupport.log.warning("Error occurred while trying to find and do work.")
@@ -422,20 +421,20 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript, frontendDesc
             entrywork_done = groupwork_done[entry.name]["work_done"]
             done_something += entrywork_done
 
-        if (do_advertize) or (entrywork_done > 0):
+        if (do_advertise) or (entrywork_done > 0):
             entries_to_advertise.append(entry.name)
             entry.writeClassadsToFile(factory_in_downtime, gf_filename, gfc_filename)
 
         entry.unsetInDowntime()
 
-    if (do_advertize) or (done_something > 0):
+    if (do_advertise) or (done_something > 0):
         logSupport.log.debug(
             "Generated glidefactory and glidefactoryclient classads for entries: %s" % ", ".join(entries_to_advertise)
         )
         # ADVERTISE: glidefactory classads
-        gfi.advertizeGlideinFromFile(gf_filename, remove_file=True, is_multi=True)
+        gfi.advertiseGlideinFromFile(gf_filename, remove_file=True, is_multi=True)
         # ADVERTISE: glidefactoryclient classads
-        gfi.advertizeGlideinClientMonitoringFromFile(gfc_filename, remove_file=True, is_multi=True)
+        gfi.advertiseGlideinClientMonitoringFromFile(gfc_filename, remove_file=True, is_multi=True)
     else:
         logSupport.log.info("Not advertising glidefactory and glidefactoryclient classads this round")
 
@@ -443,7 +442,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript, frontendDesc
 
 
 ############################################################
-def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDescript, group_name, my_entries):
+def iterate(parent_pid, sleep_time, advertise_rate, glideinDescript, frontendDescript, group_name, my_entries):
     """Main iteration loop for the Factory Entry Group.
 
     Continues iterating over sets of tasks until a termination condition is met, checking for parent existence,
@@ -452,7 +451,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDes
     Args:
         parent_pid (int): PID for the Factory daemon.
         sleep_time (int): Seconds to sleep between iterations.
-        advertize_rate (int): Rate at which advertising should occur.
+        advertise_rate (int): Rate at which advertising should occur.
         glideinDescript (glideFactoryConfig.GlideinDescript): glidein.descript object from the Factory root directory.
         frontendDescript (glideFactoryConfig.FrontendDescript): frontend.descript object from the Factory root directory.
         group_name (str): Name of the group.
@@ -593,14 +592,14 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDes
         logSupport.log.info("Sleep %is" % iteration_sleep_time)
         time.sleep(iteration_sleep_time)
 
-        count = (count + 1) % advertize_rate
+        count = (count + 1) % advertise_rate
         is_first = False  # Entering following iterations
 
 
 ############################################################
 
 
-def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_names, group_id):
+def main(parent_pid, sleep_time, advertise_rate, startup_dir, entry_names, group_id):
     """Main function for GlideinFactoryEntryGroup.
 
     Sets up logging, monitoring, and configuration; starts the entry group loop;
@@ -609,7 +608,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_names, group
     Args:
         parent_pid (int): The PID for the Factory daemon.
         sleep_time (int): Seconds to sleep between iterations.
-        advertize_rate (int): Rate at which advertising should occur.
+        advertise_rate (int): Rate at which advertising should occur.
         startup_dir (str|Path): The "home" directory for the entry.
         entry_names (str): Colon-separated list of entry names to process.
         group_id (str): Group ID (normally a number, with the "group_" prefix it forms the group name).
@@ -667,7 +666,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_names, group
         try:
             try:
                 iterate(
-                    parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDescript, group_name, my_entries
+                    parent_pid, sleep_time, advertise_rate, glideinDescript, frontendDescript, group_name, my_entries
                 )
             except KeyboardInterrupt:
                 logSupport.log.info("Received signal...exit")

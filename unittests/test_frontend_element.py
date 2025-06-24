@@ -7,6 +7,7 @@
 
 
 import os
+import sys
 import unittest
 
 from unittest import mock
@@ -16,6 +17,7 @@ import xmlrunner
 
 import glideinwms.lib.condorExe
 import glideinwms.lib.condorMonitor as condorMonitor
+import glideinwms.plugins
 
 from glideinwms.frontend import glideinFrontendInterface, glideinFrontendMonitoring
 from glideinwms.lib.fork import ForkManager
@@ -241,10 +243,13 @@ class FEElementTestCase(unittest.TestCase):
              are being evaluated correctly
         """
 
+        plugins_dir = glideinwms.plugins.__path__[0]
+        sys.path.append(plugins_dir)
+
         self.gfe.stats = {"group": glideinFrontendMonitoring.groupStats()}
         self.gfe.published_frontend_name = f"{self.gfe.frontend_name}.XPVO_{self.gfe.group_name}"
         mockery = mock.MagicMock()
-        self.gfe.x509_proxy_plugin = mockery
+        self.gfe.credentials_plugin = mockery
         # keep logSupport.log.info in an array to search through later to
         # evaluate success
         glideinwms.frontend.glideinFrontendLib.logSupport.log = mockery
@@ -262,7 +267,7 @@ class FEElementTestCase(unittest.TestCase):
             ):
                 # also need to mock advertisers so they don't fork off jobs
                 # it has nothing to do with what is being tested here
-                with mock.patch.object(glideinFrontendInterface, "MultiAdvertizeWork"):
+                with mock.patch.object(glideinFrontendInterface, "MultiAdvertiseWork"):
                     with mock.patch(
                         "glideinFrontendInterface.ResourceClassadAdvertiser.advertiseAllClassads", return_value=None
                     ):

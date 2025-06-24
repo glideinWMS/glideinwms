@@ -3,14 +3,28 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+## v3.11.1 \[2025-06-24\]
 
-Changes since the last release
+Improvement and hardening of the refactored credentials.
+This is a development (3.11) release and includes all the production improvement and fixes up to v3.10.14.
 
 ### New features / functionalities
 
--   item one of the list
--   item N
+-   Added a generator to set credentials or parameters depending on the Entry selected (PR #489)
+-   Added a generator to set credentials or parameters depending on the Entry selected (PR #489)
+-   Added IdTokenGenerator to standardize the generation of ID tokens and allow for operator customization
+-   Added SciTokenGenerator to facilitate the generation of standard SciTokens
+-   Added CachedGenerator base class to implement generators with automatic cache management
+-   Added CredentialGenerator base generator class to implement cached credential generators
+-   Added GeneratorContext class to implement context validation
+-   Added support for generator snapshots to store and retrieve specific generations
+-   Updated some builtin generators to avoid redefining \_\_init\_\_ making them more flexible
+-   Updated the CredentialPair class and its subclasses to support credential pairs with different types. (PR #514)
+-   Refactored the credentials module into a python package including modules for base classes and specific credential types. (PR #514)
+-   Renamed the credentialGenerator and hashCrypto modules to credential_generator and hash_crypto. (PR #514)
+-   Renamed CredentialGenerator credentials to DynamicCredential and added the new alias "generator" to the newly renamed "dynamic" credential type. (PR #514)
+-   Added the new RSAPublicKey, RSAPrivateKey, and Symmetric credential types to replace the legacy pubCrypto and symCrypto modules. (PR #514)
+-   Stopped using M2Crypto in favor of the cryptography module. (PR #514)
 
 ### Changed defaults / behaviours
 
@@ -19,6 +33,8 @@ Changes since the last release
 ### Security Related Fixes
 
 ### Bug Fixes
+
+-   Fixed a bug that could cause the Frontend not to generate IDTOKENS to some Factory entries. (PR #514)
 
 ### Testing / Development
 
@@ -142,6 +158,32 @@ Check the changed defaults, including SINGULARITY_IMAGE_REQUIRED, APPTAINER_TEST
 ### Testing / Development
 
 -   Added new debug and timeout options to the release building scripts (PR #506)
+
+### Known Issues
+
+## v3.11.0 \[2025-02-18\]
+
+Credentials refactoring
+
+### New features / functionalities
+
+-   Add new hierarchical credential classes for a number of credential types
+-   Add new parameter classes to handle security parameters orthogonally to credentials
+-   Refactors credential generators to enhance its capabilities and allow for the generation of other attributes besides credentials
+-   Add support for builtin generators such as the RoundRobinGenerator generator
+-   Reintroduced credentials renewal scripts (`creation_script` and `update_frequency` parameters)
+
+### Changed defaults / behaviours
+
+-   Skip glideclient advertising if there are no Glideins to request or actively running on a given group
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+### Testing / Development
 
 ### Known Issues
 

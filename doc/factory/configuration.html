@@ -132,6 +132,11 @@ SPDX-License-Identifier: Apache-2.0
           <li>
             <a href="#reconfigure_hooks">Running pre/post reconfigure hooks</a>
           </li>
+          <li>
+            <a href="#upgrade"
+              >Upgrading to GlideinWMS 3.11.x (development series)</a
+            >
+          </li>
         </ol>
       </div>
       <div class="related">
@@ -278,7 +283,7 @@ SPDX-License-Identifier: Apache-2.0
             <blockquote>
               <a href="#entry"
                 >&lt;entry name="EXAMPLE_ENTRY" enabled="True"
-                auth_method="grid_proxy" trust_domain="OSG"
+                auth_method="scitoken,grid_proxy;projectid" trust_domain="OSG"
                 gatekeeper="gatewayname.fnal.gov gatewayname.fnal.gov:port"
                 gridtype="condor" rsl="$(PBS_RSL)" verbosity="std"
                 work_dir="OSG"&gt;</a
@@ -1103,35 +1108,44 @@ SPDX-License-Identifier: Apache-2.0
                 using command line tools.
               </li>
               <li>
+                <a name="auth_method" />
                 <div class="xml">
                   &lt;glidein&gt;&lt;entries&gt;&lt;entry name=&quot;<i
                     >entry name</i
-                  >&quot; auth_method=&quot;<i>grid_proxy</i>&quot;&gt;
+                  >&quot;
+                  auth_method=&quot;<i>scitoken,grid_proxy;projectid</i>&quot;&gt;
                 </div>
-                <b>Required:</b> The authentication method this entry supports.
-                It is advertised to the Frontends to show which credentials are
-                required for submission. Valid values: grid_proxy, voms_proxy,
-                key_pair, cert_pair, username_password, vm_type, vm_id,
-                project_id, scitoken.<br />
-                See
-                <a href="custom_vars.html#CONTINUE_IF_NO_PROXY"
-                  >CONTINUE_IF_NO_PROXY</a
-                >
-                to find out how the authentication method matching is altered to
-                ease the transition from grid_proxy to scitoken.<br />
-                Multiple authentication methods may be needed and there may be
-                requirements on the authentication method depending on the type
-                of entry. E.g. ec2 requires a credential pair (key_pair,
-                cert_pair, username_password) and the VM id and type. BOSCO
-                requires a key_pair and a grid_proxy. The authentication method
-                then must be &lt;entry auth_method="grid_proxy+project_id" &gt;.
-                <br />
-                When multiple methods are needed these can be additional entry
-                values: &lt;entry vm_type="vmtype" or vm_id="vmid" &gt; <br />
-                OR <br />
-                can be added to the authentication method so the Frontend is
-                required to pass them: &lt;entry
-                auth_method="key_pair+vm_id+vm_type" &gt; <br />
+                <b>Required:</b> The authentication methods this entry supports.
+                It is advertised to the Frontends to show which credentials And
+                and parameters are required for submission. Valid values are a
+                combination of valid credential types and parameter names.
+                Authentication methods are interpreted by the Factory using the
+                following rules:
+                <ul>
+                  <li>
+                    An authentication method is composed by one or more groups
+                    of authentication items separated by &quot;;&quot;.
+                  </li>
+                  <li>
+                    Each group must list one or more credential type or
+                    parameter name (authentication items) separated by
+                    &quot;,&quot;.
+                  </li>
+                  <li>
+                    An authentication method is satisfied if at least one
+                    authentication item in each group is provided by the
+                    Frontend.
+                  </li>
+                </ul>
+                <p>
+                  <i>
+                    <a href="custom_vars.html#CONTINUE_IF_NO_PROXY"
+                      >CONTINUE_IF_NO_PROXY</a
+                    >
+                    is now deprecated. Using an authenticatiom method such as
+                    &quot;scitoken,grid_proxy&quot; will have the same effect.
+                  </i>
+                </p>
               </li>
               <li>
                 <div class="xml">
@@ -1172,9 +1186,6 @@ SPDX-License-Identifier: Apache-2.0
                   >(condorsubmit=(universe vanilla)(requirements
                   \&quot;(ISMINOSAFS=?=True)\&quot;))</tt
                 >'). <br />
-                NOTE: If the auth_method contains "+project_id" for a TeraGrid
-                entry, the string "(project=TG_PROJECT_ID)" will be added by the
-                Factory and populated with the project id passed in the request.
               </li>
               <li>
                 <div class="xml">
@@ -3245,6 +3256,27 @@ CONDORCE_COLLECTOR_HOST=&lt;site-local HTCondorCE collector address&gt;</pre
         as user
         <pre>gfactory</pre>
         . Only executable scripts will be executed.
+        <br />
+        <br />
+      </div>
+
+      <div>
+        <a name="upgrade" />
+        <h3 class="western">
+          Upgrading to GlideinWMS 3.11.x (development series)
+        </h3>
+        <p>
+          When upgrading to GlideinWMS 3.11.x, you will not need to make any
+          changes to your Factory configuration. However, you may want to
+          consider using the new
+          <a href="#auth_method"><code>auth_method</code></a> features that
+          allow to specify a combination of credential types and security
+          parameters.
+        </p>
+        <p>
+          The new Factory is back compatible with older versions of the
+          Frontend.
+        </p>
       </div>
 
       <div class="footer">
