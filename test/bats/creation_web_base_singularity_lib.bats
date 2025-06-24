@@ -63,34 +63,34 @@ setup_nameprint() {
 
 ## Tests for dict_... functions
 @test "Test dictionary values" {
-    my_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
-    [ "$(dict_get_val my_dict " key 1")" = "val1:opt1" ]
-    [ "$(dict_get_val my_dict key2)" = "val2" ]
-    [ "$(dict_get_val my_dict key3)" = "val3:opt3" ]
-    [ "$(dict_get_val my_dict key4)" = "" ]
-    [ "$(dict_get_val my_dict key5)" = "" ]
-    [ "$(dict_get_val my_dict "key6 ")" = "val6" ]
+    test_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
+    [ "$(dict_get_val test_dict " key 1")" = "val1:opt1" ]
+    [ "$(dict_get_val test_dict key2)" = "val2" ]
+    [ "$(dict_get_val test_dict key3)" = "val3:opt3" ]
+    [ "$(dict_get_val test_dict key4)" = "" ]
+    [ "$(dict_get_val test_dict key5)" = "" ]
+    [ "$(dict_get_val test_dict "key6 ")" = "val6" ]
 }
 
 
 @test "Test dictionary keys" {
-    my_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
+    test_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
     for i in " key 1" key2 key3 key4 key5 "key6 "; do
         #echo "Checking <$i>" >&3
-        dict_check_key my_dict "$i"
+        dict_check_key test_dict "$i"
     done
 }
 
 
 @test "Test dictionary set" {
-    my_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
-    run dict_set_val my_dict key2 new2
+    test_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
+    run dict_set_val test_dict key2 new2
     [[ ",$output," = *",key2:new2,"* ]] || false
     [ "$status" -eq 0 ]
-    run dict_set_val my_dict " key 1"
+    run dict_set_val test_dict " key 1"
     [[ ",$output," = *", key 1,"* ]] || false
     [ "$status" -eq 0 ]
-    run dict_set_val my_dict key7 "new7 sp"
+    run dict_set_val test_dict key7 "new7 sp"
     [[ ",$output," = *",key7:new7 sp,"* ]] || false
     [ "$status" -eq 1 ]
 }
@@ -98,8 +98,8 @@ setup_nameprint() {
 dit() { echo "TEST:<$1><$2><$3>"; }
 
 @test "Test dictionary iterator" {
-    my_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
-    run dict_items_iterator my_dict dit par1
+    test_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
+    run dict_items_iterator test_dict dit par1
     [ "${lines[0]}" = "TEST:<par1>< key 1><val1:opt1>" ]
     [ "${lines[1]}" = "TEST:<par1><key2><val2>" ]
     [ "${lines[2]}" = "TEST:<par1><key3><val3:opt3>" ]
@@ -110,9 +110,22 @@ dit() { echo "TEST:<$1><$2><$3>"; }
 }
 
 
-@test "Test dictionary key iterator" {
-    my_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
-    run dict_keys_iterator my_dict dit par1
+@test "Test dictionary iterator bash" {
+    test_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
+    run dict_items_iterator_bash test_dict dit par1
+    [ "${lines[0]}" = "TEST:<par1>< key 1><val1:opt1>" ]
+    [ "${lines[1]}" = "TEST:<par1><key2><val2>" ]
+    [ "${lines[2]}" = "TEST:<par1><key3><val3:opt3>" ]
+    [ "${lines[3]}" = "TEST:<par1><key4><>" ]
+    [ "${lines[4]}" = "TEST:<par1><key5><>" ]
+    [ "${lines[5]}" = "TEST:<par1><key6 ><val6>" ]
+    [ "$status" -eq 0 ]
+}
+
+
+@test "Test dictionary key iterator bash" {
+    test_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
+    run dict_keys_iterator_bash test_dict dit par1
     [ "${lines[0]}" = "TEST:<par1>< key 1><>" ]
     [ "${lines[1]}" = "TEST:<par1><key2><>" ]
     [ "${lines[2]}" = "TEST:<par1><key3><>" ]
@@ -124,16 +137,16 @@ dit() { echo "TEST:<$1><$2><$3>"; }
 
 
 @test "Test dictionary dict_get_first" {
-    my_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
-    [ "$(dict_get_first my_dict key)" = " key 1" ]
-    [ "$(dict_get_first my_dict)" = "val1:opt1" ]
-    [ "$(dict_get_first my_dict item)" = " key 1:val1:opt1" ]
+    test_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
+    [ "$(dict_get_first test_dict key)" = " key 1" ]
+    [ "$(dict_get_first test_dict)" = "val1:opt1" ]
+    [ "$(dict_get_first test_dict item)" = " key 1:val1:opt1" ]
 }
 
 
 @test "Test dictionary dict_get_keys" {
-    my_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
-    [ "$(dict_get_keys my_dict)" = " key 1,key2,key3,key4,key5,key6 " ]
+    test_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
+    [ "$(dict_get_keys test_dict)" = " key 1,key2,key3,key4,key5,key6 " ]
 }
 
 

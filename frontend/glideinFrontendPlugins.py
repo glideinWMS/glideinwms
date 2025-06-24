@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This module implements plugins for the VO frontend
-"""
+"""This module implements plugins for the VO frontend"""
 
 import copy
 import math

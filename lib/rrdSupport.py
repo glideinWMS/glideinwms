@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This module implements the basic functions needed to interface with rrdtool.
-"""
+"""This module implements the basic functions needed to interface with rrdtool."""
 
 import os
 import shutil

@@ -4,8 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Code and configuration files contributed by Brian Lin, OSG Software
-"""Automatic renewal of proxies necessary for a glideinWMS frontend
-"""
+"""Automatic renewal of proxies necessary for a glideinWMS frontend"""
 
 
 import configparser

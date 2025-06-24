@@ -3,7 +3,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
+# This script is mostly compatible w/ Busybox (ash/dash). The parts only for Bash are enclosed between lines ending in
+# "# START bash" and "# END bash", allowing import via:
+#  `eval "$(sed '/.*# START bash$/,/.*# END bash$/d' "${GWMS_AUX_DIR}"/singularity_lib.sh)"`
+# Busybox allows [[ ]] and limited parameter expansion, not indirection, not (( ))
+# The compatible parts use variable indirection via eval, protecting the var name:
+#  `my_dict=$(eval "echo \"\$${1##*[!0-9_a-z_A-Z]*}\"")` or `eval "my_dict=\$${1##*[!0-9_a-z_A-Z]*}"`
+
 # This script contains some utility functions for the singularity scripts
 # The script will be available outside and inside Singularity
 #
@@ -105,7 +111,7 @@ GWMS_MODULE_USE_DEFAULT=1
 # GWMS_THIS_SCRIPT should be set to $0 to log the file name
 
 # To increment each time the API changes
-export GWMS_SINGULARITY_LIB_VERSION=2
+export GWMS_SINGULARITY_LIB_VERSION=3
 
 GWMS_SCRIPT_LOG="$(dirname "$GWMS_THIS_SCRIPT")/.LOG_$(basename "$GWMS_THIS_SCRIPT").$$.txt"
 # Change this to enable script log
@@ -130,6 +136,7 @@ info() {
 }
 
 info_dbg() {
+    # Used in wrapper, must be busybox compatible
     if [[ -n "$GLIDEIN_DEBUG_OUTPUT" ]]; then
         #local script_txt=''
         #[ -n "$GWMS_THIS_SCRIPT" ] && script_txt="(file: $GWMS_THIS_SCRIPT)"
@@ -163,21 +170,25 @@ warn_raw() {
 # Comma is not allowed in keys or values, colon is not allowed in keys
 # Associative dictionaries are OK in bash 4.1. Before then are not or not fully supported
 # References (declare -n) are from 4.3.
+# These may be used in the wrapper, must be busybox compatible (to support containers w/o bash)
+#  - Indirection is not supported in busybox, need eval  my_dict=${!1}  -> eval "my_dict=\$${1##*[!0-9_a-z_A-Z]*}"
+#  - Functions ending in _bash are not busybox compatible
+# Same for arrays
 # TEST: to test dict functions
-# my_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
+# test_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
 #
-
 dict_get_val() {
     # Return to stdout the value of the fist key present in the dictionary
     # Return true (0) if a value is found and is not empty, 1 otherwise
     # Use a regex to extract the values
     #  $1 dict name
     #  $2 comma separated list of keys (key can contain a space if you quote it but not a comma)
-    local IFS=,
     local key_list="$2"
-    local res
+    local res my_dict
+    eval "my_dict=\$${1##*[!0-9_a-z_A-Z]*}"
+    local IFS=,
     for key in $key_list; do
-        res="$(expr ",${!1}," : ".*,$key:\([^,]*\),.*")"
+        res="$(expr ",${my_dict}," : ".*,$key:\([^,]*\),.*")"
         if [[ -n "$res" ]]; then
             echo "$res"
             return 0
@@ -190,9 +201,11 @@ dict_check_key() {
     # Return true (0) if the key is in the dict (the value could be empty)
     # $1 dict name
     # $2 key
+    local my_dict
+    eval "my_dict=\$${1##*[!0-9_a-z_A-Z]*}"
     #re=*",${2}:"*  # bash <= 3.1 needs quoted regex, >=3.2 unquoted, variables are OK with both
-    [[ ",${!1}," = *",${2}:"* ]] && return 0
-    [[ ",${!1}," = *",${2},"* ]] && return 0  # could be empty val and no separator
+    [[ ",${my_dict}," = *",${2}:"* ]] && return 0
+    [[ ",${my_dict}," = *",${2},"* ]] && return 0  # could be empty val and no separator
     return 1
 }
 
@@ -202,8 +215,8 @@ dict_set_val() {
     # $2 key
     # $3 value (optional)
     # Assuming correct use, no check made, at least 2 arguments mandatory
-    local my_dict=${!1}
-    local key_found
+    local key_found my_dict
+    eval "my_dict=\$${1##*[!0-9_a-z_A-Z]*}"
     if [[ ",${my_dict}," = *",${2}:"* || ",${my_dict}," = *",${2},"* ]]; then
         my_dict=$(echo ",${my_dict}," | sed -E "s/,${2}(,|:[^,]*,)/,/;s/,+/,/g;s/^,//;s/,\$//")
         key_found=yes
@@ -225,6 +238,21 @@ dict_items_iterator() {
     # Split the dict string to list the items and apply the function
     # $1 dict
     # $2.. $n $2 is the function to apply to all items, $3..$n its parameters (optional), $(n+1) the key, $(n+2) the value
+    local my_dict
+    eval "my_dict=\$${1##*[!0-9_a-z_A-Z]*}"
+    shift
+    local val
+    echo "$my_dict" | tr ',' '\n' | while IFS= read -r item; do
+        [[ "$item" = *:* ]] && val="${item#*:}" || val=   # to protect against empty val and no :
+        # function key value
+        "$@" "${item%%:*}" "$val"
+    done
+}
+
+dict_items_iterator_bash() {  # START bash
+    # Split the dict string to list the items and apply the function
+    # $1 dict
+    # $2.. $n $2 is the function to apply to all items, $3..$n its parameters (optional), $(n+1) the key, $(n+2) the value
     local my_dict=${!1}
     shift
     local was_ifs=$IFS
@@ -234,13 +262,13 @@ dict_items_iterator() {
     local val
     for i in "${arr[@]}"  # ${arr[*]} separates also by spaces
     do
-        [[ "$i" = *\:* ]] && val="${i#*:}" || val=   # to protect against empty val and no :
+        [[ "$i" = *:* ]] && val="${i#*:}" || val=   # to protect against empty val and no :
         # function key value
         "$@" "${i%%:*}" "$val"
     done
 }
 
-dict_keys_iterator() {
+dict_keys_iterator_bash() {
     # Split the dict string to list the keys and apply the function
     # $1 dict
     # $2.. $n $2 is the function to apply to all keys, $3..$n its parameters (optional), $(n+1) will be the key
@@ -255,14 +283,15 @@ dict_keys_iterator() {
     do
         "$@" "${i%%:*}"
     done
-}
+}  # END bash
 
 dict_get_keys() {
     # Returns a comma separated list of keys (there may be spaces if keys do have spaces)
     # Quote the return string and use  IFS=, to separate the keys, this way you'll preserve spaces
     # Returning the elements would flatten the array and cause problems w/ spaces
     # $1 dict
-    local my_dict=${!1}
+    local my_dict
+    eval "my_dict=\$${1##*[!0-9_a-z_A-Z]*}"
     local res
     res=$(echo "$my_dict," | sed 's/:[^,]*,/,/g; s/,\+/,/g')
     echo "${res%,}"
@@ -272,7 +301,8 @@ dict_get_first() {
     # Returns the first element of the dictionary (whole item, or key, or value)
     #  $1 dict
     #  $2 what to return: item, key, value (default: value)
-    local my_dict=${!1}
+    local my_dict
+    eval "my_dict=\$${1##*[!0-9_a-z_A-Z]*}"
     local what=${2:-value}
     local res="${my_dict%%,*}"
     if [[ -n "$res" ]]; then
@@ -306,6 +336,7 @@ list_get_intersection() {
     # This can be used to evaluate the desired OS (platform) that works for both Entry and VO,
     # intersection of GLIDEIN_REQUIRED_OS and REQUIRED_OS
     # Valid values: rhelNN, default
+    # Used in wrapper, must be busybox compatible
     local intersection
     [[ -z "$1"  ||  -z "$2" ]] && return 1
     if [[ "$1" = "any" ]]; then
@@ -323,13 +354,17 @@ list_get_intersection() {
                 intersection="$($cmd -c "print(','.join(sorted(list(set('$2'.split(',')).intersection('$1'.split(','))))))" 2>/dev/null)"
             else
                 # no valid Python found
-                warn "Python (python3/python2/python) not found. Returning empty intersection"
-                return 1
+                # shell alternative working if no spaces
+                warn "Python (python3/python2/python) not found. Intersection will work only without spaces"
+                intersection=
+                for i in $(echo "$1" | tr "," " "); do
+                    [[ ",$2," = *",$i,"* ]] && intersection="$intersection$i,"
+                done
             fi
         fi
     fi
     [[ -z "$intersection" ]] && return 1
-    echo "$intersection"
+    echo "${intersection%,}"
 }
 
 
@@ -649,45 +684,45 @@ advertise_safe() {
     fi
 }
 
-
+# START bash
 # The following four functions (htc_...) are based mostly on Carl Edquist's code to parse the HTCondor file
 htc_setmatch() {
-  local __=("$@")
-  set -- "${BASH_REMATCH[@]}"
-  shift
-  eval "${__[@]}"
+    local __=("$@")
+    set -- "${BASH_REMATCH[@]}"
+    shift
+    eval "${__[@]}"
 }
 
 
 htc_rematch() {
-  [[ $1 =~ $2 ]] || return 1
-  shift 2
-  htc_setmatch "$@"
+    [[ $1 =~ $2 ]] || return 1
+    shift 2
+    htc_setmatch "$@"
 }
 
 
 htc_get_vars_from_env_str() {
-  local str_arr condor_var_string=""
-  # TODO: used \" instead of '"' - check w/ Carl if changes are ok, ask about quoting
-  env_str=${env_str#\"}
-  env_str=${env_str%\"}
-  # Strip out escaped whitespace
-  while htc_rematch "$env_str" "(.*)'([[:space:]]+)'(.*)" env_str='$1$3'
-  do :; done
+    local str_arr condor_var_string=""
+    # TODO: used \" instead of '"' - check w/ Carl if changes are ok, ask about quoting
+    env_str=${env_str#\"}
+    env_str=${env_str%\"}
+    # Strip out escaped whitespace
+    while htc_rematch "$env_str" "(.*)'([[:space:]]+)'(.*)" env_str='$1$3'
+    do :; done
 
-  # Now, split the string on whitespace
-  read -ra str_arr <<<"${env_str}"
+    # Now, split the string on whitespace
+    read -ra str_arr <<<"${env_str}"
 
-  # Finally, parse each element of the array.
-  # They should each be name=value assignments,
-  # and we only need to grab the name
-  vname_regex="(^[_a-zA-Z][_a-zA-Z0-9]*)(=)[.]*"
-  for assign in "${str_arr[@]}"; do
-      if [[ "$assign" =~ $vname_regex ]]; then
-	  condor_var_string="$condor_var_string ${BASH_REMATCH[1]}"
-      fi
-  done
-  echo "$condor_var_string"
+    # Finally, parse each element of the array.
+    # They should each be name=value assignments,
+    # and we only need to grab the name
+    vname_regex="(^[_a-zA-Z][_a-zA-Z0-9]*)(=)[.]*"
+    for assign in "${str_arr[@]}"; do
+        if [[ "$assign" =~ $vname_regex ]]; then
+            condor_var_string="$condor_var_string ${BASH_REMATCH[1]}"
+        fi
+    done
+    echo "$condor_var_string"
 }
 
 
@@ -715,7 +750,7 @@ env_clear_one() {
         info "GWMS Singularity wrapper: $1 is set to ${!1} outside Singularity. This will not be propagated to inside the container instance."
         export "${varname}"="${!1}"
         case $1 in
-            PATH) PATH=$_DEFAULT_PATH ;;
+            PATH) export PATH="$_DEFAULT_PATH" ;;
                *) unset "$1" ;;
         esac
     fi
@@ -769,7 +804,7 @@ env_clearlist() {
 
 
 env_clear() {
-    # If requested in the env options, clear the PATH vasiables and add the singularity option
+    # If requested in the env options, clear the PATH variables and add the singularity option
     # In
     #  1 - list of environment options (see env_process_options)
     #  2 - singularity options (GWMS_SINGULARITY_EXTRA_OPTS)
@@ -786,7 +821,7 @@ env_clear() {
     if [[ "${env_options}" = *",clearall,"* || "${env_options}" = *",clearpaths,"* ]]; then
         # clear the ...PATH variables
         # PATH should be cleared also by Singularity, but the behavior is inconsistent across versions
-        for i in PATH LD_LIBRARY_PATH PYTHONPATH ; do
+        for i in PATH LD_LIBRARY_PATH PYTHONPATH LD_PRELOAD ; do
             env_clear_one ${i}
         done
     fi
@@ -959,7 +994,7 @@ env_restorelist() {
 
 
 env_restore() {
-    # Restore the environment if the Singularity invocation fails
+    # Restore the environment (path variables) if the Singularity invocation fails
     # Nothing to do for the env cleared by Singularity, we are outside of it.
     # The PATH... variables may need to be restored.
     #
@@ -973,13 +1008,14 @@ env_restore() {
     if [[ "${env_options}" = *",clearall,"* || "${env_options}" = *",clearpaths,"* ]]; then
         # clear the ...PATH variables
         # PATH should be cleared also by Singularity, but the behavior is inconsistent across versions
-        info "Restoring the cleared PATH, LD_LIBRARY_PATH, PYTHONPATH"
-        for i in PATH LD_LIBRARY_PATH PYTHONPATH ; do
+        info "Restoring the cleared PATH, LD_LIBRARY_PATH, PYTHONPATH, LD_PRELOAD"
+        for i in PATH LD_LIBRARY_PATH PYTHONPATH LD_PRELOAD ; do
             varname="GWMS_OLDENV_$i"
-            export ${i}="${!varname}"
+            [[ -n "${!varname}" ]] && export ${i}="${!varname}" || true
         done
     fi
 }
+# END bash
 
 
 get_all_platforms() {
@@ -1007,6 +1043,7 @@ cvmfs_test_and_open() {
     #  2 - callback for failure (must be a single command or function name), exit 1 if none is provided or callback returns false
     # Using:
     #  CVMFS_MOUNT_DIR
+    # Used in wrapper, must be busybox compatible
     info_dbg "Testing CVMFS Repos List = $1"
     holdfd=3
     local cvmfs_mount=/cvmfs
@@ -1017,6 +1054,7 @@ cvmfs_test_and_open() {
         for x in $1; do  # Spaces in file name are OK, separator is comma
             if eval "exec ${holdfd}<${cvmfs_mount}/\"$x\""; then
                 echo "\"${cvmfs_mount}/$x\" exists and available"
+                # shellcheck disable=SC2219  # for busybox compatibility
                 let "holdfd=holdfd+1"
             else
                 echo "\"${cvmfs_mount}/$x\" NOT available"
@@ -1166,7 +1204,7 @@ singularity_make_outside_pwd_list() {
 }
 
 
-singularity_update_path() {
+singularity_update_path() {  # START bash
     # Replace all outside paths in the command line referring GWMS_SINGULARITY_OUTSIDE_PWD (working directory)
     # or a path in GWMS_SINGULARITY_OUTSIDE_PWD_LIST (paths linked or bind mounted to the working directory)
     # so that they can work inside.
@@ -1214,7 +1252,7 @@ singularity_update_path() {
         [[ "${arg}" == */execute/dir_* ]] && info_dbg "String '/execute/dir_' in argument path ($arg), path is a partial match or the conversion to run in Singularity may be incorrect"
         GWMS_RETURN+=("${arg}")
     done
-}
+}  # END bash
 
 
 singularity_exec() {
@@ -1277,29 +1315,57 @@ singularity_exec() {
         export SINGULARITY_TMPDIR="${APPTAINER_TMPDIR}"
     fi
 
+    if [[ ! ",${execution_opt}," = *,noenv,* ]]; then
+        # Clean/preserve environment
+        # Add --clearenv if requested and clear PATH variables
+        # Always (unless keepall) disabling outside LD_LIBRARY_PATH, PATH, PYTHONPATH and LD_PRELOAD to avoid problems w/ different OS
+        # Singularity is supposed to handle this, but different versions behave differently
+        # Restore them only if continuing after singularity invocation (end of this function)
+        [[ -n "$GLIDEIN_CONTAINER_ENV" ]] || GLIDEIN_CONTAINER_ENV=$(gwms_from_config GLIDEIN_CONTAINER_ENV "")
+        [[ -n "$GLIDEIN_CONTAINER_ENV_CLEARLIST" ]] || GLIDEIN_CONTAINER_ENV_CLEARLIST=$(gwms_from_config GLIDEIN_CONTAINER_ENV_CLEARLIST "")
+        singularity_opts=$(env_clear "${GLIDEIN_CONTAINER_ENV}" "${singularity_opts}")
+        env_clearlist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
+        # If there is clearenv protect the variables (it may also have been added by the custom Singularity options)
+        if env_gets_cleared "${GWMS_SINGULARITY_EXTRA_OPTS}"; then
+            env_preserve "${GLIDEIN_CONTAINER_ENV}"
+        fi
+    fi
     info_dbg  "$execution_opt \"$singularity_bin\" $singularity_global_opts exec --home \"$PWD\":/srv --pwd /srv " \
-            "$singularity_opts ${singularity_binds:+"--bind" "\"$singularity_binds\""} " \
+            "$singularity_opts ${singularity_binds:+--bind \"$singularity_binds\"} " \
             "\"$singularity_image\"" "${@}" "[ $# arguments ]"
     local error
     if [[ ",${execution_opt}," = *,exec,* ]]; then
+        # shellcheck disable=SC2093
+        # shellcheck disable=SC2086
         exec "$singularity_bin" ${singularity_global_opts} exec --home "$PWD":/srv --pwd /srv \
-            ${singularity_opts} ${singularity_binds:+"--bind" "$singularity_binds"} \
+            ${singularity_opts} ${singularity_binds:+--bind "$singularity_binds"} \
             "$singularity_image" "${@}"
         error=$?
         [[ -n "$_CONDOR_WRAPPER_ERROR_FILE" ]] && echo "Failed to exec singularity ($error): exec \"$singularity_bin\" $singularity_global_opts exec --home \"$PWD\":/srv --pwd /srv " \
-            "$singularity_opts ${singularity_binds:+"--bind" "\"$singularity_binds\""} " \
-            "\"$singularity_image\"" "${@}" >> $_CONDOR_WRAPPER_ERROR_FILE
+            "$singularity_opts ${singularity_binds:+--bind \"$singularity_binds\"} " \
+            "\"$singularity_image\"" "${@}" >> "$_CONDOR_WRAPPER_ERROR_FILE"
         warn "exec of singularity failed: exit code $error"
+        if [[ ! ",${execution_opt}," = *,noenv,* ]]; then
+            # Clean/restore environment
+            env_restore "${GLIDEIN_CONTAINER_ENV}"
+            env_restorelist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
+        fi
         return ${error}
     else
+        # shellcheck disable=SC2086
         "$singularity_bin" ${singularity_global_opts} exec --home "$PWD":/srv --pwd /srv \
-            ${singularity_opts} ${singularity_binds:+"--bind" "$singularity_binds"} \
+            ${singularity_opts} ${singularity_binds:+--bind "$singularity_binds"} \
             "$singularity_image" "${@}"
+        if [[ ! ",${execution_opt}," = *,noenv,* ]]; then
+            # Restore environment (path vars, list)
+            env_restore "${GLIDEIN_CONTAINER_ENV}"
+            env_restorelist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
+        fi
         return $?
     fi
     # Code should never get here
     warn "ERROR Inconsistency in Singularity invocation functions. Failing"
-    [[ -n "$_CONDOR_WRAPPER_ERROR_FILE" ]] && echo "ERROR: Inconsistency in GWMS Singularity invocation. Failing." >> $_CONDOR_WRAPPER_ERROR_FILE
+    [[ -n "$_CONDOR_WRAPPER_ERROR_FILE" ]] && echo "ERROR: Inconsistency in GWMS Singularity invocation. Failing." >> "$_CONDOR_WRAPPER_ERROR_FILE"
     exit 1
 }
 
@@ -1465,14 +1531,14 @@ singularity_test_bin() {
         [[ -n "$sin_path" ]] && module_name=$sin_path
         module load "$module_name" >/dev/null 2>&1
         # message on error?
-        sin_path=$(which "$sin_binary_name")
+        sin_path=$(which "$sin_binary_name" 2>/dev/null)
         # should check also CVMFS_MOUNT_DIR beside /cvmfs but not adding complication just for the warning message
         [[ -z "$sin_path" && "$LMOD_CMD" = /cvmfs/* ]] &&
             warn "$sin_binary_name not found in module. OSG OASIS module from module-init.sh used. May override a system module."
     elif [[ "$step" = PATH ]]; then
         # find the full path
         [[ -n "$sin_path" ]] && sin_binary_name="$sin_path"
-        sin_path=$(which "$sin_binary_name")
+        sin_path=$(which "$sin_binary_name" 2>/dev/null)
     fi
     if [[ -z "$sin_path" ]] && [[ "$step" = module || "$step" = PATH ]]; then
         info_dbg "which failed ($PATH). Trying command: command -v \"$sin_binary_name\""
@@ -1509,7 +1575,7 @@ singularity_test_bin() {
 }
 
 
-singularity_locate_bin() {
+singularity_locate_bin() {  # START bash
     # Find Singularity in search path, check the version and validate w/ the image (if an image is passed)
     # Will look in some places also for apptainer (and singularitypro)
     # This will search in order:
@@ -1534,6 +1600,7 @@ singularity_locate_bin() {
     #   E GWMS_SINGULARITY_PATH - set if Singularity is found
     #   E HAS_SINGULARITY - set to True if Singularity is found
     #   singularity_in - place where singularity bin was found
+    # This function uses var redirection <<< and arrays, so it's Bash specific
 
     info "Checking for singularity..."
     #GWMS Entry must use SINGULARITY_BIN to specify the pathname of the singularity binary
@@ -1586,14 +1653,14 @@ singularity_locate_bin() {
         s_step=s_bin
         [[ "$s_location" == OSG ]] && { s_location="${osg_singularity_binary%/singularity}"; s_step=s_bin_OSG; }
         [[ "$s_location" == CONDOR ]] && { s_location="${condor_apptainer_binary%/apptainer}"; s_step=s_bin_CONDOR; }
-        if [[ -d "$s_location"  && ( -x "${s_location}/apptainer" || -x "${s_location}/singularity" ) ]]; then
+        if [[ -d "$s_location" ]] && [[ -x "${s_location}/apptainer" || -x "${s_location}/singularity" ]]; then
             # 2. Look in the path suggested, separate from $PATH (key OSG -> OSG_SINGULARITY_BINARY)
             test_out=apptainer
             [[ -x "${s_location}/apptainer" ]] || test_out=singularity
             test_out=$(singularity_test_bin "${s_step},${s_location}/$test_out" "$s_image") &&
                 HAS_SINGULARITY=True
             bread_crumbs+="${test_out##*@}"
-        else
+        elif [[ ! ",PATH,CONDOR,OSG,," = *",$1,"* ]]; then  # Don't print error for keywords or empty value
             [[ "$s_location" = NONE ]] &&
                 warn "SINGULARITY_BIN = NONE is no more a valid value, use GLIDEIN_SINGULARITY_REQUIRE to control the use of Singularity"
             info "Suggested path (SINGULARITY_BIN?) '$1' ($s_location) is not a directory or does not contain singularity."
@@ -1651,7 +1718,7 @@ singularity_locate_bin() {
     warn "Singularity not found$s_location_msg in OSG_SINGULARITY_BINARY[_DEFAULT], PATH and module"
     info_dbg "PATH(${PATH}), attempt results(${bread_crumbs})"
     false
-}
+}  # END bash
 
 
 singularity_get_image_default() {
@@ -1872,7 +1939,7 @@ singularity_exit_or_fallback () {
             # TODO: also this?: touch ../../.stop-glidein.stamp >/dev/null 2>&1
             [[ -n "$1" ]] && warn "exit_wrapper not defined, printing message and exiting: $1" ||
                 warn "exit_wrapper not defined, exiting"
-            exit ${2:-1}
+            exit "${2:-1}"
         fi
     fi
 }
@@ -1971,9 +2038,16 @@ ERROR   If you get this error when you did not specify required OS, your VO does
     #     singularity_exit_or_fallback "User provided image not in CVMFS" 1
     # fi
 
-    # Whether user-provided or default image, we make sure it exists and make sure CVMFS has not fallen over
-    # images in CVMFS can also be compressed (former expansion requirement is inconsistent w/ following lines)
-    if ! singularity_verify_image "$GWMS_SINGULARITY_IMAGE" ok_compressed; then
+    if singularity_verify_image "$GWMS_SINGULARITY_IMAGE" ok_compressed; then
+        # Whether user-provided or default image, we make sure it exists and make sure CVMFS has not fallen over
+        # images in CVMFS can also be compressed (former expansion requirement is inconsistent w/ following lines)
+        info_dbg "Verified local file or CVMFS image $GWMS_SINGULARITY_IMAGE"
+    elif [[ ",${GWMS_SINGULARITY_IMAGE_RESTRICTIONS}," = *",remote,"* ]] && uri_is_valid_file_or_remote "$GWMS_SINGULARITY_IMAGE"; then
+        info_dbg "Verified remote or local image $GWMS_SINGULARITY_IMAGE"
+    elif [[ ",${GWMS_SINGULARITY_IMAGE_RESTRICTIONS}," = *",test,"* ]]; then
+        info_dbg "Invalid image $GWMS_SINGULARITY_IMAGE, but test execution, using default image"
+        GWMS_SINGULARITY_IMAGE=$(singularity_get_image_default)
+    else
         msg="\
 ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         Site and node: $OSG_SITE_NAME $(hostname -f)"
@@ -2114,65 +2188,14 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     info_dbg "about to invoke singularity, pwd is $PWD"
     export GWMS_SINGULARITY_REEXEC=1
 
-    # Always disabling outside LD_LIBRARY_PATH, PATH, PYTHONPATH and LD_PRELOAD to avoid problems w/ different OS
-    # Singularity is supposed to handle this, but different versions behave differently
-    # Restore them only if continuing after the exec of singularity failed (end of this function)
-    local old_ld_library_path=
-    if [[ -n "$LD_LIBRARY_PATH" ]]; then
-        old_ld_library_path=$LD_LIBRARY_PATH
-        info "GWMS Singularity wrapper: LD_LIBRARY_PATH is set to $LD_LIBRARY_PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
-        unset LD_LIBRARY_PATH
-    fi
-    local old_path=
-    if [[ -n "$PATH" ]]; then
-        old_path=$PATH
-        info "GWMS Singularity wrapper: PATH is set to $PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
-        PATH=$_DEFAULT_PATH
-    fi
-    local old_pythonpath=
-    if [[ -n "$PYTHONPATH" ]]; then
-        old_pythonpath=$PYTHONPATH
-        info "GWMS Singularity wrapper: PYTHONPATH is set to $PYTHONPATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
-        unset PYTHONPATH
-    fi
-    if [[ -n "$LD_PRELOAD" ]]; then
-        old_ld_preload=$LD_PRELOAD
-        info "GWMS Singularity wrapper: LD_PRELOAD is set to $LD_PRELOAD outside Singularity. This will not be propagated to inside the container instance." 1>&2
-        unset LD_PRELOAD
-    fi
-
-    # Add --clearenv if requested
-    GWMS_SINGULARITY_EXTRA_OPTS=$(env_clear "${GLIDEIN_CONTAINER_ENV}" "${GWMS_SINGULARITY_EXTRA_OPTS}")
-    env_clearlist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
-
-    # If there is clearenv protect the variables (it may also have been added by the custom Singularity options)
-    if env_gets_cleared "${GWMS_SINGULARITY_EXTRA_OPTS}"; then
-        env_preserve "${GLIDEIN_CONTAINER_ENV}"
-    fi
-
     # The new OSG wrapper is not exec-ing singularity to continue after and inspect if it ran correctly or not
     # This may be causing problems w/ signals (sig-term/quit) propagation - [#24306]
-    if [[ -z "$GWMS_SINGULARITY_LIB_VERSION" ]]; then
-        # GWMS 3.4.5 or lower, no GWMS_SINGULARITY_GLOBAL_OPTS, no GWMS_SINGULARITY_LIB_VERSION
-        singularity_exec "$GWMS_SINGULARITY_PATH" "$GWMS_SINGULARITY_IMAGE" "$singularity_binds" \
-            "$GWMS_SINGULARITY_EXTRA_OPTS" "exec" "$JOB_WRAPPER_SINGULARITY" \
-            "${GWMS_RETURN[@]}"
-    else
-        singularity_exec "$GWMS_SINGULARITY_PATH" "$GWMS_SINGULARITY_IMAGE" "$singularity_binds" \
-            "$GWMS_SINGULARITY_EXTRA_OPTS" "$GWMS_SINGULARITY_GLOBAL_OPTS" "exec" "$JOB_WRAPPER_SINGULARITY" \
-            "${GWMS_RETURN[@]}"
-    fi
+    singularity_exec "$GWMS_SINGULARITY_PATH" "$GWMS_SINGULARITY_IMAGE" "$singularity_binds" \
+        "$GWMS_SINGULARITY_EXTRA_OPTS" "$GWMS_SINGULARITY_GLOBAL_OPTS" "exec" "$JOB_WRAPPER_SINGULARITY" \
+        "${GWMS_RETURN[@]}"
+
     # Continuing here only if exec of singularity failed
     GWMS_SINGULARITY_REEXEC=0
-    env_restore "${GLIDEIN_CONTAINER_ENV}"
-    env_restorelist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
-
-    # Restoring paths that are always cleared before invoking Singularity,
-    # may contain something used for error communication
-    [[ -n "$old_path" ]] && PATH=$old_path
-    [[ -n "$old_ld_library_path" ]] && LD_LIBRARY_PATH=$old_ld_library_path
-    [[ -n "$old_pythonpath" ]] && PYTHONPATH=$old_pythonpath
-    [[ -n "$old_ld_preload" ]] && LD_PRELOAD=$old_ld_preload
     # Exit or return to run w/o Singularity
     singularity_exit_or_fallback "exec of singularity failed" $?
 }
@@ -2259,6 +2282,7 @@ setup_from_environment() {
     fi
 }
 
+# shellcheck disable=SC2155  # Declare and assign separately
 setup_classad_variables() {
     # Retrieve variables from Machine and Job ClassAds
     # Set up environment to know if Singularity is enabled and so we can execute Singularity
@@ -2266,6 +2290,7 @@ setup_classad_variables() {
     #  export all of HAS_SINGULARITY, GWMS_SINGULARITY_STATUS, GWMS_SINGULARITY_PATH, GWMS_SINGULARITY_VERSION, GWMS_SINGULARITY_IMAGES_DICT,
     #    GLIDEIN_REQUIRED_OS, GLIDEIN_DEBUG_OUTPUT, REQUIRED_OS, GWMS_SINGULARITY_IMAGE, CVMFS_REPOS_LIST,
     #    GLIDEIN_DEBUG_OUTPUT (if not already set)
+    # Used in wrapper, must be busybox compatible
 
     if [[ -z "$_CONDOR_JOB_AD" ]]; then
         export _CONDOR_JOB_AD="NONE"
@@ -2307,7 +2332,7 @@ setup_classad_variables() {
     # Jobs with SingularityImage make Singularity REQUIRED
     [[ -n "$GWMS_SINGULARITY_IMAGE" ]] && export GWMS_SINGULARITY_STATUS_EFFECTIVE="REQUIRED_Singularity_image_in_job"
     # If not provided default to whatever is Singularity availability
-    export GWMS_SINGULARITY_AUTOLOAD=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityAutoLoad ${HAS_SINGULARITY})
+    export GWMS_SINGULARITY_AUTOLOAD=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityAutoLoad "${HAS_SINGULARITY}")
     export GWMS_SINGULARITY_BIND_CVMFS=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityBindCVMFS 1)
     export GWMS_SINGULARITY_BIND_GPU_LIBS=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityBindGPULibs 1)
     export CVMFS_REPOS_LIST=$(get_prop_str ${_CONDOR_JOB_AD} CVMFSReposList)
@@ -2323,8 +2348,8 @@ setup_classad_variables() {
         export MODULE_USE=$(get_prop_bool ${_CONDOR_JOB_AD} MODULE_USE 0)
         export InitializeModulesEnv=$(get_prop_bool ${_CONDOR_JOB_AD} InitializeModulesEnv 0)
     else
-        export MODULE_USE=$(get_prop_bool ${_CONDOR_JOB_AD} MODULE_USE ${MODULE_USE})
-        export InitializeModulesEnv=$(get_prop_bool ${_CONDOR_JOB_AD} InitializeModulesEnv ${MODULE_USE})
+        export MODULE_USE=$(get_prop_bool ${_CONDOR_JOB_AD} MODULE_USE "${MODULE_USE}")
+        export InitializeModulesEnv=$(get_prop_bool ${_CONDOR_JOB_AD} InitializeModulesEnv "${MODULE_USE}")
     fi
 
     export LoadModules=$(get_prop_str ${_CONDOR_JOB_AD} LoadModules)   # List of modules to load
@@ -2365,7 +2390,7 @@ singularity_setup_inside_env() {
                OSG_WN_TMP ; do
         # double sed to avoid matching a directory starting w/ the same name (e.g. /my /mydir)
         # val="$(echo "${!key}" | sed -E "s,${GWMS_SINGULARITY_OUTSIDE_PWD}/(.*),/srv/\1,;s,${GWMS_SINGULARITY_OUTSIDE_PWD}$,/srv,")"
-        old_val="${!key}"
+        eval "old_val=\$${key##*[!0-9_a-z_A-Z]*}"
         val="$old_val"
         old_ifs="$IFS"
         IFS=":"
@@ -2402,6 +2427,7 @@ singularity_setup_inside() {
     #   $GWMS_SINGULARITY_OUTSIDE_PWD_LIST ($GWMS_SINGULARITY_OUTSIDE_PWD), $GWMS_SINGULARITY_IMAGE_HUMAN ($GWMS_SINGULARITY_IMAGE as fallback)
     # Out:
     #   Changing env variables (especially TMP and X509 related) to work w/ chrooted FS
+    # Used in wrapper, must be busybox compatible
     unset TMP
     unset TMPDIR
     unset TEMPDIR
@@ -2419,7 +2445,8 @@ singularity_setup_inside() {
     # glidein one - in that case, just unset the env var
     local key val
     for key in CONDOR_CONFIG X509_USER_PROXY X509_USER_CERT X509_USER_KEY ; do
-        val="${!key}"
+        # val="${!key}"  # indirection missing in busybox
+        eval "val=\$${key}"  # key is secure
         if [[ -n "$val" ]]; then
             if [[ ! -e "$val" ]]; then
                 eval unset $key >/dev/null 2>&1 || true

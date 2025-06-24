@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Frontend config related classes
-"""
+"""Frontend config related classes"""
 
 import os.path
 import urllib.error

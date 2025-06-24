@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Frontend creation module
-   Classes and functions needed to handle dictionary files created out of the parameter object
+Classes and functions needed to handle dictionary files created out of the parameter object
 """
 
 import os
@@ -579,6 +579,8 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
 
         # Apply group specific singularity policy
         validate_singularity(self.dicts, sub_params, params, self.sub_name)
+        validate_schedds(main_dicts["frontend_descript"]["JobSchedds"], self.dicts["group_descript"]["JobSchedds"])
+
         apply_group_singularity_policy(self.dicts["group_descript"], sub_params, params)
 
         # look up global descript value, and if they need to be expanded, move them in the entry
@@ -987,6 +989,36 @@ def validate_singularity(descript_dict, sub_params, params, name):
                 )
 
 
+def validate_schedds(main_list, group_list):
+    """
+    Validates the use of 'ALL' in schedd configurations.
+
+    If 'ALL' is used, it must be the only entry in `main_list`, and `group_list` must be empty.
+    Any other combination is considered invalid and will raise a RuntimeError.
+
+    Args:
+        main_list (str): Comma-separated schedd hostnames in the global configuration.
+        group_list (str): Comma-separated schedd hostnames in a group configuration.
+
+    Raises:
+        RuntimeError: If 'ALL' is used incorrectly (e.g. mixed with other schedds or with a non-empty group list).
+    """
+    main_items = main_list.split(",")
+    group_items = group_list.split(",")
+
+    if "ALL" in main_items or "ALL" in group_items:
+        if main_items != ["ALL"] or group_items:
+            raise RuntimeError(
+                f"""It seems you want to use the '<scheddDN="ALL" fullname="ALL">' feature.
+In order to do so, you need to define it in the global schedd configuration,
+and all the schedds in the frontend groups must be empty.
+
+Found:
+  global configuration: '{main_list}'
+  group configuration:  '{group_list}'"""
+            )
+
+
 def apply_multicore_policy(descript_dict):
     match_expr = descript_dict["MatchExpr"]
 
@@ -1097,7 +1129,8 @@ def populate_common_descript(descript_dict, params):
         # Would be useful to have a WARNING message, but the current implementation allows only fail/continue
         # Still raising an invalid configuration exception if no schedd is in DNS
         try:
-            cWDictFile.validate_node(el["fullname"], check_dns=False)
+            # If schedd is ALL we don't validate and check the DNS
+            el["fullname"] == "ALL" or cWDictFile.validate_node(el["fullname"], check_dns=False)
             valid_schedd = True  # skipped if exception is risen
         except RuntimeWarning:
             undefined_schedds += 1

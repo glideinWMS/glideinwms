@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Functions needed to create files used by the glidein entry points
-"""
+"""Functions needed to create files used by the glidein entry points"""
 
 import io
 import os

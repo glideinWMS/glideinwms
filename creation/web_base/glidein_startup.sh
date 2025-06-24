@@ -13,10 +13,12 @@
 # Default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
 IFS=$' \t\n'
 
-# Some sites empty PATH. Setting a reasonable default
+# Some sites have empty PATH, some have only the variable but not the environment (env | grep ^PATH=).
+# Setting a reasonable default and exporting (so subprocesses work)
 if [[ -z "$PATH" ]]; then
-    export PATH="/bin:/usr/bin"
+    PATH="/bin:/usr/bin"
 fi
+export PATH
 
 global_args="$*"
 # GWMS_STARTUP_SCRIPT=$0
@@ -2007,7 +2009,7 @@ line_read_wrapper() {
     true
 }
 
-for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "main at_file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
+for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "main precvmfs_file_list" "main at_file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
 do
     gs_id="$(echo "${gs_file_id}" |awk '{print $1}')"
 

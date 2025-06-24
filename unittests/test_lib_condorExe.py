@@ -3,8 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for glideinwms/lib/condorExe.py
-"""
+"""Unit tests for glideinwms/lib/condorExe.py"""
 
 
 import os

@@ -164,6 +164,8 @@ class glideinFrontendElement:
         self.removal_requests_tracking = self.elementDescript.element_data["RemovalRequestsTracking"]
         self.removal_margin = int(self.elementDescript.element_data["RemovalMargin"])
 
+        self.schedd_cache = {"timestamp": None, "data": None}
+
         # Default behavior: Use first credential that matches auth_method.
         self.credentials_plugin: glideinFrontendPlugins.CredentialsPlugin = None
 
@@ -393,7 +395,7 @@ class glideinFrontendElement:
 
         ## schedd
         idx = 0
-        for schedd_name in self.elementDescript.merged_data["JobSchedds"]:
+        for schedd_name in self.getScheddList():
             idx += 1
             forkm_obj.add_fork(("schedd", idx), self.get_condor_q, schedd_name)
 
@@ -950,6 +952,40 @@ class glideinFrontendElement:
 
         return
 
+    def getScheddList(self):
+        # Get the original list from config
+        schedd_list = self.elementDescript.merged_data.get("JobSchedds", [])
+
+        if schedd_list != ["ALL"]:
+            # If the frontend admin specified a scheduler list use it.
+            return schedd_list
+
+        # logSupport.log.info("Getting list of schedulers from collector since 'ALL' has been used") # Too verbose. Keeping it around until production deployment
+        # If the admin specified ALL then query the condor collector to get the list of schedulers
+        res = glideinFrontendLib.getCondorStatusSchedds([None], constraint=None, format_list=[])
+
+        if res and None in res:
+            schedds = list(res[None].fetchStored().keys())
+
+            # Cache the result with timestamp
+            self.schedd_cache["data"] = schedds
+            self.schedd_cache["timestamp"] = time.time()
+
+            return schedds
+        else:
+            msg = "Cannot get the list of scheduler with 'condor_status -sched'. "
+            # Cache valid for 1 hour
+            now = time.time()
+            if self.schedd_cache["timestamp"] and (now - self.schedd_cache["timestamp"] < 3600):
+                msg += "Using cached schedd list."
+                logSupport.log.warning(msg)
+                return self.schedd_cache["data"]
+            else:
+                msg += "Schedd cache empty or expired."
+                logSupport.log.warning(msg)
+
+        return {}
+
     # TODO: This method is deprecated and should be removed
     # IDTOKENS are now created with IdTokenGenerator
     def refresh_entry_token(self, glidein_el):
@@ -1071,7 +1107,7 @@ class glideinFrontendElement:
             for schedd in coll_status_schedd_dict:
                 # Only consider global or group specific schedds
                 # To be on the safe side add them to blacklist_schedds
-                if schedd not in self.elementDescript.merged_data["JobSchedds"]:
+                if schedd not in self.getScheddList():
                     logSupport.log.debug("Ignoring schedd %s for this group based on the configuration" % (schedd))
                     self.blacklist_schedds.add(schedd)
                     continue

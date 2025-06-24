@@ -1362,9 +1362,12 @@ MAX_STARTD_LOG          I       10000000        +                               
                 userjob - prints debug information on the user job stderr (at
                 the beginning, when invoked with the container -Apptainer-
                 wrapper)<br />
-                nowait - removes the Glidein wait time when it ends with errors.
-                Useful when debugging. The wait time protects against black
-                holes<br />
+                usertrace - enable shell tracing (set -x) on the user job stderr
+                (at the beginning, when invoked with the container -Apptainer-
+                wrapper)<br />
+                nowait - shortens the Glidein wait time to 2m when it ends with
+                errors. Useful when debugging. The wait time protects against
+                black holes<br />
                 nocleanup - disable the cleanup (removal of working directories
                 on the worker node). The batch manager may have its own cleanup.
                 Adds also an extension to the Glidein directory name.

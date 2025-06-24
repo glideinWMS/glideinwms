@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Collections of constants that are used throughout the GlideinWMS project.
-"""
+"""Collections of constants that are used throughout the GlideinWMS project."""
 
 from pathlib import Path
 

@@ -3,9 +3,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-""" Print out the MasterLog for a glidein output file
+"""Print out the MasterLog for a Glidein output file.
 
- Usage: cat_MasterLog.py logname
+Usage:
+    cat_MasterLog.py logname
 """
 
 
