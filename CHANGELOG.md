@@ -13,9 +13,11 @@ This is a development (3.11) release and includes all the production improvement
 -   Added a generator to set credentials or parameters depending on the Entry selected (PR #489)
 -   Added a generator to set credentials or parameters depending on the Entry selected (PR #489)
 -   Added IdTokenGenerator to standardize the generation of ID tokens and allow for operator customization
+-   Added SciTokenGenerator to facilitate the generation of standard SciTokens
 -   Added CachedGenerator base class to implement generators with automatic cache management
 -   Added CredentialGenerator base generator class to implement cached credential generators
 -   Added GeneratorContext class to implement context validation
+-   Added support for generator snapshots to store and retrieve specific generations
 -   Updated some builtin generators to avoid redefining \_\_init\_\_ making them more flexible
 -   Updated the CredentialPair class and its subclasses to support credential pairs with different types. (PR #514)
 -   Refactored the credentials module into a python package including modules for base classes and specific credential types. (PR #514)
