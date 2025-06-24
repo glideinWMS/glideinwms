@@ -321,7 +321,7 @@ def load_generator(module: str, context: Optional[Mapping] = None) -> Generator:
 
 
 def export_generator(generator: Type[Generator]):
-    """Make a Generator object available to the genearators module"""
+    """Make a Generator object available to the generators module"""
 
     if not issubclass(generator, Generator):
         raise TypeError("generator must be a Generator object")
