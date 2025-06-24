@@ -523,8 +523,8 @@ install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/plugin.d
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/hooks.reconfig.pre
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/hooks.reconfig.post
-install -m 0644 %{SOURCE2} $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/frontend.xml
-install -m 0644 creation/templates/proxies.ini $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/proxies.ini
+install -m 0664 %{SOURCE2} $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/frontend.xml
+install -m 0664 creation/templates/proxies.ini $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/proxies.ini
 install -m 0644 install/config/gwms-frontend.sysconfig $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/gwms-frontend
 cp -arp plugins/* $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/plugin.d
 
@@ -1006,7 +1006,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.post
 %attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend/plugin.d
 %attr(-, frontend, glidein) %config(noreplace) %{_sysconfdir}/gwms-frontend/plugin.d/
-%attr(-, frontend, glidein) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gwms-frontend/frontend.xml
+%attr(0664, frontend, glidein) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gwms-frontend/frontend.xml
 # TODO: should these files be moved in the glidein package?
 %attr(-, frontend, glidein) %config(noreplace) %{_sysconfdir}/gwms-frontend/proxies.ini
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-frontend
@@ -1111,7 +1111,7 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
-* Tue Jun 17 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.14
+* Fri Jun 20 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.14
 - Glideinwms v3.10.14
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_10_14/history.html
 - Release candidates 3.10.14-01.rc1 to 3.10.14-01.rc2

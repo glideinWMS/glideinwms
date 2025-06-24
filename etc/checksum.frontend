@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_14_rc2
+# GLIDEINWMS_VERSION v3_10_14
 ###################################################################
 78bb68217a24e977bdc5850e7d607960  ./__init__.py
 32b4bfc3e16d335b71c235d34a819eba  ./.codespell/ignore_lines.txt
@@ -8,7 +8,7 @@ bf1869a9f0e22861757b16f54e1acee9  ./.codespell/ignore_words.txt
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
 ba748ed3bc5995aee49b1067feaf7999  ./bigfiles/cvmfs_utils.tar.gz
 4558e767c3bea40c689e0c7eec0fd2ce  ./bigfiles/README.md
-46a337a5e221bb267cc24a6e674ad2db  ./CHANGELOG.md
+72bb376ac598794abd23f2bb56b2382b  ./CHANGELOG.md
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 886e483062dbc2844dc52dad44644333  ./creation/clone_glidein
@@ -63,7 +63,7 @@ ccffa2d10c55c2402ef40dc42dfd2600  ./creation/web_base/cvmfsexec_platform_select.
 7cf2c52081986deaf9c8cabfd00226c0  ./creation/web_base/error_augment.sh
 5a3671c34a4fba20a3cf630e191f2e09  ./creation/web_base/error_gen.sh
 7ffdd0d50556e3f4fa9f5778ff2eaaf9  ./creation/web_base/frontend_support.js
-c46f7f38b23f39f649e6adc30c766c67  ./creation/web_base/frontend/default_singularity_wrapper.sh
+63c923dcf18038ff3302c542e1ca563b  ./creation/web_base/frontend/default_singularity_wrapper.sh
 27f8e1058f65a539a900078257782be7  ./creation/web_base/frontend/generic_pre_singularity_setup.sh
 e978c04a58b98a15498d07eb5235ff45  ./creation/web_base/frontend/images/frontendGroupGraphsNow.small.png
 e330a00cbf9966d96edaf33e9f3bf164  ./creation/web_base/frontend/images/frontendGroupGraphsNow.small.png.license
@@ -98,8 +98,8 @@ a07332de53ae9fb905f7cc97e08ef37f  ./creation/web_base/nodes.blacklist
 8ab7dc0a6cdba761067faeea83d3973c  ./creation/web_base/setup_network.sh
 214d7ed29a9a5f92453191b9c4089f12  ./creation/web_base/setup_prejob.sh
 44ddb239979e4592e0fc77ec8a21efd7  ./creation/web_base/setup_script.sh
-2bc442bde9ad5100f5f9292b4d6c5c5c  ./creation/web_base/singularity_lib.sh
-09cb7472f92efcac002ee7166f9d4ae4  ./creation/web_base/singularity_wrapper.sh
+d300d09ee1afe6954ff00faa2e5dff3c  ./creation/web_base/singularity_lib.sh
+e1b8016b528a23a91c59900eea03b591  ./creation/web_base/singularity_wrapper.sh
 1feebbec48bdd2edece16d9b9167a03c  ./creation/web_base/smart_partitionable.sh
 6391319a5eddce73d17ed4003eed439e  ./creation/web_base/update_proxy.py
 001104ac9050d95a870b0841d238723a  ./DEVELOPMENT.md
