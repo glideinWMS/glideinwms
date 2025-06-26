@@ -10,14 +10,15 @@ import os
 import os.path
 import time
 
-from glideinwms.frontend import glideinFrontendMonitoring # type: ignore
-from glideinwms.lib import logSupport, rrdSupport, xmlFormat, xmlParse # type: ignore
+from glideinwms.frontend import glideinFrontendMonitoring  # type: ignore
+from glideinwms.lib import logSupport, rrdSupport, xmlFormat, xmlParse  # type: ignore
 
 ############################################################
 #
 # Configuration
 #
 ############################################################
+
 
 class MonitorAggregatorConfig:
     """Configuration class for monitoring aggregator.
@@ -33,10 +34,10 @@ class MonitorAggregatorConfig:
         """Initializes MonitorAggregatorConfig with default values."""
         # The name of the attribute that identifies the glidein
         self.monitor_dir = "monitor/"
-       
+
         # list of entries
         self.entries = []
-        
+
         # name of the status files
         self.status_relname = "frontend_status.xml"
 
@@ -50,6 +51,7 @@ class MonitorAggregatorConfig:
         self.monitor_dir = monitor_dir
         self.groups = groups
         glideinFrontendMonitoring.monitoringConfig.monitor_dir = monitor_dir
+
 
 # Global configuration instance
 monitorAggregatorConfig = MonitorAggregatorConfig()
@@ -88,6 +90,7 @@ frontend_job_type_strings = {
     "MatchedCores": "MatchCore",
     "Requested": "Req",
 }
+
 
 def verifyRRD(fix_rrd=False, backup=False):
     """Verifies that all monitoring RRDs match the expected schema, optionally fixing them.
@@ -131,6 +134,7 @@ def verifyRRD(fix_rrd=False, backup=False):
                         rrd_problems_found = True
     return not rrd_problems_found
 
+
 ####################################
 # PRIVATE - Used by aggregateStatus
 # Write one RRD
@@ -165,7 +169,7 @@ def write_one_rrd(name, updated, data, fact=0):
 
         tp_str = type_strings[tp]
         attributes_tp = frontend_status_attributes[tp]
-        
+
         tp_el = data[tp]
         for a in list(tp_el.keys()):
             if a in attributes_tp:
@@ -175,11 +179,10 @@ def write_one_rrd(name, updated, data, fact=0):
 
     glideinFrontendMonitoring.monitoringConfig.establish_dir("%s" % name)
     glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("%s" % name, "GAUGE", updated, val_dict)
-    
-    
-##############################################################################
-# create an aggregate of status files, write it in an aggregate status file
-# end return the values
+
+    ##############################################################################
+    # create an aggregate of status files, write it in an aggregate status file
+    # end return the values
     def aggregateStatus():
         global monitorAggregatorConfig
 

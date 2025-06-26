@@ -28,7 +28,7 @@ import traceback
 from importlib import import_module
 from pathlib import Path
 
-from glideinwms.frontend import ( # type: ignore
+from glideinwms.frontend import (  # type: ignore
     glideinFrontendConfig,
     glideinFrontendDowntimeLib,
     glideinFrontendInterface,
@@ -39,11 +39,18 @@ from glideinwms.frontend import ( # type: ignore
 )
 
 # from glideinwms.lib.util import file_tmp2final
-from glideinwms.lib import cleanupSupport, condorMonitor, logSupport, pubCrypto, servicePerformance, token_util # type: ignore
-from glideinwms.lib.disk_cache import DiskCache # type: ignore
-from glideinwms.lib.fork import fork_in_bg, ForkManager, wait_for_pids # type: ignore
-from glideinwms.lib.pidSupport import register_sighandler # type: ignore
-from glideinwms.lib.util import safe_boolcomp # type: ignore
+from glideinwms.lib import (  # type: ignore
+    cleanupSupport,
+    condorMonitor,
+    logSupport,
+    pubCrypto,
+    servicePerformance,
+    token_util,
+)
+from glideinwms.lib.disk_cache import DiskCache  # type: ignore
+from glideinwms.lib.fork import fork_in_bg, ForkManager, wait_for_pids  # type: ignore
+from glideinwms.lib.pidSupport import register_sighandler  # type: ignore
+from glideinwms.lib.util import safe_boolcomp  # type: ignore
 
 # this should not be needed in RPM install: sys.path.append(os.path.join(sys.path[0], "../.."))
 
@@ -58,6 +65,7 @@ plugins = {}
 # Not a 1-to-1 implementation though... just straight minimum
 # to support auto initialization to 0
 # This can be deleted once we switch to python3
+
 
 class CounterWrapper:
     """Support class that mimics the 2.7 collections.Counter class.
@@ -128,9 +136,11 @@ class CounterWrapper:
         """
         del self.dict_el[keyid]
 
+
 #####################################################
 #
 # Main class for the module
+
 
 class glideinFrontendElement:
     """Main class for processing the Frontend group activity.
@@ -380,10 +390,10 @@ class glideinFrontendElement:
             logSupport.log.info("Writing stats")
             try:
                 servicePerformance.startPerfMetricEvent(self.group_name, "write_monitoring_stats")
-                write_stats(self.stats) # type: ignore
+                write_stats(self.stats)  # type: ignore
                 servicePerformance.endPerfMetricEvent(self.group_name, "write_monitoring_stats")
             except KeyboardInterrupt:
-                raise # this is an exit signal, pass through
+                raise  # this is an exit signal, pass through
             except Exception:
                 # never fail for stats reasons!
                 logSupport.log.exception("Exception occurred writing stats: ")
@@ -424,9 +434,7 @@ class glideinFrontendElement:
         return 0
 
     def deadvertiseAllClassads(self):
-        """Invalidate all glideclient, glideclientglobal, and glideresource classads.
-
-        """
+        """Invalidate all glideclient, glideclientglobal, and glideresource classads."""
         # Invalidate all glideclient glideclientglobal classads
         for factory_pool in self.factory_pools:
             factory_pool_node = factory_pool[0]
@@ -509,7 +517,7 @@ class glideinFrontendElement:
                 del pglidein_dict
                 del pfactoryclients_dict
             elif ptype == "schedd":
-                 # one of the schedds
+                # one of the schedds
                 pcondorq_dict = pipe_out[pkel]
                 self.condorq_dict.update(pcondorq_dict)
                 del pcondorq_dict
@@ -690,9 +698,9 @@ class glideinFrontendElement:
         # we will need this for faster lookup later
         self.processed_glideid_strs = []
 
-        log_factory_header() # type: ignore
-        total_up_stats_arr = init_factory_stats_arr() # type: ignore
-        total_down_stats_arr = init_factory_stats_arr() # type: ignore
+        log_factory_header()  # type: ignore
+        total_up_stats_arr = init_factory_stats_arr()  # type: ignore
+        total_down_stats_arr = init_factory_stats_arr()  # type: ignore
 
         # Going through all jobs, grouped by entry they can run on
         for glideid in glideid_list:
@@ -827,11 +835,11 @@ class glideinFrontendElement:
             self.stats["group"].logFactDown(glideid_str, glidein_in_downtime)
 
             if glidein_in_downtime:
-                total_down_stats_arr = log_and_sum_factory_line( # type: ignore
+                total_down_stats_arr = log_and_sum_factory_line(  # type: ignore
                     glideid_str, glidein_in_downtime, this_stats_arr, total_down_stats_arr
                 )
             else:
-                total_up_stats_arr = log_and_sum_factory_line( # type: ignore
+                total_up_stats_arr = log_and_sum_factory_line(  # type: ignore
                     glideid_str, glidein_in_downtime, this_stats_arr, total_up_stats_arr
                 )
 
@@ -1032,7 +1040,7 @@ class glideinFrontendElement:
         return
 
         def getScheddList(self):
-        # Get the original list from config
+            # Get the original list from config
             schedd_list = self.elementDescript.merged_data.get("JobSchedds", [])
 
         if schedd_list != ["ALL"]:
@@ -1068,12 +1076,12 @@ class glideinFrontendElement:
         def get_scitoken(self, elementDescript, trust_domain):
             """Look for a local SciToken specified for the trust domain.
 
-        Args:
-            elementDescript (ElementMergedDescript): element descript
-            trust_domain (string): trust domain for the element
+            Args:
+                elementDescript (ElementMergedDescript): element descript
+                trust_domain (string): trust domain for the element
 
-        Returns:
-            string, None: SciToken or None if not found
+            Returns:
+                string, None: SciToken or None if not found
             """
 
         scitoken_fullpath = ""
@@ -1108,14 +1116,14 @@ class glideinFrontendElement:
         def generate_credential(self, elementDescript, glidein_el, group_name, trust_domain):
             """Generates a credential with a credential generator plugin provided for the trust domain.
 
-        Args:
-            elementDescript (ElementMergedDescript): element descript
-            glidein_el (dict): glidein element
-            group_name (string): group name
-            trust_domain (string): trust domain for the element
+            Args:
+                elementDescript (ElementMergedDescript): element descript
+                glidein_el (dict): glidein element
+                group_name (string): group name
+                trust_domain (string): trust domain for the element
 
-        Returns:
-            string, None: Credential or None if not generated
+            Returns:
+                string, None: Credential or None if not generated
             """
 
         ### The credential generator plugin should define the following function:
@@ -1249,7 +1257,7 @@ class glideinFrontendElement:
     def populate_pubkey(self):
         """Populate public key information for glidein communication.
 
-            Updates internal structures with public key objects for encryption.
+        Updates internal structures with public key objects for encryption.
         """
         bad_id_list = []
         for globalid, globals_el in self.globals_dict.items():
@@ -1335,12 +1343,12 @@ class glideinFrontendElement:
                     logSupport.log.exception("Unexpected exception checking schedd %s for limit" % schedd)
 
     def populate_condorq_dict_types(self):
-            # create a dictionary that does not contain the blacklisted schedds
+        # create a dictionary that does not contain the blacklisted schedds
         """Builds the dictionary of condorq types, filtering out blacklisted schedds.
 
-            Populates self.condorq_dict_types with idle, old idle, voms idle, and running states.
+        Populates self.condorq_dict_types with idle, old idle, voms idle, and running states.
         """
-        good_condorq_dict = self.condorq_dict.copy() # simple copy enough, will only modify keys
+        good_condorq_dict = self.condorq_dict.copy()  # simple copy enough, will only modify keys
         for k in self.blacklist_schedds:
             if k in good_condorq_dict:
                 del good_condorq_dict[k]
@@ -1376,7 +1384,7 @@ class glideinFrontendElement:
         # dict with static + pslot
         """Creates various dictionaries for glidein slot statuses.
 
-            Populates self.status_dict_types for total, idle, running, failed, and core counts.
+        Populates self.status_dict_types for total, idle, running, failed, and core counts.
 
         """
         status_dict_non_dynamic = glideinFrontendLib.getCondorStatusNonDynamic(self.status_dict)
@@ -1606,7 +1614,6 @@ class glideinFrontendElement:
 
         return int(glidein_min_idle)
 
-
     def identify_limits_triggered(
         self,
         count_status,
@@ -1654,14 +1661,14 @@ class glideinFrontendElement:
         def compute_glidein_max_run(self, prop_jobs, real, idle_glideins):
             """Compute max number of running glideins for this entry
 
-        @param prop_jobs: Proportional idle multicore jobs for this entry
-        @type prop_jobs: dict
+            @param prop_jobs: Proportional idle multicore jobs for this entry
+            @type prop_jobs: dict
 
-        @param real: Number of jobs running at given glideid
-        @type real: int
+            @param real: Number of jobs running at given glideid
+            @type real: int
 
-        @param idle_glideins: Number of idle startds at this entry
-        @type idle_glideins: int
+            @param idle_glideins: Number of idle startds at this entry
+            @type idle_glideins: int
             """
 
         glidein_max_run = 0
@@ -1673,23 +1680,23 @@ class glideinFrontendElement:
 
         # We don't need more slots than number of jobs in the queue
         # unless the fraction is positive
-        if (prop_jobs["Idle"] + real) > 0: # type: ignore
-            if prop_jobs["Idle"] > 0: # type: ignore
+        if (prop_jobs["Idle"] + real) > 0:  # type: ignore
+            if prop_jobs["Idle"] > 0:  # type: ignore
                 # We have idle jobs in the queue. Consider idle startds
                 # at this entry when computing max_run. This makes the
                 # requests conservative when short running jobs come in
                 # frequent but smaller bursts.
                 # NOTE: We do not consider idle cores as fragmentation can
                 #       impact use negatively
-                glidein_max_run = int((max(prop_jobs["Idle"] - idle_glideins, 0) + real) * self.fraction_running + 1) # type: ignore
+                glidein_max_run = int((max(prop_jobs["Idle"] - idle_glideins, 0) + real) * self.fraction_running + 1)  # type: ignore
             else:
                 # No reason for a delta when we don't need more than we have
-                glidein_max_run = int(real) # type: ignore
+                glidein_max_run = int(real)  # type: ignore
 
         return glidein_max_run
 
         def log_and_print_total_stats(self, total_up_stats_arr, total_down_stats_arr):
-        # Log the totals
+            # Log the totals
             for el in (("MatchedUp", total_up_stats_arr, True), ("MatchedDown", total_down_stats_arr, False)):
                 el_str, el_stats_arr, el_updown = el
             self.stats["group"].logMatchedJobs(
@@ -1753,24 +1760,26 @@ class glideinFrontendElement:
             0,  # requested... none, since not matching
         )
         log_and_sum_factory_line("Unmatched", True, this_stats_arr)
+
         def decide_removal_type(self, count_jobs, count_status, glideid):
             """Pick the max removal type (unless disable is requested)
-        - if it was requested explicitly, send that one
-        - otherwise check automatic triggers and configured removal and send the max of the 2
+            - if it was requested explicitly, send that one
+            - otherwise check automatic triggers and configured removal and send the max of the 2
 
-        If configured removal is selected, take into account also the margin and the tracking
-        This handles all the Glidein removals triggered by the Frontend. It does not affect automatic mechanisms
-        in the Factory, like Glidein timeouts
+            If configured removal is selected, take into account also the margin and the tracking
+            This handles all the Glidein removals triggered by the Frontend. It does not affect automatic mechanisms
+            in the Factory, like Glidein timeouts
 
-        Args:
-            count_jobs (dict): dict with job stats
-            count_status (dict): dict with glidein stats
-            glideid (str): ID of the glidein request
+            Args:
+                count_jobs (dict): dict with job stats
+                count_status (dict): dict with glidein stats
+                glideid (str): ID of the glidein request
 
-        Returns:
-            str: remove excess string to send to the Factory, one of: "DISABLE", "ALL", "IDLE", "WAIT", or "NO"
+            Returns:
+                str: remove excess string to send to the Factory, one of: "DISABLE", "ALL", "IDLE", "WAIT", or "NO"
 
             """
+
         if self.request_removal_wtype is not None:
             # we are requesting the removal of glideins via command line tool, and we have the explicit code to use
             return self.request_removal_wtype, 0
@@ -1802,18 +1811,19 @@ class glideinFrontendElement:
 
         def check_removal_type_config(self, glideid):
             """Decides what kind of excess glideins to remove depending on the configuration requests (glideins_remove)
-        "ALL", "IDLE", "WAIT", "NO" (default) or "DISABLE" (disable also automatic removal)
+            "ALL", "IDLE", "WAIT", "NO" (default) or "DISABLE" (disable also automatic removal)
 
-        If removal_requests_tracking or active removal are enabled, this may result in Glidein removals
-        depending on the parameters in the configuration and the current number of Glideins and requests
+            If removal_requests_tracking or active removal are enabled, this may result in Glidein removals
+            depending on the parameters in the configuration and the current number of Glideins and requests
 
-        Args:
-            glideid (str): ID of the glidein request
+            Args:
+                glideid (str): ID of the glidein request
 
-        Returns:
-            str: remove excess string from configuration, one of: "DISABLE", "ALL", "IDLE", "WAIT", or "NO"
+            Returns:
+                str: remove excess string from configuration, one of: "DISABLE", "ALL", "IDLE", "WAIT", or "NO"
 
             """
+
         # self.removal_type is RemovalType from the FE group configuration
         if self.removal_type is None or self.removal_type == "NO":
             # No special semoval requested, leave things unchanged
@@ -1833,21 +1843,22 @@ class glideinFrontendElement:
 
         def choose_remove_excess_type(self, count_jobs, count_status, glideid):
             """Decides what kind of excess glideins to remove: control for request and automatic trigger:
-            "ALL", "IDLE", "WAIT", or "NO"
+                "ALL", "IDLE", "WAIT", or "NO"
 
-        If it is a request from the client (command line) then execute that
-        Otherwise calculate the result of the automatic removal mechanism: increasingly remove WAIT, IDLE and ALL
-        depending on how long (measured in Frontend cycles) there have been no requests.
+            If it is a request from the client (command line) then execute that
+            Otherwise calculate the result of the automatic removal mechanism: increasingly remove WAIT, IDLE and ALL
+            depending on how long (measured in Frontend cycles) there have been no requests.
 
-        Args:
-            count_jobs (dict): dict with job stats
-            count_status (dict): dict with glidein stats
-            glideid (str): ID of the glidein request
+            Args:
+                count_jobs (dict): dict with job stats
+                count_status (dict): dict with glidein stats
+                glideid (str): ID of the glidein request
 
-        Returns:
-            str: remove excess string from automatic mechanism, one of: "ALL", "IDLE", "WAIT", or "NO"
+            Returns:
+                str: remove excess string from automatic mechanism, one of: "ALL", "IDLE", "WAIT", or "NO"
 
             """
+
         if self.request_removal_wtype is not None:
             # we are requesting the removal of glideins, and we have the explicit code to use
             return self.request_removal_wtype
@@ -1910,10 +1921,11 @@ class glideinFrontendElement:
         return remove_excess_str
 
         def count_factory_entries_without_classads(self, total_down_stats_arr):
-        # Find out the slots/cores for factory entries that are in various
-        # states, but for which Factory ClassAds don't exist
-        #
+            # Find out the slots/cores for factory entries that are in various
+            # states, but for which Factory ClassAds don't exist
+            #
             factory_entry_list = glideinFrontendLib.getFactoryEntryList(self.status_dict)
+
         processed_glideid_str_set = frozenset(self.processed_glideid_strs)
 
         factory_entry_list.sort()  # sort for the sake of monitoring
@@ -1977,9 +1989,8 @@ class glideinFrontendElement:
             total_down_stats_arr = log_and_sum_factory_line(glideid_str, True, this_stats_arr, total_down_stats_arr)
         return total_down_stats_arr
 
-
         def query_globals(self, factory_pool):
-        # Query glidefactoryglobal ClassAd
+            # Query glidefactoryglobal ClassAd
             globals_dict = {}
 
         try:
@@ -2045,12 +2056,12 @@ class glideinFrontendElement:
 
         try:
             factoryclients = {}
-            factory_constraint = expand_DD(self.elementDescript.merged_data["FactoryQueryExpr"], self.attr_dict) # type: ignore
+            factory_constraint = expand_DD(self.elementDescript.merged_data["FactoryQueryExpr"], self.attr_dict)  # type: ignore
 
             factory_pool_node = factory_pool[0]
             factory_identity = factory_pool[1]
             my_identity_at_factory_pool = factory_pool[2]
-            
+
             try:
                 factory_factoryclients = glideinFrontendInterface.findGlideinClientMonitoring(
                     factory_pool_node, None, self.published_frontend_name, factory_constraint
@@ -2087,7 +2098,7 @@ class glideinFrontendElement:
         return factoryclients
 
     def query_entries(self, factory_pool):
-            # Query glidefactory ClassAd
+        # Query glidefactory ClassAd
         try:
             glidein_dict = {}
             factory_constraint = self.elementDescript.merged_data["FactoryQueryExpr"]
@@ -2131,24 +2142,27 @@ class glideinFrontendElement:
 
         def query_factory(self, factory_pool):
             """
-        Serialize queries to the same factory.
+            Serialize queries to the same factory.
             """
+
         return (
             self.query_globals(factory_pool),
             self.query_entries(factory_pool),
             self.query_factoryclients(factory_pool),
         )
+
         def get_condor_q(self, schedd_name):
             """Retrieve the jobs a schedd is requesting
 
-        Args:
-            schedd_name (str): the schedd name
+            Args:
+                schedd_name (str): the schedd name
 
-        Returns (dict): a dictionary with all the jobs
+            Returns (dict): a dictionary with all the jobs
 
 
             """
             condorq_dict = {}
+
         try:
             condorq_format_list = self.elementDescript.merged_data["JobMatchAttrs"]
             if self.x509_proxy_plugin:
@@ -2172,8 +2186,9 @@ class glideinFrontendElement:
         return condorq_dict
 
         def get_condor_status(self):
-        # All slots for this group
+            # All slots for this group
             status_dict = {}
+
         fe_counts = {"Idle": 0, "Total": 0}
         global_counts = {"Idle": 0, "Total": 0}
         status_schedd_dict = {}
@@ -2318,21 +2333,21 @@ class glideinFrontendElement:
         def do_match(self):
             """Do the actual matching.
 
-        This forks subprocess_count... methods as children to do the work in parallel:
-        - self.subprocess_count_glidein
-        - self.subprocess_count_real
-        - self.subprocess_count_dt
+            This forks subprocess_count... methods as children to do the work in parallel:
+            - self.subprocess_count_glidein
+            - self.subprocess_count_real
+            - self.subprocess_count_dt
 
-        The results are stored in 2 dictionaries:
-        - self.count_status_multi, self.count_status_multi_per_cred
-        - self.count_real_jobs, self.count_real_glideins
-        - self.condorq_dict_types
+            The results are stored in 2 dictionaries:
+            - self.count_status_multi, self.count_status_multi_per_cred
+            - self.count_real_jobs, self.count_real_glideins
+            - self.condorq_dict_types
 
-        :return:
+            :return:
 
             """
 
-         # IS: Heuristics of 100 glideins per fork
+        # IS: Heuristics of 100 glideins per fork
         #     Based on times seen by CMS
         glideins_per_fork = 100
 
@@ -2378,10 +2393,10 @@ class glideinFrontendElement:
 
         def subprocess_count_dt(self, dt):
             """Count the matches (glideins matching entries) using glideinFrontendLib.countMatch
-        Will make calculations in parallel, using multiple processes
+            Will make calculations in parallel, using multiple processes
 
-        :param dt: index within the data dictionary
-        :return: Tuple of 5 elements: count, prop, hereonly, prop_mc, total
+            :param dt: index within the data dictionary
+            :return: Tuple of 5 elements: count, prop, hereonly, prop_mc, total
             """
 
         out = ()
@@ -2407,10 +2422,11 @@ class glideinFrontendElement:
 
         def subprocess_count_real(self):
             """Count the jobs running on the glideins for these requests using glideinFrontendLib.countRealRunning
-        Will make calculations in parallel,using multiple processes
+            Will make calculations in parallel,using multiple processes
 
-        :return: count_real_jobs, count_real_glideins
+            :return: count_real_jobs, count_real_glideins
             """
+
         out = glideinFrontendLib.countRealRunning(
             self.elementDescript.merged_data["MatchExprCompiledObj"],
             self.condorq_dict_running,
@@ -2423,11 +2439,12 @@ class glideinFrontendElement:
 
         def subprocess_count_glidein(self, glidein_list):
             """Count glideins statistics
-        Will make calculations in parallel, using multiple processes
+            Will make calculations in parallel, using multiple processes
 
-        :param glidein_list:
-        :return:
+            :param glidein_list:
+            :return:
             """
+
         out = ()
 
         count_status_multi = {}
@@ -2494,7 +2511,7 @@ class glideinFrontendElement:
 
         return out
 
-############################################################
+        ############################################################
         def check_parent(parent_pid):
             if os.path.exists("/proc/%s" % parent_pid):
                 return  # parent still exists, we are fine
@@ -2502,25 +2519,24 @@ class glideinFrontendElement:
         logSupport.log.warning("Parent died, exit.")
         raise KeyboardInterrupt("Parent died")
 
-
-############################################################
+        ############################################################
         def write_stats(stats):
             for k in list(stats.keys()):
                 stats[k].write_file()
 
-
-############################################################
+        ############################################################
         def log_and_sum_factory_line(factory, is_down, factory_stat_arr, old_factory_stat_arr=None):
             """Will log the factory_stat_arr (tuple composed of 17 numbers)
-    and return a sum of factory_stat_arr+old_factory_stat_arr if old_factory_stat_arr is not None
+            and return a sum of factory_stat_arr+old_factory_stat_arr if old_factory_stat_arr is not None
 
-    :param factory: Entry name (or string to write for totals)
-    :param is_down: True if the Entry is down
-    :param factory_stat_arr: Frontend stats for this line
-    :param old_factory_stat_arr: Accumulator for the line stats. If None the stats are just logged
-    :return: new list with old_factory_stat_arr+factory_stat_arr. None if old_factory_stat_arr is None
+            :param factory: Entry name (or string to write for totals)
+            :param is_down: True if the Entry is down
+            :param factory_stat_arr: Frontend stats for this line
+            :param old_factory_stat_arr: Accumulator for the line stats. If None the stats are just logged
+            :return: new list with old_factory_stat_arr+factory_stat_arr. None if old_factory_stat_arr is None
             """
-    # if numbers are too big, reduce them to either k or M for presentation
+
+        # if numbers are too big, reduce them to either k or M for presentation
         form_arr = []
         for i in factory_stat_arr:
             if i < 100000:
@@ -2536,29 +2552,29 @@ class glideinFrontendElement:
             down_str = "Up  "
 
         logSupport.log.info(
-        ("%s(%s %s %s %s) %s(%s %s) | %s %s %s %s | %s %s %s | %s %s | " % tuple(form_arr)) + (f"{down_str} {factory}")
-    )
+            ("%s(%s %s %s %s) %s(%s %s) | %s %s %s %s | %s %s %s | %s %s | " % tuple(form_arr))
+            + (f"{down_str} {factory}")
+        )
 
         if old_factory_stat_arr is None:
             return None
-    # else branch, a valid old_factory_stat_arr hes been provided
+        # else branch, a valid old_factory_stat_arr hes been provided
         new_arr = []
         for i in range(len(factory_stat_arr)):
             new_arr.append(factory_stat_arr[i] + old_factory_stat_arr[i])
         return new_arr
 
-
         def init_factory_stats_arr():
             return [0] * 17
 
-
         def log_factory_header():
             logSupport.log.info(
-        "            Jobs in schedd queues                 |           Slots         |       Cores       | Glidein Req | Factory/Entry Information"
-    )
+                "            Jobs in schedd queues                 |           Slots         |       Cores       | Glidein Req | Factory/Entry Information"
+            )
+
         logSupport.log.info(
-        "Idle (match  eff   old  uniq )  Run ( here  max ) | Total  Idle   Run  Fail | Total  Idle   Run | Idle MaxRun | State Factory"
-    )
+            "Idle (match  eff   old  uniq )  Run ( here  max ) | Total  Idle   Run  Fail | Total  Idle   Run | Idle MaxRun | State Factory"
+        )
 
 
 # TODO: 5345 to remove once verified, because global expansion is supported during configuration
