@@ -1,14 +1,17 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This module implements the functions needed to aggregate the monitoring of the Frontend"""
+"""This module implements the functions needed to aggregate the monitoring of the Frontend.
 
+It provides configuration management, RRD file verification, and aggregation of monitoring data
+across multiple groups for the GlideinWMS frontend.
+"""
 import os
 import os.path
 import time
 
-from glideinwms.frontend import glideinFrontendMonitoring
-from glideinwms.lib import logSupport, rrdSupport, xmlFormat, xmlParse
+from glideinwms.frontend import glideinFrontendMonitoring # type: ignore
+from glideinwms.lib import logSupport, rrdSupport, xmlFormat, xmlParse # type: ignore
 
 ############################################################
 #
@@ -16,39 +19,40 @@ from glideinwms.lib import logSupport, rrdSupport, xmlFormat, xmlParse
 #
 ############################################################
 
-
 class MonitorAggregatorConfig:
- """Configuration class for monitoring aggregation.
+    """Configuration class for monitoring aggregator.
 
- Holds paths and group data used during the aggregation of frontend monitoring data.
- """
+    Attributes:
+        monitor_dir (str): Directory where monitoring files are stored.
+        entries (list): List of monitoring entries.
+        status_relname (str): Name of the status XML file.
+        groups (list): List of group names.
+    """
 
-def __init__(self):
-        """Initialize the MonitorAggregatorConfig with default settings."""
+    def __init__(self):
+        """Initializes MonitorAggregatorConfig with default values."""
         # The name of the attribute that identifies the glidein
         self.monitor_dir = "monitor/"
-
+       
         # list of entries
         self.entries = []
-
+        
         # name of the status files
         self.status_relname = "frontend_status.xml"
 
-def config_frontend(self, monitor_dir, groups):
-        """Configure the monitor directory and groups for aggregation.
+    def config_frontend(self, monitor_dir, groups):
+        """Configures the frontend monitoring directory and groups.
 
         Args:
-            monitor_dir (str): Path to the monitor directory.
-            groups (list): List of frontend groups to be aggregated.
+            monitor_dir (str): Path to monitoring directory.
+            groups (list): List of group names.
         """
         self.monitor_dir = monitor_dir
         self.groups = groups
         glideinFrontendMonitoring.monitoringConfig.monitor_dir = monitor_dir
 
-
-# global configuration of the module
+# Global configuration instance
 monitorAggregatorConfig = MonitorAggregatorConfig()
-
 ###########################################################
 #
 # Functions
@@ -65,7 +69,6 @@ frontend_status_attributes = {
     "Glideins": ("Idle", "Running", "Total"),
     "MatchedJobs": ("Idle", "EffIdle", "OldIdle", "Running", "RunningHere"),
     "MatchedGlideins": ("Total", "Idle", "Running", "Failed"),
-    # 'MatchedGlideins':("Total","Idle","Running","Failed","TCores","ICores","RCores"),
     "MatchedCores": ("Total", "Idle", "Running"),
     "Requested": ("Idle", "MaxRun"),
 }
@@ -86,24 +89,15 @@ frontend_job_type_strings = {
     "Requested": "Req",
 }
 
-
-################################################
-# Function used by Frontend reconfig/upgrade
-# No logging available, output is to stdout/err
-
-
 def verifyRRD(fix_rrd=False, backup=False):
-    """Go through all known monitoring rrds and verify that they
-    match existing schema (could be different if an upgrade happened)
-    If fix_rrd is true, then also attempt to add any missing attributes.
+    """Verifies that all monitoring RRDs match the expected schema, optionally fixing them.
 
     Args:
-        fix_rrd (bool): if True, will attempt to add missing attrs
-        backup (bool): if True, backup the old RRD before fixing
+        fix_rrd (bool): If True, attempt to add missing attributes.
+        backup (bool): If True, back up the old RRD before fixing.
 
     Returns:
-        bool: True if all OK, False if there is a problem w/ RRD files
-
+        bool: True if all RRD files are OK or successfully fixed, False if a problem remains.
     """
     rrd_problems_found = False
     mon_dir = monitorAggregatorConfig.monitor_dir
@@ -137,37 +131,32 @@ def verifyRRD(fix_rrd=False, backup=False):
                         rrd_problems_found = True
     return not rrd_problems_found
 
-
 ####################################
 # PRIVATE - Used by aggregateStatus
 # Write one RRD
 def write_one_rrd(name, updated, data, fact=0):
-   """Write monitoring data to a single RRD file.
-
-    Initializes and writes monitoring values to a round-robin database (RRD) file
-    for a specific factory or overall system state.
+    """Writes data to a single RRD file, initializing RRD schema if necessary.
 
     Args:
-        name (str): The name or path of the RRD file to write.
-        updated (float): Timestamp representing the time of data collection.
-        data (dict): Dictionary containing monitoring data to write.
-        fact (int, optional): Indicates type of data source (0 for total, 1 for factory). Defaults to 0.
+        name (str): Name or path of the RRD file.
+        updated (float): Timestamp for the update.
+        data (dict): Monitoring data to write.
+        fact (int): If 0, use frontend_total_type_strings; otherwise use frontend_job_type_strings.
     """
-if fact == 0:
+    if fact == 0:
         type_strings = frontend_total_type_strings
-else:
+    else:
         type_strings = frontend_job_type_strings
 
-    # initialize the RRD dictionary, so it gets created properly
-val_dict = {}
-for tp in list(frontend_status_attributes.keys()):
+    val_dict = {}
+    for tp in list(frontend_status_attributes.keys()):
         if tp in list(type_strings.keys()):
             tp_str = type_strings[tp]
             attributes_tp = frontend_status_attributes[tp]
             for a in attributes_tp:
                 val_dict[f"{tp_str}{a}"] = None
 
-for tp in list(data.keys()):
+    for tp in list(data.keys()):
         # values (RRD type) - Status or Requested
         if tp not in list(frontend_status_attributes.keys()):
             continue
@@ -176,51 +165,25 @@ for tp in list(data.keys()):
 
         tp_str = type_strings[tp]
         attributes_tp = frontend_status_attributes[tp]
-
+        
         tp_el = data[tp]
-
         for a in list(tp_el.keys()):
             if a in attributes_tp:
                 a_el = int(tp_el[a])
-                if not isinstance(a_el, dict):  # ignore subdictionaries
+                if not isinstance(a_el, dict):
                     val_dict[f"{tp_str}{a}"] = a_el
 
-glideinFrontendMonitoring.monitoringConfig.establish_dir("%s" % name)
-glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("%s" % name, "GAUGE", updated, val_dict)
-
-
+    glideinFrontendMonitoring.monitoringConfig.establish_dir("%s" % name)
+    glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("%s" % name, "GAUGE", updated, val_dict)
+    
+    
 ##############################################################################
 # create an aggregate of status files, write it in an aggregate status file
 # end return the values
-def aggregateStatus():
-    """Aggregate monitoring data from multiple frontend groups and factories.
+    def aggregateStatus():
+        global monitorAggregatorConfig
 
-        This function reads each group's status XML file, combines job and glidein metrics from all
-        groups, and writes the aggregated result into a unified XML and multiple RRD files.
-        The aggregation includes total metrics and per-factory/per-state breakdowns.
-
-        The output includes:
-            - Aggregated totals across all groups
-            - Group-specific statistics
-            - Factory and state breakdowns
-
-        Returns:
-            dict: A nested dictionary containing the aggregated monitoring data structure.
-                Structure:
-                {
-                    "groups": {
-                        "group_name": {
-                            "factories": {...},
-                            "states": {...},
-                            "total": {...}
-                        }
-                    },
-                    "total": {...}
-                }
-    """
-global monitorAggregatorConfig
-
-type_strings = {
+    type_strings = {
         "Jobs": "Jobs",
         "Glideins": "Glidein",
         "MatchedJobs": "MatchJob",
@@ -228,7 +191,7 @@ type_strings = {
         "MatchedCores": "MatchCore",
         "Requested": "Req",
     }
-global_total = {
+    global_total = {
         "Jobs": None,
         "Glideins": None,
         "MatchedJobs": None,
@@ -236,14 +199,14 @@ global_total = {
         "MatchedGlideins": None,
         "MatchedCores": None,
     }
-status = {"groups": {}, "total": global_total}
-global_fact_totals = {}
+    status = {"groups": {}, "total": global_total}
+    global_fact_totals = {}
 
-for fos in ("factories", "states"):
+    for fos in ("factories", "states"):
         global_fact_totals[fos] = {}
 
-nr_groups = 0
-for group in monitorAggregatorConfig.groups:
+    nr_groups = 0
+    for group in monitorAggregatorConfig.groups:
         # load group status file
         status_fname = os.path.join(
             monitorAggregatorConfig.monitor_dir, f"group_{group}", monitorAggregatorConfig.status_relname
@@ -332,14 +295,14 @@ for group in monitorAggregatorConfig.groups:
                         if a not in el:
                             del tel[a]  # pylint: disable=unsupported-delete-operation
 
-for w in list(global_total.keys()):
+    for w in list(global_total.keys()):
         if global_total[w] is None:
             del global_total[w]  # remove group if not defined
 
     # Write xml files
 
-updated = time.time()
-xml_str = (
+    updated = time.time()
+    xml_str = (
         '<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'
         + "<VOFrontendStats>\n"
         + xmlFormat.time2xml(updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB)
@@ -422,20 +385,20 @@ xml_str = (
         + "</VOFrontendStats>\n"
     )
 
-glideinFrontendMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname, xml_str)
+    glideinFrontendMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname, xml_str)
 
     # Write rrds
 
-glideinFrontendMonitoring.monitoringConfig.establish_dir("total")
-write_one_rrd(os.path.join("total", "Status_Attributes"), updated, global_total, 0)
+    glideinFrontendMonitoring.monitoringConfig.establish_dir("total")
+    write_one_rrd(os.path.join("total", "Status_Attributes"), updated, global_total, 0)
 
-for fact in list(global_fact_totals["factories"].keys()):
+    for fact in list(global_fact_totals["factories"].keys()):
         fe_dir = os.path.join("total", f"factory_{glideinFrontendMonitoring.sanitize(fact)}")
         glideinFrontendMonitoring.monitoringConfig.establish_dir(fe_dir)
         write_one_rrd(os.path.join(fe_dir, "Status_Attributes"), updated, global_fact_totals["factories"][fact], 1)
-for fact in list(global_fact_totals["states"].keys()):
+    for fact in list(global_fact_totals["states"].keys()):
         fe_dir = os.path.join("total", f"state_{glideinFrontendMonitoring.sanitize(fact)}")
         glideinFrontendMonitoring.monitoringConfig.establish_dir(fe_dir)
         write_one_rrd(os.path.join(fe_dir, "Status_Attributes"), updated, global_fact_totals["states"][fact], 1)
 
-return status
+    return status
