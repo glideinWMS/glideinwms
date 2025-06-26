@@ -259,6 +259,9 @@ class glideinFrontendElement:
             self.group_name, logSupport.log_dir, self.elementDescript.frontend_data
         )
 
+        # We will be starting often, so reduce the clutter
+        # logSupport.log.info("Logging initialized")
+
         glideinFrontendMonitoring.monitoringConfig.monitor_dir = glideinFrontendConfig.get_group_dir(
             os.path.join(self.work_dir, "monitor"), self.group_name
         )
@@ -1658,18 +1661,18 @@ class glideinFrontendElement:
                 self.global_total_max_vms_idle,
             )
 
-        def compute_glidein_max_run(self, prop_jobs, real, idle_glideins):
-            """Compute max number of running glideins for this entry
+    def compute_glidein_max_run(self, prop_jobs, real, idle_glideins):
+        """Compute max number of running glideins for this entry
 
-            @param prop_jobs: Proportional idle multicore jobs for this entry
-            @type prop_jobs: dict
+        @param prop_jobs: Proportional idle multicore jobs for this entry
+        @type prop_jobs: dict
 
-            @param real: Number of jobs running at given glideid
-            @type real: int
+        @param real: Number of jobs running at given glideid
+        @type real: int
 
-            @param idle_glideins: Number of idle startds at this entry
-            @type idle_glideins: int
-            """
+        @param idle_glideins: Number of idle startds at this entry
+        @type idle_glideins: int
+        """
 
         glidein_max_run = 0
 
