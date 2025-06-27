@@ -9,8 +9,7 @@ Changes since the last release
 
 ### New features / functionalities
 
--   item one of the list
--   item N
+-   Added GLIDEIN_CVMFS_REPOS custom variable to define additional CVMFS repositories to mount (PR #547)
 
 ### Changed defaults / behaviours
 
