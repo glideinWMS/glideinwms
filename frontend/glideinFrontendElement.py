@@ -2440,13 +2440,13 @@ class glideinFrontendElement:
         )
         return out
 
-        def subprocess_count_glidein(self, glidein_list):
-            """Count glideins statistics
-            Will make calculations in parallel, using multiple processes
+    def subprocess_count_glidein(self, glidein_list):
+        """Count glideins statistics
+        Will make calculations in parallel, using multiple processes
 
-            :param glidein_list:
-            :return:
-            """
+        :param glidein_list:
+        :return:
+        """
 
         out = ()
 
