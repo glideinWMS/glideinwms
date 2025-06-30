@@ -255,33 +255,42 @@ class RSAPrivateKey(Credential[PRIVATE_KEY_TYPES]):
 
         Returns:
             bytes: The decrypted data.
+
+        Raises:
+            CredentialError: If decryption fails with all padding schemes.
         """
         data = force_bytes(data)
-        return self._payload.decrypt(
-            data, padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
-        )
+        for padding_func in (
+            padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None),
+            padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA1()), algorithm=hashes.SHA1(), label=None),
+        ):
+            try:
+                return self._payload.decrypt(data, padding_func)
+            except ValueError:
+                continue
+        raise CredentialError("Decryption failed with all padding schemes.")
 
     def decrypt_base64(self, data: Union[str, bytes]) -> bytes:
-        """Decrypts the given data using the RSA key and returns the decrypted data in base64 format.
+        """Decrypts the base64 encoded data using the RSA key and returns the decrypted binary data.
 
         Args:
-            data (Union[str, bytes]): The data to decrypt.
+            data (Union[str, bytes]): Base64 encoded data to decrypt.
 
         Returns:
-            bytes: The base64 decoded data.
+            bytes: The decrypted data.
         """
-        return binascii.b2a_base64(self.decrypt(data))
+        return self.decrypt(binascii.a2b_base64(data))
 
     def decrypt_hex(self, data: Union[str, bytes]) -> bytes:
-        """Decrypts the given data using the RSA key and returns the decrypted data in hex format.
+        """Decrypts the hex encoded data using the RSA key and returns the decrypted binary data.
 
         Args:
-            data (Union[str, bytes]): The data to decrypt.
+            data (Union[str, bytes]): Hex encoded data to decrypt.
 
         Returns:
-            bytes: The hex decoded data.
+            bytes: The decrypted data.
         """
-        return binascii.b2a_hex(self.decrypt(data))
+        return self.decrypt(binascii.a2b_hex(data))
 
     def sign(self, data: Union[str, bytes]) -> bytes:
         """Signs the given data using the RSA key.
