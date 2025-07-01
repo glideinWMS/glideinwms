@@ -1,18 +1,21 @@
 v3_11_1
-	Added a generator to set credentials or parameters depending on the Entry selected (PR
-	Added a generator to set credentials or parameters depending on the Entry selected (PR
-	Added IdTokenGenerator to standardize the generation of ID tokens and allow for operator customization
-	Added CachedGenerator base class to implement generators with automatic cache management
-	Added CredentialGenerator base generator class to implement cached credential generators
+	Including all featured and fixes of the production series up to 3.10.14
+	Added a generator to set credentials or parameters depending on the Entry selected (PR#489)
+	Added IdTokenGenerator to standardize the generation of ID tokens and allow for operator customization (PR#531)
+	Added SciTokenGenerator to facilitate the generation of standard SciTokens (PR#531)
+	Added CachedGenerator base class to implement generators with automatic cache management (PR#531)
+	Added CredentialGenerator base generator class to implement cached credential generators (PR#531)
 	Added GeneratorContext class to implement context validation
+	Added support for generator snapshots to store and retrieve specific generated values (PR#531)
 	Updated some builtin generators to avoid redefining \_\_init\_\_ making them more flexible
-	Updated the CredentialPair class and its subclasses to support credential pairs with different types. (PR
-	Refactored the credentials module into a python package including modules for base classes and specific credential types. (PR
-	Renamed the credentialGenerator and hashCrypto modules to credential_generator and hash_crypto. (PR
-	Renamed CredentialGenerator credentials to DynamicCredential and added the new alias "generator" to the newly renamed "dynamic" credential type. (PR
-	Added the new RSAPublicKey, RSAPrivateKey, and Symmetric credential types to replace the legacy pubCrypto and symCrypto modules. (PR
-	Stopped using M2Crypto in favor of the cryptography module. (PR
-	Bug fix: Fixed a bug that could cause the Frontend not to generate IDTOKENS to some Factory entries. (PR
+	Updated the CredentialPair class and its subclasses to support credential pairs with different types. (PR#514)
+	Refactored the credentials module into a python package including modules for base classes and specific credential types. (PR#514)
+	Renamed the credentialGenerator and hashCrypto modules to credential_generator and hash_crypto. (PR#514)
+	Renamed CredentialGenerator credentials to DynamicCredential and added the new alias "generator" to the newly renamed "dynamic" credential type. (PR#514)
+	Added the new RSAPublicKey, RSAPrivateKey, and Symmetric credential types to replace the legacy pubCrypto and symCrypto modules. (PR#514)
+	Stopped using M2Crypto in favor of the cryptography module. Code compatible with M2Crypto default checksum (PR#514, PR#548)
+	Bug fix: Fixed a bug that could cause the Frontend not to generate IDTOKENS to some Factory entries. (PR#514)
+	Bug fix: Fixed a bug that could cause the Frontend to not send generated credentials to the proper Factory entry.
 
 v3_11_0
 	Introduces the new credentials model.
@@ -28,6 +31,20 @@ v3_11_0
 	Bug fix: Removed confusing tac broken pipe messages from the Glidein stderr (PR#465)
 	Bug fix: Fixed quotes in glidein command line unpacking and replaced deprecated add_config_line commands (PR#468)
 
+v3_10_14
+	Added support for Ubuntu 24 workers (PR#529)
+	Add keyword ALL to query all schedulers known to the collector without listing them explicitly (Issue#510, PR#532)
+	Updated download/execution order of `cvmfs_setup.sh` during glidein startup using a new priority `precvmfs_file_list` (PR#528)
+	Add keyword usertrace to the GLIDEIN_DEBUG_OPTIONS custom variable to enable shell tracing in user jobs and wrapper (PR#540)
+	Glideins can start containers with Busybox and no Bash, e.g Alpine Linux. The Glidein itself still requires Bash (Issue#538, PR#540)
+	Bug fix: Removed incorrect warning when setting SINGULARITY_BIN to keyword (PR#534)
+	Bug fix: Added `--skip-broken` to yumalldeps to avoid an error when incompatible packages are in the list (Issue#530, PR#534)
+	Bug fix: Added explicit retrieval from glidein_config of GLIDEIN_CONTAINER_ENV and GLIDEIN_CONTAINER_ENV_CLEARLIST in singularity_lib.sh (PR#535)
+	Bug fix: Fixed handling of Apptainer environment and image restrictions (PR#535, PR#539)
+	Bug fix: Added workaround for HTCondor setting PATH only as variable and not in the environment (PR#539)
+	NOTE: In the Glidein, `cvmfs_setup.sh` is now executing earlier, right after entry scripts (PR#528)
+	NOTE: Removed compatibility with GWMS<3.4.5. GlideinWMS v3.4.6 up to v3.10.14 Factories and Frontend are interoperable.
+
 v3_10_13
 	Bug fix: Fixed a credential rewriting error caused by PR#511 and a path error in PR#515 (PR#519)
 
@@ -35,7 +52,7 @@ v3_10_12
 	Exporting GLIDEIN_Name and GLIDEIN_UUID to the Glidein environment, for all scripts running inside the Glidein (PR#512)
 	HTCondor LOCAL_CONFIG_DIR support for the Glidein HTCondor daemons (PR#515)
 	Improved docstrings in the Factory module (PR#511)
-	Bug fix: Fixed misleading counts related to the number of jobs that run in the Glidein (PR#516, Issue#456)
+	Bug fix: Fixed misleading counts related to the number of jobs that run in the Glidein (Issue#456, PR#516)
 
 v3_10_11
 	Added a test Apptainer image to use when the configured one is not available (PR#482)
