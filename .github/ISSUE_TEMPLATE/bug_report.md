@@ -27,7 +27,7 @@ If you add a new stakeholder or component, not on the sample list, add it on a l
 -   OS version:
 -   HTCondor version:
 -   Priority: Priority level of this bug [critical, high, medium, low]
--   Stakeholders: Concerned stakeholder(s) [CMS, FactoryOps, Fermilab, FIFE, HEPCloud, IGWN, OSG]
+-   Stakeholders: Concerned stakeholder(s) [CMS, DUNE, FactoryOps, Fermilab, FIFE, HEPCloud, IGWN, OSG]
 -   Components: The affected component due to this bug [frontend, factory, glidein, documentation, CI, testing, release, factory monitoring, frontend monitoring, ...]
 
 **Additional context**
