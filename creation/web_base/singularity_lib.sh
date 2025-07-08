@@ -449,7 +449,7 @@ gwms_from_config() {
     if [[ -r "$glidein_config" ]]; then
         #ret=$(grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-)
         #ret=$(tac "$glidein_config" | grep -m1 "^$1 " | cut -d ' ' -f 2-)
-        if ! ret=$(gconfig_get "$1" "$glidein_config" 2>/dev/null); then
+        if ! ret=$(gconfig_get "$1" 2>/dev/null); then
             ret=$(tac "$glidein_config" | grep -m1 "^$1 " | cut -d ' ' -f 2-)
         fi
     fi
@@ -609,8 +609,8 @@ if [[ -e "$glidein_config" ]]; then    # was: [ -n "$glidein_config" ] && [ "$gl
     fi
     export condor_vars_file
     if [[ $(type -t gconfig_get) = function ]]; then
-        condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
-        error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
+        condor_vars_file=$(gconfig_get CONDOR_VARS_FILE)
+        error_gen=$(gconfig_get ERROR_GEN_PATH)
     else
         # Trying to get these defined even if add_config_line is unavailable (using grep instead of tac, OK if no duplicate)
         condor_vars_file=$(grep -m1 '^CONDOR_VARS_FILE ' "$glidein_config" | cut -d ' ' -f 2-)
@@ -1036,6 +1036,17 @@ get_all_platforms() {
 #
 # CVMFS_MOUNT_DIR - alternative mount point for CVMFS if set and not empty (path w/o trailing slash "/")
 
+cvmfs_set_mount_dir() {
+    # TODO: Ideally the CVMFS_MOUNT_DIR should be set in the environment outside by site admins or the mounting scripts
+    #       This will make easier handling of nested invocations where CVMFS may be bind mount to /cvmfs
+    # This is a work-around in the mean time but may fail nested invocations if the env variable or glidein_config are
+    # not reset to /cvmfs. Future version may define CVMFS_MOUNT_DIR outside and remove this
+    if [[ -z "$CVMFS_MOUNT_DIR" ]]; then
+        CVMFS_MOUNT_DIR=$(gwms_from_config CVMFS_MOUNT_DIR)
+        [[ -z "$CVMFS_MOUNT_DIR" ]] || info_dbg "Added CVMFS_MOUNT_DIR as '$CVMFS_MOUNT_DIR' from glidein_config."
+    fi
+}
+
 cvmfs_test_and_open() {
     # Testing and opening all CVMFS repos named in the comma separated list. Call-back or exit if failing
     # In:
@@ -1047,6 +1058,7 @@ cvmfs_test_and_open() {
     info_dbg "Testing CVMFS Repos List = $1"
     holdfd=3
     local cvmfs_mount=/cvmfs
+    cvmfs_set_mount_dir
     [[ -n "$CVMFS_MOUNT_DIR" ]] && cvmfs_mount="${CVMFS_MOUNT_DIR%/}"
     local IFS=,  # "\t\t\""
     if [[ -n "$1" ]]; then
@@ -1083,6 +1095,9 @@ cvmfs_path_in_cvmfs() {
     # - the path is $CVMFS_MOUNT_DIR or starts with $CVMFS_MOUNT_DIR/ and CVMFS_MOUNT_DIR is set
     # In:
     #  1 - path to check
+    # Using:
+    #  CVMFS_MOUNT_DIR
+    cvmfs_set_mount_dir
     if [[ "$1" = /cvmfs  ||  "$1" = /cvmfs/* ]]; then
         true
     elif [[ -n "$CVMFS_MOUNT_DIR" ]]; then
@@ -1384,6 +1399,7 @@ singularity_exec_simple() {
     # and remove non existing src (checks=e) - if src is not existing Singularity will error (not run)
     local singularity_binds
     local cvmfs_bind="/cvmfs"
+    cvmfs_set_mount_dir
     [[ -n "$CVMFS_MOUNT_DIR" ]] && cvmfs_bind="${CVMFS_MOUNT_DIR}:/cvmfs"
     singularity_binds=$(singularity_get_binds e "${cvmfs_bind},/etc/hosts,/etc/localtime")
     local singularity_bin="$1"
@@ -2001,6 +2017,8 @@ singularity_prepare_and_invoke() {
     #   GWMS_SINGULARITY_IMAGE GWMS_SINGULARITY_IMAGE_HUMAN GWMS_SINGULARITY_OUTSIDE_PWD_LIST SINGULARITY_WORKDIR GWMS_SINGULARITY_EXTRA_OPTS GWMS_SINGULARITY_REEXEC
     # If  image is not provided, load the default one
     # Custom URIs: http://singularity.lbl.gov/user-guide#supported-uris
+
+    cvmfs_set_mount_dir
 
     # Choose the singularity image
     if [[ -z "$GWMS_SINGULARITY_IMAGE" ]]; then
