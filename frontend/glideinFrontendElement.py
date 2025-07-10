@@ -184,6 +184,8 @@ class glideinFrontendElement:
             self.ignore_down_entries = self.elementDescript.element_data["IgnoreDownEntries"] == "True"
         else:
             self.ignore_down_entries = self.elementDescript.frontend_data.get("IgnoreDownEntries") == "True"
+        # TODO: do I need like ignore_down_entries with "" group default? How are other parameters handling defaults?
+        self.ramp_up_attenuation = float(self.elementDescript.element_data["RampUpAttenuation"])
         self.min_running = int(self.elementDescript.element_data["MinRunningPerEntry"])
         self.max_running = int(self.elementDescript.element_data["MaxRunningPerEntry"])
         self.fraction_running = float(self.elementDescript.element_data["FracRunningPerEntry"])
@@ -1567,7 +1569,7 @@ class glideinFrontendElement:
             # since it takes a few cycles to stabilize, ask for only one third
             # 3 was based on observation and tests: The factory can be still processing the previous request,
             # previously requested glideins could be still idle in the site queue
-            glidein_min_idle = glidein_min_idle // 3
+            glidein_min_idle = int(glidein_min_idle / self.ramp_up_attenuation)
             # do not reserve any more than the number of old idles
             # for reserve (/3)
             glidein_idle_reserve = min(effective_oldidle // 3, self.reserve_idle)

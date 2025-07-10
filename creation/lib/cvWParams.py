@@ -82,6 +82,13 @@ class VOFrontendParams(cWParams.CommonParams):
             None,
         ]
         group_config_defaults["running_glideins_per_entry"] = group_config_running_defaults
+        common_config_ramp_up_attenuation_defaults = [
+            "3",
+            "float",
+            "Glidein requests attenuation to favor stability and avoid over-provisioning. Idle requests are divided by this number.",
+            None,
+        ]
+        group_config_defaults["ramp_up_attenuation"] = common_config_ramp_up_attenuation_defaults
         # This is a string because, we want to distinguish a value from missing (""), only a value overrides the corresponding  default or global setting
         group_config_defaults["ignore_down_entries"] = [
             "",
@@ -129,13 +136,13 @@ class VOFrontendParams(cWParams.CommonParams):
         group_config_vms_defaults["max"] = [
             "100",
             "nr_vms",
-            "How many idle VMs should I tollerate, before stopping submitting glideins",
+            "How many idle VMs should I tolerate, before stopping submitting glideins",
             None,
         ]
         group_config_vms_defaults["curb"] = [
             "5",
             "nr_vms",
-            "How many idle VMs should I tollerate, before starting to curb submissions.",
+            "How many idle VMs should I tolerate, before starting to curb submissions.",
             None,
         ]
         group_config_defaults["idle_vms_per_entry"] = group_config_vms_defaults
@@ -145,13 +152,13 @@ class VOFrontendParams(cWParams.CommonParams):
         common_config_vms_total_defaults["max"] = [
             "1000",
             "nr_jobs",
-            "How many total idle VMs should I tollerate, before stopping submitting glideins",
+            "How many total idle VMs should I tolerate, before stopping submitting glideins",
             None,
         ]
         common_config_vms_total_defaults["curb"] = [
             "200",
             "nr_jobs",
-            "How many total idle VMs should I tollerate, before starting to curb submissions.",
+            "How many total idle VMs should I tolerate, before starting to curb submissions.",
             None,
         ]
         group_config_defaults["idle_vms_total"] = common_config_vms_total_defaults
@@ -557,6 +564,7 @@ class VOFrontendParams(cWParams.CommonParams):
         )
 
         global_config_defaults = cWParams.CommentedOrderedDict()
+        global_config_defaults["ramp_up_attenuation"] = copy.deepcopy(common_config_ramp_up_attenuation_defaults)
         global_config_defaults["ignore_down_entries"] = [
             "False",
             "Bool",
