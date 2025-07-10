@@ -3,6 +3,7 @@
 GroupName 	main
 MapFile 	/var/lib/gwms-frontend/vofrontend/group_main/group.mapfile
 MapFileWPilots 	/var/lib/gwms-frontend/vofrontend/group_main/group_wpilots.mapfile
+RampUpAttenuation 	3
 MaxRunningPerEntry 	10000
 MinRunningPerEntry 	0
 FracRunningPerEntry 	1.15
