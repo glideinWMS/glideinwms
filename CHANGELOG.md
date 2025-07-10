@@ -10,6 +10,7 @@ Changes since the last release
 ### New features / functionalities
 
 -   Added GLIDEIN_CVMFS_REPOS custom variable to define additional CVMFS repositories to mount (PR #547)
+-   Added ramp_up_attenuation config parameter to control Glidein provisioning remap-up (PR# 556)
 
 ### Changed defaults / behaviours
 
