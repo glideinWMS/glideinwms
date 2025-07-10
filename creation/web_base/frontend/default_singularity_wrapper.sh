@@ -3,13 +3,19 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# shellcheck disable=SC2039
-# If not running Bash and Bash is available, use it
-[ -z "$BASH_VERSION" ] && which bash > /dev/null 2>&1 && exec bash "$0" "$@"
+# shebang must be /bin/sh for Busybox compatibility
+if [ -z "$BASH_VERSION" ]; then
+    # If not running Bash and Bash is available, use it
+    which bash > /dev/null 2>&1 && exec bash "$0" "$@"
+else
+    # If in Bash, disable POSIX mode
+    # shellcheck disable=SC3040
+    set +o posix || echo "WARN: running in POSIX mode"
+fi
 # Supposing Bash or Busybox ash/dash shell
 # use let instead of (( )), use $(eval "echo \"\$${var##*[!0-9_a-z_A-Z]*}\"") instead of ${!var}
 # and for assignment `eval "new_var=\$${var##*[!0-9_a-z_A-Z]*}"`
-# [[ ]] is OK, variables manipulation OK
+# [[ ]] is OK, variables manipulation OK (except {var/#st/new} and {var/%end/new})
 
 # GlideinWMS singularity wrapper. Invoked by HTCondor as user_job_wrapper
 # default_singularity_wrapper USER_JOB [job options and arguments]
@@ -25,7 +31,7 @@ export GWMS_AUX_SUBDIR
 GWMS_SUBDIR=${GWMS_SUBDIR:-".gwms.d"}
 export GWMS_SUBDIR
 
-GWMS_VERSION_SINGULARITY_WRAPPER=20250618
+GWMS_VERSION_SINGULARITY_WRAPPER=20250709
 # Updated using OSG wrapper #5d8b3fa9b258ea0e6640727405f20829d2c5d4b9
 # https://github.com/opensciencegrid/osg-flock/blob/master/job-wrappers/user-job-wrapper.sh
 # Link to the CMS wrapper
@@ -116,8 +122,8 @@ else
     warn=warn_raw
     exit_wrapper "Wrapper script $GWMS_THIS_SCRIPT failed: Unable to source singularity_lib.sh" 1
 fi
-# shellcheck source=../singularity_lib.sh
 if [[ -z "$GWMS_SINGULARITY_REEXEC" ]] || [[ -n "$BASH_VERSION" ]]; then
+    # shellcheck source=../singularity_lib.sh
     . "${GWMS_AUX_DIR}"/singularity_lib.sh
     GWMS_SHELL_MODE="Bash"
 else
@@ -126,6 +132,7 @@ else
     eval "$(sed '/.*# START bash$/,/.*# END bash$/d' "${GWMS_AUX_DIR}"/singularity_lib.sh)"
     GWMS_SHELL_MODE="Busybox-compatibility"
 fi
+[[ ":$SHELLOPTS:" != *:posix:* ]] || GWMS_SHELL_MODE="$GWMS_SHELL_MODE/POSIX"
 # These singularity_lib.sh functions must be Busybox compatible (are used inside the container)
 # - info_dbg
 # - setup_classad_variables
@@ -144,7 +151,7 @@ elif [[ -e /srv/$GWMS_SUBDIR/bin ]]; then
 elif [[ -e /srv/$(dirname "$GWMS_AUX_DIR")/$GWMS_SUBDIR/bin ]]; then
     GWMS_DIR=/srv/$(dirname "$GWMS_AUX_DIR")/$GWMS_SUBDIR/bin
 else
-    echo "ERROR: $GWMS_THIS_SCRIPT: Unable to gind GWMS_DIR! File not found. Quitting" 1>&2
+    echo "ERROR: $GWMS_THIS_SCRIPT: Unable to find GWMS_DIR! File not found. Quitting" 1>&2
     exit_wrapper "Wrapper script $GWMS_THIS_SCRIPT failed: Unable to find GWMS_DIR" 1
 fi
 export GWMS_DIR
