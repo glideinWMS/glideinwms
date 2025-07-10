@@ -430,7 +430,7 @@ gwms_process_scripts() {
             "./$i" "$cfg_file"
             [[ $(pwd -P) != "$my_pwd" ]] && { cd "$my_pwd" || warn "Unable to return to scripts directory ($my_pwd)."; }
         elif [[ "$i" = *.sh || "$i" = *.source ]]; then
-            . "$i"
+            . "./$i"
             [[ $(pwd -P) != "$my_pwd" ]] && { cd "$my_pwd" || warn "Unable to return to scripts directory ($my_pwd)."; }
         fi
     done
@@ -468,6 +468,7 @@ gwms_from_config() {
 uri_is_valid_file_or_remote() {
     # Return true if URI is not local or if it is a readable file
     # Return false for empty values or non readable local URI/files
+    # cvmfs_resolve_path() is used to translate /cvmfs paths when CVMFS_MOUNT_DIR is set
     # In:
     #  1: URI to check, can be a path or a URI
     [[ -n "$1" ]] || { false; return; }
@@ -475,7 +476,9 @@ uri_is_valid_file_or_remote() {
     if [[ ! "${uri}" = *"://"* ]] || [[ "${uri}" = "file://"* ]]; then
         # file:// are absolute paths, protect for 2 or 3 slashes
         uri="${uri#file:/}"
-        [[ -r "${uri/\/\//\/}" ]]
+        local file_path
+        file_path=$(cvmfs_resolve_path "${uri/\/\//\/}")
+        [[ -r "$file_path" ]]
         return
     fi
     true
@@ -1110,15 +1113,24 @@ cvmfs_path_in_cvmfs() {
 
 
 cvmfs_resolve_path() {
-    # Return a CVMFS path translating /cvmfs in the actual CVMFS mount point
+    # Return a CVMFS path translating /cvmfs in the actual CVMFS mount point (CVMFS_MOUNT_DIR)
+    # If the path is a symbolic link of a path in CVMFS, then return the translated linked path (e.g. used for images)
     # In:
     #  1 - path to translate
     #  CVMFS_MOUNT_DIR - CVMFS mount point when different form /cvmfs
     # Out:
     #  stdout: translated path
+    cvmfs_set_mount_dir
     if [[ -n "$CVMFS_MOUNT_DIR" ]]; then
         if [[ "$1" = "/cvmfs/"* || "$1" = "/cvmfs" ]]; then
-            echo "${CVMFS_MOUNT_DIR%/}${1#/cvmfs}"
+            local new_path="${CVMFS_MOUNT_DIR%/}${1#/cvmfs}"
+            if [[ -L "$new_path" ]]; then
+                local linked_path=$(readlink "$new_path")
+                if [[ "$linked_path" = "/cvmfs/"* || "$linked_path" = "/cvmfs" ]]; then  # is link and link in cvmfs
+                    new_path="${CVMFS_MOUNT_DIR%/}${linked_path#/cvmfs}"
+                fi
+            fi
+            echo "$new_path"
             return
         fi
     fi
@@ -1811,14 +1823,17 @@ singularity_get_image() {
     # Check all restrictions (at the moment cvmfs) and return 3 if failing
     if [[ ",${s_restrictions}," = *",cvmfs,"* ]] && ! cvmfs_path_in_cvmfs "$singularity_image"; then
         warn "$singularity_image is not in the /cvmfs area as requested"
-        [[ ",${s_restrictions}," = *",test,"* ]] && { singularity_get_image_default; return; } || return 3
+        [[ ",${s_restrictions}," = *",test,"* ]] && { singularity_get_image_default; return; } || { echo "$singularity_image"; return 3; }
     fi
 
     # Unless is OK to use URLs/remote images, we make sure it exists
     if [[ ! ",${s_restrictions}," = *",remote,"* ]]; then
-        if [[ ! -e "$singularity_image" ]]; then
-            warn "ERROR: $singularity_image file not found" 1>&2
-            [[ ",${s_restrictions}," = *",test,"* ]] && { singularity_get_image_default; return; } || return 2
+        local resolved_image
+        resolved_image=$(cvmfs_resolve_path "$singularity_image")
+        if [[ ! -e "$resolved_image" ]]; then
+            [[ "$singularity_image" = "$resolved_image" ]] && singularity_image="" || singularity_image=" ($singularity_image)"
+            warn "ERROR: $resolved_image$singularity_image file not found"
+            [[ ",${s_restrictions}," = *",test,"* ]] && { singularity_get_image_default; return; } || { echo "$resolved_image"; return 2; }
         fi
     fi
 
@@ -1971,7 +1986,7 @@ singularity_verify_image() {
     #  0 - all OK
     #  1 - image (file or directory) does not exist
     #  2 - image (directory) exists, is in CVMFS, but the listing fails
-    local singularity_image=$1
+    local singularity_image=$(cvmfs_resolve_path "$1")
     local ok_compressed=false
     [[ "$2" = "ok_compressed" ]] && ok_compressed=true
 
@@ -1981,7 +1996,7 @@ singularity_verify_image() {
     # will both work for non expanded images?
     [[ ! -e "$singularity_image" ]] && return 1
     if cvmfs_path_in_cvmfs "$singularity_image"; then
-        if ! ls -l "$(cvmfs_resolve_path "$singularity_image")" >/dev/null; then
+        if ! ls -l "$singularity_image" >/dev/null; then
             if $ok_compressed; then
                 info_dbg "Listing failed for $singularity_image, probably a compressed image in CVMFS"
             else

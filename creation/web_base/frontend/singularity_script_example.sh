@@ -1,7 +1,21 @@
-#!/bin/bash
+#!/bin/sh
 
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
+
+# shebang must be /bin/sh for Busybox compatibility
+if [ -z "$BASH_VERSION" ]; then
+    # If not running Bash and Bash is available, use it
+    which bash > /dev/null 2>&1 && exec bash "$0" "$@"
+else
+    # If in Bash, disable POSIX mode
+    # shellcheck disable=SC3040
+    set +o posix || echo "WARN: running in POSIX mode"
+fi
+# Supposing Bash or Busybox ash/dash shell
+# use let instead of (( )), use $(eval "echo \"\$${var##*[!0-9_a-z_A-Z]*}\"") instead of ${!var}
+# and for assignment `eval "new_var=\$${var##*[!0-9_a-z_A-Z]*}"`
+# [[ ]] is OK, variables manipulation OK (except {var/#st/new} and {var/%end/new})
 
 #
 EXITSLEEP=5
@@ -10,7 +24,12 @@ EXIT_CODE=0
 # Change this possibly to a unique name
 GWMS_THIS_SCRIPT=singularity_script_example
 GWMS_THIS_SCRIPT_DIR=$(dirname "$0")
-GWMS_AUX_SUBDIR=.gwms_aux
+GWMS_AUX_SUBDIR=${GWMS_AUX_SUBDIR:-".gwms_aux"}
+export GWMS_AUX_SUBDIR
+GWMS_SUBDIR=${GWMS_SUBDIR:-".gwms.d"}
+export GWMS_SUBDIR
+
+GWMS_VERSION_SINGULARITY_WRAPPER=ex20250709
 
 
 ##############################################
@@ -71,11 +90,38 @@ else
     warn=warn_raw
     exit_script "Wrapper script $GWMS_THIS_SCRIPT failed: Unable to source singularity_lib.sh" 1
 fi
-# shellcheck source=../singularity_lib.sh
-. "${GWMS_AUX_DIR}singularity_lib.sh"
+if [[ -z "$GWMS_SINGULARITY_REEXEC" ]] || [[ -n "$BASH_VERSION" ]]; then
+    # shellcheck source=./singularity_lib.sh
+    . "${GWMS_AUX_DIR}"/singularity_lib.sh
+    GWMS_SHELL_MODE="Bash"
+else
+    # Inside Apptainer and no Bash:  source and skip parts incompatible with Busybox, to be compatible w/ all containers
+    # Lines ending in "# START bash" and "END bash" delimit Bash only sections
+    eval "$(sed '/.*# START bash$/,/.*# END bash$/d' "${GWMS_AUX_DIR}"/singularity_lib.sh)"
+    GWMS_SHELL_MODE="Busybox-compatibility"
+fi
+[[ ":$SHELLOPTS:" != *:posix:* ]] || GWMS_SHELL_MODE="$GWMS_SHELL_MODE/POSIX"
 
-info_dbg "GWMS singularity wrapper starting, `date`. Imported singularity_lib.sh. glidein_config ($glidein_config). $GWMS_THIS_SCRIPT, in `pwd`: `ls -al`"
+# Directory to use for bin, lib, exec, ... full path
+if [[ -n "$GWMS_DIR" && -e "$GWMS_DIR/bin" ]]; then
+    # already set, keep it
+    true
+elif [[ -e $GWMS_THIS_SCRIPT_DIR/$GWMS_SUBDIR/bin ]]; then
+    GWMS_DIR=$GWMS_THIS_SCRIPT_DIR/$GWMS_SUBDIR
+elif [[ -e /srv/$GWMS_SUBDIR/bin ]]; then
+    GWMS_DIR=/srv/$GWMS_SUBDIR
+elif [[ -e /srv/$(dirname "$GWMS_AUX_DIR")/$GWMS_SUBDIR/bin ]]; then
+    GWMS_DIR=/srv/$(dirname "$GWMS_AUX_DIR")/$GWMS_SUBDIR/bin
+else
+    echo "ERROR: $GWMS_THIS_SCRIPT: Unable to find GWMS_DIR! File not found. Quitting" 1>&2
+    exit_wrapper "Wrapper script $GWMS_THIS_SCRIPT failed: Unable to find GWMS_DIR" 1
+fi
+export GWMS_DIR
 
+# Calculating full version number, including md5 sums form the wrapper and singularity_lib
+GWMS_VERSION_SINGULARITY_WRAPPER="${GWMS_VERSION_SINGULARITY_WRAPPER}_$(md5sum "$GWMS_THIS_SCRIPT" 2>/dev/null | cut -d ' ' -f1)_$(md5sum "${GWMS_AUX_DIR}/singularity_lib.sh" 2>/dev/null | cut -d ' ' -f1)"
+info_dbg "GWMS singularity example ($GWMS_VERSION_SINGULARITY_WRAPPER) starting, $(date). Imported singularity_lib.sh ($GWMS_SHELL_MODE). glidein_config ($glidein_config)."
+info_dbg "$GWMS_THIS_SCRIPT, in $(pwd), list: $(ls -al)"
 
 #################### main ###################
 
@@ -167,6 +213,8 @@ fi
 #
 
 info_dbg "GWMS singularity example, final setup."
+
+gwms_process_scripts "$GWMS_DIR" prejob
 
 #############
 #
