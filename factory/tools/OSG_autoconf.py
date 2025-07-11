@@ -81,7 +81,7 @@ def get_vos(allowed_vos, GPU_entry=False):
     return vos
 
 
-def get_bestfit_pilot(celem, resource, site):
+def get_bestfit_pilot(celem, resource, site, batchsystem):
     """Find the best-fitting pilot parameters from the resource catalog sections.
 
     Site admins did not specify a pilot section. This function goes through the resource catalog
@@ -123,10 +123,10 @@ def get_bestfit_pilot(celem, resource, site):
             else:
                 cpus = math.gcd(cpus, osg_catalog["CPUs"])
 
-    return get_entry_dictionary(resource, site, vos, cpus, walltime, memory)
+    return get_entry_dictionary(resource, site, vos, cpus, walltime, memory, batchsystem)
 
 
-def get_pilot(resource, site, pilot_entry):
+def get_pilot(resource, site, batchsystem, pilot_entry):
     """Prepare the XML pilot dictionary based on OSG collector information.
 
     Site admins specified a pilot entry section in the OSG configuration file. This function
@@ -145,7 +145,7 @@ def get_pilot(resource, site, pilot_entry):
     walltime = pilot_entry.get("MaxWallTime", None)
     memory = pilot_entry.get("Memory", None)
 
-    res = get_entry_dictionary(resource, site, vos, cpus, walltime, memory)
+    res = get_entry_dictionary(resource, site, vos, cpus, walltime, memory, batchsystem)
 
     if "MaxPilots" in pilot_entry:
         res["limits"] = {"entry": {"glideins": pilot_entry["MaxPilots"]}}
@@ -169,7 +169,7 @@ def get_pilot(resource, site, pilot_entry):
     return res
 
 
-def get_entry_dictionary(resource, site, vos, cpus, walltime, memory):
+def get_entry_dictionary(resource, site, vos, cpus, walltime, memory, batchsystem):
     """Convert parameters into an XML pilot dictionary.
 
     Args:
@@ -188,6 +188,8 @@ def get_entry_dictionary(resource, site, vos, cpus, walltime, memory):
     edict["gridtype"] = "condor"
     edict["attrs"] = {}
     edict["attrs"]["GLIDEIN_Site"] = {"value": resource}
+    if str(batchsystem).lower() == "condor":
+        edict["work_dir"] = "Condor"
     if resource:
         edict["attrs"]["GLIDEIN_ResourceName"] = {"value": site}
     if len(vos) > 0:
@@ -235,7 +237,8 @@ def get_information(host):
     """
     collector = htcondor.Collector(host)
     ces = collector.query(
-        htcondor.AdTypes.Schedd, projection=["Name", "OSG_ResourceGroup", "OSG_Resource", "OSG_ResourceCatalog"]
+        htcondor.AdTypes.Schedd,
+        projection=["Name", "OSG_ResourceGroup", "OSG_Resource", "OSG_ResourceCatalog", "OSG_BatchSystems"],
     )
     return get_information_internal(ces)
 
@@ -255,6 +258,7 @@ def get_information_internal(ces):
         if "OSG_ResourceGroup" in celem:
             resource = celem["OSG_ResourceGroup"]
             site = celem["OSG_Resource"]
+            batchsystem = celem.get("OSG_BatchSystems")
             gatekeeper = celem["Name"].lower()
             if resource:
                 result.setdefault(resource, {})[gatekeeper] = {}
@@ -267,12 +271,12 @@ def get_information_internal(ces):
                     #                    requires_bestfit = pilot_entries == []
                     #                    if requires_bestfit:
                     result[resource][gatekeeper].setdefault(BEST_FIT_TAG, {})[entry] = get_bestfit_pilot(
-                        celem, resource, site
+                        celem, resource, site, batchsystem
                     )
                     #                    else:
                     for pentry in pilot_entries:
                         result[resource][gatekeeper].setdefault(pentry["Name"], {})[entry] = get_pilot(
-                            resource, site, pentry
+                            resource, site, batchsystem, pentry
                         )
                 else:
                     print(gatekeeper + " CE does not have OSG_ResourceCatalog attribute")
