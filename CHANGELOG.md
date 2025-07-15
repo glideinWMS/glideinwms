@@ -19,6 +19,8 @@ Changes since the last release
 
 ### Bug Fixes
 
+-   Retrieve and use CVMFS_MOUNT_DIR from glidein_config if not in the environment (PR #552)
+
 ### Testing / Development
 
 ### Known Issues

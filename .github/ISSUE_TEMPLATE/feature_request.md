@@ -20,7 +20,7 @@ Stakeholders and components can be a comma-separated list or on multiple lines.
 If you add a new stakeholder or component, not on the sample list, add it on a line on its own.
 
 -   Priority: Priority level for this feature [critical, high, medium, low]
--   Stakeholders: Concerned stakeholder(s) [CMS, FactoryOps, Fermilab, FIFE, HEPCloud, IGWN, OSG]
+-   Stakeholders: Concerned stakeholder(s) [CMS, DUNE, FactoryOps, Fermilab, FIFE, HEPCloud, IGWN, OSG]
 -   Components: The affected component, if any, from this feature [frontend, factory, glidein, documentation, CI, testing, release, factory monitoring, frontend monitoring, ...]
 
 **Additional context**
