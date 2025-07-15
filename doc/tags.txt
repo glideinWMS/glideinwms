@@ -1,3 +1,8 @@
+v3_10_15
+	Added GLIDEIN_CVMFS_REPOS custom variable to define additional CVMFS repositories to mount (PR#547)
+	Bug fix: Retrieve and use CVMFS_MOUNT_DIR from glidein_config if not in the environment (PR#552)
+	NOTE: The job wrappers in the Glidein are now running with the `/bin/sh` prompt instead of `/bin/bash`. They use Bash and `set +o posix` when possible, but there may be another shell.
+
 v3_10_14
 	Added support for Ubuntu 24 workers (PR#529)
 	Add keyword ALL to query all schedulers known to the collector without listing them explicitly (Issue#510, PR#532)

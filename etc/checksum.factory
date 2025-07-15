@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_14
+# GLIDEINWMS_VERSION v3_10_15_rc1
 ###################################################################
 78bb68217a24e977bdc5850e7d607960  ./__init__.py
 32b4bfc3e16d335b71c235d34a819eba  ./.codespell/ignore_lines.txt
@@ -8,7 +8,7 @@ bf1869a9f0e22861757b16f54e1acee9  ./.codespell/ignore_words.txt
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
 ba748ed3bc5995aee49b1067feaf7999  ./bigfiles/cvmfs_utils.tar.gz
 4558e767c3bea40c689e0c7eec0fd2ce  ./bigfiles/README.md
-72bb376ac598794abd23f2bb56b2382b  ./CHANGELOG.md
+6f1d156f17749439d309a9e459ef34d0  ./CHANGELOG.md
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 886e483062dbc2844dc52dad44644333  ./creation/clone_glidein
@@ -62,7 +62,7 @@ adfbcc4d9f68fc8e53ccc12c1ccaa828  ./creation/web_base/condor_vars.lst
 393a01eb81bc9ee8bfd41d743a3190e7  ./creation/web_base/condor_vars.lst.entry
 162479586d7e67b8aeb3c082565347ff  ./creation/web_base/create_mapfile.sh
 85c6bd4a404a53a0cea5fcc0e4a3c122  ./creation/web_base/create_temp_mapfile.sh
-756df6eaa9882c2775815fe682574f9d  ./creation/web_base/cvmfs_helper_funcs.sh
+0eff3daea0f48456ffed11bc2ce2c06c  ./creation/web_base/cvmfs_helper_funcs.sh
 a56b230cc3e0110d8e56020a4ba90846  ./creation/web_base/cvmfs_setup.sh
 81b8075176a83aea65f8a87bc24c9cfc  ./creation/web_base/cvmfs_umount.sh
 ccffa2d10c55c2402ef40dc42dfd2600  ./creation/web_base/cvmfsexec_platform_select.sh
@@ -114,9 +114,9 @@ a07332de53ae9fb905f7cc97e08ef37f  ./creation/web_base/nodes.blacklist
 214d7ed29a9a5f92453191b9c4089f12  ./creation/web_base/setup_prejob.sh
 44ddb239979e4592e0fc77ec8a21efd7  ./creation/web_base/setup_script.sh
 587f5b569406fb46b71373a4c43e83aa  ./creation/web_base/setup_x509.sh
-d300d09ee1afe6954ff00faa2e5dff3c  ./creation/web_base/singularity_lib.sh
-7dee4bb6d296d2ea4d44ed997acd5b20  ./creation/web_base/singularity_setup.sh
-e1b8016b528a23a91c59900eea03b591  ./creation/web_base/singularity_wrapper.sh
+0f1358f44ebf2e2bc0cf038991f9249f  ./creation/web_base/singularity_lib.sh
+99812b563266d21a1021e68fd0f6d39a  ./creation/web_base/singularity_setup.sh
+06ebb529f78307a24dd53b3113338e1d  ./creation/web_base/singularity_wrapper.sh
 1feebbec48bdd2edece16d9b9167a03c  ./creation/web_base/smart_partitionable.sh
 6391319a5eddce73d17ed4003eed439e  ./creation/web_base/update_proxy.py
 84c7f139a20799882346249dca183000  ./creation/web_base/validate_node.sh
@@ -164,7 +164,7 @@ c4262f2e89fa897635b9814e01cde9ac  ./factory/tools/lib/analyze.py
 44fb4d90f243caa132ab0c9bc02505d7  ./factory/tools/lib/gWftArgsHelper.py
 645f1a6531d7b4ceda0005b9acd3ec5c  ./factory/tools/lib/gWftLogParser.py
 f673812565a790ecf9528358ce8d372f  ./factory/tools/manual_glidein_submit.py
-5fa27db977087c44647fc2ec45ac9a59  ./factory/tools/OSG_autoconf.py
+4fc516c6b7ae8aba01e5fedf4cbe24b3  ./factory/tools/OSG_autoconf.py
 d41d8cd98f00b204e9800998ecf8427e  ./install/__init__.py
 49c95c30a21acd9d353800186bee0723  ./install/config/gwms-factory.conf.httpd
 2ac64ca6337a958c90680773d825d6a6  ./install/config/gwms-factory.service

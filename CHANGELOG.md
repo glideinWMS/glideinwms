@@ -13,6 +13,8 @@ Changes since the last release
 
 ### Changed defaults / behaviours
 
+-   The job wrappers in the Glidein are now running with the `/bin/sh` prompt instead of `/bin/bash`. They use Bash and `set +o posix` when possible, but there may be another shell.
+
 ### Deprecated / removed options and commands
 
 ### Security Related Fixes
