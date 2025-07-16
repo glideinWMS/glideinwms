@@ -10,6 +10,9 @@ Changes since the last release
 ### New features / functionalities
 
 -   Added GLIDEIN_CVMFS_REPOS custom variable to define additional CVMFS repositories to mount (PR #547)
+-   Updates the pilot generation logic in OSG_autoconf to check the OSG_BatchSystem attribute from the OSG collector. If the batch system is set to "CONDOR", the resulting pilot entry will have work_dir set to "Condor" (PR # 558)
+-   Updates the pilot generation logic in OSG_autoconf to use the cpus ttribute from the OSG collector to set GLIDEIN_ESTIMATED_CPUs (PR #560)
+
 
 ### Changed defaults / behaviours
 
