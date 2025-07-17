@@ -250,11 +250,10 @@ class CredentialsBasic(CredentialsPlugin):
         """
 
         for req_cred in req_creds:
-            if not req_cred.credential.cred_type:
-                continue
             if auth_set.supports(req_cred.credential.cred_type):
                 req_cred.add_usage_details(params_obj.min_nr_glideins, params_obj.max_run_glideins)
-                return
+            else:
+                req_cred.add_usage_details(0, 0)
 
 
 ###########################################################

@@ -647,7 +647,7 @@ def credential_type_from_string(string: str) -> Union[CredentialType, Credential
 
 
 def credential_of_type(
-    cred_type: Union[CredentialType, CredentialPairType]
+    cred_type: Union[CredentialType, CredentialPairType],
 ) -> Union[Type[Credential], Type[CredentialPair]]:
     """Returns the credential subclass for the given type.
 
