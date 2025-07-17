@@ -172,6 +172,7 @@ class DynamicCredential(Credential[Generator]):
             generated_value.trust_domain = self.trust_domain
             generated_value.security_class = self.security_class
             self._generated_credential = generated_value
+            self.cred_type = generated_value.cred_type
         elif isinstance(generated_value, (str, bytes)):
             self._generated_credential = create_credential(
                 string=generated_value,
@@ -180,6 +181,7 @@ class DynamicCredential(Credential[Generator]):
                 security_class=self.security_class,
                 cred_type=self.cred_type,
             )
+            self.cred_type = self._generated_credential.cred_type
         else:
             raise CredentialError(f"Invalid generated value: {generated_value}. Expected a string or bytes.")
 
