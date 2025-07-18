@@ -9,9 +9,6 @@ Changes since the last release
 
 ### New features / functionalities
 
--   item one of the list
--   item N
-
 ### Changed defaults / behaviours
 
 ### Deprecated / removed options and commands
@@ -24,14 +21,14 @@ Changes since the last release
 
 ### Known Issues
 
-## v3.10.15 \[2025-07-17\]
+## v3.10.15 \[2025-07-18\]
 
 Fixed v3.10.14 POSIX mode incompatibility error. Enhanced cvmfsexec mode 1 (mountrepo) to mount repos in
 GLIDEIN_CVMFS_REPOS and to use Apptainer images from CVMFS.
 
 ### New features / functionalities
 
--   Add GLIDEIN_OVERLOAD_ENABLED to control CPU and memory overload (PR #536)
+-   Add GLIDEIN_OVERLOAD_ENABLED to control partial CPU and memory overload (PR #536)
 -   Added GLIDEIN_CVMFS_REPOS custom variable to define additional CVMFS repositories to mount (PR #547)
 -   Added ramp_up_attenuation config parameter to control Glidein provisioning remap-up (PR #556)
 -   Updates the pilot generation logic in OSG_autoconf to check the OSG_BatchSystem attribute from the OSG collector. If the batch system is set to "CONDOR", the resulting pilot entry will have work_dir set to "Condor" (PR #558)
@@ -53,6 +50,8 @@ GLIDEIN_CVMFS_REPOS and to use Apptainer images from CVMFS.
 ### Testing / Development
 
 ### Known Issues
+
+-   Duplicate repositories in the GLIDEIN_CVMFS_REPOS list will fail cvmfsexec.
 
 ## v3.10.14 \[2025-06-20\]
 
