@@ -31,6 +31,7 @@ GLIDEIN_CVMFS_REPOS and to use Apptainer images from CVMFS.
 
 ### New features / functionalities
 
+-   Added possibility of partial pilot overloading through GLIDEIN_OVERLOAD_ENABLED (PR #536)
 -   Added GLIDEIN_CVMFS_REPOS custom variable to define additional CVMFS repositories to mount (PR #547)
 -   Added ramp_up_attenuation config parameter to control Glidein provisioning remap-up (PR #556)
 -   Updates the pilot generation logic in OSG_autoconf to check the OSG_BatchSystem attribute from the OSG collector. If the batch system is set to "CONDOR", the resulting pilot entry will have work_dir set to "Condor" (PR #558)
