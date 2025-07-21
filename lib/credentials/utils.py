@@ -109,6 +109,14 @@ class SecurityBundle:
             )
             self.add_parameter(parameter)
 
+    def __repr__(self):
+        return f"SecurityBundle(credentials={self.credentials}, parameters={self.parameters})"
+
+    def __str__(self):
+        cred_types = [f"{cred.cred_type:s}" for cred in self.credentials.values()]
+        cred_types += [f"{param.name:s}({param.param_type:s})" for param in self.parameters.values()]
+        return f"[{','.join(cred_types)}]"
+
 
 class SubmitBundle:
     """Represents a submit bundle used for submitting jobs.
@@ -296,7 +304,7 @@ class AuthenticationMethod:
         return f"{self.__class__.__name__}({self._requirements!r})"
 
     def __str__(self) -> str:
-        return ";".join(str(auth_set) for auth_set in self._requirements)
+        return ";".join(",".join(str(item) for item in group) for group in self._requirements)
 
     def __contains__(self, cred_type: Union[CredentialType, str]) -> bool:
         if isinstance(cred_type, str):
@@ -310,6 +318,7 @@ class AuthenticationMethod:
             auth_method (str): The authentication method.
         """
 
+        auth_method = auth_method.replace("+", ";")
         for group in auth_method.split(";"):
             if group.lower() == "any":
                 self._requirements.append([])

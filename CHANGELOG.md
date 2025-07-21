@@ -33,6 +33,8 @@ This is a development (3.11) release and includes all the production improvement
 ### Bug Fixes
 
 -   Fixed a bug that could cause the Frontend not to generate IDTOKENS to some Factory entries. (PR #514)
+-   Fixed a bug that would cause the Frontend to request glideins for credentials that didn't match an entry.
+-   Fixed also '+' sign in Factory auth_method configuration. (PR #562)
 
 ### Testing / Development
 

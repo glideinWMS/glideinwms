@@ -1144,7 +1144,9 @@ class MultiAdvertiseWork:
         auth_set = factory_auth.match(self.descript_obj.credentials_plugin.security_bundle)
         if not auth_set:
             logSupport.log.debug(
-                f"The available credentials do not match the requirements of factory pool {factory_pool}. Not advertising request."
+                f"The available credentials do not match the requirements of factory pool {factory_pool}. Not advertising request. "
+                f"Available credentials: {str(self.descript_obj.credentials_plugin.security_bundle)} "
+                f"Required credentials: {str(factory_auth)}"
             )
             raise NoCredentialException
         params_obj.glidein_params_to_encrypt["AuthSet"] = pickle.dumps(auth_set)
