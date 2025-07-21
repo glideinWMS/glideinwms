@@ -1,7 +1,10 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
+"""This module implements the functions needed to aggregate the monitoring of the Frontend.
 
-"""This module implements the functions needed to aggregate the monitoring of the Frontend"""
+It provides configuration management, RRD file verification, and aggregation of monitoring data
+across multiple groups for the GlideinWMS frontend.
+"""
 
 import os
 import os.path
@@ -19,6 +22,11 @@ from glideinwms.lib import logSupport, rrdSupport, xmlFormat, xmlParse
 
 class MonitorAggregatorConfig:
     def __init__(self):
+        """Initializes the MonitorAggregatorConfig object with default values.
+
+        Sets up the monitoring directory, initializes the list of entries, and sets the default
+        status file name used for frontend status tracking.
+        """
         # The name of the attribute that identifies the glidein
         self.monitor_dir = "monitor/"
 
@@ -29,6 +37,18 @@ class MonitorAggregatorConfig:
         self.status_relname = "frontend_status.xml"
 
     def config_frontend(self, monitor_dir, groups):
+        """Configures the frontend monitoring settings.
+
+        Sets the monitoring directory and group information for the frontend, and updates the global
+        monitoring configuration accordingly.
+
+        Args:
+            monitor_dir (str): The directory where monitoring data will be stored.
+            groups (list): List of group names or group configurations for the frontend.
+
+        Returns:
+            None: This method updates internal and global monitoring settings in place.
+        """
         self.monitor_dir = monitor_dir
         self.groups = groups
         glideinFrontendMonitoring.monitoringConfig.monitor_dir = monitor_dir
@@ -81,18 +101,14 @@ frontend_job_type_strings = {
 
 
 def verifyRRD(fix_rrd=False, backup=False):
-    """
-    Go through all known monitoring rrds and verify that they
-    match existing schema (could be different if an upgrade happened)
-    If fix_rrd is true, then also attempt to add any missing attributes.
+    """Verifies that all monitoring RRDs match the expected schema, optionally fixing them.
 
     Args:
-        fix_rrd (bool): if True, will attempt to add missing attrs
-        backup (bool): if True, backup the old RRD before fixing
+        fix_rrd (bool): If True, attempt to add missing attributes.
+        backup (bool): If True, back up the old RRD before fixing.
 
     Returns:
-        bool: True if all OK, False if there is a problem w/ RRD files
-
+        bool: True if all RRD files are OK or successfully fixed, False if a problem remains.
     """
     rrd_problems_found = False
     mon_dir = monitorAggregatorConfig.monitor_dir
@@ -131,6 +147,14 @@ def verifyRRD(fix_rrd=False, backup=False):
 # PRIVATE - Used by aggregateStatus
 # Write one RRD
 def write_one_rrd(name, updated, data, fact=0):
+    """Writes data to a single RRD file, initializing RRD schema if necessary.
+
+    Args:
+        name (str): Name or path of the RRD file.
+        updated (float): Timestamp for the update.
+        data (dict): Monitoring data to write.
+        fact (int): If 0, use frontend_total_type_strings; otherwise use frontend_job_type_strings.
+    """
     if fact == 0:
         type_strings = frontend_total_type_strings
     else:
@@ -171,6 +195,23 @@ def write_one_rrd(name, updated, data, fact=0):
 # create an aggregate of status files, write it in an aggregate status file
 # end return the values
 def aggregateStatus():
+    """Aggregates and summarizes status information across all monitored frontend groups.
+
+    This function loads group status files for each configured group, aggregates factory and state-level
+    statistics, and computes global totals for jobs, glideins, matched jobs, matched glideins, matched cores,
+    and requested resources. The results are combined into summary dictionaries, written out as XML, and
+    stored in round-robin database (RRD) files for monitoring purposes.
+
+    The aggregation process handles missing or corrupt XML status files gracefully, logs errors, and
+    ensures that totals are accurately summed across all groups and factories. Output includes per-group,
+    per-factory, per-state, and global statistics, all of which are written to disk for monitoring and
+    reporting.
+
+    Returns:
+        dict: A status dictionary containing:
+            - "groups": Aggregated group-level statistics.
+            - "total": Global totals for all monitored attributes.
+    """
     global monitorAggregatorConfig
 
     type_strings = {

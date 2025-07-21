@@ -967,26 +967,93 @@ MAX_STARTD_LOG          I       10000000        +                               
             </td>
           </tr>
           <tr>
+            <td><b>GLIDEIN_OVERLOAD_ENABLED</b></td>
+            <td>String (boolean or percentage)</td>
+            <td>false</td>
+            <td>
+              <p>
+                Controls whether resource overloading is enabled for the pilot.
+                When set to
+                <code>true</code> (case-insensitive), both
+                <b>GLIDEIN_OVERLOAD_CPUS</b> and
+                <b>GLIDEIN_OVERLOAD_MEMORY</b> adjustments are applied. When set
+                to <code>false</code>, overloading is disabled regardless of the
+                other overload values.
+              </p>
+              <p>
+                If set to a percentage (e.g., <code>80%</code>), overloading is
+                enabled randomly with the given probability. This is useful for
+                gradual rollout or A/B testing. For example, setting
+                <code>GLIDEIN_OVERLOAD_ENABLED=25%</code> enables overloading
+                for approximately one in four pilots.
+              </p>
+              <p>
+                This variable must be explicitly enabled to allow CPU or memory
+                overload to take effect.
+              </p>
+            </td>
+          </tr>
+          <tr>
             <td><b>GLIDEIN_OVERLOAD_CPUS</b></td>
             <td>Float</td>
-
             <td>1</td>
             <td>
               <p>
-                Adjustment factor for GLIDEIN_CPUS that allows to overload
-                pilots. This means GLIDEIN_CPUS will be multpilied by
-                GLIDEIN_OVERLOAD_CPUS allowing to increase the size of the slot
-                compared to the original value. The original GLIDEIN_CPUS value
-                is usually set to the same value as the submit_attribute used to
-                submit the pilot to the CE. For example, usually both
-                GLIDEIN_CPUS and the submit attribute +xcount are set to 8.
-                Setting GLIDEIN_OVERLOAD_CPUS=1.25 allows to increase the value
-                of GLIDEIN_CPUS to 10 while keeping +xcount to 8. While in
-                principle you could just set GLIDEIN_CPUS to 10, using
-                GLIDEIN_OVERLOAD_CPUS is required for whole node pilots.
-                Therefore, we recommend to always use the GLIDEIN_OVERLOAD_CPU
-                attribute every time GLIDEIN_CPUS is different compared to
-                +xcount (or whatever submit attribute the CE accepts)
+                Adjustment factor for <b>GLIDEIN_CPUS</b> that allows CPU
+                overcommit for pilots. The value of <b>GLIDEIN_CPUS</b> will be
+                multiplied by this factor to create a larger pilot slot than
+                originally requested.
+              </p>
+              <p>
+                For example, if <b>GLIDEIN_CPUS</b> and the CE submit attribute
+                (e.g., <code>+xcount</code>) are both set to <code>8</code>, and
+                <code>GLIDEIN_OVERLOAD_CPUS=1.25</code> is set, the pilot will
+                report <b>GLIDEIN_CPUS=10</b> while still requesting only 8 from
+                the CE.
+              </p>
+              <p>
+                This attribute is required for whole-node pilots when the
+                reported slot size differs from the CE submission size.
+                Therefore, we recommend always using
+                <b>GLIDEIN_OVERLOAD_CPUS</b> when <b>GLIDEIN_CPUS</b> differs
+                from <code>+xcount</code>
+                or other relevant CE attributes.
+              </p>
+              <p>
+                Note: The overload is only applied if
+                <b>GLIDEIN_OVERLOAD_ENABLED</b> is also enabled.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td><b>GLIDEIN_OVERLOAD_MEMORY</b></td>
+            <td>Float</td>
+            <td>1</td>
+            <td>
+              <p>
+                Adjustment factor for <b>GLIDEIN_MaxMemMBs</b> that allows
+                memory overcommit for pilots. The value of
+                <b>GLIDEIN_MaxMemMBs</b> will be multiplied by this factor to
+                enlarge the pilot memory footprint beyond what the CE sees.
+              </p>
+              <p>
+                For example, if both <b>GLIDEIN_MaxMemMBs</b> and the submit
+                attribute <code>+MaxMemory</code> are set to
+                <code>20Mb</code> (e.g., 2.5GB per core), and
+                <code>GLIDEIN_OVERLOAD_MEMORY=1.25</code> is set, the pilot will
+                report <b>GLIDEIN_MaxMemMBs=25Mb</b> while requesting only 20Mb.
+              </p>
+              <p>
+                This attribute is required for whole-node pilots when the
+                reported memory size differs from what is submitted to the CE.
+                Therefore, we recommend always using
+                <b>GLIDEIN_OVERLOAD_MEMORY</b> when
+                <b>GLIDEIN_MaxMemMBs</b> differs from <code>+MaxMemory</code>
+                or similar CE attributes.
+              </p>
+              <p>
+                Note: The overload is only applied if
+                <b>GLIDEIN_OVERLOAD_ENABLED</b> is also enabled.
               </p>
             </td>
           </tr>
@@ -1049,32 +1116,6 @@ MAX_STARTD_LOG          I       10000000        +                               
                 Used in conjunction with GLIDEIN_MaxMemMBs. It is ignored if
                 GLIDEIN_MaxMemMBs is set to any value. See GLIDEIN_MaxMemMBs for
                 the description.
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td><b>GLIDEIN_OVERLOAD_MEMORY</b></td>
-            <td>Float</td>
-
-            <td>1</td>
-            <td>
-              <p>
-                Adjustment factor for GLIDEIN_MaxMemMBs that allows to overload
-                pilot memory. This means GLIDEIN_MaxMemMBs will be multpilied by
-                GLIDEIN_OVERLOAD_MEMORY allowing to increase the size of the
-                slot compared to the original GLIDEIN_MaxMemMBs value. The
-                original GLIDEIN_MaxMemMBs value is usually set to the same
-                value as the submit_attribute used to submit the pilot to the
-                CE. For example, usually both GLIDEIN_MaxMemMBs and the submit
-                attribute +MaxMemory are seto to 20Mb (2.5Gb per core). Setting
-                GLIDEIN_OVERLOAD_MEMORY=1.25 allows to increase the value of
-                GLIDEIN_MaxMemMBs to 25Mb while keeping +MaxMemory to 20Mb.
-                While in principle you could just set GLIDEIN_MaxMemMBs to 25Mb,
-                using GLIDEIN_OVERLOAD_MEMORY is required for whole node pilots.
-                Therefore, we recommend to always use the
-                GLIDEIN_OVERLOAD_MEMORY attribute every time GLIDEIN_MaxMemMBs
-                is different compared to MaxMemory (or whatever submit attribute
-                the CE accepts)
               </p>
             </td>
           </tr>
@@ -1438,6 +1479,18 @@ MAX_STARTD_LOG          I       10000000        +                               
                 must be specified in the file list as usual. The value is the
                 file name, as specified in the file list. NOTE: parameter and
                 job_publish should be both True for this attribute.
+                <b>Must be a parameter.</b>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td><b>GLIDEIN_CVMFS_REPOS</b></td>
+            <td>String</td>
+            <td>
+              <p>
+                Colon separated list of additional CVMFS repositories to mount
+                via Glidein. NOTE: parameter and job_publish should be both True
+                for this attribute, const should be False.
                 <b>Must be a parameter.</b>
               </p>
             </td>
@@ -2606,7 +2659,7 @@ MAX_STARTD_LOG          I       10000000        +                               
                 GWMS_SINGULARITY_BIND_CVMFS is true) and some GPUs libraries (if
                 GPUs are detected). If CVMFS is mounted in a different place,
                 CVMFS_MOUNT_DIR will be set in the environment and the Glidein
-                will replace /cvms with the correct mount point
+                will replace /cvmfs with the correct mount point
                 ($CVMFS_MOUNT_DIR:/cvmfs), so that inside Singularity CVMFS will
                 always be available in /cvmfs, even if outside that is not
                 possible. The combined list is validated removing paths not

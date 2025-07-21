@@ -1175,7 +1175,7 @@ SPDX-License-Identifier: Apache-2.0
                     </blockquote>
                     If CVMFS is mounted in a different place CVMFS_MOUNT_DIR
                     will be set in the environment and the Glidein will replace
-                    /cvms with the correct mount point. If users use this
+                    /cvmfs with the correct mount point. If users use this
                     feature and if the Singularity image is not in the path
                     indicated in the CVMFS repository, the user job will error
                     out.
@@ -2483,10 +2483,10 @@ def get_credential(log: logger, group: str, entry: dict, trust_domain: str):
             </ul>
             NOTE: For all the image path specified with the methods above, if
             CVMFS is mounted in a different place CVMFS_MOUNT_DIR will be set in
-            the environment and the Glidein will replace /cvms/ at the beginning
-            of the path with the correct mount point. I.e. operators and users
-            do not have to worry about CVMFS being mounted on an unusual mount
-            point.
+            the environment and the Glidein will replace /cvmfs/ at the
+            beginning of the path with the correct mount point. I.e. operators
+            and users do not have to worry about CVMFS being mounted on an
+            unusual mount point.
           </li>
         </ol>
 

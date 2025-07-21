@@ -52,6 +52,7 @@ fi
 no_use_singularity_config () {
     info_stdout "$(date) Not using singularity ($gwms_singularity_status)"
     advertise HAS_SINGULARITY "False" "C"
+    [[ -z "$gwms_singularity_status" ]] || advertise GWMS_SINGULARITY_STATUS "$gwms_singularity_status" "S"
     "$error_gen" -ok "singularity_setup.sh" "use_singularity" "False"
     exit 0
 }
@@ -276,13 +277,14 @@ if [[ $ec -ne 0 ]]; then
         out_str="Singularity image for the default platforms (default,rhel7,rhel6) was not set (via attributes or vo_pre_singularity_setup.sh)"
     elif [[ $ec -eq 2 ]]; then
         out_str="Selected singularity image, $GWMS_SINGULARITY_IMAGE, does not exist"
+        GWMS_SINGULARITY_IMAGE=""
     elif [[ $ec -eq 3 ]]; then
         out_str="Selected singularity image, $GWMS_SINGULARITY_IMAGE, is not in CVMFS as requested"
         GWMS_SINGULARITY_IMAGE=""
     fi
-    if [[ "$image_required" == "false" ]]; then
-        warn "No valid singularity image found, but image not required via SINGULARITY_IMAGE_REQUIRED. Continuing to test the binary."
-        warn "A later setup will have to set GWMS_SINGULARITY_IMAGE or jobs to set their image. Otherwise singularity/apptainer will not work."
+    if [[ "$image_required" = "false" ]]; then
+        warn "No valid singularity image found ($out_str), but image is not required via SINGULARITY_IMAGE_REQUIRED. Continuing to test the binary."
+        warn "A later setup must set GWMS_SINGULARITY_IMAGE or jobs must set their image. Otherwise singularity/apptainer will not work."
     else
         no_singularity_fail_or_exit $gwms_singularity_status "$out_str"
     fi
@@ -291,9 +293,10 @@ fi
 # Using Singularity and valid image found
 export GWMS_SINGULARITY_IMAGE
 
-info_stdout "$(date) Searching and testing the singularity binary"
+info_stdout "$(date) Searching and testing the singularity binary ($singularity_bin with image $GWMS_SINGULARITY_IMAGE)"
 
-singularity_image_for_test="$GWMS_SINGULARITY_IMAGE"
+# singularity_get_image is already testing for restrictions, GWMS_SINGULARITY_IMAGE either valid or empty (and SINGULARITY_IMAGE_REQUIRED false)
+singularity_image_for_test=$(cvmfs_resolve_path "$GWMS_SINGULARITY_IMAGE")
 if ! uri_is_valid_file_or_remote "$singularity_image_for_test"; then
     warn "The Singularity image ($GWMS_SINGULARITY_IMAGE) is not a readable file/directory."
     singularity_image_for_test=$(singularity_get_image_default)

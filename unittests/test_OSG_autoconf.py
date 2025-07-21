@@ -64,9 +64,26 @@ class TestOSGAutoconf(unittest.TestCase):
                 }
             }
         }
+        self.res = {
+            "gridtype": "condor",
+            "attrs": {
+                "GLIDEIN_Site": {"value": "AMNH"},
+                "GLIDEIN_ResourceName": {
+                    "value": {
+                        "Name": "hosted-ce36.opensciencegrid.org",
+                        "OSG_Resource": "AMNH-HEL",
+                        "OSG_ResourceGroup": "AMNH",
+                        "OSG_ResourceCatalog": [{"Memory": 65536, "MaxWallTime": 2880, "CPUs": 8}],
+                    }
+                },
+            },
+            "submit_attrs": {},
+        }
 
     def test_get_pilot(self):
-        print(get_pilot("AMNH", self.input_info, self.out_data))
+        self.assertEqual(get_pilot("AMNH", self.input_info, "SLURM", self.out_data), self.res)
+        self.res["work_dir"] = "Condor"
+        self.assertEqual(get_pilot("AMNH", self.input_info, "CONDOR", self.out_data), self.res)
 
     def test_get_information_internal(self):
         # The infotmation as retrieved from the OSG_Collector
@@ -187,6 +204,17 @@ class TestOSGAutoconf(unittest.TestCase):
                         "MaxWallTime": 1440,
                     },
                     {
+                        "WholeNode": True,
+                        "Name": "WholeNodeCpus",
+                        "IsPilotEntry": True,
+                        "MaxPilots": 1000,
+                        "SendTests": True,
+                        "RequireSingularity": True,
+                        "AllowedVOs": ["atlas"],
+                        "MaxWallTime": 1440,
+                        "CPUs": 48,
+                    },
+                    {
                         "WholeNode": False,
                         "MaxPilots": 1000,
                         "IsPilotEntry": True,
@@ -226,6 +254,19 @@ class TestOSGAutoconf(unittest.TestCase):
                 "GLIDEIN_Site": {"value": "LSU"},
                 "GLIDEIN_Max_Walltime": {"value": 84600},
                 "GLIDEIN_Supported_VOs": {"value": "ATLAS"},
+            },
+            "submit_attrs": {"+WantWholeNode": True},
+            "limits": {"entry": {"glideins": 1000}},
+        }
+        expected_out["LSU"]["hosted-ce29.grid.uchicago.edu"]["WholeNodeCpus"] = {}
+        expected_out["LSU"]["hosted-ce29.grid.uchicago.edu"]["WholeNodeCpus"]["DEFAULT_ENTRY"] = {
+            "gridtype": "condor",
+            "attrs": {
+                "GLIDEIN_ResourceName": {"value": "OSG_US_LSU_QB2"},
+                "GLIDEIN_Site": {"value": "LSU"},
+                "GLIDEIN_Max_Walltime": {"value": 84600},
+                "GLIDEIN_Supported_VOs": {"value": "ATLAS"},
+                "GLIDEIN_ESTIMATED_CPUS": {"value": 48},
             },
             "submit_attrs": {"+WantWholeNode": True},
             "limits": {"entry": {"glideins": 1000}},

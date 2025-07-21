@@ -18,6 +18,7 @@ MonitorLink
 CondorConfig 	/var/lib/gwms-frontend/vofrontend/frontend.condor_config
 LogDir 	fixtures/frontend/log/gwms-frontend
 ProcessLogs     [{'backup_count': '5', 'compression': '', 'extension': 'all', 'max_days': '7.0', 'max_mbytes': '100.0', 'min_days': '3.0', 'msg_types': 'ALL', 'comment': None, 'structured': 'False'}, {'backup_count': '5', 'compression': '', 'extension': 'all', 'max_days': '7.0', 'max_mbytes': '100.0', 'min_days': '3.0', 'msg_types': 'INFO,ERR,WARN', 'comment': None, 'structured': 'False'}, {'backup_count': '5', 'compression': '', 'extension': 'all', 'max_days': '7.0', 'max_mbytes': '100.0', 'min_days': '3.0', 'msg_types': 'DEBUG', 'comment': None, 'structured': 'False'}]
+RampUpAttenuation 	3
 MaxIdleVMsTotal 	1000
 CurbIdleVMsTotal 	200
 MaxIdleVMsTotalGlobal 	1000

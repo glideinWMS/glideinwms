@@ -430,7 +430,7 @@ gwms_process_scripts() {
             "./$i" "$cfg_file"
             [[ $(pwd -P) != "$my_pwd" ]] && { cd "$my_pwd" || warn "Unable to return to scripts directory ($my_pwd)."; }
         elif [[ "$i" = *.sh || "$i" = *.source ]]; then
-            . "$i"
+            . "./$i"
             [[ $(pwd -P) != "$my_pwd" ]] && { cd "$my_pwd" || warn "Unable to return to scripts directory ($my_pwd)."; }
         fi
     done
@@ -449,7 +449,7 @@ gwms_from_config() {
     if [[ -r "$glidein_config" ]]; then
         #ret=$(grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-)
         #ret=$(tac "$glidein_config" | grep -m1 "^$1 " | cut -d ' ' -f 2-)
-        if ! ret=$(gconfig_get "$1" "$glidein_config" 2>/dev/null); then
+        if ! ret=$(gconfig_get "$1" 2>/dev/null); then
             ret=$(tac "$glidein_config" | grep -m1 "^$1 " | cut -d ' ' -f 2-)
         fi
     fi
@@ -468,6 +468,7 @@ gwms_from_config() {
 uri_is_valid_file_or_remote() {
     # Return true if URI is not local or if it is a readable file
     # Return false for empty values or non readable local URI/files
+    # cvmfs_resolve_path() is used to translate /cvmfs paths when CVMFS_MOUNT_DIR is set
     # In:
     #  1: URI to check, can be a path or a URI
     [[ -n "$1" ]] || { false; return; }
@@ -475,7 +476,9 @@ uri_is_valid_file_or_remote() {
     if [[ ! "${uri}" = *"://"* ]] || [[ "${uri}" = "file://"* ]]; then
         # file:// are absolute paths, protect for 2 or 3 slashes
         uri="${uri#file:/}"
-        [[ -r "${uri/\/\//\/}" ]]
+        local file_path
+        file_path=$(cvmfs_resolve_path "${uri/\/\//\/}")
+        [[ -r "$file_path" ]]
         return
     fi
     true
@@ -609,8 +612,8 @@ if [[ -e "$glidein_config" ]]; then    # was: [ -n "$glidein_config" ] && [ "$gl
     fi
     export condor_vars_file
     if [[ $(type -t gconfig_get) = function ]]; then
-        condor_vars_file=$(gconfig_get CONDOR_VARS_FILE "$glidein_config")
-        error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
+        condor_vars_file=$(gconfig_get CONDOR_VARS_FILE)
+        error_gen=$(gconfig_get ERROR_GEN_PATH)
     else
         # Trying to get these defined even if add_config_line is unavailable (using grep instead of tac, OK if no duplicate)
         condor_vars_file=$(grep -m1 '^CONDOR_VARS_FILE ' "$glidein_config" | cut -d ' ' -f 2-)
@@ -1036,6 +1039,17 @@ get_all_platforms() {
 #
 # CVMFS_MOUNT_DIR - alternative mount point for CVMFS if set and not empty (path w/o trailing slash "/")
 
+cvmfs_set_mount_dir() {
+    # TODO: Ideally the CVMFS_MOUNT_DIR should be set in the environment outside by site admins or the mounting scripts
+    #       This will make easier handling of nested invocations where CVMFS may be bind mount to /cvmfs
+    # This is a work-around in the mean time but may fail nested invocations if the env variable or glidein_config are
+    # not reset to /cvmfs. Future version may define CVMFS_MOUNT_DIR outside and remove this
+    if [[ -z "$CVMFS_MOUNT_DIR" ]]; then
+        CVMFS_MOUNT_DIR=$(gwms_from_config CVMFS_MOUNT_DIR)
+        [[ -z "$CVMFS_MOUNT_DIR" ]] || info_dbg "Added CVMFS_MOUNT_DIR as '$CVMFS_MOUNT_DIR' from glidein_config."
+    fi
+}
+
 cvmfs_test_and_open() {
     # Testing and opening all CVMFS repos named in the comma separated list. Call-back or exit if failing
     # In:
@@ -1047,6 +1061,7 @@ cvmfs_test_and_open() {
     info_dbg "Testing CVMFS Repos List = $1"
     holdfd=3
     local cvmfs_mount=/cvmfs
+    cvmfs_set_mount_dir
     [[ -n "$CVMFS_MOUNT_DIR" ]] && cvmfs_mount="${CVMFS_MOUNT_DIR%/}"
     local IFS=,  # "\t\t\""
     if [[ -n "$1" ]]; then
@@ -1083,6 +1098,9 @@ cvmfs_path_in_cvmfs() {
     # - the path is $CVMFS_MOUNT_DIR or starts with $CVMFS_MOUNT_DIR/ and CVMFS_MOUNT_DIR is set
     # In:
     #  1 - path to check
+    # Using:
+    #  CVMFS_MOUNT_DIR
+    cvmfs_set_mount_dir
     if [[ "$1" = /cvmfs  ||  "$1" = /cvmfs/* ]]; then
         true
     elif [[ -n "$CVMFS_MOUNT_DIR" ]]; then
@@ -1095,15 +1113,24 @@ cvmfs_path_in_cvmfs() {
 
 
 cvmfs_resolve_path() {
-    # Return a CVMFS path translating /cvmfs in the actual CVMFS mount point
+    # Return a CVMFS path translating /cvmfs in the actual CVMFS mount point (CVMFS_MOUNT_DIR)
+    # If the path is a symbolic link of a path in CVMFS, then return the translated linked path (e.g. used for images)
     # In:
     #  1 - path to translate
     #  CVMFS_MOUNT_DIR - CVMFS mount point when different form /cvmfs
     # Out:
     #  stdout: translated path
+    cvmfs_set_mount_dir
     if [[ -n "$CVMFS_MOUNT_DIR" ]]; then
         if [[ "$1" = "/cvmfs/"* || "$1" = "/cvmfs" ]]; then
-            echo "${CVMFS_MOUNT_DIR%/}${1#/cvmfs}"
+            local new_path="${CVMFS_MOUNT_DIR%/}${1#/cvmfs}"
+            if [[ -L "$new_path" ]]; then
+                local linked_path=$(readlink "$new_path")
+                if [[ "$linked_path" = "/cvmfs/"* || "$linked_path" = "/cvmfs" ]]; then  # is link and link in cvmfs
+                    new_path="${CVMFS_MOUNT_DIR%/}${linked_path#/cvmfs}"
+                fi
+            fi
+            echo "$new_path"
             return
         fi
     fi
@@ -1384,6 +1411,7 @@ singularity_exec_simple() {
     # and remove non existing src (checks=e) - if src is not existing Singularity will error (not run)
     local singularity_binds
     local cvmfs_bind="/cvmfs"
+    cvmfs_set_mount_dir
     [[ -n "$CVMFS_MOUNT_DIR" ]] && cvmfs_bind="${CVMFS_MOUNT_DIR}:/cvmfs"
     singularity_binds=$(singularity_get_binds e "${cvmfs_bind},/etc/hosts,/etc/localtime")
     local singularity_bin="$1"
@@ -1795,14 +1823,17 @@ singularity_get_image() {
     # Check all restrictions (at the moment cvmfs) and return 3 if failing
     if [[ ",${s_restrictions}," = *",cvmfs,"* ]] && ! cvmfs_path_in_cvmfs "$singularity_image"; then
         warn "$singularity_image is not in the /cvmfs area as requested"
-        [[ ",${s_restrictions}," = *",test,"* ]] && { singularity_get_image_default; return; } || return 3
+        [[ ",${s_restrictions}," = *",test,"* ]] && { singularity_get_image_default; return; } || { echo "$singularity_image"; return 3; }
     fi
 
     # Unless is OK to use URLs/remote images, we make sure it exists
     if [[ ! ",${s_restrictions}," = *",remote,"* ]]; then
-        if [[ ! -e "$singularity_image" ]]; then
-            warn "ERROR: $singularity_image file not found" 1>&2
-            [[ ",${s_restrictions}," = *",test,"* ]] && { singularity_get_image_default; return; } || return 2
+        local resolved_image
+        resolved_image=$(cvmfs_resolve_path "$singularity_image")
+        if [[ ! -e "$resolved_image" ]]; then
+            [[ "$singularity_image" = "$resolved_image" ]] && singularity_image="" || singularity_image=" ($singularity_image)"
+            warn "ERROR: $resolved_image$singularity_image file not found"
+            [[ ",${s_restrictions}," = *",test,"* ]] && { singularity_get_image_default; return; } || { echo "$resolved_image"; return 2; }
         fi
     fi
 
@@ -1955,7 +1986,7 @@ singularity_verify_image() {
     #  0 - all OK
     #  1 - image (file or directory) does not exist
     #  2 - image (directory) exists, is in CVMFS, but the listing fails
-    local singularity_image=$1
+    local singularity_image=$(cvmfs_resolve_path "$1")
     local ok_compressed=false
     [[ "$2" = "ok_compressed" ]] && ok_compressed=true
 
@@ -1965,7 +1996,7 @@ singularity_verify_image() {
     # will both work for non expanded images?
     [[ ! -e "$singularity_image" ]] && return 1
     if cvmfs_path_in_cvmfs "$singularity_image"; then
-        if ! ls -l "$(cvmfs_resolve_path "$singularity_image")" >/dev/null; then
+        if ! ls -l "$singularity_image" >/dev/null; then
             if $ok_compressed; then
                 info_dbg "Listing failed for $singularity_image, probably a compressed image in CVMFS"
             else
@@ -2001,6 +2032,8 @@ singularity_prepare_and_invoke() {
     #   GWMS_SINGULARITY_IMAGE GWMS_SINGULARITY_IMAGE_HUMAN GWMS_SINGULARITY_OUTSIDE_PWD_LIST SINGULARITY_WORKDIR GWMS_SINGULARITY_EXTRA_OPTS GWMS_SINGULARITY_REEXEC
     # If  image is not provided, load the default one
     # Custom URIs: http://singularity.lbl.gov/user-guide#supported-uris
+
+    cvmfs_set_mount_dir
 
     # Choose the singularity image
     if [[ -z "$GWMS_SINGULARITY_IMAGE" ]]; then
