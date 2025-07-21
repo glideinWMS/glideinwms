@@ -1,3 +1,14 @@
+v3_10_15
+	Added GLIDEIN_OVERLOAD_ENABLED to control partial CPU and memory overload (PR#536)
+	Added GLIDEIN_CVMFS_REPOS custom variable to define additional CVMFS repositories to mount (PR#547)
+	Added ramp_up_attenuation config parameter to control Glidein provisioning remap-up (PR#556)
+	Updates the pilot generation logic in OSG_autoconf to check the OSG_BatchSystem attribute from the OSG collector. If the batch system is set to "CONDOR", the resulting pilot entry will have work_dir set to "Condor" (PR#558)
+	Updates the pilot generation logic in OSG_autoconf to use the cpus attribute from the OSG collector to set GLIDEIN_ESTIMATED_CPUs (PR#560)
+	Bug fix: Retrieve and use CVMFS_MOUNT_DIR from glidein_config if not in the environment (PR#552)
+	Bug fix: Addressed POSIX mode problems and CVMFS path resolution (PR#555)
+	NOTE: The job wrappers in the Glidein are now running with the `/bin/sh` prompt instead of `/bin/bash`. They use Bash and `set +o posix` when possible, but there may be another shell.
+	NOTE: Duplicate repositories in the GLIDEIN_CVMFS_REPOS list will fail cvmfsexec.
+
 v3_10_14
 	Added support for Ubuntu 24 workers (PR#529)
 	Add keyword ALL to query all schedulers known to the collector without listing them explicitly (Issue#510, PR#532)
