@@ -3,10 +3,10 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.11.1 \[2025-07-22\]
+## v3.11.1 \[2025-07-29\]
 
 Improvement and hardening of the refactored credentials.
-This is a development (3.11) release and includes all the production improvement and fixes up to v3.10.15.
+This is a development (3.11) release and includes all the production improvement and fixes up to v3.10.15, see the 3.10.15 for details.
 
 ### New features / functionalities
 

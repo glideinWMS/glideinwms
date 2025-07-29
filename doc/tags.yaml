@@ -676,7 +676,7 @@ v3_10_15:
     - Duplicate repositories in the GLIDEIN_CVMFS_REPOS list will fail cvmfsexec.
 
 v3_11_1:
-  Date: July 22, 2025
+  Date: July 29, 2025
   Series: Development
   Tarball: false
   Feature:
