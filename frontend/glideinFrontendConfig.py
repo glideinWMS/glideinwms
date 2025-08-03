@@ -39,7 +39,7 @@ class FrontendConfig:
         __init__(self):
             Initializes the configuration with default file paths and cache settings, 
             which can be modified as needed.
-        """
+    """
     def __init__(self):
         # set default values
         # user should modify if needed
@@ -806,6 +806,33 @@ class ExtStageFiles(StageFiles):
 # this class knows how to interpret some of the files in the Stage area
 # Will parrpopriately merge the main and the group ones
 class MergeStageFiles:
+    """A class to merge stage files for a given group and main file.
+
+    This class initializes and manages the merging of stage files by creating two instances of
+    `ExtStageFiles`: one for the main stage file and another for the group stage file. It uses
+    the given parameters to validate and hash the files.
+
+    Attributes:
+        group_name (str): The name of the group for which the stage files are merged.
+        main_stage (ExtStageFiles): An instance of `ExtStageFiles` for the main stage file.
+        group_stage (ExtStageFiles): An instance of `ExtStageFiles` for the group stage file.
+
+    Args:
+        base_URL (str): The base URL to use for constructing file paths.
+        validate_algo (str): The algorithm used for validating the files.
+        main_descript_fname (str): The filename for the main descriptor file.
+        main_signature_hash (str): The signature hash for the main file.
+        group_name (str): The name of the group.
+        group_descript_fname (str): The filename for the group descriptor file.
+        group_signature_hash (str): The signature hash for the group file.
+
+    Example:
+        merge_stage = MergeStageFiles(base_URL, validate_algo, main_descript_fname, 
+                                      main_signature_hash, group_name, group_descript_fname, 
+                                      group_signature_hash)
+        # merge_stage.main_stage and merge_stage.group_stage will be instances of ExtStageFiles 
+        # for the respective files.
+    """
     def __init__(
         self,
         base_URL,
