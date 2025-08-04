@@ -22,6 +22,23 @@ from glideinwms.lib import pidSupport
 
 
 class FrontendPidSupport(pidSupport.PidSupport):
+    """A class to manage the PID support for frontend processes, inheriting from PidSupport.
+
+    This class is responsible for managing the PID (Process ID) and lock files for frontend processes.
+    It initializes the lock file location based on the given startup directory and extends the functionality
+    of the `PidSupport` class.
+
+    Attributes:
+        action_type (str or None): A placeholder for the action type associated with the frontend process.
+        lock_file (str): The path to the lock file used to manage process locks.
+
+    Args:
+        startup_dir (str): The directory where the startup files are located, used to determine the lock file location.
+
+    Example:
+        frontend_pid_support = FrontendPidSupport("/path/to/startup")
+        # Initializes the FrontendPidSupport with the specified startup directory and lock file.
+    """
     def __init__(self, startup_dir):
         lock_file = os.path.join(startup_dir, "lock/frontend.lock")
         pidSupport.PidSupport.__init__(self, lock_file)
