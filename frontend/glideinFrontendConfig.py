@@ -37,9 +37,10 @@ class FrontendConfig:
 
     Methods:
         __init__(self):
-            Initializes the configuration with default file paths and cache settings, 
+            Initializes the configuration with default file paths and cache settings,
             which can be modified as needed.
     """
+
     def __init__(self):
         # set default values
         # user should modify if needed
@@ -263,17 +264,17 @@ class FrontendDescript(ConfigFile):
 
     def __init__(self, config_dir):
         """Initializes the configuration by calling the parent class's initializer
-    and setting up the frontend configuration file.
+        and setting up the frontend configuration file.
 
-    This method initializes the object by calling the `__init__` method of 
-    the `ConfigFile` class with the provided configuration directory and 
-    the frontend description file.
+        This method initializes the object by calling the `__init__` method of
+        the `ConfigFile` class with the provided configuration directory and
+        the frontend description file.
 
-    Args:
-        config_dir (str): The directory containing the configuration files.
+        Args:
+            config_dir (str): The directory containing the configuration files.
 
-    Raises:
-        Any exceptions raised by the parent class's `__init__` method.
+        Raises:
+            Any exceptions raised by the parent class's `__init__` method.
         """
         global frontendConfig
         ConfigFile.__init__(
@@ -292,18 +293,18 @@ class ElementDescript(GroupConfigFile):
 
     def __init__(self, base_dir, group_name):
         """Initializes the group configuration by calling the parent class's initializer
-    and setting up the group configuration file.
+        and setting up the group configuration file.
 
-    This method initializes the object by calling the `__init__` method of the 
-    `GroupConfigFile` class with the provided base directory, group name, 
-    and the group description file.
+        This method initializes the object by calling the `__init__` method of the
+        `GroupConfigFile` class with the provided base directory, group name,
+        and the group description file.
 
-    Args:
-        base_dir (str): The base directory where the group configuration files are stored.
-        group_name (str): The name of the group for which the configuration is being loaded.
+        Args:
+            base_dir (str): The base directory where the group configuration files are stored.
+            group_name (str): The name of the group for which the configuration is being loaded.
 
-    Raises:
-        Any exceptions raised by the parent class's `__init__` method.
+        Raises:
+            Any exceptions raised by the parent class's `__init__` method.
         """
         global frontendConfig
         GroupConfigFile.__init__(
@@ -322,25 +323,25 @@ class ParamsDescript(JoinConfigFile):
 
     def __init__(self, base_dir, group_name):
         """Initializes the join configuration by calling the parent class's initializer
-    and setting up the parameters description file. Additionally, processes 
-    constants and expressions in the configuration data.
+        and setting up the parameters description file. Additionally, processes
+        constants and expressions in the configuration data.
 
-    This method initializes the object by calling the `__init__` method of the 
-    `JoinConfigFile` class with the provided base directory, group name, and 
-    the parameters description file. It then processes the data, categorizing 
-    it into constant data and expression data, compiling expressions where necessary.
+        This method initializes the object by calling the `__init__` method of the
+        `JoinConfigFile` class with the provided base directory, group name, and
+        the parameters description file. It then processes the data, categorizing
+        it into constant data and expression data, compiling expressions where necessary.
 
-    Args:
-        base_dir (str): The base directory where the configuration files are stored.
-        group_name (str): The name of the group for which the configuration is being loaded.
+        Args:
+            base_dir (str): The base directory where the configuration files are stored.
+            group_name (str): The name of the group for which the configuration is being loaded.
 
-    Raises:
-        RuntimeError: If there is a syntax error in an expression or if an unknown parameter type is encountered.
+        Raises:
+            RuntimeError: If there is a syntax error in an expression or if an unknown parameter type is encountered.
 
-    Attributes:
-        const_data (dict): A dictionary to store constant data parameters.
-        expr_data (dict): A dictionary to store the original expression strings.
-        expr_objs (dict): A dictionary to store compiled expressions.
+        Attributes:
+            const_data (dict): A dictionary to store constant data parameters.
+            expr_data (dict): A dictionary to store the original expression strings.
+            expr_objs (dict): A dictionary to store compiled expressions.
         """
         global frontendConfig
         JoinConfigFile.__init__(
@@ -409,21 +410,21 @@ class SignatureDescript(ConfigFile):
     def split_func(self, line, convert_function):
         """Splits a line into three elements and stores the result in the `data` attribute.
 
-    This method splits the given line by whitespace, expecting exactly three elements.
-    If the line does not contain three elements, a `RuntimeError` is raised. The method
-    stores the first two elements as a tuple in the `data` attribute, with the third element
-    as the key.
+        This method splits the given line by whitespace, expecting exactly three elements.
+        If the line does not contain three elements, a `RuntimeError` is raised. The method
+        stores the first two elements as a tuple in the `data` attribute, with the third element
+        as the key.
 
-    Args:
-        line (str): The line to be split. It should contain exactly three elements separated by whitespace.
-        convert_function (function): A function to convert the line, though it is not used in the current implementation.
+        Args:
+            line (str): The line to be split. It should contain exactly three elements separated by whitespace.
+            convert_function (function): A function to convert the line, though it is not used in the current implementation.
 
-    Raises:
-        RuntimeError: If the line does not contain exactly three elements.
+        Raises:
+            RuntimeError: If the line does not contain exactly three elements.
 
-    Side Effects:
-        Adds an entry to the `data` attribute, where the key is the third element of the split line,
-        and the value is a tuple of the first two elements.
+        Side Effects:
+            Adds an entry to the `data` attribute, where the key is the third element of the split line,
+            and the value is a tuple of the first two elements.
         """
         larr = line.split(None)
         if len(larr) != 3:
@@ -438,7 +439,7 @@ class BaseSignatureDescript(ConfigFile):
         and setting up the signature file and type.
 
         This method initializes the object by calling the `__init__` method of the `ConfigFile` class
-        with the provided configuration directory, signature file, and validation function. 
+        with the provided configuration directory, signature file, and validation function.
         It then sets the signature type.
 
         Args:
@@ -495,25 +496,25 @@ class ElementMergedDescript:
     def __init__(self, base_dir, group_name):
         """Initializes the group configuration by loading frontend and element data, and validates the group name.
 
-    This method loads the frontend data from the `FrontendDescript` class and checks whether the provided
-    group name is supported. If the group name is not found in the list of supported groups, a `RuntimeError`
-    is raised. It then loads the element data for the specified group and stores the group name. Finally, it
-    merges the data by calling the `_merge` method.
+        This method loads the frontend data from the `FrontendDescript` class and checks whether the provided
+        group name is supported. If the group name is not found in the list of supported groups, a `RuntimeError`
+        is raised. It then loads the element data for the specified group and stores the group name. Finally, it
+        merges the data by calling the `_merge` method.
 
-    Args:
-        base_dir (str): The base directory where the configuration files are stored.
-        group_name (str): The name of the group to be validated and configured.
+        Args:
+            base_dir (str): The base directory where the configuration files are stored.
+            group_name (str): The name of the group to be validated and configured.
 
-    Raises:
-        RuntimeError: If the provided `group_name` is not found in the list of supported groups in the frontend data.
+        Raises:
+            RuntimeError: If the provided `group_name` is not found in the list of supported groups in the frontend data.
 
-    Attributes:
-        frontend_data (dict): The frontend configuration data loaded from the `FrontendDescript` class.
-        element_data (dict): The element configuration data for the specified group loaded from the `ElementDescript` class.
-        group_name (str): The name of the group being configured.
+        Attributes:
+            frontend_data (dict): The frontend configuration data loaded from the `FrontendDescript` class.
+            element_data (dict): The element configuration data for the specified group loaded from the `ElementDescript` class.
+            group_name (str): The name of the group being configured.
 
-    Side Effects:
-        Calls the `_merge` method to combine data from different sources.
+        Side Effects:
+            Calls the `_merge` method to combine data from different sources.
         """
         self.frontend_data = FrontendDescript(base_dir).data
         if group_name not in self.frontend_data["Groups"].split(","):
@@ -632,8 +633,8 @@ class GroupSignatureDescript:
         """Initializes the group signature configuration by loading the signature data
         and frontend/group description file details for the specified group.
 
-        This method initializes the object by loading signature data from the `SignatureDescript` class. 
-        It retrieves the signature type, frontend description file name, frontend description signature, 
+        This method initializes the object by loading signature data from the `SignatureDescript` class.
+        It retrieves the signature type, frontend description file name, frontend description signature,
         and group description file name and signature for the specified group.
 
         Args:
@@ -712,7 +713,7 @@ class StageFiles:
         """
         return ConfigFile(self.base_URL, fname, repr, (self.validate_algo, self.signature_descript.data[fname]))
 
-    def get_file_list(self, list_type): # example list_type == 'preentry_file_list'
+    def get_file_list(self, list_type):  # example list_type == 'preentry_file_list'
         """Retrieves the list of files of a specified type from the stage descriptor.
 
         This method checks if the specified list type exists in the descriptor data.
@@ -726,7 +727,7 @@ class StageFiles:
 
         Returns:
             ConfigFile: The file list configuration corresponding to the given list type.
-        """  
+        """
         if list_type not in self.stage_descript.data:
             raise KeyError(f"Unknown list type '{list_type}'; valid typtes are {list(self.stage_descript.data.keys())}")
 
@@ -758,14 +759,14 @@ class ExtStageFiles(StageFiles):
     def get_constants(self):
         """Retrieves the constants configuration file for the preentry stage.
 
-    This method loads the preentry file list, then retrieves the constants configuration file
-    from the list. The constants file is returned as a `ConfigFile` object.
+        This method loads the preentry file list, then retrieves the constants configuration file
+        from the list. The constants file is returned as a `ConfigFile` object.
 
-    Returns:
-        ConfigFile: The constants configuration file for the preentry stage.
+        Returns:
+            ConfigFile: The constants configuration file for the preentry stage.
 
-    Raises:
-        Any exceptions raised by the `load_preentry_file_list` or `get_stage_file` methods.
+        Raises:
+            Any exceptions raised by the `load_preentry_file_list` or `get_stage_file` methods.
         """
         self.load_preentry_file_list()
         return self.get_stage_file(self.preentry_file_list.data["constants.cfg"][0], repr)
@@ -773,14 +774,14 @@ class ExtStageFiles(StageFiles):
     def get_condor_vars(self):
         """Retrieves the condor variables configuration file for the preentry stage.
 
-    This method loads the preentry file list, then retrieves the condor variables configuration file
-    from the list. The file is returned as a `ConfigFile` object with the lines split using a custom function.
+        This method loads the preentry file list, then retrieves the condor variables configuration file
+        from the list. The file is returned as a `ConfigFile` object with the lines split using a custom function.
 
-    Returns:
-        ConfigFile: The condor variables configuration file for the preentry stage.
+        Returns:
+            ConfigFile: The condor variables configuration file for the preentry stage.
 
-    Raises:
-        Any exceptions raised by the `load_preentry_file_list` or `get_stage_file` methods.
+        Raises:
+            Any exceptions raised by the `load_preentry_file_list` or `get_stage_file` methods.
         """
         self.load_preentry_file_list()
         return self.get_stage_file(self.preentry_file_list.data["condor_vars.lst"][0], lambda x: x.split(None, 6))
@@ -789,14 +790,14 @@ class ExtStageFiles(StageFiles):
     def load_preentry_file_list(self):
         """Loads the preentry file list if it has not been loaded already.
 
-    This method checks if the `preentry_file_list` attribute is `None`. If it is, the method loads
-    the preentry file list by calling the `get_file_list` method with the list type "preentry_file_list".
+        This method checks if the `preentry_file_list` attribute is `None`. If it is, the method loads
+        the preentry file list by calling the `get_file_list` method with the list type "preentry_file_list".
 
-    Returns:
-        None: This method updates the `preentry_file_list` attribute but does not return any value.
+        Returns:
+            None: This method updates the `preentry_file_list` attribute but does not return any value.
 
-    Raises:
-        Any exceptions raised by the `get_file_list` method.
+        Raises:
+            Any exceptions raised by the `get_file_list` method.
         """
         if self.preentry_file_list is None:
             self.preentry_file_list = self.get_file_list("preentry_file_list")
@@ -827,12 +828,13 @@ class MergeStageFiles:
         group_signature_hash (str): The signature hash for the group file.
 
     Example:
-        merge_stage = MergeStageFiles(base_URL, validate_algo, main_descript_fname, 
-                                      main_signature_hash, group_name, group_descript_fname, 
+        merge_stage = MergeStageFiles(base_URL, validate_algo, main_descript_fname,
+                                      main_signature_hash, group_name, group_descript_fname,
                                       group_signature_hash)
-        # merge_stage.main_stage and merge_stage.group_stage will be instances of ExtStageFiles 
+        # merge_stage.main_stage and merge_stage.group_stage will be instances of ExtStageFiles
         # for the respective files.
     """
+
     def __init__(
         self,
         base_URL,
@@ -843,7 +845,7 @@ class MergeStageFiles:
         group_descript_fname,
         group_signature_hash,
     ):
-        
+
         self.group_name = group_name
         self.main_stage = ExtStageFiles(base_URL, main_descript_fname, validate_algo, main_signature_hash)
         self.group_stage = ExtStageFiles(
@@ -853,15 +855,15 @@ class MergeStageFiles:
     def get_constants(self):
         """Retrieves and merges the constants configuration files from the main and group stages.
 
-    This method retrieves the constants configuration files from both the main stage and the group stage.
-    It then merges the data, with the group constants overriding the main constants where there is overlap.
-    The merged constants file is returned with the group name and group hash value added to its attributes.
+        This method retrieves the constants configuration files from both the main stage and the group stage.
+        It then merges the data, with the group constants overriding the main constants where there is overlap.
+        The merged constants file is returned with the group name and group hash value added to its attributes.
 
-    Returns:
-        ConfigFile: The merged constants configuration file with data from both the main and group stages.
+        Returns:
+            ConfigFile: The merged constants configuration file with data from both the main and group stages.
 
-    Raises:
-        Any exceptions raised by the `get_constants` method in the `main_stage` or `group_stage` objects.
+        Raises:
+            Any exceptions raised by the `get_constants` method in the `main_stage` or `group_stage` objects.
         """
         main_consts = self.main_stage.get_constants()
         group_consts = self.group_stage.get_constants()
@@ -876,15 +878,15 @@ class MergeStageFiles:
     def get_condor_vars(self):
         """Retrieves and merges the condor variables configuration files from the main and group stages.
 
-    This method retrieves the condor variables configuration files from both the main stage and the group stage.
-    It then merges the data, with the group condor variables overriding the main variables where there is overlap.
-    The merged condor variables file is returned with the group name and group hash value added to its attributes.
+        This method retrieves the condor variables configuration files from both the main stage and the group stage.
+        It then merges the data, with the group condor variables overriding the main variables where there is overlap.
+        The merged condor variables file is returned with the group name and group hash value added to its attributes.
 
-    Returns:
-        ConfigFile: The merged condor variables configuration file with data from both the main and group stages.
+        Returns:
+            ConfigFile: The merged condor variables configuration file with data from both the main and group stages.
 
-    Raises:
-        Any exceptions raised by the `get_condor_vars` method in the `main_stage` or `group_stage` objects.
+        Raises:
+            Any exceptions raised by the `get_condor_vars` method in the `main_stage` or `group_stage` objects.
         """
         main_cv = self.main_stage.get_condor_vars()
         group_cv = self.group_stage.get_condor_vars()

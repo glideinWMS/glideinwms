@@ -58,9 +58,10 @@ class FrontendConfig:
 
     Methods:
         __init__(self):
-            Initializes the configuration with default values, which can be modified if needed. 
+            Initializes the configuration with default values, which can be modified if needed.
             Attempts to retrieve the GlideinWMS version. If unsuccessful, logs an exception.
     """
+
     def __init__(self):
         # set default values
         # user should modify if needed
@@ -361,9 +362,9 @@ def format_condor_dict(data):
 class Credential:
     """A class representing a credential used for GlideinWMS.
 
-    This class holds information about a specific credential, including its ID, filename, 
-    security class, trust domain, update frequency, and other attributes related to proxy files, 
-    VM types, and key files. The class is initialized with the proxy ID, proxy filename, 
+    This class holds information about a specific credential, including its ID, filename,
+    security class, trust domain, update frequency, and other attributes related to proxy files,
+    VM types, and key files. The class is initialized with the proxy ID, proxy filename,
     and an element description containing the merged data necessary for the credential's setup.
 
     Attributes:
@@ -397,6 +398,7 @@ class Credential:
         __init__(self, proxy_id, proxy_fname, elementDescript):
             Initializes the credential with its attributes based on the provided data and element description.
     """
+
     def __init__(self, proxy_id, proxy_fname, elementDescript):
         self.req_idle = 0
         self.req_max_run = 0
@@ -613,21 +615,22 @@ class CredentialCache:
     """A class that caches file IDs for credentials to improve performance.
 
     This class maintains a cache of file IDs for credentials. When a request is made for a file ID
-    associated with a credential, it checks the cache first to avoid redundant calculations. If the 
+    associated with a credential, it checks the cache first to avoid redundant calculations. If the
     requested file ID is not in the cache, it computes and stores the result.
 
     Attributes:
-        file_id_cache (dict): A dictionary that stores cached file IDs, with keys being tuples of 
+        file_id_cache (dict): A dictionary that stores cached file IDs, with keys being tuples of
                               credential type and filename, and values being the corresponding file ID.
 
     Methods:
         __init__(self):
             Initializes the cache with an empty dictionary.
-        
+
         file_id(self, credential_el, filename):
-            Retrieves the file ID for a given credential element and filename, either from the cache or 
+            Retrieves the file ID for a given credential element and filename, either from the cache or
             by computing it if not present in the cache.
     """
+
     def __init__(self):
         """Initializes the `CredentialCache` object with an empty file ID cache.
 
@@ -640,7 +643,7 @@ class CredentialCache:
         """Retrieves the file ID for the given credential element and filename, using the cache if available.
 
         This method checks if the file ID for the specified credential element and filename exists
-        in the cache. If it does, it returns the cached value. If not, it computes the file ID and 
+        in the cache. If it does, it returns the cached value. If not, it computes the file ID and
         stores it in the cache for future use.
 
         Args:
@@ -665,7 +668,7 @@ class FrontendDescript:
     """A class representing the frontend descriptor configuration.
 
     This class holds information about a specific frontend, including its name, group, web URL,
-    signature type, and various associated configuration files. It provides methods to manage 
+    signature type, and various associated configuration files. It provides methods to manage
     the frontend's monitoring URL and encryption requirements, as well as to retrieve specific ID attributes.
 
     Attributes:
@@ -685,16 +688,17 @@ class FrontendDescript:
     Methods:
         __init__(self, my_name, frontend_name, group_name, web_url, main_descript, group_descript, signtype, main_sign, group_sign, x509_proxies_plugin=None, ha_mode="master"):
             Initializes the frontend descriptor with the provided values.
-        
+
         add_monitoring_url(self, monitoring_web_url):
             Sets the monitoring web URL for the frontend.
-        
+
         need_encryption(self):
             Checks if encryption is required by verifying the presence of an x509 proxies plugin.
-        
+
         get_id_attrs(self):
             Returns a list of strings representing the frontend's key attributes, including `my_name`, `frontend_name`, `ha_mode`, and `group_name`.
     """
+
     def __init__(
         self,
         my_name,
@@ -737,7 +741,7 @@ class FrontendDescript:
         Returns:
             bool: True if encryption is required (i.e., if `x509_proxies_plugin` is not None), False otherwise.
         """
-        
+
         return self.x509_proxies_plugin is not None
 
     # return a list of strings
@@ -758,31 +762,31 @@ class FrontendDescript:
     def get_web_attrs(self):
         """Returns a tuple of strings representing the web-related attributes of the frontend.
 
-    This method constructs and returns key web-related attributes for the frontend, including the main
-    web URL, signature type, description file, group URL, and associated group description files.
+        This method constructs and returns key web-related attributes for the frontend, including the main
+        web URL, signature type, description file, group URL, and associated group description files.
 
-    Returns:
-        tuple: A tuple of strings representing the web-related attributes, including:
-            - WebURL: The URL for the frontend's web interface.
-            - WebSignType: The signature type used for the web interface.
-            - WebDescriptFile: The main description file for the frontend.
-            - WebDescriptSign: The main signature associated with the frontend.
-            - WebGroupURL: The URL for the group-specific web interface.
-            - WebGroupDescriptFile: The group-specific description file.
-            - WebGroupDescriptSign: The group-specific signature.
+        Returns:
+            tuple: A tuple of strings representing the web-related attributes, including:
+                - WebURL: The URL for the frontend's web interface.
+                - WebSignType: The signature type used for the web interface.
+                - WebDescriptFile: The main description file for the frontend.
+                - WebDescriptSign: The main signature associated with the frontend.
+                - WebGroupURL: The URL for the group-specific web interface.
+                - WebGroupDescriptFile: The group-specific description file.
+                - WebGroupDescriptSign: The group-specific signature.
 
-    Example:
-        >>> frontend = FrontendDescript("my_name", "frontend_name", "group_name", "http://web.url", "main_descript", "group_descript", "signtype", "main_sign", "group_sign")
-        >>> frontend.get_web_attrs()
-        (
-            'WebURL = "http://web.url"',
-            'WebSignType = "signtype"',
-            'WebDescriptFile = "main_descript"',
-            'WebDescriptSign = "main_sign"',
-            'WebGroupURL = "http://web.url/group_group_name"',
-            'WebGroupDescriptFile = "group_descript"',
-            'WebGroupDescriptSign = "group_sign"'
-        )
+        Example:
+            >>> frontend = FrontendDescript("my_name", "frontend_name", "group_name", "http://web.url", "main_descript", "group_descript", "signtype", "main_sign", "group_sign")
+            >>> frontend.get_web_attrs()
+            (
+                'WebURL = "http://web.url"',
+                'WebSignType = "signtype"',
+                'WebDescriptFile = "main_descript"',
+                'WebDescriptSign = "main_sign"',
+                'WebGroupURL = "http://web.url/group_group_name"',
+                'WebGroupDescriptFile = "group_descript"',
+                'WebGroupDescriptSign = "group_sign"'
+            )
         """
         return (
             'WebURL = "%s"' % self.web_url,
@@ -947,6 +951,7 @@ class AdvertizeParams:
         __str__(self):
             Returns a string representation of the `AdvertizeParams` object, displaying all the attribute values.
     """
+
     def __init__(
         self,
         request_name,
@@ -1058,7 +1063,7 @@ class MultiAdvertizeWork:
     """A class to manage and organize advertising requests for multiple Glidein factories.
 
     This class facilitates the addition of advertising requests for Glideins, including parameters,
-    constraints, and associated keys. It organizes requests into a factory-specific queue and allows 
+    constraints, and associated keys. It organizes requests into a factory-specific queue and allows
     handling multiple Glidein advertisements simultaneously.
 
     Attributes:
@@ -1081,6 +1086,7 @@ class MultiAdvertizeWork:
         add(self, factory_pool, request_name, glidein_name, min_nr_glideins, max_run_glideins, idle_lifetime=0, glidein_params={}, glidein_monitors={}, glidein_monitors_per_cred={}, key_obj=None, glidein_params_to_encrypt=None, security_name=None, remove_excess_str=None, remove_excess_margin=0, trust_domain="Any", auth_method="Any", ha_mode="master"):
             Adds a new advertising request to the list, associated with the specified factory pool.
     """
+
     def __init__(self, descript_obj):  # must be of type FrontendDescript
         """Initializes the `MultiAdvertizeWork` object with the provided frontend descriptor.
 
@@ -1124,8 +1130,8 @@ class MultiAdvertizeWork:
     ):
         """Adds a new advertising request for a specific factory pool.
 
-        This method creates an `AdvertizeParams` object for the given request and appends it to the queue 
-        of the specified factory pool. The method also stores the associated trust domain and authentication 
+        This method creates an `AdvertizeParams` object for the given request and appends it to the queue
+        of the specified factory pool. The method also stores the associated trust domain and authentication
         method in the `factory_constraint` dictionary.
 
         Args:
@@ -1171,23 +1177,23 @@ class MultiAdvertizeWork:
     def add_global(self, factory_pool, request_name, security_name, key_obj):
         """Adds global configuration for a specific factory pool.
 
-    This method appends the given factory pool to the global pool list and associates the factory pool
-    with its corresponding key object and configuration parameters (request name and security name).
+        This method appends the given factory pool to the global pool list and associates the factory pool
+        with its corresponding key object and configuration parameters (request name and security name).
 
-    Args:
-        factory_pool (str): The name of the factory pool to be added to the global pool.
-        request_name (str): The name of the request associated with the factory pool.
-        security_name (str): The security name associated with the request.
-        key_obj (object): The key object associated with the factory pool, used for secure operations.
+        Args:
+            factory_pool (str): The name of the factory pool to be added to the global pool.
+            request_name (str): The name of the request associated with the factory pool.
+            security_name (str): The security name associated with the request.
+            key_obj (object): The key object associated with the factory pool, used for secure operations.
 
-    Example:
-        >>> obj.add_global("factory_pool_1", "request_name_1", "security_name_1", key_obj)
-        >>> print(obj.global_pool)
-        ["factory_pool_1"]
-        >>> print(obj.global_key["factory_pool_1"])
-        key_obj
-        >>> print(obj.global_params["factory_pool_1"])
-        ("request_name_1", "security_name_1")
+        Example:
+            >>> obj.add_global("factory_pool_1", "request_name_1", "security_name_1", key_obj)
+            >>> print(obj.global_pool)
+            ["factory_pool_1"]
+            >>> print(obj.global_key["factory_pool_1"])
+            key_obj
+            >>> print(obj.global_params["factory_pool_1"])
+            ("request_name_1", "security_name_1")
         """
         self.global_pool.append(factory_pool)
         self.global_key[factory_pool] = key_obj
@@ -1826,20 +1832,20 @@ class ResourceClassad(classadSupport.Classad):
     def __init__(self, factory_ref, frontend_ref):
         """Initializes a new instance of the class with the provided factory and frontend references.
 
-    This constructor sets up the initial values for the resource classad, using the provided
-    `factory_ref` (the name of the resource in the glidefactory classad) and `frontend_ref`
-    (the name of the resource in the glideclient classad).
+        This constructor sets up the initial values for the resource classad, using the provided
+        `factory_ref` (the name of the resource in the glidefactory classad) and `frontend_ref`
+        (the name of the resource in the glideclient classad).
 
-    Args:
-        factory_ref (str): The name of the resource in the glidefactory classad.
-        frontend_ref (str): The name of the resource in the glideclient classad.
+        Args:
+            factory_ref (str): The name of the resource in the glidefactory classad.
+            frontend_ref (str): The name of the resource in the glideclient classad.
 
-    Example:
-        >>> resource = ResourceClassad("glidefactory1", "glideclient1")
-        >>> print(resource.factory_ref)
-        glidefactory1
-        >>> print(resource.frontend_ref)
-        glideclient1
+        Example:
+            >>> resource = ResourceClassad("glidefactory1", "glideclient1")
+            >>> print(resource.factory_ref)
+            glidefactory1
+            >>> print(resource.frontend_ref)
+            glideclient1
         """
 
         global advertizeGRCounter
@@ -1861,24 +1867,24 @@ class ResourceClassad(classadSupport.Classad):
     def setFrontendDetails(self, frontend_name, group_name, ha_mode):
         """Sets the detailed description of the frontend in the classad.
 
-    This method updates the frontend details, including the frontend name, group name,
-    and high-availability mode (HA mode). These details are essential for advertising
-    the frontend to the GlideinWMS system.
+        This method updates the frontend details, including the frontend name, group name,
+        and high-availability mode (HA mode). These details are essential for advertising
+        the frontend to the GlideinWMS system.
 
-    Args:
-        frontend_name (str): The name of the frontend, representing the frontend MatchExpr.
-        group_name (str): The name of the group associated with the frontend, representing the job query_expr.
-        ha_mode (str): The high-availability mode of the frontend, typically "master" or "slave".
+        Args:
+            frontend_name (str): The name of the frontend, representing the frontend MatchExpr.
+            group_name (str): The name of the group associated with the frontend, representing the job query_expr.
+            ha_mode (str): The high-availability mode of the frontend, typically "master" or "slave".
 
-    Example:
-        >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
-        >>> resource_ad.setFrontendDetails("frontend1", "groupA", "master")
-        >>> print(resource_ad.adParams["FrontendName"])
-        frontend1
-        >>> print(resource_ad.adParams["GroupName"])
-        groupA
-        >>> print(resource_ad.adParams["FrontendHAMode"])
-        master
+        Example:
+            >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
+            >>> resource_ad.setFrontendDetails("frontend1", "groupA", "master")
+            >>> print(resource_ad.adParams["FrontendName"])
+            frontend1
+            >>> print(resource_ad.adParams["GroupName"])
+            groupA
+            >>> print(resource_ad.adParams["FrontendHAMode"])
+            master
         """
         self.adParams["GlideFrontendName"] = "%s" % frontend_name
         self.adParams["GlideGroupName"] = "%s" % group_name
@@ -1914,38 +1920,38 @@ class ResourceClassad(classadSupport.Classad):
     def setInDownTime(self, downtime):
         """Sets the downtime flag for the resource in the classad.
 
-    This method updates the "GLIDEIN_In_Downtime" parameter in the classad to reflect 
-    whether the resource is in downtime. The downtime flag is represented as a string, 
-    where `True` is set to "True" and `False` is set to "False".
+        This method updates the "GLIDEIN_In_Downtime" parameter in the classad to reflect
+        whether the resource is in downtime. The downtime flag is represented as a string,
+        where `True` is set to "True" and `False` is set to "False".
 
-    Args:
-        downtime (bool): A boolean indicating whether the resource is in downtime.
-                          Pass `True` if the entry is in downtime, `False` otherwise.
+        Args:
+            downtime (bool): A boolean indicating whether the resource is in downtime.
+                              Pass `True` if the entry is in downtime, `False` otherwise.
 
-    Example:
-        >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
-        >>> resource_ad.setInDownTime(True)
-        >>> print(resource_ad.adParams["GLIDEIN_In_Downtime"])
-        True
+        Example:
+            >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
+            >>> resource_ad.setInDownTime(True)
+            >>> print(resource_ad.adParams["GLIDEIN_In_Downtime"])
+            True
         """
         self.adParams["GLIDEIN_In_Downtime"] = str(downtime)
 
     def setGlideClientMonitorInfo(self, monitorInfo):
         """Sets the GlideClientMonitor information for the resource in the classad.
 
-    This method updates the classad with the provided GlideClientMonitor information, 
-    typically used for monitoring the state of the GlideClient associated with the resource.
+        This method updates the classad with the provided GlideClientMonitor information,
+        typically used for monitoring the state of the GlideClient associated with the resource.
 
-    Args:
-        monitorInfo (list): A list containing the GlideClientMonitor information to be set in the classad.
-                            The list should include relevant data for monitoring the GlideClient.
+        Args:
+            monitorInfo (list): A list containing the GlideClientMonitor information to be set in the classad.
+                                The list should include relevant data for monitoring the GlideClient.
 
-    Example:
-        >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
-        >>> monitor_data = ["Monitor1", "Status: Active", "LastChecked: 2025-08-01"]
-        >>> resource_ad.setGlideClientMonitorInfo(monitor_data)
-        >>> print(resource_ad.adParams["GlideClientMonitor"])
-        ["Monitor1", "Status: Active", "LastChecked: 2025-08-01"]
+        Example:
+            >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
+            >>> monitor_data = ["Monitor1", "Status: Active", "LastChecked: 2025-08-01"]
+            >>> resource_ad.setGlideClientMonitorInfo(monitor_data)
+            >>> print(resource_ad.adParams["GlideClientMonitor"])
+            ["Monitor1", "Status: Active", "LastChecked: 2025-08-01"]
         """
 
         if len(monitorInfo) == 17:
@@ -1974,15 +1980,15 @@ class ResourceClassad(classadSupport.Classad):
     def setEntryInfo(self, info):
         """Sets the entry-specific information for the resource in the classad.
 
-    This method processes the provided `info` dictionary, which contains useful data from the 
-    glidefactory classad, and updates the resource's classad with the relevant attributes. 
-    Certain attributes are excluded from being added to the classad, while others are added with potential prefix modifications.
+        This method processes the provided `info` dictionary, which contains useful data from the
+        glidefactory classad, and updates the resource's classad with the relevant attributes.
+        Certain attributes are excluded from being added to the classad, while others are added with potential prefix modifications.
 
-    Args:
-        info (dict): A dictionary containing useful information from the glidefactory classad.
-                     The dictionary should include key-value pairs of attributes to be added to the classad.
+        Args:
+            info (dict): A dictionary containing useful information from the glidefactory classad.
+                         The dictionary should include key-value pairs of attributes to be added to the classad.
 
-    
+
         """
 
         eliminate_attrs = {
@@ -2022,26 +2028,26 @@ class ResourceClassad(classadSupport.Classad):
     def setGlideFactoryMonitorInfo(self, info):
         """Sets the GlideinFactoryMonitor information for the resource in the classad.
 
-    This method updates the resource's classad with the relevant monitoring information (e.g., `GlideinFactoryMonitor`)
-    from the glidefactoryclient classad. The provided `info` dictionary contains useful monitoring data
-    that is added to the classad for tracking and monitoring purposes.
+        This method updates the resource's classad with the relevant monitoring information (e.g., `GlideinFactoryMonitor`)
+        from the glidefactoryclient classad. The provided `info` dictionary contains useful monitoring data
+        that is added to the classad for tracking and monitoring purposes.
 
-    Args:
-        info (dict): A dictionary containing useful monitoring information from the glidefactoryclient classad.
-                     The dictionary should include key-value pairs for attributes such as `GlideinFactoryMonitor`
-                     and other related monitoring data.
+        Args:
+            info (dict): A dictionary containing useful monitoring information from the glidefactoryclient classad.
+                         The dictionary should include key-value pairs for attributes such as `GlideinFactoryMonitor`
+                         and other related monitoring data.
 
-    Example:
-        >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
-        >>> monitor_info = {
-        >>>     "GlideinFactoryMonitorStatus": "Active",
-        >>>     "GlideinFactoryMonitorJobs": 100
-        >>> }
-        >>> resource_ad.setGlideFactoryMonitorInfo(monitor_info)
-        >>> print(resource_ad.adParams["GlideinFactoryMonitorStatus"])
-        Active
-        >>> print(resource_ad.adParams["GlideinFactoryMonitorJobs"])
-        100
+        Example:
+            >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
+            >>> monitor_info = {
+            >>>     "GlideinFactoryMonitorStatus": "Active",
+            >>>     "GlideinFactoryMonitorJobs": 100
+            >>> }
+            >>> resource_ad.setGlideFactoryMonitorInfo(monitor_info)
+            >>> print(resource_ad.adParams["GlideinFactoryMonitorStatus"])
+            Active
+            >>> print(resource_ad.adParams["GlideinFactoryMonitorJobs"])
+            100
         """
 
         # Required keys do not start with TotalClientMonitor but only
@@ -2058,24 +2064,24 @@ class ResourceClassad(classadSupport.Classad):
     def setGlideClientConfigLimits(self, info):
         """Sets the GlideClientConfig configuration information for the resource in the classad.
 
-    This method updates the resource's classad with the provided `GlideClientConfig` information. 
-    Each key in the `info` dictionary is used to create a corresponding `GlideClientConfig` attribute in the classad.
+        This method updates the resource's classad with the provided `GlideClientConfig` information.
+        Each key in the `info` dictionary is used to create a corresponding `GlideClientConfig` attribute in the classad.
 
-    Args:
-        info (dict): A dictionary containing useful configuration information. Each key-value pair in the dictionary
-                     is used to set a corresponding `GlideClientConfig*` attribute in the classad.
+        Args:
+            info (dict): A dictionary containing useful configuration information. Each key-value pair in the dictionary
+                         is used to set a corresponding `GlideClientConfig*` attribute in the classad.
 
-    Example:
-        >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
-        >>> config_info = {
-        >>>     "MaxMemory": 2048,
-        >>>     "MaxCPUs": 4
-        >>> }
-        >>> resource_ad.setGlideClientConfigLimits(config_info)
-        >>> print(resource_ad.adParams["GlideClientConfigMaxMemory"])
-        2048
-        >>> print(resource_ad.adParams["GlideClientConfigMaxCPUs"])
-        4
+        Example:
+            >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
+            >>> config_info = {
+            >>>     "MaxMemory": 2048,
+            >>>     "MaxCPUs": 4
+            >>> }
+            >>> resource_ad.setGlideClientConfigLimits(config_info)
+            >>> print(resource_ad.adParams["GlideClientConfigMaxMemory"])
+            2048
+            >>> print(resource_ad.adParams["GlideClientConfigMaxCPUs"])
+            4
         """
 
         for key in info:
@@ -2083,29 +2089,29 @@ class ResourceClassad(classadSupport.Classad):
 
     def setCurbsAndLimits(self, limits_triggered):
         """Sets descriptive messages about which limits and curbs have been triggered when deciding
-    the number of Glideins to request.
+        the number of Glideins to request.
 
-    This method processes the provided `limits_triggered` dictionary, which contains limits
-    and curbs that have been triggered, and updates the classad with the corresponding
-    descriptive messages. It distinguishes between curbs and limits based on the key prefix 
-    ("Curb" or "Limit") and formats the corresponding classad message accordingly.
+        This method processes the provided `limits_triggered` dictionary, which contains limits
+        and curbs that have been triggered, and updates the classad with the corresponding
+        descriptive messages. It distinguishes between curbs and limits based on the key prefix
+        ("Curb" or "Limit") and formats the corresponding classad message accordingly.
 
-    Args:
-        limits_triggered (dict): A dictionary containing the limits and curbs that have been triggered.
-                                  The keys should represent the name of the limit or curb, and the values
-                                  represent the associated messages or values.
+        Args:
+            limits_triggered (dict): A dictionary containing the limits and curbs that have been triggered.
+                                      The keys should represent the name of the limit or curb, and the values
+                                      represent the associated messages or values.
 
-    Example:
-        >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
-        >>> limits_info = {
-        >>>     "CurbMaxMemory": "Max memory exceeded",
-        >>>     "LimitMaxCPUs": "Max CPUs requested"
-        >>> }
-        >>> resource_ad.setCurbsAndLimits(limits_info)
-        >>> print(resource_ad.adParams["GlideClientCurbMaxMemory"])
-        Max memory exceeded
-        >>> print(resource_ad.adParams["GlideClientLimitMaxCPUs"])
-        Max CPUs requested
+        Example:
+            >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
+            >>> limits_info = {
+            >>>     "CurbMaxMemory": "Max memory exceeded",
+            >>>     "LimitMaxCPUs": "Max CPUs requested"
+            >>> }
+            >>> resource_ad.setCurbsAndLimits(limits_info)
+            >>> print(resource_ad.adParams["GlideClientCurbMaxMemory"])
+            Max memory exceeded
+            >>> print(resource_ad.adParams["GlideClientLimitMaxCPUs"])
+            Max CPUs requested
         """
         for k, v in limits_triggered.items():
             if k.startswith("Curb"):
@@ -2124,20 +2130,20 @@ class ResourceClassadAdvertiser(classadSupport.ClassadAdvertiser):
     def __init__(self, pool=None, multi_support=False):
         """Initializes the object with the specified collector address and multi-support setting.
 
-    This constructor initializes the instance with a `pool` (collector address) and a flag
-    `multi_support` that determines whether the installation supports advertising multiple 
-    classads with a single `condor_advertise` command.
+        This constructor initializes the instance with a `pool` (collector address) and a flag
+        `multi_support` that determines whether the installation supports advertising multiple
+        classads with a single `condor_advertise` command.
 
-    Args:
-        pool (str, optional): The address of the collector. Defaults to `None`, indicating no collector address is set.
-        multi_support (bool, optional): A boolean flag indicating whether multiple classads can be advertised with one `condor_advertise` command. Defaults to `False`.
+        Args:
+            pool (str, optional): The address of the collector. Defaults to `None`, indicating no collector address is set.
+            multi_support (bool, optional): A boolean flag indicating whether multiple classads can be advertised with one `condor_advertise` command. Defaults to `False`.
 
-    Example:
-        >>> obj = SomeClass(pool="collector_address", multi_support=True)
-        >>> print(obj.pool)
-        collector_address
-        >>> print(obj.multi_support)
-        True
+        Example:
+            >>> obj = SomeClass(pool="collector_address", multi_support=True)
+            >>> print(obj.pool)
+            collector_address
+            >>> print(obj.multi_support)
+            True
         """
 
         classadSupport.ClassadAdvertiser.__init__(
@@ -2159,8 +2165,8 @@ class FrontendMonitorClassad(classadSupport.Classad):
     def __init__(self, frontend_ref):
         """Class constructor for initializing the frontend monitor classad.
 
-        This constructor initializes the classad parameters and sets the required attributes 
-        using the provided frontend reference (`frontend_ref`), which is the name of the resource 
+        This constructor initializes the classad parameters and sets the required attributes
+        using the provided frontend reference (`frontend_ref`), which is the name of the resource
         in the glideclient classad.
 
         Args:
@@ -2189,23 +2195,23 @@ class FrontendMonitorClassad(classadSupport.Classad):
     def setFrontendDetails(self, frontend_name, groups, ha_mode):
         """Adds the detailed description of the frontend to the classad.
 
-    This method sets the frontend name, associated groups, and high-availability (HA) mode in the classad 
-    for the frontend resource. The details are added as key-value pairs to the `adParams` dictionary.
+        This method sets the frontend name, associated groups, and high-availability (HA) mode in the classad
+        for the frontend resource. The details are added as key-value pairs to the `adParams` dictionary.
 
-    Args:
-        frontend_name (str): A representation of the frontend, typically used as the MatchExpr in the classad.
-        groups (str): A string representing the groups associated with the frontend, typically used in the job query expression.
-        ha_mode (str): The high-availability mode of the frontend, such as "master" or "slave".
+        Args:
+            frontend_name (str): A representation of the frontend, typically used as the MatchExpr in the classad.
+            groups (str): A string representing the groups associated with the frontend, typically used in the job query expression.
+            ha_mode (str): The high-availability mode of the frontend, such as "master" or "slave".
 
-    Example:
-        >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
-        >>> resource_ad.setFrontendDetails("frontend1", "groupA,groupB", "master")
-        >>> print(resource_ad.adParams["GlideFrontendName"])
-        frontend1
-        >>> print(resource_ad.adParams["GlideFrontendGroups"])
-        groupA,groupB
-        >>> print(resource_ad.adParams["GlideFrontendHAMode"])
-        master
+        Example:
+            >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
+            >>> resource_ad.setFrontendDetails("frontend1", "groupA,groupB", "master")
+            >>> print(resource_ad.adParams["GlideFrontendName"])
+            frontend1
+            >>> print(resource_ad.adParams["GlideFrontendGroups"])
+            groupA,groupB
+            >>> print(resource_ad.adParams["GlideFrontendHAMode"])
+            master
         """
         self.adParams["GlideFrontendName"] = "%s" % frontend_name
         self.adParams["GlideFrontendGroups"] = "%s" % groups
@@ -2214,27 +2220,27 @@ class FrontendMonitorClassad(classadSupport.Classad):
     def setIdleJobCount(self, idle_jobs):
         """Sets the idle jobs information in the classad.
 
-    This method updates the classad with the number of idle jobs, using the provided dictionary 
-    (`idle_jobs`). The dictionary is keyed by idle duration, where each key represents an idle 
-    duration (e.g., "Total", "3600" for jobs idle more than one hour) and the value is the number 
-    of jobs that are idle for that duration.
+        This method updates the classad with the number of idle jobs, using the provided dictionary
+        (`idle_jobs`). The dictionary is keyed by idle duration, where each key represents an idle
+        duration (e.g., "Total", "3600" for jobs idle more than one hour) and the value is the number
+        of jobs that are idle for that duration.
 
-    Args:
-        idle_jobs (dict): A dictionary containing idle job information. The keys are the idle durations 
-                           (e.g., "Total", "3600"), and the values are the counts of idle jobs for 
-                           those respective durations.
+        Args:
+            idle_jobs (dict): A dictionary containing idle job information. The keys are the idle durations
+                               (e.g., "Total", "3600"), and the values are the counts of idle jobs for
+                               those respective durations.
 
-    Example:
-        >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
-        >>> idle_jobs_info = {
-        >>>     "Total": 50,
-        >>>     "3600": 10
-        >>> }
-        >>> resource_ad.setIdleJobCount(idle_jobs_info)
-        >>> print(resource_ad.adParams["GlideFrontend_IdleJobs_Total"])
-        50
-        >>> print(resource_ad.adParams["GlideFrontend_IdleJobs_3600"])
-        10
+        Example:
+            >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
+            >>> idle_jobs_info = {
+            >>>     "Total": 50,
+            >>>     "3600": 10
+            >>> }
+            >>> resource_ad.setIdleJobCount(idle_jobs_info)
+            >>> print(resource_ad.adParams["GlideFrontend_IdleJobs_Total"])
+            50
+            >>> print(resource_ad.adParams["GlideFrontend_IdleJobs_3600"])
+            10
         """
 
         for key in idle_jobs:
@@ -2244,24 +2250,24 @@ class FrontendMonitorClassad(classadSupport.Classad):
     def setPerfMetrics(self, perf_metrics):
         """Sets the performance metrics information for the frontend or group in the classad.
 
-    This method updates the classad with performance metrics data for the frontend or group.
-    The performance metrics are provided in a `PerfMetric` object, which includes various events.
-    The method generates attribute names based on the metric name and event, then stores the corresponding
-    lifetime for each event in the classad.
+        This method updates the classad with performance metrics data for the frontend or group.
+        The performance metrics are provided in a `PerfMetric` object, which includes various events.
+        The method generates attribute names based on the metric name and event, then stores the corresponding
+        lifetime for each event in the classad.
 
-    Args:
-        perf_metrics (servicePerformance.PerfMetric): A `PerfMetric` object containing the performance metrics
-                                                      for the frontend or group. This object includes a list of
-                                                      events and their associated lifetimes.
+        Args:
+            perf_metrics (servicePerformance.PerfMetric): A `PerfMetric` object containing the performance metrics
+                                                          for the frontend or group. This object includes a list of
+                                                          events and their associated lifetimes.
 
-    Example:
-        >>> perf_metrics = PerfMetric("frontend_performance", ["event1", "event2"])
-        >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
-        >>> resource_ad.setPerfMetrics(perf_metrics)
-        >>> print(resource_ad.adParams["GlideinPerfMetric_frontend_performance_event1"])
-        3600
-        >>> print(resource_ad.adParams["GlideinPerfMetric_frontend_performance_event2"])
-        7200
+        Example:
+            >>> perf_metrics = PerfMetric("frontend_performance", ["event1", "event2"])
+            >>> resource_ad = ResourceClassad("glidefactory1", "glideclient1")
+            >>> resource_ad.setPerfMetrics(perf_metrics)
+            >>> print(resource_ad.adParams["GlideinPerfMetric_frontend_performance_event1"])
+            3600
+            >>> print(resource_ad.adParams["GlideinPerfMetric_frontend_performance_event2"])
+            7200
         """
         for event in perf_metrics.metric:
             attr_name = f"{frontendConfig.glidein_perfmetric_prefix}_{perf_metrics.name}_{event}"
@@ -2277,28 +2283,27 @@ class FrontendMonitorClassadAdvertiser(classadSupport.ClassadAdvertiser):
     def __init__(self, pool=None, multi_support=False):
         """Initializes the object for advertising a frontend monitor classad.
 
-    This constructor sets up the classad advertiser for the frontend monitor, initializing key parameters
-    such as the collector address, multi-support capability, and TCP support based on the configuration.
+        This constructor sets up the classad advertiser for the frontend monitor, initializing key parameters
+        such as the collector address, multi-support capability, and TCP support based on the configuration.
 
-    Args:
-        pool (str, optional): The address of the collector. Defaults to `None`, meaning no collector address is set.
-        multi_support (bool, optional): Indicates whether the installation supports advertising multiple classads 
-                                        with a single `condor_advertise` command. Defaults to `False`.
+        Args:
+            pool (str, optional): The address of the collector. Defaults to `None`, meaning no collector address is set.
+            multi_support (bool, optional): Indicates whether the installation supports advertising multiple classads
+                                            with a single `condor_advertise` command. Defaults to `False`.
 
-    Initializes the following class attributes:
-        adType (str): The type of classad being advertised (set to "glidefrontendmonitor").
-        adAdvertiseCmd (str): The command used for advertising the classad (set to "UPDATE_AD_GENERIC").
-        adInvalidateCmd (str): The command used for invalidating the classad (set to "INVALIDATE_ADS_GENERIC").
-        advertiseFilePrefix (str): The file prefix for the advertise file (set to "gfi_afm").
+        Initializes the following class attributes:
+            adType (str): The type of classad being advertised (set to "glidefrontendmonitor").
+            adAdvertiseCmd (str): The command used for advertising the classad (set to "UPDATE_AD_GENERIC").
+            adInvalidateCmd (str): The command used for invalidating the classad (set to "INVALIDATE_ADS_GENERIC").
+            advertiseFilePrefix (str): The file prefix for the advertise file (set to "gfi_afm").
 
-    Example:
-        >>> frontend_monitor = FrontendMonitorClassad("frontend1")
-        >>> print(frontend_monitor.adType)
-        glidefrontendmonitor
-        >>> print(frontend_monitor.adAdvertiseCmd)
-        UPDATE_AD_GENERIC
+        Example:
+            >>> frontend_monitor = FrontendMonitorClassad("frontend1")
+            >>> print(frontend_monitor.adType)
+            glidefrontendmonitor
+            >>> print(frontend_monitor.adAdvertiseCmd)
+            UPDATE_AD_GENERIC
         """
-    
 
         classadSupport.ClassadAdvertiser.__init__(
             self, pool=pool, multi_support=multi_support, tcp_support=frontendConfig.advertise_use_tcp

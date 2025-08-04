@@ -39,6 +39,7 @@ class FrontendPidSupport(pidSupport.PidSupport):
         frontend_pid_support = FrontendPidSupport("/path/to/startup")
         # Initializes the FrontendPidSupport with the specified startup directory and lock file.
     """
+
     def __init__(self, startup_dir):
         lock_file = os.path.join(startup_dir, "lock/frontend.lock")
         pidSupport.PidSupport.__init__(self, lock_file)

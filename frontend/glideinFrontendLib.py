@@ -67,18 +67,18 @@ def getIdleVomsCondorQ(condorq_dict):
     Filters and retrieves idle Condor jobs with a specific user proxy attribute.
 
     This function takes a dictionary of Condor queues, processes each queue to filter
-    idle jobs (where JobStatus == 1) and ensures that the job contains the 
-    'x509UserProxyFirstFQAN' attribute. The function returns a dictionary containing 
+    idle jobs (where JobStatus == 1) and ensures that the job contains the
+    'x509UserProxyFirstFQAN' attribute. The function returns a dictionary containing
     the filtered results for each Condor queue.
 
     Args:
-        condorq_dict (dict): A dictionary where each key is the name of a Condor 
-                              scheduler (schedd), and the corresponding value is a 
+        condorq_dict (dict): A dictionary where each key is the name of a Condor
+                              scheduler (schedd), and the corresponding value is a
                               Condor queue object that contains job information.
 
     Returns:
-        dict: A dictionary where each key is the name of a schedd (Condor scheduler) 
-              and each value is a `SubQuery` object representing the filtered idle jobs 
+        dict: A dictionary where each key is the name of a schedd (Condor scheduler)
+              and each value is a `SubQuery` object representing the filtered idle jobs
               for that schedd.
 
     Example:
@@ -87,7 +87,7 @@ def getIdleVomsCondorQ(condorq_dict):
             'schedd2': condorQueue2,
         }
         result = getIdleVomsCondorQ(condorq_dict)
-        # result will contain a dictionary with schedd names as keys and 
+        # result will contain a dictionary with schedd names as keys and
         # filtered SubQuery objects as values for each schedd.
     """
     out = {}
@@ -110,17 +110,17 @@ def getIdleCondorQ(condorq_dict):
     """
     Filters and retrieves idle Condor jobs based on the JobStatus attribute.
 
-    This function processes a dictionary of Condor queues and filters jobs based on 
-    the JobStatus attribute (JobStatus == 1, which indicates idle jobs). It returns 
+    This function processes a dictionary of Condor queues and filters jobs based on
+    the JobStatus attribute (JobStatus == 1, which indicates idle jobs). It returns
     a dictionary containing filtered results for each Condor queue (schedd).
 
     Args:
-        condorq_dict (dict): A dictionary where each key is the name of a Condor 
-                              scheduler (schedd), and the corresponding value is a 
+        condorq_dict (dict): A dictionary where each key is the name of a Condor
+                              scheduler (schedd), and the corresponding value is a
                               Condor queue object containing job information.
 
     Returns:
-        dict: A dictionary where the keys are schedd names and the values are 
+        dict: A dictionary where the keys are schedd names and the values are
               `SubQuery` objects representing the filtered idle jobs for each schedd.
 
     Example:
@@ -129,7 +129,7 @@ def getIdleCondorQ(condorq_dict):
             'schedd2': condorQueue2,
         }
         result = getIdleCondorQ(condorq_dict)
-        # result will contain a dictionary with schedd names as keys and 
+        # result will contain a dictionary with schedd names as keys and
         # filtered SubQuery objects for idle jobs as values.
     """
     out = {}
@@ -152,17 +152,17 @@ def getRunningCondorQ(condorq_dict):
     """
     Filters and retrieves running Condor jobs based on the JobStatus attribute.
 
-    This function processes a dictionary of Condor queues and filters jobs based on 
-    the JobStatus attribute (JobStatus == 2, which indicates running jobs). It returns 
+    This function processes a dictionary of Condor queues and filters jobs based on
+    the JobStatus attribute (JobStatus == 2, which indicates running jobs). It returns
     a dictionary containing filtered results for each Condor queue (schedd).
 
     Args:
-        condorq_dict (dict): A dictionary where each key is the name of a Condor 
-                              scheduler (schedd), and the corresponding value is a 
+        condorq_dict (dict): A dictionary where each key is the name of a Condor
+                              scheduler (schedd), and the corresponding value is a
                               Condor queue object containing job information.
 
     Returns:
-        dict: A dictionary where the keys are schedd names and the values are 
+        dict: A dictionary where the keys are schedd names and the values are
               `SubQuery` objects representing the filtered running jobs for each schedd.
 
     Example:
@@ -171,7 +171,7 @@ def getRunningCondorQ(condorq_dict):
             'schedd2': condorQueue2,
         }
         result = getRunningCondorQ(condorq_dict)
-        # result will contain a dictionary with schedd names as keys and 
+        # result will contain a dictionary with schedd names as keys and
         # filtered SubQuery objects for running jobs as values.
     """
     out = {}
@@ -240,20 +240,20 @@ def getOldCondorQ(condorq_dict, min_age):
     """Filters and retrieves Condor jobs that have been in the current status for longer than a specified minimum age.
 
     The function processes a dictionary of Condor queues and filters jobs that have
-    both a 'ServerTime' and 'EnteredCurrentStatus' field. It checks whether the 
+    both a 'ServerTime' and 'EnteredCurrentStatus' field. It checks whether the
     difference between 'ServerTime' and 'EnteredCurrentStatus' is greater than or equal
     to `min_age` (in seconds). The filtered jobs are returned for each Condor queue.
 
     Args:
-        condorq_dict (dict): A dictionary where each key is the name of a Condor 
-                              scheduler (schedd), and the corresponding value is a 
+        condorq_dict (dict): A dictionary where each key is the name of a Condor
+                              scheduler (schedd), and the corresponding value is a
                               Condor queue object containing job information.
-        min_age (int): The minimum age (in seconds) that a job must have been in its 
+        min_age (int): The minimum age (in seconds) that a job must have been in its
                        current status to be included in the result.
 
     Returns:
-        dict: A dictionary where the keys are schedd names and the values are 
-              `SubQuery` objects representing the filtered jobs that have been 
+        dict: A dictionary where the keys are schedd names and the values are
+              `SubQuery` objects representing the filtered jobs that have been
               in their current status for at least `min_age` seconds.
 
     Example:
@@ -263,7 +263,7 @@ def getOldCondorQ(condorq_dict, min_age):
         }
         min_age = 3600  # Filter jobs that have been in the current status for at least 1 hour
         result = getOldCondorQ(condorq_dict, min_age)
-        # result will contain a dictionary with schedd names as keys and 
+        # result will contain a dictionary with schedd names as keys and
         # filtered SubQuery objects for old jobs as values.
     """
     out = {}
@@ -288,22 +288,22 @@ def countCondorQ(condorq_dict):
     Adds provenance information from condor_status to the condor_q dictionary.
 
     The function adds the 'RunningOn' field to each job in `condorq_dict` using
-    information from `status_dict`. The value of 'RunningOn' is a formatted string 
+    information from `status_dict`. The value of 'RunningOn' is a formatted string
     containing the job's associated GLIDEIN entry name, name, factory, and the factory pool.
 
     Note:
         HTC 8.5 may change RemoteHost to be the DynamicSlot name.
 
     Args:
-        condorq_dict (dict): A dictionary where each key is the name of a Condor 
+        condorq_dict (dict): A dictionary where each key is the name of a Condor
                               scheduler (schedd) and the value is a Condor queue object.
                               The function adds the 'RunningOn' key to each job in these queues.
         status_dict (dict): A dictionary containing running jobs from condor_status,
-                             where each key is a collector name and the value is a 
+                             where each key is a collector name and the value is a
                              Condor status object with job details.
 
     Returns:
-        None: This function modifies the `condorq_dict` in place by adding the 'RunningOn' 
+        None: This function modifies the `condorq_dict` in place by adding the 'RunningOn'
               field to each job.
 
     Example:
@@ -323,13 +323,13 @@ def countCondorQ(condorq_dict):
 def getCondorQUsers(condorq_dict):
     """Retrieves the unique set of users from all jobs across Condor queues.
 
-    This function iterates through each Condor queue in the `condorq_dict` and collects 
-    the unique users associated with the jobs. It returns a set of users who have jobs 
+    This function iterates through each Condor queue in the `condorq_dict` and collects
+    the unique users associated with the jobs. It returns a set of users who have jobs
     in the Condor queues.
 
     Args:
-        condorq_dict (dict): A dictionary where each key is the name of a Condor 
-                              scheduler (schedd), and the corresponding value is a 
+        condorq_dict (dict): A dictionary where each key is the name of a Condor
+                              scheduler (schedd), and the corresponding value is a
                               Condor queue object containing job information.
 
     Returns:
@@ -384,15 +384,15 @@ def countMatch(
 ):
     """Get the number of jobs that match each glidein.
 
-    This function calculates the number of jobs that match specific glideins, 
-    with multiple match categories including straight match, entry proportion, 
+    This function calculates the number of jobs that match specific glideins,
+    with multiple match categories including straight match, entry proportion,
     and jobs that can only run on certain sites.
 
     Args:
         match_obj (re.Match): Output of `re.compile(match_string, '<string>', 'eval')`.
-        condorq_dict (dict): A dictionary where the key is the scheduler name (sched_name) 
+        condorq_dict (dict): A dictionary where the key is the scheduler name (sched_name)
                               and the value is a `CondorQ` object representing job queues.
-        glidein_dict (dict): A dictionary where the key is the glidein name and the value 
+        glidein_dict (dict): A dictionary where the key is the glidein name and the value
                               is a dictionary of parameters and attributes (output of `interface.findGlideins`).
         attr_dict (dict): A dictionary containing constant attributes.
         condorq_match_list (list): A list of job attributes from the XML file.
@@ -402,10 +402,10 @@ def countMatch(
             - First dictionary: Glidein names and the number of jobs matching (straight match).
             - Second dictionary: Entry proportion based on unique subsets.
             - Third dictionary: Elements that can only run on this site.
-            - Fourth dictionary: Entry proportion of glideins to be requested, considering multicore jobs, 
+            - Fourth dictionary: Entry proportion of glideins to be requested, considering multicore jobs,
               GLIDEIN_CPUS/GLIDEIN_ESTIMATED_CPUS, and GLIDEIN_NODES.
 
-        A special glidein name of (None, None, None) is used for jobs that don't match any 
+        A special glidein name of (None, None, None) is used for jobs that don't match any
         'real glidein name' in all four dictionaries.
 
     Example:
@@ -873,16 +873,16 @@ def getCondorStatus(
 ):
     """Get the number of jobs that match each glidein.
 
-    This function computes and returns the number of jobs that match each glidein, 
-    categorized into four different match types: straight match, entry proportion, 
-    elements that can only run on a specific site, and the entry proportion glideins 
+    This function computes and returns the number of jobs that match each glidein,
+    categorized into four different match types: straight match, entry proportion,
+    elements that can only run on a specific site, and the entry proportion glideins
     to be requested based on multicore jobs.
 
     Args:
         match_obj (re.Match): Output of `re.compile(match_string, '<string>', 'eval')`.
-        condorq_dict (dict): A dictionary where the key is the scheduler name (schedd_name) 
+        condorq_dict (dict): A dictionary where the key is the scheduler name (schedd_name)
                               and the value is a `CondorQ` object representing job queues.
-        glidein_dict (dict): A dictionary where the key is the glidein name and the value 
+        glidein_dict (dict): A dictionary where the key is the glidein name and the value
                               is a dictionary of parameters and attributes (output of `interface.findGlideins`).
         attr_dict (dict): A dictionary of constant attributes.
         condorq_match_list (list): A list of job attributes from the XML file.
@@ -892,10 +892,10 @@ def getCondorStatus(
             1. A dictionary of glidein names and the number of jobs matching (straight match).
             2. A dictionary for the entry proportion based on unique subsets.
             3. A dictionary for elements that can only run on this site.
-            4. A dictionary for the entry proportion of glideins to be requested, considering multicore jobs, 
+            4. A dictionary for the entry proportion of glideins to be requested, considering multicore jobs,
                GLIDEIN_CPUS/GLIDEIN_ESTIMATED_CPUS, and GLIDEIN_NODES.
-        
-        A special glidein name of (None, None, None) is used for jobs that don't match any 'real glidein name' 
+
+        A special glidein name of (None, None, None) is used for jobs that don't match any 'real glidein name'
         in all four dictionaries.
 
     Example:
@@ -1031,17 +1031,17 @@ def getIdleCondorStatus(status_dict, min_memory=2500):
 def getRunningCondorStatus(status_dict):
     """Return a dictionary of collectors containing running (claimed) slots.
 
-    This function iterates through the provided `status_dict` and filters for slots 
-    that are currently running (claimed). It considers static running slots, dynamic 
-    slots (which are always running), and p-slots with one or more dynamic slots. 
+    This function iterates through the provided `status_dict` and filters for slots
+    that are currently running (claimed). It considers static running slots, dynamic
+    slots (which are always running), and p-slots with one or more dynamic slots.
     The resulting dictionary maps collector names to their respective Condor statuses.
 
     Args:
-        status_dict (dict): A dictionary where each key is the collector's name, 
+        status_dict (dict): A dictionary where each key is the collector's name,
                              and the value is a Condor status object containing slot information.
 
     Returns:
-        dict: A dictionary where each key is a collector name and each value is a 
+        dict: A dictionary where each key is a collector name and each value is a
               `SubQuery` object containing the running (claimed) slots for that collector.
 
     Example:
@@ -1050,7 +1050,7 @@ def getRunningCondorStatus(status_dict):
             'collector2': condorStatus2,
         }
         result = getRunningCondorStatus(status_dict)
-        # result will contain a dictionary with collector names as keys and 
+        # result will contain a dictionary with collector names as keys and
         # SubQuery objects for running slots as values.
     """
     out = {}
@@ -1096,18 +1096,18 @@ def getRunningPSlotCondorStatus(status_dict):
 def getRunningJobsCondorStatus(status_dict):
     """Return a dictionary of collectors containing running (claimed) slots.
 
-    This function filters through the provided `status_dict` to identify and return 
-    running (claimed) slots, including both fixed (static) slots and dynamic slots 
-    (excluding partitionable slots). Each slot is matched with a job, providing the 
-    number of running jobs. It considers slots in the "Claimed" state and with the 
+    This function filters through the provided `status_dict` to identify and return
+    running (claimed) slots, including both fixed (static) slots and dynamic slots
+    (excluding partitionable slots). Each slot is matched with a job, providing the
+    number of running jobs. It considers slots in the "Claimed" state and with the
     "Busy" or "Retiring" activity.
 
     Args:
-        status_dict (dict): A dictionary where each key is a collector name, 
+        status_dict (dict): A dictionary where each key is a collector name,
                              and the value is a Condor status object containing slot information.
 
     Returns:
-        dict: A dictionary where each key is a collector name, and each value is a 
+        dict: A dictionary where each key is a collector name, and each value is a
               `SubQuery` object representing the running (claimed) slots for that collector.
 
     Example:
@@ -1116,7 +1116,7 @@ def getRunningJobsCondorStatus(status_dict):
             'collector2': condorStatus2,
         }
         result = getRunningJobsCondorStatus(status_dict)
-        # result will contain a dictionary with collector names as keys and 
+        # result will contain a dictionary with collector names as keys and
         # SubQuery objects for running slots as values.
     """
     out = {}
@@ -1137,17 +1137,17 @@ def getRunningJobsCondorStatus(status_dict):
 def getFailedCondorStatus(status_dict):
     """Return a dictionary of collectors containing failed (drained) slots.
 
-    This function filters through the provided `status_dict` to identify and return 
-    slots that are in the "Drained" state and have the "Retiring" activity. It 
-    returns a dictionary mapping each collector name to a `SubQuery` object that 
+    This function filters through the provided `status_dict` to identify and return
+    slots that are in the "Drained" state and have the "Retiring" activity. It
+    returns a dictionary mapping each collector name to a `SubQuery` object that
     contains the failed (drained) slots.
 
     Args:
-        status_dict (dict): A dictionary where each key is a collector name, 
+        status_dict (dict): A dictionary where each key is a collector name,
                              and the value is a Condor status object containing slot information.
 
     Returns:
-        dict: A dictionary where each key is a collector name, and each value is a 
+        dict: A dictionary where each key is a collector name, and each value is a
               `SubQuery` object representing the failed (drained) slots for that collector.
 
     Example:
@@ -1156,7 +1156,7 @@ def getFailedCondorStatus(status_dict):
             'collector2': condorStatus2,
         }
         result = getFailedCondorStatus(status_dict)
-        # result will contain a dictionary with collector names as keys and 
+        # result will contain a dictionary with collector names as keys and
         # SubQuery objects for failed (drained) slots as values.
     """
     out = {}
