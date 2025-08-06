@@ -149,7 +149,8 @@ class CachedGenerator(Generator[T]):
                 "cache_file": (
                     str,
                     os.path.join(
-                        self.context["cache_dir"], f"{self.__class__.__name__}_{self.instance_id}.{file_type}"
+                        self.context.get("cache_dir", CACHE_DIR),
+                        f"{self.__class__.__name__}_{self.instance_id}.{file_type}",
                     ),
                 ),
                 "cache_discriminator": (str, "snapshot"),

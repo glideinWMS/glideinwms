@@ -7,7 +7,7 @@
 This module provides classes to represent and manage X.509 certificates.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Union
 
 from cryptography import x509
@@ -44,12 +44,18 @@ class X509Cert(Credential[x509.Certificate]):
     @property
     def not_before_time(self) -> Optional[datetime]:
         """X.509 not-before time."""
-        return self._payload.not_valid_before if self._payload else None
+        try:
+            return self._payload.not_valid_before_utc if self._payload else None
+        except AttributeError:
+            return self._payload.not_valid_before.replace(tzinfo=timezone.utc) if self._payload else None
 
     @property
     def not_after_time(self) -> Optional[datetime]:
         """X.509 not-after time."""
-        return self._payload.not_valid_after if self._payload else None
+        try:
+            return self._payload.not_valid_after_utc if self._payload else None
+        except AttributeError:
+            return self._payload.not_valid_after.replace(tzinfo=timezone.utc) if self._payload else None
 
     @property
     def _id_attribute(self) -> Optional[str]:
@@ -67,7 +73,7 @@ class X509Cert(Credential[x509.Certificate]):
             return "Certificate not yet valid."
         if datetime.now(self.not_after_time.tzinfo) > self.not_after_time:
             return "Certificate expired."
-        if (self.not_after_time - datetime.now()).total_seconds() < self.minimum_lifetime:
+        if (self.not_after_time - datetime.now(self.not_after_time.tzinfo)).total_seconds() < self.minimum_lifetime:
             return "Certificate lifetime too short."
 
 
