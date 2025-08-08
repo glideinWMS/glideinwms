@@ -1005,8 +1005,8 @@ def validate_schedds(main_list, group_list):
     Raises:
         RuntimeError: If 'ALL' is used incorrectly (e.g. mixed with other schedds or with a non-empty group list).
     """
-    main_items = main_list.split(",")
-    group_items = group_list.split(",")
+    main_items = main_list.split(",") if main_list else []
+    group_items = group_list.split(",") if group_list else []
 
     if "ALL" in main_items or "ALL" in group_items:
         if main_items != ["ALL"] or group_items:
