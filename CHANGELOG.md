@@ -11,6 +11,8 @@ Changes since the last release
 
 ### Changed defaults / behaviours
 
+-   Added httpd configuration to enhance security by disabling version headers and trace (PR #578)
+
 ### Deprecated / removed options and commands
 
 ### Security Related Fixes
@@ -62,7 +64,7 @@ Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-dem
 -   Added support for Ubuntu 24 workers (PR #529)
 -   Add keyword ALL to query all schedulers known to the collector without listing them explicitly (Issue #510, PR #532)
 -   Add keyword usertrace to the GLIDEIN_DEBUG_OPTIONS custom variable to enable shell tracing in user jobs and wrapper (PR #540)
--   Glideins can start containers with Busybox and no Bash, e.g Alpine Linux. The Glidein itself still requires Bash (Issue #538, PR #540)
+-   Glideins can start containers with Busybox and no Bash, e.g. Alpine Linux. The Glidein itself still requires Bash (Issue #538, PR #540)
 
 ### Changed defaults / behaviours
 
@@ -153,7 +155,7 @@ Check the changed defaults, including SINGULARITY_IMAGE_REQUIRED, APPTAINER_TEST
     The image must be provided by the job or a future custom script in order not to fail. (PR #482)
 -   APPTAINER_TEST_IMAGE can be set to an always available Singularity/Apptainer image to use for testing.
     Defaults to oras://ghcr.io/apptainer/alpine:latest (PR #482)
--   Monitoring pages are now redirecting to https if available, i.e. mod_ssl is installed and mod_ssl.conf is present. This behavior was present in the past but had been lost and now it has been reinstated. (PR #492, PR #502)
+-   Monitoring pages are now redirecting to https if available, i.e. mod_ssl is installed and mod_ssl.conf is present. This behavior was present in the past but had been lost, and now it has been reinstated. (PR #492, PR #502)
 -   The default Frontend tokens key is now variable, $HOME/passwords.d/UPPERCASE_USERNAME. There is no actual change since this is /var/lib/gwms-frontend/passwords.d/FRONTEND for normal RPM installations. (PR #504)
 
 ### Deprecated / removed options and commands
@@ -420,7 +422,7 @@ This release provides full functionality in EL9 and Python 3.9. Changes since v3
 ### Known Issues
 
 -   When generating cvmfsexec distribution for EL9 machine type on an EL7 machine, the factory reconfig and/or upgrade fails as a result of an error in `create_cvmfsexec_distros.sh`. This is possibly due to the tools for EL7 being unable to handle EL9 files (as per Dave Dykstra). Please exercise caution if using `rhel9-x86_64` in the `mtypes` list for the `cvmfsexec_distro` tag in factory configuration.
-    -   Our workaround is to remove the EL9 machine type from the default list of machine types supported by the custom distros creation script. Add it back if you are running on an EL9 system and want an EL9 cvmfsexec distrinution. (PR #312)
+    -   Our workaround is to remove the EL9 machine type from the default list of machine types supported by the custom distros creation script. Add it back if you are running on an EL9 system and want an EL9 cvmfsexec distribution. (PR #312)
 
 ## v3.10.2 \[2023-5-10\]
 
