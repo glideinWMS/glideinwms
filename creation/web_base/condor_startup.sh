@@ -1283,25 +1283,26 @@ slotlogs=$(ls -1 ${main_starter_log}.slot* 2>/dev/null)
 for slotlog in $slotlogs
 do
     slotname=$(echo $slotlog | awk -F"${main_starter_log}." '{print $2}')
-    cond_print_log StarterLog.${slotname} $slotlog
+    cond_print_log "StarterLog.${slotname}" "$slotlog"
 done
 
 if [[ "$use_multi_monitor" -ne 1 ]]; then
     if [[ "$GLIDEIN_Monitoring_Enabled" == "True" ]]; then
         cond_print_log MasterLog.monitor monitor/log/MasterLog
         cond_print_log StartdLog.monitor monitor/log/StartdLog
-        cond_print_log StarterLog.monitor ${monitor_starter_log}
+        cond_print_log StarterLog.monitor "${monitor_starter_log}"
     fi
 else
-    cond_print_log StarterLog.monitor ${monitor_starter_log}
+    cond_print_log StarterLog.monitor "${monitor_starter_log}"
 fi
 cond_print_log StartdHistoryLog log/StartdHistoryLog
 
 
 append_glidein_log=true   # TODO: this should be a configurable option
-logfile_path=$(get_logfile_path_relative)
 if [[ $append_glidein_log = true ]]; then
-    cond_print_log "GlideinLog" "${logfile_path}"
+    if logfile_path=$(glog_get_logfile_path_relative); then
+        cond_print_log "GlideinLog" "${logfile_path}"
+    fi
 fi
 
 ## kill the master (which will kill the startd)

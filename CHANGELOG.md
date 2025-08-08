@@ -19,6 +19,9 @@ Changes since the last release
 
 ### Bug Fixes
 
+-   Fixed incorrect glog_get_logfile_path_relative call in condor_startup.sh (PR #579)
+-   Fixed Frontend reconfiguration failure when using "ALL" schedd (Issue #575, PR #580)
+
 ### Testing / Development
 
 ### Known Issues
