@@ -270,11 +270,11 @@ _glog_json_escape() {
 }
 
 
-_glog_get_logfile_path_relative() {
+glog_get_logfile_path_relative() {
     # Get the relative path of the logfile w.r.t. the work dir
 
     if [ "${log_ready}" != 1 ]; then
-        warn_ready "get_logfile_path_relative: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
+        warn_ready "glog_get_logfile_path_relative: missing logging configuration in (${0}); perhaps forgot to call glog_setup before?"
         return 1
     fi
     echo "${logdir}/${log_logfile}"
