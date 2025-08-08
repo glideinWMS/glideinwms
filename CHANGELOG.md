@@ -3,26 +3,27 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.11.1 \[2025-07-21\]
+## v3.11.1 \[2025-07-29\]
 
 Improvement and hardening of the refactored credentials.
-This is a development (3.11) release and includes all the production improvement and fixes up to v3.10.14.
+This is a development (3.11) release and includes all the production improvement and fixes up to v3.10.15, see the 3.10.15 for details.
 
 ### New features / functionalities
 
 -   Added a generator to set credentials or parameters depending on the Entry selected (PR #489)
--   Added a generator to set credentials or parameters depending on the Entry selected (PR #489)
--   Added IdTokenGenerator to standardize the generation of ID tokens and allow for operator customization
--   Added CachedGenerator base class to implement generators with automatic cache management
--   Added CredentialGenerator base generator class to implement cached credential generators
+-   Added IdTokenGenerator to standardize the generation of ID tokens and allow for operator customization (PR #531)
+-   Added SciTokenGenerator to facilitate the generation of standard SciTokens (PR #531)
+-   Added CachedGenerator base class to implement generators with automatic cache management (PR #531)
+-   Added CredentialGenerator base generator class to implement cached credential generators (PR #531)
 -   Added GeneratorContext class to implement context validation
+-   Added support for generator snapshots to store and retrieve specific generated values (PR #531)
 -   Updated some builtin generators to avoid redefining \_\_init\_\_ making them more flexible
 -   Updated the CredentialPair class and its subclasses to support credential pairs with different types. (PR #514)
 -   Refactored the credentials module into a python package including modules for base classes and specific credential types. (PR #514)
 -   Renamed the credentialGenerator and hashCrypto modules to credential_generator and hash_crypto. (PR #514)
 -   Renamed CredentialGenerator credentials to DynamicCredential and added the new alias "generator" to the newly renamed "dynamic" credential type. (PR #514)
 -   Added the new RSAPublicKey, RSAPrivateKey, and Symmetric credential types to replace the legacy pubCrypto and symCrypto modules. (PR #514)
--   Stopped using M2Crypto in favor of the cryptography module. (PR #514)
+-   Stopped using M2Crypto in favor of the cryptography module. Code compatible with M2Crypto default checksum (PR #514, PR #548)
 
 ### Changed defaults / behaviours
 
@@ -33,7 +34,7 @@ This is a development (3.11) release and includes all the production improvement
 ### Bug Fixes
 
 -   Fixed a bug that could cause the Frontend not to generate IDTOKENS to some Factory entries. (PR #514)
--   Fixed a bug that would cause the Frontend to request glideins for credentials that didn't match an entry.
+-   Fixed a bug that would cause the Frontend to request glideins for credentials that didn't match an entry. (PR #562)
 -   Fixed also '+' sign in Factory auth_method configuration. (PR #562)
 
 ### Testing / Development
