@@ -3,6 +3,30 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## v3.11.2 \[2025-08-06\]
+
+Release to address the issues found during the GlideinWMS 3.11.1 hackathon.
+
+### New features / functionalities
+
+### Changed defaults / behaviours
+
+-   When using credential generators, glideclient classads are now identified by the generated credential ID.
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Fixed monitoring that had broken due to inconsistent credential IDs used in Glideins.
+-   Fixed an issue that would cause the Credentials library to use the wrong timezones when validating X509 certificates.
+-   Fixed a bug that would cause CachedGenerator to fail if `cache_dir` wasn't provided in the context.
+
+### Testing / Development
+
+### Known Issues
+
 ## v3.11.1 \[2025-07-29\]
 
 Improvement and hardening of the refactored credentials.
