@@ -1253,6 +1253,30 @@ def getCondorStatusSchedds(collector_names, constraint=None, format_list=None, w
     )
 
 
+def getClientCondorStatusCredIds(status_dict):
+    """Return a set of credential IDs from the condorStatus dictionary
+
+    Use the output of getCondorStatus
+
+    Args:
+        status_dict (dict): output of getCondorStatus
+
+    Returns:
+        set: set of credential IDs found in the condorStatus
+    """
+
+    out = set()
+    for _, collector_status in status_dict.items():
+        sq = condorMonitor.SubQuery(
+            collector_status,
+            lambda el: ("GLIDEIN_CredentialIdentifier" in el),
+        )
+        sq.load()
+        for el in sq.fetchStored().values():
+            out.add(el["GLIDEIN_CredentialIdentifier"])
+    return out
+
+
 ############################################################
 #
 # I N T E R N A L - Do not use

@@ -1144,7 +1144,7 @@ class MultiAdvertiseWork:
         auth_set = factory_auth.match(self.descript_obj.credentials_plugin.security_bundle)
         if not auth_set:
             logSupport.log.debug(
-                f"The available credentials do not match the requirements of factory pool {factory_pool}. Not advertising request. "
+                f'The available credentials do not match the requirements of factory pool {factory_pool} entry "{params_obj.request_name}". Not advertising request. '
                 f"Available credentials: {str(self.descript_obj.credentials_plugin.security_bundle)} "
                 f"Required credentials: {str(factory_auth)}"
             )
@@ -1184,15 +1184,14 @@ class MultiAdvertiseWork:
         self.descript_obj.credentials_plugin.assign_work(self.request_credentials, params_obj, auth_set)
 
         for request_cred in self.request_credentials:
+            cred = self.descript_obj.credentials_plugin.get_credential(request_cred.credential.id, snapshot=entry_name)
             if not request_cred.advertise:
-                logSupport.log.debug(
-                    f"Skipping credential with 'advertise' set to False. ({request_cred.credential.id})"
-                )
+                logSupport.log.debug(f"Skipping credential with 'advertise' set to False. ({cred.id})")
                 continue  # We already determined it cannot be used
-            if (request_cred.credential.trust_domain != factory_trust) and (factory_trust != "Any"):
+            if (cred.trust_domain != factory_trust) and (factory_trust != "Any"):
                 logSupport.log.warning(
-                    f"Skipping credential with trust_domain {request_cred.credential.trust_domain}. "
-                    f"Factory requires {factory_trust}. ({request_cred.credential.id})"
+                    f"Skipping credential with trust_domain {cred.trust_domain}. "
+                    f"Factory requires {factory_trust}. ({cred.id})"
                 )
                 continue  # Skip credentials that don't match the trust domain
             # NOTE: Up to GWMS 3.10.x glideclient was always advertised. This is a new behavior.
@@ -1200,26 +1199,22 @@ class MultiAdvertiseWork:
             if (
                 request_cred.req_idle == 0
                 and request_cred.req_max_run == 0
-                and params_obj.glidein_monitors_per_cred[request_cred.credential.id]["GlideinsTotal"] == 0
+                and params_obj.glidein_monitors_per_cred[cred.id]["GlideinsTotal"] == 0
             ):
-                logSupport.log.debug(
-                    f"Skipping credential with no work assigned or active glideins. ({request_cred.credential.id})"
-                )
+                logSupport.log.debug(f"Skipping credential with no work assigned or active glideins. ({cred.id})")
                 continue  # Skip credentials with no work assigned or active glideins
 
-            classad_name = f"{request_cred.credential.id}_{params_obj.request_name}@{self.descript_obj.my_name}"
+            classad_name = f"{cred.id}_{params_obj.request_name}@{self.descript_obj.my_name}"
 
             glidein_params_to_encrypt = {}
             if params_obj.glidein_params_to_encrypt:
                 glidein_params_to_encrypt = copy.deepcopy(params_obj.glidein_params_to_encrypt)
 
             # Add request specific parameters
-            glidein_params_to_encrypt["RequestCredentials"] = pickle.dumps(
-                [self.descript_obj.credentials_plugin.get_credential(request_cred.credential.id, snapshot=entry_name)]
-            )
+            glidein_params_to_encrypt["RequestCredentials"] = pickle.dumps([cred])
 
             # Convert the security class to a string so the Factory can interpret the value correctly
-            glidein_params_to_encrypt["SecurityClass"] = str(request_cred.credential.security_class)
+            glidein_params_to_encrypt["SecurityClass"] = str(cred.security_class)
             if params_obj.security_name is not None:
                 glidein_params_to_encrypt["SecurityName"] = params_obj.security_name
 
@@ -1240,7 +1235,7 @@ class MultiAdvertiseWork:
 
             # Get the glidein monitors for this credential
             glidein_monitors_this_cred = params_obj.glidein_monitors_per_cred.get(
-                request_cred.credential.id, {}  # type: ignore[attr-defined]
+                cred.id, {}  # type: ignore[attr-defined]
             )
 
             # Update Sequence number information
@@ -1310,7 +1305,7 @@ class MultiAdvertiseWork:
             cred_filename_arr.append(fname)
 
             logSupport.log.debug(
-                f"Advertising credential {request_cred.credential.path} "  # type: ignore[attr-defined]
+                f"Advertising credential {cred.path} "  # type: ignore[attr-defined]
                 f"with ({request_cred.req_idle} idle, {request_cred.req_max_run} max run) for request {params_obj.request_name}"
             )
 
