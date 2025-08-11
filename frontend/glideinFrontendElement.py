@@ -869,13 +869,55 @@ class glideinFrontendElement:
             # Credential specific stats are not presented anywhere except the
             # classad. Monitoring info in frontend and factory shows
             # aggregated info considering all the credentials
-            submit_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.REQUEST)
+
+            trust_domain = glidein_el["attrs"].get("GLIDEIN_TrustDomain", "Grid")
+            auth_method = glidein_el["attrs"].get("GLIDEIN_SupportedAuthenticationMethod", "grid_proxy")
+
+            # add callback credential generator if needed
+            callback_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.CALLBACK)
+            if not callback_creds:
+                logSupport.log.debug("Custom callback credential not provided. Using default.")
+                tkn_dir = TOKEN_DIR
+                if not os.path.exists(tkn_dir):
+                    os.mkdir(tkn_dir, 0o700)
+                callback_generator = create_credential(
+                    "IdTokenGenerator",
+                    cred_type=CredentialType.DYNAMIC,
+                    purpose=CredentialPurpose.CALLBACK,
+                    trust_domain=trust_domain,
+                    context={"cache_dir": tkn_dir},
+                )
+                self.credentials_plugin.security_bundle.add_credential(callback_generator)
+            else:
+                logSupport.log.debug("Custom callback credential provided. Using it.")
+
+            # Generate credentials and parameters
+            self.credentials_plugin.generate_credentials(
+                elementDescript=self.elementDescript,
+                glidein_el=glidein_el,
+                group_name=self.group_name,
+                logger=logSupport.log,
+                snapshot=glidein_el["attrs"]["EntryName"],
+            )
+            self.credentials_plugin.generate_parameters(
+                elementDescript=self.elementDescript,
+                glidein_el=glidein_el,
+                group_name=self.group_name,
+                logger=logSupport.log,
+                snapshot=glidein_el["attrs"]["EntryName"],
+            )
+
+            submit_creds = self.credentials_plugin.get_credentials(
+                credential_purpose=CredentialPurpose.REQUEST, snapshot=glidein_el["attrs"]["EntryName"]
+            )
             creds_with_running = 0
 
             for cred in submit_creds:
                 glidein_monitors_per_cred[cred.id] = {}
                 for t in count_status:
-                    glidein_monitors_per_cred[cred.id]["Glideins%s" % t] = count_status_per_cred[cred.id][t]
+                    glidein_monitors_per_cred[cred.id]["Glideins%s" % t] = (
+                        count_status_per_cred[cred.id][t] if cred.id in count_status_per_cred else 0
+                    )
                 glidein_monitors_per_cred[cred.id]["ScaledRunning"] = 0
                 # This credential has running glideins.
                 if glidein_monitors_per_cred[cred.id]["GlideinsRunning"]:
@@ -910,46 +952,8 @@ class glideinFrontendElement:
                         )
                     break
 
-            trust_domain = glidein_el["attrs"].get("GLIDEIN_TrustDomain", "Grid")
-            auth_method = glidein_el["attrs"].get("GLIDEIN_SupportedAuthenticationMethod", "grid_proxy")
-
             # Only advertise if there is a valid key for encryption
             if key_obj is not None:
-                # add callback credential generator if needed
-                callback_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.CALLBACK)
-                if not callback_creds:
-                    logSupport.log.debug("Custom callback credential not provided. Using default.")
-                    tkn_dir = TOKEN_DIR
-                    if not os.path.exists(tkn_dir):
-                        os.mkdir(tkn_dir, 0o700)
-                    callback_generator = create_credential(
-                        "IdTokenGenerator",
-                        cred_type=CredentialType.DYNAMIC,
-                        purpose=CredentialPurpose.CALLBACK,
-                        trust_domain=trust_domain,
-                        context={"cache_dir": tkn_dir},
-                    )
-                    self.credentials_plugin.security_bundle.add_credential(callback_generator)
-                else:
-                    logSupport.log.debug("Custom callback credential provided. Using it.")
-
-                # Generate credentials and parameters
-                self.credentials_plugin.generate_credentials(
-                    elementDescript=self.elementDescript,
-                    glidein_el=glidein_el,
-                    group_name=self.group_name,
-                    logger=logSupport.log,
-                    snapshot=glidein_el["attrs"]["EntryName"],
-                )
-                self.credentials_plugin.generate_parameters(
-                    elementDescript=self.elementDescript,
-                    glidein_el=glidein_el,
-                    group_name=self.group_name,
-                    logger=logSupport.log,
-                    snapshot=glidein_el["attrs"]["EntryName"],
-                )
-
-                # now advertise
                 advertiser.add(
                     factory_pool_node,
                     request_name,
@@ -2506,12 +2510,6 @@ class glideinFrontendElement:
         count_status_multi_per_cred = {}
         for glideid in glidein_list:
             request_name = glideid[1]
-            submit_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.REQUEST)
-
-            count_status_multi[request_name] = {}
-            count_status_multi_per_cred[request_name] = {}
-            for cred in submit_creds:
-                count_status_multi_per_cred[request_name][cred.id] = {}
 
             # It is cheaper to get Idle and Running from request-only
             # classads then filter out requests from Idle and Running
@@ -2519,6 +2517,13 @@ class glideinFrontendElement:
             total_req_dict = glideinFrontendLib.getClientCondorStatus(
                 self.status_dict_types["Total"]["dict"], self.frontend_name, self.group_name, request_name
             )
+
+            cred_ids = glideinFrontendLib.getClientCondorStatusCredIds(total_req_dict)
+
+            count_status_multi[request_name] = {}
+            count_status_multi_per_cred[request_name] = {}
+            for cred_id in cred_ids:
+                count_status_multi_per_cred[request_name][cred_id] = {}
 
             req_dict_types = {
                 "Total": total_req_dict,
@@ -2541,22 +2546,22 @@ class glideinFrontendElement:
                 else:
                     count_status_multi[request_name][st] = glideinFrontendLib.countCondorStatus(req_dict)
 
-                for cred in submit_creds:
-                    cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict, cred.id)
+                for cred_id in cred_ids:
+                    cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict, cred_id)
 
                     if st in ("TotalCores", "IdleCores", "RunningCores"):
-                        count_status_multi_per_cred[request_name][cred.id][st] = (
+                        count_status_multi_per_cred[request_name][cred_id][st] = (
                             glideinFrontendLib.countCoresCondorStatus(cred_dict, st)
                         )
                     elif st == "Running":
                         # Running counts are computed differently because of
                         # the dict composition. Dict also has p-slots
                         # corresponding to the dynamic slots
-                        count_status_multi_per_cred[request_name][cred.id][st] = (
+                        count_status_multi_per_cred[request_name][cred_id][st] = (
                             glideinFrontendLib.countRunningCondorStatus(cred_dict)
                         )
                     else:
-                        count_status_multi_per_cred[request_name][cred.id][st] = glideinFrontendLib.countCondorStatus(
+                        count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCondorStatus(
                             cred_dict
                         )
 
