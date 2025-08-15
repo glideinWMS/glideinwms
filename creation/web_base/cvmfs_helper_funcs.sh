@@ -228,7 +228,7 @@ log_all_system_info () {
 	loginfo "Unprivileged user namespaces enabled: $(check_exit_status $GWMS_IS_UNPRIV_USERNS_ENABLED)"
 	loginfo "FUSE installed: $(check_exit_status $GWMS_IS_FUSE_INSTALLED)"
 	loginfo "fusermount available: $(check_exit_status $GWMS_IS_FUSERMOUNT)"
-	loginfo "Is the user in 'fuse' group: $(check_exit_status $GWMS_IS_USR_IN_FUSE_GRP)"
+	loginfo "Is the $(whoami) user in 'fuse' group: $(check_exit_status $GWMS_IS_USR_IN_FUSE_GRP)"
 	loginfo "..."
 }
 
