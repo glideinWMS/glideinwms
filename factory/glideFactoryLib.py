@@ -2171,6 +2171,8 @@ def get_submit_environment(
             # TODO: this ends up transferring an empty file called 'null' in the Glidein start dir. Find a better way
             exe_env.append("IDTOKENS_FILE=/dev/null")
 
+        exe_env.append(f"IDENTITY_CREDENTIALS={','.join(id_cred_paths)}")
+
         # The parameter list to be added to the arguments for glidein_startup.sh
         params_str = ""
         # if client_web has been provided, get the arguments and add them to the string
@@ -2409,8 +2411,6 @@ email_logs = False
                 exe_env.append("GLIDEIN_PROJECT_ID=%s" % submit_credentials.identity_credentials["ProjectId"])
 
             exe_env.append("GLIDEIN_RSL=%s" % glidein_rsl)
-
-            exe_env.append(f"IDENTITY_CREDENTIALS={','.join(id_cred_paths)}")
 
         return exe_env
     except Exception as e:
