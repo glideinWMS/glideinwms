@@ -2603,8 +2603,9 @@ MAX_STARTD_LOG          I       10000000        +                               
               <p>
                 If "false" the Glidein will continue the Singularity/Apptainer
                 setup even if no valid image is found. The setup will use a test
-                image. The user will have to provide the image with a later
-                setup script or in the job. Possible values are: false or true.
+                image (see APPTAINER_TEST_IMAGE). The user will have to provide
+                the image with a later setup script or in the job. Possible
+                values are: false or true.
               </p>
             </td>
           </tr>
@@ -2616,11 +2617,13 @@ MAX_STARTD_LOG          I       10000000        +                               
             <td>
               <p>
                 URI (local path or remote URI) of a Singularity/Apptainer image
-                to use for testing. If not set, GWMS_SINGULARITY_IMAGE_DEFAULT,
-                otherwise <tt>oras://ghcr.io/apptainer/alpine:latest</tt>, a
-                small Alpine Linux sif image provided by the Apptainer
-                developers. This can be set in the worker node environment,
-                which takes precedence, or as attribute.
+                to use for testing if your image is not available and
+                GWMS_SINGULARITY_IMAGE_DEFAULT is not set. APPTAINER_TEST_IMAGE
+                can be set in the worker node environment, which takes
+                precedence, or as attribute in the configuration. If neither is
+                set, the Glidein will download for testing
+                <tt>oras://ghcr.io/apptainer/alpine:latest</tt>, a small Alpine
+                Linux sif image provided by the Apptainer developers.
               </p>
             </td>
           </tr>

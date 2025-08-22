@@ -21,3 +21,6 @@ bigfiles/*
 !bigfiles/push-bigfiles.sh
 
 .idea/*
+
+# Mac temp files
+.DS_Store
