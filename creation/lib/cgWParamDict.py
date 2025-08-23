@@ -303,8 +303,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         )
         self.dicts["untar_cfg"].add(pychirp_tarball, "lib/python/htchirp")
 
-        # Add helper scripts for on-demand cvmfs provisioning, conditional upon the attribute GLIDEIN_USE_CVMFSEXEC
-        # Add cvmfsexec helper script enabled by conditional download
+        ### Add helper script for on-demand cvmfs provisioning
         cvmfs_helper = "cvmfs_helper_funcs.sh"
         self.dicts["file_list"].add_from_file(
             cvmfs_helper,
