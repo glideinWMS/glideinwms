@@ -15,9 +15,12 @@ DEFAULT_MACHINE_TYPES="rhel9-x86_64,rhel8-x86_64,rhel7-x86_64,suse15-x86_64,rhel
 
 usage() {
 cat << EOF
-Usage: $0 [--work-dir DIR] SOURCES_LIST [PLATFORMS_LIST]
+Usage:
+$0 [--work-dir DIR] SOURCES_LIST [PLATFORMS_LIST]   Build cvmfsexec distributions
+$0 --list-platforms                                 List all available platforms
+$0 -h | --help                                      Print this help message
 
-DIR: full, absolute path to the factory work directory. Default value: /var/lib/gwms-factory/work-dir
+DIR: full, absolute path to the factory work directory (default: /var/lib/gwms-factory/work-dir)
 
 SOURCES_LIST (required): specifies the source(s) to download the latest
 cvmfs configuration and repositories from. Must be at least one value
@@ -26,6 +29,7 @@ or a comma-separated list of values from the options {osg|egi|default}.
 PLATFORMS_LIST (optional): indicates machine types (platform- and architecture-based)
 for which distributions is to be built. Can be empty, a single value or a
 comma-separated list of values from the options {rhel9-x86_64|rhel8-x86_64|rhel7-x86_64|suse15-x86_64|rhel8-aarch64|rhel8-ppc64le}.
+Use '$0 --list-platforms' for the updated list of all available platforms.
 EOF
 }
 
@@ -39,13 +43,15 @@ ensure_directory_exists() {
 }
 
 build_cvmfsexec_distros() {
-	local cvmfs_src mach_type cvmfs_configurations cvmfs_configurations_list="$1"
-	local curr_ver latest_ver supported_machine_types supported_machine_types_list="$2"
-	local work_dir="$3"
-	local cvmfsexec_tarballs="$work_dir"/cvmfsexec/tarballs
+	local cvmfs_src mach_type curr_ver latest_ver
+    local cvmfs_configurations supported_machine_types
+    local cvmfsexec_tarballs="$work_dir"/cvmfsexec/tarballs
 	local cvmfsexec_temp="$work_dir"/cvmfsexec/cvmfsexec.tmp
 	local cvmfsexec_latest="$cvmfsexec_temp"/latest
 	local cvmfsexec_distros="$cvmfsexec_temp"/distros
+    local work_dir="$1"
+    cvmfs_configurations_list="$2"
+    supported_machine_types_list="$3"
 	start=$(date +%s)
 
 	# rhel6-x86_64 is not included; currently not supported due to EOL
@@ -156,28 +162,32 @@ error_handler() {
 
 ####################### MAIN SCRIPT STARTS FROM HERE #######################
 
-## parsing the command-line arguments
-# if only one argument and the argument value is -h or --help, print usage information
-if [[ $# -eq 1 && ( $1 == "-h" || $1 == "--help" ) ]]; then
+# parsing the command-line arguments
+if [[ $1 == "-h" || $1 == "--help" ]]; then
+    # print help message
     usage
     exit 0
 fi
 
-# check whether the first argument passed is the option '--work-dir'
-if [[ $1 == "--work-dir" ]]; then
-    if [[ ! -z $2 && ! -d "$2" ]]; then
-        if [[ "$2" =~ ^(osg|egi|default)$ || "$2" =~ ^((osg|egi|default),)*(osg|egi|default),?$ ]]; then
-            work_dir="$DEFAULT_WORK_DIR"
-            shift 1
-        else
-            # if value after this option is a path that does not exist, invoke the error handler
-            error_handler "The value of --work-dir option must be an existing directory."
-            exit 1
-        fi
-    elif [[ ! -z $2 ]]; then
-        work_dir="$2"
-        shift 2
-    fi
+if [[ $1 == "--list-platforms" ]]; then
+    # checkout the latest version of cvmfsexec into a temp location
+    git clone $CVMFSEXEC_REPO /tmp &> /dev/null
+    echo "Functionality not implemented!"
+    exit 0
+fi
+
+# if neither of the two options above, check whether the first argument passed is the option '--work-dir'
+if [[ $1 == "--work-dir" && -z $2 ]]; then
+    error_handler "--work-dir option must be supplied with a valid directory location."
+elif [[ $1 == "--work-dir" && ! -d "$2" ]]; then
+	# if value after this option is not a valid path, invoke the error handler
+	error_handler "The value of --work-dir option must be an existing directory."
+elif [[ $1 != "--work-dir" ]]; then
+    # if --work-dir is not passed, assume default work-dir (RPM install)
+    work_dir="$DEFAULT_WORK_DIR"
+else
+    work_dir="$2"
+    shift 2
 fi
 
 # check whether there are any remaining arguments passed to the script after the option
@@ -207,4 +217,4 @@ else
 fi
 
 echo "(Re)Building of cvmfsexec distributions enabled!"
-build_cvmfsexec_distros "$configurations" "$machine_types" "$work_dir"
+build_cvmfsexec_distros "$work_dir" "$configurations" "$machine_types"
