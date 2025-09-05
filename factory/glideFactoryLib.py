@@ -2570,14 +2570,16 @@ def get_submit_environment_v3_11(
                 # otherwise could not be there (KeyError), be empty (AttributeError), bad format (IndexError)
                 remote_username = submit_credentials.parameters[ParameterName.REMOTE_USERNAME]
                 if remote_username:
-                    exe_env.append("GLIDEIN_REMOTE_USERNAME=%s" % remote_username)
+                    exe_env.append("GLIDEIN_REMOTE_USERNAME=%s" % remote_username.value)
             except KeyError:
                 pass
-            private_key = submit_credentials.security_credentials.find(
-                cred_type=CredentialType.RSA_PRIVATE_KEY, purpose=CredentialPurpose.REQUEST
+            key_pair = submit_credentials.security_credentials.find(
+                cred_type=CredentialPairType.KEY_PAIR, purpose=CredentialPurpose.REQUEST
             )
-            if private_key:
-                exe_env.append("GRID_RESOURCE_OPTIONS=--rgahp-key %s --rgahp-nopass" % cred_path(private_key[-1]))
+            if key_pair:
+                exe_env.append(
+                    "GRID_RESOURCE_OPTIONS=--rgahp-key %s --rgahp-nopass" % cred_path(key_pair[-1].private_credential)
+                )
             else:
                 log.warning("No key pair found in the security credentials")
             glidein_proxy = submit_credentials.security_credentials.find(

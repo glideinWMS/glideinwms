@@ -52,6 +52,8 @@ class RSAPublicKey(Credential[PUBLIC_KEY_TYPES]):
     @staticmethod
     def decode(string: Union[str, bytes]) -> PUBLIC_KEY_TYPES:
         string = force_bytes(string)
+        if string.startswith(b"ssh-rsa"):
+            return serialization.load_ssh_public_key(string, backend=default_backend())
         return serialization.load_pem_public_key(string, backend=default_backend())
 
     def invalid_reason(self) -> Optional[str]:
@@ -189,6 +191,8 @@ class RSAPrivateKey(Credential[PRIVATE_KEY_TYPES]):
     @staticmethod
     def decode(string: Union[str, bytes]) -> PRIVATE_KEY_TYPES:
         string = force_bytes(string)
+        if string.startswith(b"-----BEGIN OPENSSH PRIVATE KEY-----"):
+            return serialization.load_ssh_private_key(string, password=None, backend=default_backend())
         return serialization.load_pem_private_key(string, password=DEFAULT_PASSWORD, backend=default_backend())
 
     def invalid_reason(self) -> Optional[str]:

@@ -72,8 +72,8 @@ class ParameterType(enum.Enum):
 
     DYNAMIC = "dynamic"
     INTEGER = "integer"
-    EXPRESSION = "expression"
     STRING = "string"
+    EXPRESSION = "expression"
 
     @classmethod
     def from_string(cls, string: str) -> "ParameterType":
@@ -469,7 +469,7 @@ def create_parameter(
                 param_args = [param.name for param in param_args if param.name != "self"]
                 kwargs = {key: value for key, value in locals().items() if key in param_args and value is not None}
                 return parameter_class(**kwargs)
-        except TypeError:
+        except (TypeError, ValueError, ImportError):
             pass  # Parameter type incompatible with input
         except Exception as err:
             raise ParameterError(f'Unexpected error loading parameter: name="{name}", value="{value}"') from err

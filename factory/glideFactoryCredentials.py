@@ -17,6 +17,7 @@ import re
 import shutil
 
 from glideinwms.lib import condorMonitor, logSupport
+from glideinwms.lib.credentials import CredentialPairType, CredentialType, ParameterType
 from glideinwms.lib.defaults import force_bytes
 from glideinwms.lib.util import is_str_safe
 
@@ -365,6 +366,10 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name,
     # TODO: This function policies need to be reviewed and updated.
     """
     auth_set = params.get("AuthSet", auth_method.split("+")[0])  # Fall back to auth_method (str) for retrocompatibility
+    cred_types = {
+        cred.cred_type for cred in params.get("RequestCredentials", []) + params.get("PayloadCredentials", [])
+    }
+    param_types = {param.param_type for param in params.get("SecurityParameters", [])}
     if isinstance(auth_set, str) and not set(auth_set) & set(SUPPORTED_AUTH_METHODS):
         logSupport.log.warning(
             f"None of the supported auth methods {SUPPORTED_AUTH_METHODS} in provided auth methods: {auth_set}"
@@ -431,7 +436,10 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name,
 
         elif "key_pair" in auth_set:
             # Validate both the public and private keys were passed
-            if not (("PublicKey" in params) and ("PrivateKey" in params)):
+            if (
+                not (("PublicKey" in params) and ("PrivateKey" in params))
+                and not CredentialPairType.KEY_PAIR in cred_types
+            ):
                 # key pair is required, cannot service request
                 raise CredentialError(
                     f"Client '{client_int_name}' did not specify the key pair in the request, this is required by entry {entry_name}, skipping"

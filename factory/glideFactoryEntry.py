@@ -29,6 +29,7 @@ from glideinwms.lib.credentials import (
     CredentialPurpose,
     CredentialType,
     ParameterName,
+    ParameterType,
     standard_path,
     SubmitBundle,
 )
@@ -1809,7 +1810,9 @@ def unit_work_v3_11(
             gatekeeper_list = entry.jobDescript.data["Gatekeeper"].split("@")
             if len(gatekeeper_list) == 2:
                 submit_credentials.add_parameter(
-                    create_parameter(ParameterName.REMOTE_USERNAME, gatekeeper_list[0].strip())
+                    create_parameter(
+                        ParameterName.REMOTE_USERNAME, gatekeeper_list[0].strip(), param_type=ParameterType.STRING
+                    )
                 )
             else:
                 entry.log.warning(
