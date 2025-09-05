@@ -438,7 +438,7 @@ perform_cvmfs_mount () {
 
         loginfo "CVMFS Source = $cvmfs_source"
         # initializing CVMFS repositories to a variable for easy modification in the future
-        local cvmfs_source_repolist
+        local cvmfs_source_repolist, combined_repos
         case $cvmfs_source in
             osg)
                 GLIDEIN_CVMFS_CONFIG_REPO=config-osg.opensciencegrid.org
@@ -457,7 +457,13 @@ perform_cvmfs_mount () {
                 exit 1
         esac
         GLIDEIN_CVMFS_REPOS=$(gconfig_get GLIDEIN_CVMFS_REPOS)
-        GLIDEIN_CVMFS_REPOS="$cvmfs_source_repolist:$GLIDEIN_CVMFS_REPOS"
+        combined_repos="$cvmfs_source_repolist:$GLIDEIN_CVMFS_REPOS"
+        if [[ ! -z $GLIDEIN_CVMFS_REPOS ]]; then
+            combined_repos=$(echo "${combined_repos}" | tr ':' '\n' | sort -u)
+            GLIDEIN_CVMFS_REPOS=$(echo "$combined_repos" | tr '\n' ':')
+        else
+            GLIDEIN_CVMFS_REPOS="$cvmfs_source_repolist:$GLIDEIN_CVMFS_REPOS"
+        fi
         GLIDEIN_CVMFS_REPOS="${GLIDEIN_CVMFS_REPOS%:}"
 
         # (optional) set an environment variable that suggests additional repos to be mounted after config repos are mounted
