@@ -22,6 +22,7 @@ Release to address the issues found during the GlideinWMS 3.11.1 hackathon.
 -   Fixed monitoring that had broken due to inconsistent credential IDs used in Glideins.
 -   Fixed an issue that would cause the Credentials library to use the wrong timezones when validating X509 certificates.
 -   Fixed a bug that would cause CachedGenerator to fail if `cache_dir` wasn't provided in the context.
+-   Fixed issues that would prevent a 3.11 Frontend to request Glideins from `batch` entries on a 3.11 Factory.
 
 ### Testing / Development
 
