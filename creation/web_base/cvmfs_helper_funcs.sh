@@ -457,14 +457,13 @@ perform_cvmfs_mount () {
                 exit 1
         esac
         GLIDEIN_CVMFS_REPOS=$(gconfig_get GLIDEIN_CVMFS_REPOS)
-        combined_repos="$cvmfs_source_repolist:$GLIDEIN_CVMFS_REPOS"
-        if [[ ! -z $GLIDEIN_CVMFS_REPOS ]]; then
+        if [[ -z $GLIDEIN_CVMFS_REPOS ]]; then
+            GLIDEIN_CVMFS_REPOS="$cvmfs_source_repolist"
+        else
+            combined_repos="$cvmfs_source_repolist:$GLIDEIN_CVMFS_REPOS"
             combined_repos=$(echo "${combined_repos}" | tr ':' '\n' | sort -u)
             GLIDEIN_CVMFS_REPOS=$(echo "$combined_repos" | tr '\n' ':')
-        else
-            GLIDEIN_CVMFS_REPOS="$cvmfs_source_repolist:$GLIDEIN_CVMFS_REPOS"
         fi
-        GLIDEIN_CVMFS_REPOS="${GLIDEIN_CVMFS_REPOS%:}"
 
         # (optional) set an environment variable that suggests additional repos to be mounted after config repos are mounted
         loginfo "CVMFS Config Repo = $GLIDEIN_CVMFS_CONFIG_REPO"
