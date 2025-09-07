@@ -11,7 +11,30 @@ Changes since the last release
 
 ### Changed defaults / behaviours
 
+-   Example
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+### Testing / Development
+
+### Known Issues
+
+## v3.10.16 \[2025-09-08\]
+
+Bug fix release. Mostly cvmfs and condor job wrapper related.
+
+### New features / functionalities
+
+-   create_cvmfsexec_distros.sh updated adding EL9 to platforms and improved command syntax (PR #582)
+
+### Changed defaults / behaviours
+
 -   Added httpd configuration to enhance security by disabling version headers and trace (PR #578)
+-   Since 3.10.15 job wrapper scripts must be "POSIX" compatible to be able to run on small images with Busybox. Added relaxation when Bash is available (PR #587)
 
 ### Deprecated / removed options and commands
 
@@ -21,6 +44,8 @@ Changes since the last release
 
 -   Fixed incorrect glog_get_logfile_path_relative call in condor_startup.sh (PR #579)
 -   Fixed Frontend reconfiguration failure when using "ALL" schedd (Issue #575, PR #580)
+-   Fixed cvmfsexec failure when duplicate repositories are in the GLIDEIN_CVMFS_REPOS list (Issue #567, PR #585)
+-   Fixed wrong exec command in wrapper script (Issue #584, PR #587)
 
 ### Testing / Development
 
