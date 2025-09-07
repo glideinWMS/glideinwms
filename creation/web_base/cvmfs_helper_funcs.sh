@@ -464,6 +464,7 @@ perform_cvmfs_mount () {
             combined_repos=$(echo "${combined_repos}" | tr ':' '\n' | sort -u)
             GLIDEIN_CVMFS_REPOS=$(echo "$combined_repos" | tr '\n' ':')
         fi
+        GLIDEIN_CVMFS_REPOS="${GLIDEIN_CVMFS_REPOS%:}"
 
         # (optional) set an environment variable that suggests additional repos to be mounted after config repos are mounted
         loginfo "CVMFS Config Repo = $GLIDEIN_CVMFS_CONFIG_REPO"
