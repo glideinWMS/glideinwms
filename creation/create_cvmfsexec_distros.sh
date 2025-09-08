@@ -10,14 +10,17 @@
 CVMFSEXEC_REPO="https://www.github.com/cvmfs/cvmfsexec.git"
 DEFAULT_WORK_DIR="/var/lib/gwms-factory/work-dir"
 # TODO: periodically add rhel, suse and other derivatives as supported by cvmfsexec
-# NOTE: ignoring rhel9-x86_64 (although supported) since el7 tools cannot work with el9 files at the moment (as suggested by Dave Dykstra)
-DEFAULT_MACHINE_TYPES="rhel7-x86_64,rhel8-x86_64,suse15-x86_64,rhel8-aarch64,rhel8-ppc64le"
+# NOTE: Although rhel9-x86_64 is supported, el7 tools might not work with el9 files (as suggested by Dave Dykstra) as of July 03, 2023
+DEFAULT_MACHINE_TYPES="rhel9-x86_64,rhel8-x86_64,rhel7-x86_64,suse15-x86_64,rhel8-aarch64,rhel8-ppc64le"
 
 usage() {
 cat << EOF
-Usage: $0 [--work-dir DIR] SOURCES_LIST [PLATFORMS_LIST]
+Usage:
+$0 [--work-dir DIR] SOURCES_LIST [PLATFORMS_LIST]   Build cvmfsexec distributions
+$0 --list-platforms                                 List all available platforms
+$0 -h | --help                                      Print this help message
 
-DIR: full, absolute path to the factory work directory
+DIR: full, absolute path to the factory work directory (default: /var/lib/gwms-factory/work-dir)
 
 SOURCES_LIST (required): specifies the source(s) to download the latest
 cvmfs configuration and repositories from. Must be at least one value
@@ -25,7 +28,8 @@ or a comma-separated list of values from the options {osg|egi|default}.
 
 PLATFORMS_LIST (optional): indicates machine types (platform- and architecture-based)
 for which distributions is to be built. Can be empty, a single value or a
-comma-separated list of values from the options {rhel9-x86_64|rhel7-x86_64|rhel8-x86_64|suse15-x86_64|rhel8-aarch64|rhel8-ppc64le}.
+comma-separated list of values from the options {rhel9-x86_64|rhel8-x86_64|rhel7-x86_64|suse15-x86_64|rhel8-aarch64|rhel8-ppc64le}.
+Use '$0 --list-platforms' for the updated list of all available platforms.
 EOF
 }
 
@@ -39,13 +43,15 @@ ensure_directory_exists() {
 }
 
 build_cvmfsexec_distros() {
-	local cvmfs_src mach_type cvmfs_configurations cvmfs_configurations_list="$1"
-	local curr_ver latest_ver supported_machine_types supported_machine_types_list="$2"
-	local work_dir="$3"
-	local cvmfsexec_tarballs="$work_dir"/cvmfsexec/tarballs
+	local cvmfs_src mach_type curr_ver latest_ver
+    local cvmfs_configurations supported_machine_types
+    local cvmfsexec_tarballs="$work_dir"/cvmfsexec/tarballs
 	local cvmfsexec_temp="$work_dir"/cvmfsexec/cvmfsexec.tmp
 	local cvmfsexec_latest="$cvmfsexec_temp"/latest
 	local cvmfsexec_distros="$cvmfsexec_temp"/distros
+    local work_dir="$1"
+    cvmfs_configurations_list="$2"
+    supported_machine_types_list="$3"
 	start=$(date +%s)
 
 	# rhel6-x86_64 is not included; currently not supported due to EOL
@@ -157,18 +163,31 @@ error_handler() {
 ####################### MAIN SCRIPT STARTS FROM HERE #######################
 
 # parsing the command-line arguments
-# check whether the first argument passed is the option '--work-dir'
-if [[ $1 == "--work-dir" && ! -d "$2" ]]; then
-	# if value after this option is not a path (it is empty/unspecified), invoke the error handler
-	error_handler "The value of --work-dir option must be an existing directory."
+if [[ $1 == "-h" || $1 == "--help" ]]; then
+    # print help message
+    usage
+    exit 0
 fi
-# otherwise, continue parsing the arguments
-if [[ $1 == "--work-dir" ]]; then
-	work_dir="$2"
-	shift 2
+
+if [[ $1 == "--list-platforms" ]]; then
+    # checkout the latest version of cvmfsexec into a temp location
+    git clone $CVMFSEXEC_REPO /tmp &> /dev/null
+    echo "Functionality not implemented!"
+    exit 0
+fi
+
+# if neither of the two options above, check whether the first argument passed is the option '--work-dir'
+if [[ $1 == "--work-dir" && -z $2 ]]; then
+    error_handler "--work-dir option must be supplied with a valid directory location."
+elif [[ $1 == "--work-dir" && ! -d "$2" ]]; then
+	# if value after this option is not a valid path, invoke the error handler
+	error_handler "The value of --work-dir option must be an existing directory."
+elif [[ $1 != "--work-dir" ]]; then
+    # if --work-dir is not passed, assume default work-dir (RPM install)
+    work_dir="$DEFAULT_WORK_DIR"
 else
-	# if --work-dir is not passed, assume default work-dir (RPM install)
-	work_dir="$DEFAULT_WORK_DIR"
+    work_dir="$2"
+    shift 2
 fi
 
 # check whether there are any remaining arguments passed to the script after the option
@@ -181,7 +200,7 @@ fi
 
 # after confirming that the remaining number of arguments to be either 1 or 2
 re_sources="^((osg|egi|default),)*(osg|egi|default),?$"
-# TODO: update the regex for rhel9 and other machine types upon checking with `makedist -h` periodically
+# TODO: update the regex for other machine types upon checking with `makedist -h` periodically
 re_mtypes="^((rhel(7|8|9)|suse15)(-(x86_64|aarch64|ppc64le),?))+$"
 # check whether the first argument is sources (strict ordering followed)
 if ! [[ "$1" =~ $re_sources ]]; then
@@ -194,8 +213,8 @@ elif [[ "$2" =~ $re_mtypes ]]; then
 	machine_types=$2
 else
 	# handle if there were typos in the arguments passed
-	error_handler "Invalid platform provided. Must be empty or comma-separated list with (rhel7-x86_64|rhel8-x86_64|suse15-x86_64|rhel9-x86_64|rhel8-aarch64|rhel8-ppc64le), not '$2'"
+	error_handler "Invalid platform provided. Must be empty or comma-separated list with (rhel9-x86_64|rhel8-x86_64|rhel7-x86_64|suse15-x86_64|rhel8-aarch64|rhel8-ppc64le), not '$2'"
 fi
 
 echo "(Re)Building of cvmfsexec distributions enabled!"
-build_cvmfsexec_distros "$configurations" "$machine_types" "$work_dir"
+build_cvmfsexec_distros "$work_dir" "$configurations" "$machine_types"

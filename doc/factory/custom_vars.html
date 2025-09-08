@@ -109,6 +109,9 @@ SPDX-License-Identifier: Apache-2.0
             <a href="#singularity_vars">Apptainer/Singularity variables </a>
           </li>
           <li>
+            <a href="#cvmfs_vars">CVMFS variables </a>
+          </li>
+          <li>
             <a href="#cpuscalculation">Set and discover available CPUs</a>
           </li>
           <li><a href="#lifetime">Lifetime of a glidein</a></li>
@@ -2603,8 +2606,9 @@ MAX_STARTD_LOG          I       10000000        +                               
               <p>
                 If "false" the Glidein will continue the Singularity/Apptainer
                 setup even if no valid image is found. The setup will use a test
-                image. The user will have to provide the image with a later
-                setup script or in the job. Possible values are: false or true.
+                image (see APPTAINER_TEST_IMAGE). The user will have to provide
+                the image with a later setup script or in the job. Possible
+                values are: false or true.
               </p>
             </td>
           </tr>
@@ -2616,11 +2620,13 @@ MAX_STARTD_LOG          I       10000000        +                               
             <td>
               <p>
                 URI (local path or remote URI) of a Singularity/Apptainer image
-                to use for testing. If not set, GWMS_SINGULARITY_IMAGE_DEFAULT,
-                otherwise <tt>oras://ghcr.io/apptainer/alpine:latest</tt>, a
-                small Alpine Linux sif image provided by the Apptainer
-                developers. This can be set in the worker node environment,
-                which takes precedence, or as attribute.
+                to use for testing if your image is not available and
+                GWMS_SINGULARITY_IMAGE_DEFAULT is not set. APPTAINER_TEST_IMAGE
+                can be set in the worker node environment, which takes
+                precedence, or as attribute in the configuration. If neither is
+                set, the Glidein will download for testing
+                <tt>oras://ghcr.io/apptainer/alpine:latest</tt>, a small Alpine
+                Linux sif image provided by the Apptainer developers.
               </p>
             </td>
           </tr>
@@ -2835,10 +2841,31 @@ MAX_STARTD_LOG          I       10000000        +                               
       </div>
 
       <div class="section">
-        <h3><a name="cvmfs_vars"></a>CVMFS Variables</h3>
+        <h2><a name="cvmfs_vars"></a>CVMFS Variables</h2>
         <p>
-          This section describes the variables that can be configured for use
-          with the glidein to allow CVMFS to be provisioned on-demand. These
+          GlideinWMS factory includes the capability to mount and unmount CVMFS
+          on demand, i.e. for sites that do not have a native installation of
+          CVMFS available. <b>cvmfs_setup.sh</b> and <b>cvmfs_umount.sh</b> are
+          the main scripts used for mounting and unmounting CVMFS. A couple of
+          auxiliary scripts serve as helper scripts for different purposes: (1)
+          <i>cvmfs_helper_funcs.sh</i> helps with on-demand CVMFS provisioning,
+          and (2) <i>cvmfsexec_platform_select.sh</i> assists with dynamic
+          selection of cvmfsexec distribution. On-demand mounting and unmounting
+          is achieved via the
+          <b>
+            <i
+              ><a href="https://www.github.com/cvmfs/cvmfsexec">cvmfsexec</a></i
+            >
+          </b>
+          utility, that supports various modes as outlined
+          <a
+            href="https://github.com/cvmfs/cvmfsexec?tab=readme-ov-file#cvmfsexec-package"
+            >here</a
+          >.
+        </p>
+        <p>
+          The table below describes the attributes that can be configured for
+          use with the glidein to allow CVMFS to be provisioned on-demand. These
           variables are configured at the glidein level so that it applies to
           all the entries that are configured in the factory's configuration
           file.
@@ -2914,49 +2941,117 @@ MAX_STARTD_LOG          I       10000000        +                               
           </tr>
         </table>
         <br />
+        <p>
+          Following is a matrix summarizing the combination of requirements that
+          allow different modes of cvmfsexec. For more technical details on how
+          unprivileged user namespaces and FUSE dictate the mode of cvmfsexec
+          that will be used, please refer to cvmfsexec documentation
+          <a href="https://www.github.com/cvmfs/cvmfsexec">here</a>.
+        </p>
+        <table class="requirements">
+          <tr class="head">
+            <td><b>GLIDEIN_USE_CVMFSEXEC</b></td>
+            <td><b>GLIDEIN_CVMFS</b></td>
+            <td><b>Unprivileged user namespaces?</b></td>
+            <td><b>FUSE/FUSE3 installed?</b></td>
+            <td><b>cvmfsexec mode used</b></td>
+            <td><b>Utility used?</b></td>
+          </tr>
+          <tr>
+            <td>0</td>
+            <td>NEVER|PREFERRED|OPTIONAL|REQUIRED</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>NEVER</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+          </tr>
+          <tr>
+            <td rowspan="2">1</td>
+            <td rowspan="2">PREFERRED|OPTIONAL</td>
+            <td>no</td>
+            <td>yes</td>
+            <td>1</td>
+            <td>mountrepo</td>
+          </tr>
+          <tr>
+            <td>yes</td>
+            <td>N/A</td>
+            <td>3</td>
+            <td>cvmfsexec</td>
+          </tr>
+          <tr>
+            <td rowspan="3">1</td>
+            <td rowspan="3">REQUIRED</td>
+            <td>yes</td>
+            <td>N/A</td>
+            <td>3</td>
+            <td>cvmfsexec</td>
+          </tr>
+          <tr>
+            <td rowspan="2">no</td>
+            <td>yes</td>
+            <td>1</td>
+            <td>mountrepo</td>
+          </tr>
+          <tr>
+            <td>no</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+        </table>
+        <br /><br />
         <h4>
           Dynamic creation and selection of cvmfsexec platform-specific
           distribution
         </h4>
         <p>
-          GlideinWMS factory includes the capability to mount and unmount CVMFS
-          on demand, i.e. for sites that do not have a local installation of
-          CVMFS available. This is achieved via the scripts
-          <b>cvmfs_setup.sh</b> and <b>cvmfs_umount.sh</b>. Two additional shell
-          scripts <i>cvmfs_helper_funcs.sh</i> and <i>cvmfs_mount .sh</i> are
-          used as helper scripts during the mounting process. On demand mounting
-          and unmounting is achieved via the <b><i>cvmfsexec </i></b> utility.
-          The helper scripts are enabled for conditional download based on the
-          GLIDEIN_USE_CVMFSEXEC variable. When the GLIDEIN_USE_CVMFSEXEC
-          variable is set (value of 1), the helper scripts are downloaded for
-          facilitating the mounting of CVMFS.
-        </p>
-        <p>
-          cvmfsexec can be packaged as self-contained distribution specific to
-          an operating system and platform with required configuration and
-          executables necessary to enable CVMFS in unprivileged mode. Doing so
-          allows easy distribution to multiple machines. Worker node
-          specifications vary from each other and can change over time so,
-          shipping all possible variations of cvmfsexec distributions with the
-          glidein helps address the challenge when it comes to using the correct
-          distribution for use by the worker node. However, rather than having a
-          tarball containing multiple cvmfsexec distribution files corresponding
-          to a (CVMFS source, system platform, architecture) combination,
-          GlideinWMS dynamically creates and selects the appropriate cvmfsexec
-          distribution from the list of distributions.
+          <i>cvmfsexec</i> can be packaged as self-contained distribution
+          specific to an operating system and platform with required
+          configuration and executables necessary to enable CVMFS in
+          unprivileged mode. Doing so allows easy distribution to multiple
+          machines. Worker node specifications vary from each other and can
+          change over time so, shipping all possible variations of cvmfsexec
+          distributions with the glidein helps address the challenge with using
+          the correct distribution for use by the worker node. However, rather
+          than having a tarball containing multiple cvmfsexec distribution files
+          corresponding to a (CVMFS source, system platform, architecture)
+          combination, GlideinWMS dynamically creates and selects the
+          appropriate cvmfsexec distribution from the list of available
+          distributions.
         </p>
         <p>
           Specific to a CVMFS source, system platform and architecture,
           cvmfsexec distribution files are created automatically by the script
-          named <b>create_cvmfsexec_distros.sh</b>. The script is placed in
-          <i>hooks.reconfig.pre</i> directory for dynamic execution. Each of
-          these distributions are packaged as individual tarballs and are added
-          to the default list of uploads at the time of factory reconfiguration
-          and/or upgrade. Another script, <i> cvmfsexec_platform_select.sh</i>,
-          automatically selects the appropriate distribution tarball based on
-          the specifics of the worker node and ships the distribution with the
-          glidein. This script is invoked during the customization of the worker
-          node as part of the glidein setup.
+          named <b>create_cvmfsexec_distros.sh</b>, which is available under
+          `/usr/bin` as an executable and is invoked dynamically during factory
+          reconfiguration and/or upgrade when on-demand CVMFS is enabled. Each
+          of these distributions are packaged as individual tarballs and are
+          added to the default list of uploads at the time of factory
+          reconfiguration and/or upgrade. During glidein startup, the auxiliary
+          script <i>cvmfsexec_platform_select.sh</i>, automatically selects the
+          appropriate distribution tarball based on the specifics of the worker
+          node and ships the distribution with the glidein. This script is
+          invoked during the customization of the worker node as part of the
+          glidein setup.
+        </p>
+        <p>
+          Since <i>create_cvmfsexec_distros.sh</i> is executed as part of
+          factory reconfiguration and/or upgrade, there might be times when the
+          dynamic building of cvmfsexec distributions fails. For instance, a
+          misspelling exists in `platforms` attribute value. Instead of
+          reinvoking factory reconfiguration and/or upgrade in such cases, as an
+          alternative, <i>create_cvmfsexec_distros.sh</i> can be executed
+          manually following the required syntax as described in the script's
+          usage information (via `create_cvmfsexec_distros.sh -h`) to retry the
+          building of cvmfsexec distributions that had previously failed.
         </p>
       </div>
 

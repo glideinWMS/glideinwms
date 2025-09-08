@@ -340,7 +340,8 @@ SPDX-License-Identifier: Apache-2.0
               ><br />
               <blockquote>
                 <a href="#group_config"
-                  >&lt;config ignore_down_entries="True"&gt;</a
+                  >&lt;config ignore_down_entries="True"
+                  ramp_up_attenuation="3"&gt;</a
                 ><br />
                 <blockquote>
                   <a href="#group_config"
@@ -1386,7 +1387,8 @@ SPDX-License-Identifier: Apache-2.0
 
             <div class="xml">
               &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;config
-              ignore_down_entries=&quot;<i>boolean</i>&quot; &gt;
+              ignore_down_entries=&quot;<i>boolean</i>&quot;
+              ramp_up_attenuation="<i>float</i>" &gt;
             </div>
             <br />The attribute <b>ignore_down_entries</b> determines the
             behavior of frontend groups when one of the factory entries is in
@@ -1400,9 +1402,15 @@ SPDX-License-Identifier: Apache-2.0
             jobs for B. This attribute can be set both in the global section and
             here in the group section. Group values overwrite global ones. If
             not set in the global section and here, the default value is False.
-            <br /><br />The elements listed here are parameters for a group
-            section that regulate how aggressive this group should be in trying
-            to provision glideins when it sees idle user jobs.<br />
+            <br />The Frontend requests only part of the desired Glideins to
+            avoid overshooting or oscillations in the Glideins requested and
+            removed. By default, the ramp-up attenuation is 3, only 1/3 of the
+            Glideins are requested. The element
+            <b>ramp_up_attenuation</b> allows to change the attenuation, to
+            ramp-up more quickly to all the desired Glideins. <br /><br />The
+            elements listed here are parameters for a group section that
+            regulate how aggressive this group should be in trying to provision
+            Glideins when it sees idle user jobs.<br />
             <ul>
               <li>
                 The first element, <b>idle_glideins_per_entry</b>, defines the

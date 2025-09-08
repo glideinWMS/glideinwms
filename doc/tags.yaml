@@ -699,3 +699,32 @@ v3_11_1:
     - Fixed a bug that could cause the Frontend not to generate IDTOKENS to some Factory entries. (PR#514)
     - Fixed a bug that would cause the Frontend to request glideins for credentials that didn't match an entry. (PR#562)
     - Fixed also '+' sign in Factory auth_method configuration. (PR#562)
+
+v3_10_16:
+  Date: September 8, 2025
+  Series: Stable
+  Tarball: false
+  Feature:
+    - create_cvmfsexec_distros.sh updated adding EL9 to platforms and improved command syntax (PR#582)
+  Bug fix:
+    - Fixed incorrect glog_get_logfile_path_relative call in condor_startup.sh (PR#579)
+    - Fixed Frontend reconfiguration failure when using "ALL" schedd (Issue#575, PR#580)
+    - Fixed cvmfsexec failure when duplicate repositories are in the GLIDEIN_CVMFS_REPOS list (Issue#567, PR#585)
+    - Fixed wrong exec command in wrapper script (Issue#584, PR#587)
+  NOTE:
+    - Added httpd configuration to enhance security by disabling version headers and trace (PR #578)
+    - Since 3.10.15 job wrapper scripts must be "POSIX" compatible to be able to run on small images with Busybox. Added a relaxation in 3.10.16, setting `set +o posix` when Bash is available (PR#587)
+
+v3_11_2:
+  Date: September 8, 2025
+  Series: Development
+  Tarball: false
+  Feature:
+    - Including all featured and fixes of the production series up to 3.10.16
+  Bug fix:
+    - Fixed monitoring that had broken due to inconsistent credential IDs used in Glideins.
+    - Fixed an issue that would cause the Credentials library to use the wrong timezones when validating X509 certificates.
+    - Fixed a bug that would cause CachedGenerator to fail if `cache_dir` wasn't provided in the context.
+    - Fixed issues that would prevent a 3.11 Frontend to request Glideins from `batch` entries on a 3.11 Factory.
+  NOTE:
+    - When using credential generators, glideclient classads are now identified by the generated credential ID.

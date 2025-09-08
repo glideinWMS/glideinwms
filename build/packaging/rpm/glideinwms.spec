@@ -158,6 +158,7 @@ This subpackage includes the Glidein components for the Frontend.
 Summary: The Apache http configuration for GlideinWMS Frontend.
 Requires: httpd
 Requires: mod_ssl
+Requires: glideinwms-httpd = %{version}-%{release}
 %description vofrontend-httpd
 This subpackage includes the minimal configuration to start Apache to
 serve the Frontend files to the pilot and the monitoring pages.
@@ -183,6 +184,13 @@ Requires: glideinwms-glidecondor-tools = %{version}-%{release}
 %description userschedd
 This is a package for a glideinwms submit host.
 
+
+%package httpd
+Summary: Common Apache http configuration for GlideinWMS.
+Requires: httpd
+%description httpd
+This subpackage includes the Apache configuration cecommended to
+harden the GlideinWMS Web servers for safer production use.
 
 %package libs
 Summary: The GlideinWMS common libraries.
@@ -288,6 +296,7 @@ Factory. Created to separate out the httpd server.
 Summary: The Apache httpd configuration for the GlideinWMS Factory
 Requires: httpd
 Requires: mod_ssl
+Requires: glideinwms-httpd = %{version}-%{release}
 %description factory-httpd
 This subpackage includes the minimal configuration to start Apache to
 serve the Factory files to the pilot and the monitoring pages.
@@ -310,6 +319,7 @@ Requires: mod_ssl
 Requires: php
 Requires: php-fpm
 Requires: composer
+Requires: glideinwms-httpd = %{version}-%{release}
 %description logserver
 This subpackage includes an example of the files and Apache configuration
 to implement a simple server to receive Glidein logs.
@@ -614,6 +624,7 @@ install -m 0644 etc/checksum.factory $RPM_BUILD_ROOT%{factory_dir}/checksum.fact
 
 # Install web area conf
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d
+install -m 0644 install/config/gwms-hardening.conf.httpd $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d/gwms-hardening.conf
 install -m 0644 install/config/gwms-frontend.conf.httpd $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
 install -m 0644 install/config/gwms-factory.conf.httpd $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d/gwms-factory.conf
 install -m 0644 install/config/gwms-logserver.conf.httpd $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d/gwms-logserver.conf
@@ -683,6 +694,10 @@ fi
 #  openssl rand -base64 64 | /usr/sbin/condor_store_cred -u "frontend@${fqdn_hostname}" -f "/etc/condor/passwords.d/FRONTEND" add > /dev/null 2>&1
 #  /bin/cp /etc/condor/passwords.d/FRONTEND /var/lib/gwms-frontend/passwords.d/FRONTEND
 #  chown frontend.frontend /var/lib/gwms-frontend/passwords.d/FRONTEND
+
+%post httpd
+# Protecting from failure in case it is not running/installed
+/sbin/service httpd reload > /dev/null 2>&1 || true
 
 %post vofrontend-httpd
 # Protecting from failure in case it is not running/installed
@@ -785,6 +800,10 @@ if [ "$1" = "0" ]; then
     rm -f %{factory_dir}/monitor
 fi
 
+
+%postun httpd
+# Protecting from failure in case it is not running/installed
+/sbin/service httpd reload > /dev/null 2>&1 || true
 
 %postun vofrontend-httpd
 # Protecting from failure in case it is not running/installed
@@ -1052,6 +1071,9 @@ rm -rf $RPM_BUILD_ROOT
 %{web_dir}/monitor
 %{web_dir}/stage
 %{web_base}/factoryRRDBrowse.html
+
+%files httpd
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-hardening.conf
 
 %files factory-httpd
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-factory.conf
