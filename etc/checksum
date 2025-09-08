@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_15
+# GLIDEINWMS_VERSION v3_10_16_rc1
 ###################################################################
 78bb68217a24e977bdc5850e7d607960  ./__init__.py
 32b4bfc3e16d335b71c235d34a819eba  ./.codespell/ignore_lines.txt
@@ -8,12 +8,12 @@ bf1869a9f0e22861757b16f54e1acee9  ./.codespell/ignore_words.txt
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
 ba748ed3bc5995aee49b1067feaf7999  ./bigfiles/cvmfs_utils.tar.gz
 4558e767c3bea40c689e0c7eec0fd2ce  ./bigfiles/README.md
-e700ba99bdb3407ed0b78d5abaf494a3  ./CHANGELOG.md
+67fa90b93447cf1596b320a9ab3108b3  ./CHANGELOG.md
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 886e483062dbc2844dc52dad44644333  ./creation/clone_glidein
 84014ccfcb987f88ccc92b56d20e0de7  ./creation/create_condor_tarball
-6ed0bf7f0e63daf05b22c3211ccd1bc9  ./creation/create_cvmfsexec_distros.sh
+4d12742e8b919420997a66e8e33ac7df  ./creation/create_cvmfsexec_distros.sh
 ba61eefa7fa5a4d4d729f439cbed5e95  ./creation/create_frontend
 15289141e16b628347b317ec15c8527f  ./creation/create_glidein
 82e5805df1482d3c41a593b8beadf7b7  ./creation/create_rpm_startup
@@ -22,14 +22,14 @@ d41d8cd98f00b204e9800998ecf8427e  ./creation/lib/__init__.py
 601eefd4ddb97948300cf04b788e90cb  ./creation/lib/cgWConsts.py
 f12db80051c3fae0ca2c18954428981c  ./creation/lib/cgWCreate.py
 568f01a5142336ddcd2398d6cfad8b9c  ./creation/lib/cgWDictFile.py
-e16dbe7230858e34241f5870a93ac148  ./creation/lib/cgWParamDict.py
+fd9c01454752aeef5e9305a67260d4cd  ./creation/lib/cgWParamDict.py
 6ee764f85d1a81fa06f47a8eac1c706e  ./creation/lib/cgWParams.py
 f1f760110bec1da82594d336339ba001  ./creation/lib/check_config_frontend.py
 71d7df334294406787dd804742fac0a5  ./creation/lib/check_python3_expr.py
 2df1408de2ab12cd70612bd7bce3f5d4  ./creation/lib/cvWConsts.py
 fb68e0be8543847cc298ac3cc48cbe6e  ./creation/lib/cvWCreate.py
 c3abf95a0eee8d46ef34dd43dd321cb6  ./creation/lib/cvWDictFile.py
-2fc29cdf87fe8057fce91eb7e470facf  ./creation/lib/cvWParamDict.py
+0c83acb147b4f0a0701154490a83d0af  ./creation/lib/cvWParamDict.py
 e0b90ce833c6500ad9a9173f54f3a1a0  ./creation/lib/cvWParams.py
 249c493075e6aaedf56bd3ef9342601c  ./creation/lib/cWConsts.py
 0680182f31541e12baeae7090294d416  ./creation/lib/cWDictFile.py
@@ -37,7 +37,7 @@ e0b90ce833c6500ad9a9173f54f3a1a0  ./creation/lib/cvWParams.py
 59a85e5822cca642371e98c0df13e670  ./creation/lib/cWParamDict.py
 6f65e04f28a7cc3c7945f9680a3cdb8a  ./creation/lib/cWParams.py
 3ea31c95567a30f58b7edda96c291e65  ./creation/lib/factory_defaults.xml
-509a25b632b86f1f93e222b5653474ee  ./creation/lib/factoryXmlConfig.py
+75074dab273e26ebdfd289fa08aa7895  ./creation/lib/factoryXmlConfig.py
 b90ccfe57f7ecb7dc8672d8272791800  ./creation/lib/matchPolicy.py
 9080bf00a1d9477f5ed167f305b39c94  ./creation/lib/xmlConfig.py
 685fa8cf99ece27f96064254692e0150  ./creation/lib/xslt.py
@@ -67,12 +67,12 @@ d5274316b84121e0e1adf1720a6b2429  ./creation/web_base/condor_chirp
 398ed8f77802893eb270251cc81c7443  ./creation/web_base/condor_config.monitor.include
 8dde5e90ef395cea1b345f6fa846c942  ./creation/web_base/condor_config.multi_schedd.include
 bcc32a85c63ef6d9ea8f67692a673c50  ./creation/web_base/condor_platform_select.sh
-1e0bdab1fb4dff8c069dbb24ce9d4d3c  ./creation/web_base/condor_startup.sh
+a8570ffb58c105f36084c0b2b3e1ff5e  ./creation/web_base/condor_startup.sh
 adfbcc4d9f68fc8e53ccc12c1ccaa828  ./creation/web_base/condor_vars.lst
 393a01eb81bc9ee8bfd41d743a3190e7  ./creation/web_base/condor_vars.lst.entry
 162479586d7e67b8aeb3c082565347ff  ./creation/web_base/create_mapfile.sh
 85c6bd4a404a53a0cea5fcc0e4a3c122  ./creation/web_base/create_temp_mapfile.sh
-0eff3daea0f48456ffed11bc2ce2c06c  ./creation/web_base/cvmfs_helper_funcs.sh
+cce911df807640909d2c4e10224caecd  ./creation/web_base/cvmfs_helper_funcs.sh
 a56b230cc3e0110d8e56020a4ba90846  ./creation/web_base/cvmfs_setup.sh
 81b8075176a83aea65f8a87bc24c9cfc  ./creation/web_base/cvmfs_umount.sh
 ccffa2d10c55c2402ef40dc42dfd2600  ./creation/web_base/cvmfsexec_platform_select.sh
@@ -135,7 +135,7 @@ bb78d0e159849bc37951a17935eefc19  ./creation/web_base/glidein_sitewms_setup.sh
 e330a00cbf9966d96edaf33e9f3bf164  ./creation/web_base/htchirp.tar.gz.license
 911f7f57fe4f54e2bc052462f07d0227  ./creation/web_base/java_setup.sh
 59a2d30058b1bb64d80d18396c6fc7f3  ./creation/web_base/local_start.sh
-99c9724bd44b5be35746f0840a68a22a  ./creation/web_base/logging_utils.source
+7d14416bb9042279e163ef2b25b6ba3b  ./creation/web_base/logging_utils.source
 dd977a9927595f73a1f4907771b70c45  ./creation/web_base/mjf_setparams.sh
 a07332de53ae9fb905f7cc97e08ef37f  ./creation/web_base/nodes.blacklist
 8b104e63e5208bfdcdc703ce653a6c4b  ./creation/web_base/parse_starterlog.awk
@@ -230,6 +230,7 @@ b98fba5a48329b2a5154a8cdd08988c7  ./install/config/gwms-factory.sysconfig
 20f85397ce3b3a537397bb84450a2a61  ./install/config/gwms-frontend.conf.httpd
 dcfc1c6155de275b9aaddf1271887daf  ./install/config/gwms-frontend.service
 f630cae7f2bfff6724c41c87fb0ee327  ./install/config/gwms-frontend.sysconfig
+980344dc5d1cd5d9adc078ed3b7999e5  ./install/config/gwms-hardening.conf.httpd
 827a4a15943fb3ab824a9cb0050b2e18  ./install/config/gwms-logserver.conf.httpd
 e8f33187f786005744cfde087c19091c  ./install/config/README.md
 2d229b3194cce3ee4e1c25e39f9550bb  ./install/glidecondor_addDN

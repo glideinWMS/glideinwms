@@ -25,7 +25,7 @@ Changes since the last release
 
 ## v3.10.16 \[2025-09-08\]
 
-Bug fix release. Mostly cvmfs and condor job wrapper related.
+Bug fix release. Mostly CVMFS and HTCondor job wrapper related.
 
 ### New features / functionalities
 
@@ -34,7 +34,7 @@ Bug fix release. Mostly cvmfs and condor job wrapper related.
 ### Changed defaults / behaviours
 
 -   Added httpd configuration to enhance security by disabling version headers and trace (PR #578)
--   Since 3.10.15 job wrapper scripts must be "POSIX" compatible to be able to run on small images with Busybox. Added relaxation when Bash is available (PR #587)
+-   Since 3.10.15 job wrapper scripts must be "POSIX" compatible to be able to run on small images with Busybox. Added a relaxation in 3.10.16, setting `set +o posix` when Bash is available (PR #587)
 
 ### Deprecated / removed options and commands
 
