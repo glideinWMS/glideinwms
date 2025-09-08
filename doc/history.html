@@ -2933,6 +2933,41 @@ SPDX-License-Identifier: Apache-2.0
           <!-- starting 3.7 generated via tags.yaml -->
           <!-- start development -->
           <li>
+            <a id="v3_11_2"><b>v3_11_2</b></a> released on September 8, 2025 (<a
+              href="http://glideinwms.fnal.gov/doc.v3_11_2/index.html"
+              >Manual</a
+            >,
+            <a href="http://glideinwms.fnal.gov/doc.v3_11_2/install.html"
+              >Installation instructions</a
+            >)<br />
+            <ul>
+              <li>
+                Including all featured and fixes of the production series up to
+                3.10.16
+              </li>
+              <li>
+                Bug fix: Fixed monitoring that had broken due to inconsistent
+                credential IDs used in Glideins.
+              </li>
+              <li>
+                Bug fix: Fixed an issue that would cause the Credentials library
+                to use the wrong timezones when validating X509 certificates.
+              </li>
+              <li>
+                Bug fix: Fixed a bug that would cause CachedGenerator to fail if
+                `cache_dir` wasn't provided in the context.
+              </li>
+              <li>
+                Bug fix: Fixed issues that would prevent a 3.11 Frontend to
+                request Glideins from `batch` entries on a 3.11 Factory.
+              </li>
+              <li>
+                NOTE: When using credential generators, glideclient classads are
+                now identified by the generated credential ID.
+              </li>
+            </ul>
+          </li>
+          <li>
             <a id="v3_11_1"><b>v3_11_1</b></a> released on July 29, 2025 (<a
               href="http://glideinwms.fnal.gov/doc.v3_11_1/index.html"
               >Manual</a
