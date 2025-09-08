@@ -3,6 +3,27 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+
+Changes since the last release
+
+### New features / functionalities
+
+-   item one of the list
+-   item N
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+### Testing / Development
+
+### Known Issues
+
 ## v3.11.2 \[2025-08-06\]
 
 Release to address the issues found during the GlideinWMS 3.11.1 hackathon.
@@ -23,6 +44,24 @@ Release to address the issues found during the GlideinWMS 3.11.1 hackathon.
 -   Fixed an issue that would cause the Credentials library to use the wrong timezones when validating X509 certificates.
 -   Fixed a bug that would cause CachedGenerator to fail if `cache_dir` wasn't provided in the context.
 -   Fixed issues that would prevent a 3.11 Frontend to request Glideins from `batch` entries on a 3.11 Factory.
+
+### Testing / Development
+
+### Known Issues
+
+## v3.10.16 \[2025-09-08\]
+
+Bug fix release. Mostly CVMFS and HTCondor job wrapper related.
+
+### New features / functionalities
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
 
 ### Testing / Development
 
