@@ -29,6 +29,7 @@ Bug fix release. Mostly cvmfs and condor job wrapper related.
 
 ### New features / functionalities
 
+- Added new staticextra resource type – behaves like static (creates one dedicated slot per instance with a virtual CPU each), but instead of subtracting memory from the main partitionable slot, it adds memory to it (Issue #590)
 -   create_cvmfsexec_distros.sh updated adding EL9 to platforms and improved command syntax (PR #582)
 
 ### Changed defaults / behaviours
