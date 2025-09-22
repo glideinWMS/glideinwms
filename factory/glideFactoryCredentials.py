@@ -17,7 +17,7 @@ import re
 import shutil
 
 from glideinwms.lib import condorMonitor, logSupport
-from glideinwms.lib.credentials import CredentialPairType, CredentialType, ParameterType
+from glideinwms.lib.credentials import CredentialPairType
 from glideinwms.lib.defaults import force_bytes
 from glideinwms.lib.util import is_str_safe
 
@@ -363,13 +363,13 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name,
     Raises:
         CredentialError: If the credentials in params do not match what is required for the authentication method.
 
-    # TODO: This function policies need to be reviewed and updated.
+    # TODO: This function policies need to be reviewed and updated. Check also param_types
     """
-    auth_set = params.get("AuthSet", auth_method.split("+")[0])  # Fall back to auth_method (str) for retrocompatibility
+    auth_set = params.get("AuthSet", auth_method.split("+")[0])  # Fall back to auth_method (str) for back-compatibility
     cred_types = {
         cred.cred_type for cred in params.get("RequestCredentials", []) + params.get("PayloadCredentials", [])
     }
-    param_types = {param.param_type for param in params.get("SecurityParameters", [])}
+    # param_types = {param.param_type for param in params.get("SecurityParameters", [])}
     if isinstance(auth_set, str) and not set(auth_set) & set(SUPPORTED_AUTH_METHODS):
         logSupport.log.warning(
             f"None of the supported auth methods {SUPPORTED_AUTH_METHODS} in provided auth methods: {auth_set}"
@@ -438,7 +438,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name,
             # Validate both the public and private keys were passed
             if (
                 not (("PublicKey" in params) and ("PrivateKey" in params))
-                and not CredentialPairType.KEY_PAIR in cred_types
+                and CredentialPairType.KEY_PAIR not in cred_types
             ):
                 # key pair is required, cannot service request
                 raise CredentialError(
