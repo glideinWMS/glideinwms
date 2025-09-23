@@ -845,6 +845,8 @@ EOF
             IFS=';' read -ra RESOURCES <<< "$condor_config_resource_slots"
             # Slot Type Counter - Leave slot type 2 for monitoring
             slott_ctr=3
+            # Extra memory to add for all the staticextra slots
+            cc_resource_slots_mem_add=0
             for i in "${RESOURCES[@]}"; do
                 resource_params=$(fix_param "$i" "name,number,memory,type,disk")
                 IFS=',' read res_name res_num res_ram res_opt res_disk <<< "$resource_params"
@@ -950,7 +952,7 @@ NUM_SLOTS_TYPE_${slott_ctr} = 1
 EOF
                     else
                         if [[ "$res_opt" == "staticextra" ]]; then
-                            echo "EXTRA_MEMORY_MB = \$(EXTRA_MEMORY_MB)+${res_ram}" >> "$CONDOR_CONFIG"
+                            ((cc_resource_slots_mem_add=cc_resource_slots_mem_add+res_ram))
                         fi
                         cat >> "$CONDOR_CONFIG" <<EOF
 SLOT_TYPE_${slott_ctr} = cpus=1, ${res_name}=1, ram=${res_ram}${res_disk_specification}
@@ -967,6 +969,11 @@ EOF
                 echo "NEW_RESOURCES_LIST = \$(NEW_RESOURCES_LIST) $res_name" >> "$CONDOR_CONFIG"
 
             done  # end per-resource loop
+
+            # Epilogue RAM
+            if [[ "$cc_resource_slots_mem_add" -ne 0 ]]; then
+                echo "EXTRA_MEMORY_MB = ${cc_resource_slots_mem_add}" >> "$CONDOR_CONFIG"
+            fi
 
             # Epilogue GPUs handling
             if [[ "$cc_resource_slots_has_gpus" -eq 0 ]]; then
