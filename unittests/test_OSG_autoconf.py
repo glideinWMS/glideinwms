@@ -212,7 +212,7 @@ class TestOSGAutoconf(unittest.TestCase):
                         "RequireSingularity": True,
                         "AllowedVOs": ["atlas"],
                         "MaxWallTime": 1440,
-                        "CPUs": 48,
+                        "EstimatedCPUs": 48,
                     },
                     {
                         "WholeNode": False,
@@ -255,7 +255,7 @@ class TestOSGAutoconf(unittest.TestCase):
                 "GLIDEIN_Max_Walltime": {"value": 84600},
                 "GLIDEIN_Supported_VOs": {"value": "ATLAS"},
             },
-            "submit_attrs": {"+WantWholeNode": True},
+            "submit_attrs": {"+WantWholeNode": True, "+maxWallTime": 1440},
             "limits": {"entry": {"glideins": 1000}},
         }
         expected_out["LSU"]["hosted-ce29.grid.uchicago.edu"]["WholeNodeCpus"] = {}
@@ -268,7 +268,7 @@ class TestOSGAutoconf(unittest.TestCase):
                 "GLIDEIN_Supported_VOs": {"value": "ATLAS"},
                 "GLIDEIN_ESTIMATED_CPUS": {"value": 48},
             },
-            "submit_attrs": {"+WantWholeNode": True},
+            "submit_attrs": {"+WantWholeNode": True, "+maxWallTime": 1440},
             "limits": {"entry": {"glideins": 1000}},
         }
         expected_out["LSU"]["hosted-ce29.grid.uchicago.edu"]["default"] = {}
