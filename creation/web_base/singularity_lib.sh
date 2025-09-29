@@ -806,7 +806,8 @@ env_clearlist() {
 }
 
 
-get_singularity_opts() {
+env_get_singularity_opts() {
+    # Add the singularity option to clear the environment if requested in the env options
     # In:
     #  1 - list of environment options (see env_process_options)
     #  2 - singularity options (GWMS_SINGULARITY_EXTRA_OPTS)
@@ -815,26 +816,23 @@ get_singularity_opts() {
     local env_options
     env_options=",$(env_process_options "$1"),"
     local singularity_opts="$2"
-
     if [[ "${env_options}" = *",clearall,"* ]]; then
         # add cleanenv option to singularity
         singularity_opts="$singularity_opts --cleanenv"
         info "Instructing Singularity to clean the environment as requested"
     fi
-
     echo "${singularity_opts}"
 }
 
 
 env_clear() {
+    # If requested in the env options, clear the PATH variables
     # In:
     #  1 - list of environment options (see env_process_options)
-    #  2 - singularity options (not modified here, just passed for symmetry)
     # Out:
     #  none (side-effect: clears env vars)
     local env_options
     env_options=",$(env_process_options "$1"),"
-
     if [[ "${env_options}" = *",clearall,"* || "${env_options}" = *",clearpaths,"* ]]; then
         # clear the ...PATH variables
         # PATH should be cleared also by Singularity, but the behavior is inconsistent across versions
@@ -1363,8 +1361,8 @@ singularity_exec() {
         # Restore them only if continuing after singularity invocation (end of this function)
         [[ -n "$GLIDEIN_CONTAINER_ENV" ]] || GLIDEIN_CONTAINER_ENV=$(gwms_from_config GLIDEIN_CONTAINER_ENV "")
         [[ -n "$GLIDEIN_CONTAINER_ENV_CLEARLIST" ]] || GLIDEIN_CONTAINER_ENV_CLEARLIST=$(gwms_from_config GLIDEIN_CONTAINER_ENV_CLEARLIST "")
-        singularity_opts=$(get_singularity_opts "${GLIDEIN_CONTAINER_ENV}" "${singularity_opts}")
-        env_clear "${GLIDEIN_CONTAINER_ENV}" "${singularity_opts}"
+        singularity_opts=$(env_get_singularity_opts "${GLIDEIN_CONTAINER_ENV}" "${singularity_opts}")
+        env_clear "${GLIDEIN_CONTAINER_ENV}"
         env_clearlist "$GLIDEIN_CONTAINER_ENV_CLEARLIST"
         # If there is clearenv protect the variables (it may also have been added by the custom Singularity options)
         if env_gets_cleared "${GWMS_SINGULARITY_EXTRA_OPTS}"; then
