@@ -145,7 +145,13 @@ SPDX-License-Identifier: Apache-2.0
             <ul>
               <li>
                 create_cvmfsexec_distros.sh updated adding EL9 to platforms and
-                improved command syntax (PR#582)
+                improved command syntax (Issue#549, PR#582)
+              </li>
+              <li>
+                Added new staticextra resource type – behaves like static
+                (creates one dedicated slot per instance with a virtual CPU
+                each), but instead of subtracting memory from the main
+                partitionable slot, it adds memory to it (Issue#590)
               </li>
               <li>
                 OSG_autoconf: Added mapping for EIC and CLAS12 and support for
@@ -169,10 +175,13 @@ SPDX-License-Identifier: Apache-2.0
                 PR#587)
               </li>
               <li>
-                Bug fix: {'OSG_autoconf': 'Added mapping for EIC and CLAS12 and
-                support for the new dedicated `OSG` collector parameter to set
-                `EstimatedCPUs` replacing the use of the generic `CPUs`
-                (PR#595)'}
+                Bug fix: Environment cleanup fixed. `PATH`, `LD_LIBRARY_PATH`,
+                `PYTHONPATH`, and `LD_PRELOAD` are now correctly cleared when
+                requested with `clearpaths` or `clearall` (Issue#592, PR#596)
+              </li>
+              <li>
+                Bug fix: Fixed maxWallTime not being set as a submit attribute
+                by OSG_autoconf when an entry is whole node (PR#595)
               </li>
               <li>
                 NOTE: Added httpd configuration to enhance security by disabling

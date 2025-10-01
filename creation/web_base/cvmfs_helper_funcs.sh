@@ -438,7 +438,7 @@ perform_cvmfs_mount () {
 
         loginfo "CVMFS Source = $cvmfs_source"
         # initializing CVMFS repositories to a variable for easy modification in the future
-        local cvmfs_source_repolist, combined_repos
+        local cvmfs_source_repolist combined_repos
         case $cvmfs_source in
             osg)
                 GLIDEIN_CVMFS_CONFIG_REPO=config-osg.opensciencegrid.org
