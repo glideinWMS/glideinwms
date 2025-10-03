@@ -23,19 +23,20 @@ Changes since the last release
 
 ### Known Issues
 
-## v3.10.16 \[2025-09-08\]
+## v3.10.16 \[2025-09-29\]
 
-Bug fix release. Mostly cvmfs and condor job wrapper related.
+Bug fix release. Mostly CVMFS and HTCondor job wrapper related.
 
 ### New features / functionalities
 
-- Added new staticextra resource type – behaves like static (creates one dedicated slot per instance with a virtual CPU each), but instead of subtracting memory from the main partitionable slot, it adds memory to it (Issue #590)
--   create_cvmfsexec_distros.sh updated adding EL9 to platforms and improved command syntax (PR #582)
+-   create_cvmfsexec_distros.sh updated adding EL9 to platforms and improved command syntax (Issue #549, PR #582)
+-   Added new staticextra resource type – behaves like static (creates one dedicated slot per instance with a virtual CPU each), but instead of subtracting memory from the main partitionable slot, it adds memory to it (Issue #590)
+-   OSG_autoconf: Added mapping for EIC and CLAS12 and support for the new dedicated `OSG` collector parameter to set `EstimatedCPUs` replacing the use of the generic `CPUs` (PR #595)
 
 ### Changed defaults / behaviours
 
 -   Added httpd configuration to enhance security by disabling version headers and trace (PR #578)
--   Since 3.10.15 job wrapper scripts must be "POSIX" compatible to be able to run on small images with Busybox. Added relaxation when Bash is available (PR #587)
+-   Since 3.10.15, all job wrapper scripts must be "POSIX" compatible to be able to run on small images with Busybox. Added a relaxation in 3.10.16, setting `set +o posix` when Bash is available (PR #587)
 
 ### Deprecated / removed options and commands
 
@@ -47,6 +48,8 @@ Bug fix release. Mostly cvmfs and condor job wrapper related.
 -   Fixed Frontend reconfiguration failure when using "ALL" schedd (Issue #575, PR #580)
 -   Fixed cvmfsexec failure when duplicate repositories are in the GLIDEIN_CVMFS_REPOS list (Issue #567, PR #585)
 -   Fixed wrong exec command in wrapper script (Issue #584, PR #587)
+-   Environment cleanup fixed. `PATH`, `LD_LIBRARY_PATH`, `PYTHONPATH`, and `LD_PRELOAD` are now correctly cleared when requested with `clearpaths` or `clearall` (Issue #592, PR #596)
+-   Fixed maxWallTime not being set as a submit attribute by OSG_autoconf when an entry is whole node (PR #595)
 
 ### Testing / Development
 
