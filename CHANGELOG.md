@@ -33,7 +33,7 @@ Release to address the issues found during the GlideinWMS 3.11.1 hackathon.
 
 ### Changed defaults / behaviours
 
--   When using credential generators, glideclient classads are now identified by the generated credential ID.
+-   When using credential generators, glideclient classads are now identified by the generated credential ID. (PR #576)
 
 ### Deprecated / removed options and commands
 
@@ -41,27 +41,30 @@ Release to address the issues found during the GlideinWMS 3.11.1 hackathon.
 
 ### Bug Fixes
 
--   Fixed monitoring that had broken due to inconsistent credential IDs used in Glideins. (PR #582)
--   Fixed an issue that would cause the Credentials library to use the wrong timezones when validating X509 certificates.
--   Fixed a bug that would cause CachedGenerator to fail if `cache_dir` wasn't provided in the context.
--   Fixed issues that would prevent a 3.11 Frontend to request Glideins from `batch` entries on a 3.11 Factory.
+-   Fixed monitoring that had broken due to inconsistent credential IDs used in Glideins. (PR #576)
+-   Fixed an issue that would cause the Credentials library to use the wrong timezones when validating X509 certificates. (PR #576)
+-   Fixed a bug that would cause CachedGenerator to fail if `cache_dir` wasn't provided in the context. (PR #576)
+-   Fixed issues that would prevent a 3.11 Frontend to request Glideins from `batch` entries on a 3.11 Factory. (PR #583)
+-   Fixed warning about misspelled local variable name in cvmfs_helper_funcs.sh (PR #597)
 
 ### Testing / Development
 
 ### Known Issues
 
-## v3.10.16 \[2025-09-08\]
+## v3.10.16 \[2025-09-29\]
 
 Bug fix release. Mostly CVMFS and HTCondor job wrapper related.
 
 ### New features / functionalities
 
--   create_cvmfsexec_distros.sh updated adding EL9 to platforms and improved command syntax (PR #582)
+-   create_cvmfsexec_distros.sh updated adding EL9 to platforms and improved command syntax (Issue #549, PR #582)
+-   Added new staticextra resource type – behaves like static (creates one dedicated slot per instance with a virtual CPU each), but instead of subtracting memory from the main partitionable slot, it adds memory to it (Issue #590)
+-   OSG_autoconf: Added mapping for EIC and CLAS12 and support for the new dedicated `OSG` collector parameter to set `EstimatedCPUs` replacing the use of the generic `CPUs` (PR #595)
 
 ### Changed defaults / behaviours
 
 -   Added httpd configuration to enhance security by disabling version headers and trace (PR #578)
--   Since 3.10.15 job wrapper scripts must be "POSIX" compatible to be able to run on small images with Busybox. Added a relaxation in 3.10.16, setting `set +o posix` when Bash is available (PR #587)
+-   Since 3.10.15, all job wrapper scripts must be "POSIX" compatible to be able to run on small images with Busybox. Added a relaxation in 3.10.16, setting `set +o posix` when Bash is available (PR #587)
 
 ### Deprecated / removed options and commands
 
@@ -73,6 +76,8 @@ Bug fix release. Mostly CVMFS and HTCondor job wrapper related.
 -   Fixed Frontend reconfiguration failure when using "ALL" schedd (Issue #575, PR #580)
 -   Fixed cvmfsexec failure when duplicate repositories are in the GLIDEIN_CVMFS_REPOS list (Issue #567, PR #585)
 -   Fixed wrong exec command in wrapper script (Issue #584, PR #587)
+-   Environment cleanup fixed. `PATH`, `LD_LIBRARY_PATH`, `PYTHONPATH`, and `LD_PRELOAD` are now correctly cleared when requested with `clearpaths` or `clearall` (Issue #592, PR #596)
+-   Fixed maxWallTime not being set as a submit attribute by OSG_autoconf when an entry is whole node (PR #595)
 
 ### Testing / Development
 

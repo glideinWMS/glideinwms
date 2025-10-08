@@ -826,8 +826,10 @@ EOF
 NEW_RESOURCES_LIST =
 EXTRA_SLOTS_NUM = 0
 EXTRA_CPUS_NUM = 0
+EXTRA_MEMORY_MB = 0
 EXTRA_SLOTS_START = True
 NUM_CPUS = \$(GLIDEIN_CPUS)+\$(EXTRA_SLOTS_NUM)+\$(EXTRA_CPUS_NUM)
+MEMORY = \$(GLIDEIN_MaxMemMBs)+\$(EXTRA_MEMORY_MB)
 
 # Slot 1 definition done before (fixed/partitionable)
 #SLOT_TYPE_1_PARTITIONABLE = FALSE
@@ -843,6 +845,8 @@ EOF
             IFS=';' read -ra RESOURCES <<< "$condor_config_resource_slots"
             # Slot Type Counter - Leave slot type 2 for monitoring
             slott_ctr=3
+            # Extra memory to add for all the staticextra slots
+            cc_resource_slots_mem_add=0
             for i in "${RESOURCES[@]}"; do
                 resource_params=$(fix_param "$i" "name,number,memory,type,disk")
                 IFS=',' read res_name res_num res_ram res_opt res_disk <<< "$resource_params"
@@ -917,8 +921,10 @@ EOF
                     # Decided not to add type "mainextra" with resources added to main slot and CPUs incremented
                     # It can be obtained with more control by setting GLIDEIN_CPUS
                 else
-                    if [[ "$res_num" -eq 1 || "$res_opt" == "static" ]]; then
-                        res_opt=static
+                    if [[ "$res_num" -eq 1 || "$res_opt" == "static" || "$res_opt" == "staticextra" ]]; then
+                        if [[ "$res_opt" == "partitionable" ]]; then
+                            res_opt=static
+                        fi
                         res_ram=$(unit_division "${res_ram}" ${res_num})
                         if [[ -n "$res_disk" ]]; then
                             res_disk=$(unit_division "${res_disk}" ${res_num})
@@ -945,6 +951,9 @@ SLOT_TYPE_${slott_ctr}_PARTITIONABLE = TRUE
 NUM_SLOTS_TYPE_${slott_ctr} = 1
 EOF
                     else
+                        if [[ "$res_opt" == "staticextra" ]]; then
+                            ((cc_resource_slots_mem_add=cc_resource_slots_mem_add+res_ram))
+                        fi
                         cat >> "$CONDOR_CONFIG" <<EOF
 SLOT_TYPE_${slott_ctr} = cpus=1, ${res_name}=1, ram=${res_ram}${res_disk_specification}
 SLOT_TYPE_${slott_ctr}_PARTITIONABLE = FALSE
@@ -960,6 +969,11 @@ EOF
                 echo "NEW_RESOURCES_LIST = \$(NEW_RESOURCES_LIST) $res_name" >> "$CONDOR_CONFIG"
 
             done  # end per-resource loop
+
+            # Epilogue RAM
+            if [[ "$cc_resource_slots_mem_add" -ne 0 ]]; then
+                echo "EXTRA_MEMORY_MB = ${cc_resource_slots_mem_add}" >> "$CONDOR_CONFIG"
+            fi
 
             # Epilogue GPUs handling
             if [[ "$cc_resource_slots_has_gpus" -eq 0 ]]; then
