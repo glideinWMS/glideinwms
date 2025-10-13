@@ -37,6 +37,10 @@ findversion_redhat() {
   #
   # should I check that it is SL/RHEL/CentOS ?
   # no
+  grep -q 'CentOS Stream release 11' /etc/redhat-release && condor_os='linux-rhel11,rhel11' && return
+  grep -q 'release 11.' /etc/redhat-release && condor_os='linux-rhel11,rhel11' && return
+  grep -q 'CentOS Stream release 10' /etc/redhat-release && condor_os='linux-rhel10,rhel10' && return
+  grep -q 'release 10.' /etc/redhat-release && condor_os='linux-rhel10,rhel10' && return
   grep -q 'CentOS Stream release 9' /etc/redhat-release && condor_os='linux-rhel9,rhel9' && return
   grep -q 'release 9.' /etc/redhat-release && condor_os='linux-rhel9,rhel9' && return
   grep -q 'CentOS Stream release 8' /etc/redhat-release && condor_os='linux-rhel8,rhel8' && return
@@ -67,6 +71,7 @@ findversion_debian() {
   dist_id_line=$(grep "DISTRIB_ID" /etc/lsb-release)
   dist_rel_line=$(grep "DISTRIB_RELEASE" /etc/lsb-release)
   if [[ ${dist_id_line} == *"Debian"* ]]; then
+    [[ ${dist_rel_line:16:3} = "14." ]] && condor_os='linux-debian14' && return
     [[ ${dist_rel_line:16:3} = "13." ]] && condor_os='linux-debian13' && return
     [[ ${dist_rel_line:16:3} = "12." ]] && condor_os='linux-debian12' && return
     [[ ${dist_rel_line:16:3} = "11." ]] && condor_os='linux-debian11' && return
@@ -75,6 +80,7 @@ findversion_debian() {
     [[ ${dist_rel_line:16:2} = "8." ]] && condor_os='linux-debian8' && return
     [[ ${dist_rel_line:16:2} = "7." ]] && condor_os='linux-debian7' && return
   elif [[ ${dist_id_line} == *"Ubuntu"* ]]; then
+    [[ ${dist_rel_line:16:3} = "26." ]] && condor_os='linux-ubuntu26' && return
     [[ ${dist_rel_line:16:3} = "24." ]] && condor_os='linux-ubuntu24' && return
     [[ ${dist_rel_line:16:3} = "22." ]] && condor_os='linux-ubuntu22' && return
     [[ ${dist_rel_line:16:3} = "20." ]] && condor_os='linux-ubuntu20' && return
