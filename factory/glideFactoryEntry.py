@@ -31,8 +31,8 @@ class Entry:
         Args:
             name (str): Name of the entry.
             startup_dir (str): Path to the Factory workspace.
-            glidein_descript (dict): Factory glidein configuration values.
-            frontend_descript (dict): Security mappings for Frontend identities and security classes.
+            glidein_descript (glideFactoryConfig.GlideinDescript): Factory glidein configuration values.
+            frontend_descript (glideFactoryConfig.FrontendDescript): Security mappings for Frontend identities and security classes.
         """
         self.limits_triggered = {}
         self.name = name
@@ -365,7 +365,7 @@ class Entry:
     def glideinsWithinLimits(self, condorQ):
         """Check if glidein submission is within allowed limits.
 
-        This function checks both entry-level and frontend-level limits based on the Condor queue.
+        This function checks both per-entry and per-client limits set in the Factory based on the Condor queue.
         It also updates the limits_triggered attribute with details of any exceeded limits.
 
         Args:

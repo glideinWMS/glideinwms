@@ -322,6 +322,8 @@ class MonitoringConfig:
 class condorQStats:
     """Handles aggregated HTCondor statistics from condor_q data.
 
+    This is normally querying the Schedds submitting Glideins
+
     Attributes:
         data (dict): Aggregated statistics data.
         updated (float): Timestamp of the last update.
@@ -484,7 +486,7 @@ class condorQStats:
                 el[status] += qc_status[nr] * self.expected_cores
 
     def logRequest(self, client_name, requests):
-        """Log client glidein requests.
+        """Log client Glidein requests.
 
         `requests` is a dictionary of requests. `params` is a dictionary of parameters
         Request contains only that (no real cores info). It is evaluated using GLIDEIN_CPUS
