@@ -11,7 +11,7 @@ Changes since the last release
 
 ### Changed defaults / behaviours
 
--   Example
+-   Reuse Condor tarballs across reconfigurations by generating hash-based filenames from file metadata instead of timestamps.
 
 ### Deprecated / removed options and commands
 
