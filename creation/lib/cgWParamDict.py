@@ -175,7 +175,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
                 if condor_fd is None:
                     # tar file exists. Just use it
-                    self.dicts["file_list"].add_from_file(
+                    self.dicts["file_list"].add_from_file_ref(
                         condor_platform_fname,
                         cWDictFile.FileDictFile.make_val_tuple(
                             condor_fname, "untar", cond_download=cond_name, config_out=cgWConsts.CONDOR_ATTR
