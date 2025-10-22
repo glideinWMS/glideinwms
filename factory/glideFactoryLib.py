@@ -1293,6 +1293,7 @@ def logWorkRequest(
     client_security_name,
     proxy_security_class,
     req_idle,
+    adj_idle,
     req_max_run,
     remove_excess,
     work_el,
@@ -1332,7 +1333,7 @@ def logWorkRequest(
     log.info("  Decrypted Param Names: %s" % list(work_el["params_decrypted"].keys()))
     # requests use GLIDEIN_CPUS and GLIDEIN_ESTIMATED_CPUS at the Frontend to estimate cores
     # TODO: this may change for multi_node requests (GLIDEIN_NODES)
-    reqs = {"IdleGlideins": req_idle, "MaxGlideins": req_max_run}
+    reqs = {"IdleGlideins": req_idle, "MaxGlideins": req_max_run, "AdjIdleGlideins": adj_idle}
     factoryConfig.client_stats.logRequest(client_int_name, reqs)
     factoryConfig.qc_stats.logRequest(client_log_name, reqs)
 
