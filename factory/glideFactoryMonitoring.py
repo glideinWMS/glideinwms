@@ -358,7 +358,7 @@ class condorQStats:
                 "StageOut",
                 "RunningCores",
             ),
-            "Requested": ("Idle", "MaxGlideins", "IdleCores", "MaxCores"),
+            "Requested": ("Idle", "AdjustedIdle", "MaxGlideins", "IdleCores", "MaxCores"),
             "ClientMonitor": (
                 "InfoAge",
                 "JobsIdle",
@@ -493,7 +493,7 @@ class condorQStats:
 
         Args:
             client_name (str): The client name.
-            requests (dict): Dictionary of requests, expected to have keys 'IdleGlideins' and 'MaxGlideins'.
+            requests (dict): Dictionary of requests, expected to have keys 'IdleGlideins', 'AdjIdleGlideins' and 'MaxGlideins'.
 
         Updates:
             self.data[client_name]['Requested'] with the request counts.
@@ -511,7 +511,7 @@ class condorQStats:
             el = {}
             t_el["Requested"] = el
 
-        for reqpair in (("IdleGlideins", "Idle"), ("MaxGlideins", "MaxGlideins")):
+        for reqpair in (("IdleGlideins", "Idle"), ("MaxGlideins", "MaxGlideins"), ("AdjIdleGlideins", "AdjustedIdle")):
             org, new = reqpair
             if new not in el:
                 el[new] = 0
