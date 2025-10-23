@@ -79,6 +79,8 @@ GLIDEIN_SUPPORTED_VO_MAP = {
     "osgedu": "OSGEDU",
     "uc3": "UC3VO",
     "virgo": "VIRGO",
+    "eic": "EIC",
+    "clas12": "CLAS12",
 }
 
 GLIDEIN_SUPPORTED_VO_MAP_GPU = {

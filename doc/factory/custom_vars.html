@@ -586,7 +586,16 @@ MAX_STARTD_LOG          I       10000000        +                               
                 </li>
                 <li>
                   <b>static</b> - the resource has many dedicated slots (one per
-                  instance) with a virtual CPU each
+                  instance) with a virtual CPU each. Memory is taken from the
+                  main partitionable slot.
+                </li>
+                <li>
+                  <b>staticextra</b> - like <tt>static</tt>, but memory is
+                  <i>added</i> to the main partitionable slot instead of
+                  subtracted from it. Useful when you want dedicated static
+                  slots that also increase the overall memory available to the
+                  glidein. Memory defined in multiple <b>staticextra</b> slots
+                  will cumulate.
                 </li>
               </ul>
               <p>
@@ -605,8 +614,9 @@ MAX_STARTD_LOG          I       10000000        +                               
                 otherwise the startd may fail due to impossible configuration.
                 When adding resources to the main slots, regular jobs (not using
                 the resource) may use all memory and CPUs (including the virtual
-                ones). Only separate slots (type is <tt>partitionable</tt> or
-                <tt>static</tt>) reserve CPUs and memory.
+                ones). Only separate slots (type is <tt>partitionable</tt>,
+                <tt>static</tt>, or <tt>staticextra</tt>) reserve CPUs and
+                memory.
                 <!--,
         e.g. when you add 3 units of a resource to a node with 8 CPUs divided statically in 8 main slots, the first 3 of them will have also your resource.
         -->
@@ -648,6 +658,11 @@ MAX_STARTD_LOG          I       10000000        +                               
                   partitioned 2 ioslot resources with 100MB memory each.
                 </li>
                 <li>
+                  <b>value="ioslot,2,200,staticextra"</b> creates statically
+                  partitioned 2 ioslot resources with 100MB memory each, and
+                  this memory is added to the main slot instead of subtracted.
+                </li>
+                <li>
                   <b>value="ioslot"</b> creates 1 ioslot resource with 128MB
                 </li>
                 <li>
@@ -673,7 +688,7 @@ MAX_STARTD_LOG          I       10000000        +                               
                 special attributes about the GPUs. If no number is specified and
                 the auto-discovery fails 0 GPUs are assumed. Since you don't
                 know the number of GPUs that will be added to the main slot, the
-                slot_layout must be partitionable. We do recommend to lec
+                slot_layout must be partitionable. We do recommend to let
                 HTCondor discover the number of GPUs by specifying no number. If
                 you specify a number and is different from what HTCondor
                 detects, there may be problems if you are using the HTCondor
