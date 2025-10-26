@@ -14,7 +14,7 @@ Changes since the last release
 
 ### Changed defaults / behaviours
 
--   Example
+-   Prevented memory spikes during factory reconfiguration by copying Condor tarballs instead of loading them into memory.
 
 ### Deprecated / removed options and commands
 

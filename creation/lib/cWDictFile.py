@@ -930,6 +930,27 @@ class SimpleFileDictFile(DictFile):
         except OSError as e:
             raise DictFileError("Could not open file or read from it: %s" % filepath) from e
 
+    def add_from_file_ref(self, key, val, filepath, allow_overwrite=False):
+        """Add an entry to the dictionary by reference to a file path, without reading its content.
+
+        The referenced file will be copied when save_files() is called.
+
+        Args:
+            key (str): file name (dictionary key)
+            val: parameters (not the file content), usually file attributes (tuple, list, or scalar)
+            filepath (str): full path of the file to reference (not read)
+            allow_overwrite (bool): if True, allows to override existing content in the dictionary
+        """
+        if not os.path.exists(filepath):
+            raise DictFileError(f"Referenced file does not exist: {filepath}")
+
+        ref_marker = {"type": "file_ref", "path": filepath}
+
+        if type(val) not in (tuple, list):
+            DictFile.add(self, key, (val, ref_marker), allow_overwrite)
+        else:
+            DictFile.add(self, key, tuple(val) + (ref_marker,), allow_overwrite)
+
     def format_val(self, key, want_comments):
         """Print lines: only the file name (key) the first item of the value tuple if not None
 
@@ -1000,6 +1021,17 @@ class SimpleFileDictFile(DictFile):
             filepath = os.path.join(self.dir, fname)
             if (not allow_overwrite) and os.path.exists(filepath):
                 raise DictFileError("File %s already exists" % filepath)
+
+            # Handle file reference
+            if isinstance(fdata, dict) and fdata.get("type") == "file_ref":
+                src = fdata["path"]
+                try:
+                    shutil.copy(src, filepath)
+                except OSError as e:
+                    raise DictFileError(f"Error copying referenced file {src} -> {filepath}") from e
+                continue
+
+            # Otherwise, write binary data
             try:
                 fd = open(filepath, "wb")
             except OSError:
