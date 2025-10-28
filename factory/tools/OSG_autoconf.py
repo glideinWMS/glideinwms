@@ -142,6 +142,7 @@ def get_pilot(resource, site, batchsystem, pilot_entry):
     """
     vos = get_vos(pilot_entry.get("AllowedVOs", set()), "GPUs" in pilot_entry)
     cpus = pilot_entry.get("CPUs", None)
+    est_cpus = pilot_entry.get("EstimatedCPUs", None)
     walltime = pilot_entry.get("MaxWallTime", None)
     memory = pilot_entry.get("Memory", None)
 
@@ -157,14 +158,16 @@ def get_pilot(resource, site, batchsystem, pilot_entry):
         res["attrs"]["GLIDEIN_REQUIRED_OS"] = {"value": pilot_entry["OS"]}
     if "WholeNode" in pilot_entry and pilot_entry["WholeNode"]:
         res["submit_attrs"]["+WantWholeNode"] = pilot_entry["WholeNode"]
+        if est_cpus:
+            res["attrs"]["GLIDEIN_ESTIMATED_CPUS"] = {"value": est_cpus}
         if "GLIDEIN_CPUS" in res["attrs"]:
             del res["attrs"]["GLIDEIN_CPUS"]
         if "GLIDEIN_MaxMemMBs" in res["attrs"]:
             del res["attrs"]["GLIDEIN_MaxMemMBs"]
-        if "+maxWallTime" in res["submit_attrs"]:
-            del res["submit_attrs"]["+maxWallTime"]
         if "+maxMemory" in res["submit_attrs"]:
             del res["submit_attrs"]["+maxMemory"]
+        if "+xcount" in res["submit_attrs"]:
+            del res["submit_attrs"]["+xcount"]
 
     return res
 

@@ -871,6 +871,7 @@ def populate_frontend_descript(work_dir, frontend_dict, active_sub_list, params)
     frontend_dict.add("ProcessLogs", str(params.log_retention["process_logs"]))
 
     frontend_dict.add("IgnoreDownEntries", params.config.ignore_down_entries)
+    frontend_dict.add("RampUpAttenuation", params.config.ramp_up_attenuation)
     frontend_dict.add("MaxIdleVMsTotal", params.config.idle_vms_total.max)
     frontend_dict.add("CurbIdleVMsTotal", params.config.idle_vms_total.curb)
     frontend_dict.add("MaxIdleVMsTotalGlobal", params.config.idle_vms_total_global.max)
@@ -893,6 +894,7 @@ def populate_group_descript(work_dir, group_descript_dict, sub_name, sub_params)
     group_descript_dict.add("PartGlideinMinMemory", sub_params.config.partitionable_glidein.min_memory)
 
     group_descript_dict.add("IgnoreDownEntries", sub_params.config.ignore_down_entries)
+    group_descript_dict.add("RampUpAttenuation", sub_params.config.ramp_up_attenuation)
     group_descript_dict.add("MaxRunningPerEntry", sub_params.config.running_glideins_per_entry.max)
     group_descript_dict.add("MinRunningPerEntry", sub_params.config.running_glideins_per_entry.min)
     group_descript_dict.add("FracRunningPerEntry", sub_params.config.running_glideins_per_entry.relative_to_queue)
@@ -1003,8 +1005,8 @@ def validate_schedds(main_list, group_list):
     Raises:
         RuntimeError: If 'ALL' is used incorrectly (e.g. mixed with other schedds or with a non-empty group list).
     """
-    main_items = main_list.split(",")
-    group_items = group_list.split(",")
+    main_items = main_list.split(",") if main_list else []
+    group_items = group_list.split(",") if group_list else []
 
     if "ALL" in main_items or "ALL" in group_items:
         if main_items != ["ALL"] or group_items:

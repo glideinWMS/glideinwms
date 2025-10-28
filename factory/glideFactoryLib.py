@@ -897,10 +897,10 @@ def keepIdleGlideins(
 
     # Have a valid idle number to request
     # Check that adding more doesn't exceed frontend:sec_class and entry limits
-
     add_glideins = glidein_totals.can_add_idle_glideins(
         add_glideins, frontend_name, log=log, factoryConfig=factoryConfig
     )
+
     if add_glideins <= 0:
         # Have hit entry or frontend:sec_class limit, cannot submit
         log.info(
@@ -1293,6 +1293,7 @@ def logWorkRequest(
     client_security_name,
     proxy_security_class,
     req_idle,
+    adj_idle,
     req_max_run,
     remove_excess,
     work_el,
@@ -1332,7 +1333,7 @@ def logWorkRequest(
     log.info("  Decrypted Param Names: %s" % list(work_el["params_decrypted"].keys()))
     # requests use GLIDEIN_CPUS and GLIDEIN_ESTIMATED_CPUS at the Frontend to estimate cores
     # TODO: this may change for multi_node requests (GLIDEIN_NODES)
-    reqs = {"IdleGlideins": req_idle, "MaxGlideins": req_max_run}
+    reqs = {"IdleGlideins": req_idle, "MaxGlideins": req_max_run, "AdjIdleGlideins": adj_idle}
     factoryConfig.client_stats.logRequest(client_int_name, reqs)
     factoryConfig.qc_stats.logRequest(client_log_name, reqs)
 
@@ -2565,16 +2566,16 @@ def is_str_safe(s):
 
 
 class GlideinTotals:
-    """Class to keep track of all glidein totals for an entry and frontends."""
+    """Class to keep track of all Glidein totals for an Entry and all Clients (Frontends)."""
 
     def __init__(self, entry_name, frontendDescript, jobDescript, entry_condorQ, log=logSupport.log):
         """Initialize GlideinTotals object.
 
         Args:
             entry_name (str): Name of the entry.
-            frontendDescript (FrontendDescript): Frontend description object.
+            frontendDescript (FrontendDescript): Frontend/Client description object.
             jobDescript (glideFactoryConfig.JobDescript): Job description object.
-            entry_condorQ (condorMonitor.CondorQ): Condor queue object for the entry.
+            entry_condorQ (condorMonitor.CondorQ): HTCondor queue object for the Entry.
             log (logging.Logger): Logger.
         """
         # Initialize entry limits
@@ -2667,19 +2668,19 @@ class GlideinTotals:
             self.frontend_limits[fe_sec_class]["idle"] = fe_idle
 
     def can_add_idle_glideins(self, nr_glideins, frontend_name, log=logSupport.log, factoryConfig=factoryConfig):
-        """Determine how many additional idle glideins can be added.
+        """Determine how many additional idle Glideins can be added respecting the Factory limits.
 
-        Uses only the Factory and entry limits.
+        Uses only the per-entry and per-client limits set in the Factory.
         Does not compare against the request max_glideins and does not update totals.
 
         Args:
-            nr_glideins (int): Number of additional glideins proposed.
+            nr_glideins (int): Number of additional Glideins proposed by the `frontend_name` client.
             frontend_name (str): Frontend name (frontend:security class key).
-            log (loggng.Logger): Logger.
+            log (logging.Logger): Logger.
             factoryConfig (FactoryConfig, optional): Factory configuration.
 
         Returns:
-            int: Number of additional glideins allowed.
+            int: Number of additional Glideins allowed.
         """
         if factoryConfig is None:
             factoryConfig = globals()["factoryConfig"]

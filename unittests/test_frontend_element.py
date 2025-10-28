@@ -167,6 +167,7 @@ class FEElementTestCase(unittest.TestCase):
             "ReserveIdlePerEntry": "5",
             "MaxRunningPerEntry": "10000",
             "JobQueryExpr": "True",
+            "RampUpAttenuation": "3",
             "MaxIdleVMsTotal": "1000",
             "FactoryMatchAttrs": "[]",
             "MaxIdlePerEntry": "100",

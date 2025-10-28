@@ -228,7 +228,7 @@ log_all_system_info () {
 	loginfo "Unprivileged user namespaces enabled: $(check_exit_status $GWMS_IS_UNPRIV_USERNS_ENABLED)"
 	loginfo "FUSE installed: $(check_exit_status $GWMS_IS_FUSE_INSTALLED)"
 	loginfo "fusermount available: $(check_exit_status $GWMS_IS_FUSERMOUNT)"
-	loginfo "Is the user in 'fuse' group: $(check_exit_status $GWMS_IS_USR_IN_FUSE_GRP)"
+	loginfo "Is the $(whoami) user in 'fuse' group: $(check_exit_status $GWMS_IS_USR_IN_FUSE_GRP)"
 	loginfo "..."
 }
 
@@ -438,7 +438,7 @@ perform_cvmfs_mount () {
 
         loginfo "CVMFS Source = $cvmfs_source"
         # initializing CVMFS repositories to a variable for easy modification in the future
-        local cvmfs_source_repolist
+        local cvmfs_source_repolist combined_repos
         case $cvmfs_source in
             osg)
                 GLIDEIN_CVMFS_CONFIG_REPO=config-osg.opensciencegrid.org
@@ -457,7 +457,13 @@ perform_cvmfs_mount () {
                 exit 1
         esac
         GLIDEIN_CVMFS_REPOS=$(gconfig_get GLIDEIN_CVMFS_REPOS)
-        GLIDEIN_CVMFS_REPOS="$cvmfs_source_repolist:$GLIDEIN_CVMFS_REPOS"
+        if [[ -z $GLIDEIN_CVMFS_REPOS ]]; then
+            GLIDEIN_CVMFS_REPOS="$cvmfs_source_repolist"
+        else
+            combined_repos="$cvmfs_source_repolist:$GLIDEIN_CVMFS_REPOS"
+            combined_repos=$(echo "${combined_repos}" | tr ':' '\n' | sort -u)
+            GLIDEIN_CVMFS_REPOS=$(echo "$combined_repos" | tr '\n' ':')
+        fi
         GLIDEIN_CVMFS_REPOS="${GLIDEIN_CVMFS_REPOS%:}"
 
         # (optional) set an environment variable that suggests additional repos to be mounted after config repos are mounted

@@ -9,9 +9,71 @@ Changes since the last release
 
 ### New features / functionalities
 
--   Added GLIDEIN_CVMFS_REPOS custom variable to define additional CVMFS repositories to mount (PR #547)
+-   Recognize EL/CentOS 10 worker nodes to select the correct HTCondor tarball (PR #600)
+-   Factory monitoring now showing Client Requested Idle Glideins; only keeping track of Factory adjusted Idle (PR# #606, Issue #520)
 
 ### Changed defaults / behaviours
+
+-   Example
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+### Testing / Development
+
+### Known Issues
+
+## v3.10.16 \[2025-09-29\]
+
+Bug fix release. Mostly CVMFS and HTCondor job wrapper related.
+
+### New features / functionalities
+
+-   create_cvmfsexec_distros.sh updated adding EL9 to platforms and improved command syntax (Issue #549, PR #582)
+-   Added new staticextra resource type – behaves like static (creates one dedicated slot per instance with a virtual CPU each), but instead of subtracting memory from the main partitionable slot, it adds memory to it (Issue #590, PR #591)
+-   OSG_autoconf: Added mapping for EIC and CLAS12 and support for the new dedicated `OSG` collector parameter to set `EstimatedCPUs` replacing the use of the generic `CPUs` (PR #595)
+
+### Changed defaults / behaviours
+
+-   Added httpd configuration to enhance security by disabling version headers and trace (PR #578)
+-   Since 3.10.15, all job wrapper scripts must be "POSIX" compatible to be able to run on small images with Busybox. Added a relaxation in 3.10.16, setting `set +o posix` when Bash is available (PR #587)
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Fixed incorrect glog_get_logfile_path_relative call in condor_startup.sh (PR #579)
+-   Fixed Frontend reconfiguration failure when using "ALL" schedd (Issue #575, PR #580)
+-   Fixed cvmfsexec failure when duplicate repositories are in the GLIDEIN_CVMFS_REPOS list (Issue #567, PR #585)
+-   Fixed wrong exec command in wrapper script (Issue #584, PR #587)
+-   Environment cleanup fixed. `PATH`, `LD_LIBRARY_PATH`, `PYTHONPATH`, and `LD_PRELOAD` are now correctly cleared when requested with `clearpaths` or `clearall` (Issue #592, PR #596)
+-   Fixed maxWallTime not being set as a submit attribute by OSG_autoconf when an entry is whole node (PR #595)
+
+### Testing / Development
+
+### Known Issues
+
+## v3.10.15 \[2025-07-18\]
+
+Fixed v3.10.14 POSIX mode incompatibility error. Enhanced cvmfsexec mode 1 (mountrepo) to mount repos in
+GLIDEIN_CVMFS_REPOS and to use Apptainer images from CVMFS.
+
+### New features / functionalities
+
+-   Added GLIDEIN_OVERLOAD_ENABLED to control partial CPU and memory overload (PR #536)
+-   Added GLIDEIN_CVMFS_REPOS custom variable to define additional CVMFS repositories to mount (PR #547)
+-   Added ramp_up_attenuation config parameter to control Glidein provisioning remap-up (PR #556)
+-   Updates the pilot generation logic in OSG_autoconf to check the OSG_BatchSystem attribute from the OSG collector. If the batch system is set to "CONDOR", the resulting pilot entry will have work_dir set to "Condor" (PR #558)
+-   Updates the pilot generation logic in OSG_autoconf to use the cpus attribute from the OSG collector to set GLIDEIN_ESTIMATED_CPUs (PR #560)
+
+### Changed defaults / behaviours
+
+-   The job wrappers in the Glidein are now running with the `/bin/sh` prompt instead of `/bin/bash`. They use Bash and `set +o posix` when possible, but there may be another shell.
 
 ### Deprecated / removed options and commands
 
@@ -20,10 +82,13 @@ Changes since the last release
 ### Bug Fixes
 
 -   Retrieve and use CVMFS_MOUNT_DIR from glidein_config if not in the environment (PR #552)
+-   Addressed POSIX mode problems and CVMFS path resolution (PR #555)
 
 ### Testing / Development
 
 ### Known Issues
+
+-   Duplicate repositories in the GLIDEIN_CVMFS_REPOS list will fail cvmfsexec.
 
 ## v3.10.14 \[2025-06-20\]
 
@@ -34,7 +99,7 @@ Adds `precvmfs_file_list` priority to `*_file_list` priorities when using on-dem
 -   Added support for Ubuntu 24 workers (PR #529)
 -   Add keyword ALL to query all schedulers known to the collector without listing them explicitly (Issue #510, PR #532)
 -   Add keyword usertrace to the GLIDEIN_DEBUG_OPTIONS custom variable to enable shell tracing in user jobs and wrapper (PR #540)
--   Glideins can start containers with Busybox and no Bash, e.g Alpine Linux. The Glidein itself still requires Bash (Issue #538, PR #540)
+-   Glideins can start containers with Busybox and no Bash, e.g. Alpine Linux. The Glidein itself still requires Bash (Issue #538, PR #540)
 
 ### Changed defaults / behaviours
 
@@ -125,7 +190,7 @@ Check the changed defaults, including SINGULARITY_IMAGE_REQUIRED, APPTAINER_TEST
     The image must be provided by the job or a future custom script in order not to fail. (PR #482)
 -   APPTAINER_TEST_IMAGE can be set to an always available Singularity/Apptainer image to use for testing.
     Defaults to oras://ghcr.io/apptainer/alpine:latest (PR #482)
--   Monitoring pages are now redirecting to https if available, i.e. mod_ssl is installed and mod_ssl.conf is present. This behavior was present in the past but had been lost and now it has been reinstated. (PR #492, PR #502)
+-   Monitoring pages are now redirecting to https if available, i.e. mod_ssl is installed and mod_ssl.conf is present. This behavior was present in the past but had been lost, and now it has been reinstated. (PR #492, PR #502)
 -   The default Frontend tokens key is now variable, $HOME/passwords.d/UPPERCASE_USERNAME. There is no actual change since this is /var/lib/gwms-frontend/passwords.d/FRONTEND for normal RPM installations. (PR #504)
 
 ### Deprecated / removed options and commands
@@ -392,7 +457,7 @@ This release provides full functionality in EL9 and Python 3.9. Changes since v3
 ### Known Issues
 
 -   When generating cvmfsexec distribution for EL9 machine type on an EL7 machine, the factory reconfig and/or upgrade fails as a result of an error in `create_cvmfsexec_distros.sh`. This is possibly due to the tools for EL7 being unable to handle EL9 files (as per Dave Dykstra). Please exercise caution if using `rhel9-x86_64` in the `mtypes` list for the `cvmfsexec_distro` tag in factory configuration.
-    -   Our workaround is to remove the EL9 machine type from the default list of machine types supported by the custom distros creation script. Add it back if you are running on an EL9 system and want an EL9 cvmfsexec distrinution. (PR #312)
+    -   Our workaround is to remove the EL9 machine type from the default list of machine types supported by the custom distros creation script. Add it back if you are running on an EL9 system and want an EL9 cvmfsexec distribution. (PR #312)
 
 ## v3.10.2 \[2023-5-10\]
 

@@ -1,3 +1,27 @@
+v3_10_16
+	create_cvmfsexec_distros.sh updated adding EL9 to platforms and improved command syntax (Issue#549, PR#582)
+	Added new staticextra resource type – behaves like static (creates one dedicated slot per instance with a virtual CPU each), but instead of subtracting memory from the main partitionable slot, it adds memory to it (Issue#590, PR#591)
+	OSG_autoconf: Added mapping for EIC and CLAS12 and support for the new dedicated `OSG` collector parameter to set `EstimatedCPUs` replacing the use of the generic `CPUs` (PR#595)
+	Bug fix: Fixed incorrect glog_get_logfile_path_relative call in condor_startup.sh (PR#579)
+	Bug fix: Fixed Frontend reconfiguration failure when using "ALL" schedd (Issue#575, PR#580)
+	Bug fix: Fixed cvmfsexec failure when duplicate repositories are in the GLIDEIN_CVMFS_REPOS list (Issue#567, PR#585)
+	Bug fix: Fixed wrong exec command in wrapper script (Issue#584, PR#587)
+	Bug fix: Environment cleanup fixed. `PATH`, `LD_LIBRARY_PATH`, `PYTHONPATH`, and `LD_PRELOAD` are now correctly cleared when requested with `clearpaths` or `clearall` (Issue#592, PR#596)
+	Bug fix: Fixed maxWallTime not being set as a submit attribute by OSG_autoconf when an entry is whole node (PR#595)
+	NOTE: Added httpd configuration to enhance security by disabling version headers and trace (PR#578)
+	NOTE: Since 3.10.15, all job wrapper scripts must be "POSIX" compatible to be able to run on small images with Busybox. Added a relaxation in 3.10.16, setting `set +o posix` when Bash is available (PR#587)
+
+v3_10_15
+	Added GLIDEIN_OVERLOAD_ENABLED to control partial CPU and memory overload (PR#536)
+	Added GLIDEIN_CVMFS_REPOS custom variable to define additional CVMFS repositories to mount (PR#547)
+	Added ramp_up_attenuation config parameter to control Glidein provisioning remap-up (PR#556)
+	Updates the pilot generation logic in OSG_autoconf to check the OSG_BatchSystem attribute from the OSG collector. If the batch system is set to "CONDOR", the resulting pilot entry will have work_dir set to "Condor" (PR#558)
+	Updates the pilot generation logic in OSG_autoconf to use the cpus attribute from the OSG collector to set GLIDEIN_ESTIMATED_CPUs (PR#560)
+	Bug fix: Retrieve and use CVMFS_MOUNT_DIR from glidein_config if not in the environment (PR#552)
+	Bug fix: Addressed POSIX mode problems and CVMFS path resolution (PR#555)
+	NOTE: The job wrappers in the Glidein are now running with the `/bin/sh` prompt instead of `/bin/bash`. They use Bash and `set +o posix` when possible, but there may be another shell.
+	NOTE: Duplicate repositories in the GLIDEIN_CVMFS_REPOS list will fail cvmfsexec.
+
 v3_10_14
 	Added support for Ubuntu 24 workers (PR#529)
 	Add keyword ALL to query all schedulers known to the collector without listing them explicitly (Issue#510, PR#532)

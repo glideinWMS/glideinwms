@@ -109,6 +109,9 @@ SPDX-License-Identifier: Apache-2.0
             <a href="#singularity_vars">Apptainer/Singularity variables </a>
           </li>
           <li>
+            <a href="#cvmfs_vars">CVMFS variables </a>
+          </li>
+          <li>
             <a href="#cpuscalculation">Set and discover available CPUs</a>
           </li>
           <li><a href="#lifetime">Lifetime of a glidein</a></li>
@@ -583,7 +586,16 @@ MAX_STARTD_LOG          I       10000000        +                               
                 </li>
                 <li>
                   <b>static</b> - the resource has many dedicated slots (one per
-                  instance) with a virtual CPU each
+                  instance) with a virtual CPU each. Memory is taken from the
+                  main partitionable slot.
+                </li>
+                <li>
+                  <b>staticextra</b> - like <tt>static</tt>, but memory is
+                  <i>added</i> to the main partitionable slot instead of
+                  subtracted from it. Useful when you want dedicated static
+                  slots that also increase the overall memory available to the
+                  glidein. Memory defined in multiple <b>staticextra</b> slots
+                  will cumulate.
                 </li>
               </ul>
               <p>
@@ -602,8 +614,9 @@ MAX_STARTD_LOG          I       10000000        +                               
                 otherwise the startd may fail due to impossible configuration.
                 When adding resources to the main slots, regular jobs (not using
                 the resource) may use all memory and CPUs (including the virtual
-                ones). Only separate slots (type is <tt>partitionable</tt> or
-                <tt>static</tt>) reserve CPUs and memory.
+                ones). Only separate slots (type is <tt>partitionable</tt>,
+                <tt>static</tt>, or <tt>staticextra</tt>) reserve CPUs and
+                memory.
                 <!--,
         e.g. when you add 3 units of a resource to a node with 8 CPUs divided statically in 8 main slots, the first 3 of them will have also your resource.
         -->
@@ -645,6 +658,11 @@ MAX_STARTD_LOG          I       10000000        +                               
                   partitioned 2 ioslot resources with 100MB memory each.
                 </li>
                 <li>
+                  <b>value="ioslot,2,200,staticextra"</b> creates statically
+                  partitioned 2 ioslot resources with 100MB memory each, and
+                  this memory is added to the main slot instead of subtracted.
+                </li>
+                <li>
                   <b>value="ioslot"</b> creates 1 ioslot resource with 128MB
                 </li>
                 <li>
@@ -670,7 +688,7 @@ MAX_STARTD_LOG          I       10000000        +                               
                 special attributes about the GPUs. If no number is specified and
                 the auto-discovery fails 0 GPUs are assumed. Since you don't
                 know the number of GPUs that will be added to the main slot, the
-                slot_layout must be partitionable. We do recommend to lec
+                slot_layout must be partitionable. We do recommend to let
                 HTCondor discover the number of GPUs by specifying no number. If
                 you specify a number and is different from what HTCondor
                 detects, there may be problems if you are using the HTCondor
@@ -967,26 +985,93 @@ MAX_STARTD_LOG          I       10000000        +                               
             </td>
           </tr>
           <tr>
+            <td><b>GLIDEIN_OVERLOAD_ENABLED</b></td>
+            <td>String (boolean or percentage)</td>
+            <td>false</td>
+            <td>
+              <p>
+                Controls whether resource overloading is enabled for the pilot.
+                When set to
+                <code>true</code> (case-insensitive), both
+                <b>GLIDEIN_OVERLOAD_CPUS</b> and
+                <b>GLIDEIN_OVERLOAD_MEMORY</b> adjustments are applied. When set
+                to <code>false</code>, overloading is disabled regardless of the
+                other overload values.
+              </p>
+              <p>
+                If set to a percentage (e.g., <code>80%</code>), overloading is
+                enabled randomly with the given probability. This is useful for
+                gradual rollout or A/B testing. For example, setting
+                <code>GLIDEIN_OVERLOAD_ENABLED=25%</code> enables overloading
+                for approximately one in four pilots.
+              </p>
+              <p>
+                This variable must be explicitly enabled to allow CPU or memory
+                overload to take effect.
+              </p>
+            </td>
+          </tr>
+          <tr>
             <td><b>GLIDEIN_OVERLOAD_CPUS</b></td>
             <td>Float</td>
-
             <td>1</td>
             <td>
               <p>
-                Adjustment factor for GLIDEIN_CPUS that allows to overload
-                pilots. This means GLIDEIN_CPUS will be multpilied by
-                GLIDEIN_OVERLOAD_CPUS allowing to increase the size of the slot
-                compared to the original value. The original GLIDEIN_CPUS value
-                is usually set to the same value as the submit_attribute used to
-                submit the pilot to the CE. For example, usually both
-                GLIDEIN_CPUS and the submit attribute +xcount are set to 8.
-                Setting GLIDEIN_OVERLOAD_CPUS=1.25 allows to increase the value
-                of GLIDEIN_CPUS to 10 while keeping +xcount to 8. While in
-                principle you could just set GLIDEIN_CPUS to 10, using
-                GLIDEIN_OVERLOAD_CPUS is required for whole node pilots.
-                Therefore, we recommend to always use the GLIDEIN_OVERLOAD_CPU
-                attribute every time GLIDEIN_CPUS is different compared to
-                +xcount (or whatever submit attribute the CE accepts)
+                Adjustment factor for <b>GLIDEIN_CPUS</b> that allows CPU
+                overcommit for pilots. The value of <b>GLIDEIN_CPUS</b> will be
+                multiplied by this factor to create a larger pilot slot than
+                originally requested.
+              </p>
+              <p>
+                For example, if <b>GLIDEIN_CPUS</b> and the CE submit attribute
+                (e.g., <code>+xcount</code>) are both set to <code>8</code>, and
+                <code>GLIDEIN_OVERLOAD_CPUS=1.25</code> is set, the pilot will
+                report <b>GLIDEIN_CPUS=10</b> while still requesting only 8 from
+                the CE.
+              </p>
+              <p>
+                This attribute is required for whole-node pilots when the
+                reported slot size differs from the CE submission size.
+                Therefore, we recommend always using
+                <b>GLIDEIN_OVERLOAD_CPUS</b> when <b>GLIDEIN_CPUS</b> differs
+                from <code>+xcount</code>
+                or other relevant CE attributes.
+              </p>
+              <p>
+                Note: The overload is only applied if
+                <b>GLIDEIN_OVERLOAD_ENABLED</b> is also enabled.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td><b>GLIDEIN_OVERLOAD_MEMORY</b></td>
+            <td>Float</td>
+            <td>1</td>
+            <td>
+              <p>
+                Adjustment factor for <b>GLIDEIN_MaxMemMBs</b> that allows
+                memory overcommit for pilots. The value of
+                <b>GLIDEIN_MaxMemMBs</b> will be multiplied by this factor to
+                enlarge the pilot memory footprint beyond what the CE sees.
+              </p>
+              <p>
+                For example, if both <b>GLIDEIN_MaxMemMBs</b> and the submit
+                attribute <code>+MaxMemory</code> are set to
+                <code>20Mb</code> (e.g., 2.5GB per core), and
+                <code>GLIDEIN_OVERLOAD_MEMORY=1.25</code> is set, the pilot will
+                report <b>GLIDEIN_MaxMemMBs=25Mb</b> while requesting only 20Mb.
+              </p>
+              <p>
+                This attribute is required for whole-node pilots when the
+                reported memory size differs from what is submitted to the CE.
+                Therefore, we recommend always using
+                <b>GLIDEIN_OVERLOAD_MEMORY</b> when
+                <b>GLIDEIN_MaxMemMBs</b> differs from <code>+MaxMemory</code>
+                or similar CE attributes.
+              </p>
+              <p>
+                Note: The overload is only applied if
+                <b>GLIDEIN_OVERLOAD_ENABLED</b> is also enabled.
               </p>
             </td>
           </tr>
@@ -1049,32 +1134,6 @@ MAX_STARTD_LOG          I       10000000        +                               
                 Used in conjunction with GLIDEIN_MaxMemMBs. It is ignored if
                 GLIDEIN_MaxMemMBs is set to any value. See GLIDEIN_MaxMemMBs for
                 the description.
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td><b>GLIDEIN_OVERLOAD_MEMORY</b></td>
-            <td>Float</td>
-
-            <td>1</td>
-            <td>
-              <p>
-                Adjustment factor for GLIDEIN_MaxMemMBs that allows to overload
-                pilot memory. This means GLIDEIN_MaxMemMBs will be multpilied by
-                GLIDEIN_OVERLOAD_MEMORY allowing to increase the size of the
-                slot compared to the original GLIDEIN_MaxMemMBs value. The
-                original GLIDEIN_MaxMemMBs value is usually set to the same
-                value as the submit_attribute used to submit the pilot to the
-                CE. For example, usually both GLIDEIN_MaxMemMBs and the submit
-                attribute +MaxMemory are seto to 20Mb (2.5Gb per core). Setting
-                GLIDEIN_OVERLOAD_MEMORY=1.25 allows to increase the value of
-                GLIDEIN_MaxMemMBs to 25Mb while keeping +MaxMemory to 20Mb.
-                While in principle you could just set GLIDEIN_MaxMemMBs to 25Mb,
-                using GLIDEIN_OVERLOAD_MEMORY is required for whole node pilots.
-                Therefore, we recommend to always use the
-                GLIDEIN_OVERLOAD_MEMORY attribute every time GLIDEIN_MaxMemMBs
-                is different compared to MaxMemory (or whatever submit attribute
-                the CE accepts)
               </p>
             </td>
           </tr>
@@ -2562,8 +2621,9 @@ MAX_STARTD_LOG          I       10000000        +                               
               <p>
                 If "false" the Glidein will continue the Singularity/Apptainer
                 setup even if no valid image is found. The setup will use a test
-                image. The user will have to provide the image with a later
-                setup script or in the job. Possible values are: false or true.
+                image (see APPTAINER_TEST_IMAGE). The user will have to provide
+                the image with a later setup script or in the job. Possible
+                values are: false or true.
               </p>
             </td>
           </tr>
@@ -2575,11 +2635,13 @@ MAX_STARTD_LOG          I       10000000        +                               
             <td>
               <p>
                 URI (local path or remote URI) of a Singularity/Apptainer image
-                to use for testing. If not set, GWMS_SINGULARITY_IMAGE_DEFAULT,
-                otherwise <tt>oras://ghcr.io/apptainer/alpine:latest</tt>, a
-                small Alpine Linux sif image provided by the Apptainer
-                developers. This can be set in the worker node environment,
-                which takes precedence, or as attribute.
+                to use for testing if your image is not available and
+                GWMS_SINGULARITY_IMAGE_DEFAULT is not set. APPTAINER_TEST_IMAGE
+                can be set in the worker node environment, which takes
+                precedence, or as attribute in the configuration. If neither is
+                set, the Glidein will download for testing
+                <tt>oras://ghcr.io/apptainer/alpine:latest</tt>, a small Alpine
+                Linux sif image provided by the Apptainer developers.
               </p>
             </td>
           </tr>
@@ -2794,10 +2856,31 @@ MAX_STARTD_LOG          I       10000000        +                               
       </div>
 
       <div class="section">
-        <h3><a name="cvmfs_vars"></a>CVMFS Variables</h3>
+        <h2><a name="cvmfs_vars"></a>CVMFS Variables</h2>
         <p>
-          This section describes the variables that can be configured for use
-          with the glidein to allow CVMFS to be provisioned on-demand. These
+          GlideinWMS factory includes the capability to mount and unmount CVMFS
+          on demand, i.e. for sites that do not have a native installation of
+          CVMFS available. <b>cvmfs_setup.sh</b> and <b>cvmfs_umount.sh</b> are
+          the main scripts used for mounting and unmounting CVMFS. A couple of
+          auxiliary scripts serve as helper scripts for different purposes: (1)
+          <i>cvmfs_helper_funcs.sh</i> helps with on-demand CVMFS provisioning,
+          and (2) <i>cvmfsexec_platform_select.sh</i> assists with dynamic
+          selection of cvmfsexec distribution. On-demand mounting and unmounting
+          is achieved via the
+          <b>
+            <i
+              ><a href="https://www.github.com/cvmfs/cvmfsexec">cvmfsexec</a></i
+            >
+          </b>
+          utility, that supports various modes as outlined
+          <a
+            href="https://github.com/cvmfs/cvmfsexec?tab=readme-ov-file#cvmfsexec-package"
+            >here</a
+          >.
+        </p>
+        <p>
+          The table below describes the attributes that can be configured for
+          use with the glidein to allow CVMFS to be provisioned on-demand. These
           variables are configured at the glidein level so that it applies to
           all the entries that are configured in the factory's configuration
           file.
@@ -2873,49 +2956,117 @@ MAX_STARTD_LOG          I       10000000        +                               
           </tr>
         </table>
         <br />
+        <p>
+          Following is a matrix summarizing the combination of requirements that
+          allow different modes of cvmfsexec. For more technical details on how
+          unprivileged user namespaces and FUSE dictate the mode of cvmfsexec
+          that will be used, please refer to cvmfsexec documentation
+          <a href="https://www.github.com/cvmfs/cvmfsexec">here</a>.
+        </p>
+        <table class="requirements">
+          <tr class="head">
+            <td><b>GLIDEIN_USE_CVMFSEXEC</b></td>
+            <td><b>GLIDEIN_CVMFS</b></td>
+            <td><b>Unprivileged user namespaces?</b></td>
+            <td><b>FUSE/FUSE3 installed?</b></td>
+            <td><b>cvmfsexec mode used</b></td>
+            <td><b>Utility used?</b></td>
+          </tr>
+          <tr>
+            <td>0</td>
+            <td>NEVER|PREFERRED|OPTIONAL|REQUIRED</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>NEVER</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+          </tr>
+          <tr>
+            <td rowspan="2">1</td>
+            <td rowspan="2">PREFERRED|OPTIONAL</td>
+            <td>no</td>
+            <td>yes</td>
+            <td>1</td>
+            <td>mountrepo</td>
+          </tr>
+          <tr>
+            <td>yes</td>
+            <td>N/A</td>
+            <td>3</td>
+            <td>cvmfsexec</td>
+          </tr>
+          <tr>
+            <td rowspan="3">1</td>
+            <td rowspan="3">REQUIRED</td>
+            <td>yes</td>
+            <td>N/A</td>
+            <td>3</td>
+            <td>cvmfsexec</td>
+          </tr>
+          <tr>
+            <td rowspan="2">no</td>
+            <td>yes</td>
+            <td>1</td>
+            <td>mountrepo</td>
+          </tr>
+          <tr>
+            <td>no</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+        </table>
+        <br /><br />
         <h4>
           Dynamic creation and selection of cvmfsexec platform-specific
           distribution
         </h4>
         <p>
-          GlideinWMS factory includes the capability to mount and unmount CVMFS
-          on demand, i.e. for sites that do not have a local installation of
-          CVMFS available. This is achieved via the scripts
-          <b>cvmfs_setup.sh</b> and <b>cvmfs_umount.sh</b>. Two additional shell
-          scripts <i>cvmfs_helper_funcs.sh</i> and <i>cvmfs_mount .sh</i> are
-          used as helper scripts during the mounting process. On demand mounting
-          and unmounting is achieved via the <b><i>cvmfsexec </i></b> utility.
-          The helper scripts are enabled for conditional download based on the
-          GLIDEIN_USE_CVMFSEXEC variable. When the GLIDEIN_USE_CVMFSEXEC
-          variable is set (value of 1), the helper scripts are downloaded for
-          facilitating the mounting of CVMFS.
-        </p>
-        <p>
-          cvmfsexec can be packaged as self-contained distribution specific to
-          an operating system and platform with required configuration and
-          executables necessary to enable CVMFS in unprivileged mode. Doing so
-          allows easy distribution to multiple machines. Worker node
-          specifications vary from each other and can change over time so,
-          shipping all possible variations of cvmfsexec distributions with the
-          glidein helps address the challenge when it comes to using the correct
-          distribution for use by the worker node. However, rather than having a
-          tarball containing multiple cvmfsexec distribution files corresponding
-          to a (CVMFS source, system platform, architecture) combination,
-          GlideinWMS dynamically creates and selects the appropriate cvmfsexec
-          distribution from the list of distributions.
+          <i>cvmfsexec</i> can be packaged as self-contained distribution
+          specific to an operating system and platform with required
+          configuration and executables necessary to enable CVMFS in
+          unprivileged mode. Doing so allows easy distribution to multiple
+          machines. Worker node specifications vary from each other and can
+          change over time so, shipping all possible variations of cvmfsexec
+          distributions with the glidein helps address the challenge with using
+          the correct distribution for use by the worker node. However, rather
+          than having a tarball containing multiple cvmfsexec distribution files
+          corresponding to a (CVMFS source, system platform, architecture)
+          combination, GlideinWMS dynamically creates and selects the
+          appropriate cvmfsexec distribution from the list of available
+          distributions.
         </p>
         <p>
           Specific to a CVMFS source, system platform and architecture,
           cvmfsexec distribution files are created automatically by the script
-          named <b>create_cvmfsexec_distros.sh</b>. The script is placed in
-          <i>hooks.reconfig.pre</i> directory for dynamic execution. Each of
-          these distributions are packaged as individual tarballs and are added
-          to the default list of uploads at the time of factory reconfiguration
-          and/or upgrade. Another script, <i> cvmfsexec_platform_select.sh</i>,
-          automatically selects the appropriate distribution tarball based on
-          the specifics of the worker node and ships the distribution with the
-          glidein. This script is invoked during the customization of the worker
-          node as part of the glidein setup.
+          named <b>create_cvmfsexec_distros.sh</b>, which is available under
+          `/usr/bin` as an executable and is invoked dynamically during factory
+          reconfiguration and/or upgrade when on-demand CVMFS is enabled. Each
+          of these distributions are packaged as individual tarballs and are
+          added to the default list of uploads at the time of factory
+          reconfiguration and/or upgrade. During glidein startup, the auxiliary
+          script <i>cvmfsexec_platform_select.sh</i>, automatically selects the
+          appropriate distribution tarball based on the specifics of the worker
+          node and ships the distribution with the glidein. This script is
+          invoked during the customization of the worker node as part of the
+          glidein setup.
+        </p>
+        <p>
+          Since <i>create_cvmfsexec_distros.sh</i> is executed as part of
+          factory reconfiguration and/or upgrade, there might be times when the
+          dynamic building of cvmfsexec distributions fails. For instance, a
+          misspelling exists in `platforms` attribute value. Instead of
+          reinvoking factory reconfiguration and/or upgrade in such cases, as an
+          alternative, <i>create_cvmfsexec_distros.sh</i> can be executed
+          manually following the required syntax as described in the script's
+          usage information (via `create_cvmfsexec_distros.sh -h`) to retry the
+          building of cvmfsexec distributions that had previously failed.
         </p>
       </div>
 

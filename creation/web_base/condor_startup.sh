@@ -7,8 +7,9 @@
 #   This script starts the condor daemons. Expects a config file (glidien_config) as a parameter
 
 trap_with_arg() {
-    func="$1" ; shift
+    local sig func="$1" ; shift
     for sig ; do
+        # shellcheck disable=SC2064  # Variables evaluated at setup
         trap "$func $sig" "$sig"
     done
 }
@@ -29,7 +30,7 @@ on_die() {
     # The HTCondor team suggested to send always SIGQUIT to speedup the shutdown and avoid leftover files
     condor_signal=SIGQUIT
     condor_pid_tokill=$condor_pid
-    [[ -z "$condor_pid_tokill" ]] && condor_pid_tokill=`cat $PWD/condor_master2.pid 2> /dev/null`
+    [[ -z "$condor_pid_tokill" ]] && condor_pid_tokill=$(cat "$PWD"/condor_master2.pid 2> /dev/null)
     echo "Condor startup received $1 signal ... shutting down condor processes (forwarding $condor_signal to $condor_pid_tokill)"
     [[ -n "$condor_pid_tokill" ]] && kill -s $condor_signal $condor_pid_tokill
     # "$CONDOR_DIR"/sbin/condor_master -k $PWD/condor_master2.pid
@@ -122,7 +123,7 @@ fi
 
 if [[ "$print_debug" -ne 0 ]]; then
     echo "-------- $config_file in condor_startup.sh ----------" 1>&2
-    cat $config_file 1>&2
+    cat "$config_file" 1>&2
     echo "-----------------------------------------------------" 1>&2
 fi
 
@@ -130,13 +131,13 @@ main_stage_dir=$(gconfig_get GLIDEIN_WORK_DIR "$config_file")
 
 description_file=$(gconfig_get DESCRIPTION_FILE "$config_file")
 
-in_condor_config="${main_stage_dir}/`grep -i '^condor_config ' "${main_stage_dir}/${description_file}" | cut -s -f 2-`"
+in_condor_config="${main_stage_dir}/$(grep -i '^condor_config ' "${main_stage_dir}/${description_file}" | cut -s -f 2-)"
 
 export CONDOR_CONFIG="${PWD}/condor_config"
 
 cp "$in_condor_config" "$CONDOR_CONFIG"
 
-echo "# ---- start of condor_startup generated part ----" >> $CONDOR_CONFIG
+echo "# ---- start of condor_startup generated part ----" >> "$CONDOR_CONFIG"
 
 wrapper_list=$(gconfig_get WRAPPER_LIST "$config_file")
 
@@ -150,6 +151,12 @@ cat > "$condor_job_wrapper" <<EOF
 
 # This script is started just before the user job
 # It is referenced by the USER_JOB_WRAPPER
+# /bin/sh is used for Busybox compatibility (small images)
+if [ -n "$BASH_VERSION" ]; then
+    # If in Bash, disable POSIX mode
+    # shellcheck disable=SC3040
+    set +o posix || echo "WARN: running in POSIX mode"
+fi
 
 EOF
 
@@ -210,7 +217,7 @@ set_var() {
             # no default, do not set
             return 0
         else
-            eval var_val=$var_def
+            eval var_val="$var_def"
         fi
     fi
 
@@ -224,7 +231,7 @@ set_var() {
     fi
 
     # insert into condor_config
-    echo "$var_condor=$var_val_str" >> $CONDOR_CONFIG
+    echo "$var_condor=$var_val_str" >> "$CONDOR_CONFIG"
 
     if [[ "$var_exportcondor" == "Y" ]]; then
         # register var_condor for export
@@ -380,7 +387,7 @@ fix_param() {
     done
     res="${RESLIST[0]}"
     ((res_ctr=${#varnames_len}-1))
-    for i in $(seq 1 1 $res_ctr 2>/dev/null); do
+    for i in $(seq 1 1 "$res_ctr" 2>/dev/null); do
         res="$res,${RESLIST[$i]}"
     done
     echo "$res"
@@ -410,7 +417,7 @@ unit_division() {
         fi
         res="$res_num${1:${#number_only}}"
     fi
-    echo $res
+    echo "$res"
 }
 
 
@@ -456,11 +463,12 @@ do
     set_var $line
 done < condor_vars.lst.tmp
 
-
+# The exec command GLIDEIN_WRAPPER_EXEC is and must be already quoted (e.g. "\\\"\\\$@\\\"")
+# This allows to modify the wrapper parameters list
 cat >> "$condor_job_wrapper" <<EOF
 
 # Condor job wrappers must replace its own image
-exec "$GLIDEIN_WRAPPER_EXEC"
+exec $GLIDEIN_WRAPPER_EXEC
 EOF
 chmod a+x "$condor_job_wrapper"
 
@@ -600,7 +608,7 @@ else
 fi
 
 
-((random100=$RANDOM%100))
+((random100=RANDOM%100))
 ((retire_time= retire_time - retire_spread * random100 / 100))
 ((die_time= die_time - retire_spread * random100 / 100))
 
@@ -641,9 +649,9 @@ LSB_DISTRIBUTOR_ID="UNKNOWN"
 LSB_DESCRIPTION="UNKNOWN"
 command -v lsb_release >/dev/null
 if test $? = 0; then
-    LSB_RELEASE=`lsb_release -rs | sed 's/"//g'`
-    LSB_DISTRIBUTOR_ID=`lsb_release -is | sed 's/"//g'`
-    LSB_DESCRIPTION=`lsb_release -ds | sed 's/"//g'`
+    LSB_RELEASE=$(lsb_release -rs | sed 's/"//g')
+    LSB_DISTRIBUTOR_ID=$(lsb_release -is | sed 's/"//g')
+    LSB_DESCRIPTION=$(lsb_release -ds | sed 's/"//g')
 fi
 
 
@@ -818,8 +826,10 @@ EOF
 NEW_RESOURCES_LIST =
 EXTRA_SLOTS_NUM = 0
 EXTRA_CPUS_NUM = 0
+EXTRA_MEMORY_MB = 0
 EXTRA_SLOTS_START = True
 NUM_CPUS = \$(GLIDEIN_CPUS)+\$(EXTRA_SLOTS_NUM)+\$(EXTRA_CPUS_NUM)
+MEMORY = \$(GLIDEIN_MaxMemMBs)+\$(EXTRA_MEMORY_MB)
 
 # Slot 1 definition done before (fixed/partitionable)
 #SLOT_TYPE_1_PARTITIONABLE = FALSE
@@ -835,6 +845,8 @@ EOF
             IFS=';' read -ra RESOURCES <<< "$condor_config_resource_slots"
             # Slot Type Counter - Leave slot type 2 for monitoring
             slott_ctr=3
+            # Extra memory to add for all the staticextra slots
+            cc_resource_slots_mem_add=0
             for i in "${RESOURCES[@]}"; do
                 resource_params=$(fix_param "$i" "name,number,memory,type,disk")
                 IFS=',' read res_name res_num res_ram res_opt res_disk <<< "$resource_params"
@@ -909,8 +921,10 @@ EOF
                     # Decided not to add type "mainextra" with resources added to main slot and CPUs incremented
                     # It can be obtained with more control by setting GLIDEIN_CPUS
                 else
-                    if [[ "$res_num" -eq 1 || "$res_opt" == "static" ]]; then
-                        res_opt=static
+                    if [[ "$res_num" -eq 1 || "$res_opt" == "static" || "$res_opt" == "staticextra" ]]; then
+                        if [[ "$res_opt" == "partitionable" ]]; then
+                            res_opt=static
+                        fi
                         res_ram=$(unit_division "${res_ram}" ${res_num})
                         if [[ -n "$res_disk" ]]; then
                             res_disk=$(unit_division "${res_disk}" ${res_num})
@@ -937,6 +951,9 @@ SLOT_TYPE_${slott_ctr}_PARTITIONABLE = TRUE
 NUM_SLOTS_TYPE_${slott_ctr} = 1
 EOF
                     else
+                        if [[ "$res_opt" == "staticextra" ]]; then
+                            ((cc_resource_slots_mem_add=cc_resource_slots_mem_add+res_ram))
+                        fi
                         cat >> "$CONDOR_CONFIG" <<EOF
 SLOT_TYPE_${slott_ctr} = cpus=1, ${res_name}=1, ram=${res_ram}${res_disk_specification}
 SLOT_TYPE_${slott_ctr}_PARTITIONABLE = FALSE
@@ -952,6 +969,11 @@ EOF
                 echo "NEW_RESOURCES_LIST = \$(NEW_RESOURCES_LIST) $res_name" >> "$CONDOR_CONFIG"
 
             done  # end per-resource loop
+
+            # Epilogue RAM
+            if [[ "$cc_resource_slots_mem_add" -ne 0 ]]; then
+                echo "EXTRA_MEMORY_MB = ${cc_resource_slots_mem_add}" >> "$CONDOR_CONFIG"
+            fi
 
             # Epilogue GPUs handling
             if [[ "$cc_resource_slots_has_gpus" -eq 0 ]]; then
@@ -1283,25 +1305,26 @@ slotlogs=$(ls -1 ${main_starter_log}.slot* 2>/dev/null)
 for slotlog in $slotlogs
 do
     slotname=$(echo $slotlog | awk -F"${main_starter_log}." '{print $2}')
-    cond_print_log StarterLog.${slotname} $slotlog
+    cond_print_log "StarterLog.${slotname}" "$slotlog"
 done
 
 if [[ "$use_multi_monitor" -ne 1 ]]; then
     if [[ "$GLIDEIN_Monitoring_Enabled" == "True" ]]; then
         cond_print_log MasterLog.monitor monitor/log/MasterLog
         cond_print_log StartdLog.monitor monitor/log/StartdLog
-        cond_print_log StarterLog.monitor ${monitor_starter_log}
+        cond_print_log StarterLog.monitor "${monitor_starter_log}"
     fi
 else
-    cond_print_log StarterLog.monitor ${monitor_starter_log}
+    cond_print_log StarterLog.monitor "${monitor_starter_log}"
 fi
 cond_print_log StartdHistoryLog log/StartdHistoryLog
 
 
 append_glidein_log=true   # TODO: this should be a configurable option
-logfile_path=$(get_logfile_path_relative)
 if [[ $append_glidein_log = true ]]; then
-    cond_print_log "GlideinLog" "${logfile_path}"
+    if logfile_path=$(glog_get_logfile_path_relative); then
+        cond_print_log "GlideinLog" "${logfile_path}"
+    fi
 fi
 
 ## kill the master (which will kill the startd)

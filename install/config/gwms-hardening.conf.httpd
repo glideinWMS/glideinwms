@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+# Some hardening configuration recommended by Fermilab and Cloudflare
+# https://cloudinfrastructureservices.co.uk/apache-web-server-security-and-hardening-best-practices-checklist/
+# Remove version from headers not to expose vulnerabilities
+ServerTokens Prod
+ServerSignature Off
+# Disable tracing
+TraceEnable Off
