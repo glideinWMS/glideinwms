@@ -9,7 +9,10 @@
 import sys
 import xml.etree.ElementTree as ET
 
-import htcondor
+try:
+    import htcondor
+except ImportError:
+    import htcondor2 as htcondor
 
 CONFIG_FILE = "/etc/gwms-frontend/frontend.xml"
 

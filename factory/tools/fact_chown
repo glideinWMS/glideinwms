@@ -21,9 +21,12 @@ import tarfile
 
 from contextlib import closing  # python 2.6 tarfile does not support with
 
-import htcondor
-
 from glideinwms.creation.lib import factoryXmlConfig
+
+try:
+    import htcondor
+except ImportError:
+    import htcondor2 as htcondor
 
 
 def parse_opts():

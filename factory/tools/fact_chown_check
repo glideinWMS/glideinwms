@@ -18,7 +18,10 @@ import os
 import sys
 import getpass
 
-import htcondor
+try:
+    import htcondor
+except ImportError:
+    import htcondor2 as htcondor
 
 from glideinwms.creation.lib import factoryXmlConfig
 

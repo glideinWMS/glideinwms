@@ -15,7 +15,10 @@ import pprint
 import stat
 import sys
 
-import htcondor  # pylint: disable=import-error
+try:
+    import htcondor  # pylint: disable=import-error
+except ImportError:
+    import htcondor2 as htcondor
 
 GLIDEIN_PARAM_PREFIX = "GlideinParam"
 SCRIPT_TEMPLATE = """#!/bin/sh
