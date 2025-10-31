@@ -885,8 +885,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/extract_EC2_Address
 %attr(755,root,root) %{_bindir}/find_StartdLogs
 %attr(755,root,root) %{_bindir}/find_logs
-%attr(755,root,root) %{_bindir}/fact_chown
-%attr(755,root,root) %{_bindir}/fact_chown_check
 %attr(755,root,root) %{_bindir}/gwms-logcat.sh
 %attr(755,root,root) %{_bindir}/manual_glidein_submit
 %attr(755,root,root) %{_bindir}/OSG_autoconf
