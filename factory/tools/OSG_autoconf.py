@@ -13,8 +13,6 @@ import math
 import os
 import sys
 
-import htcondor
-
 from glideinwms.lib.config_util import (
     BEST_FIT_TAG,
     ENTRY_STUB,
@@ -31,6 +29,11 @@ from glideinwms.lib.config_util import (
     write_to_yaml_file,
 )
 from glideinwms.lib.util import is_true
+
+try:
+    import htcondor
+except ImportError:
+    import htcondor2 as htcondor
 
 
 def parse_opts():

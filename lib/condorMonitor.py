@@ -32,10 +32,18 @@ try:
     import htcondor  # pylint: disable=import-error
 
     USE_HTCONDOR_PYTHON_BINDINGS = True
+
 except ImportError:
-    # TODO Maybe we should print a message here? Even though I don't know if
-    # logSupport has been initialized. But I'd try to put it log.debug
-    pass
+    try:
+        import classad2 as classad  # pylint: disable=import-error
+        import htcondor2 as htcondor  # pylint: disable=import-error
+
+        USE_HTCONDOR_PYTHON_BINDINGS = True
+
+    except ImportError:
+        # TODO Maybe we should print a message here? Even though I don't know if
+        # logSupport has been initialized. But I'd try to put it log.debug
+        pass
 
 
 def htcondor_full_reload():

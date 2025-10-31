@@ -24,8 +24,11 @@ from glideinwms.factory.glideFactoryLib import ClientWeb, FactoryConfig, set_con
 try:
     import htcondor  # pylint: disable=import-error
 except ImportError:
-    print("Python bindings not available. Exiting.")
-    sys.exit(1)
+    try:
+        import htcondor2 as htcondor
+    except ImportError:
+        print("Python bindings not available. Exiting.")
+        sys.exit(1)
 
 
 def parse_opts():

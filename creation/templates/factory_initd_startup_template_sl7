@@ -96,7 +96,6 @@ if [ "$RPM_INSTALL" = "True" ]; then
     glideinWMS_dir="$factory_dir"
     def_factory_config=/etc/gwms-factory/glideinWMS.xml
     FACTORY_CONFIG=/etc/gwms-factory/glideinWMS.xml
-    FACTORY_CHECK35_READY="${TOOLS_DIR}fact_chown_check"
 else
     # TAR installation  (defaults and binaries)
     LOG_FILE_STARTUP=/dev/null
