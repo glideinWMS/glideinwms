@@ -9,14 +9,35 @@ Changes since the last release
 
 ### New features / functionalities
 
+-   item one of the list
+-   item N
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+### Testing / Development
+
+### Known Issues
+
+## v3.10.17 \[2025-11-10\]
+
+Added support for HTCondor v2 Python bindings and other small features and fixes.
+
+### New features / functionalities
+
 -   Recognize EL/CentOS 10 worker nodes to select the correct HTCondor tarball (PR #600)
 -   Factory monitoring now showing Client Requested Idle Glideins; only keeping track of Factory adjusted Idle (PR# #606, Issue #520)
 -   Added support for HTCondor Python bindings v2. If available, v1 is still preferred (PR #608)
 
 ### Changed defaults / behaviours
 
--   Prevented memory spikes during factory reconfiguration by copying Condor tarballs instead of loading them into memory (PR #602)
--   Reuse Condor tarballs across reconfigurations by generating hash-based filenames from file metadata instead of timestamps.
+-   Prevented memory spikes during factory reconfiguration by copying Condor tarballs instead of loading them into memory (PR #602, Issue #601)
+-   Reuse Condor tarballs across reconfigurations by generating hash-based filenames from file metadata instead of timestamps (PR #604, Issue #603)
 -   Removed ownership and HTCondor checks connected to GWMS 3.5 migration (PR #608)
 
 ### Deprecated / removed options and commands
