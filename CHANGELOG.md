@@ -15,6 +15,7 @@ Changes since the last release
 
 ### Changed defaults / behaviours
 
+-   Prevented memory spikes during factory reconfiguration by copying Condor tarballs instead of loading them into memory (PR #602)
 -   Reuse Condor tarballs across reconfigurations by generating hash-based filenames from file metadata instead of timestamps.
 -   Removed ownership and HTCondor checks connected to GWMS 3.5 migration (PR #608)
 
