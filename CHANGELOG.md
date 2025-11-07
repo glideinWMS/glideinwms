@@ -9,9 +9,14 @@ Changes since the last release
 
 ### New features / functionalities
 
+-   Recognize EL/CentOS 10 worker nodes to select the correct HTCondor tarball (PR #600)
+-   Factory monitoring now showing Client Requested Idle Glideins; only keeping track of Factory adjusted Idle (PR# #606, Issue #520)
+-   Added support for HTCondor Python bindings v2. If available, v1 is still preferred (PR #608)
+
 ### Changed defaults / behaviours
 
 -   Reuse Condor tarballs across reconfigurations by generating hash-based filenames from file metadata instead of timestamps.
+-   Removed ownership and HTCondor checks connected to GWMS 3.5 migration (PR #608)
 
 ### Deprecated / removed options and commands
 
@@ -30,7 +35,7 @@ Bug fix release. Mostly CVMFS and HTCondor job wrapper related.
 ### New features / functionalities
 
 -   create_cvmfsexec_distros.sh updated adding EL9 to platforms and improved command syntax (Issue #549, PR #582)
--   Added new staticextra resource type – behaves like static (creates one dedicated slot per instance with a virtual CPU each), but instead of subtracting memory from the main partitionable slot, it adds memory to it (Issue #590)
+-   Added new staticextra resource type – behaves like static (creates one dedicated slot per instance with a virtual CPU each), but instead of subtracting memory from the main partitionable slot, it adds memory to it (Issue #590, PR #591)
 -   OSG_autoconf: Added mapping for EIC and CLAS12 and support for the new dedicated `OSG` collector parameter to set `EstimatedCPUs` replacing the use of the generic `CPUs` (PR #595)
 
 ### Changed defaults / behaviours
