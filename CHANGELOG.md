@@ -15,6 +15,7 @@ Changes since the last release
 
 ### Changed defaults / behaviours
 
+-   Reuse Condor tarballs across reconfigurations by generating hash-based filenames from file metadata instead of timestamps.
 -   Removed ownership and HTCondor checks connected to GWMS 3.5 migration (PR #608)
 
 ### Deprecated / removed options and commands

@@ -6,6 +6,7 @@ Classes and functions needed to handle dictionary files.
 created out of the parameter object.
 """
 
+import hashlib
 import os
 import os.path
 import shutil
@@ -33,6 +34,19 @@ class UnconfiguredScheddError(Exception):
 
     def __str__(self):
         return repr(self.err_str)
+
+
+def insert_hashstr(fname, filepath):
+    """Generate a filename with a short hash derived from file content."""
+    hashobj = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            hashobj.update(chunk)
+    # Take first 6 hex chars for brevity (like insert_timestr)
+    short_hash = hashobj.hexdigest()[:6]
+    base, ext = os.path.splitext(fname)
+
+    return f"{base}.{short_hash}{ext}"
 
 
 ################################################
@@ -159,6 +173,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 # Condor tarball available. Just add it to the list of tarballs
                 # with every possible condor_platform string
                 condor_tarfile = condor_el["tar_file"]
+                condor_fname = insert_hashstr(cgWConsts.CONDOR_FILE % condor_idx, condor_tarfile)
             # already built this tarball, just reuse it
             elif condor_el["base_dir"] in prev_tar_dir_map:
                 condor_tarfile = prev_tar_dir_map[condor_el["base_dir"]]
