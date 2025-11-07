@@ -37,11 +37,13 @@ class UnconfiguredScheddError(Exception):
 
 
 def insert_hashstr(fname, filepath):
-    """Generate a short hash-based suffix using file metadata (size + mtime)."""
-
-    st = os.stat(filepath)
-    hash_input = f"{st.st_size}-{int(st.st_mtime)}".encode()
-    short_hash = hashlib.md5(hash_input).hexdigest()[:6]
+    """Generate a filename with a short hash derived from file content."""
+    hashobj = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            hashobj.update(chunk)
+    # Take first 6 hex chars for brevity (like insert_timestr)
+    short_hash = hashobj.hexdigest()[:6]
     base, ext = os.path.splitext(fname)
 
     return f"{base}.{short_hash}{ext}"
