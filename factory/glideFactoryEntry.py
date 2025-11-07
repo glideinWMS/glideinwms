@@ -31,8 +31,8 @@ class Entry:
         Args:
             name (str): Name of the entry.
             startup_dir (str): Path to the Factory workspace.
-            glidein_descript (dict): Factory glidein configuration values.
-            frontend_descript (dict): Security mappings for Frontend identities and security classes.
+            glidein_descript (glideFactoryConfig.GlideinDescript): Factory glidein configuration values.
+            frontend_descript (glideFactoryConfig.FrontendDescript): Security mappings for Frontend identities and security classes.
         """
         self.limits_triggered = {}
         self.name = name
@@ -365,7 +365,7 @@ class Entry:
     def glideinsWithinLimits(self, condorQ):
         """Check if glidein submission is within allowed limits.
 
-        This function checks both entry-level and frontend-level limits based on the Condor queue.
+        This function checks both per-entry and per-client limits set in the Factory based on the Condor queue.
         It also updates the limits_triggered attribute with details of any exceeded limits.
 
         Args:
@@ -1514,6 +1514,10 @@ def unit_work_v3(
             % (client_int_name, work["requests"]["IdleGlideins"])
         )
         return return_dict
+    req_idle_glideins = (
+        idle_glideins  # to distinguish between frontend request and factory's calculated value for idle glideins
+    )
+    # from here on, idle_glideins represents the factory-adjusted (enforcing entry limits if any) number of idle glideins and req_idle_glideins represents the original request coming from the frontend
 
     if "MaxGlideins" in work["requests"]:
         try:
@@ -1575,6 +1579,7 @@ def unit_work_v3(
         client_int_name,
         client_security_name,
         submit_credentials.security_class,
+        req_idle_glideins,
         idle_glideins,
         max_glideins,
         remove_excess,
