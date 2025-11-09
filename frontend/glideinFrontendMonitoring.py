@@ -26,7 +26,7 @@ class MonitoringConfig:
 
     This class contains the configuration settings for monitoring, including parameters
     related to RRD (Round Robin Database) such as the step time, heartbeat, and archives.
-    The user can modify these settings if needed. It also holds the directory for monitoring 
+    The user can modify these settings if needed. It also holds the directory for monitoring
     and the object responsible for handling RRD operations.
 
     Attributes:
@@ -44,6 +44,7 @@ class MonitoringConfig:
         # config.rrd_step = 600  # Set step to 10 minutes
         # config.my_name = "MyMonitor"
     """
+
     def __init__(self):
         # set default values
         # user should modify if needed
@@ -65,20 +66,20 @@ class MonitoringConfig:
     def write_file(self, relative_fname, output_str):
         """Writes the given string to a file in the monitoring directory.
 
-    This method creates the necessary directories if they do not exist, writes the
-    provided `output_str` to a temporary file, and then renames the temporary file
-    to the final file name.
+        This method creates the necessary directories if they do not exist, writes the
+        provided `output_str` to a temporary file, and then renames the temporary file
+        to the final file name.
 
-    Args:
-        relative_fname (str): The relative path and file name within the monitoring directory.
-        output_str (str): The content to be written to the file.
+        Args:
+            relative_fname (str): The relative path and file name within the monitoring directory.
+            output_str (str): The content to be written to the file.
 
-    Returns:
-        None: This method does not return a value, but writes the content to the specified file.
+        Returns:
+            None: This method does not return a value, but writes the content to the specified file.
 
-    Example:
-        config.write_file("output.txt", "This is the content")
-        # The content "This is the content" will be written to "monitor/output.txt.tmp" and then renamed to "monitor/output.txt"
+        Example:
+            config.write_file("output.txt", "This is the content")
+            # The content "This is the content" will be written to "monitor/output.txt.tmp" and then renamed to "monitor/output.txt"
         """
         fname = os.path.join(self.monitor_dir, relative_fname)
         os.makedirs(os.path.dirname(fname), exist_ok=True)
@@ -91,18 +92,18 @@ class MonitoringConfig:
     def establish_dir(self, relative_dname):
         """Creates a directory within the monitoring directory.
 
-    This method creates the specified directory inside the monitoring directory.
-    If the directory already exists, it will not raise an error.
+        This method creates the specified directory inside the monitoring directory.
+        If the directory already exists, it will not raise an error.
 
-    Args:
-        relative_dname (str): The relative path of the directory to be created.
+        Args:
+            relative_dname (str): The relative path of the directory to be created.
 
-    Returns:
-        None: This method does not return a value, but ensures that the directory exists.
+        Returns:
+            None: This method does not return a value, but ensures that the directory exists.
 
-    Example:
-        config.establish_dir("logs")
-        # Creates the directory "monitor/logs" if it doesn't already exist.
+        Example:
+            config.establish_dir("logs")
+            # Creates the directory "monitor/logs" if it doesn't already exist.
         """
         dname = os.path.join(self.monitor_dir, relative_dname)
         os.makedirs(dname, exist_ok=True)
@@ -159,12 +160,12 @@ class groupStats:
     as methods for tracking and updating these statistics.
 
     Attributes:
-        data (dict): A dictionary storing statistics data, with keys for "factories", "states", 
+        data (dict): A dictionary storing statistics data, with keys for "factories", "states",
                      and "totals".
         updated (float): The timestamp (in seconds) when the statistics were last updated.
         files_updated (str or None): The time when files were last updated, if available.
         attributes (dict): A dictionary of statistics categories and their corresponding sub-attributes.
-        states_names (tuple): A tuple containing names of states that are tracked, such as 
+        states_names (tuple): A tuple containing names of states that are tracked, such as
                                "Unmatched", "MatchedUp", and "MatchedDown".
 
     Example:
@@ -172,7 +173,7 @@ class groupStats:
         # stats.data will contain the statistics for factories, states, and totals.
         # stats.attributes contains the job, glidein, matched job, core, and requested attributes.
     """
-    
+
     def __init__(self):
         self.data = {"factories": {}, "states": {}, "totals": {}}
         self.updated = time.time()
@@ -463,25 +464,26 @@ class factoryStats:
     """A class to track and log statistics for factories, including job statuses and slot information.
 
     This class maintains data related to jobs and their statuses, as well as requested slots
-    and their states. It provides methods to log the status of jobs for a specific client and 
+    and their states. It provides methods to log the status of jobs for a specific client and
     update the statistics accordingly.
 
     Attributes:
         data (dict): A dictionary storing the data for each client, with job statuses and other statistics.
         updated (float): The timestamp (in seconds) when the statistics were last updated.
         files_updated (str or None): The time when files were last updated, if available.
-        attributes (dict): A dictionary of statistics categories and their corresponding sub-attributes 
+        attributes (dict): A dictionary of statistics categories and their corresponding sub-attributes
                            (e.g., jobs, matched, requested slots, etc.).
 
     Methods:
         logJobs(client_name, qc_status):
             Logs the status of jobs for a given client based on the provided `qc_status` dictionary.
-        
+
     Example:
         stats = factoryStats()
         stats.logJobs("client1", {1: 5, 2: 3, 5: 2})
         # Logs the job status for client "client1" with the respective counts for "Idle", "Running", etc.
     """
+
     def __init__(self):
         self.data = {}
         self.updated = time.time()
@@ -671,21 +673,22 @@ class factoryStats:
     def write_file(self):
         """Writes the current factory statistics to an XML file and updates RRDs (Round Robin Databases).
 
-    This method performs several tasks:
-    1. It checks if the file has been updated recently. If so, it skips the update process.
-    2. It generates an XML snapshot of the current factory statistics and writes it to a file.
-    3. It retrieves the data and total statistics, and updates RRDs with the latest values for each frontend.
-    4. It creates necessary directories and writes multiple RRD data for different types of attributes (e.g., Status, Requested, ClientMonitor).
+        This method performs several tasks:
+        1. It checks if the file has been updated recently. If so, it skips the update process.
+        2. It generates an XML snapshot of the current factory statistics and writes it to a file.
+        3. It retrieves the data and total statistics, and updates RRDs with the latest values for each frontend.
+        4. It creates necessary directories and writes multiple RRD data for different types of attributes (e.g., Status, Requested, ClientMonitor).
 
-    If the time since the last file update is less than 5 seconds, the method does nothing to avoid redundant writes.
+        If the time since the last file update is less than 5 seconds, the method does nothing to avoid redundant writes.
 
-    Returns:
-        None: This method updates files and RRDs but does not return a value.
+        Returns:
+            None: This method updates files and RRDs but does not return a value.
 
-    Example:
-        factory_stats.write_file()
-        # This will generate the XML snapshot, write it to "schedd_status.xml", 
-        # and update the corresponding RRDs with the latest statistics.
+        Example:
+            factory_stats = factoryStats()
+            factory_stats.write_file()
+            # This will generate the XML snapshot, write it to "schedd_status.xml",
+            # and update the corresponding RRDs with the latest statistics.
         """
         global monitoringConfig
 
@@ -760,9 +763,9 @@ class factoryStats:
 def sanitize(name):
     """Sanitizes a string by replacing invalid characters with underscores.
 
-    This function iterates through each character in the given string `name` and keeps only 
+    This function iterates through each character in the given string `name` and keeps only
     alphanumeric characters (letters and digits), along with periods (.) and hyphens (-).
-    All other characters are replaced with underscores (_) to ensure the string contains only 
+    All other characters are replaced with underscores (_) to ensure the string contains only
     valid characters.
 
     Args:
@@ -794,8 +797,8 @@ monitoringConfig = MonitoringConfig()
 def write_frontend_descript_xml(frontendDescript, monitor_dir):
     """Writes the frontend descriptor XML file to the specified monitor directory.
 
-    This function generates an XML representation of the frontend descriptor using the 
-    data from the `frontendDescript` object. It creates the XML content, writes it to a 
+    This function generates an XML representation of the frontend descriptor using the
+    data from the `frontendDescript` object. It creates the XML content, writes it to a
     temporary file, and then renames it to the final `descript.xml` in the given monitor directory.
 
     Args:
