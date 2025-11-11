@@ -646,12 +646,14 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         )
 
     def reuse(self, other):
-        """
-        Reuse as much of the other as possible
-        other must be of the same class
+        """Reuse as much of the `other` as possible `other` must be of the same class
 
-        @type other: frontendGroupDicts
-        @param other: Object to reuse
+        Args:
+            other (frontendGroupDicts): Object to reuse
+
+        Returns:
+            frontendGroupDicts: Reused object
+
         """
         if self.monitor_dir != other.monitor_dir:
             print(

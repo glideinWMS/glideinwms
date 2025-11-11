@@ -1,13 +1,11 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   Frontend creation module
-#   Classes and functions needed to handle dictionary files
-#   created out of the parameter object
-#
-#   Common functions for cvWParamDict and cgWParamDict
-#
+"""Classes and functions needed to handle dictionary files created out of the parameter object
+
+Common functions for cvWParamDict (Frontend/client) and cgWParamDict (Factory)
+"""
+
 
 import os.path
 
@@ -34,6 +32,50 @@ def has_file_wrapper_params(file_params):
         if is_true(user_file.wrapper):
             return True
     return False
+
+
+def validate_wrapper_file(file_path):
+    """Verifies that a wrapper file exists, is readable, and prints warnings to stdout
+    if the shebang line requires bash or the file includes an exec() command.
+
+    Glidein job wrappers should be segments of code compatible with 'sh' (bash presence is not guaranteed),
+    and they should not include an exec() command, because multiple segments are possible. The Glidein infrastructure
+    takes care of exec-ing the user job after all Glidein wrappers.
+
+    This code is invoked during the reconfig or upgrade commands, so the warnings are printed to stdout.
+    These are warnings, not severe enough to block the reconfig/upgrade with a RuntimeError
+
+    Args:
+        file_path (str): Path to the file to be verified
+
+    Returns:
+        bool: False if the file does not exist, is not readable, has a shebang requiring something different from sh,
+            or contains an exec statement, True otherwise.
+
+    """
+    if not file_path or os.path.isfile(file_path):
+        return False
+    retval = True
+    try:
+        with open(file_path) as f:
+            shebang = f.readline().strip()
+            if shebang.startswith("#!"):
+                if not shebang.endswith("/sh") and not shebang.endswith(" sh"):
+                    print(
+                        f"WARNING: the shebang line in the Glidein job wrapper '{file_path}' requires a shell different from sh."
+                        "You may have trouble with some containers."
+                    )
+                    retval = False
+            for line in f:
+                if line.startswith("exec "):
+                    print(
+                        f"WARNING: the Glidein job wrapper '{file_path}' contains an exec statement."
+                        "This will interfere with the execution of other wrappers and override the final exec statement."
+                    )
+                    retval = False
+    except (FileNotFoundError, PermissionError):
+        return False
+    return retval
 
 
 def add_file_unparsed(user_file, dicts, is_factory):
@@ -135,6 +177,8 @@ def add_file_unparsed(user_file, dicts, is_factory):
             raise RuntimeError("A file cannot be a wrapper if it is not constant: %s" % user_file)
         if do_untar:
             raise RuntimeError("A tar file cannot be a wrapper: %s" % user_file)
+        # The wrapper file is checked for shebang and exec commands. Warnings are printed to stdout.
+        validate_wrapper_file(absfname)
         dicts[file_list_idx].add_from_file(
             relfname, cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), "wrapper"), absfname
         )
