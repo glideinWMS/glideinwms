@@ -1,3 +1,13 @@
+v3_10_17
+	Recognize EL/CentOS 10 worker nodes to select the correct HTCondor tarball (PR#600)
+	Factory monitoring now showing Client Requested Idle Glideins; only keeping track of Factory adjusted Idle (PR##606, Issue#520)
+	Added support for HTCondor Python bindings v2. If available, v1 is still preferred (PR#608)
+	Added a reconfig/upgrade warning when user job wrapper scripts require more than sh or contain an exec statement (Issue#584, PR#610)
+	Bug fix: Prevented memory spikes during Factory reconfiguration by copying Condor tarballs instead of loading them into memory (PR#602, Issue#601)
+	Bug fix: Reuse Condor tarballs across reconfigurations by generating hash-based filenames from file metadata instead of timestamps (PR#604, Issue#603)
+	Bug fix: Removed ownership and HTCondor checks connected to GWMS 3.5 migration (PR#608)
+	NOTE: Job wrapper scripts must be "POSIX" compatible. Bash is enabled when available but not guaranteed. Also, scripts should not include `exec`. GlideinWMS will print a warning during reconfiguration.
+
 v3_10_16
 	create_cvmfsexec_distros.sh updated adding EL9 to platforms and improved command syntax (Issue#549, PR#582)
 	Added new staticextra resource type – behaves like static (creates one dedicated slot per instance with a virtual CPU each), but instead of subtracting memory from the main partitionable slot, it adds memory to it (Issue#590, PR#591)

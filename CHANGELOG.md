@@ -24,7 +24,7 @@ Changes since the last release
 
 ### Known Issues
 
-## v3.10.17 \[2025-11-10\]
+## v3.10.17 \[2025-11-13\]
 
 Added support for HTCondor v2 Python bindings and other small features and fixes.
 
