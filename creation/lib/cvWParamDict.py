@@ -1142,6 +1142,12 @@ def populate_common_descript(descript_dict, params):
     descript_dict.add("JobSchedds", ",".join(schedds))
 
     if params.security.proxy_selection_plugin is not None:
+        # TODO: Temporary check for 3.11.x upgrade, where only CredentialsBasic is valid
+        if not params.security.proxy_selection_plugin == "CredentialsBasic":
+            raise RuntimeError(
+                "3.11.x Frontends require 'CredentialsBasic' security proxy_selection_plugin, not "
+                + f"'{params.security.proxy_selection_plugin}'. Please update the Frontend configuration"
+            )
         descript_dict.add("ProxySelectionPlugin", params.security.proxy_selection_plugin)
     if params.security.idtoken_lifetime is not None:
         descript_dict.add("IDTokenLifetime", params.security.idtoken_lifetime)
