@@ -13,6 +13,52 @@ from glideinwms.lib.util import is_true
 
 from . import cWConsts, cWDictFile
 
+CHECK_ATTRS_SPELLING = False
+try:
+    import jellyfish
+
+    CHECK_ATTRS_SPELLING = True
+except ImportError:
+    pass
+
+
+# assume config_attributes.txt is in cWParamDict module directory
+conf_attrs_file = os.path.join(os.path.dirname(__file__), "config_attributes.txt")
+
+
+def load_attrs_list(fname):
+    attr_list = []
+    try:
+        with open(fname) as f:
+            for lin in f:
+                line = lin.strip()
+                if not line or line[0] == "#":
+                    continue
+                attr_list.append(line.lower())
+    except OSError:
+        attr_list = []
+    return attr_list
+
+
+default_attrs_list = load_attrs_list(conf_attrs_file)
+
+
+def do_check_attr_spelling(attr_name_orig, attr_list=None):
+    if not CHECK_ATTRS_SPELLING:
+        return True
+    attr_name = attr_name_orig.lower()
+    if attr_list is None:
+        attr_list = default_attrs_list
+    no_matches = True
+    for word in attr_list:
+        attr_dist = jellyfish.damerau_levenshtein_distance(word, attr_name)
+        if 0 < attr_dist < 3:
+            print(
+                f"WARNING: Configuration attribute '{attr_name_orig}' could be a misspelling of '{word}' (case insensitive)."
+            )
+            no_matches = False
+    return no_matches
+
 
 def has_file_wrapper(dicts):
     for file_dict in ["preentry_file_list", "file_list", "aftergroup_preentry_file_list", "aftergroup_file_list"]:

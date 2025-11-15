@@ -857,6 +857,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/lib/cWExpand.py
 %{python3_sitelib}/glideinwms/creation/lib/cWParams.py
 %{python3_sitelib}/glideinwms/creation/lib/cWParamDict.py
+%{python3_sitelib}/glideinwms/creation/lib/config_attributes.txt
 %{python3_sitelib}/glideinwms/creation/lib/xslt.py
 %{python3_sitelib}/glideinwms/creation/lib/__init__.py
 # without %dir it includes all files and sub-directories. Some modules are in different packages

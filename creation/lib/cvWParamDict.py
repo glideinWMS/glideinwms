@@ -16,7 +16,14 @@ from glideinwms.lib import x509Support
 from glideinwms.lib.util import str2bool
 
 from . import cvWConsts, cvWCreate, cvWDictFile, cWConsts, cWDictFile, cWExpand
-from .cWParamDict import add_file_unparsed, has_file_wrapper, has_file_wrapper_params, is_true
+from .cWParamDict import (
+    add_file_unparsed,
+    CHECK_ATTRS_SPELLING,
+    do_check_attr_spelling,
+    has_file_wrapper,
+    has_file_wrapper_params,
+    is_true,
+)
 
 # from .cvWParams import MatchPolicy
 from .matchPolicy import MatchPolicy
@@ -789,6 +796,10 @@ def add_attr_unparsed_real(attr_name, params, dicts):
 
     if attr_obj.value is None:
         raise RuntimeError(f"Attribute '{attr_name}' does not have a value: {attr_obj}")
+
+    # Checking if the attr_name is a misspelling of a known attribute name
+    if CHECK_ATTRS_SPELLING:
+        do_check_attr_spelling(attr_name)
 
     is_parameter = is_true(attr_obj.parameter)
     # attr_obj.type=="expr" is now used for HTCondor expression
