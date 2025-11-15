@@ -1,17 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#   Keep all the constants used in the glideinWMS
-#
-# Author: Igor Sfiligoi
-#
+"""Keep all the constants used in the glideinWMS"""
+
 
 import string
 import time
