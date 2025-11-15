@@ -34,6 +34,7 @@ Added support for HTCondor v2 Python bindings and other small features and fixes
 -   Factory monitoring now showing Client Requested Idle Glideins; only keeping track of Factory adjusted Idle (PR# #606, Issue #520)
 -   Added support for HTCondor Python bindings v2. If available, v1 is still preferred (PR #608)
 -   Added a reconfig/upgrade warning when user job wrapper scripts require more than sh or contain an exec statement (Issue #584, PR #610)
+-   Added a word checker to warn about misspelling of attributes in the configuration files (PR #616)
 
 ### Changed defaults / behaviours
 
