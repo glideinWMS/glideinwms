@@ -684,7 +684,8 @@ v3_10_17:
     - Factory monitoring now showing Client Requested Idle Glideins; only keeping track of Factory adjusted Idle (PR#606, Issue#520)
     - Added support for HTCondor Python bindings v2. If available, v1 is still preferred (PR#608)
     - Added a reconfig/upgrade warning when user job wrapper scripts require more than sh or contain an exec statement (Issue#584, PR#610, PR#618)
-    - Removed dependency from SysVInit in spec file and package install. Using native Systemd (PR#617)
+    - Added a word checker to warn about misspelling of attributes in the configuration files (PR#616)
+    - Removed dependency from SysVInit in spec file and package installation. Using native Systemd (PR#617)
     - Improved Frontend docstrings (PR#574)
   Bug fix:
     - Prevented memory spikes during Factory reconfiguration by copying Condor tarballs instead of loading them into memory (PR#602, Issue#601)
@@ -693,3 +694,4 @@ v3_10_17:
     - Removed ownership and HTCondor checks connected to GWMS 3.5 migration (PR#608)
   NOTE:
     - Job wrapper scripts must be "POSIX" compatible. Bash is enabled when available but not guaranteed. Also, scripts should not include `exec`. GlideinWMS will print a warning during reconfiguration.
+    - If you have the Python library Jellyfish (pip install jellyfish), a new word checker will warn you if you misspell a configuration attribute.

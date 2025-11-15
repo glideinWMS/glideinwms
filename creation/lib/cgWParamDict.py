@@ -17,12 +17,13 @@ from glideinwms.lib import pubCrypto, subprocessSupport
 from glideinwms.lib.util import str2bool
 
 from . import cgWConsts, cgWCreate, cgWDictFile, cWConsts, cWDictFile, cWExpand, factoryXmlConfig
+from .cWParamDict import CHECK_ATTRS_SPELLING, do_check_attr_spelling
 
 #
 # see the note in add_file_unparsed def below to understand
 # why this is commented out for now
 #
-# from cWParamDict import is_true, add_file_unparsed
+# from .cWParamDict import is_true, add_file_unparsed
 
 # from factoryXmlConfig import EntrySetElement
 
@@ -1185,6 +1186,10 @@ def add_attr_unparsed_real(attr, dicts):
     attr_val = attr.get_val()
 
     validate_attribute(attr_name, attr_val)
+
+    # Checking if the attr_name is a misspelling of a known attribute name
+    if CHECK_ATTRS_SPELLING:
+        do_check_attr_spelling(attr_name)
 
     # Validation of consistent combinations od publish, parameter and const has been removed somewhere after
     #  63e06efb33ba0bdbd2df6509e50c6e02d42c482c
