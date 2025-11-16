@@ -328,7 +328,7 @@ class Credential(ABC, Generic[T]):
         path = path or self.path
 
         if not os.path.isfile(path):
-            raise CredentialError(f"Credential file {self.path} does not exist")
+            raise CredentialError(f"Credential file {path} does not exist or wrong file or directory permissions")
         with open(path, "rb") as cred_file:
             self.load_from_string(cred_file.read())
         self.path = path
@@ -715,8 +715,9 @@ def create_credential(
                 cred_args = [param.name for param in cred_args if param.name != "self"]
                 kwargs = {key: value for key, value in locals().items() if key in cred_args and value is not None}
                 return credential_class(**kwargs)
-        except CredentialError:
-            pass  # Credential type incompatible with input
+        except CredentialError as err:
+            # pass  # Credential type incompatible with input
+            raise CredentialError(f'Could not load credential: string="{string}", path="{path}"') from err
         except Exception as err:
             raise CredentialError(f'Unexpected error loading credential: string="{string}", path="{path}"') from err
     raise CredentialError(f'Could not load credential: string="{string}", path="{path}"')
