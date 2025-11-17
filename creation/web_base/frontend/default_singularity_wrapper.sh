@@ -264,9 +264,11 @@ rm -f .gwms-user-job-wrapper.sh >/dev/null 2>&1 || true
 #
 info_dbg "current directory at execution ($(pwd)): $(ls -al)"
 info_dbg "GWMS singularity wrapper, job exec: $*"
-info_dbg "GWMS singularity wrapper, messages after this line are from the actual job ##################"
-# shellcheck disable=SC2093    # exec is desired, following lines are only in case exec fails
-exec "$@"
-error=$?
-# exec failed. Log, communicate to HTCondor, avoid black hole and exit
-exit_wrapper "exec failed  (Singularity:$GWMS_SINGULARITY_REEXEC, exit code:$error): $*" $error
+info_dbg "GWMS singularity wrapper, messages after this line are from the actual job (of other wrappers) ##################"
+
+# Removed exec from wrapper - handled by condor_startup.sh for all wrappers
+## shellcheck disable=SC2093    # exec is desired, following lines are only in case exec fails
+#exec "$@"
+#error=$?
+## exec failed. Log, communicate to HTCondor, avoid black hole and exit
+#exit_wrapper "exec failed  (Singularity:$GWMS_SINGULARITY_REEXEC, exit code:$error): $*" $error
