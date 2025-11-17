@@ -53,7 +53,7 @@ def validate_wrapper_file(file_path):
             or contains an exec statement, True otherwise.
 
     """
-    if not file_path or os.path.isfile(file_path):
+    if not file_path or not os.path.isfile(file_path):
         return False
     retval = True
     try:
@@ -71,6 +71,7 @@ def validate_wrapper_file(file_path):
                     print(
                         f"WARNING: the Glidein job wrapper '{file_path}' contains an exec statement."
                         "This will interfere with the execution of other wrappers and override the final exec statement."
+                        "Use GLIDEIN_WRAPPER_EXEC for customizations."
                     )
                     retval = False
     except (FileNotFoundError, PermissionError):
