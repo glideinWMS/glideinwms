@@ -3,10 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#  This program updates a glidein factory directory structure
-#  based on a configuration file
-
+"""This program updates a Glidein Factory directory structure based on a configuration file."""
 
 import os
 import os.path
@@ -16,9 +13,6 @@ import sys
 import tarfile
 import tempfile
 
-# from glideinwms.creation.lib import cWConsts
-# from glideinwms.creation.lib import cgWParams
-# from glideinwms.creation.lib import cgWDictFile
 from glideinwms.creation.lib import cgWConsts, cgWCreate, cgWParamDict, factoryXmlConfig, xslt
 from glideinwms.factory import glideFactoryConfig, glideFactoryLib, glideFactoryMonitorAggregator
 from glideinwms.lib import logSupport
@@ -196,7 +190,7 @@ if __name__ == "__main__":
 
     if os.geteuid() == 0:
         print(
-            "NOTE: Executing reconfig_glidein as user 'root' is not allowed. Use the factory user instead. For rpm based installations, use the 'service gwms-factory <start|stop|reconfig|...>' command to perform gwms-factory operations"
+            "NOTE: Executing reconfig_glidein as user 'root' is not allowed. Use the factory user instead. For rpm based installations, use the 'systemctl <start|stop|reload|...> gwms-factory' command to perform gwms-factory operations"
         )
 
     force_name = None

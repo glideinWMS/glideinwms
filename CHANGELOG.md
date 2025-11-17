@@ -24,7 +24,7 @@ Changes since the last release
 
 ### Known Issues
 
-## v3.10.17 \[2025-11-10\]
+## v3.10.17 \[2025-11-13\]
 
 Added support for HTCondor v2 Python bindings and other small features and fixes.
 
@@ -33,13 +33,14 @@ Added support for HTCondor v2 Python bindings and other small features and fixes
 -   Recognize EL/CentOS 10 worker nodes to select the correct HTCondor tarball (PR #600)
 -   Factory monitoring now showing Client Requested Idle Glideins; only keeping track of Factory adjusted Idle (PR# #606, Issue #520)
 -   Added support for HTCondor Python bindings v2. If available, v1 is still preferred (PR #608)
--   Added a reconfig/upgrade warning when user job wrapper scripts require more than sh or contain an exec statement (Issue #584, PR #610)
+-   Added a reconfig/upgrade warning when user job wrapper scripts require more than sh or contain an exec statement (Issue #584, PR #610, PR #618)
 
 ### Changed defaults / behaviours
 
 -   Prevented memory spikes during factory reconfiguration by copying Condor tarballs instead of loading them into memory (PR #602, Issue #601)
 -   Reuse Condor tarballs across reconfigurations by generating hash-based filenames from file metadata instead of timestamps (PR #604, Issue #603)
 -   Removed ownership and HTCondor checks connected to GWMS 3.5 migration (PR #608)
+-   Removed dependency from SysVInit in spec file and package install. Using native Systemd (PR #617)
 
 ### Deprecated / removed options and commands
 
@@ -47,7 +48,11 @@ Added support for HTCondor v2 Python bindings and other small features and fixes
 
 ### Bug Fixes
 
+-   Remove coral frontend from first page animation (PR #605)
+
 ### Testing / Development
+
+-   Improved Frontend docstrings (PR #574)
 
 ### Known Issues
 

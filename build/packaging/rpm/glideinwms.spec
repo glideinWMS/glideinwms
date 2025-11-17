@@ -36,6 +36,8 @@
 %global logserver_dir %{_localstatedir}/lib/gwms-logserver
 %global logserver_web_dir %{_localstatedir}/lib/gwms-logserver/web-area
 %global systemddir %{_prefix}/lib/systemd/system
+# /usr/bin/systemctl would not work with the emulation in /usr/local/bin/systemctl used in Workspaces (containers)
+%global systemctl_bin systemctl
 # Minimum HTCondor and Python required versions
 %global htcss_min_version 8.9.5
 %global python_min_version 3.6
@@ -60,6 +62,8 @@ Source7:        chksum.sh
 Source11:       creation/templates/frontend_startup_sl7
 Source12:       creation/templates/factory_startup_sl7
 
+# Needed for the systemd_... macros to invoke systemctl
+BuildRequires:  systemd-rpm-macros
 BuildRequires:  python3
 BuildRequires:  python3-devel
 
@@ -124,7 +128,7 @@ Requires: python3-m2crypto
 %else
 Requires: python36-m2crypto
 %endif
-Requires(post): /sbin/service
+Requires(post): systemd
 Requires(post): /usr/sbin/useradd
 Requires(post): /usr/sbin/usermod
 Requires(post): /sbin/chkconfig
@@ -281,7 +285,7 @@ Requires: python36-requests
 Requires: python36-jwt
 %endif
 Requires: python3-rrdtool
-Requires(post): /sbin/service
+Requires(post): systemd
 Requires(post): /usr/sbin/useradd
 Requires(post): /usr/sbin/usermod
 Requires(post): /sbin/chkconfig
@@ -648,11 +652,11 @@ install -m 0644 logserver/getjwt.py $RPM_BUILD_ROOT%{logserver_dir}/getjwt.py
 install -m 0644 logserver/README.md $RPM_BUILD_ROOT%{logserver_dir}/README.md
 
 %post usercollector
-/sbin/service condor condrestart > /dev/null 2>&1 || true
+%{systemctl_bin} condrestart condor > /dev/null 2>&1 || true
 
 
 %post userschedd
-/sbin/service condor condrestart > /dev/null 2>&1 || true
+%{systemctl_bin} condrestart condor > /dev/null 2>&1 || true
 
 
 %post vofrontend-core
@@ -673,7 +677,7 @@ if [ -f %{_localstatedir}/log/gwms-frontend/frontend/startup.log ]; then
 fi
 
 %if 0%{?rhel} >= 7
-systemctl daemon-reload
+%{systemctl_bin} daemon-reload
 %else
 /sbin/chkconfig --add gwms-frontend
 %endif
@@ -694,12 +698,12 @@ fi
 
 %post httpd
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
+# /sbin/service httpd reload > /dev/null 2>&1 || true
+%systemd_post httpd
 
 %post vofrontend-httpd
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
-
+%systemd_post httpd
 
 %post factory-core
 
@@ -714,22 +718,24 @@ if [ "$1" = "1" ] ; then
     fi
 fi
 
-%if 0%{?rhel} == 7
-systemctl daemon-reload
+%if 0%{?rhel} >= 7
+%{systemctl_bin} daemon-reload
 %else
 /sbin/chkconfig --add gwms-factory
 %endif
 
 # Protecting from failure in case it is not running/installed
-/sbin/service condor condrestart > /dev/null 2>&1 || true
+# /sbin/service condor condrestart > /dev/null 2>&1 || true
+%{systemctl_bin} condrestart condor  > /dev/null 2>&1 || true
 
 %post factory-httpd
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
+%systemd_post httpd
 
 %post logserver
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
+%systemd_post php-fpm.service
+%systemd_post httpd
 # Could also load the dependencies with composer install
 
 %pre vofrontend-core
@@ -767,7 +773,7 @@ usermod --append --groups frontend frontend >/dev/null
 
 if [ "$1" = "0" ] ; then
     %if 0%{?rhel} >= 7
-    systemctl daemon-reload
+    %{systemctl_bin} daemon-reload
     %else
     /sbin/chkconfig --del gwms-frontend
     %endif
@@ -787,7 +793,7 @@ fi
 %preun factory-core
 if [ "$1" = "0" ] ; then
     %if 0%{?rhel} >= 7
-    systemctl daemon-reload
+    %{systemctl_bin} daemon-reload
     %else
     /sbin/chkconfig --del gwms-factory
     %endif
@@ -800,23 +806,24 @@ fi
 
 %postun httpd
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
+%systemd_postun_with_reload httpd
 
 %postun vofrontend-httpd
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
+%systemd_postun_with_reload httpd
 
 %postun factory-httpd
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
+%systemd_postun_with_reload httpd
 
 %postun logserver
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
+%systemd_postun_with_restart php-fpm.service
+%systemd_postun_with_reload httpd
 
 %postun factory-core
 # Protecting from failure in case it is not running/installed
-/sbin/service condor condrestart > /dev/null 2>&1 || true
+%{systemctl_bin} condrestart condor > /dev/null 2>&1 || true
 
 
 %clean
@@ -1131,6 +1138,11 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Nov 12 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.17
+- Glideinwms v3.10.17
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_10_17/history.html
+- Release candidates 3.10.17-01.rc1
+
 * Mon Sep 29 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.16
 - Glideinwms v3.10.16
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_10_16/history.html
