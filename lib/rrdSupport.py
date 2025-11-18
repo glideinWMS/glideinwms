@@ -778,10 +778,8 @@ def verifyHelper(filename, data_dict, fix_rrd=False, backup=True):
         # ):
         with tempfile.NamedTemporaryFile(delete=False) as temp_file, tempfile.NamedTemporaryFile(
             delete=False
-        ) as temp_file2, tempfile.NamedTemporaryFile(delete=False) as restored_file:
-            os.close(temp_file.fileno())
-            os.close(temp_file2.fileno())
-            os.close(restored_file.fileno())
+            ) as temp_file2:
+            restored_file_name = temp_file2.name + "_restored"
             # Use exe version since dump, restore not available in rrdtool
             dump_obj = rrdtool_exe()
             outstr = dump_obj.dump(filename)
@@ -800,8 +798,8 @@ def verifyHelper(filename, data_dict, fix_rrd=False, backup=True):
                 os.unlink(filename)
             # Add missing attributes
             addDataStore(temp_file.name, temp_file2.name, missing)
-            dump_obj.restore(temp_file2.name, restored_file.name)
-            shutil.move(restored_file.name, filename)
+            dump_obj.restore(temp_file2.name, restored_file_name)
+            shutil.move(restored_file_name, filename)
         os.unlink(temp_file.name)
         os.unlink(temp_file2.name)
 
