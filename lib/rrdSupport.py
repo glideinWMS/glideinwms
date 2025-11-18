@@ -778,7 +778,7 @@ def verifyHelper(filename, data_dict, fix_rrd=False, backup=True):
         # ):
         with tempfile.NamedTemporaryFile(delete=False) as temp_file, tempfile.NamedTemporaryFile(
             delete=False
-            ) as temp_file2:
+        ) as temp_file2:
             restored_file_name = temp_file2.name + "_restored"
             # Use exe version since dump, restore not available in rrdtool
             dump_obj = rrdtool_exe()
