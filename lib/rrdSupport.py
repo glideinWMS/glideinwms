@@ -4,7 +4,6 @@
 """This module implements the basic functions needed to interface with rrdtool."""
 
 import os
-import shutil
 import tempfile
 import time
 
@@ -648,6 +647,7 @@ class rrdtool_exe:
             *args: Arguments for the rrdtool restore command.
                    Example: `rrdtool restore <src_file> <dst_file.rrd>`
         """
+        # TODO: should report errors and/or check arguments? i.e. restore will fail if <dst_file.rrd> exists
         cmdline = f"{self.rrd_bin} restore {string_quote_join(args)}"
         outstr = subprocessSupport.iexe_cmd(cmdline)  # noqa: F841
         return
@@ -770,20 +770,14 @@ def verifyHelper(filename, data_dict, fix_rrd=False, backup=True):
             rrd_problems_found = True
 
     if fix_rrd and missing:
-        # TODO: Change this code with the commented version below once Py>=3.10 (parenthesis support in with)
-        # with (
-        #     tempfile.NamedTemporaryFile(delete=False) as temp_file,
-        #     tempfile.NamedTemporaryFile(delete=False) as temp_file2,
-        #     tempfile.NamedTemporaryFile(delete=False) as restored_file,
-        # ):
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file, tempfile.NamedTemporaryFile(
-            delete=False
-        ) as temp_file2:
-            restored_file_name = temp_file2.name + "_restored"
-            # Use exe version since dump, restore not available in rrdtool
+        with tempfile.TemporaryDirectory(prefix="rrd_tmp", dir=os.path.dirname(filename)) as tmp:
+            # private auto-cleaned temporary directory local to filename - to use os.replace()
+            dump_file = os.path.join(tmp, "dump_file")
+            augmented_file = os.path.join(tmp, "augmented_file")
+            restored_file = os.path.join(tmp, "restored_file")
             dump_obj = rrdtool_exe()
             outstr = dump_obj.dump(filename)
-            with open(temp_file.name, "wb") as f:
+            with open(dump_file, "wb") as f:
                 for line in outstr:
                     # dump is returning an array of strings decoded w/ utf-8
                     f.write(f"{line}\n".encode(defaults.BINARY_ENCODING_DEFAULT))
@@ -792,16 +786,16 @@ def verifyHelper(filename, data_dict, fix_rrd=False, backup=True):
                 backup_str = f"{int(time.time())}.backup"
                 print(f"Fixing {filename}... (backed up to {filename + backup_str})")
                 # Move file to back up location
-                shutil.move(filename, filename + backup_str)
+                os.replace(filename, filename + backup_str)
             else:
                 print(f"Fixing {filename}... (no backup)")
-                os.unlink(filename)
+                # skipping deletion, not to loose the file in case of exceptions. os.replace will overwrite later
+                # os.unlink(filename)
             # Add missing attributes
-            addDataStore(temp_file.name, temp_file2.name, missing)
-            dump_obj.restore(temp_file2.name, restored_file_name)
-            shutil.move(restored_file_name, filename)
-        os.unlink(temp_file.name)
-        os.unlink(temp_file2.name)
+            addDataStore(dump_file, augmented_file, missing)
+            # .restore() uses rrd restore and will fail with an error if the destination file exists
+            dump_obj.restore(augmented_file, restored_file)
+            os.replace(restored_file, filename)
 
     if extra:
         rrd_problems_found = True
