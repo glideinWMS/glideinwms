@@ -24,9 +24,9 @@ Changes since the last release
 
 ### Known Issues
 
-## v3.10.17 \[2025-11-13\]
+## v3.10.17 \[2025-11-20\]
 
-Added support for HTCondor v2 Python bindings and other small features and fixes.
+Added support for HTCondor v2 Python bindings, updated Factory monitoring of client requests and few other features and fixes.
 
 ### New features / functionalities
 
@@ -49,8 +49,8 @@ Added support for HTCondor v2 Python bindings and other small features and fixes
 
 ### Bug Fixes
 
--   Remove coral frontend from first page animation (PR #605)
--   Fix upgrade crashes in RRD verifier due to improper NamedTemporaryFile handling.
+-   Removed coral frontend from first page animation (PR #605)
+-   Fixed upgrade crashes in RRD verifier due to improper NamedTemporaryFile handling (Issue #619, PR #620)
 
 ### Testing / Development
 
