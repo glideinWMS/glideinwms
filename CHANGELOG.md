@@ -49,6 +49,7 @@ Added support for HTCondor v2 Python bindings and other small features and fixes
 ### Bug Fixes
 
 -   Remove coral frontend from first page animation (PR #605)
+-   Fix upgrade crashes in RRD verifier due to improper NamedTemporaryFile handling.
 
 ### Testing / Development
 
