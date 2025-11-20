@@ -134,7 +134,7 @@ class DynamicCredential(Credential[Generator]):
         continue_if_no_path=False,
     ) -> None:
         if not self._generated_credential:
-            raise CredentialError("Credential not generated.")
+            raise CredentialError("Could not Credential not generated.")
         self._generated_credential.save_to_file(
             path=path,
             permissions=permissions,
