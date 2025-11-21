@@ -43,7 +43,7 @@ def load_attrs_list(fname):
 default_attrs_list = load_attrs_list(conf_attrs_file)
 
 
-def do_check_attr_spelling(attr_name_orig, attr_list=None):
+def validate_attribute_spelling(attr_name_orig, attr_list=None):
     if not CHECK_ATTRS_SPELLING:
         return True
     attr_name = attr_name_orig.lower()
