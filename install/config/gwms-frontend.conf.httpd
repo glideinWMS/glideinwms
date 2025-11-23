@@ -51,8 +51,9 @@ RewriteCond /usr/lib64/httpd/modules/mod_ssl.so -f
 # Is there a way to check if SSLEngine on is defined somewhere else?
 RewriteCond /etc/httpd/conf.d/ssl.conf -s
 #=========================
-# Does the URL go to a monitor page?
-RewriteCond %{REQUEST_URI} ^(.+)/monitor(.+)$
+# Does the URL go to a monitor or credential page?
+# /vofrontend/cred/ or /cred/ are both OK
+RewriteCond %{REQUEST_URI} ^(.*)\/(monitor|cred)\/(.*)$
 #=========================
 # If all the above true, rewrite!
 RewriteRule ^(.+)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]

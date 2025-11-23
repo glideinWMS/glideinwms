@@ -4,16 +4,19 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # file: frontend_condortoken
+# Create Frontend HTCondor password to sign IDTOKEN for Glidein's startd Pool authentication
 
-REQ_DIR=~frontend/passwords.d/requests
+FE_PWD_DIR=~frontend/cred.d/passwords.d
+REQ_DIR=$FE_PWD_DIR/requests
 PWD_DIR=/etc/condor/passwords.d
+
 for REQ in $(ls "$REQ_DIR") ; do
-    KEY=$(basename $REQ)
+    KEY=$(basename "$REQ")
     if [ ! -e "$PWD_DIR/$KEY" ]; then
-        openssl rand -base64 64 | sudo /usr/sbin/condor_store_cred -u "frontend@${HOSTNAME}" -f "/etc/condor/passwords.d/${KEY}" add > /dev/null 2>&1
+        openssl rand -base64 64 | sudo /usr/sbin/condor_store_cred -u "frontend@${HOSTNAME}" -f "$PWD_DIR/${KEY}" add > /dev/null 2>&1
     fi
     if [ ! "$KEY" = "POOL" ]; then
-        /bin/cp /etc/condor/passwords.d/$KEY ~frontend/passwords.d
-        chown frontend ~frontend/passwords.d/$KEY
+        /bin/cp "$PWD_DIR/$KEY" "$FE_PWD_DIR"
+        chown frontend "$FE_PWD_DIR/$KEY"
     fi
 done

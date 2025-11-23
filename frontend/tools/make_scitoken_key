@@ -1,0 +1,245 @@
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+"""This tool creates and advertises a SciToken key in the Frontend
+
+The private and public key generation follows the example in the scitokens library:
+https://github.com/scitokens/scitokens/blob/master/src/scitokens/tools/admin_create_key.py
+
+The advertising follows the instructions and conventions in
+https://htcondor.readthedocs.io/en/latest/admin-manual/file-and-cred-transfer.html#generating-a-scitokens-key-pair
+"""
+
+import argparse
+import binascii
+import json
+import os.path
+import sys
+
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+
+# from cryptography.hazmat.primitives.asymmetric import ec, rsa, types
+from cryptography.hazmat.primitives.asymmetric import ec, rsa
+from scitokens.utils import bytes_from_long, string_from_long
+
+from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.lib.defaults import BASE_DIR, KEY_DIR, WEB_SEC_DIR
+
+verbose = False
+
+
+# def log(*args, options={"file": sys.stderr, "logger": None, "verbose": False}):
+def log(*args):
+    if verbose:
+        print(*args, file=sys.stderr)
+
+
+def get_args() -> argparse.Namespace:
+    """Parse command line arguments from sys.argv and set defaults using the RPM installation defaults.
+
+    Uses constants defined in glideinwms.lib.defaults
+
+    Returns:
+        argparse.Namespace: The parsed arguments
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        help="Print verbose messages",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-k",
+        "--private-key-file",
+        help="Location of the unencrypted private key file. Will be created if it does not exist.",
+        default=os.path.join(KEY_DIR, "frontend_scitokens_key.pem"),
+    )
+    parser.add_argument(
+        "-e",
+        "--ec",
+        help="Use elliptical curve cryptography. Defaults to False or whatever is the type of the existing key.",
+        action="store_true",
+    )
+    # group = parser.add_mutually_exclusive_group(required=False)  # If web-dir and web-url are provided, work-dir is ignored
+    parser.add_argument(
+        "-d",
+        "--work-dir",
+        help="Location of the Frontend configuration. This is used to set the base URI if not provided. Defaults to RPM installation.",
+        default=os.path.join(BASE_DIR, "vofrontend"),
+    )
+    parser.add_argument(
+        "-w",
+        "--web-dir",
+        help="Location of base directory for web server. A subdirectory is added if a group is specified. Defaults to the scitokens subdirectory of the Web area.",
+        default=os.path.join(WEB_SEC_DIR, "scitokens"),
+    )
+    parser.add_argument(
+        "-u", "--web-url", help="Base URL for web server. Defaults to the /cred/scitokens URL in the Frontend."
+    )
+    parser.add_argument(
+        "-g", "--group", help="Optional key group. By default will use the global key, not specific to any group."
+    )
+    return parser.parse_args()
+
+
+# def make_key(private_key_file, use_ec=False, force_new=False) -> types.PrivateKeyTypes:  - AttributeError: module 'cryptography.hazmat.primitives.asymmetric.types' has no attribute 'PrivateKeyTypes'
+def make_key(private_key_file, use_ec=False, force_new=False):
+    """Retrieve the RSA or EC private key.
+
+    Read it from the key file, if existing, otherwise generate and save it.
+
+    Args:
+        private_key_file (str): Location of the private key.
+        use_ec (bool): If True, use EC private key instead of RSA private key. Defaults to False.
+        force_new (bool): If True, overwrite existing private key. Defaults to False.
+
+    Returns:
+        types.PrivateKeyTypes: RSA or EC Private key bytes.
+    """
+    if os.path.isfile(private_key_file) and not force_new:
+        log(f"Reading private key from {private_key_file}.")
+        with open(private_key_file, "rb") as key_file:
+            private_key = serialization.load_pem_private_key(key_file.read(), password=None, backend=default_backend())
+    else:
+        # Create the private key
+        if use_ec:
+            log(f"Generating EC private key and saving it to {private_key_file}.")
+            private_key = ec.generate_private_key(ec.SECP256R1(), backend=default_backend())
+        else:
+            log(f"Generating RSA private key and saving it to {private_key_file}.")
+            private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
+        # Write the PEM private key
+        private_pem = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+        with open(private_key_file, "wb") as key_file:
+            key_file.write(private_pem)
+    return private_key
+
+
+def get_jwk_pk_string(private_key, key_type) -> str:
+    """Retrieve the JWK public key from a private key.
+
+    Args:
+        private_key (types.PrivateKeyTypes): RSA or EC private key bytes.
+        key_type (str): private key type, RSA or EC.
+
+    Returns:
+        str: multiline JSON formatted string with serialized JWK public key.
+    """
+    public_key = private_key.public_key()
+    # Get the public numbers
+    public_numbers = public_key.public_numbers()
+    # Hash the public "n", and use it for the Key ID (kid)
+    digest = hashes.Hash(hashes.SHA256(), backend=default_backend())
+    if key_type == "EC":
+        digest.update(bytes_from_long(public_numbers.x))
+    else:  # RSA
+        digest.update(bytes_from_long(public_numbers.n))
+    kid = binascii.hexlify(digest.finalize())
+    # Shorten the kid to 4 characters
+    kid = kid[:4]
+    # Define and return the JSON public key (jwk)
+    if key_type == "EC":
+        jwk_public_key = {
+            "keys": [
+                {
+                    "alg": "ES256",
+                    "crv": "P-256",
+                    "x": string_from_long(public_numbers.x),
+                    "y": string_from_long(public_numbers.y),
+                    "kty": "EC",
+                    "use": "sig",
+                    "kid": kid.decode("utf-8"),
+                }
+            ]
+        }
+    else:
+        jwk_public_key = {
+            "keys": [
+                {
+                    "alg": "RS256",
+                    "n": string_from_long(public_numbers.n),
+                    "e": string_from_long(public_numbers.e),
+                    "kty": "RSA",
+                    "use": "sig",
+                    "kid": kid.decode("utf-8"),
+                }
+            ]
+        }
+    log(f"Returning {key_type} JWK public key, kid: {kid.decode()}.")
+    return json.dumps(jwk_public_key, sort_keys=True, indent=4, separators=(",", ": "))
+
+
+def prepare_web_dir(web_dir, group_name, uri, public_key) -> (str, str):
+    """Set up the web directory to advertise the scitoken key.
+
+    Args:
+        web_dir (str): base web directory to advertise the scitoken key.
+        group_name (str): group name.
+        uri (str): URI.
+        public_key (str): public key.
+
+    Returns:
+        str, str: Public key issuer and advertising URI.
+    """
+    public_key_fname = "public-key.jwks"
+    group_uri = ""
+    if group_name:
+        web_dir = os.path.join(web_dir, group_name)
+        os.makedirs(web_dir, exist_ok=True)
+        group_uri = f"/{group_name}"
+    log(f"Setting up web directory {web_dir} with config and public key '{public_key_fname}' files.")
+    web_dir = os.path.join(web_dir, ".well-known")
+    os.makedirs(web_dir, exist_ok=True)
+    issuer = f"{uri}{group_uri}"
+    with open(os.path.join(web_dir, "openid-configuration"), "wt") as config_file:
+        config_file.write(
+            "{\n" f'    "issuer":"{issuer}"\n    "jwks_uri":"{issuer}/.well-known/{public_key_fname}"\n' "}\n"
+        )
+    with open(os.path.join(web_dir, public_key_fname), "wt") as pk_file:
+        pk_file.write(public_key)
+    return f"{issuer}", f"{issuer}/.well-known/{public_key_fname}"
+
+
+def main():
+    """Main function"""
+    # Get command line arguments and set up
+    args = get_args()
+    if args.verbose:
+        # Set verbose logging via the global variable verbose
+        global verbose
+        verbose = True
+    # Load the Frontend configuration to retrieve its URI
+    group = args.group or "main"
+    gfe_desc = glideinFrontendConfig.ElementMergedDescript(args.work_dir, group)
+    # Calculate and verify consistency of private key
+    private_key = make_key(args.private_key_file, args.ec)
+    if isinstance(private_key, rsa.RSAPrivateKey):
+        key_type = "RSA"
+    elif isinstance(private_key, ec.EllipticCurvePrivateKey):
+        key_type = "EC"
+    else:
+        raise ValueError("The private key is of an unknown type (not RSA or EC).")
+    if args.ec and not key_type == "EC":
+        raise ValueError("Private key type mismatch. Requested EC, but loaded RSA.")
+    # Calculate and publish public key
+    pk_str = get_jwk_pk_string(private_key, key_type)
+    uri = args.web_url or os.path.join(os.path.dirname(gfe_desc.frontend_data["MonitoringWebURL"]), "cred", "scitokens")
+    iss, adv_uri = prepare_web_dir(args.web_dir, args.group, uri, pk_str)
+    log(f"Public key from iss: {iss} advertised at: {adv_uri}")
+
+
+# Script invocation
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except Exception as e:
+        sys.stderr.write("ERROR: Exception msg %s\n" % str(e))
+        sys.exit(1)
