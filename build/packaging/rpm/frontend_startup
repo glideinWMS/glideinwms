@@ -46,14 +46,14 @@ id_str="$frontend_name"
 
 check_idtoken_password() {
     # Make sure that the IDTOKEN password exists
-    if [ ! -f "$frontend_root_dir"/passwords.d/FRONTEND ]; then
+    if [ ! -f "$frontend_root_dir"/cred.d/passwords.d/FRONTEND ]; then
         local htc_frontend_password=/etc/condor/passwords.d/FRONTEND
         if [ ! -f "$htc_frontend_password" ]; then
             openssl rand -base64 64 | /usr/sbin/condor_store_cred -u "frontend@$(hostname -f)" -f "$htc_frontend_password" add > /dev/null 2>&1
         fi
-        /bin/cp "$htc_frontend_password" "$frontend_root_dir"/passwords.d/FRONTEND
-        chown $FRONTEND_USER: "$frontend_root_dir"/passwords.d/FRONTEND
-        if [ ! -f "$frontend_root_dir"/passwords.d/FRONTEND ]; then
+        /bin/cp "$htc_frontend_password" "$frontend_root_dir"/cred.d/passwords.d/FRONTEND
+        chown $FRONTEND_USER: "$frontend_root_dir"/cred.d/passwords.d/FRONTEND
+        if [ ! -f "$frontend_root_dir"/cred.d/passwords.d/FRONTEND ]; then
             echo 'Cannot create IDTOKENs password!'
             failure
         fi

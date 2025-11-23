@@ -3,17 +3,17 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   Retrieve the log of a running glidein
-#
-# Arguments:
-#  glidein_name - Name of the glidein, e.g. glidein_637@cabinet-1-1-1.t2.ucsd.edu
-#  log_type - OPTIONAL: Type of the log, defaults to STARTD
-#                       See condor_fetchlog help for the full list
-#
-# Options:
-#  -d DIR, --work-dir=DIR                  Frontend work dir (default: $FE_WORK_DIR)
-#  -g GROUP_NAME, --group-name=GROUP_NAME  Frontend group name (default: $FE_GROUP_NAME)
+"""Retrieve the log of a running glidein
+
+Arguments:
+  glidein_name - Name of the glidein, e.g. glidein_637@cabinet-1-1-1.t2.ucsd.edu
+  log_type - OPTIONAL: Type of the log, defaults to STARTD
+                       See condor_fetchlog help for the full list
+
+Options:
+  -d DIR, --work-dir=DIR                  Frontend work dir (default: $FE_WORK_DIR)
+  -g GROUP_NAME, --group-name=GROUP_NAME  Frontend group name (default: $FE_GROUP_NAME)
+"""
 
 
 import optparse

@@ -25,8 +25,6 @@ import tempfile
 import time
 import traceback
 
-from pathlib import Path
-
 from glideinwms.frontend import (
     glideinFrontendConfig,
     glideinFrontendDowntimeLib,
@@ -44,7 +42,7 @@ from glideinwms.lib.credentials import (
     CredentialType,
     RSAPublicKey,
 )
-from glideinwms.lib.defaults import TOKEN_DIR
+from glideinwms.lib.defaults import PWD_DIR, TOKEN_DIR
 from glideinwms.lib.disk_cache import DiskCache
 from glideinwms.lib.fork import fork_in_bg, ForkManager, wait_for_pids
 from glideinwms.lib.pidSupport import register_sighandler
@@ -865,7 +863,7 @@ class glideinFrontendElement:
             # Number of credentials that have running and glideins.
             # This will be used to scale down the glidein_monitors[Running]
             # when there are multiple credentials per group.
-            # This is efficient way of achieving the end result. Note that
+            # This is an efficient way of achieving the end result. Note that
             # Credential specific stats are not presented anywhere except the
             # classad. Monitoring info in frontend and factory shows
             # aggregated info considering all the credentials
@@ -877,15 +875,14 @@ class glideinFrontendElement:
             callback_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.CALLBACK)
             if not callback_creds:
                 logSupport.log.debug("Custom callback credential not provided. Using default.")
-                tkn_dir = TOKEN_DIR
-                if not os.path.exists(tkn_dir):
-                    os.mkdir(tkn_dir, 0o700)
+                if not os.path.exists(TOKEN_DIR):
+                    os.mkdir(TOKEN_DIR, 0o700)
                 callback_generator = create_credential(
                     "IdTokenGenerator",
                     cred_type=CredentialType.DYNAMIC,
                     purpose=CredentialPurpose.CALLBACK,
                     trust_domain=trust_domain,
-                    context={"cache_dir": tkn_dir},
+                    context={"cache_dir": TOKEN_DIR},
                 )
                 self.credentials_plugin.security_bundle.add_credential(callback_generator)
             else:
@@ -1089,19 +1086,17 @@ class glideinFrontendElement:
 
                 glidein_site = glidein_el["attrs"]["GLIDEIN_Site"]
                 # Using the home directory should solve ownership conflicts for different clients (e.g. DE)
-                user_home = Path.home()  # "/var/lib/gwms-frontend"
-                tkn_dir = user_home / "tokens.d"
-                pwd_dir = user_home / "passwords.d"
-                tkn_file = os.path.join(tkn_dir, f"{self.group_name}.{glidein_site}.idtoken")
-                pwd_file = os.path.join(pwd_dir, glidein_site)
-                pwd_default = os.path.join(pwd_dir, self.idtoken_keyname)
+                # These directories are defined in lib/defaults
+                tkn_file = os.path.join(TOKEN_DIR, f"{self.group_name}.{glidein_site}.idtoken")
+                pwd_file = os.path.join(PWD_DIR, glidein_site)
+                pwd_default = os.path.join(PWD_DIR, self.idtoken_keyname)
                 one_hr = 3600
                 tkn_age = sys.maxsize
 
-                if not os.path.exists(tkn_dir):
-                    os.mkdir(tkn_dir, 0o700)
-                if not os.path.exists(pwd_dir):
-                    os.mkdir(pwd_dir, 0o700)
+                if not os.path.exists(TOKEN_DIR):
+                    os.mkdir(TOKEN_DIR, 0o700)
+                if not os.path.exists(PWD_DIR):
+                    os.mkdir(PWD_DIR, 0o700)
 
                 if not os.path.exists(pwd_file):
                     if os.path.exists(pwd_default):
@@ -1130,7 +1125,7 @@ class glideinFrontendElement:
                     #   tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
                     #   logSupport.log.debug("tkn_str= %s" % tkn_str)
                     # The token file is read as text file below. Writing fixed to be consistent
-                    with tempfile.NamedTemporaryFile(mode="w", delete=False, dir=tkn_dir) as fd:
+                    with tempfile.NamedTemporaryFile(mode="w", delete=False, dir=TOKEN_DIR) as fd:
                         os.chmod(fd.name, 0o600)
                         fd.write(tkn_str)
                         os.replace(fd.name, tkn_file)

@@ -10,6 +10,7 @@ from cryptography.hazmat.primitives import serialization
 from scitokens import SciToken
 
 from glideinwms.lib.credentials import create_credential, CredentialType
+from glideinwms.lib.defaults import TOKEN_DIR
 from glideinwms.lib.generators import export_generator, GeneratorError
 from glideinwms.lib.generators.credential_generator import CredentialGenerator
 
@@ -27,7 +28,7 @@ class SciTokenGenerator(CredentialGenerator):
         - algorithm: Signing algorithm to use (default: RS256)
         - wlcg_ver: WLCG version (default: 1.0)
         - tkn_lifetime: Lifetime of the token in seconds (default: 7200)
-        - tkn_dir: Directory to store the generated tokens (default: /var/lib/gwms-frontend/tokens.d)
+        - tkn_dir: Directory to store the generated tokens (default: defaults.TOKEN_DIR = $HOME/cred.d/tokens.d)
     """
 
     CONTEXT_VALIDATION = {
@@ -39,7 +40,7 @@ class SciTokenGenerator(CredentialGenerator):
         "algorithm": (str, "RS256"),
         "wlcg_ver": (str, "1.0"),
         "tkn_lifetime": (int, 7200),
-        "tkn_dir": (str, "/var/lib/gwms-frontend/tokens.d"),
+        "tkn_dir": (str, TOKEN_DIR),
     }
 
     def _setup(self):

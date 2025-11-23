@@ -3,6 +3,8 @@
 
 """Collections of constants that are used throughout the GlideinWMS project."""
 
+import os
+
 from pathlib import Path
 
 # GlideinWMS has to be compatible across versions running on different Python interpreters
@@ -20,10 +22,15 @@ BINARY_ENCODING_CRYPTO = "utf_8"  # valid aliases: utf-8, utf8
 BINARY_ENCODING_ASCII = "ascii"  # valid aliases: 646, us-ascii
 BINARY_ENCODING_DEFAULT = "utf_8"  # valid aliases: utf-8, utf8 (default Python 3 encoding)
 
+# These default directories are valid for RPM installations
 PLUGINS_DIR = "/etc/gwms-frontend/plugin.d"  # TODO: Make this configurable
-CACHE_DIR = f"{Path.home()}/cache"
-PWD_DIR = f"{Path.home()}/passwords.d"
-TOKEN_DIR = f"{Path.home()}/tokens.d"
+BASE_DIR = Path.home()
+WEB_SEC_DIR = os.path.join(Path.home(), "web-area", "cred")
+CACHE_DIR = os.path.join(Path.home(), "cache")
+CRED_DIR = os.path.join(Path.home(), "cred.d")
+PWD_DIR = os.path.join(CRED_DIR, "passwords.d")
+TOKEN_DIR = os.path.join(CRED_DIR, "tokens.d")
+KEY_DIR = os.path.join(CRED_DIR, "keys.d")
 
 
 def force_bytes(instr, encoding=BINARY_ENCODING_CRYPTO):

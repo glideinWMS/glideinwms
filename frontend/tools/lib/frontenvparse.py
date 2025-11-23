@@ -1,18 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Project:
-#   glideinWMS
-#
-# Description:
-#   This module provide common functions needed to parse
-#   the arguments used by the frontend environment setting
-#   tools
-#
-# Author:
-#   Igor Sfiligoi
-#
-
+"""This module provides common functions needed to parse
+the arguments used by the frontend environment setting tools
+"""
 import os
 
 from glideinwms.frontend import glideinFrontendConfig
