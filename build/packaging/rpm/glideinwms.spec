@@ -24,12 +24,15 @@
 
 %global frontend_xml frontend.xml
 %global factory_xml glideinWMS.xml
-%global web_dir %{_localstatedir}/lib/gwms-frontend/web-area
-%global web_base %{_localstatedir}/lib/gwms-frontend/web-base
-%global frontend_dir %{_localstatedir}/lib/gwms-frontend/vofrontend
-%global frontend_token_dir %{_localstatedir}/lib/gwms-frontend/tokens.d
-%global frontend_passwd_dir %{_localstatedir}/lib/gwms-frontend/passwords.d
-%global frontend_cache_dir %{_localstatedir}/lib/gwms-frontend/cache
+%global frontend_base_dir %{_localstatedir}/lib/gwms-frontend
+%global web_dir %{frontend_base_dir}/web-area
+%global web_base %{frontend_base_dir}/web-base
+%global frontend_dir %{frontend_base_dir}/vofrontend
+%global frontend_cred_dir %{frontend_base_dir}/cred.d
+%global frontend_key_dir %{frontend_cred_dir}/keys.d
+%global frontend_token_dir %{frontend_cred_dir}/tokens.d
+%global frontend_passwd_dir %{frontend_cred_dir}/passwords.d
+%global frontend_cache_dir %{frontend_base_dir}/cache
 %global factory_web_dir %{_localstatedir}/lib/gwms-factory/web-area
 %global factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
 %global factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
@@ -447,12 +450,18 @@ install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
 install -m 0755 %{SOURCE12} $RPM_BUILD_ROOT/%{_sbindir}/gwms-factory
 
 # Install the web directory
+install -d $RPM_BUILD_ROOT%{frontend_base_dir}
+install -m 0644 install/doc/var_lib_frontend_README.md $RPM_BUILD_ROOT%{frontend_base_dir}/README.md
 install -d $RPM_BUILD_ROOT%{frontend_dir}
-install -d $RPM_BUILD_ROOT%{frontend_token_dir}
-install -d $RPM_BUILD_ROOT%{frontend_passwd_dir}
+install -m 0700 -d $RPM_BUILD_ROOT%{frontend_cred_dir}
+install -m 0700 -d $RPM_BUILD_ROOT%{frontend_key_dir}
+install -m 0700 -d $RPM_BUILD_ROOT%{frontend_token_dir}
+install -m 0700 -d $RPM_BUILD_ROOT%{frontend_passwd_dir}
 install -d $RPM_BUILD_ROOT%{frontend_cache_dir}
 install -d $RPM_BUILD_ROOT%{web_base}
 install -d $RPM_BUILD_ROOT%{web_dir}
+install -d $RPM_BUILD_ROOT%{web_dir}/cred/
+install -d $RPM_BUILD_ROOT%{web_dir}/cred/scitokens/
 install -d $RPM_BUILD_ROOT%{web_dir}/monitor/
 install -d $RPM_BUILD_ROOT%{web_dir}/stage/
 install -d $RPM_BUILD_ROOT%{web_dir}/stage/group_main
@@ -508,6 +517,10 @@ cp -arp creation/web_base/frontend/images $RPM_BUILD_ROOT%{web_dir}/monitor/
 # Install the frontend config dir
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend
+install -m 0644 install/doc/etc_frontend_README.md $RPM_BUILD_ROOT%{_sysconfdir}/gwms-frontend/README.md
+install -m 0700 -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/cred.d
+install -m 0700 -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/cred.d/passwords.d
+install -m 0700 -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/cred.d/keys.d
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/plugin.d
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/hooks.reconfig.pre
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/hooks.reconfig.post
@@ -584,6 +597,7 @@ cp creation/create_cvmfsexec_distros.sh $RPM_BUILD_ROOT%{_bindir}
 cp frontend/tools/enter_frontend_env $RPM_BUILD_ROOT%{_bindir}/enter_frontend_env
 cp frontend/tools/fetch_glidein_log $RPM_BUILD_ROOT%{_bindir}/fetch_glidein_log
 cp frontend/tools/glidein_off $RPM_BUILD_ROOT%{_bindir}/glidein_off
+cp frontend/tools/make_scitoken_key $RPM_BUILD_ROOT%{_bindir}/make_scitoken_key
 cp frontend/tools/remove_requested_glideins $RPM_BUILD_ROOT%{_bindir}/remove_requested_glideins
 #cp install/templates/frontend_condortoken $RPM_BUILD_ROOT%{_sysconfdir}/condor/scripts/
 cp install/templates/04_gwms_frontend_idtokens.config $RPM_BUILD_ROOT%{_sysconfdir}/condor/config.d
@@ -664,8 +678,8 @@ fi
 # The IDTOKEN password creation is now in the startup script
 # For manual creation you can use:
 #  openssl rand -base64 64 | /usr/sbin/condor_store_cred -u "frontend@${fqdn_hostname}" -f "/etc/condor/passwords.d/FRONTEND" add > /dev/null 2>&1
-#  /bin/cp /etc/condor/passwords.d/FRONTEND /var/lib/gwms-frontend/passwords.d/FRONTEND
-#  chown frontend.frontend /var/lib/gwms-frontend/passwords.d/FRONTEND
+#  /bin/cp /etc/condor/passwords.d/FRONTEND /var/lib/gwms-frontend/cred.d/passwords.d/FRONTEND
+#  chown frontend.frontend /var/lib/gwms-frontend/cred.d/passwords.d/FRONTEND
 
 %post httpd
 # Protecting from failure in case it is not running/installed
@@ -928,6 +942,7 @@ rm -rf $RPM_BUILD_ROOT
 #%attr(755,root,root) %{_sysconfdir}/condor/scripts/frontend_condortoken
 %attr(644,root,root) %{_sysconfdir}/condor/config.d/04_gwms_frontend_idtokens.config
 %attr(755,root,root) %{_bindir}/glidein_off
+%attr(755,root,root) %{_bindir}/make_scitoken_key
 %attr(755,root,root) %{_bindir}/remove_requested_glideins
 %attr(755,root,root) %{_bindir}/fetch_glidein_log
 %attr(755,root,root) %{_bindir}/enter_frontend_env

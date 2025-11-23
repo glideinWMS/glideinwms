@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Setup the environment so that all condor commands behave like they would if executed by the frontend
+"""Set up the environment so that all condor commands behave like they would if executed by the frontend
 
 Arguments:
   -d DIR, --work-dir=DIR                  Frontend work dir (default: $FE_WORK_DIR)

@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""This tool print outs the matches between jobs and factory entries
+"""This tool prints out the matches between jobs and Factory entries
 
 Arguments:
    $1 = work dir
