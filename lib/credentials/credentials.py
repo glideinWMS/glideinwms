@@ -281,6 +281,9 @@ class Credential(ABC, Generic[T]):
     def decode(string: Union[str, bytes]) -> T:
         """Decode the given string to provide the credential.
 
+        For dynamic credentials, this is providing a contextualized generator,
+        given both the generator module and the context.
+
         Args:
             string (bytes): The string to decode.
 
@@ -328,7 +331,7 @@ class Credential(ABC, Generic[T]):
         path = path or self.path
 
         if not os.path.isfile(path):
-            raise CredentialError(f"Credential file {self.path} does not exist")
+            raise CredentialError(f"Credential file {path} does not exist or wrong file or directory permissions")
         with open(path, "rb") as cred_file:
             self.load_from_string(cred_file.read())
         self.path = path
@@ -707,6 +710,7 @@ def create_credential(
     """
 
     credential_types = [cred_type] if cred_type else CredentialType
+    failed_attempts = []
     for c_type in credential_types:
         try:
             credential_class = credential_of_type(c_type)
@@ -715,11 +719,16 @@ def create_credential(
                 cred_args = [param.name for param in cred_args if param.name != "self"]
                 kwargs = {key: value for key, value in locals().items() if key in cred_args and value is not None}
                 return credential_class(**kwargs)
-        except CredentialError:
-            pass  # Credential type incompatible with input
+        except CredentialError as err:
+            failed_attempts.append(err)  # Likely credential type incompatible with input
         except Exception as err:
             raise CredentialError(f'Unexpected error loading credential: string="{string}", path="{path}"') from err
-    raise CredentialError(f'Could not load credential: string="{string}", path="{path}"')
+    if failed_attempts:
+        raise CredentialError(
+            f'Could not load credential: string="{string}", path="{path}". {len(failed_attempts)} attempts failed with CredentialError.'
+        ) from failed_attempts[-1]
+    else:
+        raise CredentialError(f'Could not load credential: string="{string}", path="{path}"')
 
 
 def create_credential_pair(
