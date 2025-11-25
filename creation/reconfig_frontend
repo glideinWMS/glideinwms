@@ -8,9 +8,6 @@
 import os
 import os.path
 import signal
-
-# import copy
-# import subprocess
 import sys
 import tempfile
 
@@ -135,7 +132,7 @@ if __name__ == "__main__":
 
     if os.geteuid() == 0:
         print2(
-            "NOTE: Executing reconfig_frontend as user 'root' is not allowed. Use the frontend user instead. For rpm based installations, use the 'service gwms-frontend <start|stop|reconfig|...>' command to perform gwms-frontend operations"
+            "NOTE: Executing reconfig_frontend as user 'root' is not allowed. Use the frontend user instead. For rpm based installations, use the 'systemctl <start|stop|reload|...> gwms-frontend' command to perform gwms-frontend operations"
         )
 
     force_name = None

@@ -37,6 +37,8 @@
 %global logserver_dir %{_localstatedir}/lib/gwms-logserver
 %global logserver_web_dir %{_localstatedir}/lib/gwms-logserver/web-area
 %global systemddir %{_prefix}/lib/systemd/system
+# /usr/bin/systemctl would not work with the emulation in /usr/local/bin/systemctl used in Workspaces (containers)
+%global systemctl_bin systemctl
 # Minimum HTCondor and Python required versions
 %global htcss_min_version 8.9.5
 %global python_min_version 3.6
@@ -53,14 +55,16 @@ BuildArch:      noarch
 
 
 Source:         glideinwms.tar.gz
-Source1:        creation/templates/frontend_startup
+# Source1:        creation/templates/frontend_startup
 Source2:        %{frontend_xml}
-Source3:        creation/templates/factory_startup
+# Source3:        creation/templates/factory_startup
 Source4:        %{factory_xml}
 Source7:        chksum.sh
 Source11:       creation/templates/frontend_startup_sl7
 Source12:       creation/templates/factory_startup_sl7
 
+# Needed for the systemd_... macros to invoke systemctl
+BuildRequires:  systemd-rpm-macros
 BuildRequires:  python3
 BuildRequires:  python3-devel
 
@@ -126,7 +130,7 @@ Requires: python3-m2crypto
 %else
 Requires: python36-m2crypto
 %endif
-Requires(post): /sbin/service
+Requires(post): systemd
 Requires(post): /usr/sbin/useradd
 Requires(post): /usr/sbin/usermod
 Requires(post): /sbin/chkconfig
@@ -283,7 +287,7 @@ Requires: python36-requests
 Requires: python36-jwt
 %endif
 Requires: python3-rrdtool
-Requires(post): /sbin/service
+Requires(post): systemd
 Requires(post): /usr/sbin/useradd
 Requires(post): /usr/sbin/usermod
 Requires(post): /sbin/chkconfig
@@ -363,8 +367,7 @@ sed -i "s/WEB_BASE_DIR *=.*/WEB_BASE_DIR = \"\/var\/lib\/gwms-factory\/web-base\
 sed -i "s/STARTUP_DIR *=.*/STARTUP_DIR = \"\/var\/lib\/gwms-factory\/web-base\"/" creation/reconfig_glidein
 sed -i "s/STARTUP_DIR *=.*/STARTUP_DIR = \"\/var\/lib\/gwms-factory\/web-base\"/" creation/clone_glidein
 
-#Create the RPM startup files (init.d) from the templates
-creation/create_rpm_startup . frontend_initd_startup_template factory_initd_startup_template %{SOURCE1} %{SOURCE3}
+#Create the RPM startup files (systemd) from the templates
 creation/create_rpm_startup . frontend_initd_startup_template_sl7 factory_initd_startup_template_sl7 %{SOURCE11} %{SOURCE12}
 
 # install the executables
@@ -452,7 +455,6 @@ rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/gwms-renew
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/gwms-renew-proxies.timer
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/proxies.ini
 
-%if 0%{?rhel} >= 7
 install -d $RPM_BUILD_ROOT/%{systemddir}
 install -m 0644 install/config/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
 install -m 0644 install/config/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
@@ -461,15 +463,6 @@ install -m 0644 creation/templates/gwms-renew-proxies.timer $RPM_BUILD_ROOT/%{sy
 install -d $RPM_BUILD_ROOT/%{_sbindir}
 install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
 install -m 0755 %{SOURCE12} $RPM_BUILD_ROOT/%{_sbindir}/gwms-factory
-%else
-# Install the init.d
-install -d $RPM_BUILD_ROOT%{_initrddir}
-install -d $RPM_BUILD_ROOT%{_sysconfdir}/cron.d
-install -m 0755 %{SOURCE1} $RPM_BUILD_ROOT%{_initrddir}/gwms-frontend
-install -m 0755 %{SOURCE3} $RPM_BUILD_ROOT%{_initrddir}/gwms-factory
-install -m 0755 creation/templates/gwms-renew-proxies.init $RPM_BUILD_ROOT%{_initrddir}/gwms-renew-proxies
-install -m 0644 creation/templates/gwms-renew-proxies.cron $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/gwms-renew-proxies
-%endif
 
 # Install the web directory
 install -d $RPM_BUILD_ROOT%{frontend_dir}
@@ -651,11 +644,11 @@ install -m 0644 logserver/getjwt.py $RPM_BUILD_ROOT%{logserver_dir}/getjwt.py
 install -m 0644 logserver/README.md $RPM_BUILD_ROOT%{logserver_dir}/README.md
 
 %post usercollector
-/sbin/service condor condrestart > /dev/null 2>&1 || true
+%{systemctl_bin} condrestart condor > /dev/null 2>&1 || true
 
 
 %post userschedd
-/sbin/service condor condrestart > /dev/null 2>&1 || true
+%{systemctl_bin} condrestart condor > /dev/null 2>&1 || true
 
 
 %post vofrontend-core
@@ -675,11 +668,8 @@ if [ -f %{_localstatedir}/log/gwms-frontend/frontend/startup.log ]; then
     chown frontend.frontend %{_localstatedir}/log/gwms-frontend/frontend/startup.log
 fi
 
-%if 0%{?rhel} >= 7
-systemctl daemon-reload
-%else
-/sbin/chkconfig --add gwms-frontend
-%endif
+# No more support for older than RHEL7 - %if 0%{?rhel} >= 7
+%{systemctl_bin} daemon-reload
 
 if [ ! -e %{frontend_dir}/monitor ]; then
     ln -s %{web_dir}/monitor %{frontend_dir}/monitor
@@ -697,12 +687,12 @@ fi
 
 %post httpd
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
+# /sbin/service httpd reload > /dev/null 2>&1 || true
+%systemd_post httpd
 
 %post vofrontend-httpd
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
-
+%systemd_post httpd
 
 %post factory-core
 
@@ -717,22 +707,20 @@ if [ "$1" = "1" ] ; then
     fi
 fi
 
-%if 0%{?rhel} == 7
-systemctl daemon-reload
-%else
-/sbin/chkconfig --add gwms-factory
-%endif
+%{systemctl_bin} daemon-reload
 
 # Protecting from failure in case it is not running/installed
-/sbin/service condor condrestart > /dev/null 2>&1 || true
+# /sbin/service condor condrestart > /dev/null 2>&1 || true
+%{systemctl_bin} condrestart condor  > /dev/null 2>&1 || true
 
 %post factory-httpd
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
+%systemd_post httpd
 
 %post logserver
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
+%systemd_post php-fpm.service
+%systemd_post httpd
 # Could also load the dependencies with composer install
 
 %pre vofrontend-core
@@ -769,11 +757,7 @@ usermod --append --groups frontend frontend >/dev/null
 # $1 = 1 - Action is upgrade
 
 if [ "$1" = "0" ] ; then
-    %if 0%{?rhel} >= 7
-    systemctl daemon-reload
-    %else
-    /sbin/chkconfig --del gwms-frontend
-    %endif
+    %{systemctl_bin} daemon-reload
 fi
 
 if [ "$1" = "0" ]; then
@@ -789,11 +773,7 @@ fi
 
 %preun factory-core
 if [ "$1" = "0" ] ; then
-    %if 0%{?rhel} >= 7
-    systemctl daemon-reload
-    %else
-    /sbin/chkconfig --del gwms-factory
-    %endif
+    %{systemctl_bin} daemon-reload
 fi
 if [ "$1" = "0" ]; then
     rm -f %{factory_dir}/log
@@ -803,23 +783,24 @@ fi
 
 %postun httpd
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
+%systemd_postun_with_reload httpd
 
 %postun vofrontend-httpd
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
+%systemd_postun_with_reload httpd
 
 %postun factory-httpd
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
+%systemd_postun_with_reload httpd
 
 %postun logserver
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
+%systemd_postun_with_restart php-fpm.service
+%systemd_postun_with_reload httpd
 
 %postun factory-core
 # Protecting from failure in case it is not running/installed
-/sbin/service condor condrestart > /dev/null 2>&1 || true
+%{systemctl_bin} condrestart condor > /dev/null 2>&1 || true
 
 
 %clean
@@ -853,6 +834,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/lib/cWExpand.py
 %{python3_sitelib}/glideinwms/creation/lib/cWParams.py
 %{python3_sitelib}/glideinwms/creation/lib/cWParamDict.py
+%{python3_sitelib}/glideinwms/creation/lib/config_attributes.txt
 %{python3_sitelib}/glideinwms/creation/lib/xslt.py
 %{python3_sitelib}/glideinwms/creation/lib/__init__.py
 # without %dir it includes all files and sub-directories. Some modules are in different packages
@@ -888,8 +870,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/extract_EC2_Address
 %attr(755,root,root) %{_bindir}/find_StartdLogs
 %attr(755,root,root) %{_bindir}/find_logs
-%attr(755,root,root) %{_bindir}/fact_chown
-%attr(755,root,root) %{_bindir}/fact_chown_check
 %attr(755,root,root) %{_bindir}/gwms-logcat.sh
 %attr(755,root,root) %{_bindir}/manual_glidein_submit
 %attr(755,root,root) %{_bindir}/OSG_autoconf
@@ -949,12 +929,8 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/templates/factory_initd_startup_template
 %{python3_sitelib}/glideinwms/creation/reconfig_glidein
 %{python3_sitelib}/glideinwms/factory
-%if 0%{?rhel} >= 7
 %{_sbindir}/gwms-factory
 %{systemddir}/gwms-factory.service
-%else
-%{_initrddir}/gwms-factory
-%endif
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory/plugin.d
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory/hooks.reconfig.pre
@@ -1014,16 +990,10 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template
 %{python3_sitelib}/glideinwms/creation/reconfig_frontend
 %defattr(-,frontend,frontend,-)
-%if 0%{?rhel} >= 7
 %{_sbindir}/gwms-frontend
 %attr(0644, root, root) %{systemddir}/gwms-frontend.service
 %attr(0644, root, root) %{systemddir}/gwms-renew-proxies.service
 %attr(0644, root, root) %{systemddir}/gwms-renew-proxies.timer
-%else
-%{_initrddir}/gwms-frontend
-%{_initrddir}/gwms-renew-proxies
-%attr(0644, root, root) %{_sysconfdir}/cron.d/gwms-renew-proxies
-%endif
 %attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend
 %attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.pre
 %attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.post
@@ -1137,6 +1107,11 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Nov 20 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.17
+- Glideinwms v3.10.17
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_10_17/history.html
+- Release candidates 3.10.17-01.rc1 to 3.10.17-02.rc2
+
 * Wed Oct 8 2025 Marco Mambelli <marcom@fnal.gov> - 3.11.2
 - Glideinwms v3.11.2
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_11_2/history.html

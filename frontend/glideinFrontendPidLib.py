@@ -1,18 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-# Description:
-#  Handle frontend pids
-#
-# Author:
-#   Igor Sfiligoi
-#
+"""Handle frontend pids"""
 
 import os
 
@@ -22,7 +11,27 @@ from glideinwms.lib import pidSupport
 
 
 class FrontendPidSupport(pidSupport.PidSupport):
+    """A class to manage the PID support for frontend processes, inheriting from PidSupport.
+
+    This class is responsible for managing the PID (Process ID) and lock files for frontend processes.
+    It initializes the lock file location based on the given startup directory and extends the functionality
+    of the `PidSupport` class.
+
+    Attributes:
+        action_type (str or None): A placeholder for the action type associated with the frontend process.
+        lock_file (str): The path to the lock file used to manage process locks.
+
+    Example:
+        frontend_pid_support = FrontendPidSupport("/path/to/startup")
+        # Initializes the FrontendPidSupport with the specified startup directory and lock file.
+    """
+
     def __init__(self, startup_dir):
+        """Initializes the FrontendPidSupport class.
+
+        Args:
+            startup_dir (str): The directory where the startup files are located, used to determine the lock file location.
+        """
         lock_file = os.path.join(startup_dir, "lock/frontend.lock")
         pidSupport.PidSupport.__init__(self, lock_file)
         self.action_type = None
@@ -44,6 +53,7 @@ class FrontendPidSupport(pidSupport.PidSupport):
     # Extend the parent methods
     ###############################
     def format_pid_file_content(self):
+        """Extend and invoke parent method to format the PID file."""
         base_cnt = pidSupport.PidSupport.format_pid_file_content(self)
         if self.action_type is None:
             cnt = base_cnt
@@ -52,10 +62,12 @@ class FrontendPidSupport(pidSupport.PidSupport):
         return cnt
 
     def reset_to_default(self):
+        """Extend and invoke parent method"""
         pidSupport.PidSupport.reset_to_default(self)
         self.action_type = None
 
     def parse_pid_file_content(self, lines):
+        """Extend and invoke parent method"""
         self.action_type = None
 
         pidSupport.PidSupport.parse_pid_file_content(self, lines)

@@ -6,6 +6,7 @@ Classes and functions needed to handle dictionary files.
 created out of the parameter object.
 """
 
+import hashlib
 import os
 import os.path
 import shutil
@@ -17,12 +18,13 @@ from glideinwms.lib.credentials import RSAPrivateKey
 from glideinwms.lib.util import str2bool
 
 from . import cgWConsts, cgWCreate, cgWDictFile, cWConsts, cWDictFile, cWExpand, factoryXmlConfig
+from .cWParamDict import CHECK_ATTRS_SPELLING, validate_attribute_spelling
 
 #
 # see the note in add_file_unparsed def below to understand
 # why this is commented out for now
 #
-# from cWParamDict import is_true, add_file_unparsed
+# from .cWParamDict import is_true, add_file_unparsed
 
 # from factoryXmlConfig import EntrySetElement
 
@@ -34,6 +36,19 @@ class UnconfiguredScheddError(Exception):
 
     def __str__(self):
         return repr(self.err_str)
+
+
+def insert_hashstr(fname, filepath):
+    """Generate a filename with a short hash derived from file content."""
+    hashobj = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            hashobj.update(chunk)
+    # Take first 6 hex chars for brevity (like insert_timestr)
+    short_hash = hashobj.hexdigest()[:6]
+    base, ext = os.path.splitext(fname)
+
+    return f"{base}.{short_hash}{ext}"
 
 
 ################################################
@@ -160,6 +175,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 # Condor tarball available. Just add it to the list of tarballs
                 # with every possible condor_platform string
                 condor_tarfile = condor_el["tar_file"]
+                condor_fname = insert_hashstr(cgWConsts.CONDOR_FILE % condor_idx, condor_tarfile)
             # already built this tarball, just reuse it
             elif condor_el["base_dir"] in prev_tar_dir_map:
                 condor_tarfile = prev_tar_dir_map[condor_el["base_dir"]]
@@ -176,7 +192,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
                 if condor_fd is None:
                     # tar file exists. Just use it
-                    self.dicts["file_list"].add_from_file(
+                    self.dicts["file_list"].add_from_file_ref(
                         condor_platform_fname,
                         cWDictFile.FileDictFile.make_val_tuple(
                             condor_fname, "untar", cond_download=cond_name, config_out=cgWConsts.CONDOR_ATTR
@@ -1165,6 +1181,10 @@ def add_attr_unparsed_real(attr, dicts):
     attr_val = attr.get_val()
 
     validate_attribute(attr_name, attr_val)
+
+    # Checking if the attr_name is a misspelling of a known attribute name
+    if CHECK_ATTRS_SPELLING:
+        validate_attribute_spelling(attr_name)
 
     # Validation of consistent combinations od publish, parameter and const has been removed somewhere after
     #  63e06efb33ba0bdbd2df6509e50c6e02d42c482c

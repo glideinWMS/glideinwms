@@ -469,6 +469,29 @@ cat >> "$condor_job_wrapper" <<EOF
 
 # Condor job wrappers must replace its own image
 exec $GLIDEIN_WRAPPER_EXEC
+
+# Handling failure in exec command
+exit_code=\$?
+# exec failed. Log, communicate to HTCondor, avoid black hole and exit
+echo "Wrapper script failed the final exec, exit code: \$exit_code" >&2
+if [[ -n "\$_CONDOR_WRAPPER_ERROR_FILE" ]]; then
+    echo "Wrapper script failed the final exec, creating condor log file: \$_CONDOR_WRAPPER_ERROR_FILE" >&2
+    echo "Wrapper script failed the final exec command (exit code: \$exit_code)" >>"\$_CONDOR_WRAPPER_ERROR_FILE"
+else
+    echo "Wrapper script failed the final exec, condor log file not defined" >&2
+fi
+# If chirp (pychirp) is available set a job attribute
+if command -v condor_chirp >/dev/null 2>&1; then
+    condor_chirp set_job_attr JobWrapperFailure "Wrapper script failed the final exec command (exit code: \$exit_code)"
+else
+     echo "Wrapper script failed the final exec, unable to chirp back failure notice" >&2
+fi
+#  TODO: Add termination stamp? see OSG
+#              touch ../../.stop-glidein.stamp >/dev/null 2>&1
+# Eventually the periodic validation of singularity will make the pilot to stop matching new payloads
+# Prevent a black hole by sleeping 10 minutes before exiting
+# sleep "600"
+exit "\$exit_code"
 EOF
 chmod a+x "$condor_job_wrapper"
 
@@ -829,7 +852,7 @@ EXTRA_CPUS_NUM = 0
 EXTRA_MEMORY_MB = 0
 EXTRA_SLOTS_START = True
 NUM_CPUS = \$(GLIDEIN_CPUS)+\$(EXTRA_SLOTS_NUM)+\$(EXTRA_CPUS_NUM)
-MEMORY = \$(GLIDEIN_MaxMemMBs)+\$(EXTRA_MEMORY_MB)
+MEMORY = \$(MEMORY)+\$(EXTRA_MEMORY_MB)
 
 # Slot 1 definition done before (fixed/partitionable)
 #SLOT_TYPE_1_PARTITIONABLE = FALSE
