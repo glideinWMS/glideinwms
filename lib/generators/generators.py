@@ -22,7 +22,7 @@ from glideinwms.lib.defaults import CACHE_DIR, PLUGINS_DIR
 from glideinwms.lib.util import hash_nc, import_module
 
 sys.path.append(PLUGINS_DIR)
-_loaded_generators = {}
+_loaded_generators = {}  # All current generators. Updated via export_generator()
 _generator_instances = defaultdict(dict)
 
 T = TypeVar("T")
@@ -32,44 +32,66 @@ class GeneratorError(Exception):
     """Base class for generator exceptions"""
 
 
+class GeneratorContextError(GeneratorError):
+    """Exception validating a GeneratorContext"""
+
+
 class GeneratorContext(dict):
     """Context for a generator"""
 
-    def validate(self, valid_attributes: Mapping[str, Tuple[Type, Any]]):
+    def validate(self, valid_attributes: Mapping[str, Tuple[Union[Type, Tuple[Type]], Any]]):
         """Validate the context against a set of valid attributes.
-        This method ensures that required attributes are present and
-        that their types match the expected types. If an attribute is missing,
-        it will be set to a default value if provided.
+        This method ensures that required attributes are present and that their types match the expected types.
+        The expected types can be a type or a tuple containing one or more types and optionally `None`.
+        If an attribute is missing, it will be set to a default value if provided.
 
         Args:
-            valid_attributes (Mapping[str, Tuple[Type, Any]]): a mapping of attribute names to their expected types and default values
+            valid_attributes (Mapping[str, Tuple[Union[Type, Tuple[Type]], Any]]): a mapping of attribute names to their expected types and default values.
+                   If the default is missing, then the attribute has to have a value.
 
         Raises:
-            GeneratorError: when a required attribute is missing or has an invalid type
+            GeneratorContextError: when a required attribute has an invalid type or is missing and has no default value.
 
         Example:
             context.validate({
-                "user": str,
-                "group": str,
-                "permissions": list,
+                "user": (str),  # Mandatory string with name
+                "group": (str,),  # Mandatory string with group
+                "permissions": ((list, None), []),  # Optional list with permissions, defaults to empty list if missing
+                                                    # If set to None will stay None
             })
         """
 
-        for attr, (attr_type, attr_default) in valid_attributes.items():
+        for attr, attr_validation in valid_attributes.items():
             if attr not in self:
-                if attr_default is not None:
-                    self[attr] = attr_default
-                else:
-                    raise GeneratorError(f"Missing required context attribute: {attr}")
-            if not isinstance(self[attr], attr_type):
-                raise GeneratorError(
-                    f"Invalid type for attribute '{attr}': "
-                    f"expected '{attr_type.__name__}', got '{type(self[attr]).__name__}'"
-                )
+                try:
+                    self[attr] = attr_validation[1]
+                except (TypeError, IndexError):
+                    # No default in the context validation
+                    raise GeneratorContextError(f"Missing required context attribute: {attr}")
+            else:
+                # Values in context validation are not validated to allow None also when not in the type list
+                try:
+                    attr_types = attr_validation[0]
+                except (TypeError, IndexError):
+                    attr_types = attr_validation
+                if not isinstance(attr_types, tuple):
+                    attr_types = (attr_types,)
+                if self[attr] is None and None in attr_types:
+                    continue
+                if not isinstance(self[attr], tuple(attr_type for attr_type in attr_types if attr_type is not None)):
+                    attr_types = tuple(attr_type.__name__ for attr_type in attr_types)
+                    raise GeneratorContextError(
+                        f"Invalid type for attribute '{attr}': "
+                        f"expected one of '{attr_types}', got '{type(self[attr]).__name__}'"
+                    )
 
 
 class Generator(ABC, Generic[T]):
     """Base class for generators"""
+
+    # Dictionary used to validate the context: specify required and default values
+    # See GeneratorContext.validate() for  CONTEXT_VALIDATION format specifications
+    CONTEXT_VALIDATION = {}
 
     def __init__(self, context: Optional[Mapping] = None, instance_id: Optional[str] = None):
         self.snapshots = {}
@@ -248,8 +270,9 @@ class CachedGenerator(Generator[T]):
         discriminator values and the attributes of the glidein element.
 
         Args:
-            discriminator (Union[str, list[str]]): a string or a list of strings that specify the discriminator values
+            discriminator_list (Union[str, list[str]]): a string or a list of strings that specify the discriminator values
             separator (str): a string used to separate the discriminator values in the resulting string
+            snapshot (Optional[str]): an optional snapshot identifier
             **kwargs: runtime arguments that include the glidein element and other necessary attributes
 
         Returns:
@@ -285,8 +308,8 @@ class CachedGenerator(Generator[T]):
         )
 
 
-def load_generator(module: str, context: Optional[Mapping] = None) -> Generator:
-    """Load a generator from a module
+def load_bare_generator(module: str) -> str:
+    """Load a generator from a module and return its name.
 
     Args:
         module (str): module that exports a generator
@@ -295,21 +318,76 @@ def load_generator(module: str, context: Optional[Mapping] = None) -> Generator:
         ImportError: when a `Generator` object cannot be imported from `module`
 
     Returns:
-        Generator: generator object
+        str: the name of the generator. The key in _loaded_generators
     """
-
     module_name = re.sub(r"\.py[co]?$", "", os.path.basename(module))  # Extract module name from path
-
     try:
         if module_name not in _loaded_generators:
             imported_module = import_module(module)
             if module_name not in _loaded_generators:
+                # Imported module is not a generator, undo the import
                 del imported_module
                 raise ImportError(
                     f"Module {module} does not export a generator. Please call export_generator(generator) in the module."
                 )
     except ImportError as e:
         raise ImportError(f"Failed to import module {module}") from e
+    return module_name
+
+
+def generator_context_errors(module: str, context: Optional[Mapping] = None, raise_exception=True) -> str:
+    """Load a generator from a module and validate its context if provided.
+
+    Return an empty string if no errors.
+    Otherwise, return a string with the validation error or raise an exception if `raise_exception` is True.
+
+    Args:
+        module (str): module that exports a generator
+        context (Optional[Mapping]): the context for the generator. Defaults to `None`.
+        raise_exception (bool): if True, raise an exception if the context is not valid. Defaults to True.
+
+    Returns:
+        str: error message. Empty string if context is valid
+
+    Raises:
+        GeneratorContextError: if `raise_exception` is True and the context is not valid or the generator could not be imported
+    """
+    module_name = re.sub(r"\.py[co]?$", "", os.path.basename(module))  # Extract module name from path
+    if context is None:
+        return ""
+    # Load the generator to retrieve validation info
+    try:
+        module_name = load_bare_generator(module)
+    except ImportError as e:
+        if raise_exception:
+            raise GeneratorContextError("Failed to validate because unable to import the generator {module}") from e
+        return f"Could not import the generator to validate the context: {str(e)}"
+    # Validate the context
+    try:
+        GeneratorContext(context).validate(_loaded_generators[module_name].CONTEXT_VALIDATION)
+    except GeneratorContextError as e:
+        if raise_exception:
+            raise e
+        return str(e)
+    return ""
+
+
+def load_generator(module: str, context: Optional[Mapping] = None) -> Generator:
+    """Load a generator from a module and optionally associate it with a context.
+
+    Args:
+        module (str): module that exports a generator
+        context (Optional[Mapping]): the context for the generator. Defaults to `None`.
+
+    Raises:
+        ImportError: when a `Generator` object cannot be imported from `module` (via `load_bare_generator`)
+        GeneratorError: when the setup or contextualization of a `Generator` object fails
+
+    Returns:
+        Generator: contextualized generator object. This is a generator instance based on the context.
+    """
+
+    module_name = load_bare_generator(module)
 
     try:
         instance_id = hash_nc(f"{module_name}{str(context)}", 8)
@@ -317,6 +395,8 @@ def load_generator(module: str, context: Optional[Mapping] = None) -> Generator:
             _generator_instances[module_name][instance_id] = _loaded_generators[module_name](context, instance_id)
     except GeneratorError as e:
         raise GeneratorError(f"Failed to create generator from module {module}") from e
+    except Exception as e:
+        raise GeneratorError(f"Unhandled error in the _setup of generator from module {module}") from e
 
     return _generator_instances[module_name][instance_id]
 
@@ -328,7 +408,7 @@ def export_generator(generator: Type[Generator]):
         raise TypeError("generator must be a Generator object")
     module_fname = inspect.stack()[1].filename
     module_name = re.sub(r"\.py[co]?$", "", os.path.basename(module_fname))
-    _loaded_generators[module_name] = generator
+    _loaded_generators[module_name] = generator  # Modifying global variable, OK because mutable
 
 
 def drop_generator(module: str) -> bool:

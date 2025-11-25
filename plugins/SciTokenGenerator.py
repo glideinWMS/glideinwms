@@ -19,10 +19,10 @@ class SciTokenGenerator(CredentialGenerator):
 
     This generator creates a SciToken based on the provided context.
     The context supports the following parameters:
-        - key_file: Path to the private key file
-        - key_id: Identifier for the key
-        - issuer: Issuer of the token
-        - scope: Scope of the token
+        - key_file: Path to the private key file to sign the token (mandatory)
+        - key_id: Identifier for the key, `kid` in the JWT
+        - issuer: Issuer of the token, `iss` in the JWT (mandatory)
+        - scope: Scope of the token, `scope` in the JWT (mandatory)
         - key_pass: Password for the private key (if encrypted)
         - algorithm: Signing algorithm to use (default: RS256)
         - wlcg_ver: WLCG version (default: 1.0)
@@ -30,20 +30,21 @@ class SciTokenGenerator(CredentialGenerator):
         - tkn_dir: Directory to store the generated tokens (default: /var/lib/gwms-frontend/tokens.d)
     """
 
+    CONTEXT_VALIDATION = {
+        "key_file": (str,),
+        "key_id": (str, None),
+        "issuer": (str,),
+        "scope": (str,),
+        "key_pass": (str, ""),
+        "algorithm": (str, "RS256"),
+        "wlcg_ver": (str, "1.0"),
+        "tkn_lifetime": (int, 7200),
+        "tkn_dir": (str, "/var/lib/gwms-frontend/tokens.d"),
+    }
+
     def _setup(self):
-        self.context.validate(
-            {
-                "key_file": (str, None),
-                "key_id": (str, None),
-                "issuer": (str, None),
-                "scope": (str, None),
-                "key_pass": (str, ""),
-                "algorithm": (str, "RS256"),
-                "wlcg_ver": (str, "1.0"),
-                "tkn_lifetime": (int, 7200),
-                "tkn_dir": (str, "/var/lib/gwms-frontend/tokens.d"),
-            }
-        )
+        self.context.validate(self.CONTEXT_VALIDATION)
+
         self.context["type"] = "scitoken"
 
         self.key_pass = self.context["key_pass"].encode() or None
