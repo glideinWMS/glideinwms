@@ -86,6 +86,15 @@ class DynamicCredential(Credential[Generator]):
 
     @staticmethod
     def decode(string: Union[str, bytes], context: Optional[Mapping] = None) -> Generator:
+        """Load the credential generator module and return it.
+
+        Args:
+            string: Generator module name or path. Can be in bytes.
+            context: Context for the generator.
+
+        Returns:
+            Generator: contextualized generator object. This is a generator instance based on the context.
+        """
         if isinstance(string, bytes):
             string = string.decode()
         return load_generator(string, context)
@@ -134,7 +143,7 @@ class DynamicCredential(Credential[Generator]):
         continue_if_no_path=False,
     ) -> None:
         if not self._generated_credential:
-            raise CredentialError("Credential not generated.")
+            raise CredentialError("Could not save. Credential not generated.")
         self._generated_credential.save_to_file(
             path=path,
             permissions=permissions,

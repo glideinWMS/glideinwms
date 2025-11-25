@@ -10,9 +10,9 @@ import os.path
 import shutil
 
 from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
-
-# import re - not used
 from glideinwms.lib import x509Support
+from glideinwms.lib.credentials.utils import load_context
+from glideinwms.lib.generators import generator_context_errors, GeneratorContextError
 from glideinwms.lib.util import str2bool
 
 from . import cvWConsts, cvWCreate, cvWDictFile, cWConsts, cWDictFile, cWExpand
@@ -1090,6 +1090,23 @@ def match_attrs_to_array(match_attrs):
     return ma_array
 
 
+def validate_credential_generator_context(generator_module, context):
+    """Validates the credential generator context.
+
+    Args:
+        generator_module (str): The module that contains the credential generator.
+        context (str): The credential generator context.
+
+    Raises:
+        RuntimeError: If the context is invalid.
+    """
+    # print(f"Validating context {context} for {generator_module}")
+    try:
+        generator_context_errors(generator_module, load_context(context))
+    except GeneratorContextError as e:
+        raise RuntimeError(f"Invalid context '{context}' for dynamic credential '{generator_module}': {str(e)}") from e
+
+
 # In 5345 there was an additional parameter but it was not used in the function:
 # def populate_common_descript(descript_dict, params, attrs_dict):
 #    attrs_dict: dictionary of attributes to expand attributes (but expansion is handled later)
@@ -1205,6 +1222,7 @@ def populate_common_descript(descript_dict, params):
             proxy_descript_values[attr] = {}
         # print params.security.credentials
         for pel in params.security.credentials:
+            # Loop through all credentials in the configuration
             validate_credential_type(pel["type"])
             # TODO: absfname - use name instead (add a credential name/ID)
             id_absfname_value = pel["absfname"]  # ID for a credential (file name or generator file name)
@@ -1214,6 +1232,9 @@ def populate_common_descript(descript_dict, params):
                 else:
                     # Cannot change the value of a SubParam (no assignment to pel["absfname"]
                     id_absfname_value = pel["generator"]
+            if "generator" in f'+{pel["type"]}+' or "dynamic" in f'+{pel["type"]}+':  # Check generator contexts
+                if pel["context"]:
+                    validate_credential_generator_context(id_absfname_value, pel["context"])
             for i in pel["type"].split("+"):
                 attr = proxy_attr_type_list.get(i)
                 if attr and pel[attr] is None:
