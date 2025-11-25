@@ -124,12 +124,8 @@ Requires: rrdtool
 # Remove the line below for the OSG 3.5 build (no python3-rrdtool there)
 Requires: python3-rrdtool
 Requires: python3-scitokens
-%if 0%{?rhel} >= 8
 Requires: initscripts
 Requires: python3-m2crypto
-%else
-Requires: python36-m2crypto
-%endif
 Requires(post): systemd
 Requires(post): /usr/sbin/useradd
 Requires(post): /usr/sbin/usermod
@@ -201,19 +197,11 @@ Summary: The GlideinWMS common libraries.
 Requires: python3 >= %{python_min_version}
 Requires: python3-condor
 # was condor-python for python2
-%if 0%{?rhel} >= 8
 Requires: python3-pyyaml
 Requires: python3-jwt
 Requires: python3-cryptography
 Requires: python3-m2crypto
 #Requires: python3-structlog
-%else
-Requires: PyYAML
-Requires: python36-jwt
-Requires: python36-cryptography
-Requires: python36-m2crypto
-Requires: python36-structlog
-%endif
 Requires: python3-rrdtool
 %description libs
 This package provides common libraries used by glideinwms.
@@ -276,16 +264,10 @@ Requires: python3 >= %{python_min_version}
 # This is in py3 std library - Requires: python-argparse
 # Is this the same? Requires: python36-configargparse
 Requires: javascriptrrd >= 1.1.0
-%if 0%{?rhel} >= 8
 Requires: initscripts
 Requires: python3-m2crypto
 Requires: python3-requests
 Requires: python3-jwt
-%else
-Requires: python36-m2crypto
-Requires: python36-requests
-Requires: python36-jwt
-%endif
 Requires: python3-rrdtool
 Requires(post): systemd
 Requires(post): /usr/sbin/useradd

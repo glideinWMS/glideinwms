@@ -159,10 +159,10 @@ setup_python3_venv() {
     [[ -z "${PRE_VENV_PATH}" ]] && PRE_VENV_PATH="$PATH" || PATH="$PRE_VENV_PATH"
 
     local pip_packages=
-    PY_VER="3.6"
+    PY_VER="3.9"
     py_detected="$(python3 -V | cut -f2 -d ' ')"
     [[ "${py_detected}" == 3* ]] || logexit "Python 3 required, detected ${py_detected}. Aborting"
-    [[ "${py_detected}" == "${PY_VER}"* ]] || logwarn "Reference version is Python 3.6. Detected ${py_detected}."
+    [[ "${py_detected}" == "${PY_VER}"* ]] || logwarn "Reference version is Python ${PY_VER}. Detected ${py_detected}."
     VIRTUALENV_VER=virtualenv
     PYLINT='pylint==2.7.1' # TODO: Remove this lock when https://github.com/PyCQA/pylint/issues/3624 is solved
     ASTROID='astroid==2.5.0' # Required by pylint 2.7.1 TODO: Remove this lock along with the above lock

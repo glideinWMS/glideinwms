@@ -12,6 +12,7 @@ import platform
 # platform.linux_distribution() was deprecated in 3.5 and removed in 3.8
 # distro.linux_distribution() is a drop-in replacement but is deprecated and will be removed in distro 2.0
 # The recommendation is to use distro.id(), distro.version(), distro.name()
+# Distro is available only on Linux distributions, not on Mac
 try:
     import distro  # pylint: disable=import-error
 except ImportError:
@@ -83,14 +84,14 @@ class Release:
         if platform.system() != "Linux":
             raise Exception("Unsupported OS: %s" % platform.system())
         el_string = "el"
-        if distro:
-            # Deprecated - distname, version, id = distro.linux_distribution()
-            distname = distro.name()  # If full_distribution_name is false, the result of distro.id()
-            version = distro.version()
-            dist_id = distro.codename()
-        else:
-            # TODO: remove the else branch once Py3.6 is no more supported
-            distname, version, dist_id = platform.linux_distribution()  # pylint: disable=no-member
+        if not distro:
+            raise Exception("Unsupported OS: no Python distro")
+        # Python > Py 3.6, using distro and not platform.linux_distribution()
+        # Deprecated - distname, version, id = distro.linux_distribution()
+        distname = distro.name()  # If full_distribution_name is false, the result of distro.id()
+        version = distro.version()
+        # dist_id = distro.codename()
+
         # Check if mock profiles changed
         # As of Dec 2024 on AlmaLinux9: alma+epel-..., rhel+epel-..., centos-stream+epel-...
         # No profile has epel-... (maybe rhel-7 for sl7)

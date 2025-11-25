@@ -14,7 +14,7 @@ if __name__ == "__main__" and __package__ is None:
     # append the parent directory to the path
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     __package__ = "ReleaseManager"
-    # This was suggested on line but seems not needed
+    # This was suggested online but seems not needed
     # mod = __import__("ReleaseManager")
     # sys.modules["ReleaseManager"] = mod
 
@@ -117,10 +117,10 @@ def parse_opts(argv):
     )
     parser.add_argument(
         "--python-version",
-        default="python36",
+        default="python3",
         action="store",
         metavar="<Python version>",
-        help="Python version (default: python36)",
+        help="Python version, e.g. python36, python3, python39 (default: python3)",
     )
     parser.add_argument(
         "--timeout", default=180, action="store", help="Set the timeout in seconds for shell commands. Defaults to 180"
