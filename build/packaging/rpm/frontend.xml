@@ -28,7 +28,7 @@ SPDX-License-Identifier: Apache-2.0
       </job>
    </match>
    <monitor base_dir="/var/lib/gwms-frontend/web-area/monitor" flot_dir="/usr/share/javascriptrrd/flot" javascriptRRD_dir="/usr/share/javascriptrrd/js" jquery_dir="/usr/share/javascriptrrd/flot"/>
-   <security classad_proxy="/tmp/vo_proxy" proxy_DN="DN of proxy owned by user nobody" proxy_selection_plugin="ProxyAll" security_name="The security name, this is used by factory" sym_key="aes_256_cbc">
+   <security classad_proxy="/tmp/vo_proxy" proxy_DN="DN of proxy owned by user nobody" proxy_selection_plugin="CredentialsBasic" security_name="The security name, this is used by factory" sym_key="aes_256_cbc">
       <credentials>
          <credential absfname="/tmp/vo_proxy" security_class="frontend" trust_domain="grid" type="grid_proxy"/>
       </credentials>

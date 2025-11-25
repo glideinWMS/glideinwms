@@ -20,25 +20,25 @@
          <match_attrs>
          </match_attrs>
          <collectors>
-            <collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=fermicloud308.fnal.gov" comment="Define factory collectors globally for simplicity" factory_identity="gfactory@fermicloud308.fnal.gov" my_identity="vofrontend_service@fermicloud308.fnal.gov" node="fermicloud308.fnal.gov"/>
+            <collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=factory.glideinwms.org" comment="Define factory collectors globally for simplicity" factory_identity="gfactory@factory.glideinwms.org" my_identity="vofrontend_service@factory.glideinwms.org" node="factory.glideinwms.org"/>
          </collectors>
       </factory>
       <job comment="Define job constraint and schedds globally for simplicity" query_expr="(JobUniverse==5)&amp;&amp;(GLIDEIN_Is_Monitor =!= TRUE)&amp;&amp;(JOB_Is_Monitor =!= TRUE)">
          <match_attrs>
          </match_attrs>
          <schedds>
-            <schedd DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=fermicloud312.fnal.gov" fullname="fermicloud312.fnal.gov"/>
+            <schedd DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=frontend.glideinwms.org" fullname="frontend.glideinwms.org"/>
          </schedds>
       </job>
    </match>
    <monitor base_dir="/var/lib/gwms-frontend/web-area/monitor" flot_dir="/usr/share/javascriptrrd/flot" javascriptRRD_dir="/usr/share/javascriptrrd/js" jquery_dir="/usr/share/javascriptrrd/flot"/>
    <monitor_footer display_txt="" href_link=""/>
-   <security classad_proxy="/tmp/frontend_proxy" proxy_DN="/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Dennis Box/CN=UID:dbox" proxy_selection_plugin="ProxyAll" security_name="vofrontend_service" sym_key="aes_256_cbc">
+   <security classad_proxy="/tmp/frontend_proxy" proxy_DN="/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Dennis Box/CN=UID:dbox" proxy_selection_plugin="CredentialsBasic" security_name="vofrontend_service" sym_key="aes_256_cbc">
       <credentials>
          <credential absfname="/tmp/vo_proxy" security_class="frontend" trust_domain="OSG" type="grid_proxy"/>
       </credentials>
    </security>
-   <stage base_dir="/var/lib/gwms-frontend/web-area/stage" use_symlink="True" web_base_url="http://fermicloud312.fnal.gov/vofrontend/stage"/>
+   <stage base_dir="/var/lib/gwms-frontend/web-area/stage" use_symlink="True" web_base_url="http://frontend.glideinwms.org/vofrontend/stage"/>
    <work base_dir="/var/lib/gwms-frontend/vofrontend" base_log_dir="/var/log/gwms-frontend"/>
    <attrs>
       <attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False" parameter="True" type="string" value="1"/>
@@ -86,8 +86,8 @@
    <ccbs>
    </ccbs>
    <collectors>
-      <collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=fermicloud312.fnal.gov" group="default" node="fermicloud312.fnal.gov:9618" secondary="False"/>
-      <collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=fermicloud312.fnal.gov" group="default" node="fermicloud312.fnal.gov:9620-9630" secondary="True"/>
+      <collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=frontend.glideinwms.org" group="default" node="frontend.glideinwms.org:9618" secondary="False"/>
+      <collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=frontend.glideinwms.org" group="default" node="frontend.glideinwms.org:9620-9630" secondary="True"/>
    </collectors>
    <files>
    </files>

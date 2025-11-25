@@ -33,7 +33,7 @@
    </match>
    <monitor base_dir="fixtures/frontend/web-area/monitor" flot_dir="fixtures/javascriptrrd/flot" javascriptRRD_dir="fixtures/javascriptrrd/js" jquery_dir="fixtures/javascriptrrd/flot"/>
    <monitor_footer display_txt="" href_link=""/>
-   <security classad_proxy="fixtures/hostcert.pem" proxy_DN="/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Dennis Box/CN=UID:dbox" proxy_selection_plugin="ProxyAll" security_name="vofrontend_service" sym_key="aes_256_cbc">
+   <security classad_proxy="fixtures/hostcert.pem" proxy_DN="/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Dennis Box/CN=UID:dbox" proxy_selection_plugin="CredentialsBasic" security_name="vofrontend_service" sym_key="aes_256_cbc">
       <credentials>
           <credential absfname="fixtures/hostcert.pem" security_class="frontend" trust_domain="OSG" type="grid_proxy"/>
       </credentials>

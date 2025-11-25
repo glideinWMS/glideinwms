@@ -34,7 +34,7 @@ JobMatchAttrs 	[('RequestCpus', 'i')]
 SecurityName 	frontend
 FactoryCollectors 	[(u'192.168.60.2', u'gfactory@vagrant-factory', u'frontend@vagrant-factory')]
 JobSchedds 	frontend,schedd_jobs2@frontend
-ProxySelectionPlugin 	ProxyAll
+ProxySelectionPlugin 	CredentialsBasic
 Proxies 	[u'/tmp/vo_proxy']
 ProxySecurityClasses 	{u'/tmp/vo_proxy': u'frontend'}
 ProxyTrustDomains 	{u'/tmp/vo_proxy': u'OSG'}

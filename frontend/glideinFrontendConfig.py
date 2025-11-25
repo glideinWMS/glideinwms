@@ -570,8 +570,8 @@ class ElementMergedDescript:
         if "MatchPolicyFile" in self.element_data:
             self.merged_data["MatchPolicyModules"].append(MatchPolicy(self.element_data["MatchPolicyFile"]))
 
-        # We use default ProxySelectionPlugin
-        self.merged_data["ProxySelectionPlugin"] = "ProxyAll"
+        # Set the default ProxySelectionPlugin
+        self.merged_data["ProxySelectionPlugin"] = "CredentialsBasic"
 
         for t in ("ProxySelectionPlugin", "SecurityName", "IDTokenLifetime", "IDTokenKeyname"):
             for data in (self.frontend_data, self.element_data):

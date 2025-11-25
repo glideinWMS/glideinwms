@@ -371,7 +371,7 @@ class VOFrontendParams(cWParams.CommonParams):
         security_defaults["proxy_selection_plugin"] = (
             None,
             "proxy_name",
-            "Which credentials selection plugin should I use (ProxyAll if None)",
+            "Which credentials selection plugin should I use (CredentialsBasic if None)",
             None,
         )
         security_defaults["credentials"] = (
