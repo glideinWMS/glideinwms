@@ -54,9 +54,9 @@ BuildArch:      noarch
 
 
 Source:         glideinwms.tar.gz
-Source1:        creation/templates/frontend_startup
+# Source1:        creation/templates/frontend_startup
 Source2:        %{frontend_xml}
-Source3:        creation/templates/factory_startup
+# Source3:        creation/templates/factory_startup
 Source4:        %{factory_xml}
 Source7:        chksum.sh
 Source11:       creation/templates/frontend_startup_sl7
@@ -365,8 +365,7 @@ sed -i "s/WEB_BASE_DIR *=.*/WEB_BASE_DIR = \"\/var\/lib\/gwms-factory\/web-base\
 sed -i "s/STARTUP_DIR *=.*/STARTUP_DIR = \"\/var\/lib\/gwms-factory\/web-base\"/" creation/reconfig_glidein
 sed -i "s/STARTUP_DIR *=.*/STARTUP_DIR = \"\/var\/lib\/gwms-factory\/web-base\"/" creation/clone_glidein
 
-#Create the RPM startup files (init.d) from the templates
-creation/create_rpm_startup . frontend_initd_startup_template factory_initd_startup_template %{SOURCE1} %{SOURCE3}
+#Create the RPM startup files (systemd) from the templates
 creation/create_rpm_startup . frontend_initd_startup_template_sl7 factory_initd_startup_template_sl7 %{SOURCE11} %{SOURCE12}
 
 # install the executables
@@ -454,7 +453,6 @@ rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/gwms-renew
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/gwms-renew-proxies.timer
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/proxies.ini
 
-%if 0%{?rhel} >= 7
 install -d $RPM_BUILD_ROOT/%{systemddir}
 install -m 0644 install/config/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
 install -m 0644 install/config/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
@@ -463,15 +461,6 @@ install -m 0644 creation/templates/gwms-renew-proxies.timer $RPM_BUILD_ROOT/%{sy
 install -d $RPM_BUILD_ROOT/%{_sbindir}
 install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
 install -m 0755 %{SOURCE12} $RPM_BUILD_ROOT/%{_sbindir}/gwms-factory
-%else
-# Install the init.d
-install -d $RPM_BUILD_ROOT%{_initrddir}
-install -d $RPM_BUILD_ROOT%{_sysconfdir}/cron.d
-install -m 0755 %{SOURCE1} $RPM_BUILD_ROOT%{_initrddir}/gwms-frontend
-install -m 0755 %{SOURCE3} $RPM_BUILD_ROOT%{_initrddir}/gwms-factory
-install -m 0755 creation/templates/gwms-renew-proxies.init $RPM_BUILD_ROOT%{_initrddir}/gwms-renew-proxies
-install -m 0644 creation/templates/gwms-renew-proxies.cron $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/gwms-renew-proxies
-%endif
 
 # Install the web directory
 install -d $RPM_BUILD_ROOT%{frontend_dir}
@@ -676,11 +665,8 @@ if [ -f %{_localstatedir}/log/gwms-frontend/frontend/startup.log ]; then
     chown frontend.frontend %{_localstatedir}/log/gwms-frontend/frontend/startup.log
 fi
 
-%if 0%{?rhel} >= 7
+# No more support for older than RHEL7 - %if 0%{?rhel} >= 7
 %{systemctl_bin} daemon-reload
-%else
-/sbin/chkconfig --add gwms-frontend
-%endif
 
 if [ ! -e %{frontend_dir}/monitor ]; then
     ln -s %{web_dir}/monitor %{frontend_dir}/monitor
@@ -718,11 +704,7 @@ if [ "$1" = "1" ] ; then
     fi
 fi
 
-%if 0%{?rhel} >= 7
 %{systemctl_bin} daemon-reload
-%else
-/sbin/chkconfig --add gwms-factory
-%endif
 
 # Protecting from failure in case it is not running/installed
 # /sbin/service condor condrestart > /dev/null 2>&1 || true
@@ -772,11 +754,7 @@ usermod --append --groups frontend frontend >/dev/null
 # $1 = 1 - Action is upgrade
 
 if [ "$1" = "0" ] ; then
-    %if 0%{?rhel} >= 7
     %{systemctl_bin} daemon-reload
-    %else
-    /sbin/chkconfig --del gwms-frontend
-    %endif
 fi
 
 if [ "$1" = "0" ]; then
@@ -792,11 +770,7 @@ fi
 
 %preun factory-core
 if [ "$1" = "0" ] ; then
-    %if 0%{?rhel} >= 7
     %{systemctl_bin} daemon-reload
-    %else
-    /sbin/chkconfig --del gwms-factory
-    %endif
 fi
 if [ "$1" = "0" ]; then
     rm -f %{factory_dir}/log
@@ -952,12 +926,8 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/templates/factory_initd_startup_template
 %{python3_sitelib}/glideinwms/creation/reconfig_glidein
 %{python3_sitelib}/glideinwms/factory
-%if 0%{?rhel} >= 7
 %{_sbindir}/gwms-factory
 %{systemddir}/gwms-factory.service
-%else
-%{_initrddir}/gwms-factory
-%endif
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory/plugin.d
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory/hooks.reconfig.pre
@@ -1016,16 +986,10 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template
 %{python3_sitelib}/glideinwms/creation/reconfig_frontend
 %defattr(-,frontend,frontend,-)
-%if 0%{?rhel} >= 7
 %{_sbindir}/gwms-frontend
 %attr(0644, root, root) %{systemddir}/gwms-frontend.service
 %attr(0644, root, root) %{systemddir}/gwms-renew-proxies.service
 %attr(0644, root, root) %{systemddir}/gwms-renew-proxies.timer
-%else
-%{_initrddir}/gwms-frontend
-%{_initrddir}/gwms-renew-proxies
-%attr(0644, root, root) %{_sysconfdir}/cron.d/gwms-renew-proxies
-%endif
 %attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend
 %attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.pre
 %attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.post
@@ -1139,10 +1103,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
-* Wed Nov 12 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.17
+* Thu Nov 20 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.17
 - Glideinwms v3.10.17
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_10_17/history.html
-- Release candidates 3.10.17-01.rc1
+- Release candidates 3.10.17-01.rc1 to 3.10.17-02.rc2
 
 * Mon Sep 29 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.16
 - Glideinwms v3.10.16
