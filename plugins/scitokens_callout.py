@@ -10,8 +10,9 @@ import tempfile
 import time
 
 from glideinwms.lib import subprocessSupport
+from glideinwms.lib.defaults import TOKEN_DIR
 
-# This is a generic implementation of the the Scitoken plugin interface.
+# This is a generic implementation of the Scitoken plugin interface.
 # VOs would implement their own version of this to interact with the
 # token issuer for that VO.
 #
@@ -24,7 +25,7 @@ from glideinwms.lib import subprocessSupport
 
 
 # TODO: tkn_dir default path should come from the frontend configuration, but it's not available yet.
-def get_credential(logger, group, entry, trust_domain, tkn_dir="/var/lib/gwms-frontend/tokens.d"):
+def get_credential(logger, group, entry, trust_domain, tkn_dir=TOKEN_DIR):
     """Generates a credential given the parameters. This is called once
     per group, per entry. It is a good idea for the VO to do some
     caching here so that new tokens are only generated when required.
@@ -37,7 +38,7 @@ def get_credential(logger, group, entry, trust_domain, tkn_dir="/var/lib/gwms-fr
             gatekeeper (str): the gatekeeper string
             factory (str): HTCondor identity of the Factory, name@host
         trust_domain (str): Credential trust domain
-        tkn_dir (str, optional): Directory where the tokens are stored. Defaults to "/var/lib/gwms-frontend/tokens.d".
+        tkn_dir (str, optional): Directory where the tokens are stored. Defaults to defaults.TOKEN_DIR = $HOME/cred.d/tokens.d.
 
     Returns:
         (str, int): tuple with:
@@ -76,7 +77,7 @@ def get_credential(logger, group, entry, trust_domain, tkn_dir="/var/lib/gwms-fr
         # only generate a new token if the file is expired
         tkn_age = sys.maxsize
         if os.path.exists(tkn_file):
-            # we are short cutting the the calculation of the life time - the
+            # we are short cutting the calculation of the lifetime - the
             # file modification age is the same as the token age
             tkn_age = time.time() - os.stat(tkn_file).st_mtime
         if tkn_age > tkn_max_lifetime - 600:  # renew slightly before token expires

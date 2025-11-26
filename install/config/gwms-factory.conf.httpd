@@ -51,7 +51,8 @@ RewriteCond /usr/lib64/httpd/modules/mod_ssl.so -f
 RewriteCond /etc/httpd/conf.d/ssl.conf -s
 #=========================
 # Does the URL go to a monitor page?
-RewriteCond %{REQUEST_URI} ^(.+)/monitor(.+)$
+# /factory/monitor/ or /monitor/ both match
+RewriteCond %{REQUEST_URI} ^(.*)\/monitor\/(.*)$
 #=========================
 # If all the above true, rewrite!
 RewriteRule ^(.+)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
