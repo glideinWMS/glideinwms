@@ -23,7 +23,7 @@ sys.path.append(os.path.join(STARTUP_DIR, "../.."))
 
 FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 
-# necessary because systemd is not on rhel6
+# necessary because systemd is not on Mac (not to fail tests)
 try:
     from systemd import journal
 

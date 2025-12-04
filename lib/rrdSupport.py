@@ -584,7 +584,16 @@ class rrdtool_exe:
 
     def __init__(self):
         """Initialize the rrdtool_exe class."""
-        self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool").split("\n")[0]).strip()
+        try:
+            self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool").split("\n")[0]).strip()
+        except RuntimeError:
+            # Falling back to `command` - Error observed when missing which:
+            # FileNotFoundError: [Errno 2] No such file or directory: 'which' - caused by:
+            # RuntimeError: Error running 'which rrdtool'
+            # Stdout:
+            # Stderr:
+            # Exception OSError:[Errno 2] No such file or directory: 'which'
+            self.rrd_bin = (subprocessSupport.iexe_cmd("command -v rrdtool").split("\n")[0]).strip()
 
     def create(self, *args):
         """Create a new RRD file.
