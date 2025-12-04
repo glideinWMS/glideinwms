@@ -2391,6 +2391,19 @@ def get_credential(log: logger, group: str, entry: dict, trust_domain: str):
     credential = "credential content"
     return credential, 3600
         </pre>
+        <p>
+          There are some plug-ins already provided for you, like the
+          IdTokenGenerator and SciTokenGenerator, have a look at
+          <tt>/etc/gwms-frontend/plugin.d/</tt>. The SciTokenGenerator can also
+          be used to generate the self-signed credentials. The signing key can
+          be generated and advertised running <tt>make_scitoken_key -v</tt> as
+          the frontend user. Then you can authorise this credential on a CE
+          adding it to the HTCondor-CE mapping.d. And you can use the generator
+          adding to the configuration something like:
+        </p>
+        <pre>
+         <credential absfname="SciTokenGenerator" context="{'algorithm': 'RS256', 'key_file': '/var/lib/gwms-frontend/cred.d/keys.d/frontend_scitokens_key.pem', 'key_id': 'd7bd', 'issuer': 'http://frontend-workspace.glideinwms.org/vofrontend/cred/scitokens', 'scope': 'compute.read compute.modify compute.create compute.cancel', 'type': 'scitoken'}" purpose="request" security_class="frontend" trust_domain="grid" type="generator"/>
+        </pre>
       </div>
 
       <div class="section">

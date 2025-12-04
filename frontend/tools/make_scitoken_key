@@ -178,10 +178,10 @@ def get_jwk_pk_string(private_key, key_type) -> str:
 
 
 def prepare_web_dir(web_dir, group_name, uri, public_key) -> (str, str):
-    """Set up the web directory to advertise the scitoken key.
+    """Set up the web directory to advertise the SciToken key.
 
     Args:
-        web_dir (str): base web directory to advertise the scitoken key.
+        web_dir (str): base web directory to advertise the SciToken key.
         group_name (str): group name.
         uri (str): URI.
         public_key (str): public key.
