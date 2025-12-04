@@ -25,16 +25,50 @@ BINARY_ENCODING_DEFAULT = "utf_8"  # valid aliases: utf-8, utf8 (default Python 
 # These default directories are valid for RPM installations
 PLUGINS_DIR = "/etc/gwms-frontend/plugin.d"  # TODO: Make this configurable
 BASE_DIR = Path.home()
-WEB_SEC_DIR = os.path.join(Path.home(), "web-area", "cred")
-CACHE_DIR = os.path.join(Path.home(), "cache")
-CRED_DIR = os.path.join(Path.home(), "cred.d")
+WEB_SEC_DIR = os.path.join(BASE_DIR, "web-area", "cred")
+CACHE_DIR = os.path.join(BASE_DIR, "cache")
+CRED_DIR = os.path.join(BASE_DIR, "cred.d")
 PWD_DIR = os.path.join(CRED_DIR, "passwords.d")
 TOKEN_DIR = os.path.join(CRED_DIR, "tokens.d")
 KEY_DIR = os.path.join(CRED_DIR, "keys.d")
 
 
+def set_base_dir(user=None):
+    """Sets the global variables with paths according to the user used to run the GlideinWMS client.
+
+    The base directory is the home directory of the user the client is running under.
+    If `user` is an invalid username or ~user cannot resolve, return the home directory of the current user.
+
+    Side effects:
+        Updates the global variables with the GlideinWMS client directory structure.
+        BASE_DIR - base directory for the GlideinWMS client. Home directory of the user the client is running under
+        WEB_SEC_DIR - web area to store credentials files.
+        CACHE_DIR - cache directory for the GlideinWMS client.
+        CRED_DIR - directory to store credentials files (passwords, tokens and keys).
+        PWD_DIR - directory to store password files.
+        TOKEN_DIR - directory to store JWT tokens.
+        KEY_DIR - directory to store key files.
+
+    Args:
+        user (str): The username under which the GlideinWMS client is running. Defaults to None (the current user).
+    """
+    global BASE_DIR, WEB_SEC_DIR, CACHE_DIR, CRED_DIR, PWD_DIR, TOKEN_DIR, KEY_DIR
+    BASE_DIR = Path.home()
+    if user:
+        ret_dir = os.path.expanduser(f"~{user}")
+        if not ret_dir.startswith("~"):
+            BASE_DIR = ret_dir
+    # Set the other directories
+    WEB_SEC_DIR = os.path.join(BASE_DIR, "web-area", "cred")
+    CACHE_DIR = os.path.join(BASE_DIR, "cache")
+    CRED_DIR = os.path.join(BASE_DIR, "cred.d")
+    PWD_DIR = os.path.join(CRED_DIR, "passwords.d")
+    TOKEN_DIR = os.path.join(CRED_DIR, "tokens.d")
+    KEY_DIR = os.path.join(CRED_DIR, "keys.d")
+
+
 def force_bytes(instr, encoding=BINARY_ENCODING_CRYPTO):
-    """Forces the output to be bytes, encoding the input if it is a unicode string (str).
+    """Forces the output to be bytes, encoding the input if it is a Unicode string (str).
 
     Args:
         instr (Union[str, bytes]): String to be converted.
