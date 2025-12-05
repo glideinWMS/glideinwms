@@ -954,6 +954,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/stopFrontend
 %attr(755,root,root) %{_libexecdir}/gwms_renew_proxies
 %attr(-, frontend, frontend) %dir %{_localstatedir}/lib/gwms-frontend
+%attr(-, frontend, frontend) %{_localstatedir}/lib/gwms-frontend/README.md
 %attr(700, frontend, frontend) %{frontend_token_dir}
 %attr(700, frontend, frontend) %{frontend_passwd_dir}
 %attr(700, frontend, frontend) %{frontend_cache_dir}
@@ -996,6 +997,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.post
 %attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend/plugin.d
 %attr(-, frontend, glidein) %config(noreplace) %{_sysconfdir}/gwms-frontend/plugin.d/
+%attr(-, frontend, glidein) %{_sysconfdir}/gwms-frontend/README.md
 %attr(0664, frontend, glidein) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gwms-frontend/frontend.xml
 # TODO: should these files be moved in the glidein package?
 %attr(-, frontend, glidein) %config(noreplace) %{_sysconfdir}/gwms-frontend/proxies.ini
