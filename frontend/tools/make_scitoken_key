@@ -55,13 +55,19 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "-k",
         "--private-key-file",
-        help="Location of the unencrypted private key file. Will be created if it does not exist.",
+        help="Location of the unencrypted private key file. Will be created if it does not exist. Defaults to the standard one.",
         default=os.path.join(KEY_DIR, "frontend_scitokens_key.pem"),
+    )
+    parser.add_argument(
+        "-f",
+        "--force-new-key",
+        help="Forces the creation of a new private key and save it to the private key file. Defaults to False.",
+        action="store_true",
     )
     parser.add_argument(
         "-e",
         "--ec",
-        help="Use elliptical curve cryptography. Defaults to False or whatever is the type of the existing key.",
+        help="Use elliptical curve cryptography (ES256) instead of RSA (RS256). Defaults to False or whatever is the type of the existing key.",
         action="store_true",
     )
     # group = parser.add_mutually_exclusive_group(required=False)  # If web-dir and web-url are provided, work-dir is ignored
@@ -81,7 +87,9 @@ def get_args() -> argparse.Namespace:
         "-u", "--web-url", help="Base URL for web server. Defaults to the /cred/scitokens URL in the Frontend."
     )
     parser.add_argument(
-        "-g", "--group", help="Optional key group. By default will use the global key, not specific to any group."
+        "-g",
+        "--group",
+        help="Optional key group, must be one of the Frontend groups. This argument changes the key issuer and the publishing of the public key, not the private key (use '-k' for that). By default will use the global key, not specific to any group.",
     )
     return parser.parse_args()
 
@@ -118,12 +126,21 @@ def make_key(private_key_file, use_ec=False, force_new=False):
             format=serialization.PrivateFormat.TraditionalOpenSSL,
             encryption_algorithm=serialization.NoEncryption(),
         )
-        with open(private_key_file, "wb") as key_file:
+        pk_descriptor = os.open(
+            path=private_key_file,
+            flags=(
+                os.O_WRONLY  # access mode: write only
+                | os.O_CREAT  # create if not exists
+                | os.O_TRUNC  # truncate the file to zero
+            ),
+            mode=0o600,
+        )
+        with open(pk_descriptor, "wb") as key_file:
             key_file.write(private_pem)
     return private_key
 
 
-def get_jwk_pk_string(private_key, key_type) -> str:
+def get_jwk_pk_string(private_key, key_type) -> (str, str):
     """Retrieve the JWK public key from a private key.
 
     Args:
@@ -131,7 +148,7 @@ def get_jwk_pk_string(private_key, key_type) -> str:
         key_type (str): private key type, RSA or EC.
 
     Returns:
-        str: multiline JSON formatted string with serialized JWK public key.
+        (str, str): key ID and multiline JSON formatted string with serialized JWK public key.
     """
     public_key = private_key.public_key()
     # Get the public numbers
@@ -174,7 +191,7 @@ def get_jwk_pk_string(private_key, key_type) -> str:
             ]
         }
     log(f"Returning {key_type} JWK public key, kid: {kid.decode()}.")
-    return json.dumps(jwk_public_key, sort_keys=True, indent=4, separators=(",", ": "))
+    return kid.decode(), json.dumps(jwk_public_key, sort_keys=True, indent=4, separators=(",", ": "))
 
 
 def prepare_web_dir(web_dir, group_name, uri, public_key) -> (str, str):
@@ -218,20 +235,29 @@ def main():
     group = args.group or "main"
     gfe_desc = glideinFrontendConfig.ElementMergedDescript(args.work_dir, group)
     # Calculate and verify consistency of private key
-    private_key = make_key(args.private_key_file, args.ec)
+    private_key = make_key(args.private_key_file, args.ec, args.force_new_key)
     if isinstance(private_key, rsa.RSAPrivateKey):
-        key_type = "RSA"
+        key_type = "RS256"
     elif isinstance(private_key, ec.EllipticCurvePrivateKey):
-        key_type = "EC"
+        key_type = "ES256"
     else:
-        raise ValueError("The private key is of an unknown type (not RSA or EC).")
-    if args.ec and not key_type == "EC":
-        raise ValueError("Private key type mismatch. Requested EC, but loaded RSA.")
+        raise ValueError("The private key is of an unknown type (not RSA/RS256 or EC/ES256).")
+    if args.ec and not key_type == "ES256":
+        raise ValueError("Private key type mismatch. Requested EC/ES256, but loaded RSA/RS256.")
     # Calculate and publish public key
-    pk_str = get_jwk_pk_string(private_key, key_type)
+    key_id, pk_str = get_jwk_pk_string(private_key, key_type)
     uri = args.web_url or os.path.join(os.path.dirname(gfe_desc.frontend_data["MonitoringWebURL"]), "cred", "scitokens")
+    if uri.startswith("http://"):
+        # Forcing https, http is not accepted for token verification
+        uri = "https:" + uri[5:]
     iss, adv_uri = prepare_web_dir(args.web_dir, args.group, uri, pk_str)
     log(f"Public key from iss: {iss} advertised at: {adv_uri}")
+    log(
+        f"""Example of XML credential configuration:
+<credential absfname="SciTokenGenerator"
+    context="{{'algorithm': '{key_type}', 'key_file': '{args.private_key_file}', 'key_id': '{key_id}', 'issuer': '{iss}', 'scope': 'compute.read compute.modify compute.create compute.cancel', 'type': 'scitoken'}}"
+    purpose="request" security_class="frontend" trust_domain="grid" type="generator"/>"""
+    )
 
 
 # Script invocation
