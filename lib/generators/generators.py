@@ -16,7 +16,7 @@ import time
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import Any, Generic, Mapping, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Callable, Generic, List, Mapping, Optional, Tuple, Type, TypeVar, Union
 
 from glideinwms.lib.defaults import CACHE_DIR, PLUGINS_DIR
 from glideinwms.lib.util import hash_nc, import_module
@@ -39,7 +39,11 @@ class GeneratorContextError(GeneratorError):
 class GeneratorContext(dict):
     """Context for a generator"""
 
-    def validate(self, valid_attributes: Mapping[str, Tuple[Union[Type, Tuple[Type]], Any]]):
+    def validate(
+        self,
+        valid_attributes: Mapping[str, Tuple[Union[Type, Tuple[Type]], Any]],
+        checks: Union[Callable[[Mapping], List], None] = None,
+    ):
         """Validate the context against a set of valid attributes.
         This method ensures that required attributes are present and that their types match the expected types.
         The expected types can be a type or a tuple containing one or more types and optionally `None`.
@@ -47,10 +51,12 @@ class GeneratorContext(dict):
 
         Args:
             valid_attributes (Mapping[str, Tuple[Union[Type, Tuple[Type]], Any]]): a mapping of attribute names to their expected types and default values.
-                   If the default is missing, then the attribute has to have a value.
+                    If the default is missing, then the attribute has to have a value.
+            checks (Callable[[Mapping], List]): optional function returning a list of complaints after performing additional checks on the context.
+                    An empty return list means that the context passed all the additional checks. Defaults to None, i.e. no checks.
 
         Raises:
-            GeneratorContextError: when a required attribute has an invalid type or is missing and has no default value.
+            GeneratorContextError: when a required attribute has an invalid type or is missing and has no default value. Or when the optional checks fail.
 
         Example:
             context.validate({
@@ -84,6 +90,13 @@ class GeneratorContext(dict):
                         f"Invalid type for attribute '{attr}': "
                         f"expected one of '{attr_types}', got '{type(self[attr]).__name__}'"
                     )
+        if checks is not None:
+            try:
+                results = checks(self)
+            except Exception as e:
+                raise GeneratorContextError("Context checks evaluation failed") from e
+            if results:
+                raise GeneratorContextError(f"Context checks failed with the following errors: {results}")
 
 
 class Generator(ABC, Generic[T]):

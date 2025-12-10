@@ -5,6 +5,8 @@
 
 import os
 
+from typing import List
+
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from scitokens import SciToken
@@ -22,7 +24,7 @@ class SciTokenGenerator(CredentialGenerator):
     The context supports the following parameters:
         - key_file: Path to the private key file to sign the token (mandatory)
         - key_id: Identifier for the key, `kid` in the JWT
-        - issuer: Issuer of the token, `iss` in the JWT (mandatory)
+        - issuer: Issuer of the token, `iss` in the JWT (mandatory). This is used to retrieve the key for token verification.
         - scope: Scope of the token, `scope` in the JWT (mandatory)
         - key_pass: Password for the private key (if encrypted)
         - algorithm: Signing algorithm to use (default: RS256)
@@ -43,8 +45,25 @@ class SciTokenGenerator(CredentialGenerator):
         "tkn_dir": (str, TOKEN_DIR),
     }
 
+    @staticmethod
+    def context_checks(context: dict) -> List[str]:
+        """Checks that the context is valid.
+
+        Args:
+            context (dict): scitoken context
+
+        Returns:
+            list: list of errors encountered. Empty if all OK.
+        """
+        try:
+            if context["issuer"].startswith("http://"):
+                return [f'Issuer URL must use https. http will fail token verification: {context["issuer"]}']
+        except (TypeError, KeyError):
+            return [f"'issuer' is required in the context: {context}"]
+        return []
+
     def _setup(self):
-        self.context.validate(self.CONTEXT_VALIDATION)
+        self.context.validate(self.CONTEXT_VALIDATION, self.context_checks)
 
         self.context["type"] = "scitoken"
 
