@@ -34,6 +34,7 @@ ATTRS_FILE = "attributes.cfg"
 CVMFSEXEC_BUILD_FILE = "cvmfsexec.cfg"
 
 STARTUP_FILE = "glidein_startup.sh"
+STARTUP_FILE_FF = "glidein_startup_ff.sh"
 GLIDEIN_FILE = "glidein.descript"
 JOB_DESCRIPT_FILE = "job.descript"
 SUBMIT_FILE = "job.condor"

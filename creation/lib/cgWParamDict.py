@@ -842,6 +842,16 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             self.enable_expansion,
         )
 
+        # check presence of feature flag for full cvmfsexec support
+        feature_flag = False
+        for attr in main_dicts["attrs"].vals:
+            if attr.startswith("GLIDEIN_FEATURE_"):
+                # converting the attribute value to lowercase since it is a string (not bool)
+                feature_flag = main_dicts["attrs"][attr].lower()
+        startup_file = cgWConsts.STARTUP_FILE
+        if feature_flag == "true":
+            startup_file = cgWConsts.STARTUP_FILE_FF
+
         # Now that we have the EntrySet fill the condor_jdl for its entries
         if isinstance(entry, factoryXmlConfig.EntrySetElement):
             for subentry in entry.get_child_list("entries"):
@@ -850,7 +860,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                 for cj in self.dicts["condor_jdl"]:
                     cj_entryname = cj.fname.split(".")[1]
                     if cj_entryname == subentry.getName():
-                        cj.populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
+                        cj.populate(startup_file, self.sub_name, self.conf, entry)
                         break
                 entry.select(None)
         else:
@@ -867,7 +877,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             # increasing parameter list for this function, lets just pass params, sub_params, and the 2 other parameters
             # to the function and call it a day.
             ################################################################################################################
-            self.dicts["condor_jdl"][0].populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
+            self.dicts["condor_jdl"][0].populate(startup_file, self.sub_name, self.conf, entry)
 
     # reuse as much of the other as possible
     def reuse(self, other):  # other must be of the same class
