@@ -11,6 +11,8 @@ Exit codes:
   2: The XML file specified in XML_OUT is missing or cannot be written to disk.
   3: Cannot find XML_OUT file when using --checklatest.
   4: XML file needs to be updated because a newer version is present on the website.
+  5: A version specified in the WHITELIST cannot be found on the tarball base URL
+  6: Invalid configuration file
 
 A configuration file is specified through the GET_TARBALLS_CONFIG environment variable.
 Alternatively, the script looks for a file named get_tarballs.yaml in the same directory
@@ -20,7 +22,7 @@ This is a sample configuration file:
 
 DESTINATION_DIR: "/var/lib/gwms-factory/condor/"
 TARBALL_BASE_URL: "https://research.cs.wisc.edu/htcondor/tarball/"
-DEFAULT_TARBALL_VERSION: [ "9.0.16" ] # Can be set to "latest"
+DEFAULT_TARBALL_VERSION: "9.0.16"
 CONDOR_TARBALL_LIST:
    - MAJOR_VERSION: "9.0"
      WHITELIST: [ "9.0.7", "9.0.16", "latest" ]
@@ -179,6 +181,7 @@ class TarballManager(HTMLParser):
         Args:
             version (str): The HTCondor version to download (e.g., "23.0.1").
         """
+
         desturl = os.path.join(
             self.release_url, version, self.release_dirs[version] + "/"
         )  # urljoin needs nested call and manual adding of "/".. It sucks.
@@ -257,8 +260,8 @@ class TarballManager(HTMLParser):
             whitelist (list): List of versions to include. If non-empty, only these versions are used.
                 Can be "latest" to download the latest version.
             blacklist (list): List of versions to exclude.
-            default_tarball_version (list): List of default tarball versions. If a version is in this list,
-                ",default" will be added to the version attribute in the XML.
+            default_tarball_version (str): The default tarball versions. ",default" will be added to the
+                version attribute in the XML if the version processed equals default_tarball_version.
 
         Returns:
             str: An XML snippet containing multiple <condor_tarball> elements.
@@ -272,6 +275,7 @@ class TarballManager(HTMLParser):
             latest_version = sorted(versions, key=StrictVersion)[-1]
 
         out = ""
+        self.default_found = False
         for dest_file in self.downloaded_files:
             _, sversion, os_arch, _ = os.path.basename(dest_file).split("-")
             arch, opsystem = os_arch.rsplit("_", 1)
@@ -279,7 +283,8 @@ class TarballManager(HTMLParser):
             if sversion == latest_version:
                 major, minor, _ = sversion.split(".")
                 version += "," + major + ".0.x" if minor == "0" else "," + major + ".x"
-            if sversion in default_tarball_version:
+            if default_tarball_version in version.split(","):
+                self.default_found = True
                 version += ",default"
             out += xml_snippet.format(arch=arch_map[arch], os=os_map[opsystem], dest_file=dest_file, version=version)
         return out
@@ -323,6 +328,43 @@ class Config(UserDict):
                 major_dict["DOWNLOAD_LATEST"] = True
             major_dict["WHITELIST"].sort(key=StrictVersion)
             major_dict["BLACKLIST"].sort(key=StrictVersion)
+
+        default_tarball = self.get("DEFAULT_TARBALL_VERSION")
+
+        if default_tarball is None:
+            print("You need to specify DEFAULT_TARBALL_VERSION")
+            sys.exit(6)
+
+        # Backward compatibility: single-element list => string
+        if isinstance(default_tarball, list) and len(default_tarball) == 1:
+            default_tarball = default_tarball[0]
+            self["DEFAULT_TARBALL_VERSION"] = default_tarball
+
+        if not isinstance(default_tarball, str):
+            print("ERROR: DEFAULT_TARBALL_VERSION must be a string " "(e.g. '23.0.3', '23.0.x', or '23.x')")
+            sys.exit(6)
+
+        if default_tarball == "latest":
+            print(
+                "ERROR: DEFAULT_TARBALL_VERSION='latest' is not supported.\n"
+                "       Use an explicit version (e.g. '23.0.3') or an alias "
+                "('23.0.x' or '23.x')."
+            )
+            sys.exit(6)
+
+        # Accept:
+        #   - exact versions: 23.0, 23.0.3
+        #   - aliases:        23.x, 23.0.x
+        version_re = re.compile(r"^\d+\.\d+(?:\.\d+)?(?:\.x)?$")
+
+        if not version_re.match(default_tarball):
+            print(
+                f"ERROR: Invalid DEFAULT_TARBALL_VERSION='{default_tarball}'.\n"
+                "       Allowed values are:\n"
+                "         - exact versions (e.g. '23.0.3')\n"
+                "         - aliases (e.g. '23.0.x' or '23.x')"
+            )
+            sys.exit(6)
 
 
 def save_xml(dest_xml_file, xml):
@@ -441,6 +483,8 @@ def main():
     config = Config()
     release_url = config["TARBALL_BASE_URL"]
     default_tarball_version = config["DEFAULT_TARBALL_VERSION"]
+
+    default_found = False
     xml = ""
 
     if args.checklatest is True:
@@ -449,15 +493,19 @@ def main():
     for major_dict in config["CONDOR_TARBALL_LIST"]:
         print(f'Handling major version {major_dict["MAJOR_VERSION"]}')
         major_version = major_dict["MAJOR_VERSION"]
-        manager = TarballManager(
-            urljoin(release_url, major_version), config["FILENAME_LIST"], config["DESTINATION_DIR"], args.verbose
-        )
+        urlmanager = urljoin(release_url, major_version)
+        manager = TarballManager(urlmanager, config["FILENAME_LIST"], config["DESTINATION_DIR"], args.verbose)
         # If necessary, add the latest version to the whitelist now that we know the latest version for this major set of releases
         if major_dict.get("DOWNLOAD_LATEST", False):
             major_dict["WHITELIST"].append(manager.latest_version)
         if major_dict["WHITELIST"] != []:
             # Just get whitelisted versions
             for version in set(major_dict["WHITELIST"]):
+                if version not in manager.releases:
+                    print(
+                        f"You put {version} in the WHITELIST, but that version is not available at {urlmanager}. Please, use 'get_tarballs --checklatest --verbose' to get the list of available versions"
+                    )
+                    return 5
                 manager.download_tarballs(version)
         else:
             # Get everything but the blacklisted
@@ -470,10 +518,15 @@ def main():
                 config["ARCH_MAP"],
                 major_dict["WHITELIST"],
                 major_dict["BLACKLIST"],
-                manager.latest_version if default_tarball_version == "latest" else default_tarball_version,
+                default_tarball_version,
             )
+            default_found |= manager.default_found
 
     if config.get("XML_OUT") is not None:
+        if not default_found:
+            print(
+                f"WARNING: You specified {default_tarball_version} as default tarball version, but that was not downloaded. This might result in an invalid xml file"
+            )
         try:
             save_xml(config["XML_OUT"], xml)
         except OSError as ioex:
