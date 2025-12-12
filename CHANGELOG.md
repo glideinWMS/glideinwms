@@ -13,6 +13,7 @@ Changes since the last release
 -   item N
 
 ### Changed defaults / behaviours
+-   gettarballs.py now has an improved management of default tarballs
 
 ### Deprecated / removed options and commands
 
