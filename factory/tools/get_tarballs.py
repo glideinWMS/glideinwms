@@ -63,6 +63,14 @@ from urllib.parse import urljoin
 import yaml
 
 
+class ConfigError(Exception):
+    """Raised for invalid configuration file (maps to exit code 6)."""
+
+
+class ConfigFileMissingError(ConfigError):
+    """Raised when the configuration file is missing (maps to exit code 1)."""
+
+
 class TarballManager(HTMLParser):
     """Manages HTCondor tarballs for a major release (e.g.: 23.0).
 
@@ -205,7 +213,7 @@ class TarballManager(HTMLParser):
                     continue
                 else:
                     print(
-                        f"\tRe-downloading {dest_file} since it exists but it has a wrong checksum (or checkusm does not exist)"
+                        f"\tRe-downloading {dest_file} since it exists but it has a wrong checksum (or checksum does not exist)"
                     )
 
             try:
@@ -306,10 +314,9 @@ class Config(UserDict):
         script_dir = os.path.dirname(os.path.abspath(__file__))
         config_file = os.environ.get("GET_TARBALLS_CONFIG", False) or os.path.join(script_dir, "get_tarballs.yaml")
         if not os.path.isfile(config_file):
-            print(f"Configuration file {config_file} does not exist")
-            sys.exit(1)
+            raise ConfigFileMissingError(f"Configuration file {config_file} does not exist")
         with open(config_file) as cf:
-            config = yaml.load(cf, Loader=yaml.FullLoader)
+            config = yaml.safe_load(cf)
         super().__init__(config)
         self.validate()
 
@@ -332,8 +339,7 @@ class Config(UserDict):
         default_tarball = self.get("DEFAULT_TARBALL_VERSION")
 
         if default_tarball is None:
-            print("You need to specify DEFAULT_TARBALL_VERSION")
-            sys.exit(6)
+            raise ConfigError("You need to specify DEFAULT_TARBALL_VERSION")
 
         # Backward compatibility: single-element list => string
         if isinstance(default_tarball, list) and len(default_tarball) == 1:
@@ -341,16 +347,14 @@ class Config(UserDict):
             self["DEFAULT_TARBALL_VERSION"] = default_tarball
 
         if not isinstance(default_tarball, str):
-            print("ERROR: DEFAULT_TARBALL_VERSION must be a string " "(e.g. '23.0.3', '23.0.x', or '23.x')")
-            sys.exit(6)
+            raise ConfigError("ERROR: DEFAULT_TARBALL_VERSION must be a string " "(e.g. '23.0.3', '23.0.x', or '23.x')")
 
         if default_tarball == "latest":
-            print(
+            raise ConfigError(
                 "ERROR: DEFAULT_TARBALL_VERSION='latest' is not supported.\n"
                 "       Use an explicit version (e.g. '23.0.3') or an alias "
                 "('23.0.x' or '23.x')."
             )
-            sys.exit(6)
 
         # Accept:
         #   - exact versions: 23.0, 23.0.3
@@ -358,13 +362,12 @@ class Config(UserDict):
         version_re = re.compile(r"^\d+\.\d+(?:\.\d+)?(?:\.x)?$")
 
         if not version_re.match(default_tarball):
-            print(
+            raise ConfigError(
                 f"ERROR: Invalid DEFAULT_TARBALL_VERSION='{default_tarball}'.\n"
                 "       Allowed values are:\n"
                 "         - exact versions (e.g. '23.0.3')\n"
                 "         - aliases (e.g. '23.0.x' or '23.x')"
             )
-            sys.exit(6)
 
 
 def save_xml(dest_xml_file, xml):
@@ -480,7 +483,16 @@ def main():
             4: XML file needs update.
     """
     args = parse_opts()
-    config = Config()
+
+    try:
+        config = Config()
+    except ConfigFileMissingError as e:
+        print(str(e))
+        return 1
+    except ConfigError as e:
+        print(str(e))
+        return 6
+
     release_url = config["TARBALL_BASE_URL"]
     default_tarball_version = config["DEFAULT_TARBALL_VERSION"]
 
