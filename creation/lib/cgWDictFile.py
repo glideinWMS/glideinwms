@@ -279,6 +279,7 @@ def get_common_dicts(submit_dir, stage_dir):
         "signature": cWDictFile.SHA1DictFile(
             stage_dir, cWConsts.insert_timestr(cWConsts.SIGNATURE_FILE), fname_idx=cWConsts.SIGNATURE_FILE
         ),
+        "feature_flags": cWDictFile.ReprDictFile(submit_dir, cgWConsts.FEATURE_FLAGS_FILE),
     }
     refresh_description(common_dicts)
     return common_dicts
@@ -352,6 +353,7 @@ def load_common_dicts(dicts, description_el):  # update in place
     dicts["submit"].load()
     dicts["params"].load()
     dicts["attrs"].load()
+    dicts["feature_flags"].load()
     # now the ones keyed in the description
     dicts["signature"].load(fname=description_el.vals2["signature"])
     dicts["file_list"].load(fname=description_el.vals2["file_list"])
@@ -528,6 +530,7 @@ def save_common_dicts(dicts, is_main, set_readonly=True):
     dicts["submit"].save(set_readonly=set_readonly)
     dicts["params"].save(set_readonly=set_readonly)
     dicts["attrs"].save(set_readonly=set_readonly)
+    dicts["feature_flags"].save(set_readonly=set_readonly)
 
 
 # must be invoked after all the entries have been saved
@@ -625,7 +628,7 @@ def reuse_common_dicts(dicts, other_dicts, is_main, all_reused):
             dicts[k].set_readonly(True)
 
     # check the mutable ones
-    for k in ("attrs", "params", "submit"):
+    for k in ("attrs", "params", "submit", "feature_flags"):
         reuse_simple_dict(dicts, other_dicts, k)
 
     return all_reused

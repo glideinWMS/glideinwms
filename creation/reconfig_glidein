@@ -92,13 +92,17 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         # If no old params exist, make sure to create the new directory, (no reuse)
         glidein_dicts_obj.create_dirs(fail_if_exists=False)
 
+    startup_file = cgWConsts.STARTUP_FILE
+    if "cvmfsexec" in glidein_dicts_obj.main_dicts["feature_flags"]:
+        startup_file = cgWConsts.STARTUP_FILE_FF
+
     # write to disk
     glidein_dicts_obj.save()
     glidein_dicts_obj.set_readonly(True)
 
     if update_scripts == "yes":
         # copy the submit files
-        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR, True)
+        cgWCreate.copy_exe(startup_file, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR, True)
         cgWCreate.copy_exe(
             cgWConsts.LOCAL_START_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR, True
         )
@@ -116,7 +120,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
             sys.exit(1)
         # append the tarball to glidein_startup.sh
         try:
-            with open(os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.STARTUP_FILE), "ab") as st_file:
+            with open(os.path.join(glidein_dicts_obj.main_dicts.work_dir, startup_file), "ab") as st_file:
                 st_file.write(b"exit 0\n#EOF\n")
                 with open("tar_utils.tar.gz", "rb") as tar_utils:
                     shutil.copyfileobj(tar_utils, st_file)
@@ -128,7 +132,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
 
         # copy glidein_startup.sh from work dir (the version w/ the utility files) to the stage area for cloud entries
         cgWCreate.copy_exe(
-            cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, glidein_dicts_obj.main_dicts.work_dir, True
+            startup_file, glidein_dicts_obj.main_dicts.stage_dir, glidein_dicts_obj.main_dicts.work_dir, True
         )
         print2("...Updated the glidein_startup.sh file in the staging area")
 

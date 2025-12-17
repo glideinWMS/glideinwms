@@ -19,8 +19,6 @@
 # Author:
 #       Namratha Urs
 #
-# Version:
-#       1.0
 #
 
 echo "Unmounting CVMFS as part of glidein cleanup..."
@@ -36,11 +34,11 @@ add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" |
 error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
 # get the cvmfsexec attribute switch value from the config file
-use_cvmfsexec=$(gconfig_get GLIDEIN_USE_CVMFSEXEC "$glidein_config")
+use_cvmfs=$(gconfig_get GLIDEIN_USE_CVMFS "$glidein_config")
 # TODO: int or string? if string, make the attribute value case insensitive
-#use_cvmfsexec=${use_cvmfsexec,,}
+#use_cvmfs=${use_cvmfs,,}
 
-if [[ $use_cvmfsexec -ne 1 ]]; then
+if [[ $use_cvmfs -ne 1 ]]; then
     "$error_gen" -ok "$(basename $0)" "umnt_msg1" "Not using cvmfsexec; skipping cleanup."
     exit 0
 fi
