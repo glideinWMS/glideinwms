@@ -13,7 +13,6 @@ import tempfile
 
 from glideinwms.creation.lib import (
     check_config_frontend,
-    check_python3_expr,
     cvWConsts,
     cvWCreate,
     cvWParamDict,
@@ -184,21 +183,6 @@ if __name__ == "__main__":
         sys.exit(1)
     if msg:
         print2(msg)
-
-    # Check config file compatibility with Python 3
-    p3_compatible, report = check_python3_expr.main(xml, False, True)
-    if p3_compatible:
-        print2("The configuration is compatible with Python 3")
-    else:
-        if isinstance(report, list):
-            print2("The configuration is not compatible with Python 3")
-            for element in report:
-                if not element["valid"]:
-                    print2(f"...{element['type']} at {element['location']}:")
-                    print2(f"\t{element['error']}")
-        else:
-            print2(f"Bad configuration file: {report}")
-        sys.exit(1)
 
     try:
         transformed_xmlfile = tempfile.NamedTemporaryFile()
