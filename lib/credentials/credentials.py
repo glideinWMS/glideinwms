@@ -386,7 +386,7 @@ class Credential(ABC, Generic[T]):
         compress: bool = False,
         data_pattern: Optional[bytes] = None,
         overwrite: bool = True,
-        continue_if_no_path=False,
+        continue_if_no_path: bool = False,
     ) -> None:
         """Save the credential to a file.
 
@@ -443,6 +443,8 @@ class Credential(ABC, Generic[T]):
 
         This method attempts to renew the credentials by calling the private __renew__ method.
         If the __renew__ method is not implemented, it will silently pass.
+
+        Credentials that can be renewed must have a `self.creation_script` defined or override the __renew__ method.
         """
         try:
             self.__renew__()
@@ -572,7 +574,7 @@ class CredentialDict(dict):
         """Find credentials in the dictionary.
 
         Args:
-            type (Optional[Union[CredentialType, CredentialPairType]]): The type of credential to find.
+            cred_type (Optional[Union[CredentialType, CredentialPairType]]): The type of credential to find.
             purpose (Optional[CredentialPurpose]): The purpose of the credential to find.
 
         Returns:

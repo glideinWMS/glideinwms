@@ -3,22 +3,34 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+## v3.11.3 \[2025-12-dd\]
 
-Changes since the last release
+Hardened and improved validation of the generators' configuration. This version includes all changes and fixes in v3.10.17.
 
 ### New features / functionalities
 
--   item one of the list
--   item N
+-   All changes and fixes in v3.10.17
+-   Added `make_scitoken_key` and the ability to generate and validate self-signed tokens in the Frontend (PR #623)
+-   Added configuration checks to validate Generator's context for mandatory attributes and Generator specific rules (PR #611, PR #623, PR #626)
+-   Made client/Frontend directories more flexible, e.g. to have the credential library work with Decision Engine (PR #628)
 
 ### Changed defaults / behaviours
 
+-   SciTokenGenerator is stricter about the context in the configuration, requiring fields like key file and issuer and requiring an https URL for the issuer (PR #626)
+
 ### Deprecated / removed options and commands
+
+-   Removed SL7 and Python3.6 support (PR #628)
+-   Removed Frontend checks for pre-v3.5 configuration. Added a check in Frontends that all connected Factories are at least v3.11. (PR #626)
+-   Removed `check_python3_expr.py` command and Python3 checks in Frontend configuration. Assuming that no Python2 is lingering in configurations (PR #628)
 
 ### Security Related Fixes
 
 ### Bug Fixes
+
+-   Fixed inconsistencies in the Generators context defaults specification (PR #623)
+-   Fixed inconsistencies about the Frontend directory structure and a bug in the rewrite PCRE of the httpd configuration. (PR #623)
+-   Falling back to `command` when `which` is not available (PR #628)
 
 ### Testing / Development
 

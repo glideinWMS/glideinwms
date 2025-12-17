@@ -982,9 +982,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/frontend/__pycache__/gwms_renew_proxies.*
 %{python3_sitelib}/glideinwms/frontend/tools
 %{python3_sitelib}/glideinwms/creation/lib/check_config_frontend.py
-%{python3_sitelib}/glideinwms/creation/lib/check_python3_expr.py
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/check_config_frontend.*
-%{python3_sitelib}/glideinwms/creation/lib/__pycache__/check_python3_expr.*
 %{python3_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template
 %{python3_sitelib}/glideinwms/creation/reconfig_frontend
 %defattr(-,frontend,frontend,-)
