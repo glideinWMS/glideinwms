@@ -14,17 +14,17 @@ add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" |
 # fetch the error reporting helper script
 error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
-# get the cvmfsexec attribute switch value from the config file
-use_cvmfsexec=$(gconfig_get GLIDEIN_USE_CVMFSEXEC "$glidein_config")
+# get the use_cvmfs attribute switch value from the config file
+use_cvmfs=$(gconfig_get GLIDEIN_USE_CVMFS "$glidein_config")
 # TODO: int or string?? if string, make the attribute value case insensitive
-#use_cvmfsexec=${use_cvmfsexec,,}
+#use_cvmfs=${use_cvmfs,,}
 
-if [[ $use_cvmfsexec -ne 1 ]]; then
+if [[ $use_cvmfs -ne 1 ]]; then
     "$error_gen" -ok "$(basename $0)" "msg" "Not using cvmfsexec; skipping setup."
     exit 0
 fi
 
-# if GLIDEIN_USE_CVMFSEXEC is set to 1 - check if CVMFS is locally available in the node
+# if GLIDEIN_USE_CVMFS is set to 1 - check if CVMFS is locally available in the node
 # validate CVMFS by examining the directories within CVMFS... checking just one directory should be sufficient?
 # get the glidein work directory location from glidein_config file
 work_dir=$(gconfig_get GLIDEIN_WORK_DIR "$glidein_config")
@@ -53,7 +53,7 @@ cvmfs_source=$(gconfig_get CVMFS_SRC "$glidein_config")
 glidein_cvmfsexec_dir=$(gconfig_get CVMFSEXEC_DIR "$glidein_config")
 
 # get the CVMFS requirement setting passed as one of the factory attributes
-glidein_cvmfs=$(gconfig_get GLIDEIN_CVMFS "$glidein_config")
+glidein_cvmfs=$(gconfig_get GLIDEIN_CVMFS_REQUIRE "$glidein_config")
 
 perform_system_check
 
@@ -65,10 +65,10 @@ arch=$GWMS_OS_KRNL_ARCH
 dist_file=cvmfsexec-${cvmfs_source}-${os_like}${os_ver}-${arch}
 # the appropriate distribution file does not have to manually untarred as the glidein setup takes care of this automatically
 
-if [[ $use_cvmfsexec -eq 1 ]]; then
+if [[ $use_cvmfs -eq 1 ]]; then
     if [[ ! -d "$glidein_cvmfsexec_dir" && ! -f ${glidein_cvmfsexec_dir}/${dist_file} ]]; then
         # neither the cvmfsexec directory nor the cvmfsexec distribution is found -- this happens when a directory named 'cvmfsexec' does not exist on the glidein because an appropriate distribution tarball is not found in the list of all the available tarballs and was not unpacked [trying to unpack osg-rhel8 on osg-rhel7 worker node]
-        # if use_cvmfsexec is set to 1, then warn that cvmfs will not be mounted and flag an error
+        # if use_cvmfs is set to 1, then warn that cvmfs will not be mounted and flag an error
         logerror "Error occurred during cvmfs setup: None of the available cvmfsexec distributions is compatible with the worker node specifications."
         "$error_gen" -error "$(basename $0)" "WN_Resource" "Error occurred during cvmfs setup... no matching cvmfsexec distribution available."
         exit 1
