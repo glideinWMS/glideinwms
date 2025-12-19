@@ -44,7 +44,7 @@
 %global systemctl_bin systemctl
 # Minimum HTCondor and Python required versions
 %global htcss_min_version 8.9.5
-%global python_min_version 3.6
+%global python_min_version 3.9
 
 Name:           glideinwms
 Version:        %{version}
@@ -128,7 +128,6 @@ Requires: rrdtool
 Requires: python3-rrdtool
 Requires: python3-scitokens
 Requires: initscripts
-Requires: python3-m2crypto
 Requires(post): systemd
 Requires(post): /usr/sbin/useradd
 Requires(post): /usr/sbin/usermod
@@ -203,7 +202,6 @@ Requires: python3-condor
 Requires: python3-pyyaml
 Requires: python3-jwt
 Requires: python3-cryptography
-Requires: python3-m2crypto
 #Requires: python3-structlog
 Requires: python3-rrdtool
 %description libs
@@ -268,7 +266,6 @@ Requires: python3 >= %{python_min_version}
 # Is this the same? Requires: python36-configargparse
 Requires: javascriptrrd >= 1.1.0
 Requires: initscripts
-Requires: python3-m2crypto
 Requires: python3-requests
 Requires: python3-jwt
 Requires: python3-rrdtool
@@ -955,6 +952,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libexecdir}/gwms_renew_proxies
 %attr(-, frontend, frontend) %dir %{_localstatedir}/lib/gwms-frontend
 %attr(-, frontend, frontend) %{_localstatedir}/lib/gwms-frontend/README.md
+%attr(700, frontend, frontend) %{frontend_keys_dir}
 %attr(700, frontend, frontend) %{frontend_token_dir}
 %attr(700, frontend, frontend) %{frontend_passwd_dir}
 %attr(700, frontend, frontend) %{frontend_cache_dir}
