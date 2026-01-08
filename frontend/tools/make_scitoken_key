@@ -27,7 +27,7 @@ from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from scitokens.utils import bytes_from_long, string_from_long
 
 from glideinwms.frontend import glideinFrontendConfig
-from glideinwms.lib.defaults import BASE_DIR, KEY_DIR, set_base_dir, WEB_SEC_DIR
+from glideinwms.lib import defaults
 
 verbose = False
 
@@ -57,7 +57,7 @@ def get_args() -> argparse.Namespace:
         "-k",
         "--private-key-file",
         help="Location of the unencrypted private key file. Will be created if it does not exist. Defaults to the standard one.",
-        default=os.path.join(KEY_DIR, "frontend_scitokens_key.pem"),
+        default=None,
     )
     parser.add_argument(
         "-f",
@@ -100,17 +100,17 @@ def get_args() -> argparse.Namespace:
     out = parser.parse_args()
     if out.client_user:
         # Change the directory variables
-        set_base_dir(out.client_user)
+        defaults.set_base_dir(out.client_user)
     elif os.getuid() == 0:
         # Could also guess from the directories in /etc
         raise ValueError("Set --client-user (e.g. to frontend/decisionengine) when running as root.")
     # Adjust default paths depending on the user
     if out.private_key_file is None:
-        out.private_key_file = os.path.join(KEY_DIR, "frontend_scitokens_key.pem")
+        out.private_key_file = os.path.join(defaults.key_dir, "frontend_scitokens_key.pem")
     if out.work_dir is None:
-        out.work_dir = os.path.join(BASE_DIR, "vofrontend")
+        out.work_dir = os.path.join(defaults.base_dir, "vofrontend")
     if out.web_dir is None:
-        out.web_dir = os.path.join(WEB_SEC_DIR, "scitokens")
+        out.web_dir = os.path.join(defaults.web_sec_dir, "scitokens")
     return out
 
 

@@ -18,10 +18,10 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Any, Callable, Generic, List, Mapping, Optional, Tuple, Type, TypeVar, Union
 
-from glideinwms.lib.defaults import CACHE_DIR, PLUGINS_DIR
+from glideinwms.lib import defaults
 from glideinwms.lib.util import hash_nc, import_module
 
-sys.path.append(PLUGINS_DIR)
+sys.path.append(defaults.PLUGINS_DIR)
 _loaded_generators = {}  # All current generators. Updated via export_generator()
 _generator_instances = defaultdict(dict)
 
@@ -63,7 +63,7 @@ class GeneratorContext(dict):
                 "user": (str),  # Mandatory string with name
                 "group": (str,),  # Mandatory string with group
                 "permissions": ((list, None), []),  # Optional list with permissions, defaults to empty list if missing
-                                                    # If set to None will stay None
+                                                    # If set to None, it will stay None
             })
         """
 
@@ -180,11 +180,11 @@ class CachedGenerator(Generator[T]):
         file_type = self.context.get("type", "cache")
         self.context.validate(
             {
-                "cache_dir": (str, CACHE_DIR),
+                "cache_dir": (str, defaults.cache_dir),
                 "cache_file": (
                     str,
                     os.path.join(
-                        self.context.get("cache_dir", CACHE_DIR),
+                        self.context.get("cache_dir", defaults.cache_dir),
                         f"{self.__class__.__name__}_{self.instance_id}.{file_type}",
                     ),
                 ),
