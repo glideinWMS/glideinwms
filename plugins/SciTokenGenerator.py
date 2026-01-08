@@ -11,8 +11,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from scitokens import SciToken
 
+from glideinwms.lib import defaults
 from glideinwms.lib.credentials import create_credential, CredentialType
-from glideinwms.lib.defaults import TOKEN_DIR
 from glideinwms.lib.generators import export_generator, GeneratorError
 from glideinwms.lib.generators.credential_generator import CredentialGenerator
 
@@ -42,7 +42,7 @@ class SciTokenGenerator(CredentialGenerator):
         "algorithm": (str, "RS256"),
         "wlcg_ver": (str, "1.0"),
         "tkn_lifetime": (int, 7200),
-        "tkn_dir": (str, TOKEN_DIR),
+        "tkn_dir": (str, defaults.token_dir),
     }
 
     @staticmethod

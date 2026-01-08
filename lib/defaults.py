@@ -1,7 +1,12 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Collections of constants that are used throughout the GlideinWMS project."""
+"""Collections of constants that are used throughout the GlideinWMS project.
+
+Use `from glideinwms.lib import defaults` instead of importing directly its variables with a selective/partial import
+because `base_dir` and the other paths may change and the latter would make a copy and always use the initial
+default value.
+"""
 
 import os
 
@@ -24,13 +29,16 @@ BINARY_ENCODING_DEFAULT = "utf_8"  # valid aliases: utf-8, utf8 (default Python 
 
 # These default directories are valid for RPM installations
 PLUGINS_DIR = "/etc/gwms-frontend/plugin.d"  # TODO: Make this configurable
-BASE_DIR = Path.home()
-WEB_SEC_DIR = os.path.join(BASE_DIR, "web-area", "cred")
-CACHE_DIR = os.path.join(BASE_DIR, "cache")
-CRED_DIR = os.path.join(BASE_DIR, "cred.d")
-PWD_DIR = os.path.join(CRED_DIR, "passwords.d")
-TOKEN_DIR = os.path.join(CRED_DIR, "tokens.d")
-KEY_DIR = os.path.join(CRED_DIR, "keys.d")
+# NOTE that these lowercase named directories should never be imported selectively (as `from default import base_dir`)
+#      but always with the module (`import defaults` and referred as `defaults.base_dir`). This because their value
+#      can change (invoking `set_base_dir`) and the former would make a copy and always use the initial default value
+base_dir = Path.home()
+web_sec_dir = os.path.join(base_dir, "web-area", "cred")
+cache_dir = os.path.join(base_dir, "cache")
+cred_dir = os.path.join(base_dir, "cred.d")
+pwd_dir = os.path.join(cred_dir, "passwords.d")
+token_dir = os.path.join(cred_dir, "tokens.d")
+key_dir = os.path.join(cred_dir, "keys.d")
 
 
 def set_base_dir(user=None):
@@ -41,30 +49,30 @@ def set_base_dir(user=None):
 
     Side effects:
         Updates the global variables with the GlideinWMS client directory structure.
-        BASE_DIR - base directory for the GlideinWMS client. Home directory of the user the client is running under
-        WEB_SEC_DIR - web area to store credentials files.
-        CACHE_DIR - cache directory for the GlideinWMS client.
-        CRED_DIR - directory to store credentials files (passwords, tokens and keys).
-        PWD_DIR - directory to store password files.
-        TOKEN_DIR - directory to store JWT tokens.
-        KEY_DIR - directory to store key files.
+        base_dir - base directory for the GlideinWMS client. Home directory of the user the client is running under
+        web_sec_dir - web area to store credentials files.
+        cache_dir - cache directory for the GlideinWMS client.
+        cred_dir - directory to store credentials files (passwords, tokens and keys).
+        pwd_dir - directory to store password files.
+        token_dir - directory to store JWT tokens.
+        key_dir - directory to store key files.
 
     Args:
         user (str): The username under which the GlideinWMS client is running. Defaults to None (the current user).
     """
-    global BASE_DIR, WEB_SEC_DIR, CACHE_DIR, CRED_DIR, PWD_DIR, TOKEN_DIR, KEY_DIR
-    BASE_DIR = Path.home()
+    global base_dir, web_sec_dir, cache_dir, cred_dir, pwd_dir, token_dir, key_dir
+    base_dir = Path.home()
     if user:
         ret_dir = os.path.expanduser(f"~{user}")
         if not ret_dir.startswith("~"):
-            BASE_DIR = ret_dir
+            base_dir = ret_dir
     # Set the other directories
-    WEB_SEC_DIR = os.path.join(BASE_DIR, "web-area", "cred")
-    CACHE_DIR = os.path.join(BASE_DIR, "cache")
-    CRED_DIR = os.path.join(BASE_DIR, "cred.d")
-    PWD_DIR = os.path.join(CRED_DIR, "passwords.d")
-    TOKEN_DIR = os.path.join(CRED_DIR, "tokens.d")
-    KEY_DIR = os.path.join(CRED_DIR, "keys.d")
+    web_sec_dir = os.path.join(base_dir, "web-area", "cred")
+    cache_dir = os.path.join(base_dir, "cache")
+    cred_dir = os.path.join(base_dir, "cred.d")
+    pwd_dir = os.path.join(cred_dir, "passwords.d")
+    token_dir = os.path.join(cred_dir, "tokens.d")
+    key_dir = os.path.join(cred_dir, "keys.d")
 
 
 def force_bytes(instr, encoding=BINARY_ENCODING_CRYPTO):
@@ -100,7 +108,7 @@ def force_str(inbytes, encoding=BINARY_ENCODING_CRYPTO):
         encoding (str): A valid encoding, such as utf_8, ascii, latin-1.
 
     Returns:
-        str: The input as a unicode string.
+        str: The input as a Unicode string.
 
     Raises:
         ValueError: If it detects an improper str conversion (b'' around the string) or
