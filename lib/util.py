@@ -558,8 +558,13 @@ def import_module(module, search_path=None):
                 search_path += new_search_paths
             spec = PathFinder.find_spec(name, search_path)
         imported_module = module_from_spec(spec)  # type: ignore[attr-defined]
+    except Exception:
+        raise ImportError(f"Failed to import module. Module '{module}' not found (path: {search_path}).") from None
+    try:
         spec.loader.exec_module(imported_module)  # type: ignore[member-defined]
     except Exception as err:
-        raise ImportError(f"Failed to import module {module}") from err
+        raise ImportError(
+            f"Error importing the module {module} ({imported_module.__file__}): {err.__class__.__name__}: {err}"
+        ) from None
 
     return imported_module
