@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_11_3_rc1
+# GLIDEINWMS_VERSION v3_11_3_rc2
 ###################################################################
 78bb68217a24e977bdc5850e7d607960  ./__init__.py
 32b4bfc3e16d335b71c235d34a819eba  ./.codespell/ignore_lines.txt
@@ -8,7 +8,7 @@ bf1869a9f0e22861757b16f54e1acee9  ./.codespell/ignore_words.txt
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
 ba748ed3bc5995aee49b1067feaf7999  ./bigfiles/cvmfs_utils.tar.gz
 4558e767c3bea40c689e0c7eec0fd2ce  ./bigfiles/README.md
-37c92c09ddee343653c11d3f2c9244da  ./CHANGELOG.md
+1cbeca0f86e9f8e679f0cab69f6bf2fa  ./CHANGELOG.md
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 886e483062dbc2844dc52dad44644333  ./creation/clone_glidein
@@ -25,12 +25,11 @@ d41d8cd98f00b204e9800998ecf8427e  ./creation/lib/__init__.py
 05e4d59e9ad954390e8df3c972ea2cb2  ./creation/lib/cgWParamDict.py
 6ee764f85d1a81fa06f47a8eac1c706e  ./creation/lib/cgWParams.py
 836d764c1227115ee71d09c8487348f3  ./creation/lib/check_config_frontend.py
-71d7df334294406787dd804742fac0a5  ./creation/lib/check_python3_expr.py
 75d78889665e6af4dfd80f88977b83a5  ./creation/lib/config_attributes.txt
 2df1408de2ab12cd70612bd7bce3f5d4  ./creation/lib/cvWConsts.py
 fb68e0be8543847cc298ac3cc48cbe6e  ./creation/lib/cvWCreate.py
 c3abf95a0eee8d46ef34dd43dd321cb6  ./creation/lib/cvWDictFile.py
-f6e146e7c67251701a7eade6490e422d  ./creation/lib/cvWParamDict.py
+9fdb528b4dee6d464f773ccd6bf7a637  ./creation/lib/cvWParamDict.py
 8d5b2a4fd9dd1f6f9c18374fea7f3c81  ./creation/lib/cvWParams.py
 d97e9ab380b1d106330991d14ea76f15  ./creation/lib/cWConsts.py
 d743d4e1a1b830a95e5beec76eac2351  ./creation/lib/cWDictFile.py
@@ -200,7 +199,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 726e9234088e872f979bebcd5d4982e3  ./frontend/glideinFrontend.py
 fda028b82a384ba61427b24ccaf2576c  ./frontend/glideinFrontendConfig.py
 06d99903d378abfdcb2b7548bf02982a  ./frontend/glideinFrontendDowntimeLib.py
-35badbbce0a1f220211a60d9f4a57bc7  ./frontend/glideinFrontendElement.py
+bbb44ae0bed38890bec669ef5a0e74a4  ./frontend/glideinFrontendElement.py
 d56944fe5b8054ca2c7a32580ac15c61  ./frontend/glideinFrontendInterface.py
 1e611513e46654b01d971a0b6cac6f2b  ./frontend/glideinFrontendLib.py
 e0db9614d58e517d6f943da1101ecce2  ./frontend/glideinFrontendMonitorAggregator.py
@@ -220,7 +219,7 @@ e1dd51365a034ee9455ab6d69bfae8f1  ./frontend/tools/frontend_tokenize.sh
 34aa7046ef57ca43fae50652912a42f4  ./frontend/tools/gwms_condor_ping
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/tools/lib/__init__.py
 fd5f1ab3e99dc826fa54e0aaa3c27257  ./frontend/tools/lib/frontenvparse.py
-14684b7a4e08660381f09d25979edc3b  ./frontend/tools/make_scitoken_key
+1049dcbb33b8842477bb7b12601b93f7  ./frontend/tools/make_scitoken_key
 3f76701fcb9d43de1162a9ae7ce6d91a  ./frontend/tools/make_user_token
 af2c57e4398c3db16fdad2dfc88deea3  ./frontend/tools/remove_requested_glideins
 d41d8cd98f00b204e9800998ecf8427e  ./install/__init__.py
@@ -256,13 +255,13 @@ e97e24044d1e80c8883720c872f10f5f  ./lib/credentials/rsa.py
 78654d257dc77090142a4260bc03fcf3  ./lib/credentials/tokens.py
 d96280e1c2f71545882c227f13238984  ./lib/credentials/utils.py
 6f8c0efd69364637532d2c617edad896  ./lib/credentials/x509.py
-e33dc3d9ff6ddcb0f273f306300de61f  ./lib/defaults.py
+4cc3ec80dec7c7e35c085eefc090b536  ./lib/defaults.py
 e1d55140d5c24e3cb3db14f0dc99ce4e  ./lib/disk_cache.py
 c8fc04f77f60c3e09f6df50ce11e48c8  ./lib/exprParser.py
 7741a7d7e6ca40c9cbf5f73e1a8a9c36  ./lib/fork.py
 341c9b1d12476754f026ab45bba27cb4  ./lib/generators/__init__.py
 b1651a3d1c3f24461edfab8a9cb93c49  ./lib/generators/credential_generator.py
-6ee842d1e79c791370fb6c8c7447986b  ./lib/generators/generators.py
+f8c974ccdbd28d4ffa26f909f7dbe5f9  ./lib/generators/generators.py
 9265f83919c7aa68ecfa5f4964337591  ./lib/glideinWMSVersion.py
 0600a2b98a55a95e404f340d95339f9d  ./lib/hash_crypto.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
@@ -277,7 +276,7 @@ f89e40abb0f48a2c1e692123e4ff3660  ./lib/symCrypto.py
 aede7313a50f9c7e1178a1a30ab72a5a  ./lib/timeConversion.py
 8d0568ce11be2bc32550c7ffe1a743ce  ./lib/token_util.py
 ca087897a6b1e8511d5df2e6c8491edc  ./lib/unparser.py
-23866709bcf77f740b8606e7fa52369e  ./lib/util.py
+e477a9f286de754b02d77f18b1604d7a  ./lib/util.py
 a08fd26eb637192453ce84d4d045cf70  ./lib/x509Support.py
 97207b40b4ea7103444e63cfe843da4c  ./lib/xmlFormat.py
 cf788a094015c51afd8d9615a2f75359  ./lib/xmlParse.py
@@ -291,12 +290,12 @@ d64fb84480620115f461ec9aac0ba6be  ./logserver/getjwt.py
 3b4687dbec15bf8855dbd410a584937e  ./logserver/README.md
 eec3476ee8c91ffa71445e4cb860e61f  ./logserver/web-area/put.php
 8cb5a086a151782f50cf70a10253aeaa  ./plugins/EntryConditionGenerator.py
-338f39033f3dd9974625bfe7179972d4  ./plugins/IdTokenGenerator.py
+5a6d333eac963c1f95d2dafe481ccdd5  ./plugins/IdTokenGenerator.py
 5bf248b5c3e6e485327167c80dbfa48d  ./plugins/LegacyGenerator.py
 c084a9c1091a602e732594171933675f  ./plugins/README.md
 a7b4bf614b52bffb904f04bbbc16017e  ./plugins/RoundRobinGenerator.py
-f0dadcd0294f8c144a93ec7250447012  ./plugins/SciTokenGenerator.py
-ab0290ab0b188f26cc3023ce1304b380  ./plugins/scitokens_callout.py
+ce5b7aca11244099e346408dfd8d3643  ./plugins/SciTokenGenerator.py
+5a0496c1a418f30003c075a90fce2993  ./plugins/scitokens_callout.py
 0f8b3e554f2b12d90a914cda794d1525  ./pyproject.toml
 e34b67f862a9f97791a8adc74463ea64  ./README.md
 73ba28aa1ce0376b4b8c09e5df167288  ./requirements.txt
