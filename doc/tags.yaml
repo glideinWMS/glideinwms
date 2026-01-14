@@ -757,7 +757,7 @@ v3_10_17:
     - If you have the Python library Jellyfish (pip install jellyfish), a new word checker will warn you if you misspell a configuration attribute.
 
 v3_11_3:
-  Date: December 18, 2025
+  Date: January 13, 2026
   Series: Development
   Tarball: false
   Feature:

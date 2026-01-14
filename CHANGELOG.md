@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.11.3 \[2025-12-18\]
+## v3.11.3 \[2026-01-13\]
 
 Hardened and improved validation of the generators' configuration. This version includes all changes and fixes in v3.10.17.
 
