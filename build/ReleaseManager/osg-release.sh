@@ -33,8 +33,10 @@ fi
 # On August 2024 OSG switched to osg-sw-submit.chtc.wisc.edu. moria and library.cs.wisc.edu are not working any more
 #osg_buildmachine="osg-sw-submit.chtc.wisc.edu"
 # On March 22 2025 the build host has been moved to osg-sw-submit-old
-osg_buildmachine="osg-sw-submit.chtc.wisc.edu"
-osg_uploaddir="/p/vdt/public/html/upstream/glideinwms/$gwms_tag"
+#osg_buildmachine="osg-sw-submit.chtc.wisc.edu"
+osg_buildmachine="osgsw-ap.chtc.wisc.edu"
+#osg_uploaddir="/p/vdt/public/html/upstream/glideinwms/$gwms_tag"
+osg_uploaddir="/osgsw/upstream/glideinwms/$gwms_tag"
 
 work_dir="/tmp/osgrelease.$$"
 gwms_location="$work_dir/glideinwms"
@@ -78,7 +80,8 @@ echo "Use the following to update the upstream file:"
 echo "echo 'glideinwms/$gwms_tag/glideinwms.tar.gz sha1sum=$(sha1sum "$gwms_tar" | cut -f 1 -d ' ')' > upstream/developer.tarball.source"
 
 # Upload the tarball
-if ssh $username@$osg_buildmachine "kinit $krb_user; aklog; mkdir -p $osg_uploaddir"; then
+# if ssh $username@$osg_buildmachine "kinit $krb_user; aklog; mkdir -p $osg_uploaddir"; then
+if ssh $username@$osg_buildmachine "mkdir -p $osg_uploaddir"; then
     if scp "$gwms_tar" "$username@$osg_buildmachine:$osg_uploaddir"; then
         echo "Tarball Uploaded to $osg_buildmachine: $osg_uploaddir"
     else
