@@ -45,6 +45,8 @@
 # Minimum HTCondor and Python required versions
 %global htcss_min_version 8.9.5
 %global python_min_version 3.9
+%global __python3 /usr/bin/python3.9
+%global python3_version 3.9
 
 Name:           glideinwms
 Version:        %{version}
