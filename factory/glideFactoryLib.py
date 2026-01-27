@@ -2146,6 +2146,8 @@ def overloadToBool(value, log=logSupport.log):
             if v.endswith("%"):
                 n = int(v[:-1])
                 if 0 <= n <= 100:
+                    # Keeping it for convenience until we know for sure new OVERLOAD works in prod
+                    # log.debug("Applying random OVERLOAD")
                     return random.random() < (n / 100)
 
         log.error(f"Invalid boolean/percentage value: {value!r}, disabling OVERLOAD")
@@ -2200,15 +2202,16 @@ def get_submit_environment(
         # If it is const="False" in the factory, then jobAttributes will return None, and we get the param
         # The param will either be the frontend value, or the factory one
         # If const="True" then we'll just get the jobAttributes and ignore the params
-        glidein_overloaded = jobAttributes.data.get("GLIDEIN_OVERLOAD_ENABLED") or params.get(
-            "GLIDEIN_OVERLOAD_ENABLED"
+        glidein_overloaded_bool = False
+        glidein_overloaded = jobAttributes.data.get("GLIDEIN_OVERLOAD_ENABLED", False) or params.get(
+            "GLIDEIN_OVERLOAD_ENABLED", False
         )
         if glidein_overloaded:
             glidein_overloaded_bool = overloadToBool(glidein_overloaded, log)
+            # Keeping it for convenience until we know for sure new OVERLOAD works in prod
+            # log.debug(f"OVERLOAD evaluated to: {glidein_overloaded_bool}")
             # Overwriting the param with the "collapsed" boolean (66% => True/False)
             params["GLIDEIN_OVERLOAD_ENABLED"] = str(glidein_overloaded_bool)
-            # Does it even matter that we adjust jobAttributes? I think we just get the attributes.cfg on the WN
-            jobAttributes.data["GLIDEIN_OVERLOAD_ENABLED"] = glidein_overloaded_bool
 
         exe_env = ["GLIDEIN_ENTRY_NAME=%s" % entry_name]
         if "frontend_scitoken" in submit_credentials.identity_credentials:
@@ -2219,10 +2222,9 @@ def get_submit_environment(
             # TODO: this ends up transferring an empty file called 'null' in the Glidein start dir. Find a better way
             exe_env.append("IDTOKENS_FILE=/dev/null")
 
-        if glidein_overloaded:
-            # This is used to set the "+GlideinOverloadEnabled" param in the condor jdl
-            # This is the attribute that goes in the activity log and it used for monitoring.
-            exe_env.append("GLIDEIN_OVERLOAD_ENABLED=%s" % glidein_overloaded_bool)
+        # This is used to set the "+GlideinOverloadEnabled" param in the condor jdl
+        # This is the attribute that goes in the activity log and it used for monitoring.
+        exe_env.append("GLIDEIN_OVERLOAD_ENABLED=%s" % glidein_overloaded_bool)
 
         # The parameter list to be added to the arguments for glidein_startup.sh
         params_str = ""

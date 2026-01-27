@@ -340,10 +340,19 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("stream_output", "False")
         self.add("stream_error ", "False")
 
+        overload_attr = next((ga for ga in glidein_attrs if "GLIDEIN_OVERLOAD_ENABLED" in ga["name"]), None)
+        if overload_attr:
+            if overload_attr["value"][-1] == "%" and not (
+                overload_attr["parameter"] == "True" and overload_attr["const"] == "False"
+            ):
+                raise RuntimeError(
+                    f"If you want to use a percentage with GLIDEIN_OVERLOAD_ENABLED, then you need to set it as const=False and parameter=True for entry {entry_name}"
+                )
+
         # If the entry is using overloading, we want to add the attribute to the event log
         # This is for monitoring purpoises, see: https://github.com/glideinWMS/glideinwms/issues/569
-        if any("GLIDEIN_OVERLOAD_ENABLED" in glidein_attr["name"] for glidein_attr in glidein_attrs):
-            self.add("job_ad_information_attrs ", "GlideinOverloadEnabled")
+        # Add this because GLIDEIN_OVERLOAD_ENABLED might be set in the frontend
+        self.add("job_ad_information_attrs ", "GlideinOverloadEnabled")
 
     def populate_submit_attrs(self, submit_attrs, gridtype, attr_prefix=""):
         for submit_attr in submit_attrs:
