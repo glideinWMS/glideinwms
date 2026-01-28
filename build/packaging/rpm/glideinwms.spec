@@ -4,6 +4,9 @@
 # Disable shebang mangling (see GHI#436)
 %undefine __brp_mangle_shebangs
 
+# There is no debud package, disable auto-detect
+%define  debug_package %{nil}
+
 # How to build tar file
 
 # git clone http://cdcvs.fnal.gov/projects/glideinwms
@@ -45,8 +48,9 @@
 # Minimum HTCondor and Python required versions
 %global htcss_min_version 8.9.5
 %global python_min_version 3.9
-%global __python3 /usr/bin/python3.9
-%global python3_version 3.9
+#%global __python3 /usr/bin/python3.9
+#%global python3_version 3.9
+#%define python(abi) >= %{python_min_version}
 
 Name:           glideinwms
 Version:        %{version}
@@ -70,8 +74,8 @@ Source12:       creation/templates/factory_startup_sl7
 
 # Needed for the systemd_... macros to invoke systemctl
 BuildRequires:  systemd-rpm-macros
-BuildRequires:  python3
-BuildRequires:  python3-devel
+BuildRequires:  python3 >= %{python_min_version}
+BuildRequires:  python3-devel >= %{python_min_version}
 
 %description
 This is a package for the glidein workload management system.
@@ -954,7 +958,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libexecdir}/gwms_renew_proxies
 %attr(-, frontend, frontend) %dir %{_localstatedir}/lib/gwms-frontend
 %attr(-, frontend, frontend) %{_localstatedir}/lib/gwms-frontend/README.md
-%attr(700, frontend, frontend) %{frontend_keys_dir}
+%attr(700, frontend, frontend) %{frontend_key_dir}
 %attr(700, frontend, frontend) %{frontend_token_dir}
 %attr(700, frontend, frontend) %{frontend_passwd_dir}
 %attr(700, frontend, frontend) %{frontend_cache_dir}
