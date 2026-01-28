@@ -9,7 +9,7 @@ Changes since the last release
 
 ### New features / functionalities
 
--   GlideinOverloadEnabled is not added to the activity logs for monitoring purposes (PR #629, Issue #569)
+-   Added GlideinOverloadEnabled to the activity logs for monitoring purposes (PR #629, Issue #569)
 
 ### Changed defaults / behaviours
 -   gettarballs.py now has an improved management of default tarballs

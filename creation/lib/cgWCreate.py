@@ -340,9 +340,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("stream_output", "False")
         self.add("stream_error ", "False")
 
-        overload_attr = next((ga for ga in glidein_attrs if "GLIDEIN_OVERLOAD_ENABLED" in ga["name"]), None)
-        if overload_attr:
-            if overload_attr["value"][-1] == "%" and not (
+        overload_attr = next((ga for ga in glidein_attrs if ga["name"].upper() == "GLIDEIN_OVERLOAD_ENABLED"), None)
+        if overload_attr is not None:
+            if overload_attr["value"].strip()[-1] == "%" and not (
                 overload_attr["parameter"] == "True" and overload_attr["const"] == "False"
             ):
                 raise RuntimeError(
