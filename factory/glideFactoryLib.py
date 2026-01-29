@@ -10,6 +10,7 @@ import base64
 import glob
 import os
 import pwd
+import random
 import re
 import string
 
@@ -2110,6 +2111,52 @@ def in_submit_environment(entry_name, exe_env):
     return False
 
 
+def overloadToBool(value, log=logSupport.log):
+    """Convert the OVERLOAD_ENABLED parameter to a boolean.
+
+    Supported inputs:
+        - bool: returned as-is
+        - str "true" / "false" (case-insensitive)
+        - str "<N>%" where N is an integer between 0 and 100
+          (returns True with probability N%)
+
+    Any invalid or unsupported input returns False.
+
+    Args:
+        value (any): Input value to convert.
+        log (object, optional): Logger-like object used to report invalid input
+            (expects an .error(str) method).
+
+    Returns:
+        bool: Converted boolean value.
+    """
+
+    try:
+        if isinstance(value, bool):
+            return value
+
+        if isinstance(value, str):
+            v = value.strip().lower()
+
+            if v == "true":
+                return True
+            if v == "false":
+                return False
+
+            if v.endswith("%"):
+                n = int(v[:-1])
+                if 0 <= n <= 100:
+                    # Keeping it for convenience until we know for sure new OVERLOAD works in prod
+                    # log.debug("Applying random OVERLOAD")
+                    return random.random() < (n / 100)
+
+        log.error(f"Invalid boolean/percentage value: {value!r}, disabling OVERLOAD")
+    except Exception as e:
+        log.error(f"Error converting value {value!r}: {e}, disabling OVERLOAD")
+
+    return False
+
+
 def get_submit_environment(
     entry_name,
     client_name,
@@ -2147,6 +2194,25 @@ def get_submit_environment(
         jobAttributes = glideFactoryConfig.JobAttributes(entry_name)
         signatures = glideFactoryConfig.SignatureFile()
 
+        # For documentation
+        # CAVEAT #1: Overloading chice is applied on a "submission cycle base"
+        # CAVEAT #2: cgWCreate will only add "job_ad_information_attrs=GlideinOverloadEnabled" at reconfigure looking at the factory
+        #            Frotnend values will be ignored :(
+
+        # If it is const="False" in the factory, then jobAttributes will return None, and we get the param
+        # The param will either be the frontend value, or the factory one
+        # If const="True" then we'll just get the jobAttributes and ignore the params
+        glidein_overloaded_bool = False
+        glidein_overloaded = jobAttributes.data.get("GLIDEIN_OVERLOAD_ENABLED", False) or params.get(
+            "GLIDEIN_OVERLOAD_ENABLED", False
+        )
+        if glidein_overloaded:
+            glidein_overloaded_bool = overloadToBool(glidein_overloaded, log)
+            # Keeping it for convenience until we know for sure new OVERLOAD works in prod
+            # log.debug(f"OVERLOAD evaluated to: {glidein_overloaded_bool}")
+            # Overwriting the param with the "collapsed" boolean (66% => True/False)
+            params["GLIDEIN_OVERLOAD_ENABLED"] = str(glidein_overloaded_bool)
+
         exe_env = ["GLIDEIN_ENTRY_NAME=%s" % entry_name]
         if "frontend_scitoken" in submit_credentials.identity_credentials:
             exe_env.append("SCITOKENS_FILE=%s" % submit_credentials.identity_credentials["frontend_scitoken"])
@@ -2155,6 +2221,10 @@ def get_submit_environment(
         else:
             # TODO: this ends up transferring an empty file called 'null' in the Glidein start dir. Find a better way
             exe_env.append("IDTOKENS_FILE=/dev/null")
+
+        # This is used to set the "+GlideinOverloadEnabled" param in the condor jdl
+        # This is the attribute that goes in the activity log and it used for monitoring.
+        exe_env.append("GLIDEIN_OVERLOAD_ENABLED=%s" % glidein_overloaded_bool)
 
         # The parameter list to be added to the arguments for glidein_startup.sh
         params_str = ""
