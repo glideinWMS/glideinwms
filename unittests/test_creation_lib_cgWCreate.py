@@ -38,7 +38,7 @@ class TestGlideinSubmitDictFile(unittest.TestCase):
         gridtype = "gt2"
         entry_enabled = "True"
         try:
-            self.gsdf.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, self.entry_name)
+            self.gsdf.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, self.entry_name, [])
             assert False  # Should have thrown RunTimeError!!
         except RuntimeError:
             pass
