@@ -164,38 +164,23 @@ function detect_slot_cpus {
 }
 
 function setup_overload {
-   local should_enable_overload=false
+    if [[ "${GLIDEIN_OVERLOAD_ENABLED,,}" == "true" ]]; then
+      # Check that GLIDEIN_OVERLOAD_CPUS is set
+      if [[ -z "${GLIDEIN_OVERLOAD_CPUS:-}" ]]; then
+          echo "INFO: GLIDEIN_OVERLOAD_ENABLED=true but GLIDEIN_OVERLOAD_CPUS is not set; skipping overload setup"
+          return
+      fi
 
-    if [[ -n "$GLIDEIN_OVERLOAD_ENABLED" ]]; then
-        local value="${GLIDEIN_OVERLOAD_ENABLED,,}"  # Normalize to lowercase
+      # Check that GLIDEIN_OVERLOAD_CPUS is numeric
+      if [[ ! "${GLIDEIN_OVERLOAD_CPUS}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+          echo "INFO: GLIDEIN_OVERLOAD_CPUS is not numeric ('${GLIDEIN_OVERLOAD_CPUS}'); skipping overload setup"
+          return
+      fi
 
-        if [[ "$value" == "true" ]]; then
-            should_enable_overload=true
-        elif [[ "$value" == "false" ]]; then
-            should_enable_overload=false
-        elif [[ "$value" =~ ^([0-9]{1,3})%$ ]]; then
-            local percent="${BASH_REMATCH[1]}"
-            if (( percent > 0 && percent <= 100 )); then
-                local rand=$(( RANDOM % 100 + 1 ))  # 1 to 100
-                if (( rand <= percent )); then
-                    should_enable_overload=true
-                    echo "GLIDEIN_OVERLOAD_ENABLED set to $GLIDEIN_OVERLOAD_ENABLED: random=$rand <= $percent, enabling overload."
-                else
-                    echo "GLIDEIN_OVERLOAD_ENABLED set to $GLIDEIN_OVERLOAD_ENABLED: random=$rand > $percent, not enabling overload."
-                fi
-            fi
-        fi
-        gconfig_add GLIDEIN_OVERLOAD_ENABLED "${should_enable_overload}"
-        add_condor_vars_line GLIDEIN_OVERLOAD_ENABLED "C" "-" "+" "N" "N" "-"
-    fi
+      echo "GLIDEIN_OVERLOAD_CPUS is set to $GLIDEIN_OVERLOAD_CPUS. Adjusting GLIDEIN_CPUS from base value $GLIDEIN_CPUS"
 
-    if [[ "$should_enable_overload" == "true" && -n "$GLIDEIN_OVERLOAD_CPUS" ]]; then
-        echo "GLIDEIN_OVERLOAD_CPUS is set to $GLIDEIN_OVERLOAD_CPUS. Adjusting GLIDEIN_CPUS from base value $GLIDEIN_CPUS"
-        # Multiply the two variables using bc
-        local result
-        result=$(bc <<< "scale=2; $GLIDEIN_CPUS * $GLIDEIN_OVERLOAD_CPUS")
-        # Round up the result
-        GLIDEIN_CPUS=$(printf "%.0f" "$result")
+      result=$(bc <<< "scale=2; $GLIDEIN_CPUS * $GLIDEIN_OVERLOAD_CPUS")
+      GLIDEIN_CPUS=$(printf "%.0f" "$result")
     fi
 }
 

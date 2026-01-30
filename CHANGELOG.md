@@ -9,13 +9,15 @@ Hardened and improved validation of the generators' configuration. This version 
 
 ### New features / functionalities
 
--   All changes and fixes in v3.10.17
+-   All changes and fixes in v3.10.17 (v3.10.18 RC1)
 -   Added `make_scitoken_key` and the ability to generate and validate self-signed tokens in the Frontend (PR #623)
 -   Added configuration checks to validate Generator's context for mandatory attributes and Generator specific rules (PR #611, PR #623, PR #626)
 -   Made client/Frontend directories more flexible, e.g. to have the credential library work with Decision Engine (PR #628)
+-   Added GlideinOverloadEnabled to the activity logs for monitoring purposes (PR #629, Issue #569)
 
 ### Changed defaults / behaviours
 
+-   gettarballs.py now has an improved management of default tarballs
 -   SciTokenGenerator is stricter about the context in the configuration, requiring fields like key file and issuer and requiring an https URL for the issuer (PR #626)
 
 ### Deprecated / removed options and commands

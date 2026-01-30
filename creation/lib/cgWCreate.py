@@ -158,6 +158,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             proxy_url = None
         client_log_base_dir = conf.get_child("submit")["base_client_log_dir"]
         submit_attrs = entry.get_child("config").get_child("submit").get_child_list("submit_attrs")
+        glidein_attrs = entry.get_child_list("attrs")
         enc_input_files = []
 
         enc_input_files.append("$ENV(IDENTITY_CREDENTIALS:)")
@@ -223,22 +224,30 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # set up the grid specific attributes
         if gridtype == "ec2":
             self.populate_ec2_grid()
-            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files=None)
+            self.populate_standard_grid(
+                rsl, auth_method, gridtype, entry_enabled, entry_name, glidein_attrs, enc_input_files=None
+            )
         elif gridtype == "gce":
             self.populate_gce_grid()
         elif gridtype == "condor":
             # Condor-C is the same as normal grid with a few additions
             # so we first do the normal population
-            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
+            self.populate_standard_grid(
+                rsl, auth_method, gridtype, entry_enabled, entry_name, glidein_attrs, enc_input_files
+            )
             # self.populate_standard_grid(rsl, auth_method, gridtype, token_files)
             # next we add the Condor-C additions
             self.populate_condorc_grid()
         elif gridtype == "arc":
             # not adding a function for one line for the moment
-            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
+            self.populate_standard_grid(
+                rsl, auth_method, gridtype, entry_enabled, entry_name, glidein_attrs, enc_input_files
+            )
             self.add("x509UserProxy", "$ENV(X509_USER_PROXY:)")
         else:
-            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
+            self.populate_standard_grid(
+                rsl, auth_method, gridtype, entry_enabled, entry_name, glidein_attrs, enc_input_files
+            )
 
         self.populate_submit_attrs(submit_attrs, gridtype)
         self.populate_glidein_classad(proxy_url)
@@ -280,7 +289,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         self.jobs_in_cluster = "$ENV(GLIDEIN_COUNT)"
 
-    def populate_standard_grid(self, rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files=None):
+    def populate_standard_grid(
+        self, rsl, auth_method, gridtype, entry_enabled, entry_name, glidein_attrs, enc_input_files=None
+    ):
         """Create a standard condor jdl file to submit to  OSG grid
 
         Args:
@@ -327,6 +338,20 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         self.add("stream_output", "False")
         self.add("stream_error ", "False")
+
+        overload_attr = next((ga for ga in glidein_attrs if ga["name"].upper() == "GLIDEIN_OVERLOAD_ENABLED"), None)
+        if overload_attr is not None:
+            if overload_attr["value"].strip()[-1] == "%" and not (
+                overload_attr["parameter"] == "True" and overload_attr["const"] == "False"
+            ):
+                raise RuntimeError(
+                    f"If you want to use a percentage with GLIDEIN_OVERLOAD_ENABLED, then you need to set it as const=False and parameter=True for entry {entry_name}"
+                )
+
+        # If the entry is using overloading, we want to add the attribute to the event log
+        # This is for monitoring purpoises, see: https://github.com/glideinWMS/glideinwms/issues/569
+        # Add this because GLIDEIN_OVERLOAD_ENABLED might be set in the frontend
+        self.add("job_ad_information_attrs ", "GlideinOverloadEnabled")
 
     def populate_submit_attrs(self, submit_attrs, gridtype, attr_prefix=""):
         for submit_attr in submit_attrs:
@@ -386,6 +411,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("+GlideinWorkDir", '"$ENV(GLIDEIN_STARTUP_DIR)"')
         self.add("+GlideinSlotsLayout", '"$ENV(GLIDEIN_SLOTS_LAYOUT)"')
         self.add("+GlideinMaxWalltime", "$ENV(GLIDEIN_MAX_WALLTIME)")
+        self.add("+GlideinOverloadEnabled", "$ENV(GLIDEIN_OVERLOAD_ENABLED)")
         # fename does not start with Glidein for convenience (it's short) and consistency with options of the factory tools
         # that already use the fename naming convention. Added after the condor_privsep deprecation.
         self.add("+fename", '"$ENV(GLIDEIN_USER)"')

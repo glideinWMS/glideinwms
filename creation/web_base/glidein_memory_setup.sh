@@ -77,45 +77,24 @@ if [ "${GLIDEIN_MaxMemMBs}" = "" ]; then
 fi
 
 function setup_overload() {
-    local should_enable_overload=false
+    if [[ "${GLIDEIN_OVERLOAD_ENABLED,,}" == "true" ]]; then
 
-    if [[ -n "$GLIDEIN_OVERLOAD_ENABLED" ]]; then
-        local value="${GLIDEIN_OVERLOAD_ENABLED,,}"  # Normalize to lowercase
-
-        if [[ "$value" == "true" ]]; then
-            should_enable_overload=true
-        elif [[ "$value" == "false" ]]; then
-            should_enable_overload=false
-        elif [[ "$value" =~ ^([0-9]{1,3})%$ ]]; then
-            local percent="${BASH_REMATCH[1]}"
-            if (( percent > 0 && percent <= 100 )); then
-                local rand=$(( RANDOM % 100 + 1 ))  # 1 to 100
-                if (( rand <= percent )); then
-                    should_enable_overload=true
-                    echo "GLIDEIN_OVERLOAD_ENABLED set to $GLIDEIN_OVERLOAD_ENABLED: random=$rand <= $percent, enabling overload."
-                else
-                    echo "GLIDEIN_OVERLOAD_ENABLED set to $GLIDEIN_OVERLOAD_ENABLED: random=$rand > $percent, not enabling overload."
-                fi
-            fi
-        fi
-        gconfig_add GLIDEIN_OVERLOAD_ENABLED "${should_enable_overload}"
-        add_condor_vars_line GLIDEIN_OVERLOAD_ENABLED "C" "-" "+" "N" "N" "-"
-    fi
-
-    if [[ "$should_enable_overload" == "true" ]]; then
-        if [[ -n "$GLIDEIN_OVERLOAD_CPUS" ]]; then
-            echo "GLIDEIN_OVERLOAD_CPUS is set to $GLIDEIN_OVERLOAD_CPUS. Adjusting GLIDEIN_CPUS from base value $GLIDEIN_CPUS"
-            local result
-            result=$(bc <<< "scale=2; $GLIDEIN_CPUS * $GLIDEIN_OVERLOAD_CPUS")
-            GLIDEIN_CPUS=$(printf "%.0f" "$result")
+        # Check that GLIDEIN_OVERLOAD_MEMORY is set
+        if [[ -z "${GLIDEIN_OVERLOAD_MEMORY:-}" ]]; then
+            echo "INFO: GLIDEIN_OVERLOAD_ENABLED=true but GLIDEIN_OVERLOAD_MEMORY is not set; skipping memory overload setup"
+            return
         fi
 
-        if [[ -n "$GLIDEIN_OVERLOAD_MEMORY" ]]; then
-            echo "GLIDEIN_OVERLOAD_MEMORY is set to $GLIDEIN_OVERLOAD_MEMORY. Adjusting GLIDEIN_MaxMemMBs from base value $GLIDEIN_MaxMemMBs"
-            local result
-            result=$(bc <<< "scale=2; $GLIDEIN_MaxMemMBs * $GLIDEIN_OVERLOAD_MEMORY")
-            GLIDEIN_MaxMemMBs=$(printf "%.0f" "$result")
+        # Check that GLIDEIN_OVERLOAD_MEMORY is numeric
+        if [[ ! "${GLIDEIN_OVERLOAD_MEMORY}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+            echo "INFO: GLIDEIN_OVERLOAD_MEMORY is not numeric ('${GLIDEIN_OVERLOAD_MEMORY}'); skipping memory overload setup"
+            return
         fi
+
+        echo "GLIDEIN_OVERLOAD_MEMORY is set to $GLIDEIN_OVERLOAD_MEMORY. Adjusting GLIDEIN_MaxMemMBs from base value $GLIDEIN_MaxMemMBs"
+
+        result=$(bc <<< "scale=2; $GLIDEIN_MaxMemMBs * $GLIDEIN_OVERLOAD_MEMORY")
+        GLIDEIN_MaxMemMBs=$(printf "%.0f" "$result")
     fi
 }
 
