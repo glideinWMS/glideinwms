@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_11_3_rc3
+# GLIDEINWMS_VERSION v3_11_3
 ###################################################################
 78bb68217a24e977bdc5850e7d607960  ./__init__.py
 32b4bfc3e16d335b71c235d34a819eba  ./.codespell/ignore_lines.txt
@@ -8,7 +8,7 @@ bf1869a9f0e22861757b16f54e1acee9  ./.codespell/ignore_words.txt
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
 ba748ed3bc5995aee49b1067feaf7999  ./bigfiles/cvmfs_utils.tar.gz
 4558e767c3bea40c689e0c7eec0fd2ce  ./bigfiles/README.md
-1cbeca0f86e9f8e679f0cab69f6bf2fa  ./CHANGELOG.md
+ab242d142b375b35050bddaabfcaa78e  ./CHANGELOG.md
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 886e483062dbc2844dc52dad44644333  ./creation/clone_glidein
@@ -81,9 +81,9 @@ cc20d37f12939af71e04d7641ccbbf40  ./creation/web_base/frontendRRDBrowse.html
 269d6bf84e9b68219b06f368fbe0f75e  ./creation/web_base/frontendStatus.html
 4a567d2f9fb25ce28f7b28c698ab148e  ./creation/web_base/frontendStatusNow.html
 99c54c738dbae15cbf198a748388c588  ./creation/web_base/get_id_selectors.source
-6f9daa7ab9c03caf1bd44bd57ce5e485  ./creation/web_base/glidein_cpus_setup.sh
+96ad0c08fb397802c561178c04473442  ./creation/web_base/glidein_cpus_setup.sh
 6c1c5dd8b35f2e7007cde517912d614c  ./creation/web_base/glidein_lib.sh
-2fbe1c6fb0b5fc2cfd93ebdb38c7f5c2  ./creation/web_base/glidein_memory_setup.sh
+dced2c2427a49b2c57dcd296c63aa196  ./creation/web_base/glidein_memory_setup.sh
 e3ed418a005bb04fda16d9d3ef32bf49  ./creation/web_base/glidein_paths.source
 bb78d0e159849bc37951a17935eefc19  ./creation/web_base/glidein_sitewms_setup.sh
 4e5b56ef1d89aab93e37448c570f5302  ./creation/web_base/gwms-python

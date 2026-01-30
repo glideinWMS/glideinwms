@@ -3023,7 +3023,7 @@ SPDX-License-Identifier: Apache-2.0
           <!-- starting 3.7 generated via tags.yaml -->
           <!-- start development -->
           <li>
-            <a id="v3_11_3"><b>v3_11_3</b></a> released on January 13, 2026 (<a
+            <a id="v3_11_3"><b>v3_11_3</b></a> released on January 30, 2026 (<a
               href="http://glideinwms.fnal.gov/doc.v3_11_3/index.html"
               >Manual</a
             >,
@@ -3033,7 +3033,7 @@ SPDX-License-Identifier: Apache-2.0
             <ul>
               <li>
                 Including all features and fixes of the production series up to
-                3.10.17
+                3.10.17 (and v3.10.18 RC1)
               </li>
               <li>
                 Added `make_scitoken_key` and the ability to generate and
@@ -3064,6 +3064,15 @@ SPDX-License-Identifier: Apache-2.0
                 Frontend configuration. Assuming that no Python2 is lingering in
                 configurations (PR#628)
               </li>
+              <li>
+                Added GlideinOverloadEnabled to the activity logs for monitoring
+                purposes (PR#629, Issue#569)
+              </li>
+              <li>
+                get_tarballs.py now has an improved management of default
+                tarballs (PR#627)
+              </li>
+              <li>Improved GeneratorContext error reporting (PR#635)</li>
               <li>
                 Bug fix: Fixed inconsistencies in the Generators context
                 defaults specification (PR#623)
