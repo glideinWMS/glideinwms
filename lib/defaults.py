@@ -29,8 +29,8 @@ BINARY_ENCODING_DEFAULT = "utf_8"  # valid aliases: utf-8, utf8 (default Python 
 
 # These default directories are valid for RPM installations
 PLUGINS_DIR = "/etc/gwms-frontend/plugin.d"  # TODO: Make this configurable
-# NOTE that these lowercase named directories should never be imported selectively (as `from default import base_dir`)
-#      but always with the module (`import defaults` and referred as `defaults.base_dir`). This because their value
+# NOTE that these lowercase named directories should never be imported selectively (as `from defaults import base_dir`)
+#      but always with the module (`import defaults` and referred as `defaults.base_dir`). This is because their value
 #      can change (invoking `set_base_dir`) and the former would make a copy and always use the initial default value
 base_dir = Path.home()
 web_sec_dir = os.path.join(base_dir, "web-area", "cred")
