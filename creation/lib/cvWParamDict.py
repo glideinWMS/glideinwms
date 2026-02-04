@@ -10,7 +10,7 @@ import os.path
 import shutil
 
 from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
-from glideinwms.lib import x509Support
+from glideinwms.lib.credentials import x509
 from glideinwms.lib.credentials.utils import load_context
 from glideinwms.lib.generators import generator_context_errors, GeneratorContextError
 from glideinwms.lib.util import str2bool
@@ -1448,7 +1448,7 @@ def populate_group_security(client_security, params, sub_params, group_name):
                 if (pel["pool_idx_len"] is None) and (pel["pool_idx_list"] is None):
                     try:
                         # only one
-                        dn = x509Support.extract_DN(proxy_fname)
+                        dn = x509.X509Cert(path=proxy_fname).subject
                         # don't worry about conflict... there is nothing wrong if the DN is listed twice
                         pilot_dns.append(dn)
                     except SystemExit:
@@ -1458,7 +1458,7 @@ def populate_group_security(client_security, params, sub_params, group_name):
                     pool_idx_list_expanded_strings = get_pool_list(pel)
                     for idx in pool_idx_list_expanded_strings:
                         real_proxy_fname = f"{proxy_fname}{idx}"
-                        dn = x509Support.extract_DN(real_proxy_fname)
+                        dn = x509.X509Cert(path=real_proxy_fname).subject
                         # don't worry about conflict... there is nothing wrong if the DN is listed twice
                         pilot_dns.append(dn)
 

@@ -23,6 +23,7 @@ class X509Cert(Credential[x509.Certificate]):
     Attributes:
         cred_type (CredentialType): The type of the credential.
         extension (str): The file extension for the credential.
+        subject (Optional[str]): The subject (aka Distinguished Name (DN)) of the certificate.
         pub_key (Optional[CERTIFICATE_PUBLIC_KEY_TYPES]): The public key of the certificate.
         not_before_time (Optional[datetime]): The not-before time of the certificate.
         not_after_time (Optional[datetime]): The not-after time of the certificate.

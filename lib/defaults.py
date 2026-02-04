@@ -22,7 +22,7 @@ from pathlib import Path
 BINARY_ENCODING = "latin_1"  # valid aliases (case insensitive): latin-1, latin1, L1, iso-8859-1, 8859
 
 # All strings should be ASCII, so ASCII or latin-1 (256 safe) should be OK.
-# Anyway M2Crypto uses 'utf_8' to implement AnyStr (union of bytes and str).
+# M2Crypto was using 'utf_8' to implement AnyStr (union of bytes and str), cryptography uses only bytes.
 BINARY_ENCODING_CRYPTO = "utf_8"  # valid aliases: utf-8, utf8
 BINARY_ENCODING_ASCII = "ascii"  # valid aliases: 646, us-ascii
 BINARY_ENCODING_DEFAULT = "utf_8"  # valid aliases: utf-8, utf8 (default Python 3 encoding)

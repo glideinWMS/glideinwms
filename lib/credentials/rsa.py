@@ -151,7 +151,7 @@ class RSAPrivateKey(Credential[PRIVATE_KEY_TYPES]):
     Attributes:
         cred_type (CredentialType): The type of the credential.
         extension (str): The file extension for the key.
-        pub_key (Optional[PUBLIC_KEY_TYPES]): The public key of the RSA key.
+        pub_key (Optional[RSAPublicKey]): The public key of the RSA key.
         pub_key_id (Optional[str]): The ID of the public key.
         key_type (Optional[str]): The type of the RSA key.
     """
@@ -160,7 +160,7 @@ class RSAPrivateKey(Credential[PRIVATE_KEY_TYPES]):
     extension = "rsa"
 
     @property
-    def pub_key(self) -> Optional[PUBLIC_KEY_TYPES]:
+    def pub_key(self) -> Optional[RSAPublicKey]:
         """RSA public key."""
         if not self._payload:
             return None
@@ -336,7 +336,7 @@ class RSAPrivateKey(Credential[PRIVATE_KEY_TYPES]):
 class RSAKeyPair(CredentialPair, RSAPublicKey):
     """Represents a pair of RSA keys, consisting of a public key and a private key.
 
-    This class extends both the `CredentialPair` and `RSAKey` classes.
+    This class extends both the `CredentialPair` and `RSAPublicKey` classes.
 
     Attributes:
         cred_type (CredentialPairType): The type of the credential pair.

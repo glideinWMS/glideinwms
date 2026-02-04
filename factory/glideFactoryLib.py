@@ -21,7 +21,7 @@ from itertools import groupby
 import glideinwms.factory.glideFactorySelectionAlgorithms
 
 from glideinwms.factory import glideFactoryConfig
-from glideinwms.lib import (  # in codice commentato:, x509Support
+from glideinwms.lib import (
     condorExe,
     condorManager,
     condorMonitor,
@@ -588,38 +588,6 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data, factoryC
     #  Should be a common functionality provided in lib
     if factoryConfig is None:
         factoryConfig = globals()["factoryConfig"]
-
-    # # TODO: This whole section seems to do nothing and should be removed (MM):
-    # #  gets the DN, gets the voms exception and does nothing w/ those variables.
-    # #  It is also silently protected for any failure, so not even the verification is important
-    # #  Since dn and voms are extracted, should they be used in a log message or the file name?
-    # dn = ""
-    # voms = ""
-    # tempfilename = ""
-    # try:
-    #     (f, tempfilename) = tempfile.mkstemp()
-    #     os.write(f, proxy_data)
-    #     os.close(f)
-    # except:
-    #     logSupport.log.error(f"Unable to create tempfile '{tempfilename}'!")
-    #
-    # try:
-    #     dn = x509Support.extract_DN(tempfilename)  # not really used
-    #
-    #     voms_proxy_info = which("voms-proxy-info")
-    #     if voms_proxy_info is not None:
-    #         voms_list = condorExe.iexe_cmd(f"{voms_proxy_info} -fqan -file {tempfilename}")
-    #         # sort output in case order of voms fqan changed
-    #         voms = "\n".join(sorted(voms_list))
-    # except:
-    #     # If voms-proxy-info doesn't exist or errors out, just hash on dn
-    #     voms = ""
-    #
-    # try:
-    #     os.unlink(tempfilename)
-    # except:
-    #     logSupport.log.error("Unable to delete tempfile %s!" % tempfilename)
-    # # TODO: end of the section to remove
 
     # proxy_dir = factoryConfig.get_client_proxies_dir(username)
     # Have to hack this since the above code was modified to support v3plus going forward

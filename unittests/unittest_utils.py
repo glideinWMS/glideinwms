@@ -148,7 +148,7 @@ class TestImportError(Exception):
     """
 
     def __init__(self, err_msg="Error"):
-        handled_import_errors = ["M2Crypto"]
+        handled_import_errors = []
         sys_ = platform.system()
         if sys_ != "Linux":
             err_msg += """.  Platform %s is not well tested/supported """ % sys_

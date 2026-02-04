@@ -15,9 +15,9 @@ RUN dnf install -y epel-release wget sed git yum-utils \
     dnf -y install osg-ca-certs
 
 # python3-devel required by rpmbuild and other sw needed by CI
-# swig is used by pip to install m2crypto (TravisCI)
-# Missing from base image: ps bc, cpp, bzip, sudo, which, pylint, python3-pycodestyle python3-m2crypto
-RUN dnf -y install apptainer python3-rrdtool bats cpp swig procps bc bzip2 sudo which pylint python3-pycodestyle python3-m2crypto
+# swig is used by pip to install m2crypto (TravisCI). python3-m2crypto and swig removed
+# Missing from base image: ps bc, cpp, bzip, sudo, which, pylint, python3-pycodestyle
+RUN dnf -y install apptainer python3-rrdtool bats cpp procps bc bzip2 sudo which pylint python3-pycodestyle
 
 
 # yum dep program needs to be added

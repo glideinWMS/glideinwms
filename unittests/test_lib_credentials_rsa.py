@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit test for glideinwms/lib/pubCrypto.py"""
+"""Unit test for glideinwms/lib/credentials/rsa.py"""
 
 import os
 import unittest
@@ -13,7 +13,7 @@ import xmlrunner
 from glideinwms.unittests.unittest_utils import TestImportError
 
 try:
-    from glideinwms.lib.pubCrypto import RSAKey
+    from glideinwms.lib.credentials.rsa import RSAPrivateKey
 except ImportError as err:
     raise TestImportError(str(err))
 
@@ -23,11 +23,11 @@ class TestPubCrypto(unittest.TestCase):
         self.privkey_file = "priv.pem"
         self.pubkey_file = "pub.pem"
         self.key_length = 1024
-        self.cr = RSAKey()
+        self.cr = RSAPrivateKey()
         self.cr.new(self.key_length)
-        self.cr_pub = self.cr.PubRSAKey()
-        self.cr.save(self.privkey_file)
-        self.cr_pub.save(self.pubkey_file)
+        self.cr_pub = self.cr.pub_key
+        self.cr.save_to_file(self.privkey_file)
+        self.cr_pub.save_to_file(self.pubkey_file)
 
     def tearDown(self):
         os.remove(self.privkey_file)
