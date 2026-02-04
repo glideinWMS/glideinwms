@@ -11,8 +11,8 @@ import getpass
 import os
 import socket
 
+from glideinwms.lib import defaults
 from glideinwms.lib.credentials import create_credential, credential_type_from_string
-from glideinwms.lib.defaults import PWD_DIR
 from glideinwms.lib.generators import export_generator
 from glideinwms.lib.generators.credential_generator import CredentialGenerator
 from glideinwms.lib.token_util import create_and_sign_token
@@ -35,7 +35,7 @@ class IdTokenGenerator(CredentialGenerator):
 
     def _generate(self, **kwargs):
         password = self.context["password"] or os.path.join(
-            PWD_DIR, kwargs["elementDescript"].merged_data.get("IDTokenKeyname", getpass.getuser().upper())
+            defaults.pwd_dir, kwargs["elementDescript"].merged_data.get("IDTokenKeyname", getpass.getuser().upper())
         )
 
         scope = self.context["scope"] or "condor:/READ condor:/ADVERTISE_STARTD condor:/ADVERTISE_MASTER"

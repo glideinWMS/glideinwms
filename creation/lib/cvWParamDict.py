@@ -1104,7 +1104,17 @@ def validate_credential_generator_context(generator_module, context):
     try:
         generator_context_errors(generator_module, load_context(context))
     except GeneratorContextError as e:
-        raise RuntimeError(f"Invalid context '{context}' for dynamic credential '{generator_module}': {str(e)}") from e
+        if e.__cause__ is None:
+            raise RuntimeError(
+                f"Invalid context '{context}' for dynamic credential '{generator_module}': {str(e)}"
+            ) from e
+        else:
+            first_error = e
+            while first_error.__cause__ is not None:
+                first_error = first_error.__cause__
+            raise RuntimeError(
+                f"Invalid context '{context}' for dynamic credential '{generator_module}': {str(e)} caused by {first_error.__class__.__name__}: {first_error}"
+            ) from e
 
 
 # In 5345 there was an additional parameter but it was not used in the function:

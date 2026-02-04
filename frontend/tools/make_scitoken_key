@@ -14,9 +14,11 @@ https://htcondor.readthedocs.io/en/latest/admin-manual/file-and-cred-transfer.ht
 
 import argparse
 import binascii
+import grp
 import json
 import os
 import os.path
+import pwd
 import sys
 
 from cryptography.hazmat.backends import default_backend
@@ -27,7 +29,7 @@ from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from scitokens.utils import bytes_from_long, string_from_long
 
 from glideinwms.frontend import glideinFrontendConfig
-from glideinwms.lib.defaults import BASE_DIR, KEY_DIR, set_base_dir, WEB_SEC_DIR
+from glideinwms.lib import defaults
 
 verbose = False
 
@@ -57,7 +59,7 @@ def get_args() -> argparse.Namespace:
         "-k",
         "--private-key-file",
         help="Location of the unencrypted private key file. Will be created if it does not exist. Defaults to the standard one.",
-        default=os.path.join(KEY_DIR, "frontend_scitokens_key.pem"),
+        default=None,
     )
     parser.add_argument(
         "-f",
@@ -100,22 +102,22 @@ def get_args() -> argparse.Namespace:
     out = parser.parse_args()
     if out.client_user:
         # Change the directory variables
-        set_base_dir(out.client_user)
+        defaults.set_base_dir(out.client_user)
     elif os.getuid() == 0:
         # Could also guess from the directories in /etc
         raise ValueError("Set --client-user (e.g. to frontend/decisionengine) when running as root.")
     # Adjust default paths depending on the user
     if out.private_key_file is None:
-        out.private_key_file = os.path.join(KEY_DIR, "frontend_scitokens_key.pem")
+        out.private_key_file = os.path.join(defaults.key_dir, "frontend_scitokens_key.pem")
     if out.work_dir is None:
-        out.work_dir = os.path.join(BASE_DIR, "vofrontend")
+        out.work_dir = os.path.join(defaults.base_dir, "vofrontend")
     if out.web_dir is None:
-        out.web_dir = os.path.join(WEB_SEC_DIR, "scitokens")
+        out.web_dir = os.path.join(defaults.web_sec_dir, "scitokens")
     return out
 
 
 # def make_key(private_key_file, use_ec=False, force_new=False) -> types.PrivateKeyTypes:  - AttributeError: module 'cryptography.hazmat.primitives.asymmetric.types' has no attribute 'PrivateKeyTypes'
-def make_key(private_key_file, use_ec=False, force_new=False):
+def make_key(private_key_file, use_ec=False, force_new=False, owner=None):
     """Retrieve the RSA or EC private key.
 
     Read it from the key file, if existing, otherwise generate and save it.
@@ -124,6 +126,7 @@ def make_key(private_key_file, use_ec=False, force_new=False):
         private_key_file (str): Location of the private key.
         use_ec (bool): If True, use EC private key instead of RSA private key. Defaults to False.
         force_new (bool): If True, overwrite existing private key. Defaults to False.
+        owner (str): The user running the client and owner of the file.
 
     Returns:
         types.PrivateKeyTypes: RSA or EC Private key bytes.
@@ -157,6 +160,9 @@ def make_key(private_key_file, use_ec=False, force_new=False):
         )
         with open(pk_descriptor, "wb") as key_file:
             key_file.write(private_pem)
+        if owner:
+            user_info = pwd.getpwnam(owner)
+            os.chown(private_key_file, user_info.pw_uid, user_info.pw_gid)
     return private_key
 
 
@@ -214,7 +220,7 @@ def get_jwk_pk_string(private_key, key_type) -> (str, str):
     return kid.decode(), json.dumps(jwk_public_key, sort_keys=True, indent=4, separators=(",", ": "))
 
 
-def prepare_web_dir(web_dir, group_name, uri, public_key) -> (str, str):
+def prepare_web_dir(web_dir, group_name, uri, public_key, owner) -> (str, str):
     """Set up the web directory to advertise the SciToken key.
 
     Args:
@@ -222,24 +228,46 @@ def prepare_web_dir(web_dir, group_name, uri, public_key) -> (str, str):
         group_name (str): group name.
         uri (str): URI.
         public_key (str): public key.
+        owner (str): User running the client and file owner.
 
     Returns:
         str, str: Public key issuer and advertising URI.
     """
+    uid = gid = None
+    if owner:
+        user_info = pwd.getpwnam(owner)
+        uid = user_info.pw_uid
+        gid = user_info.pw_gid
+        try:
+            # If there is the glidein group, use that instead of the default one for the Web files
+            group_info = grp.getgrnam("glidein")
+            gid = group_info.gr_gid
+        except KeyError:
+            pass
     public_key_fname = "public-key.jwks"
     group_uri = ""
     if group_name:
         web_dir = os.path.join(web_dir, group_name)
         group_uri = f"/{group_name}"
-    os.makedirs(web_dir, exist_ok=True)
+    os.makedirs(web_dir, mode=0o775, exist_ok=True)
     log(f"Setting up web directory {web_dir} with config and public key '{public_key_fname}' files.")
-    with open(os.path.join(web_dir, public_key_fname), "wt") as pk_file:
+    public_key_path = os.path.join(web_dir, public_key_fname)
+    with open(public_key_path, "wt") as pk_file:
         pk_file.write(public_key)
+    if uid is not None:
+        os.chown(web_dir, uid, gid)
+        os.chown(public_key_path, uid, gid)
+        os.chmod(public_key_path, 0o664)
     web_dir = os.path.join(web_dir, ".well-known")
-    os.makedirs(web_dir, exist_ok=True)
+    os.makedirs(web_dir, mode=0o775, exist_ok=True)
     issuer = f"{uri}{group_uri}"
-    with open(os.path.join(web_dir, "openid-configuration"), "wt") as config_file:
+    config_file_path = os.path.join(web_dir, "openid-configuration")
+    with open(config_file_path, "wt") as config_file:
         config_file.write("{\n" f'    "issuer":"{issuer}",\n    "jwks_uri":"{issuer}/{public_key_fname}"\n' "}\n")
+    if uid is not None:
+        os.chown(web_dir, uid, gid)
+        os.chown(config_file_path, uid, gid)
+        os.chmod(config_file_path, 0o664)
     return f"{issuer}", f"{issuer}/{public_key_fname}"
 
 
@@ -255,7 +283,7 @@ def main():
     group = args.group or "main"
     gfe_desc = glideinFrontendConfig.ElementMergedDescript(args.work_dir, group)
     # Calculate and verify consistency of private key
-    private_key = make_key(args.private_key_file, args.ec, args.force_new_key)
+    private_key = make_key(args.private_key_file, args.ec, args.force_new_key, args.client_user)
     if isinstance(private_key, rsa.RSAPrivateKey):
         key_type = "RS256"
     elif isinstance(private_key, ec.EllipticCurvePrivateKey):
@@ -270,7 +298,7 @@ def main():
     if uri.startswith("http://"):
         # Forcing https, http is not accepted for token verification
         uri = "https:" + uri[5:]
-    iss, adv_uri = prepare_web_dir(args.web_dir, args.group, uri, pk_str)
+    iss, adv_uri = prepare_web_dir(args.web_dir, args.group, uri, pk_str, args.client_user)
     log(f"Public key from iss: {iss} advertised at: {adv_uri}")
     log(
         f"""Example of XML credential configuration:

@@ -34,7 +34,7 @@ from glideinwms.frontend import (
     glideinFrontendPidLib,
     glideinFrontendPlugins,
 )
-from glideinwms.lib import cleanupSupport, condorMonitor, logSupport, servicePerformance, token_util
+from glideinwms.lib import cleanupSupport, condorMonitor, defaults, logSupport, servicePerformance, token_util
 from glideinwms.lib.credentials import (
     create_credential,
     CredentialError,
@@ -42,7 +42,6 @@ from glideinwms.lib.credentials import (
     CredentialType,
     RSAPublicKey,
 )
-from glideinwms.lib.defaults import PWD_DIR, TOKEN_DIR
 from glideinwms.lib.disk_cache import DiskCache
 from glideinwms.lib.fork import fork_in_bg, ForkManager, wait_for_pids
 from glideinwms.lib.pidSupport import register_sighandler
@@ -251,7 +250,7 @@ class glideinFrontendElement:
             self.group_name, logSupport.log_dir, self.elementDescript.frontend_data
         )
 
-        # We will be starting often, so reduce the clutter
+        # We will be starting frequently, so reduce the clutter
         # logSupport.log.info("Logging initialized")
 
         glideinFrontendMonitoring.monitoringConfig.monitor_dir = glideinFrontendConfig.get_group_dir(
@@ -698,7 +697,7 @@ class glideinFrontendElement:
                 continue  # This is the special "Unmatched" entry
             factory_pool_node = glideid[0]
             request_name = glideid[1]
-            my_identity = str(glideid[2])  # get rid of unicode
+            my_identity = str(glideid[2])  # get rid of Unicode
             glideid_str = f"{request_name}@{factory_pool_node}"
             self.processed_glideid_strs.append(glideid_str)
 
@@ -875,14 +874,14 @@ class glideinFrontendElement:
             callback_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.CALLBACK)
             if not callback_creds:
                 logSupport.log.debug("Custom callback credential not provided. Using default.")
-                if not os.path.exists(TOKEN_DIR):
-                    os.mkdir(TOKEN_DIR, 0o700)
+                if not os.path.exists(defaults.token_dir):
+                    os.mkdir(defaults.token_dir, 0o700)
                 callback_generator = create_credential(
                     "IdTokenGenerator",
                     cred_type=CredentialType.DYNAMIC,
                     purpose=CredentialPurpose.CALLBACK,
                     trust_domain=trust_domain,
-                    context={"cache_dir": TOKEN_DIR},
+                    context={"cache_dir": defaults.token_dir},
                 )
                 self.credentials_plugin.security_bundle.add_credential(callback_generator)
             else:
@@ -1087,16 +1086,16 @@ class glideinFrontendElement:
                 glidein_site = glidein_el["attrs"]["GLIDEIN_Site"]
                 # Using the home directory should solve ownership conflicts for different clients (e.g. DE)
                 # These directories are defined in lib/defaults
-                tkn_file = os.path.join(TOKEN_DIR, f"{self.group_name}.{glidein_site}.idtoken")
-                pwd_file = os.path.join(PWD_DIR, glidein_site)
-                pwd_default = os.path.join(PWD_DIR, self.idtoken_keyname)
+                tkn_file = os.path.join(defaults.token_dir, f"{self.group_name}.{glidein_site}.idtoken")
+                pwd_file = os.path.join(defaults.pwd_dir, glidein_site)
+                pwd_default = os.path.join(defaults.pwd_dir, self.idtoken_keyname)
                 one_hr = 3600
                 tkn_age = sys.maxsize
 
-                if not os.path.exists(TOKEN_DIR):
-                    os.mkdir(TOKEN_DIR, 0o700)
-                if not os.path.exists(PWD_DIR):
-                    os.mkdir(PWD_DIR, 0o700)
+                if not os.path.exists(defaults.token_dir):
+                    os.mkdir(defaults.token_dir, 0o700)
+                if not os.path.exists(defaults.pwd_dir):
+                    os.mkdir(defaults.pwd_dir, 0o700)
 
                 if not os.path.exists(pwd_file):
                     if os.path.exists(pwd_default):
@@ -1125,7 +1124,7 @@ class glideinFrontendElement:
                     #   tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
                     #   logSupport.log.debug("tkn_str= %s" % tkn_str)
                     # The token file is read as text file below. Writing fixed to be consistent
-                    with tempfile.NamedTemporaryFile(mode="w", delete=False, dir=TOKEN_DIR) as fd:
+                    with tempfile.NamedTemporaryFile(mode="w", delete=False, dir=defaults.token_dir) as fd:
                         os.chmod(fd.name, 0o600)
                         fd.write(tkn_str)
                         os.replace(fd.name, tkn_file)
@@ -1184,7 +1183,7 @@ class glideinFrontendElement:
                 # Only consider global or group specific schedds
                 # To be on the safe side add them to blacklist_schedds
                 if schedd not in self.getScheddList():
-                    logSupport.log.debug("Ignoring schedd %s for this group based on the configuration" % (schedd))
+                    logSupport.log.debug(f"Ignoring schedd {schedd} for this group based on the configuration")
                     self.blacklist_schedds.add(schedd)
                     continue
                 el = coll_status_schedd_dict[schedd]
@@ -1224,10 +1223,10 @@ class glideinFrontendElement:
                     if curb_matchmaking.upper() == "TRUE":
                         self.blacklist_schedds.add(schedd)
                         logSupport.log.warning(
-                            "Ignoring schedd %s since CurbMatchmaking in its classad evaluated to 'True'" % (schedd)
+                            f"Ignoring schedd {schedd} since CurbMatchmaking in its classad evaluated to 'True'"
                         )
                 except Exception:
-                    logSupport.log.exception("Unexpected exception checking schedd %s for limit" % schedd)
+                    logSupport.log.exception(f"Unexpected exception checking schedd {schedd} for limit")
 
     def populate_condorq_dict_types(self):
         """Builds the dictionary of condorq types, filtering out blacklisted schedds.
@@ -1995,7 +1994,7 @@ class glideinFrontendElement:
                     try:
                         # The parent really needs just the M2Ctype object,
                         # but that is not picklable, so it will have to
-                        # do it ourself
+                        # do it ourselves
                         globals_el["attrs"]["PubKeyValue"] = str(
                             re.sub(r"\\+n", r"\n", globals_el["attrs"]["PubKeyValue"])
                         )
@@ -2226,7 +2225,7 @@ class glideinFrontendElement:
 
         # Minimum free memory required by CMS jobs is 2500 MB. If we look for
         # less memory in idle MC slot, there is a possibility that we consider
-        # it as an idle resource but non of the jobs would match it.
+        # it as an idle resource but none of the jobs would match it.
         # In case of other VOs that require less memory, HTCondor will auto
         # carve out a slot and there is a chance for over provisioning by a
         # small amount. Over provisioning is by far the worst case than
@@ -2359,7 +2358,7 @@ class glideinFrontendElement:
         except Exception:
             logSupport.log.exception("Error talking to the user pool (condor_status):")
 
-        return (status_dict, fe_counts, global_counts, status_schedd_dict)
+        return status_dict, fe_counts, global_counts, status_schedd_dict
 
     def do_match(self):
         """Performs the actual job-to-glidein matching process in parallel.
@@ -2442,9 +2441,6 @@ class glideinFrontendElement:
                 - prop_mc: Proportional multicore matches.
                 - total: Total matches.
         """
-
-        out = ()
-
         c, p, h, pmc = glideinFrontendLib.countMatch(
             self.elementDescript.merged_data["MatchExprCompiledObj"],
             self.condorq_dict_types[dt]["dict"],
@@ -2454,14 +2450,12 @@ class glideinFrontendElement:
             self.condorq_match_list,
             match_policies=self.elementDescript.merged_data["MatchPolicyModules"],
             # This is the line to enable if you want the frontend to dump data structures during countMatch
-            # You can then use the profile_frontend.py script to execute the countMatch function with real data
+            # You can then use the profile_frontend.py script to execute the countMatch function with real data.
             # Data will be saved into /tmp/frontend_dump/ . Make sure to create the dir beforehand.
             #                        group_name=self.group_name
         )
         t = glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]["dict"])
-
         out = (c, p, h, pmc, t)
-
         return out
 
     def subprocess_count_real(self):
@@ -2498,8 +2492,6 @@ class glideinFrontendElement:
             tuple: A tuple containing statistics results for the given glideins.
                 (You can specify the exact elements of the tuple if known.)
         """
-        out = ()
-
         count_status_multi = {}
         # Count distribution per credentials
         count_status_multi_per_cred = {}
@@ -2619,7 +2611,7 @@ def log_and_sum_factory_line(factory, is_down, factory_stat_arr, old_factory_sta
 
     if old_factory_stat_arr is None:
         return None
-    # else branch, a valid old_factory_stat_arr hes been provided
+    # else branch, a valid old_factory_stat_arr has been provided
     new_arr = []
     for i in range(len(factory_stat_arr)):
         new_arr.append(factory_stat_arr[i] + old_factory_stat_arr[i])

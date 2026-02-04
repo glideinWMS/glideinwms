@@ -18,10 +18,10 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Any, Callable, Generic, List, Mapping, Optional, Tuple, Type, TypeVar, Union
 
-from glideinwms.lib.defaults import CACHE_DIR, PLUGINS_DIR
+from glideinwms.lib import defaults
 from glideinwms.lib.util import hash_nc, import_module
 
-sys.path.append(PLUGINS_DIR)
+sys.path.append(defaults.PLUGINS_DIR)
 _loaded_generators = {}  # All current generators. Updated via export_generator()
 _generator_instances = defaultdict(dict)
 
@@ -63,7 +63,7 @@ class GeneratorContext(dict):
                 "user": (str),  # Mandatory string with name
                 "group": (str,),  # Mandatory string with group
                 "permissions": ((list, None), []),  # Optional list with permissions, defaults to empty list if missing
-                                                    # If set to None will stay None
+                                                    # If set to None, it will stay None
             })
         """
 
@@ -118,6 +118,20 @@ class Generator(ABC, Generic[T]):
     def __repr__(self):
         return str(self)
 
+    @staticmethod
+    def context_checks(context: dict) -> List[str]:
+        """Checks that the context is valid.
+
+        This is passed to `GeneratorContext.validate()`
+
+        Args:
+            context (dict): Generator context
+
+        Returns:
+            list: list of errors encountered. Empty if all OK.
+        """
+        return []
+
     def setup(self):
         """Setup method to be called at the generator's construction"""
         try:
@@ -126,8 +140,7 @@ class Generator(ABC, Generic[T]):
             pass
 
     def generate(self, snapshot: Optional[str] = None, **kwargs) -> T:
-        """
-        Generates an item using the current context and any provided keyword arguments.
+        """Generates an item using the current context and any provided keyword arguments.
 
         Args:
             snapshot (str, optional): An optional identifier for the snapshot or state to use during generation. Defaults to None.
@@ -180,11 +193,11 @@ class CachedGenerator(Generator[T]):
         file_type = self.context.get("type", "cache")
         self.context.validate(
             {
-                "cache_dir": (str, CACHE_DIR),
+                "cache_dir": (str, defaults.cache_dir),
                 "cache_file": (
                     str,
                     os.path.join(
-                        self.context.get("cache_dir", CACHE_DIR),
+                        self.context.get("cache_dir", defaults.cache_dir),
                         f"{self.__class__.__name__}_{self.instance_id}.{file_type}",
                     ),
                 ),
@@ -373,11 +386,13 @@ def generator_context_errors(module: str, context: Optional[Mapping] = None, rai
         module_name = load_bare_generator(module)
     except ImportError as e:
         if raise_exception:
-            raise GeneratorContextError("Failed to validate because unable to import the generator {module}") from e
+            raise GeneratorContextError(f"Failed to validate because unable to import the generator {module}") from e
         return f"Could not import the generator to validate the context: {str(e)}"
     # Validate the context
     try:
-        GeneratorContext(context).validate(_loaded_generators[module_name].CONTEXT_VALIDATION)
+        GeneratorContext(context).validate(
+            _loaded_generators[module_name].CONTEXT_VALIDATION, _loaded_generators[module_name].context_checks
+        )
     except GeneratorContextError as e:
         if raise_exception:
             raise e

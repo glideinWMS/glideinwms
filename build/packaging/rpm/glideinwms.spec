@@ -4,6 +4,9 @@
 # Disable shebang mangling (see GHI#436)
 %undefine __brp_mangle_shebangs
 
+# There is no debug package, disable auto-detect
+%define  debug_package %{nil}
+
 # How to build tar file
 
 # git clone http://cdcvs.fnal.gov/projects/glideinwms
@@ -12,9 +15,9 @@
 # change v3_0_rc3 to the proper tag in the above line
 
 # Release Candidates NVR format
-#%define release 0.1.rc1
+##define release 0.1.rc1
 # Official Release NVR format
-#%define release 2
+##define release 2
 
 # ------------------------------------------------------------------------------
 # For Release Candidate builds, check with Software team on release string
@@ -44,7 +47,10 @@
 %global systemctl_bin systemctl
 # Minimum HTCondor and Python required versions
 %global htcss_min_version 8.9.5
-%global python_min_version 3.6
+%global python_min_version 3.9
+##global __python3 /usr/bin/python3.9
+##global python3_version 3.9
+##define python(abi) >= %{python_min_version}
 
 Name:           glideinwms
 Version:        %{version}
@@ -68,8 +74,15 @@ Source12:       creation/templates/factory_startup_sl7
 
 # Needed for the systemd_... macros to invoke systemctl
 BuildRequires:  systemd-rpm-macros
-BuildRequires:  python3
-BuildRequires:  python3-devel
+#BuildRequires:  python3 >= %{python_min_version}
+#BuildRequires:  python3-devel >= %{python_min_version}
+BuildRequires: python(abi) >= %{python_min_version}
+Requires: python(abi) >= %{python_min_version}
+%if 0%{?rhel} && %{rhel} <= 8
+BuildRequires: pkgconfig(python-%{python_min_version}) >= %{python_min_version}
+%else
+BuildRequires: pkgconfig(python) >= %{python_min_version}
+%endif
 
 %description
 This is a package for the glidein workload management system.
@@ -110,7 +123,7 @@ This package is for a standalone vofrontend install
 %package vofrontend-core
 Summary: The intelligence logic for GlideinWMS Frontend.
 Requires: condor >= %{htcss_min_version}
-Requires: python3 >= %{python_min_version}
+#Requires: python3 >= %{python_min_version}
 Requires: javascriptrrd >= 1.1.0
 Requires: osg-wn-client
 Requires: vo-client
@@ -128,7 +141,6 @@ Requires: rrdtool
 Requires: python3-rrdtool
 Requires: python3-scitokens
 Requires: initscripts
-Requires: python3-m2crypto
 Requires(post): systemd
 Requires(post): /usr/sbin/useradd
 Requires(post): /usr/sbin/usermod
@@ -140,7 +152,7 @@ frontend. Created to separate out the httpd server.
 
 %package vofrontend-libs
 Summary: The Python creation library for GlideinWMS Frontend.
-Requires: python3 >= %{python_min_version}
+#Requires: python3 >= %{python_min_version}
 Requires: javascriptrrd >= 1.1.0
 Requires: glideinwms-libs = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
@@ -150,7 +162,7 @@ This subpackage includes libraries for Frontend-like programs.
 
 %package vofrontend-glidein
 Summary: The Glidein components for GlideinWMS Frontend.
-Requires: python3 >= %{python_min_version}
+#Requires: python3 >= %{python_min_version}
 Requires: glideinwms-libs = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
 %description vofrontend-glidein
@@ -197,13 +209,12 @@ harden the GlideinWMS Web servers for safer production use.
 
 %package libs
 Summary: The GlideinWMS common libraries.
-Requires: python3 >= %{python_min_version}
+#Requires: python3 >= %{python_min_version}
 Requires: python3-condor
 # was condor-python for python2
 Requires: python3-pyyaml
 Requires: python3-jwt
 Requires: python3-cryptography
-Requires: python3-m2crypto
 #Requires: python3-structlog
 Requires: python3-rrdtool
 %description libs
@@ -263,12 +274,10 @@ Requires: glideinwms-glidecondor-tools = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
 Requires: condor >= %{htcss_min_version}
 Requires: fetch-crl
-Requires: python3 >= %{python_min_version}
+#Requires: python3 >= %{python_min_version}
 # This is in py3 std library - Requires: python-argparse
-# Is this the same? Requires: python36-configargparse
 Requires: javascriptrrd >= 1.1.0
 Requires: initscripts
-Requires: python3-m2crypto
 Requires: python3-requests
 Requires: python3-jwt
 Requires: python3-rrdtool
@@ -334,16 +343,11 @@ rm -rf $RPM_BUILD_ROOT
 
 # TODO: Check if some of the following are needed
 # seems never used
-# %define py_ver %(python -c "import sys; v=sys.version_info[:2]; print '%d.%d'%v")
+# #define py_ver %(python -c "import sys; v=sys.version_info[:2]; print '%d.%d'%v")
 
 # From http://fedoraproject.org/wiki/Packaging:Python
 # Assuming python3_sitelib and python3_sitearch are defined, not supporting RHEL < 7 or old FC
-# Define python_sitelib
 
-#%if ! (0%{?fedora} > 12 || 0%{?rhel} > 5)
-#%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
-#%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-#%endif
 
 #Change src_dir in reconfig_Frontend
 sed -i "s/WEB_BASE_DIR *=.*/WEB_BASE_DIR = \"\/var\/lib\/gwms-frontend\/web-base\"/" creation/reconfig_frontend
@@ -955,6 +959,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libexecdir}/gwms_renew_proxies
 %attr(-, frontend, frontend) %dir %{_localstatedir}/lib/gwms-frontend
 %attr(-, frontend, frontend) %{_localstatedir}/lib/gwms-frontend/README.md
+%attr(700, frontend, frontend) %{frontend_key_dir}
 %attr(700, frontend, frontend) %{frontend_token_dir}
 %attr(700, frontend, frontend) %{frontend_passwd_dir}
 %attr(700, frontend, frontend) %{frontend_cache_dir}
@@ -1104,6 +1109,11 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Fri Jan 30 2026 Marco Mambelli <marcom@fnal.gov> - 3.11.3
+- Glideinwms v3.11.3
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_11_3/history.html
+- Release candidates 3.11.3-01.rc1 to 3.11.3-03.rc3
+
 * Thu Nov 20 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.17
 - Glideinwms v3.10.17
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_10_17/history.html

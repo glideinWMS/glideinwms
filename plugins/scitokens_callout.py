@@ -9,8 +9,7 @@ import sys
 import tempfile
 import time
 
-from glideinwms.lib import subprocessSupport
-from glideinwms.lib.defaults import TOKEN_DIR
+from glideinwms.lib import defaults, subprocessSupport
 
 # This is a generic implementation of the Scitoken plugin interface.
 # VOs would implement their own version of this to interact with the
@@ -25,7 +24,7 @@ from glideinwms.lib.defaults import TOKEN_DIR
 
 
 # TODO: tkn_dir default path should come from the frontend configuration, but it's not available yet.
-def get_credential(logger, group, entry, trust_domain, tkn_dir=TOKEN_DIR):
+def get_credential(logger, group, entry, trust_domain, tkn_dir=defaults.token_dir):
     """Generates a credential given the parameters. This is called once
     per group, per entry. It is a good idea for the VO to do some
     caching here so that new tokens are only generated when required.

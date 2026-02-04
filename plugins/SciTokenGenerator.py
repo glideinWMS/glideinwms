@@ -11,8 +11,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from scitokens import SciToken
 
+from glideinwms.lib import defaults
 from glideinwms.lib.credentials import create_credential, CredentialType
-from glideinwms.lib.defaults import TOKEN_DIR
 from glideinwms.lib.generators import export_generator, GeneratorError
 from glideinwms.lib.generators.credential_generator import CredentialGenerator
 
@@ -23,7 +23,7 @@ class SciTokenGenerator(CredentialGenerator):
     This generator creates a SciToken based on the provided context.
     The context supports the following parameters:
         - key_file: Path to the private key file to sign the token (mandatory)
-        - key_id: Identifier for the key, `kid` in the JWT
+        - key_id: Identifier for the key, `kid` in the JWT (mandatory)
         - issuer: Issuer of the token, `iss` in the JWT (mandatory). This is used to retrieve the key for token verification.
         - scope: Scope of the token, `scope` in the JWT (mandatory)
         - key_pass: Password for the private key (if encrypted)
@@ -31,18 +31,24 @@ class SciTokenGenerator(CredentialGenerator):
         - wlcg_ver: WLCG version (default: 1.0)
         - tkn_lifetime: Lifetime of the token in seconds (default: 7200)
         - tkn_dir: Directory to store the generated tokens (default: defaults.TOKEN_DIR = $HOME/cred.d/tokens.d)
+
+    Notes:
+        - This code requires the key_id to support all scitoken-like JWTs. The key_id is optional for Scitokens
+          (specification v1 and v2) if the issuer has a single public key, but it is always mandatory for the WLCG
+          profile (https://github.com/WLCG-AuthZ-WG/common-jwt-profile/blob/master/profile.md#42-token-verification),
+          and for the HTCondor-CE.
     """
 
     CONTEXT_VALIDATION = {
         "key_file": (str,),
-        "key_id": (str, None),
+        "key_id": (str,),
         "issuer": (str,),
         "scope": (str,),
         "key_pass": (str, ""),
         "algorithm": (str, "RS256"),
         "wlcg_ver": (str, "1.0"),
         "tkn_lifetime": (int, 7200),
-        "tkn_dir": (str, TOKEN_DIR),
+        "tkn_dir": (str, defaults.token_dir),
     }
 
     @staticmethod
