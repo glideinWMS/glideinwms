@@ -3,19 +3,18 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Description:
-#   This tool displays the status of the glideinWMS pool
-#   in a XML format
-#
-# Arguments:
-#   [-pool collector_node] [-condor-stats 1|0] [-internals 1|0]
+"""This tool displays the status of the GlideinWMS pool in XML format
+
+Arguments:
+  [-pool collector_node] [-factory factory_name] [-frontend frontend_name] [-condor-stats 1|0] [-internals 1|0] [-rsa_key key_file] [-help]
+"""
 
 import os.path
 import sys
 
-from glideinwms.factory import glideFactoryConfig, glideFactoryInterface
+from glideinwms.factory import glideFactoryInterface
 from glideinwms.frontend import glideinFrontendInterface
-from glideinwms.lib import xmlFormat
+from glideinwms.lib import credentials, xmlFormat
 
 sys.path.append(os.path.join(sys.path[0], "../.."))
 
@@ -50,7 +49,7 @@ while i < alen:
         remove_internals = not int(sys.argv[i])
     elif ael == "-rsa_key":
         i = i + 1
-        key_obj = glideFactoryConfig.GlideinKey("RSA", sys.argv[i])
+        key_obj = credentials.RSAPrivateKey(path=sys.argv[i])
     elif ael == "-help":
         print("Usage:")
         print(
@@ -131,16 +130,18 @@ for glidein in glideins:
         else:
             raise RuntimeError("Invalid frontend name; more than one dot found")
 
-    clients_obj = glideFactoryInterface.findWork(
-        factory_name, glidein_name, entry_name, None, key_obj, additional_constraints=frontend_constraints
+    clients_obj = {}
+    all_clients_obj = glideFactoryInterface.findGroupWork(
+        factory_name, glidein_name, [entry_name], None, key_obj, additional_constraints=frontend_constraints
     )
+    if all_clients_obj:
+        clients_obj = all_clients_obj[entry_name]
     glidein_el["clients"] = clients_obj
     clients = list(clients_obj.keys())
 
     if (frontend_name is not None) and (len(clients) == 0):
-        # if user requested to see only one frontend
-        # and this factory is not serving that frontend
-        # do not show the frontend at all
+        # if user requested to see only one frontend and this factory is not serving that frontend
+        # then do not show the frontend at all
         del glideins_obj[glidein]
         continue
 

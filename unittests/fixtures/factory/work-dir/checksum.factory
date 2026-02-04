@@ -170,15 +170,12 @@ fd56ab29d58409afe125f97dec0312b0  ./lib/iniSupport.py
 060cd1fcc2e6f7dc20a42a3824cfd3d3  ./lib/logSupport.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
 7f7f93e798e4ad05473c04cd7734acfe  ./lib/pidSupport.py
-139814f1b4c576765e1d6b78b8b1fdb9  ./lib/pubCrypto.py
 c9e2ccea06d53a053becbacc1f5ebe95  ./lib/rrdSupport.py
 74aa1e59155f9a9f5dba72f260755aeb  ./lib/servicePerformance.py
 88230791e995d760af1626187adf9df7  ./lib/subprocessSupport.py
-1d40f3069895417bcd2f6acab01b7817  ./lib/symCrypto.py
 ad3182067d3adbfb8a4c9e92b16ba1c2  ./lib/tarSupport.py
 411936aadbc8909170ec980b35d205a3  ./lib/timeConversion.py
 0746d1b76ed2f536a378cf79454b2076  ./lib/util.py
-1da1078c2a95b7e7870363862049c034  ./lib/x509Support.py
 5da97f6407504d71999f93d2cb1f6c2a  ./lib/xmlFormat.py
 ff6c89a556ab42b543b4316d2169ddef  ./lib/xmlParse.py
 d41d8cd98f00b204e9800998ecf8427e  ./tools/__init__.py

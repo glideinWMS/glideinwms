@@ -21,7 +21,7 @@ import os
 import os.path
 import shutil
 
-from glideinwms.lib import credentials, pubCrypto, symCrypto
+from glideinwms.lib import credentials
 
 ############################################################
 #
@@ -221,104 +221,6 @@ class JoinConfigFile(ConfigFile):
 # Configuration
 #
 ############################################################
-
-
-class GlideinKey:  # NOTE: This class doesn't seem to be used anywhere
-    """Handles public key operations for the GlideinWMS factory.
-
-    Supports creation, loading, and retrieval of RSA keys.
-    """
-
-    def __init__(self, pub_key_type, key_fname=None, recreate=False):
-        """Initialize a GlideinKey instance.
-
-        Args:
-            pub_key_type (str): The type of public key (only "RSA" is supported).
-            key_fname (str, optional): Filename of the key. Defaults to None.
-            recreate (bool, optional): If True, create a new key even if one exists.
-                Defaults to False.
-        """
-        self.pub_key_type = pub_key_type
-        self.load(key_fname, recreate)
-
-    def load(self, key_fname=None, recreate=False):
-        """Create the key if required and initialize it.
-
-        Args:
-            key_fname (str, optional): Filename of the key. Defaults to None.
-            recreate (bool, optional): Create a new key if True, otherwise load existing key.
-                Defaults to False.
-
-        Raises:
-            RuntimeError: If a key type other than RSA is specified.
-        """
-        if self.pub_key_type == "RSA":
-            # hashlib methods are called dynamically
-            from hashlib import md5
-
-            if key_fname is None:
-                key_fname = "rsa.key"
-
-            self.rsa_key = pubCrypto.RSAKey(key_fname=key_fname)
-
-            if recreate:
-                # recreate it
-                self.rsa_key.new()
-                self.rsa_key.save(key_fname)
-
-            self.pub_rsa_key = self.rsa_key.PubRSAKey()
-            self.pub_key_id = md5(b" ".join((self.pub_key_type.encode("utf-8"), self.pub_rsa_key.get()))).hexdigest()
-            self.sym_class = symCrypto.AutoSymKey
-        else:
-            raise RuntimeError("Invalid pub key type value(%s), only RSA supported" % self.pub_key_type)
-
-    def get_pub_key_type(self):
-        """Get a copy of the public key type string.
-
-        Returns:
-            str: The public key type.
-        """
-        return self.pub_key_type[0:]
-
-    def get_pub_key_value(self):
-        """Retrieve the public key value.
-
-        Returns:
-            bytes: The RSA public key.
-
-        Raises:
-            RuntimeError: If the key type is not RSA.
-        """
-        if self.pub_key_type == "RSA":
-            return self.pub_rsa_key.get()
-        else:
-            raise RuntimeError("Invalid pub key type value(%s), only RSA supported" % self.pub_key_type)
-
-    def get_pub_key_id(self):
-        """Retrieve the identifier of the public key.
-
-        Returns:
-            str: The public key identifier.
-        """
-        return self.pub_key_id[0:]
-
-    def extract_sym_key(self, enc_sym_key):
-        """Extract the symmetric key from an encrypted value (Frontend attribute).
-
-        Args:
-            enc_sym_key (str): Encrypted symmetric key as an ASCII string (AnyStrASCII).
-
-        Returns:
-            SymKey: An instance of the symmetric key (SymKey child object).
-
-        Raises:
-            RuntimeError: If the key type is not RSA.
-        """
-        if self.pub_key_type == "RSA":
-            sym_key_code = self.rsa_key.decrypt_hex(enc_sym_key)
-            return self.sym_class(sym_key_code)
-        else:
-            raise RuntimeError("Invalid pub key type value(%s), only RSA supported" % self.pub_key_type)
 
 
 class GlideinDescript(ConfigFile):

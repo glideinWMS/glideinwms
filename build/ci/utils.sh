@@ -131,7 +131,6 @@ log_nonzero_rc() {
 log_python() {
     echo "# Python environment:"
     echo "python=`command -v python 2>/dev/null`"
-    echo "python2=`command -v python2 2>/dev/null`"
     echo "python3=`command -v python3 2>/dev/null`"
     echo "pip=`command -v pip 2>/dev/null`"
     echo "pip3=`command -v pip3 2>/dev/null`"
@@ -175,9 +174,6 @@ setup_python3_venv() {
     JSONPICKLE="jsonpickle"
     PYCODESTYLE="pycodestyle"
     MOCK="mock"
-    M2CRYPTO="m2crypto" # M2CRYPTO="M2Crypto==0.20.2"
-
-    # pip install of M2Crypto is failing, use RPM: python36-m2crypto.x86_64 : Support for using OpenSSL in Python 3 scripts
 
 #    PYLINT='pylint==2.5.3'
 #    ASTROID='astroid==2.4.2'
@@ -236,7 +232,7 @@ setup_python3_venv() {
         pip_packages="toml ${PYCODESTYLE} ${COVERAGE} ${PYLINT} ${ASTROID}"
         pip_packages="$pip_packages pyyaml ${MOCK} unittest-xml-reporting PyJWT requests"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
-        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
+        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
 
         # TODO: clean above here and the variables above once load from requirements.txt is tested and reliable
 
@@ -266,7 +262,6 @@ setup_python3_venv() {
             loginfo "Installing $package ... $status"
         done
         #try again if anything failed to install, sometimes its order
-        #NOT_FATAL="htcondor ${M2CRYPTO}"
         NOT_FATAL="htcondor"
         local installed_packages
         installed_packages="$(python3 -m pip list --format freeze)"  # includes the ones inherited from system
@@ -285,7 +280,6 @@ setup_python3_venv() {
                 fi
             fi
         done
-        #pip install M2Crypto==0.20.2
 
         SETUP_VENV3="${VENV}"
     fi
@@ -309,180 +303,6 @@ setup_python3_venv() {
     export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/tools/lib
     export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/..
 
-}
-
-# TODO: to remove once there is no version with python2
-
-SETUP_VENV2=
-setup_python2_venv() {
-    if [ $# -gt 1 ]; then
-        echo "Invalid number of arguments to setup_python_venv. Will accept the location to install venv or use PWD as default"
-        exit 1
-    fi
-    WORKSPACE=${1:-$(pwd)}
-
-    [[ -z "${PRE_VENV_PATH}" ]] && PRE_VENV_PATH="$PATH" || PATH="$PRE_VENV_PATH"
-
-    local pip_packages=
-    local is_python26=false
-    if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
-        is_python26=true
-    fi
-
-    if $is_python26; then
-        # Get latest packages that work with python 2.6
-        PY_VER="2.6"
-        VIRTUALENV_VER=virtualenv-12.0.7
-        PYLINT='pylint==1.3.1'
-        ASTROID='astroid==1.2.1'
-        HYPOTHESIS="hypothesislegacysupport"
-        AUTOPEP8="autopep8==1.3"
-        TESTFIXTURES="testfixtures==5.4.0"
-        # htcondor is not pip for python 2.6 (will be found from the RPM)
-        HTCONDOR=
-        COVERAGE="coverage==4.5.4"
-        JSONPICKLE="jsonpickle==0.9"
-        PYCODESTYLE="pycodestyle==2.4.0"
-        MOCK="mock==2.0.0"
-        M2CRYPTO="M2Crypto"
-    else
-        # use something more up-to-date
-        PY_VER="2.7"
-        VIRTUALENV_VER=virtualenv-16.0.0
-        PYLINT='pylint==1.8.4'
-        ASTROID='astroid==1.6.0'
-        HYPOTHESIS="hypothesis"
-        AUTOPEP8="autopep8"
-        TESTFIXTURES="testfixtures"
-        # Installing the pip version, in case the RPM is not installed
-        HTCONDOR="htcondor"
-        COVERAGE='coverage==4.5.4'
-        JSONPICKLE="jsonpickle"
-        PYCODESTYLE="pycodestyle"
-        MOCK="mock==3.0.3"
-        M2CRYPTO="M2Crypto"
-        PYUDEV="pyudev>=0.16.1"
-    fi
-
-    # pip install of M2Crypto is failing, use RPM:
-    #  m2crypto.x86_64 : Support for using OpenSSL in python scripts
-    #  python-m2ext.x86_64 : M2Crypto Extensions
-
-    VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
-    VIRTUALENV_URL="https://pypi.python.org/packages/source/v/virtualenv/$VIRTUALENV_TARBALL"
-    #VIRTUALENV_EXE=$WORKSPACE/${VIRTUALENV_VER}/virtualenv.py
-    VENV="$WORKSPACE/venv-$PY_VER"
-    # Clearing PYTHONPATH to avoid interferences
-    PYTHONPATH=
-
-    # Following is useful for running the script outside jenkins
-    if [[ ! -d "$WORKSPACE" ]]; then
-        mkdir "$WORKSPACE"
-        SETUP_VENV2=
-    fi
-
-    [[ -n "$TEST_PYENV_DIR" ]] && VENV="$TEST_PYENV_DIR"
-    [[ -n "$TEST_PYENV_REUSE" && -d "${VENV}" ]] && SETUP_VENV2="${VENV}"
-
-    if [[ "${SETUP_VENV2}" = "${VENV}" ]]; then
-        loginfo "Python Virtual Environment already installed. Reusing it"
-        if ! . "$VENV"/bin/activate; then
-            echo "ERROR existing virtualenv ($VENV) could not be activated.  Exiting"
-            return 1
-        fi
-        export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
-    else
-        loginfo "Setting up Python Virtual Environment ..."
-        if [ -f "$WORKSPACE/$VIRTUALENV_TARBALL" ]; then
-            rm "$WORKSPACE/$VIRTUALENV_TARBALL"
-        fi
-        curl -L -o "$WORKSPACE/$VIRTUALENV_TARBALL" "$VIRTUALENV_URL"
-        tar xzf "$WORKSPACE/$VIRTUALENV_TARBALL" -C "$WORKSPACE/"
-
-        #if we download the venv tarball every time we should remake the venv
-        #every time
-        rm -rf "$VENV"
-        python2 "$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
-        if ! . "$VENV"/bin/activate; then
-            echo "ERROR virtualenv ($VENV) could not be activated.  Exiting"
-            return 1
-        fi
-
-	    export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
-
-        # Install dependencies first so we don't get incompatible ones
-        # Following RPMs need to be installed on the machine:
-        # pep8 has been replaced by pycodestyle
-        pip_packages="${PYCODESTYLE} ${COVERAGE} ${PYLINT} ${ASTROID}"
-        pip_packages="${pip_packages} pyyaml ${MOCK}  xmlrunner PyJWT requests future importlib argparse"
-        pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
-        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO} ${PYUDEV}"
-
-	    # Uncomment to troubleshoot setup: loginfo "$(log_python)"
-
-        failed_packages=""
-        local installed_packages="$(python -m pip list --format freeze)"  # includes the ones inherited from system
-        for package in $pip_packages; do
-            loginfo "Installing $package ..."
-            status="DONE"
-            if $is_python26; then
-                # py26 seems to error out w/ python -m pip:
-                # 4119: /scratch/workspace/glideinwms_ci/label_exp/RHEL6/label_exp2/swarm/venv-2.6/bin/python: pip is a package and cannot be directly executed
-                pip install --quiet "$package"
-            else
-                python -m pip install -I --quiet "$package"  # -I, --ignore-installed
-            fi
-            if [[ $? -ne 0 ]]; then
-                status="FAILED"
-                failed_packages="$failed_packages $package"
-            fi
-            loginfo "Installing $package ... $status"
-        done
-        #try again if anything failed to install, sometimes its order matters
-        NOT_FATAL="htcondor ${M2CRYPTO} PyJWT"
-        for package in $failed_packages; do
-            loginfo "REINSTALLING $package"
-            if $is_python26; then
-                # py26 seems to error out w/ python -m pip:
-                # 4119: /scratch/workspace/glideinwms_ci/label_exp/RHEL6/label_exp2/swarm/venv-2.6/bin/python: pip is a package and cannot be directly executed
-                pip install "$package"
-            else
-                python -m pip install -I "$package"
-            fi
-            if [[ $? -ne 0 ]]; then
-                if echo "$installed_packages" | grep -i "^${package}=" > /dev/null ; then
-                    logwarn "$package could not be installed, but is available form the system.  Continuing."
-                else
-                    if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
-                        logerror "$package could not be installed.  Continuing."
-                    else
-                        logerror "$package could not be installed.  Stopping venv setup."
-                        return 1
-                    fi
-                fi
-            fi
-        done
-        SETUP_VENV2="$VENV"
-    fi
-
-    #pip install M2Crypto==0.20.2
-        ## Need this because some strange control sequences when using default TERM=xterm
-    export TERM="linux"
-
-    ## PYTHONPATH for glideinwms source code
-    # pythonpath for pre-packaged only
-    if [ -n "$PYTHONPATH" ]; then
-        export PYTHONPATH="${PYTHONPATH}:${GLIDEINWMS_SRC}"
-    else
-        export PYTHONPATH="${GLIDEINWMS_SRC}"
-    fi
-
-    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/lib
-    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/creation/lib
-    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/factory
-    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/frontend
-    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/tools
-    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/tools/lib
 }
 
 
@@ -514,7 +334,6 @@ print_python_info() {
         echo "${bo}LINUX DISTRO:${bc} no linux$br"
     fi
     echo "${bo}PYTHON LOCATION:${bc} $(which python)$br"
-    echo "${bo}PYTHON2 LOCATION:${bc} $(which python2)$br"
     echo "${bo}PYTHON3 LOCATION:${bc} $(which python3)$br"
     echo "${bo}PIP LOCATION:${bc} $(which pip)$br"
     echo "${bo}PYLINT:${bc} $(pylint --version)$br"

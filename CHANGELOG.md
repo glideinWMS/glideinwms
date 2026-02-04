@@ -3,6 +3,27 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+
+Changes since the last release
+
+### New features / functionalities
+
+-   Removed remaining dependencies from M2Crypto. Cleaned up also some duplicate code and SL7 and Python 2 CI tools. (Issue #438, PR #636)
+-   Added unit tests for x509.py and rsa.py. (PR #636)
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+### Testing / Development
+
+### Known Issues
+
 ## v3.11.3 \[2026-01-30\]
 
 Hardened and improved validation of the generators' configuration. This version includes all changes and fixes in v3.10.17.

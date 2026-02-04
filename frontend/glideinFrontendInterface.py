@@ -19,9 +19,8 @@ from glideinwms.lib import (
     defaults,
     glideinWMSVersion,
     logSupport,
-    x509Support,
 )
-from glideinwms.lib.credentials import AuthenticationMethod, CredentialPurpose, SymmetricKey
+from glideinwms.lib.credentials import AuthenticationMethod, CredentialPurpose, SymmetricKey, x509
 from glideinwms.lib.util import hash_nc
 
 ############################################################
@@ -540,7 +539,7 @@ class LegacyCredential:
 
     def file_id(self, filename, ignoredn=False):
         if ("grid_proxy" in self.type) and not ignoredn:
-            dn = x509Support.extract_DN(filename)
+            dn = x509.X509Cert(path=filename).subject
             hash_str = filename + dn
         else:
             hash_str = filename

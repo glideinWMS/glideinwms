@@ -15,7 +15,7 @@ import subprocess
 import sys
 import tempfile
 
-from glideinwms.lib import x509Support
+from glideinwms.lib.credentials import x509
 from glideinwms.lib.util import safe_boolcomp
 
 CONFIG = "/etc/gwms-frontend/proxies.ini"
@@ -311,7 +311,7 @@ def main():
                     proxy.cleanup()
                     continue
                 try:
-                    vo_attr.uri = vo_uri_map[x509Support.extract_DN(vo_attr.cert)]
+                    vo_attr.uri = vo_uri_map[x509.X509Cert(path=vo_attr.cert).subject]
                 except KeyError:
                     retcode = 1
                     print(

@@ -19,8 +19,7 @@ on:
   push:
     branches: [master, master_ci]
     path:
-      - build/packaging/containers/gwms-ci-sl7/Dockerfile
-      - build/packaging/containers/gwms-ci-sl7/Dockerfile
+      - build/packaging/containers/gwms-ci-el9/Dockerfile
   repository_dispatch:
     types:
       - docker-build

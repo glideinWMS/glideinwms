@@ -364,15 +364,6 @@ print_files_list() {
     return 1
 }
 
-is_python3_branch() {
-    [[ "$1" == py2* || "$1" == v35* || "$1" == v36* || "$1" == v37* || "$1" == branch_v3_5 || "$1" == branch_v3_6 || "$1" == branch_v3_7 ]] && { false; return; }
-    if grep '#!' factory/glideFactory.py | grep python2 > /dev/null; then
-        false
-        return
-    fi
-    true
-}
-
 transpose_table() {
     # 1. table to transpose
     # 2. input separator (\t by default)
@@ -453,13 +444,8 @@ process_branch() {
 
     if isnot_dry_run && do_use_python; then
         logstep pythonsetup
-        if is_python3_branch "${git_branch}"; then
-            loginfo "Processing Python3 branch $git_branch"
-            setup_python3_venv "$WORKSPACE"
-        else
-            loginfo "Processing Python2 branch $git_branch"
-            setup_python2_venv "$WORKSPACE"
-        fi
+        loginfo "Processing Python3 branch $git_branch"
+        setup_python3_venv "$WORKSPACE"
         if [[ $? -ne 0 ]]; then
             logerror "Could not setup Python as required, skipping branch ${git_branch}"
             loglog "RESULT_${COMMAND}_${git_branch}=2:failed"

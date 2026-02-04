@@ -15,7 +15,7 @@ import sys
 import time
 
 from glideinwms.lib import condorExe
-from glideinwms.lib.x509Support import extract_DN
+from glideinwms.lib.credentials import x509
 
 
 class ArgError(RuntimeError):
@@ -54,7 +54,7 @@ def expand_dn(dn, QUIET_OPS):
             fname = dn
         if not QUIET_OPS:
             print("Reading certificate file '%s'" % fname)
-        dn = extract_DN(fname)
+        dn = x509.X509Cert(path=fname).subject
         if not QUIET_OPS:
             print("Using DN '%s'" % dn)
     return dn

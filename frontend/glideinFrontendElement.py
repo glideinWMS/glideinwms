@@ -515,6 +515,7 @@ class glideinFrontendElement:
 
         (self.status_dict, self.fe_counts, self.global_counts, self.status_schedd_dict) = pipe_out[("collector", 0)]
 
+        # TODO: Check if more can be pickled since we use cryptography now
         # M2Crypto objects are not pickleable, so do the transformation here
         self.populate_pubkey()
         self.identify_bad_schedds()
@@ -1967,6 +1968,7 @@ class glideinFrontendElement:
         globals_dict = {}
 
         try:
+            # TODO: Check if more can be pickled since we use cryptography now
             # Note: M2Crypto key objects are not pickle-able,
             # so we will have to do that in the parent later on
             factory_pool_node = factory_pool[0]
@@ -1992,6 +1994,7 @@ class glideinFrontendElement:
                 elif globals_el["attrs"]["PubKeyType"] == "RSA":
                     # only trust RSA for now
                     try:
+                        # TODO: Check if more can be pickled since we use cryptography now
                         # The parent really needs just the M2Ctype object,
                         # but that is not picklable, so it will have to
                         # do it ourselves

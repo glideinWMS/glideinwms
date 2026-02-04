@@ -3,15 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-Project:
-    glideinwms
-Purpose:
-    unit test of glideinwms/lib/x509Support.py
-
-Author:
-    Dennis Box dbox@fnal.gov
-"""
+"""Unit test of glideinwms/lib/credentials/x509.py"""
 
 
 import unittest
@@ -23,14 +15,14 @@ import glideinwms.lib.subprocessSupport
 from glideinwms.unittests.unittest_utils import TestImportError
 
 try:
-    from glideinwms.lib.x509Support import extract_DN
+    from glideinwms.lib.credentials import x509
 except ImportError as err:
     raise TestImportError(str(err))
 
 
 class TestExtractDN(unittest.TestCase):
     def test_extract_dn(self):
-        """Testing DN extraction. Need to adapt to change in behavior of openssl
+        """Testing DN (subject) extraction in x509.X509Cert. Need to adapt to change in behavior of openssl
 
         On EL8: "openssl x509 -noout -subject -nameopt compat -in %s" returns the desired /DN=... string
         and "openssl x509 -noout -subject -in %s" returns DN = org, DC =...
@@ -43,7 +35,7 @@ class TestExtractDN(unittest.TestCase):
         if not expected.startswith("/"):
             out = glideinwms.lib.subprocessSupport.iexe_cmd(cmd)
             expected = " ".join(out.split()[1:])
-        self.assertEqual(expected, extract_DN(fname))
+        self.assertEqual(expected, x509.X509Cert(path=fname).subject)
 
 
 if __name__ == "__main__":
