@@ -56,6 +56,12 @@ def get_args() -> argparse.Namespace:
         action="store_true",
     )
     parser.add_argument(
+        "-p",
+        "--print-config",
+        help="Print the configuration line of the credential",
+        action="store_true",
+    )
+    parser.add_argument(
         "-k",
         "--private-key-file",
         help="Location of the unencrypted private key file. Will be created if it does not exist. Defaults to the standard one.",
@@ -306,6 +312,12 @@ def main():
     context="{{'algorithm': '{key_type}', 'key_file': '{args.private_key_file}', 'key_id': '{key_id}', 'issuer': '{iss}', 'scope': 'compute.read compute.modify compute.create compute.cancel', 'type': 'scitoken'}}"
     purpose="request" security_class="frontend" trust_domain="grid" type="generator"/>"""
     )
+    if args.print_config:
+        print(
+            f"""<credential absfname="SciTokenGenerator"
+    context="{{'algorithm': '{key_type}', 'key_file': '{args.private_key_file}', 'key_id': '{key_id}', 'issuer': '{iss}', 'scope': 'compute.read compute.modify compute.create compute.cancel', 'type': 'scitoken'}}"
+    purpose="request" security_class="frontend" trust_domain="grid" type="generator"/>"""
+        )
 
 
 # Script invocation
