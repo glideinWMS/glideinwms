@@ -12,6 +12,7 @@ Changes since the last release
 -   Added GlideinOverloadEnabled to the activity logs for monitoring purposes (PR #629, Issue #569)
 
 ### Changed defaults / behaviours
+
 -   gettarballs.py now has an improved management of default tarballs
 
 ### Deprecated / removed options and commands
@@ -19,6 +20,8 @@ Changes since the last release
 ### Security Related Fixes
 
 ### Bug Fixes
+
+-   Fixed ownership of the /var/lib/gwms-factory in RPM package (PR #637)
 
 ### Testing / Development
 

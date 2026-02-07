@@ -24,17 +24,19 @@
 
 %global frontend_xml frontend.xml
 %global factory_xml glideinWMS.xml
-%global web_dir %{_localstatedir}/lib/gwms-frontend/web-area
-%global web_base %{_localstatedir}/lib/gwms-frontend/web-base
-%global frontend_dir %{_localstatedir}/lib/gwms-frontend/vofrontend
+%global frontend_base %{_localstatedir}/lib/gwms-frontend
+%global web_dir %{frontend_base}/web-area
+%global web_base %{frontend_base}/web-base
+%global frontend_dir %{frontend_base}/vofrontend
 %global frontend_token_dir %{_localstatedir}/lib/gwms-frontend/tokens.d
 %global frontend_passwd_dir %{_localstatedir}/lib/gwms-frontend/passwords.d
-%global factory_web_dir %{_localstatedir}/lib/gwms-factory/web-area
-%global factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
-%global factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
-%global factory_condor_dir %{_localstatedir}/lib/gwms-factory/condor
+%global factory_base %{_localstatedir}/lib/gwms-factory
+%global factory_web_dir %{factory_base}/web-area
+%global factory_web_base %{factory_base}/web-base
+%global factory_dir %{factory_base}/work-dir
+%global factory_condor_dir %{factory_base}/condor
 %global logserver_dir %{_localstatedir}/lib/gwms-logserver
-%global logserver_web_dir %{_localstatedir}/lib/gwms-logserver/web-area
+%global logserver_web_dir %{logserver_dir}/web-area
 %global systemddir %{_prefix}/lib/systemd/system
 # /usr/bin/systemctl would not work with the emulation in /usr/local/bin/systemctl used in Workspaces (containers)
 %global systemctl_bin systemctl
@@ -502,9 +504,9 @@ install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory/server/factory
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory/client
 
 # Create some credential directories
-install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/client-proxies
-install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/server-credentials
-touch $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/server-credentials/jwt_secret.key
+install -d $RPM_BUILD_ROOT%{factory_base}/client-proxies
+install -d $RPM_BUILD_ROOT%{factory_base}/server-credentials
+touch $RPM_BUILD_ROOT%{factory_base}/server-credentials/jwt_secret.key
 
 # Install frontend temp dir, for all the frontend.xml.<checksum>
 install -d $RPM_BUILD_ROOT%{frontend_dir}/lock
@@ -724,7 +726,7 @@ fi
 # Add the "frontend" user and group if they do not exist
 getent group frontend >/dev/null || groupadd -r frontend
 getent passwd frontend >/dev/null || \
-       useradd -r -g frontend -d /var/lib/gwms-frontend \
+       useradd -r -g frontend -d %{frontend_base} \
 	-c "VO Frontend user" -s /sbin/nologin frontend
 # If the frontend user already exists make sure it is part of frontend and glidein group
 usermod --append --groups frontend,glidein frontend >/dev/null
@@ -736,7 +738,7 @@ getent group glidein >/dev/null || groupadd -r glidein
 # Add the "gfactory" user and group if they do not exist
 getent group gfactory >/dev/null || groupadd -r gfactory
 getent passwd gfactory >/dev/null || \
-       useradd -r -g gfactory -d /var/lib/gwms-factory \
+       useradd -r -g gfactory -d %{factory_base} \
 	-c "GlideinWMS Factory user" -s /sbin/nologin gfactory
 # If the gfactory user already exists make sure it is part of gfactory group
 usermod --append --groups gfactory gfactory >/dev/null
@@ -896,14 +898,14 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/manageFactoryDowntimes.py
 %attr(755,root,root) %{_sbindir}/reconfig_glidein
 %attr(755,root,root) %{_sbindir}/clone_glidein
-%attr(-, root, root) %dir %{_localstatedir}/lib/gwms-factory
-%attr(-, gfactory, gfactory) %dir %{_localstatedir}/lib/gwms-factory/client-proxies
-%attr(-, gfactory, gfactory) %dir %{_localstatedir}/lib/gwms-factory/server-credentials
-%attr(0600, gfactory, gfactory) %{_localstatedir}/lib/gwms-factory/server-credentials/jwt_secret.key
-%attr(-, gfactory, gfactory) %{factory_web_dir}
-%attr(-, gfactory, gfactory) %{factory_web_base}
-%attr(-, gfactory, gfactory) %{factory_web_base}/../creation
-%attr(-, gfactory, gfactory) %{factory_dir}
+%attr(-, gfactory, gfactory) %dir %{factory_base}
+%attr(-, gfactory, gfactory) %dir %{factory_base}/client-proxies
+%attr(-, gfactory, gfactory) %dir %{factory_base}/server-credentials
+%attr(0600, gfactory, gfactory) %{factory_base}/server-credentials/jwt_secret.key
+%attr(-, gfactory, gfactory) %dir %{factory_web_dir}
+%attr(-, gfactory, gfactory) %dir %{factory_web_base}
+%attr(-, gfactory, gfactory) %dir %{factory_base}/creation
+%attr(-, gfactory, gfactory) %dir %{factory_dir}
 %attr(-, gfactory, gfactory) %dir %{factory_condor_dir}
 %attr(-, gfactory, gfactory) %dir %{_localstatedir}/log/gwms-factory
 %attr(-, gfactory, gfactory) %dir %{_localstatedir}/log/gwms-factory/client
