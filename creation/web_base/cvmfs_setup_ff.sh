@@ -27,12 +27,12 @@ add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" |
 # get the glidein work directory location from glidein_config file
 [[ -e "$glidein_config" ]] && error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
-[[ -e "$glidein_config" ]] && work_dir=$(gconfig_get GLIDEIN_WORK_DIR "$1")
+[[ -e "$glidein_config" ]] && work_dir=$(gconfig_get GLIDEIN_WORK_DIR "$glidein_config")
 # shellcheck source=./cvmfs_helper_funcs_ff.sh
 . "$work_dir"/cvmfs_helper_funcs_ff.sh
 
 # get the use_cvmfs attribute value; passed as one of the frontend attributes
-use_cvmfs=$(gconfig_get GLIDEIN_USE_CVMFS "$1")
+use_cvmfs=$(gconfig_get GLIDEIN_USE_CVMFS "$glidein_config")
 if [[ -z $use_cvmfs ]]; then
     loginfo "CVMFS not requested (GLIDEIN_USE_CVMFS not used); skipping CVMFS setup."
     "$error_gen" -ok "$(basename $0)" "mnt_msg1" "CVMFS not requested; skipping setup."
@@ -100,11 +100,10 @@ fi
 
 loginfo "GLIDEIN_USE_CVMFS: $use_cvmfs, GLIDEIN_CVMFS_REQUIRE: $glidein_cvmfs_require"
 loginfo "cvmfsexec mode $cvmfsexec_mode is being used..."
-# the following is run if cvmfsexec cannot be used in mode 3/2
 perform_cvmfs_mount $cvmfsexec_mode $glidein_cvmfs_require
 if [[ $? -eq 0 ]]; then
-    # the following is run if cvmfsexec can be used in mode 3/2
     if [[ $cvmfsexec_mode -eq 3 || $cvmfsexec_mode -eq 2 ]]; then
+        # the following is run if cvmfsexec can be used in mode 3/2
         # before exiting out of this block, do two things...
         # one, set a variable indicating this script has been executed once
         gwms_cvmfs_reexec="yes"

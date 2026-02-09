@@ -75,7 +75,10 @@ build_cvmfsexec_distros() {
 	# check if the temp directory for cvmfsexec exists
 	ensure_directory_exists "$cvmfsexec_temp"
 
-	git clone $CVMFSEXEC_REPO "$cvmfsexec_latest" &> /dev/null
+	# download the cvmfsexec repository contents as a compressed tarball and extract its contents
+	# before extracting contents, make sure the `latest` directory for cvmfsexec exists
+	ensure_directory_exists "$cvmfsexec_latest"
+	curl -sL https://github.com/cvmfs/cvmfsexec/archive/master.tar.gz | tar -xz -C "$cvmfsexec_latest" --strip-components=1
 	# cvmfsexec exits with 0, so the output should be checked as well
 	if ! latest_ver=$("$cvmfsexec_latest"/cvmfsexec -v) || [[ -z "$latest_ver" ]]; then
 	    echo "Failed to run the downloaded cvmfsexec" >&2
