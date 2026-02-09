@@ -287,10 +287,11 @@ mount_cvmfs_repos () {
     # using an array to unpack the names of additional CVMFS repositories
     # from the colon-delimited string
     repos=($(echo $additional_repos | tr ":" "\n"))
-    loginfo "Mounting additional CVMFS repositories..."
+    loginfo "Now Mounting additional CVMFS repositories..."
     # mount every repository in the array
     for repo in "${repos[@]}"
     do
+        loginfo "Mounting $repo..."
         [[ $cvmfsexec_mode -eq 1 ]] && "$glidein_cvmfsexec_dir"/.cvmfsexec/mountrepo "$repo"
         [[ $cvmfsexec_mode -eq 3 || $cvmfsexec_mode -eq 2 ]] && $CVMFSMOUNT "$repo"
     done
