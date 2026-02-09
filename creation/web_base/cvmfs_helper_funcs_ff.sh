@@ -211,6 +211,9 @@ print_os_info () {
     # INPUT(S): None
     # RETURN(S): Prints a message containing OS and kernel details
 
+    # make sure that perform_system_check has run
+    [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
+
     loginfo "Found $GWMS_OS_NAME [$GWMS_OS_DISTRO] ${GWMS_OS_VERSION_FULL}-${GWMS_OS_KRNL_ARCH} with kernel $GWMS_OS_KRNL_NUM-$GWMS_OS_KRNL_PATCH_NUM"
 }
 
@@ -389,7 +392,7 @@ has_fuse() {
     #	-> status of FUSE configuration (no, yes, error) to stdout
 
     # make sure that perform_system_check has run
-    [[ -n "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
+    [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
 
     # determine which cvmfsexec utilities can be used by checking availability of fuse, fusermount and user being in fuse group...
     if [[ "${GWMS_IS_FUSE_INSTALLED}" -ne 0 ]]; then
