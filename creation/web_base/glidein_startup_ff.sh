@@ -2142,8 +2142,20 @@ if [[ -n "$gwms_cvmfs_reexec" && "$gwms_cvmfs_reexec" == "yes" ]]; then
     . "$add_config_line_source"
 
     # re-sourcing the helper script inside of cvmfsexec environment
-    . "$work_dir"/cvmfs_helper_funcs.sh
+    . "$work_dir"/cvmfs_helper_funcs_ff.sh
     mount_cvmfs_repos $gwms_cvmfsexec_mode $cvmfs_config_repo $cvmfs_add_repos
+    if [[ $? -ne 0 ]]; then
+        glidein_cvmfs_require=$(gconfig_get GLIDEIN_CVMFS_REQUIRE "$glidein_config")
+        glidein_cvmfs_require=${glidein_cvmfs_require,,}
+        # if exit status is non-zero, i.e something went wrong during mounting
+        if [[ "${glidein_cvmfs_require}" == "required" ]]; then
+            # if mount CVMFS is not successful, report an error and exit with failure exit code
+            logerror "Unable to mount CVMFS on worker node; aborting glidein setup (CVMFS ${glidein_cvmfs_require})"
+            exit 1
+        fi
+        # if cvmfs_required is set to preferred and mount CVMFS is not successful, report a warning/error in the logs and continue with glidein startup
+        logwarn "Unable to mount CVMFS on worker node; continuing without CVMFS (CVMFS ${glidein_cvmfs_require})"
+    fi
 
     # re-source all the scripts as it'd have been done during the first invocation of this script
     extract_all_data

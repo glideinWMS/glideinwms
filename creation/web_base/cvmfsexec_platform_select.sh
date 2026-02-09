@@ -20,13 +20,15 @@ add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" |
 error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
 # this script should run only when on-demand CVMFS is requested by the user/job,
-# so use the GLIDEIN_USE_CVMFSEXEC from the config file as a flag to determine
+# so use the GLIDEIN_USE_CVMFS from the config file as a flag to determine
 # whether the rest of this script should be run or not
-use_cvmfsexec=$(gconfig_get GLIDEIN_USE_CVMFSEXEC "$glidein_config")
+use_cvmfs=$(gconfig_get GLIDEIN_USE_CVMFS "$glidein_config")
 # TODO: int or string?? if string, make the attribute value case insensitive
-#use_cvmfsexec=${use_cvmfsexec,,}
+#use_cvmfs=${use_cvmfs,,}
 
-if [[ "$use_cvmfsexec" -ne 1 ]]; then
+cvmfs_require=$(gconfig_get GLIDEIN_CVMFS_REQUIRE "$glidein_config")
+cvmfs_require=${cvmfs_require,,}
+if [[ -z $use_cvmfs || ( $use_cvmfs -ne 1 && $cvmfs_require == "never" ) ]]; then
     "$error_gen" -ok "$(basename $0)" "msg" "On-demand CVMFS not requested; skipping selection of platform-based cvmfsexec distribution."
     exit 0
 fi
@@ -45,18 +47,17 @@ if [[ ! $cvmfs_src =~ ^(osg|egi|default)$ ]]; then
     exit 1
 fi
 
-# TODO: is it possible to reuse cvmfs_helper_funcs.sh by sourcing it during the
-# execution of this file????
+# TODO: is it possible to reuse cvmfs_helper_funcs.sh by sourcing it during the execution of this file????
 if [[ -f "/etc/redhat-release" ]]; then
     os_distro=rhel
 else
+    # TODO: better handling for manipulation of `os_distro` for non-rhel OS
     os_distro=non-rhel
 fi
-
 # using os-release file to get OS-related info
 . /etc/os-release
 os_ver_full=$VERSION_ID
-os_ver=$(echo "$os_ver_full" | awk -F '.' '{print $1}')
+os_ver=$(echo "$os_ver_full" | awk -F'.' '{print $1}')
 krnl_arch=$(arch)
 mach_type=${os_distro}${os_ver}-${krnl_arch}
 
