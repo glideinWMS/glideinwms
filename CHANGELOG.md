@@ -3,6 +3,30 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+
+Changes since the last release
+
+### New features / functionalities
+
+-   Added framework support for encrypted credentials and implemented for RSA keys and key pairs (PR #640)
+-   Added snapshot to `get_request_credentials()` in credential plugins to allow for targeted dynamic request credentials (PR #640)
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Python Cryptography changed some type names spelling. Added import statements to be compatible with both old and new spellings (PR #683, PR #687)
+-   Fixed `populate_group_security` in the configuration management to work with the new credentials and to handle correctly proxy ID lists for X509 DN extraction (PR #640)
+
+### Testing / Development
+
+### Known Issues
+
 ## v3.11.4 \[2026-05-08\]
 
 All M2Crypto requirements removed. Includes all changes and fixes in v3.10.18, plus a couple more fixes like pilot ARM submission.

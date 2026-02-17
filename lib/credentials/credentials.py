@@ -23,6 +23,9 @@ from glideinwms.lib import logSupport, subprocessSupport
 from glideinwms.lib.defaults import force_bytes
 from glideinwms.lib.util import hash_nc
 
+# MMDB will be used  - from cryptography.hazmat.primitives import serialization
+
+
 T = TypeVar("T")
 
 
@@ -170,6 +173,7 @@ class Credential(ABC, Generic[T]):
         self,
         string: Optional[Union[str, bytes]] = None,
         path: Optional[str] = None,
+        secret: Optional[str] = None,
         purpose: Optional[CredentialPurpose] = None,
         trust_domain: Optional[str] = None,
         security_class: Optional[str] = None,
@@ -181,6 +185,8 @@ class Credential(ABC, Generic[T]):
         Args:
             string (Optional[Union[str, bytes]]): The credential string.
             path (Optional[str]): The path to the credential file.
+            secret (Optional[str]): An element that can be used to decode the credential, e.g. a key password or
+                the path to the file storing it.
             purpose (Optional[CredentialPurpose]): The purpose of the credential.
             trust_domain (Optional[str]): The trust domain of the credential.
             security_class (Optional[str]): The security class of the credential.
@@ -189,7 +195,9 @@ class Credential(ABC, Generic[T]):
         """
 
         self._string = None
+        self._string_original = None
         self.path = path
+        self.secret = secret
         self.purpose = purpose
         self.trust_domain = trust_domain
         self.security_class = security_class
@@ -199,7 +207,7 @@ class Credential(ABC, Generic[T]):
         except ValueError as err:
             raise CredentialError(f"Invalid minimum lifetime: {minimum_lifetime}") from err
         if string or path:
-            self.load(string, path)
+            self.load(string, path, secret)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(string={self.string!r}, path={self.path!r}, purpose={self.purpose!r}, trust_domain={self.trust_domain!r}, security_class={self.security_class!r})"
@@ -208,6 +216,12 @@ class Credential(ABC, Generic[T]):
         return self.string.decode() if self.string else ""
 
     def __renew__(self) -> None:
+        """Renew the credential using the creation_script.
+
+        Raises:
+            NotImplementedError: If the creation_script is not implemented.
+            RuntimeError: If the credential renewal failed.
+        """
         if not self.creation_script:
             raise NotImplementedError("Renewal not implemented for this credential type")
         if self.valid:
@@ -225,16 +239,13 @@ class Credential(ABC, Generic[T]):
     @property
     def string(self) -> Optional[bytes]:
         """Credential string."""
-
         return self._string
 
     @property
     def id(self) -> str:
         """Credential unique identifier."""
-
         if not str(self.string):
             raise CredentialError("Credential not initialized")
-
         return hash_nc(
             f"{str(self._id_attribute)}{self.purpose}{self.trust_domain}{self.security_class}{self.cred_type}", 8
         )
@@ -242,7 +253,6 @@ class Credential(ABC, Generic[T]):
     @property
     def purpose(self) -> Optional[CredentialPurpose]:
         """Credential purpose."""
-
         return self._purpose[0]
 
     @purpose.setter
@@ -262,9 +272,9 @@ class Credential(ABC, Generic[T]):
     @property
     def purpose_alias(self) -> Optional[str]:
         """Credential purpose alias."""
-
         if self._purpose[0] is not None:
             return self._purpose[1] or self._purpose[0].value
+        return None
 
     @property
     def valid(self) -> bool:
@@ -278,18 +288,46 @@ class Credential(ABC, Generic[T]):
 
     @staticmethod
     @abstractmethod
-    def decode(string: Union[str, bytes]) -> T:
+    def decode(string: Union[str, bytes], secret: Optional[Union[str, bytes]] = None) -> T:
         """Decode the given string to provide the credential.
+
+        If provided, can use the optional secret to decode the credential.
 
         For dynamic credentials, this is providing a contextualized generator,
         given both the generator module and the context.
 
         Args:
             string (bytes): The string to decode.
+            secret (Optional[Union[str, bytes]]): An element that can be used to decode the credential, e.g. a key password or
+                the path to the file storing it.
 
         Returns:
             T: The decoded value.
         """
+
+    @staticmethod
+    def encode(
+        credential: T, secret: Optional[Union[str, bytes]] = None, string: Optional[Union[str, bytes]] = None
+    ) -> bytes:
+        """Encode the given credential to provide the string.
+
+        If provided, can use the optional secret to encode the credential.
+
+        The base class method returns the optional `string` argument.
+        Credential classes are expected to implement more specific encodings using the credential,
+        for example, returning a credential not encrypted with a passphrase also when the original string was.
+        It is up to the credential class how to use the optional string argument.
+
+        Args:
+            credential (T): The credential to encode.
+            secret (Optional[Union[str, bytes]]): An element that can be used to decode the credential, e.g. a key password or
+                the path to the file storing it. Defaults to None.
+            string (Optional[Union[str, bytes]]): The encoded string. Defaults to None.
+
+        Returns:
+            bytes: The encoded string. None if the string is not provided. This will be different in child classes.
+        """
+        return force_bytes(string)
 
     @abstractmethod
     def invalid_reason(self) -> Optional[str]:
@@ -299,61 +337,99 @@ class Credential(ABC, Generic[T]):
             str or None: The reason why the credential is invalid. None if the credential is valid.
         """
 
-    def load_from_string(self, string: Union[str, bytes]) -> None:
+    def load_from_string(self, string: Union[str, bytes], secret: Optional[Union[str, bytes]] = None) -> None:
         """Load the credential from a string.
 
+        If secret is provided, will try to interpret it as a file and load the content, otherwise use the secret itself,
+        converted to bytes if a string, to decode the credential.
+
         Args:
-            string (bytes): The credential string to load.
+            string (Union[str, bytes]): The credential string to load.
+            secret (Optional[Union[str, bytes]]): An element that can be used to decode the credential, e.g. a key password or
+                the path to the file storing it. Defaults to None.
 
         Raises:
             CredentialError: If the input string is not of type bytes or if the credential cannot be loaded from the string.
         """
-
         string = force_bytes(string)
         if not isinstance(string, bytes):
             raise CredentialError("Credential string must be bytes")
+        if secret:
+            if os.path.isfile(secret):
+                try:
+                    with open(secret, "rb") as secret_file:
+                        secret_data = secret_file.read()
+                        secret = secret_data.strip()
+                except OSError:
+                    # If unable to read the file, consider `secret` as the secret value
+                    pass
+            secret = force_bytes(secret)
+            if not isinstance(secret, bytes):
+                raise CredentialError("Credential secret (password) must be bytes")
         try:
-            self.decode(string)
+            decoded = self.decode(string, secret)
         except Exception as err:
             raise CredentialError(f"Could not load credential from string: {string}") from err
-        self._string = string
+        if secret:
+            self._string_original = string
+            try:
+                self._string = self.encode(decoded, None, string)
+            except Exception as err:
+                raise CredentialError(f"Could not store unencrypted credential from string: {string}") from err
+        else:
+            self._string = string
 
-    def load_from_file(self, path: Optional[str] = None) -> None:
+    def load_from_file(self, path: Optional[str] = None, secret: Optional[Union[str, bytes]] = None) -> None:
         """Load credentials from a file.
 
         Args:
-            path (str): The path to the credential file.
+            path (str): The path to the credential file. Defaults to `self.path` if not provided or empty.
+            secret (Optional[Union[str, bytes]]): An element that can be used to decode the credential,
+                e.g. a key password or the path to the file storing it.
+                Defaults to `self.secret` if both the secret and the path are not provided or empty.`
 
         Raises:
             CredentialError: If the specified file does not exist.
         """
 
-        path = path or self.path
+        if not path:
+            path = self.path
+            secret = secret or self.secret
 
         if not os.path.isfile(path):
             raise CredentialError(f"Credential file {path} does not exist or wrong file or directory permissions")
         with open(path, "rb") as cred_file:
-            self.load_from_string(cred_file.read())
+            self.load_from_string(cred_file.read().strip(), secret)
         self.path = path
+        self.secret = secret
 
-    def load(self, string: Optional[Union[str, bytes]] = None, path: Optional[str] = None) -> None:
+    def load(
+        self,
+        string: Optional[Union[str, bytes]] = None,
+        path: Optional[str] = None,
+        secret: Optional[Union[str, bytes]] = None,
+    ) -> None:
         """Load credentials from either a string or a file.
         If both are defined, the string takes precedence.
 
         Args:
-            string (Optional[bytes]): The credentials string to load.
-            path (Optional[str]): The path to the file containing the credentials.
+            string (Optional[Union[str, bytes]]): The credentials string to load. Defaults to None.
+            path (Optional[str]): The path to the file containing the credentials. Defaults to None.
+            secret (Optional[Union[str, bytes]]): An element that can be used to decode the credential, e.g. a key password or
+                the path to the file storing it. Defaults to None.
 
         Raises:
             CredentialError: If neither `string` nor `path` is specified.
         """
 
         if string:
-            self.load_from_string(string)
+            self.load_from_string(string, secret)
             if path:
                 self.path = path
+            if secret:
+                self.secret = secret
         elif path:
-            self.load_from_file(path)
+            self.load_from_file(path, secret)
         else:
             raise CredentialError("No string or path specified")
 
@@ -376,6 +452,7 @@ class Credential(ABC, Generic[T]):
             trust_domain=self.trust_domain,
             security_class=self.security_class,
             cred_type=self.cred_type,
+            secret=self.secret,
         )
 
     def save_to_file(
@@ -475,17 +552,22 @@ class CredentialPair:
         path: Optional[str] = None,
         private_string: Optional[bytes] = None,
         private_path: Optional[str] = None,
+        secret: Optional[Union[str, bytes]] = None,
         purpose: Optional[CredentialPurpose] = None,
         trust_domain: Optional[str] = None,
         security_class: Optional[str] = None,
     ) -> None:
         """Initialize a CredentialPair object.
 
+        All arguments default to None if not provided.
+
         Args:
             string (Optional[bytes]): The string representation of the public credential.
             path (Optional[str]): The path to the public credential file.
             private_string (Optional[bytes]): The string representation of the private credential.
             private_path (Optional[str]): The path to the private credential file.
+            secret (Optional[Union[str, bytes]]): An element that can be used to decode the private credential,
+                e.g. a key password or the path to the file storing it.
             purpose (Optional[CredentialPurpose]): The purpose of the credential.
             trust_domain (Optional[str]): The trust domain of the credential.
             security_class (Optional[str]): The security class of the credential.
@@ -498,11 +580,11 @@ class CredentialPair:
 
         credential_class = self.__class__.__bases__[1]
         super(credential_class, self).__init__(  # pylint: disable=bad-super-call
-            string, path, purpose, trust_domain, security_class
+            string, path, None, purpose, trust_domain, security_class
         )
         private_credential_class = credential_of_type(self.private_cred_type)  # pylint: disable=no-member
         self.private_credential = private_credential_class(
-            private_string, private_path, purpose, trust_domain, security_class
+            private_string, private_path, secret, purpose, trust_domain, security_class
         )
 
     def renew(self) -> None:
@@ -532,6 +614,7 @@ class CredentialPair:
             path=self.path,  # pylint: disable=no-member # type: ignore[attr-defined]
             private_string=self.private_credential.string,
             private_path=self.private_credential.path,
+            secret=self.private_credential.secret,
             purpose=self.purpose,  # pylint: disable=no-member # type: ignore[attr-defined]
             trust_domain=self.trust_domain,  # pylint: disable=no-member # type: ignore[attr-defined]
             security_class=self.security_class,  # pylint: disable=no-member # type: ignore[attr-defined]
@@ -684,6 +767,7 @@ def create_credential(
     string: Optional[Union[str, bytes]] = None,
     path: Optional[str] = None,
     purpose: Optional[CredentialPurpose] = None,
+    secret: Optional[Union[str, bytes]] = None,
     trust_domain: Optional[str] = None,
     security_class: Optional[str] = None,
     cred_type: Optional[CredentialType] = None,
@@ -693,15 +777,19 @@ def create_credential(
 ) -> Credential:
     """Creates a credential object.
 
+    All arguments default to None if not provided. minimum_lifetime defaults to 0, no minimum.
+
     Args:
         string (bytes, optional): The credential as a byte string.
         path (str, optional): The path to the credential file.
+        secret (Optional[Union[str, bytes]]): An element that can be used to decode the credential, e.g. a key password or
+            the path to the file storing it.
         purpose (CredentialPurpose, optional): The purpose of the credential.
         trust_domain (str, optional): The trust domain of the credential.
         security_class (str, optional): The security class of the credential.
         cred_type (CredentialType, optional): The type of the credential.
         creation_script (str, optional): The script used to create the credential.
-        minimum_lifetime (Union[int, str], optional): The minimum lifetime of the credential in seconds.
+        minimum_lifetime (Union[int, str], optional): The minimum lifetime of the credential in seconds. Defaults to 0, no minimum.
         context (Mapping, optional): The context to use for decoding the credential.
 
     Returns:
@@ -724,13 +812,15 @@ def create_credential(
         except CredentialError as err:
             failed_attempts.append(err)  # Likely credential type incompatible with input
         except Exception as err:
-            raise CredentialError(f'Unexpected error loading credential: string="{string}", path="{path}"') from err
+            raise CredentialError(
+                f'Unexpected error loading credential: string="{string}", path="{path}", secret="{secret}"'
+            ) from err
     if failed_attempts:
         raise CredentialError(
-            f'Could not load credential: string="{string}", path="{path}". {len(failed_attempts)} attempts failed with CredentialError.'
+            f'Could not load credential: string="{string}", path="{path}", secret="{secret}". {len(failed_attempts)} attempts failed with CredentialError.'
         ) from failed_attempts[-1]
     else:
-        raise CredentialError(f'Could not load credential: string="{string}", path="{path}"')
+        raise CredentialError(f'Could not load credential: string="{string}", path="{path}", secret="{secret}"')
 
 
 def create_credential_pair(
@@ -738,6 +828,7 @@ def create_credential_pair(
     path: Optional[str] = None,
     private_string: Optional[bytes] = None,
     private_path: Optional[str] = None,
+    secret: Optional[Union[str, bytes]] = None,
     purpose: Optional[CredentialPurpose] = None,
     trust_domain: Optional[str] = None,
     security_class: Optional[str] = None,
@@ -748,17 +839,21 @@ def create_credential_pair(
 ) -> CredentialPair:
     """Creates a credential pair object.
 
+    All arguments default to None if not provided. minimum_lifetime defaults to 0, no minimum.
+
     Args:
         string (bytes, optional): The public credential as a byte string.
         path (str, optional): The path to the public credential file.
         private_string (bytes, optional): The private credential as a byte string.
         private_path (str, optional): The path to the private credential file.
+        secret (Optional[Union[str, bytes]]): An element that can be used to decode the credential, e.g. a key password or
+            the path to the file storing it.
         purpose (CredentialPurpose, optional): The purpose of the credentials.
         trust_domain (str, optional): The trust domain of the credentials.
         security_class (str, optional): The security class of the credentials.
         cred_type (CredentialPairType, optional): The type of the credential pair.
         creation_script (str, optional): The script used to create the credentials.
-        minimum_lifetime (Union[int, str], optional): The minimum lifetime of the credentials in seconds.
+        minimum_lifetime (Union[int, str], optional): The minimum lifetime of the credentials in seconds. Defaults to 0, no minimum.
         context (Mapping, optional): The context to use for decoding the credentials.
 
     Returns:
@@ -782,14 +877,14 @@ def create_credential_pair(
             failed_attempts.append(err)  # Likely credential type incompatible with input
         except Exception as err:
             raise CredentialError(
-                f'Unexpected error loading credential pair: string="{string}", path="{path}", private_string="{private_string}", private_path="{private_path}"'
+                f'Unexpected error loading credential pair: string="{string}", path="{path}", private_string="{private_string}", private_path="{private_path}", secret="{secret}"'
             ) from err
     if failed_attempts:
         raise CredentialError(
-            f'Could not load credential pair: string="{string}", path="{path}", private_string="{private_string}", private_path="{private_path}". {len(failed_attempts)} attempts failed with CredentialError.'
+            f'Could not load credential pair: string="{string}", path="{path}", private_string="{private_string}", private_path="{private_path}", secret="{secret}". {len(failed_attempts)} attempts failed with CredentialError.'
         ) from failed_attempts[-1]
     raise CredentialError(
-        f'Could not load credential pair: string="{string}", path="{path}", private_string="{private_string}", private_path="{private_path}"'
+        f'Could not load credential pair: string="{string}", path="{path}", private_string="{private_string}", private_path="{private_path}", secret="{secret}"'
     )
 
 

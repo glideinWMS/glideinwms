@@ -84,9 +84,14 @@ class DynamicCredential(Credential[Generator]):
 
         return self._context
 
+    # TODO: Could there be confusion between secret and context?
     @staticmethod
     def decode(string: Union[str, bytes], context: Optional[Mapping] = None) -> Generator:
         """Load the credential generator module and return it.
+
+        This implementation has the same number of parameters but different signature of the parent class.
+        Dynamic credentials use context for the generation and do not use secret to decoding serialized credentials.
+        If a secret is needed it should be added to the context and become one of the constructor arguments.
 
         Args:
             string: Generator module name or path. Can be in bytes.
@@ -208,6 +213,7 @@ class DynamicCredential(Credential[Generator]):
 
         Args:
             snapshot (str): The name of the snapshot to retrieve.
+            default (Optional[any]): A default value to return if the snapshot does not exist.
 
         Returns:
             Optional[Credential]: The snapshot of the generated credential, or None if not found.

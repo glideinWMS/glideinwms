@@ -60,7 +60,17 @@ class Token(Credential[Mapping]):
         return self.subject
 
     @staticmethod
-    def decode(string: Union[str, bytes]) -> Mapping:
+    def decode(string: Union[str, bytes], secret: Optional[Union[str, bytes]] = None) -> Mapping:
+        """Decode a JWT token.
+
+        Args:
+            string (Union[str, bytes]): The string to decode.
+            secret (Optional[Union[str, bytes]]): Since tokens are in clear, there should be no secrets.
+                Always None, ignored. Added to respect the interface.
+
+        Returns:
+            Mapping: The decoded token as a dictionary.
+        """
         if isinstance(string, bytes):
             string = string.decode()
         return jwt.decode(string.strip(), options={"verify_signature": False})

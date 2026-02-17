@@ -52,7 +52,17 @@ class SymmetricKey(Credential[Cipher]):
         return self.string
 
     @staticmethod
-    def decode(string: Union[str, bytes]) -> Cipher:
+    def decode(string: Union[str, bytes], secret: Optional[Union[str, bytes]] = None) -> Cipher:
+        """Decode a symmetric key.
+
+        Args:
+            string (Union[str, bytes]): The string to decode.
+            secret (Optional[Union[str, bytes]]): Since symmetric keys are generally serialized in clear,
+                there are no secrets. Always None, ignored. Added to respect the interface.
+
+        Returns:
+            Cipher: The decoded symmetric credential (Cipher object, e.g. AES).
+        """
         string = force_bytes(string)
         key = binascii.unhexlify(string.split(b",")[1].split(b":")[1])
         iv = binascii.unhexlify(string.split(b",")[2].split(b":")[1])

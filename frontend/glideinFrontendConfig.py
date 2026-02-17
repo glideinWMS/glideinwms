@@ -597,6 +597,7 @@ class ElementMergedDescript:
             "ProxyTrustDomains",
             "ProxyTypes",
             "CredentialPurposes",
+            "CredentialSecrets",
             "CredentialContexts",
             "CredentialGenerators",
             "ProxyKeyFiles",

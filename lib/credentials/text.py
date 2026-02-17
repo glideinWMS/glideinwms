@@ -29,7 +29,18 @@ class TextCredential(Credential[bytes]):
         return self.string
 
     @staticmethod
-    def decode(string: Union[str, bytes]) -> bytes:
+    def decode(string: Union[str, bytes], secret: Optional[Union[str, bytes]] = None) -> bytes:
+        """Decode text credential.
+        No changes performed. The content is cast to bytes.
+
+        Args:
+            string (Union[str, bytes]): The credential as string or bytes.
+            secret (Optional[Union[str, bytes]]): Text credentials are not encoded, there should be no secrets.
+                Always None, ignored. Added to respect the interface.
+
+        Returns:
+            bytes: The decoded text credential as a bytes object.
+        """
         return force_bytes(string)
 
     def invalid_reason(self) -> Optional[str]:

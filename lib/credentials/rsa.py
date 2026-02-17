@@ -59,7 +59,17 @@ class RSAPublicKey(Credential[PublicKeyTypes]):
         return self.string
 
     @staticmethod
-    def decode(string: Union[str, bytes]) -> PublicKeyTypes:
+    def decode(string: Union[str, bytes], secret: Optional[Union[bytes, str]] = None) -> PublicKeyTypes:
+        """Decode an RSA public key.
+
+        Args:
+            string (Union[str, bytes]): The string to decode.
+            secret (Optional[Union[bytes, str]]): Since the public key is in clear, there should be no secrets.
+                Always None, ignored. Added to respect the interface.
+
+        Returns:
+            RSAPublicKey: The decoded RSA public key.
+        """
         string = force_bytes(string)
         if string.startswith(b"ssh-rsa"):
             return serialization.load_ssh_public_key(string, backend=default_backend())
@@ -209,11 +219,70 @@ class RSAPrivateKey(Credential[PrivateKeyTypes]):
         return "RSA" if self._payload else None
 
     @staticmethod
-    def decode(string: Union[str, bytes]) -> PrivateKeyTypes:
+    def decode(string: Union[str, bytes], secret: Optional[Union[bytes, str]] = None) -> PrivateKeyTypes:
+        """Decode an RSA private key.
+
+        Args:
+            string (Union[str, bytes]): The string to decode.
+            secret (Optional[Union[bytes, str]]): Password used to encrypt the private key.
+                If not provided, it will default to None for SSH keys and DEFAULT_PASSWORD for PEM keys.
+
+        Returns:
+            RSAPrivateKey: The RSA private key.
+        """
         string = force_bytes(string)
+        password = force_bytes(secret)
         if string.startswith(b"-----BEGIN OPENSSH PRIVATE KEY-----"):
-            return serialization.load_ssh_private_key(string, password=None, backend=default_backend())
-        return serialization.load_pem_private_key(string, password=DEFAULT_PASSWORD, backend=default_backend())
+            return serialization.load_ssh_private_key(string, password=password, backend=default_backend())
+        return serialization.load_pem_private_key(
+            string, password=password or DEFAULT_PASSWORD, backend=default_backend()
+        )
+
+    @staticmethod
+    def encode(
+        credential: PrivateKeyTypes,
+        secret: Optional[Union[str, bytes]] = None,
+        string: Optional[Union[str, bytes]] = None,
+    ) -> bytes:
+        """Encode the given RSA private key.
+
+        If provided, can use the optional secret to encode the key.
+
+        By default, it uses the new OpenSSH format and PEM.
+        If the optional `string` argument is not provided, it will use the same format as `string`
+        (TraditionalOpenSSL or OpenSSH).
+
+        Args:
+            credential (PrivateKeyTypes): The credential to encode.
+            secret (Optional[Union[str, bytes]]): An element that can be used to decode the credential, e.g. a key password or
+                the path to the file storing it. Defaults to the DEFAULT_PASSWORD if the TraditionalOpenSSL format is used.
+            string (Optional[Union[str, bytes]]): The encoded key. Can use a different password. Currently used only for the serialization format.
+
+        Returns:
+            bytes: The encoded key.
+        """
+        cred_format = serialization.PrivateFormat.OpenSSH
+        password = force_bytes(secret)
+        # string used only to infer properties, could be returned if there is no password in both.
+        # Generally password could be different
+        if string:
+            string = force_bytes(string)
+            if not string.startswith(b"-----BEGIN OPENSSH PRIVATE KEY-----"):
+                cred_format = serialization.PrivateFormat.TraditionalOpenSSL
+                password = password or DEFAULT_PASSWORD
+
+        if password is None:
+            return credential.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=cred_format,
+                encryption_algorithm=serialization.NoEncryption(),
+            )
+        else:
+            return credential.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=cred_format,
+                encryption_algorithm=serialization.BestAvailableEncryption(password),
+            )
 
     def invalid_reason(self) -> Optional[str]:
         """Checks if the credential is valid and returns a string if it is not.

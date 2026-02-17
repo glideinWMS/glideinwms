@@ -70,7 +70,19 @@ class X509Cert(Credential[x509.Certificate]):
         return self.subject
 
     @staticmethod
-    def decode(string: Union[str, bytes]) -> x509.Certificate:
+    def decode(string: Union[str, bytes], secret: Optional[Union[str, bytes]] = None) -> x509.Certificate:
+        """Deserialize a X509 certificate or proxy from PEM encoded data.
+
+        PEM certificates are base64 decoded and have delimiters that look like `-----BEGIN CERTIFICATE-----`.
+
+        Args:
+            string (Union[str, bytes]): The credential as string or bytes.
+            secret (Optional[Union[str, bytes]]): X509 certificates are not encrypted, there should be no secrets.
+                Always None, ignored. Added to respect the interface.
+
+        Returns:
+            x509.Certificate: The decoded X509 credential.
+        """
         string = force_bytes(string)
         return x509.load_pem_x509_certificate(string)
 

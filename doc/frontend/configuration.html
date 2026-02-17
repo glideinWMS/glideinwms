@@ -797,8 +797,9 @@ SPDX-License-Identifier: Apache-2.0
               type=&quot;<i>grid_proxy</i>&quot;
               absfname=&quot;<i>proxyfile</i>&quot;
               purpose=&quot;<i>request</i>&quot;
-              [keyabsfname=&quot;<i>keyfile</i>&quot;]
-              [pilotabsfname=&quot;<i>proxyfile</i>&quot;]
+              [keyabsfname=&quot;<i>keyfile</i>&quot;] [secret=<i
+                >secretfile or secret</i
+              >] [pilotabsfname=&quot;<i>proxyfile</i>&quot;]
               security_class=&quot;<i>frontend</i>&quot;
               trust_domain=&quot;<i>id</i>&quot;
               [creation_script=&quot;<i>creationcommand</i>&quot;]
@@ -820,7 +821,9 @@ SPDX-License-Identifier: Apache-2.0
               <li>
                 <b>key_pair</b>: A key pair stored with the public key in
                 <i>absfname</i> location and the private key in
-                <i>keyabsfname</i> location.
+                <i>keyabsfname</i> location. The private key may be encrypted
+                with a secret/password in <i>secret</i> (path of the file
+                containing the secret or secret itself).
               </li>
               <li>
                 <b>username_password</b>: A username/password combination with
