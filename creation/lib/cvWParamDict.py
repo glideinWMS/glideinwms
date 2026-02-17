@@ -10,7 +10,7 @@ import os.path
 import shutil
 
 from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
-from glideinwms.lib.credentials import x509
+from glideinwms.lib.credentials import CredentialError, x509
 from glideinwms.lib.credentials.utils import load_context
 from glideinwms.lib.generators import generator_context_errors, GeneratorContextError
 from glideinwms.lib.util import str2bool
@@ -1203,6 +1203,7 @@ def populate_common_descript(descript_dict, params):
             "trust_domain": "ProxyTrustDomains",
             "type": "ProxyTypes",
             "purpose": "CredentialPurposes",
+            "secret": "CredentialSecrets",
             "context": "CredentialContexts",
             # credential files probably should be handles as a list, each w/ name and path
             # or the attributes ending in _file are files
@@ -1451,16 +1452,19 @@ def populate_group_security(client_security, params, sub_params, group_name):
                         dn = x509.X509Cert(path=proxy_fname).subject
                         # don't worry about conflict... there is nothing wrong if the DN is listed twice
                         pilot_dns.append(dn)
-                    except SystemExit:
+                    except CredentialError:
                         print("...Failed to extract DN from %s, but continuing" % proxy_fname)
                 else:
                     # pool
                     pool_idx_list_expanded_strings = get_pool_list(pel)
                     for idx in pool_idx_list_expanded_strings:
                         real_proxy_fname = f"{proxy_fname}{idx}"
-                        dn = x509.X509Cert(path=real_proxy_fname).subject
-                        # don't worry about conflict... there is nothing wrong if the DN is listed twice
-                        pilot_dns.append(dn)
+                        try:
+                            dn = x509.X509Cert(path=real_proxy_fname).subject
+                            # don't worry about conflict... there is nothing wrong if the DN is listed twice
+                            pilot_dns.append(dn)
+                        except CredentialError:
+                            print("...Failed to extract DN from %s, but continuing" % real_proxy_fname)
 
     client_security["pilot_DNs"] = pilot_dns
 

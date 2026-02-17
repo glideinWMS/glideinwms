@@ -361,6 +361,7 @@ def format_condor_dict(data):
 
 
 # DEPRECATED: use glideinwms.lib.credentials.Credential
+#             this class does not handle new credential attributes like scope and secret (CredentialSecrets)
 class LegacyCredential:
     """A class representing a credential used for GlideinWMS.
 

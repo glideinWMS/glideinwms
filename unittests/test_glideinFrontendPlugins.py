@@ -51,6 +51,7 @@ class fakeDescript:
             "ProxyTrustDomains": {},
             "ProxyTypes": {},
             "CredentialGenerators": {},
+            "CredentialSecrets": {},
             "ProxyKeyFiles": {},
             "ProxyPilotFiles": {},
             "ProxyVMIds": {},

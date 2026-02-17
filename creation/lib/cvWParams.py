@@ -315,6 +315,12 @@ class VOFrontendParams(cWParams.CommonParams):
             "Python mapping with a context for credential generators",
             None,
         )
+        proxy_defaults["secret"] = (
+            None,
+            "fname or bytestring",
+            "Secret or password for the serialized credential (file name or value)",
+            None,
+        )
         proxy_defaults["trust_domain"] = ("OSG", "grid_type", "Trust Domain", None)
         proxy_defaults["creation_script"] = (None, "command", "Script to re-create credential", None)
         proxy_defaults["update_frequency"] = (None, "int", "Update proxy when there is this much time left", None)

@@ -69,6 +69,7 @@ class SecurityBundle:
         for path in element_descript["Proxies"]:
             cred_type = credential_type_from_string(element_descript["ProxyTypes"].get(path))
             purpose = element_descript["CredentialPurposes"].get(path)
+            secret = element_descript["CredentialSecrets"].get(path, None)
             trust_domain = element_descript["ProxyTrustDomains"].get(path, "None")
             security_class = element_descript["ProxySecurityClasses"].get(path, "grid")
             creation_script = element_descript["CredentialCreationScripts"].get(path, None)
@@ -78,6 +79,7 @@ class SecurityBundle:
                 credential = create_credential(
                     path=path,
                     purpose=purpose,
+                    secret=secret,
                     trust_domain=trust_domain,
                     security_class=security_class,
                     cred_type=cred_type,
@@ -91,6 +93,7 @@ class SecurityBundle:
                     path=path,
                     private_path=cred_key,
                     purpose=purpose,
+                    secret=secret,
                     trust_domain=trust_domain,
                     security_class=security_class,
                     cred_type=cred_type,
