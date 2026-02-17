@@ -159,7 +159,7 @@ class CredentialsPlugin(ABC):
 class CredentialsBasic(CredentialsPlugin):
     """This plugin returns all credentials
 
-    This is can be a very useful default policy
+    This is a very useful default policy
     """
 
     def get_credential(self, cred_id, snapshot=None):
@@ -258,7 +258,11 @@ class CredentialsBasic(CredentialsPlugin):
 
 ###########################################################
 ### Proxy plugins are deprecated and should not be used ###
+## You should use plugins inheriting form CredentialsPlugin
 ###########################################################
+
+# TODO: Some of the functionalities are no more needed with the new credentials and generators
+#   other should be reviewed and implemented using the new framework
 
 
 class ProxyFirst:

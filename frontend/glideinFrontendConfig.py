@@ -18,6 +18,7 @@ from glideinwms.lib import hash_crypto, util
 ############################################################
 
 
+# TODO: Verify the difference form glideinFrontendInterface.FrontendConfig and if these can be unified
 class FrontendConfig:
     """Configuration class for the Frontend component of GlideinWMS.
 
