@@ -490,7 +490,7 @@ class glideinFrontendElement:
         del forkm_obj
 
         self.globals_dict = {}
-        self.glidein_dict = {}
+        self.glidein_dict = {}  # Dictionary with glidefactory classad elements
         self.factoryclients_dict = {}
         self.condorq_dict = {}
 
@@ -702,7 +702,9 @@ class glideinFrontendElement:
             glideid_str = f"{request_name}@{factory_pool_node}"
             self.processed_glideid_strs.append(glideid_str)
 
-            glidein_el = self.glidein_dict[glideid]
+            glidein_el = self.glidein_dict[
+                glideid
+            ]  # Contains the glidefactory classad attributes for one entry/resource
             glidein_in_downtime = safe_boolcomp(glidein_el["attrs"].get("GLIDEIN_In_Downtime", False), True)
 
             count_jobs = {}  # straight match
@@ -2102,8 +2104,8 @@ class glideinFrontendElement:
 
         Returns:
             dict: A dictionary mapping (factory_pool_node, glidein name, frontend identity at factory pool)
-                to their corresponding glidein attribute dictionaries. Only trusted entries with matching
-                identities are included.
+                to their corresponding glidein attribute dictionaries (i.e. the content of the glidefactory classad).
+                Only trusted entries with matching identities are included.
         """
         # Query glidefactory ClassAd
         try:
