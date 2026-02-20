@@ -796,7 +796,7 @@ EOF
         slots_layout=$(gconfig_get SLOTS_LAYOUT "$config_file")
         if [[ "X$slots_layout" = "Xpartitionable" ]]; then
             echo "NUM_SLOTS = 1" >> "$CONDOR_CONFIG"
-            echo "SLOT_TYPE_1 = cpus=\$(GLIDEIN_CPUS) ${glidein_disk:+disk=${glidein_disk}}" >> "$CONDOR_CONFIG"
+            echo "SLOT_TYPE_1 = cpus=\$(GLIDEIN_CPUS)${glidein_disk:+, disk=${glidein_disk}}" >> "$CONDOR_CONFIG"
             echo "NUM_SLOTS_TYPE_1 = 1" >> "$CONDOR_CONFIG"
             echo "SLOT_TYPE_1_PARTITIONABLE = True" >> "$CONDOR_CONFIG"
             num_slots_for_shutdown_expr=1
@@ -810,7 +810,7 @@ EOF
         else
             # fixed slot
             [[ -n "$glidein_disk" ]] && glidein_disk=$(unit_division $glidein_disk $GLIDEIN_CPUS)
-            echo "SLOT_TYPE_1 = cpus=1 ${glidein_disk:+disk=${glidein_disk}}" >> "$CONDOR_CONFIG"
+            echo "SLOT_TYPE_1 = cpus=1${glidein_disk:+, disk=${glidein_disk}}" >> "$CONDOR_CONFIG"
             echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
             num_slots_for_shutdown_expr=$GLIDEIN_CPUS
             #Blackhole calculation based on the startd stats for fixed slots
