@@ -68,6 +68,19 @@ class X509Cert(Credential[x509.Certificate]):
         return x509.load_pem_x509_certificate(string)
 
     def invalid_reason(self) -> Optional[str]:
+        """Checks if the credential is valid and returns a string if it is not.
+
+        Following are the reasons for an invalid x509 certificate:
+        1. Certificate was not initialized
+        2. Certificate is not yet valid
+        3. Expired certificate
+        4. Lifetime of the certificate is too short.
+
+        Note: This function checks only the validity of the certificate. This function does not perform verification of the certificate and validation of its chain of trust.
+
+        Returns:
+            str or None: A string value indicating the reason for invalidity or a `None` value (if x509 certificate is valid).
+        """
         if not self._payload:
             return "Certificate not initialized."
         if datetime.now(self.not_before_time.tzinfo) < self.not_before_time:
@@ -76,7 +89,7 @@ class X509Cert(Credential[x509.Certificate]):
             return "Certificate expired."
         if (self.not_after_time - datetime.now(self.not_after_time.tzinfo)).total_seconds() < self.minimum_lifetime:
             return "Certificate lifetime too short."
-        return "Cannot determine specific reason for the invalid certificate."
+        return None  # no reason for invalidity found, so credential is valid
 
 
 class X509Pair(CredentialPair, X509Cert):

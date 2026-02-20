@@ -57,8 +57,19 @@ class RSAPublicKey(Credential[PUBLIC_KEY_TYPES]):
         return serialization.load_pem_public_key(string, backend=default_backend())
 
     def invalid_reason(self) -> Optional[str]:
+        """Checks if the credential is valid and returns a string if it is not.
+
+        Following are the reasons for an invalid RSA Public Key:
+        - RSA Public Key is not initialized
+
+        Note: This function checks only the validity of the credential but does not perform verification of the credential.
+
+        Returns:
+            str or None: A string value indicating the reason for invalidity or a `None` value (if RSA public key is valid).
+        """
         if not self._payload:
             return "RSA key not initialized."
+        return None  # no reason for invalidity found, so credential is valid
 
     def encrypt(self, data: Union[str, bytes]) -> bytes:
         """Encrypts the given data using the RSA key.
@@ -196,12 +207,25 @@ class RSAPrivateKey(Credential[PRIVATE_KEY_TYPES]):
         return serialization.load_pem_private_key(string, password=DEFAULT_PASSWORD, backend=default_backend())
 
     def invalid_reason(self) -> Optional[str]:
+        """Checks if the credential is valid and returns a string if it is not.
+
+        Following are the reasons for an invalid RSA private key:
+        1. RSA Private Key is not initialized
+        2. RSA Public Key is not initialized
+        3. RSA Public Key ID is not initialized
+
+        Note: This function checks only the validity of the credential but does not perform verification of the credential.
+
+        Returns:
+            str or None: A string value indicating the reason for invalidity or a `None` value (if RSA private key is valid).
+        """
         if not self._payload:
             return "RSA key not initialized."
         if not self.pub_key:
             return "RSA public key not initialized."
         if not self.pub_key_id:
             return "RSA public key ID not initialized."
+        return None  # no reason for invalidity found, so credential is valid
 
     def recreate(self) -> None:
         """Recreates the RSA key.
