@@ -155,6 +155,13 @@ class DynamicCredential(Credential[Generator]):
         )
 
     def invalid_reason(self) -> Optional[str]:
+        """Checks if the credential is valid and returns a string if it is not.
+
+        Note: This function checks only the validity of the credential but does not perform verification of the credential.
+
+        Returns:
+            str or None: A string value indicating the reason for invalidity or a `None` value (if the Dynamic credential is valid).
+        """
         if self._generated_credential:
             return self._generated_credential.invalid_reason()
         if isinstance(self._payload, Generator):

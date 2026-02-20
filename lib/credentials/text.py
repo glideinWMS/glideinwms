@@ -33,8 +33,19 @@ class TextCredential(Credential[bytes]):
         return force_bytes(string)
 
     def invalid_reason(self) -> Optional[str]:
+        """Checks if the credential is valid and returns a string if it is not.
+
+        Following are the reasons for an invalid text-based credential:
+        - the text-based credential is not initialized
+
+        Note: This function checks only the validity of the credential but does not perform verification of the credential.
+
+        Returns:
+            str or None: A string value indicating the reason for invalidity or a `None` value (if text-based credential is valid).
+        """
         if self._payload is None:
             return "Text credential not initialized."
+        return None  # no reason for invalidity found, so credential is valid
 
 
 class UsernamePassword(CredentialPair, TextCredential):

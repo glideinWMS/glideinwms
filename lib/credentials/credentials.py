@@ -293,10 +293,10 @@ class Credential(ABC, Generic[T]):
 
     @abstractmethod
     def invalid_reason(self) -> Optional[str]:
-        """Returns the reason why the credential is invalid.
+        """Checks the validity of the credential and returns the reason why the credential is invalid.
 
         Returns:
-            str: The reason why the credential is invalid. None if the credential is valid.
+            str or None: The reason why the credential is invalid. None if the credential is valid.
         """
 
     def load_from_string(self, string: Union[str, bytes]) -> None:

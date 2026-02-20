@@ -66,6 +66,19 @@ class Token(Credential[Mapping]):
         return jwt.decode(string.strip(), options={"verify_signature": False})
 
     def invalid_reason(self) -> Optional[str]:
+        """Checks if the credential is valid and returns a string if it is not.
+
+        Following are the reasons for an invalid token:
+        1. Token was not initialized
+        2. Token is not yet valid
+        3. Expired token
+        4. Lifetime of the token is too short.
+
+        Note: This function checks only the validity of the credential but does not perform verification of the credential.
+
+        Returns:
+            str or None: A string value indicating the reason for invalidity or a `None` value (if token is valid).
+        """
         if not self._payload:
             return "Token not initialized."
         if datetime.now() < self.not_before_time:
@@ -74,6 +87,7 @@ class Token(Credential[Mapping]):
             return "Token expired."
         if (self.expiration_time - datetime.now()).total_seconds() < self.minimum_lifetime:
             return "Token lifetime too short."
+        return None  # no reason for invalidity found, so credential is valid
 
 
 class SciToken(Token):
