@@ -19,7 +19,25 @@ from glideinwms.lib.token_util import create_and_sign_token
 
 
 class IdTokenGenerator(CredentialGenerator):
-    """IDTOKEN generator"""
+    """IDTOKEN generator
+
+    This generator creates an IDTOKEN using the provided context or information from the configuration file
+    (IDTokenKeyname, IDTokenLifetime).
+
+    The token identity (sub) is the `identity` from the context, if provided, or NAME@HOSTNAME, where
+    HOSTNAME is the fully qualified domain name of the host where the token is generated, and
+    NAME is the GLIDEIN_Site attribute form the resource/entry classad and configuration in the Factory, or
+    the name of the resource/entry from the classad and configuration in the Factory if GLIDEIN_Site is not specified.
+    This aims to create different subjects for different resources/entries to avoid the reuse of tokes from potentially
+    compromised resources.
+
+    The issuer defaults to the HTCondor TRUST_DOMAIN when not specified in the context.
+
+    A duration of 0 seconds means that the token will never expire. A negative value will generate expired tokens.
+    The default duration (if not in the context or IDTokenLifetime) is 24 hours.
+
+    The default password file name is the username (if not in the context or IDTokenKeyname), all uppercase.
+    """
 
     def _setup(self):
         self.context.validate(
@@ -29,11 +47,24 @@ class IdTokenGenerator(CredentialGenerator):
                 "duration": (int, 0),
                 "minimum_lifetime": (int, 0),
                 "identity": (str, ""),
+                "issuer": (str, None),
             }
         )
         self.context["type"] = "idtoken"
 
     def _generate(self, **kwargs):
+        """Generate an IDTOKEN token.
+
+        Args:
+            **kwargs: expected arguments:
+                glidein_el: the attributes of the glidefactory classad form the Factory (from the configuration and stats).
+                    Required unless `identity` is specified in the context
+                elementDescript: the client/Frontend group configuration attributes
+                    Required unless `password` and `duration` are specified in the context
+
+        Returns:
+            An IDTOKEN token.
+        """
         password = self.context["password"] or os.path.join(
             defaults.pwd_dir, kwargs["elementDescript"].merged_data.get("IDTokenKeyname", getpass.getuser().upper())
         )
@@ -44,7 +75,13 @@ class IdTokenGenerator(CredentialGenerator):
             self.context["duration"] or int(kwargs["elementDescript"].merged_data.get("IDTokenLifetime", 24)) * 3600
         )
 
-        identity = self.context["identity"] or f"{kwargs['glidein_el']['attrs']['GLIDEIN_Site']}@{socket.gethostname()}"
+        identity = self.context["identity"]
+        if not identity:
+            try:
+                identity = f"{kwargs['glidein_el']['attrs']['GLIDEIN_Site']}@{socket.gethostname()}"
+            except KeyError:
+                # GLIDEIN_Site is not mandatory, the name is
+                identity = f"{kwargs['glidein_el']['name']}@{socket.gethostname()}"
 
         minimum_lifetime = self.context["minimum_lifetime"] or 0
 

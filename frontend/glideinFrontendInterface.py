@@ -30,6 +30,7 @@ from glideinwms.lib.util import hash_nc
 ############################################################
 
 
+# TODO: Verify the difference form glideinFrontendConfig.FrontendConfig and if these can be unified
 class FrontendConfig:
     """Configuration class for the Frontend component of GlideinWMS.
 

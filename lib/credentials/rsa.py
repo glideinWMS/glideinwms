@@ -200,7 +200,7 @@ class RSAPrivateKey(Credential[PRIVATE_KEY_TYPES]):
         return "RSA" if self._payload else None
 
     @staticmethod
-    def decode(string: Union[str, bytes]) -> PRIVATE_KEY_TYPES:
+    def decode(string: Union[str, bytes], secret: Optional[Union[bytes, str]] = None) -> PRIVATE_KEY_TYPES:
         string = force_bytes(string)
         if string.startswith(b"-----BEGIN OPENSSH PRIVATE KEY-----"):
             return serialization.load_ssh_private_key(string, password=None, backend=default_backend())

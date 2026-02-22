@@ -40,6 +40,7 @@ advertiseGlobalCounter = 0
 #        pass
 
 
+# TODO: Verify the difference form glideFactoryConfig.FactoryConfig and if these can be unified
 class FactoryConfig:
     def __init__(self):
         """Initialize a FactoryConfig object with default values.
@@ -416,9 +417,9 @@ class EntryClassad(classadSupport.Classad):
         similar for glidein_submits, glidein_params, glidein_monitor_monitors and the other dictionaries.
 
         Args:
-            factory_name (str): Name of the Factory.
-            glidein_name (str): Name of the resource in the glideclient classad.
-            entry_name (str): Name of the resource in the glidefactory classad.
+            factory_name (str): Name of the Factory (from the config file root. Defaults to hostname if not set).
+            glidein_name (str): Name of the Factory/Glidein installation (from the config file root and glidefactoryglobal)
+            entry_name (str): Name of the resource/entry in the configuration file and glidefactory classad.
             trust_domain (str): Trust domain for this entry.
             auth_method (str): Authentication methods supported in glidein submission (e.g. grid_proxy, scitoken).
             supported_signtypes (list): Supported sign types (e.g. ['sha1']).

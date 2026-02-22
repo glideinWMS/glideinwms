@@ -145,7 +145,8 @@ def sign_token(identity, issuer, kid, master_key, duration=None, scope=None):
         issuer (str): The IDTOKEN issuer, typically an HTCondor Collector.
         kid (str): The Key ID.
         master_key (bytes): The encryption key.
-        duration (int, optional): Number of seconds the IDTOKEN is valid. Default is infinity (None).
+        duration (int, optional): Number of seconds the IDTOKEN is valid. Default is infinity (None or 0).
+            Negative values will generate already expired tokens.
         scope (str, optional): Permissions the IDTOKEN grants. Default is everything (None).
 
     Returns:

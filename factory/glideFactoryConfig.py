@@ -30,6 +30,7 @@ from glideinwms.lib import credentials
 ############################################################
 
 
+# TODO: Verify the difference form glideFactoryInterface.FactoryConfig and if these can be unified
 class FactoryConfig:
     """Holds default configuration file names for the factory.
 
@@ -224,7 +225,7 @@ class JoinConfigFile(ConfigFile):
 
 
 class GlideinDescript(ConfigFile):
-    """Represents the Glidein description configuration file.
+    """Represents the Glidein(Factory and HTCondor services) description configuration file.
 
     This class loads the glidein.descript file and processes its content,
     including handling of public key type values.

@@ -129,11 +129,16 @@ class FactoryConfig:
         self.client_proxies_base_dir = None
 
     def config_whoamI(self, factory_name, glidein_name):
-        """Configure Factory and glidein names.
+        """Configure Factory and Glidein names.
+
+        These values normally come from the Factory configuration file. They are both set in the root node for
+        the whole Factory config file:
+        - `factory_name` defaults to the Factory hostname if missing in the configuration file.
+        - `glidein_name` is required.
 
         Args:
-            factory_name (str): Name of the Factory.
-            glidein_name (str): Name of the glidein.
+            factory_name (str): Name of the Factory
+            glidein_name (str): Name of the Glidein
         """
         self.factory_name = factory_name
         self.glidein_name = glidein_name
