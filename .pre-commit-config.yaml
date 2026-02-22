@@ -10,7 +10,7 @@ ci:
   skip: [prettier]
 repos:
   - repo: "https://github.com/pre-commit/pre-commit-hooks"
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-ast
       - id: check-docstring-first
@@ -30,15 +30,15 @@ repos:
       - id: python-check-blanket-type-ignore
       - id: python-use-type-annotations
   - repo: "https://github.com/pycqa/isort"
-    rev: 6.0.1
+    rev: 7.0.0
     hooks:
       - id: isort
   - repo: "https://github.com/psf/black"
-    rev: 25.1.0
+    rev: 26.1.0
     hooks:
       - id: black
   - repo: "https://github.com/pre-commit/mirrors-prettier"
-    rev: v3.1.0
+    rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
         # HTML pre section bug https://github.com/prettier/prettier/issues/17042
@@ -50,7 +50,7 @@ repos:
           - "prettier-plugin-toml@0.3.1"
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.11.11
+    rev: v0.15.1
     hooks:
       # Run the linter.
       - id: ruff
@@ -59,7 +59,7 @@ repos:
       # Don't Run the formatter.
       # - id: ruff-format
   - repo: "https://github.com/asottile/pyupgrade"
-    rev: e695ecd365119ab4e5463f6e49bea5f4b7ca786b
+    rev: v3.21.2
     # lock to v2.31.0 (must specify the git hash), v2.32.0 requires python >= 3.7
     hooks:
       - id: pyupgrade
@@ -92,7 +92,7 @@ repos:
         additional_dependencies:
           - tomli
   - repo: https://github.com/fsfe/reuse-tool
-    rev: v5.0.2
+    rev: v6.2.0
     hooks:
       - id: reuse
         additional_dependencies:
