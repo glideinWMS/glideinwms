@@ -834,6 +834,29 @@ add_config_file() {
     fi
 }
 
+test_proxy_availability() {
+    # Return 1 if the URL retrieval via HTTP proxy is failing,
+    # 0 otherwise (success or `wget` and `curl` not available)
+    local proxy_url_test=$1
+    local test_file=$2
+
+    # check whether wget or curl is available for use
+    if wget --version > /dev/null 2>&1; then
+        # wget found, use wget for the test
+        if ! wget -qO /dev/null -e use_proxy=yes -e http_proxy="$proxy_url_test" "${test_file}" 2>&1; then
+            return 1
+        fi
+    elif curl --version > /dev/null 2>&1; then
+        # curl found, use curl for the test
+        if ! curl -so /dev/null --proxy "$proxy_url_test" "$test_file" 2>&1; then
+            return 1
+        fi
+    else
+        echo "Neither wget nor curl command found. Skipping proxy availability test." 1>&2
+    fi
+    # implied return of exit status 0
+}
+
 #####################
 # Fetch a single file
 #
@@ -1476,6 +1499,14 @@ if [ "${proxy_url}" = "OSG" ]; then
         warn "OSG_SQUID_LOCATION undefined, not using any Squid URL" 1>&2
     else
         proxy_url="$(echo "${OSG_SQUID_LOCATION}" | awk -F ':' '{if ($2 =="") {print $1 ":3128"} else {print $0}}')"
+    fi
+fi
+
+# testing proxy availability now...
+if [[ -n "${proxy_url}" && "${proxy_url}" != "None" ]]; then
+    if ! test_proxy_availability "${proxy_url}" "${repository_url}/glidein_startup.sh"; then
+        echo "Resetting the HTTP proxy. The configured one ($proxy_url) seems unavailable!" 1>&2
+        proxy_url="None"
     fi
 fi
 
