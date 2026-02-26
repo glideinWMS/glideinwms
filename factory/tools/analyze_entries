@@ -411,8 +411,8 @@ USAGE:
         "wastemill_data": "rrd_Log_Completed_WasteTime.xml",
     }
 
-    if "http" in w_dir:
-        file_dir = os.path.join(w_dir)
+    if w_dir.startswith("http:") or w_dir.startswith("https:"):
+        file_dir = w_dir
     else:
         file_dir = os.path.join(w_dir, "monitor")
         if not os.path.isdir(file_dir):
@@ -687,7 +687,8 @@ Per Entry (all frontends) stats for the past %s hours.\n"""
             )
         else:
             print("No Entries with Glideins.")
-        print(totals_to_be_printed[0][1])
+        if totals_to_be_printed:
+            print(totals_to_be_printed[0][1])
         print(LINEPRINT_HEADER_DIV)
 
         if sorting == 1:
