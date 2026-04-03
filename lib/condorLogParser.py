@@ -1136,7 +1136,6 @@ def parseSubmitLogFastRawTimings(fname):
     return jobs, first_time, last_time
 
 
-# needs Marco's confirmation on this -- this method seems to not be in use anywhere across the codebase
 def parseSubmitLogFastRawCallback(fname, callback):
     """Parses a HTCondor submit log file and invokes a callback function for each status change.
 
@@ -1210,7 +1209,6 @@ def rawJobId2Nr(job_str):
         return -1, -1  # Invalid
 
 
-# needs Marco's confirmation about the revision of time information based on the new log line format of the HTCondor submit log
 def rawTime2cTime(time_str, year):
     """Convert the log representation into ctime.
 
@@ -1242,7 +1240,6 @@ def rawTime2cTime(time_str, year):
     return ctime
 
 
-# needs Marco's confirmation about the revision of time information based on the new log line format of the HTCondor submit log
 def rawTime2cTimeLastYear(time_str):
     """Converts the log representation into ctime, works only for the past year.
 
@@ -1263,7 +1260,6 @@ def rawTime2cTimeLastYear(time_str):
         return rawTime2cTime(time_str, current_year - 1)
 
 
-# needs Marco's confirmation about the revision of time information based on the new log line format of the HTCondor submit log
 def diffTimes(start_time, end_time, year):
     """Gets two condor time strings and computes the difference.
     The start_time must be before the end_time.
@@ -1286,7 +1282,6 @@ def diffTimes(start_time, end_time, year):
     return int(end_ctime) - int(start_ctime)
 
 
-# needs Marco's confirmation about the revision of time information based on the new log line format of the HTCondor submit log
 def diffTimeswWrap(start_time, end_time, year, wrap_time):
     """Gets two condor time strings and computes the difference with wrapping.
     The start_time must be before the end_time.
@@ -1474,7 +1469,6 @@ def listAndInterpretRawStatuses(jobs_raw, invert_function):
     return outc
 
 
-# needs Marco's confirmation on this -- this method seems to not be in use anywhere across the codebase
 def parseSubmitLogFast(fname):
     """Reads a HTCondor submit log and returns a dictionary of job IDs
     each having the last status.
@@ -1493,7 +1487,6 @@ def parseSubmitLogFast(fname):
     return jobs
 
 
-# needs Marco's confirmation on this -- this method seems to not be in use anywhere across the codebase
 def parseSubmitLogFastTimings(fname, year=None):
     """Reads a HTCondor submit log and returns a dictionary of job IDs each having:
     the last status, seconds in queue, and, if status == 5, seconds running otherwise `None`.
