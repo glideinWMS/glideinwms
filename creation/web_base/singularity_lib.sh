@@ -159,7 +159,7 @@ warn() {
 warn_raw() {
     echo "$@"  1>&2
     [[ -n "$SCRIPT_LOG" ]] && echo "$@"  >> "$GWMS_SCRIPT_LOG"
-    true  # Needed not to return false if the test if the test above is false
+    true  # Needed not to return false if the test above is false
 }
 
 
