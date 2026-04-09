@@ -1105,6 +1105,11 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Apr 9 2026 Marco Mambelli <marcom@fnal.gov> - 3.10.18
+- Glideinwms v3.10.18
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_10_18/history.html
+- Release candidates 3.10.18-01.rc1 to 3.10.18-02.rc2
+
 * Thu Nov 20 2025 Marco Mambelli <marcom@fnal.gov> - 3.10.17
 - Glideinwms v3.10.17
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_10_17/history.html

@@ -696,3 +696,18 @@ v3_10_17:
   NOTE:
     - Job wrapper scripts must be "POSIX" compatible. Bash is enabled when available but not guaranteed. Also, scripts should not include `exec`. GlideinWMS will print a warning during reconfiguration.
     - If you have the Python library Jellyfish (pip install jellyfish), a new word checker will warn you if you misspell a configuration attribute.
+
+v3_10_18:
+  Date: April 9, 2026
+  Series: Stable
+  Tarball: false
+  Feature:
+    - Added GlideinOverloadEnabled to the activity logs for monitoring purposes (PR#629, Issue#569)
+    - Added custom scripts timeout (default to 600s) and option to print the trace if they are shell scripts (PR#651)
+    - gettarballs.py now has an improved management of default tarballs (PR#627)
+  Bug fix:
+    - Fixed ownership of the /var/lib/gwms-factory in RPM package (PR#637)
+    - Fixing inconsistent use of string and bytes types breaking job monitoring (PR#650, Issue#649, Issue#646)
+    - Improved cvmfs_helper_funcs.sh to be faster and have consistent names (PR#651)
+  NOTE:
+    - Custom scripts execution times out after 600s and scripts are killed with SIGTERM
