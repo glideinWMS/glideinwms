@@ -1015,7 +1015,7 @@ def get_new_status(old_status, new_status):
 def parseSubmitLogFastRaw(fname):
     """Parses a HTCondor submit log file and extracts job statuses without timing information.
 
-    Additional notes: The line format of the HTCondor submit log file (aka Job Event Log which is a sequence of event records), as of HTCondor 24.12.x, is shown below. 
+    Additional notes: The line format of the HTCondor submit log file (aka Job Event Log which is a sequence of event records), as of HTCondor 24.12.x, is shown below.
     More information can be found at https://htcondor.readthedocs.io/en/latest/users-manual/managing-a-job.html#in-the-job-event-log-file:
     ```
     jobEventType (ClusterId.ProcessId.NodeNumber) YYYY-MM-DD HH:MM:SS jobEventBriefDescription
