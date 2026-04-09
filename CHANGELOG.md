@@ -3,17 +3,19 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+## v3.10.18 \[2026-04-09\]
 
-Changes since the last release
+Fixes on job monitoring and added custom scripts timeout
 
 ### New features / functionalities
 
 -   Added GlideinOverloadEnabled to the activity logs for monitoring purposes (PR #629, Issue #569)
+-   Added custom scripts timeout (default to 600s) and option to print the trace if they are shell scripts (PR #651)
 
 ### Changed defaults / behaviours
 
--   gettarballs.py now has an improved management of default tarballs
+-   gettarballs.py now has an improved management of default tarballs (PR #627)
+-   Custom scripts execution times out after 600s and scripts are killed with SIGTERM (PR #651)
 
 ### Deprecated / removed options and commands
 
@@ -22,6 +24,8 @@ Changes since the last release
 ### Bug Fixes
 
 -   Fixed ownership of the /var/lib/gwms-factory in RPM package (PR #637)
+-   Fixing inconsistent use of string and bytes types breaking job monitoring (PR #650, Issue #649, Issue #646)
+-   Improved cvmfs_helper_funcs.sh to be faster and have consistent names (PR #651)
 
 ### Testing / Development
 
