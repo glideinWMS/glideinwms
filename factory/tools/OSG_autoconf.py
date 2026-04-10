@@ -554,10 +554,15 @@ def set_gpu_entry(entry_information, want_whole_node):
     if "attrs" not in entry_information:
         entry_information["attrs"] = {}
     if "GLIDEIN_Resource_Slots" not in entry_information["attrs"]:
-        if want_whole_node:
-            value = "GPUs,type=main"
+        gpu_count = entry_information.get("submit_attrs", {}).get("Request_GPUs")
+
+        # Always include GPU count if available, even for whole-node entries
+        if gpu_count:
+            value = f"GPUs,{gpu_count},type=main"
         else:
-            value = "GPUs," + str(entry_information["submit_attrs"]["Request_GPUs"]) + ",type=main"
+            # fallback (should not normally happen)
+            value = "GPUs,type=main"
+
         entry_information["attrs"]["GLIDEIN_Resource_Slots"] = {"value": value}
 
     return entry_information
