@@ -447,6 +447,7 @@ def merge_yaml(config, white_list, args):
     additional_information = []
     broken_sites = []
     broken_ces = []
+    broken_queues = []
 
     for additional_yaml_file in additional_yaml_files:
         additional_information.append(get_yaml_file_info(additional_yaml_file))
@@ -497,7 +498,12 @@ def merge_yaml(config, white_list, args):
                             "It seems like you are using the best fit algorithm for this CE (%s), but the site admin specified one (or more) queue(s) in their CE config (called %s). Please, replace %s with one of the queue, and adjust the parameters in the whitelist file"
                             % (BEST_FIT_TAG, osg_info[site][ce_hostname].keys(), BEST_FIT_TAG)
                         )
-                    raise ProgramError(4)
+                    if args.skip_broken:
+                        print("Will skip queue %s and continue normally" % qelem)
+                        broken_queues.append((site, ce_hostname, qelem))
+                        continue
+                    else:
+                        raise ProgramError(4)
                 for entry, entry_information in q_information.items():
                     update(entry_information, osg_info[site][ce_hostname][qelem]["DEFAULT_ENTRY"], overwrite=False)
                     if osg_info[site][ce_hostname][qelem]["DEFAULT_ENTRY"]["gridtype"] == "condor":
@@ -530,6 +536,8 @@ def merge_yaml(config, white_list, args):
         del out[site]
     for site, ce in broken_ces:
         del out[site][ce]
+    for site, ce, queue in broken_queues:
+        del out[site][ce][queue]
     return out
 
 
