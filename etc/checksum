@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_18_rc2
+# GLIDEINWMS_VERSION v3_10_18_rc3
 ###################################################################
 78bb68217a24e977bdc5850e7d607960  ./__init__.py
 32b4bfc3e16d335b71c235d34a819eba  ./.codespell/ignore_lines.txt
@@ -8,7 +8,7 @@ bf1869a9f0e22861757b16f54e1acee9  ./.codespell/ignore_words.txt
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
 ba748ed3bc5995aee49b1067feaf7999  ./bigfiles/cvmfs_utils.tar.gz
 4558e767c3bea40c689e0c7eec0fd2ce  ./bigfiles/README.md
-a2652fdc4d393115a898d36bfeb23303  ./CHANGELOG.md
+c13306565e66b28414316e2714dc59a9  ./CHANGELOG.md
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 886e483062dbc2844dc52dad44644333  ./creation/clone_glidein
@@ -195,13 +195,13 @@ c4262f2e89fa897635b9814e01cde9ac  ./factory/tools/lib/analyze.py
 44fb4d90f243caa132ab0c9bc02505d7  ./factory/tools/lib/gWftArgsHelper.py
 645f1a6531d7b4ceda0005b9acd3ec5c  ./factory/tools/lib/gWftLogParser.py
 801a087237777d7d91ec3b654f36b37c  ./factory/tools/manual_glidein_submit.py
-ea81364e60bd215308cb7d81e5edfe4f  ./factory/tools/OSG_autoconf.py
+df7de35c78009232416f43c1e11dd242  ./factory/tools/OSG_autoconf.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 86818837b83be4ba1ce16753c890fd3d  ./frontend/checkFrontend.py
 24b55cbd18dc739cf2aa550e888fb028  ./frontend/glideinFrontend.py
 de216ad809a5ce6b8c23fb87dac84e95  ./frontend/glideinFrontendConfig.py
 06d99903d378abfdcb2b7548bf02982a  ./frontend/glideinFrontendDowntimeLib.py
-f445fb47fcd5a35645a8921045723dbb  ./frontend/glideinFrontendElement.py
+d7e8bfde7e5c305eb6104076704a9b96  ./frontend/glideinFrontendElement.py
 f6a3d1b501cbdd9dbd5d5c85b2653e3d  ./frontend/glideinFrontendInterface.py
 889c06cc8f325710d73adaa03a76f07c  ./frontend/glideinFrontendLib.py
 e0db9614d58e517d6f943da1101ecce2  ./frontend/glideinFrontendMonitorAggregator.py

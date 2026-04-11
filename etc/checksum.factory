@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_10_18_rc2
+# GLIDEINWMS_VERSION v3_10_18_rc3
 ###################################################################
 78bb68217a24e977bdc5850e7d607960  ./__init__.py
 32b4bfc3e16d335b71c235d34a819eba  ./.codespell/ignore_lines.txt
@@ -8,7 +8,7 @@ bf1869a9f0e22861757b16f54e1acee9  ./.codespell/ignore_words.txt
 9f56602cb12638b944332ca114507dc8  ./ACKNOWLEDGMENTS.md
 ba748ed3bc5995aee49b1067feaf7999  ./bigfiles/cvmfs_utils.tar.gz
 4558e767c3bea40c689e0c7eec0fd2ce  ./bigfiles/README.md
-a2652fdc4d393115a898d36bfeb23303  ./CHANGELOG.md
+c13306565e66b28414316e2714dc59a9  ./CHANGELOG.md
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 886e483062dbc2844dc52dad44644333  ./creation/clone_glidein
@@ -164,7 +164,7 @@ c4262f2e89fa897635b9814e01cde9ac  ./factory/tools/lib/analyze.py
 44fb4d90f243caa132ab0c9bc02505d7  ./factory/tools/lib/gWftArgsHelper.py
 645f1a6531d7b4ceda0005b9acd3ec5c  ./factory/tools/lib/gWftLogParser.py
 801a087237777d7d91ec3b654f36b37c  ./factory/tools/manual_glidein_submit.py
-ea81364e60bd215308cb7d81e5edfe4f  ./factory/tools/OSG_autoconf.py
+df7de35c78009232416f43c1e11dd242  ./factory/tools/OSG_autoconf.py
 d41d8cd98f00b204e9800998ecf8427e  ./install/__init__.py
 49c95c30a21acd9d353800186bee0723  ./install/config/gwms-factory.conf.httpd
 2ac64ca6337a958c90680773d825d6a6  ./install/config/gwms-factory.service

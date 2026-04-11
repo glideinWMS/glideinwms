@@ -2,9 +2,13 @@ v3_10_18
 	Added GlideinOverloadEnabled to the activity logs for monitoring purposes (PR#629, Issue#569)
 	Added custom scripts timeout (default to 600s) and option to print the trace if they are shell scripts (PR#651)
 	gettarballs.py now has an improved management of default tarballs (PR#627)
+	Print triggered limits in Glidein requests in glideinFrontendElement (PR#653)
+	Updated release script to the new OSG server and Git
 	Bug fix: Fixed ownership of the /var/lib/gwms-factory in RPM package (PR#637)
 	Bug fix: Fixing inconsistent use of string and bytes types breaking job monitoring (PR#650, Issue#649, Issue#646)
 	Bug fix: Improved cvmfs_helper_funcs.sh to be faster and have consistent names (PR#651)
+	Bug fix: OSG_autoconf, handle missing pilot entries gracefully in merge_yaml (PR#655, Issue#654)
+	Bug fix: OSG_autoconf, fix missing GPU count for whole-node GPU entries. (PR#657, Issue#656)
 	NOTE: Custom scripts execution times out after 600s and scripts are killed with SIGTERM
 
 v3_10_17

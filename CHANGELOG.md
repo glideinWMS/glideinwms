@@ -11,6 +11,7 @@ Fixes on job monitoring and added custom scripts timeout
 
 -   Added GlideinOverloadEnabled to the activity logs for monitoring purposes (PR #629, Issue #569)
 -   Added custom scripts timeout (default to 600s) and option to print the trace if they are shell scripts (PR #651)
+-   Print triggered limits in Glidein requests in glideinFrontendElement (PR #653)
 
 ### Changed defaults / behaviours
 
@@ -26,8 +27,12 @@ Fixes on job monitoring and added custom scripts timeout
 -   Fixed ownership of the /var/lib/gwms-factory in RPM package (PR #637)
 -   Fixing inconsistent use of string and bytes types breaking job monitoring (PR #650, Issue #649, Issue #646)
 -   Improved cvmfs_helper_funcs.sh to be faster and have consistent names (PR #651)
+-   OSG_autoconf, handle missing pilot entries gracefully in merge_yaml (PR #655, Issue #654)
+-   OSG_autoconf, fix missing GPU count for whole-node GPU entries. (PR #657, Issue #656)
 
 ### Testing / Development
+
+-   Updated release script to the new OSG server and Git
 
 ### Known Issues
 

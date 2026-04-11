@@ -156,6 +156,11 @@ SPDX-License-Identifier: Apache-2.0
                 tarballs (PR#627)
               </li>
               <li>
+                Print triggered limits in Glidein requests in
+                glideinFrontendElement (PR#653)
+              </li>
+              <li>Updated release script to the new OSG server and Git</li>
+              <li>
                 Bug fix: Fixed ownership of the /var/lib/gwms-factory in RPM
                 package (PR#637)
               </li>
@@ -166,6 +171,14 @@ SPDX-License-Identifier: Apache-2.0
               <li>
                 Bug fix: Improved cvmfs_helper_funcs.sh to be faster and have
                 consistent names (PR#651)
+              </li>
+              <li>
+                Bug fix: OSG_autoconf, handle missing pilot entries gracefully
+                in merge_yaml (PR#655, Issue#654)
+              </li>
+              <li>
+                Bug fix: OSG_autoconf, fix missing GPU count for whole-node GPU
+                entries. (PR#657, Issue#656)
               </li>
               <li>
                 NOTE: Custom scripts execution times out after 600s and scripts
