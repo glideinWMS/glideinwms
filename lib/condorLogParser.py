@@ -379,8 +379,7 @@ class logCounts(cachedLogClass):
         self.clInit(logname, cache_dir, ".clcpk")
 
     def loadFromLog(self):
-        """Loads and parses jobs from the log file, then counts, interprets and stores the counts of
-        various job statuses.
+        """Loads and parses jobs from the log file, then counts, interprets and stores the counts of various job statuses.
 
         Stores the result in `self.data`.
         """
@@ -984,27 +983,27 @@ def get_new_status(old_status, new_status):
     """Determines the updated job status based on the old and new statuses.
 
     Args:
-        old_status (str): The current Globus job status.
-        new_status (str): The new Globus job status.
+        old_status (bytes): The current Globus job status.
+        new_status (bytes): The new Globus job status.
 
     Returns:
-        str: The updated job status after applying the logic for status correction in transitions.
+        bytes: The updated job status after applying the logic for status correction in transitions.
     """
     # keep the old status unless you really want to change
     status = old_status
 
-    if new_status in ("019", "020", "025", "026", "022", "023", "010", "011", "029", "030"):
+    if new_status in (b"019", b"020", b"025", b"026", b"022", b"023", b"010", b"011", b"029", b"030"):
         # these are intermediate states, so just flip a bit
-        if new_status in ("020", "026", "022", "010", "029"):  # connection lost
-            status = str(int(old_status[0]) + 1) + old_status[1:]
+        if new_status in (b"020", b"026", b"022", b"010", b"029"):  # connection lost
+            status = bytes([int(old_status[0]) + 1]) + old_status[1:]
         else:
-            if old_status[0] != "0":  # may have already fixed it, out of order
-                status = str(int(old_status[0]) - 1) + old_status[1:]
+            if bytes([old_status[0]]) != b"0":  # may have already fixed it, out of order
+                status = bytes([int(old_status[0]) - 1]) + old_status[1:]
             # else keep the old one
-    elif new_status in ("004", "007", "024"):
+    elif new_status in (b"004", b"007", b"024"):
         # this is an abort... back to idle/wait
-        status = "000"
-    elif new_status in ("003", "006", "008", "028"):
+        status = b"000"
+    elif new_status in (b"003", b"006", b"008", b"028"):
         pass  # do nothing, that was just informational
     else:
         # a significant status found, use it
@@ -1016,12 +1015,20 @@ def get_new_status(old_status, new_status):
 def parseSubmitLogFastRaw(fname):
     """Parses a HTCondor submit log file and extracts job statuses without timing information.
 
+    Additional notes: The line format of the HTCondor submit log file (aka Job Event Log which is a sequence of event records), as of HTCondor 24.12.x, is shown below.
+    More information can be found at https://htcondor.readthedocs.io/en/latest/users-manual/managing-a-job.html#in-the-job-event-log-file:
+    ```
+    jobEventType (ClusterId.ProcessId.NodeNumber) YYYY-MM-DD HH:MM:SS jobEventBriefDescription
+            Optional additional info specific to the event under question
+    ... (job event separator)
+    ```
+
     Args:
         fname (str): Filename of the log to parse.
 
     Returns:
-        dict: A dictionary where keys are job IDs and values are their corresponding statuses (statusString).
-              For example, {'1583.004': '000', '3616.008': '009'}
+        dict: A dictionary representing job status information. The keys denote job IDs and their values indicate the job event type, which is a 3-digit code, for the corresponding jobs.
+            For example, {b'1583.004': b'000', b'3616.008': b'009'}
     """
     jobs = {}
 
@@ -1030,36 +1037,37 @@ def parseSubmitLogFastRaw(fname):
         # nothing to read, if empty
         return jobs
 
-    with open(fname) as fd:
-        buf = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
+    with open(fname, "rb") as fd:
+        with mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ) as buf:
+            idx = 0
 
-        idx = 0
+            while (idx + 5) < size:  # else we are at the end of the file format
+                # Old format:
+                # 001 (123.2332.000) MM/DD HH:MM:SS Blablabla
+                # ...
+                # New format:
+                # 001 (123.2332.000) YYYY-MM-DD HH:MM:SS Blablabla
+                # ...
 
-        while (idx + 5) < size:  # else we are at the end of the file
-            # format
-            # 023 (123.2332.000) Bla
+                # first 3 chars are status
+                status = buf[idx : idx + 3]
+                idx += 5
+                # extract job id
+                i1 = buf.find(b")", idx)
+                if i1 < 0:
+                    break
+                jobid = buf[idx : i1 - 4]
+                idx = i1 + 1
 
-            # first 3 chars are status
-            status = buf[idx : idx + 3]
-            idx += 5
-            # extract job id
-            i1 = buf.find(b")", idx)
-            if i1 < 0:
-                break
-            jobid = buf[idx : i1 - 4]
-            idx = i1 + 1
+                if jobid in jobs:
+                    jobs[jobid] = get_new_status(jobs[jobid], status)
+                else:
+                    jobs[jobid] = status
 
-            if jobid in jobs:
-                jobs[jobid] = get_new_status(jobs[jobid], status)
-            else:
-                jobs[jobid] = status
-
-            i1 = buf.find(b"...", idx)
-            if i1 < 0:
-                break
-            idx = i1 + 4  # the 3 dots plus newline
-
-        buf.close()
+                i1 = buf.find(b"...", idx)
+                if i1 < 0:
+                    break
+                idx = i1 + 4  # the 3 dots plus newline
 
     return jobs
 
@@ -1067,23 +1075,34 @@ def parseSubmitLogFastRaw(fname):
 def parseSubmitLogFastRawTimings(fname):
     """Parses a HTCondor submit log file and extracts job statuses along with timing information.
 
-    It returns a dictionary of jobStrings each having the last statusString, firstTime, runningTime, lastTime.
+    This method returns a dictionary consisting of job information such as the last known job status, job start time, job running time, and job end time.
     It also returns the first and last date in the file.
+
+    Additional notes: The line format of the HTCondor submit log file (aka Job Event Log which is a sequence of event records), as of HTCondor 24.12.x, is shown below. More information can be found at https://htcondor.readthedocs.io/en/v10_0/users-manual/managing-a-job.html#in-the-job-event-log-file:
+    ```
+    jobEventType (ClusterId.ProcessId.NodeNumber) YYYY-MM-DD HH:MM:SS jobEventBriefDescription
+            Optional additional info specific to the event under question
+    ... (job event separator)
+    ```
+
+    NOTE: This method is invoked from `logSummaryTimings.loadFromLog()` and `parseSubmitLogFastTimings()` methods in this module.
 
     Args:
         fname (str): Filename of the log to parse.
 
     Returns:
         tuple: A tuple containing:
-                - dict: A dictionary of jobStrings, where keys are job IDs and values are tuples with
-                        Job ID, start time, running time (if completed), end time.
+                - dict: A dictionary of bytestrings representing job information, where keys denote job IDs and values are tuples with job event type, start time, running time (if completed), and end time.
                 - str: The timestamp of the first log entry.
                 - str: The timestamp of the last log entry.
                For example:
                ```
-                    ({'9568.001': ('000', '09/28 01:38:53', '', '09/28 01:38:53'),
-                      '9868.003': ('005', '09/28 01:48:52', '09/28 16:11:23', '09/28 20:31:53')},
-                      '09/28 01:38:53', '09/28 20:31:53')
+                ( {b'9568.001': (b'000', b'2026-09-28 01:38:53', b'', b'2026-09-28 01:38:53'), b'9868.003': (b'005', b'2026-09-28 01:48:52', b'2026-09-28 16:11:23', b'2026-09-28 20:31:53')},
+                b'2026-09-28 01:38:53', b'2026-09-28 20:31:53' )
+               ```
+               ```
+                ( {b'2357.001': (b'000', b'09/28 01:38:53', b'', b'09/28 01:38:53'), b'9868.003': (b'005', b'09/28 01:48:52', b'09/28 16:11:23', b'09/28 20:31:53')},
+                b'09/28 01:38:53', b'09/28 20:31:53' )
                ```
     """
     jobs = {}
@@ -1096,230 +1115,207 @@ def parseSubmitLogFastRawTimings(fname):
         # nothing to read, if empty
         return jobs, first_time, last_time
 
-    with open(fname) as fd:
-        buf = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
+    with open(fname, "rb") as fd:
+        with mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ) as buf:
+            idx = 0
 
-        idx = 0
+            while (idx + 5) < size:  # else we are at the end of the file
+                # Old format:
+                # 001 (123.2332.000) MM/DD HH:MM:SS Blablabla
+                # ...
+                # New format:
+                # 001 (123.2332.000) YYYY-MM-DD HH:MM:SS Blablabla
+                # ...
 
-        while (idx + 5) < size:  # else we are at the end of the file
-            # format
-            # 023 (123.2332.000) MM/DD HH:MM:SS
-
-            # first 3 chars are status
-            status = buf[idx : idx + 3]
-            idx += 5
-            # extract job id
-            i1 = buf.find(b")", idx)
-            if i1 < 0:
-                break
-            jobid = buf[idx : i1 - 4]
-            idx = i1 + 2
-            # extract time
-            line_time = buf[idx : idx + 14]
-            idx += 16
-
-            if first_time is None:
-                first_time = line_time
-            last_time = line_time
-
-            if jobid in jobs:
-                if status == b"001":
-                    running_time = line_time
+                # extract job event type
+                # first 3 chars represent 3-digit code for the job event type
+                status = buf[idx : idx + 3]
+                idx += 5
+                # extract job id
+                end_idx = buf.find(b")", idx)
+                if end_idx != -1:
+                    i1 = buf.rfind(b".", idx, end_idx)
+                    if i1 < 0:
+                        break
+                    jobid = buf[idx:i1]
                 else:
-                    running_time = jobs[jobid][2]
-                jobs[jobid] = (
-                    get_new_status(jobs[jobid][0], status),
-                    jobs[jobid][1],
-                    running_time,
-                    line_time,
-                )  # start time never changes
-            else:
-                jobs[jobid] = (status, line_time, b"", line_time)
+                    break
+                idx = end_idx + 2
+                # extract date and time
+                i1 = buf.find(b" ", idx)
+                if i1 != -1:
+                    i2 = buf.find(b" ", i1 + 1)
+                    if i2 < 0:
+                        break
+                    line_time = buf[idx:i2]
+                else:
+                    break
+                idx = i2 + 1
 
-            i1 = buf.find(b"...", idx)
-            if i1 < 0:
-                break
-            idx = i1 + 4  # the 3 dots plus newline
+                if first_time is None:
+                    first_time = line_time
+                last_time = line_time
 
-        buf.close()
+                if jobid in jobs:
+                    if status == b"001":
+                        running_time = line_time
+                    else:
+                        running_time = jobs[jobid][2]
+                    jobs[jobid] = (
+                        get_new_status(jobs[jobid][0], status),
+                        jobs[jobid][1],
+                        running_time,
+                        line_time,
+                    )  # start time never changes
+                else:
+                    jobs[jobid] = (status, line_time, b"", line_time)
+
+                i1 = buf.find(b"...", idx)
+                if i1 < 0:
+                    break
+                idx = i1 + 4  # the 3 dots plus newline
+
     return jobs, first_time, last_time
 
 
-def parseSubmitLogFastRawCallback(fname, callback):
-    """Parses a HTCondor submit log file and invokes a callback function for each status change.
+# def parseSubmitLogFastRawCallback(fname, callback):
+#    """Parses a HTCondor submit log file and invokes a callback function for each status change.
+
+#    Args:
+#        fname (str): Filename of the log to parse.
+#        callback (function): Callback function to call for each status change.
+#                             It takes three arguments: job status entered (str), time (str), and job ID (str).
+#                             E.g: `callback(new_status_str, timestamp_str, job_str)`.
+#    """
+#    Removed because this method is currently not in use.
+
+
+def rawJobId2Nr(job_identifier):
+    """Convert the HTCondor submit log (aka job event log) representation of job identifier into (ClusterId, ProcessId) format.
+
+    NOTE: This method is externally used in `glideFactoryLogParser.py` and `gWftLogParser.py` modules. Additionally, this method was also used previously in `parseSubmitLogFast()` and `parseSubmitLogFastTimings()` methods in this module.
 
     Args:
-        fname (str): Filename of the log to parse.
-        callback (function): Callback function to call for each status change.
-                             It takes three arguments: job status entered (str), time (str), and job ID (str).
-                             E.g: `callback(new_status_str, timestamp_str, job_str)`.
-    """
-    jobs = {}
-
-    size = os.path.getsize(fname)
-    if size == 0:
-        # nothing to read, if empty
-        return
-
-    with open(fname) as fd:
-        buf = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
-
-        idx = 0
-
-        while (idx + 5) < size:  # else we are at the end of the file
-            # format
-            # 023 (123.2332.000) MM/DD HH:MM:SS
-
-            # first 3 chars are status
-            status = buf[idx : idx + 3]
-            idx += 5
-            # extract job id
-            i1 = buf.find(b")", idx)
-            if i1 < 0:
-                break
-            jobid = buf[idx : i1 - 4]
-            idx = i1 + 2
-            # extract time
-            line_time = buf[idx : idx + 14]
-            idx += 16
-
-            if jobid in jobs:
-                old_status = jobs[jobid]
-                new_status = get_new_status(old_status, status)
-                if new_status != old_status:
-                    callback(new_status, line_time, jobid)
-                    if new_status in ("005", "009"):
-                        del jobs[jobid]  # end of life, don't need it anymore
-                    else:
-                        jobs[jobid] = new_status
-            else:
-                jobs[jobid] = status
-                callback(status, line_time, jobid)
-
-            i1 = buf.find(b"...", idx)
-            if i1 < 0:
-                break
-            idx = i1 + 4  # the 3 dots plus newline
-
-        buf.close()
-
-
-def rawJobId2Nr(job_str):
-    """Convert the log representation into (ClusterId, ProcessId).
-
-    Args:
-        job_str (str): Job string in the format 'ClusterId.ProcessId'.
+        job_identifier (bytes): Job identifier as a bytes literal in the format 'ClusterId.ProcessId'.
 
     Returns:
-        tuple: (ClusterId, ProcessId) or (-1, -1) in case of error.
+        tuple(int, int): A tuple consisting of two integers: ('ClusterId', 'ProcessId') or (-1, -1) in case of error.
     """
-    arr = job_str.split(b".")
+    arr = job_identifier.split(b".")
     try:
         return int(arr[0]), int(arr[1])
     except (IndexError, ValueError):
         return -1, -1  # Invalid
 
 
-def rawTime2cTime(time_str, year):
-    """Convert the log representation into ctime.
+def rawTime2cTime(date_timestamp, year):
+    """Convert the date and time representation existing in the HTCondor submit log into ctime, works only for the past year.
+
+    NOTE: This method is used in `rawTime2cTimeLastYear()` method and also in `glideFactoryLogParser.py` module. Additionally, this method was previously used in `diffTimes()` and `diffTimeswWrap()` methods.
 
     Args:
-        time_str (str): Time string in the format 'MM/DD HH:MM:SS'.
+        date_timestamp (bytes): Time, as a bytes literal, in either of the following two formats: 'MM/DD HH:MM:SS' [old] (OR) YYYY-MM-DD HH:MM:SS [newer]
         year (int): The year.
 
     Returns:
         int: ctime or -1 in case of error.
     """
     try:
-        ctime = time.mktime(
-            (
-                year,
-                int(time_str[0:2]),
-                int(time_str[3:5]),
-                int(time_str[6:8]),
-                int(time_str[9:11]),
-                int(time_str[12:14]),
-                0,
-                0,
-                -1,
+        if date_timestamp[2:3] == b"/":
+            # old format of HTCondor job event log
+            ctime = time.mktime(
+                (
+                    year,
+                    int(date_timestamp[0:2]),
+                    int(date_timestamp[3:5]),
+                    int(date_timestamp[6:8]),
+                    int(date_timestamp[9:11]),
+                    int(date_timestamp[12:14]),
+                    0,
+                    0,
+                    -1,
+                )
             )
-        )
-    except ValueError:
+        else:
+            # new format of HTCondor job event log
+            # ignoring the year argument that was passed; use from date_timestamp argument itself
+            ctime = time.mktime(
+                (
+                    int(date_timestamp[0:4]),
+                    int(date_timestamp[5:7]),
+                    int(date_timestamp[8:10]),
+                    int(date_timestamp[11:13]),
+                    int(date_timestamp[14:16]),
+                    int(date_timestamp[17:19]),
+                    0,
+                    0,
+                    -1,
+                )
+            )
+    except (IndexError, ValueError):
         return -1  # Invalid
     return ctime
 
 
-def rawTime2cTimeLastYear(time_str):
-    """Converts the log representation into ctime, works only for the past year.
+def rawTime2cTimeLastYear(date_timestamp):
+    """Convert the date and time representation existing in the HTCondor submit log into ctime.
+
+    NOTE: This method is used externally in `gWftLogParser.py` module.
 
     Args:
-        time_str (str): Time string in the format 'MM/DD HH:MM:SS'.
+        date_timestamp (bytes): Time, as a bytes literal, in the format 'MM/DD HH:MM:SS' [old] or 'YYYY-MM-DD HH:MM:SS' [new].
 
     Returns:
         int: ctime or -1 in case of error.
     """
     now = time.time()
     current_year = time.localtime(now)[0]
-    ctime = rawTime2cTime(time_str, current_year)
+    ctime = rawTime2cTime(date_timestamp, current_year)
     if ctime <= now:
         return ctime
     else:  # cannot be in the future... it must have been in the past year
-        return rawTime2cTime(time_str, current_year - 1)
+        return rawTime2cTime(date_timestamp, current_year - 1)
 
 
-def diffTimes(start_time, end_time, year):
-    """Gets two condor time strings and computes the difference.
-    The start_time must be before the end_time.
+# def diffTimes(start_time, end_time, year):
+#     """Gets two condor time strings and computes the difference.
+#     The start_time must be before the end_time.
 
-    Args:
-        start_time (str): Start time in the format 'MM/DD HH:MM:SS'.
-        end_time (str): End time in the format 'MM/DD HH:MM:SS'.
-        year (int): The year.
+#     NOTE: This method was used in `parseSubmitLogFastTimings()` method.
 
-    Returns:
-        int: Difference in seconds or -1 in case of error.
-    """
-    start_ctime = rawTime2cTime(start_time, year)
-    end_ctime = rawTime2cTime(end_time, year)
-    if start_ctime < 0 or end_ctime < 0:
-        return -1  # invalid
+#     Args:
+#         start_time (str): Start time in the format 'MM/DD HH:MM:SS'.
+#         end_time (str): End time in the format 'MM/DD HH:MM:SS'.
+#         year (int): The year.
 
-    return int(end_ctime) - int(start_ctime)
+#     Returns:
+#         int: Difference in seconds or -1 in case of error.
+#     """
+#     Removed because this method is currently not in use.
 
 
-def diffTimeswWrap(start_time, end_time, year, wrap_time):
-    """Gets two condor time strings and computes the difference with wrapping.
-    The start_time must be before the end_time.
+# def diffTimeswWrap(start_time, end_time, year, wrap_time):
+# """Gets two condor time strings and computes the difference with wrapping.
+# The start_time must be before the end_time.
 
-    Args:
-        start_time (str): Start time in the format 'MM/DD HH:MM:SS'.
-        end_time (str): End time in the format 'MM/DD HH:MM:SS'.
-        year (int): The year.
-        wrap_time (str): Wrap time in the format 'MM/DD HH:MM:SS'.
+# NOTE: This method was used in `parseSubmitLogFastTimings()` method.
 
-    Returns:
-        int: Difference in seconds or -1 in case of error.
-    """
-    if start_time > wrap_time:
-        start_year = year
-    else:
-        start_year = year + 1
-    start_ctime = rawTime2cTime(start_time, start_year)
+# Args:
+#     start_time (str): Start time in the format 'MM/DD HH:MM:SS'.
+#     end_time (str): End time in the format 'MM/DD HH:MM:SS'.
+#     year (int): The year.
+#     wrap_time (str): Wrap time in the format 'MM/DD HH:MM:SS'.
 
-    if end_time > wrap_time:
-        end_year = year
-    else:
-        end_year = year + 1
-    end_ctime = rawTime2cTime(end_time, end_year)
-
-    if start_ctime < 0 or end_ctime < 0:
-        return -1  # invalid
-
-    return int(end_ctime) - int(start_ctime)
+# Returns:
+#     int: Difference in seconds or -1 in case of error.
+# """
+# Removed because this method is currently not in use.
 
 
 def interpretStatus(status, default_status="Idle"):
     """Transforms an integer HTCondor status to either Wait, Idle, Running, Held, Completed or Removed.
+
+    NOTE: This method is used in `countAndInterpretRawStatuses()` and `listAndInterpretRawStatuses()` methods.
 
     Args:
         status (int): HTCondor status code.
@@ -1345,15 +1341,16 @@ def interpretStatus(status, default_status="Idle"):
 
 
 def countStatuses(jobs):
-    """Given a dictionary of job statuses (like the one got from `parseSubmitLogFastRaw`),
-    returns a dictionary of status counts.
+    """Given a dictionary of job statuses (like the one got from `parseSubmitLogFastRaw`), returns a dictionary of status counts.
+
+    NOTE: This method is used in `countAndInterpretRawStatuses()` method.
 
     Args:
         jobs (dict): Dictionary of job statuses.
 
     Returns:
         dict: Dictionary of status counts.
-              For example, {'009': 25170, '012': 418, '005': 1503}
+              For example, {b'012': 25170, b'009': 418, b'005': 1503}
     """
     counts = {}
     for e in jobs.values():
@@ -1366,15 +1363,16 @@ def countStatuses(jobs):
 
 
 def countAndInterpretRawStatuses(jobs_raw):
-    """Given a dictionary of job statuses (like the one got from `parseSubmitLogFastRaw`),
-    returns a dictionary of interpreted status counts.
+    """Given a dictionary of job statuses (like the one got from `parseSubmitLogFastRaw`), returns a dictionary of interpreted status counts.
+
+    NOTE: This method is used in `logCounts.loadFromLog()` method in this module.
 
     Args:
-        jobs_raw (dict): Dictionary of job statuses.
+        jobs_raw (dict): Dictionary of bytestrings representing job information, where keys denote job IDs and values are job event type, which is a 3-digit event code.
 
     Returns:
         dict: Dictionary of interpreted status counts.
-              For example, {'Completed': 30170, 'Removed': 148, 'Running': 5013}
+              For example, {'Held': 30170, 'Removed': 418, 'Completed': 5013}
     """
     outc = {}
     tmpc = countStatuses(jobs_raw)
@@ -1389,15 +1387,16 @@ def countAndInterpretRawStatuses(jobs_raw):
 
 
 def listStatuses(jobs):
-    """Given a dictionary of job statuses (like the one got from `parseSubmitLogFastRaw`),
-    returns a dictionary of jobs in each status.
+    """Given a dictionary of job information (like the one got from `parseSubmitLogFastRaw`), returns a dictionary of job IDs keyed by job event type.
+
+    NOTE: This method is used in `logSummary.loadFromLog()` and `logCompleted.loadFromLog()` methods.
 
     Args:
-        jobs (dict): Dictionary of job statuses.
+        jobs (dict): Dictionary of bytestrings representing job information, where keys denote job IDs and values are job event type, which is a 3-digit event code.
 
     Returns:
         dict: Dictionary of jobs in each status category.
-              For example, {'009': ["1.003","2.001"], '012': ["418.001"], '005': ["1503.001","1555.002"]}
+              For example, {b'009': [ b'102.003', b'245.001'], b'012': [ b'418.001'], b'005': [ b'1503.001', b'1555.002']}
     """
     status = {}
     for k, e in jobs.items():
@@ -1410,18 +1409,40 @@ def listStatuses(jobs):
 
 
 def listStatusesTimings(jobs):
-    """Given a dictionary of job statuses and timings (like the one got from `parseSubmitLogFastRawTimings`),
-    returns a dictionary of jobs and timings in each status.
+    """Given a dictionary of job information (like the one got from `parseSubmitLogFastRawTimings`), returns a dictionary of jobs' information keyed by their event type.
+
+    NOTE: This method is used in `logSummaryTimings.loadFromLog()` method.
 
     Args:
-        jobs (dict): Dictionary of job statuses and timings.
+        jobs (dict): A dictionary consisting of job information such as the job status, job start time, job running time (if completed), and job end time.
 
     Returns:
-        dict: Dictionary of jobs and timings in each status category.
-              For example: {'009': [("1.003", '09/28 01:38:53', '', '09/28 01:38:53'),
-                                    ("2.001",'09/28 03:38:53', '', '09/28 04:38:53')],
-                            '005': [("1503.001", '09/28 01:48:52', '09/28 16:11:23', '09/28 20:31:53'),
-                                    ("1555.002", '09/28 02:48:52', '09/28 18:11:23', '09/28 23:31:53')]}
+        dict: Dictionary of jobs and their timing information corresponding to their status.
+            For example:
+            ```
+            {   # old log format
+                b'009': [
+                    ("1.003", '09/28 01:38:53', '', '09/28 01:38:53'),
+                    ("2.001",'09/28 03:38:53', '', '09/28 04:38:53')
+                ],
+                b'005': [
+                    ("1503.001", '09/28 01:48:52', '09/28 16:11:23', '09/28 20:31:53'),
+                    ("1555.002", '09/28 02:48:52', '09/28 18:11:23', '09/28 23:31:53')
+                ]
+            }
+            ```
+            ```
+            {   # new log format
+                b'009': [
+                    ( b'011.003', b'2026-04-01 01:38:53', b'', b'2026-04-02 01:38:53' ),
+                    ( b'221.001', b'2026-04-03 03:38:53', b'', b'2026-04-03 04:38:53' )
+                ],
+                b'005': [
+                    ( b'1503.001', b'2026-04-02 01:48:52', b'2026-04-02 16:11:23', b'2026-04-02 16:11:23' ),
+                    ( b'1555.002', b'2026-04-01 02:48:52', b'2026-04-01 18:11:23', b'2026-04-01 18:11:23' )
+                ]
+            }
+            ```
     """
     status = {}
     for k, e in jobs.items():
@@ -1434,17 +1455,35 @@ def listStatusesTimings(jobs):
 
 
 def listAndInterpretRawStatuses(jobs_raw, invert_function):
-    """Given a dictionary of job statuses (whatever the `invert_function` recognises),
-    returns a dictionary of jobs in each status according to the provided invert function
-    (syntax depends on the `invert_function`).
+    """Given a dictionary of job information (whatever the `invert_function` recognises), returns a dictionary of jobs in each status according to the provided invert function (syntax depends on the `invert_function`).
+
+    NOTE: This method is used in `logSummary.loadFromLog()`, `logCompleted.loadFromLog()`, `logSummaryTimings.loadFromLog()` methods.
 
     Args:
-        jobs_raw (dict): Dictionary of job statuses.
-        invert_function (function): Function to turn a job status into "Completed","Removed","Running", etc.
+        jobs_raw (dict): Dictionary of job information.
+        invert_function (function): Function that determines whether the returned job information should only include job IDs or also include the timing information about the corresponding jobs, in conjunction with the job IDs.
 
     Returns:
         dict: Dictionary of jobs in each category.
-              For example, {'Completed': ["2.003","5.001"], 'Removed': ["41.001"], 'Running': ["408.003"]}
+              Example : when `invert_function` is `listStatuses`
+              ```
+              {b'009': [ b'122.003', b'554.001'], b'012': [ b'241.001'], b'005': [ b'408.003']}
+              ```
+              Example 2: when `invert_function` is `listStatusesTimings`
+              ```
+              {
+                b'012': [
+                    ( b'011.003', b'2026-04-01 01:38:53', b'', b'2026-04-02 01:38:53' ),
+                    ( b'221.001', b'2026-04-03 03:38:53', b'', b'2026-04-03 04:38:53' )
+                ],
+                b'005': [
+                    ( b'241.001', b'2026-04-02 01:48:52', b'2026-04-02 16:11:23', b'2026-04-02 16:11:23' )
+                ],
+                b'009': [
+                    ( b'408.003', b'2026-04-01 01:38:53', b'', b'2026-04-02 01:38:53')
+                ]
+              }
+              ```
     """
     outc = {}
     tmpc = invert_function(jobs_raw)
@@ -1462,68 +1501,33 @@ def listAndInterpretRawStatuses(jobs_raw, invert_function):
     return outc
 
 
-def parseSubmitLogFast(fname):
-    """Reads a HTCondor submit log and returns a dictionary of job IDs
-    each having the last status.
+# def parseSubmitLogFast(fname):
+# """Reads a HTCondor submit log and returns a dictionary of job IDs
+# each having the last status.
 
-    Args:
-        fname (str): Filename to parse.
+# Args:
+#     fname (str): Filename to parse.
 
-    Returns:
-        dict: Dictionary of job IDs and last status.
-              For example, {(1583,4): 0, (3616,8): 9}
-    """
-    jobs_raw = parseSubmitLogFastRaw(fname)
-    jobs = {}
-    for k in jobs_raw.keys():
-        jobs[rawJobId2Nr(k)] = int(jobs_raw[k])
-    return jobs
+# Returns:
+#     dict: Dictionary of job IDs and last status.
+#           For example, {(1583,4): 0, (3616,8): 9}
+# """
+# Removed because this method is currently not in use.
 
 
-def parseSubmitLogFastTimings(fname, year=None):
-    """Reads a HTCondor submit log and returns a dictionary of job IDs each having:
-    the last status, seconds in queue, and, if status == 5, seconds running otherwise `None`.
+# def parseSubmitLogFastTimings(fname, year=None):
+# """Reads a HTCondor submit log and returns a dictionary of job IDs each having:
+# the last status, seconds in queue, and, if status == 5, seconds running otherwise `None`.
 
-    Args:
-        fname (str): Filename to parse.
-        year (int): The year. If None, use the current year.
+# Args:
+#     fname (str): Filename to parse.
+#     year (int): The year. If None, use the current year.
 
-    Returns:
-        dict: Dictionary of job IDs with timings.
-              For example, {(1583,4): (0,345,None), (3616,8): (5,7777,4532)}
-    """
-    jobs_raw, first_time, last_time = parseSubmitLogFastRawTimings(fname)
-
-    if year is None:
-        year = time.localtime()[0]
-
-    # it wrapped over, dates really in previous year
-    year_wrap = first_time > last_time
-
-    jobs = {}
-    if year_wrap:
-        year1 = year - 1
-        for k in jobs_raw.keys():
-            el = jobs_raw[k]
-            status = int(el[0])
-            diff_time = diffTimeswWrap(el[1], el[3], year1, first_time)
-            if status == 5:
-                running_time = diffTimeswWrap(el[2], el[3], year1, first_time)
-            else:
-                running_time = None
-            jobs[rawJobId2Nr(k)] = (status, diff_time, running_time)
-    else:
-        for k in jobs_raw.keys():
-            el = jobs_raw[k]
-            status = int(el[0])
-            diff_time = diffTimes(el[1], el[3], year)
-            if status == 5:
-                running_time = diffTimes(el[2], el[3], year)
-            else:
-                running_time = None
-            jobs[rawJobId2Nr(k)] = (status, diff_time, running_time)
-
-    return jobs
+# Returns:
+#     dict: Dictionary of job IDs with timings.
+#           For example, {(1583,4): (0,345,None), (3616,8): (5,7777,4532)}
+# """
+# Removed because this method is currently not in use
 
 
 ################################

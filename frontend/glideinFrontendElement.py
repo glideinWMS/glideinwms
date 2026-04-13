@@ -986,6 +986,8 @@ class glideinFrontendElement:
                 limits_triggered,
             )
             resource_advertiser.addClassad(resource_classad.adParams["Name"], resource_classad)
+            if limits_triggered:
+                logSupport.log.debug(f"Limits triggered for {glideid}: {limits_triggered}")
 
         # end for glideid in condorq_dict_types['Idle']['count'].keys()
 

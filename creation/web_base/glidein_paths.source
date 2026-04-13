@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # TODO: use this file for both singularity and the startup script
+GWMS_glidein_paths_source=v1.0
 
 # Directory structure inside .gwms_aux (or main glidein directory)
 # bin, lib [python, python3, python2], exec [prejob, postjob, cleanup, ...]
@@ -24,6 +25,60 @@ robust_realpath() {
         [[ -d "$first" ]] && first="$(cd "$first"; pwd -P)"
         echo "${first}${last}"
     fi
+}
+
+run_with_timeout () {
+    # $1 timeout
+    # $2 - command and arguments
+    local timeout=10
+    if [[ $1 =~ ^[0-9]+$ ]]; then timeout=$1; shift; fi
+    # Run in a subshell to avoid job control messages
+    ( "$@" &
+      child=$!
+      # Avoid default notification in non-interactive shell for SIGTERM
+      trap -- "" SIGTERM
+      ( sleep "$timeout"
+        kill $child 2> /dev/null ) &
+      wait $child
+    )
+}
+
+run_wrapper () {
+    # $1    options(debug, timeout) - use "" for no options
+    # $2..  command and options/arguments
+    local timeout=0
+    local do_debug=false
+    local runner
+    if [[ -n "$1" ]]; then
+        # run option
+        local opts=$1
+        [[ "$opts" = *d* ]] && { do_debug=true; opts="${opts//d/}"; } || true
+        [[ "$opts" =~ ^[0-9]+$ ]] && timeout=$opts
+    fi
+    shift
+    if $do_debug && [[ "$(head -n1 "$1" 2>/dev/null)" = '#!'*bash* ]]; then
+        runner=$(command -v bash)
+    fi
+    # Run in a subshell to avoid job control messages
+    ( if $do_debug; then
+          if [[ -n "$runner" ]]; then
+              "$runner" -x "$@" &
+          else
+              ( set -x; "$@" ) &
+          fi
+      else
+          "$@" &
+      fi
+      child=$!
+      # Avoid default notification in non-interactive shell for SIGTERM
+      if [[ "$timeout" -gt 0 ]]; then
+          trap -- "" SIGTERM
+              ( sleep "$timeout"
+                # Kill -9 ...  # to force killing
+                kill $child 2> /dev/null ) &
+      fi
+      wait $child
+    )
 }
 
 gwms_process_scripts() {

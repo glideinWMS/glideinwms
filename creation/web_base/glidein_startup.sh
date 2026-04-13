@@ -37,6 +37,7 @@ GWMS_MULTIUSER_GLIDEIN=
 # This should never happen only when using GlExec. Not in Singularity, not w/o sudo mechanisms.
 # Comment the following line if GlExec or similar will not be used
 #GWMS_MULTIUSER_GLIDEIN=true
+GWMS_CUSTOM_SCRIPTS_TIMEOUT=600
 # Default GWMS log server
 GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
 
@@ -834,6 +835,29 @@ add_config_file() {
     fi
 }
 
+test_proxy_availability() {
+    # Return 1 if the URL retrieval via HTTP proxy is failing,
+    # 0 otherwise (success or `wget` and `curl` not available)
+    local proxy_url_test=$1
+    local test_file=$2
+
+    # check whether wget or curl is available for use
+    if wget --version > /dev/null 2>&1; then
+        # wget found, use wget for the test
+        if ! wget -qO /dev/null -e use_proxy=yes -e http_proxy="$proxy_url_test" "${test_file}" 2>&1; then
+            return 1
+        fi
+    elif curl --version > /dev/null 2>&1; then
+        # curl found, use curl for the test
+        if ! curl -so /dev/null --proxy "$proxy_url_test" "$test_file" 2>&1; then
+            return 1
+        fi
+    else
+        echo "Neither wget nor curl command found. Skipping proxy availability test." 1>&2
+    fi
+    # implied return of exit status 0
+}
+
 #####################
 # Fetch a single file
 #
@@ -1183,6 +1207,11 @@ fetch_file_base() {
     fi
 
     # if executable, execute
+    local custom_scripts_options
+    if [[ ",${GLIDEIN_DEBUG_OPTIONS}," = *,cscripttrace,* ]]; then
+        custom_scripts_options="d"
+    fi
+    custom_scripts_options="$custom_scripts_options$GWMS_CUSTOM_SCRIPTS_TIMEOUT"
     if [[ "${ffb_file_type}" = "exec" || "${ffb_file_type}" = "exec:"* ]]; then
         if ! chmod u+x "${ffb_outname}"; then
             warn "Error making '${ffb_outname}' executable"
@@ -1196,7 +1225,7 @@ fetch_file_base() {
             cp "${ffb_outname}" "$gwms_exec_dir/cleanup/${ffb_target_fname}"
             chmod a+x "${gwms_exec_dir}/cleanup/${ffb_target_fname}"
         else
-            echo "Executing (flags:${ffb_file_type#exec}) ${ffb_outname}"
+            echo "Executing (flags:${ffb_file_type#exec}, options:$custom_scripts_options) ${ffb_outname}"
             # have to do it here, as this will be run before any other script
             chmod u+rx "${main_dir}"/error_augment.sh
 
@@ -1208,7 +1237,8 @@ fetch_file_base() {
             if [[ "${ffb_file_type}" = "exec:s" ]]; then
                 "${main_dir}/singularity_wrapper.sh" "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
             else
-                "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
+                run_wrapper "$custom_scripts_options" "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
+                # "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
             fi
             ret=$?
             END=$(date +%s)
@@ -1216,6 +1246,8 @@ fetch_file_base() {
             "${main_dir}"/error_augment.sh -concat
             if [ ${ret} -ne 0 ]; then
                 echo "=== Validation error in ${ffb_outname} ===" 1>&2
+                # ret>128 when killed by signal (likely ret 137)
+                [[ ${ret} -lt 128 ]] || echo "Command ${ffb_outname} killed by timeout ($GWMS_CUSTOM_SCRIPTS_TIMEOUT s)" 1>&2
                 warn "Error running '${ffb_outname}'"
                 < otrx_output.xml awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2
                 return 1
@@ -1476,6 +1508,14 @@ if [ "${proxy_url}" = "OSG" ]; then
         warn "OSG_SQUID_LOCATION undefined, not using any Squid URL" 1>&2
     else
         proxy_url="$(echo "${OSG_SQUID_LOCATION}" | awk -F ':' '{if ($2 =="") {print $1 ":3128"} else {print $0}}')"
+    fi
+fi
+
+# testing proxy availability now...
+if [[ -n "${proxy_url}" && "${proxy_url}" != "None" ]]; then
+    if ! test_proxy_availability "${proxy_url}" "${repository_url}/glidein_startup.sh"; then
+        echo "Resetting the HTTP proxy. The configured one ($proxy_url) seems unavailable!" 1>&2
+        proxy_url="None"
     fi
 fi
 

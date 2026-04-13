@@ -1166,7 +1166,7 @@ class condorLogSummary:
         """Summarize completed job statistics from a list of job entries.
 
         Args:
-            entered_list (list): List of job entries (as returned by get_completed_stats).
+            entered_list (dict): List of job entries (as returned by get_completed_stats).
 
         Returns:
             dict: A dictionary summarizing completed statistics with keys:

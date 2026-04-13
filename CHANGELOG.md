@@ -3,12 +3,13 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+## v3.11.4 \[2026-04-13\]
 
-Changes since the last release
+This version includes all changes and fixes in v3.10.18.
 
 ### New features / functionalities
 
+-   All changes and fixes in v3.10.18
 -   Removed remaining dependencies from M2Crypto. Cleaned up also some duplicate code and SL7 and Python 2 CI tools. (Issue #438, PR #636)
 -   Added unit tests for x509.py and rsa.py. (PR #636)
 
@@ -21,6 +22,39 @@ Changes since the last release
 ### Bug Fixes
 
 ### Testing / Development
+
+### Known Issues
+
+## v3.10.18 \[2026-04-09\]
+
+Fixes on job monitoring and added custom scripts timeout
+
+### New features / functionalities
+
+-   Added GlideinOverloadEnabled to the activity logs for monitoring purposes (PR #629, Issue #569)
+-   Added custom scripts timeout (default to 600s) and option to print the trace if they are shell scripts (PR #651)
+-   Print triggered limits in Glidein requests in glideinFrontendElement (PR #653)
+
+### Changed defaults / behaviours
+
+-   gettarballs.py now has an improved management of default tarballs (PR #627)
+-   Custom scripts execution times out after 600s and scripts are killed with SIGTERM (PR #651)
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Fixed ownership of the /var/lib/gwms-factory in RPM package (PR #637)
+-   Fixing inconsistent use of string and bytes types breaking job monitoring (PR #650, Issue #649, Issue #646)
+-   Improved cvmfs_helper_funcs.sh to be faster and have consistent names (PR #651)
+-   OSG_autoconf, handle missing pilot entries gracefully in merge_yaml (PR #655, Issue #654)
+-   OSG_autoconf, fix missing GPU count for whole-node GPU entries. (PR #657, Issue #656)
+
+### Testing / Development
+
+-   Updated release script to the new OSG server and Git
 
 ### Known Issues
 
