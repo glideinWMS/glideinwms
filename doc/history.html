@@ -3075,6 +3075,31 @@ SPDX-License-Identifier: Apache-2.0
           <!-- starting 3.7 generated via tags.yaml -->
           <!-- start development -->
           <li>
+            <a id="v3_11_4"><b>v3_11_4</b></a> released on April 13, 2026 (<a
+              href="http://glideinwms.fnal.gov/doc.v3_11_4/index.html"
+              >Manual</a
+            >,
+            <a href="http://glideinwms.fnal.gov/doc.v3_11_4/install.html"
+              >Installation instructions</a
+            >)<br />
+            <ul>
+              <li>
+                Including all features and fixes of the production series up to
+                3.10.18
+              </li>
+              <li>
+                Removed remaining dependencies from M2Crypto. Cleaned up also
+                some duplicate code and SL7 and Python 2 CI tools. (Issue#438,
+                PR#636)
+              </li>
+              <li>Added unit tests for x509.py and rsa.py. (PR#636)</li>
+              <li>
+                NOTE: (From 3.10.18) Custom scripts execution times out after
+                600s and scripts are killed with SIGTERM
+              </li>
+            </ul>
+          </li>
+          <li>
             <a id="v3_11_3"><b>v3_11_3</b></a> released on January 30, 2026 (<a
               href="http://glideinwms.fnal.gov/doc.v3_11_3/index.html"
               >Manual</a
