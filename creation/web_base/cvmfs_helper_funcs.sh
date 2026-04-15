@@ -106,7 +106,7 @@ detect_local_cvmfs() {
 	CVMFS_ROOT="/cvmfs"
 	repo_name=oasis.opensciencegrid.org
 	# Second check...
-	if [[ -f "$CVMFS_ROOT/$repo_name"/.cvmfsdirtab || "$(run_with_timeout 120 ls -A "$CVMFS_ROOT/$repo_name")" ]] &>/dev/null
+	if [[ -f "$CVMFS_ROOT/$repo_name"/.cvmfsdirtab || "$(run_with_timeout -s KILL 120 ls -A "$CVMFS_ROOT/$repo_name")" ]] &>/dev/null
 	then
 		loginfo "Validating CVMFS with ${repo_name}..."
 		true
@@ -177,7 +177,7 @@ perform_system_check() {
     unshare -U true &>/dev/null
     GWMS_IS_UNPRIV_USERNS_ENABLED=$?
 
-    run_with_timeout 120 check_fuse_installed
+    run_with_timeout -s KILL 120 check_fuse_installed
     GWMS_IS_FUSE_INSTALLED=$?
 
     if [[ $GWMS_OS_VERSION_MAJOR -ge 9 ]]; then

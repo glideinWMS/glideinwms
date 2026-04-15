@@ -609,12 +609,16 @@ params_decode() {
 }
 
 # Put parameters into the config file and build PARAM_LIST (comma separated list of parameters)
+# 1: parameter name (no spaces allowed)
+# 2: encoded parameter value
+# ... multiple couples are expected one after the other (like stored in $params)
+# Assumes default glidein_config file and echos PARAM_LIST
 params2file() {
     local param_list=""
 
     while [ $# -gt 0 ]
     do
-        # Note: using $() we escape blackslash with \\ like above. Using backticks would require \\\
+        # Note: using $() we escape backslash with \\ like above. Using backticks would require \\\
         pfval=$(params_decode "$2")
         if ! gconfig_add "$1" "${pfval}"; then
             glidein_exit 1
@@ -1448,10 +1452,15 @@ glide_local_tmp_dir_created=0
 ################
 # Parse and verify arguments
 
-# allow some parameters to change arguments
-# multiglidein GLIDEIN_MULTIGLIDEIN -> multi_glidein
+# Decode some parameters and allow some parameters to change arguments
+# export will make them available in the custom scripts without need of gconfig_get
+# multiglidein GLIDEIN_MULTIGLIDEIN -> multi_glidein  , assume number, no param_decode needed
 tmp_par=$(params_get_simple GLIDEIN_MULTIGLIDEIN "${params}")
 [ -n "${tmp_par}" ] &&  multi_glidein=${tmp_par}
+GLIDEIN_DEBUG_OPTIONS=$(params_decode "$(params_get_simple GLIDEIN_DEBUG_OPTIONS "${params}")")
+export GLIDEIN_DEBUG_OPTIONS
+glidein_cs_timeout=$(params_decode "$(params_get_simple GLIDEIN_CUSTOM_SCRIPTS_TIMEOUT "${params}")")
+[[ -n "$glidein_cs_timeout" ]] && GWMS_CUSTOM_SCRIPTS_TIMEOUT="$glidein_cs_timeout"
 
 case "${operation_mode}" in
     nodebug)
@@ -1690,8 +1699,6 @@ fi
 
 [ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
 
-num_gct=0
-
 
 ########################################
 # prepare and move to the work directory
@@ -1924,8 +1931,12 @@ fi
 export GLIDEIN_Name="${glidein_name}"
 export GLIDEIN_UUID="${glidein_uuid}"
 
+# Save $params (-param... command line arguments) to glidein_config
 # shellcheck disable=SC2086
 params2file ${params}
+
+# Values in glidein_config need to be loaded explicitly to have variables in glidein_startup.sh or exported to be
+# available also in custom scripts
 
 ############################################
 # Setup logging
