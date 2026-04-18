@@ -11,6 +11,7 @@ get_hash() accepts byte-like objects or utf-8 encoded Unicode strings.
 Same for all the get_XXX or extract_XXX that use those functions.
 Other class methods and functions use bytes for input and output.
 """
+
 # TODO: should this module be replaced (or reimplemented) by using Python's hashlib?
 
 import binascii

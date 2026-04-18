@@ -10,7 +10,6 @@ Purpose: unit test of glideinwms/creation/lib/cgWDictFile.py
 Author:  Dennis Box, dbox@fnal.gov
 """
 
-
 import getpass
 import os
 import tempfile

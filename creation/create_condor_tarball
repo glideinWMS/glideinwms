@@ -5,7 +5,6 @@
 
 """This program creates a condor tarball suitable to be used in the glideins"""
 
-
 import os
 import os.path
 import shutil
@@ -21,8 +20,7 @@ sys.path.append(os.path.join(STARTUP_DIR, "../.."))
 
 
 def usage():
-    print(
-        """
+    print("""
 Usage: create_condor_tarball output_filename input_tarfile_or_dir
 
    output_filename - file name of the output tarball created
@@ -41,8 +39,7 @@ Extracts the needed binaries and creates a smaller tarball.
 Refer to the glideinwms documentation:
    WMSfactory -> Configuration -> Multiple HTCondor Tarballs
 for additional information on configuring the factory to use the tarball.
-"""
-    )
+""")
 
 
 ################################################################################

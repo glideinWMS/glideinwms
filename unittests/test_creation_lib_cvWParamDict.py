@@ -5,7 +5,6 @@
 
 """Unit test for glideinwms/creation/lib/cvWParamDict.py"""
 
-
 import os
 import tempfile
 import unittest

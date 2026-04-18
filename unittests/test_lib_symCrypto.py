@@ -5,7 +5,6 @@
 
 """Unit test for glideinwms/lib/symCrypto.py"""
 
-
 import string
 import unittest
 
@@ -87,7 +86,7 @@ class TestSymAES128Key(unittest.TestCase):
         self.assertTrue(isinstance(self.key, SymAES128Key))
         self.assertTrue(isinstance(self.key, SymKey))
         self.assertTrue(self.key.is_valid())
-        (knm, ivn) = self.key.get()
+        knm, ivn = self.key.get()
         self.assertTrue(isinstance(knm, bytes))
         self.assertTrue(isinstance(ivn, bytes))
         nmm = self.key.get_code()
@@ -113,7 +112,7 @@ class TestSymAES256Key(unittest.TestCase):
         self.assertTrue(isinstance(self.key, SymAES256Key))
         self.assertTrue(isinstance(self.key, SymKey))
         self.assertTrue(self.key.is_valid())
-        (knm, ivn) = self.key.get()
+        knm, ivn = self.key.get()
         self.assertTrue(isinstance(knm, bytes))
         self.assertTrue(isinstance(ivn, bytes))
         nmm = self.key.get_code()
@@ -139,7 +138,7 @@ class TestSym3DESKey(unittest.TestCase):
         self.assertTrue(isinstance(self.key, Sym3DESKey))
         self.assertTrue(isinstance(self.key, SymKey))
         self.assertTrue(self.key.is_valid())
-        (knm, ivn) = self.key.get()
+        knm, ivn = self.key.get()
         self.assertTrue(isinstance(knm, bytes))
         self.assertTrue(isinstance(ivn, bytes))
         nmm = self.key.get_code()

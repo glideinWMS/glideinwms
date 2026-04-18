@@ -5,7 +5,6 @@
 
 """Unit test for glideinwms/factory/glideFactoryLib.py"""
 
-
 # from glideinwms.factory import glideFactoryConfig
 import os
 import unittest

@@ -517,7 +517,7 @@ class glideinFrontendElement:
             # collector dealt with outside the loop because there is only one
             # nothing else left
 
-        (self.status_dict, self.fe_counts, self.global_counts, self.status_schedd_dict) = pipe_out[("collector", 0)]
+        self.status_dict, self.fe_counts, self.global_counts, self.status_schedd_dict = pipe_out[("collector", 0)]
 
         # M2Crypto objects are not pickleable, so do the transformation here
         self.populate_pubkey()
@@ -2523,9 +2523,9 @@ class glideinFrontendElement:
 
         for dt, el in self.condorq_dict_types.items():
             # c, p, h, pmc, t returned by  subprocess_count_dt(self, dt)
-            (el["count"], el["prop"], el["hereonly"], el["prop_mc"], el["total"]) = pipe_out[dt]
+            el["count"], el["prop"], el["hereonly"], el["prop_mc"], el["total"] = pipe_out[dt]
 
-        (self.count_real_jobs, self.count_real_glideins) = pipe_out["Real"]
+        self.count_real_jobs, self.count_real_glideins = pipe_out["Real"]
         self.count_status_multi = {}
         self.count_status_multi_per_cred = {}
         for i in range(len(split_glidein_list)):

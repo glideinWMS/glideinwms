@@ -40,7 +40,7 @@ def main(argv):
     )
     argparser = optparse.OptionParser(usage=usage)
     feconfig.config_optparse(argparser)
-    (options, other_args) = argparser.parse_args(argv[1:])
+    options, other_args = argparser.parse_args(argv[1:])
 
     if len(other_args) < 1:
         raise ValueError("Missing glidein_name")

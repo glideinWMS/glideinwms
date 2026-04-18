@@ -84,7 +84,7 @@ class DowntimeFile:
         Returns:
             bool: True if a downtime period is active, False otherwise.
         """
-        (msg, rtn) = _check_downtime(self.fname, entry, frontend, security_class, check_time)
+        msg, rtn = _check_downtime(self.fname, entry, frontend, security_class, check_time)
         self.downtime_comment = msg
         return rtn
 

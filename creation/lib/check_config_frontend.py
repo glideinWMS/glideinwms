@@ -5,7 +5,6 @@
 
 """Script to check that /etc/gwms-frontend/frontend.xml is compatible w/ connected Factories"""
 
-
 import sys
 import xml.etree.ElementTree as ET
 

@@ -5,7 +5,6 @@
 
 """This program creates a frontend directory structure based on a configuration file"""
 
-
 import os
 import os.path
 import sys

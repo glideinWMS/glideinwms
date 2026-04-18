@@ -625,7 +625,7 @@ def countMatch(
     # outvals_cl contains the new list of unique sets:
     #  each element is a tuple: (set of Entries with the same jobs, set of jobs)
     # jrange_cl contains the set of all the job clusters
-    (outvals_cl, jrange_cl) = uniqueSets(list_of_all_jobs)
+    outvals_cl, jrange_cl = uniqueSets(list_of_all_jobs)
     del list_of_all_jobs
 
     # Convert from clusters back to jobs

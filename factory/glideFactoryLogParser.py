@@ -3,7 +3,6 @@
 
 """This module implements classes to track changes in glidein status logs."""
 
-
 import copy
 import mmap
 import os

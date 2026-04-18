@@ -80,7 +80,7 @@ def get_credential(logger, group, entry, trust_domain, tkn_dir="/var/lib/gwms-fr
             # file modification age is the same as the token age
             tkn_age = time.time() - os.stat(tkn_file).st_mtime
         if tkn_age > tkn_max_lifetime - 600:  # renew slightly before token expires
-            (fd, tmpnm) = tempfile.mkstemp()  # the file permission is 0o600
+            fd, tmpnm = tempfile.mkstemp()  # the file permission is 0o600
             cmd = (
                 f"/usr/bin/scitokens-admin-create-token"
                 f" --keyfile {key_file}"

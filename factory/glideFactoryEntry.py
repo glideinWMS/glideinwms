@@ -1162,7 +1162,7 @@ def unit_work_v3(
     condortoken_file = os.path.join(submit_credentials.cred_dir, condortokenbase)
     condortoken_data = decrypted_params.get(condortoken)
     if condortoken_data:
-        (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
+        fd, tmpnm = tempfile.mkstemp(dir=submit_credentials.cred_dir)
         try:
             entry.log.info(f"frontend_token supplied, writing to {condortoken_file}")
             chmod(tmpnm, 0o600)
@@ -1194,7 +1194,7 @@ def unit_work_v3(
         tmpnm = ""
         try:
             entry.log.info(f"frontend_scitoken supplied, writing to {scitoken_file}")
-            (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
+            fd, tmpnm = tempfile.mkstemp(dir=submit_credentials.cred_dir)
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 f.write(f"{scitoken_data.strip()}\n")
             chmod(tmpnm, 0o600)

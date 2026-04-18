@@ -5,7 +5,6 @@
 
 """Unit test for glideinwms/frontend/glideinFrontendElement"""
 
-
 import os
 import unittest
 
