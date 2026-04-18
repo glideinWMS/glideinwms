@@ -461,6 +461,8 @@ rm -rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/logserver
 # after that, we dont package these, so deleting them here
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/factory_initd_startup_template_sl7
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template_sl7
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/factory_initd_startup_template_new
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template_new
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/gwms-renew-proxies.cron
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/gwms-renew-proxies.init
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/gwms-renew-proxies.service
@@ -1036,7 +1038,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(664,root,glidein,775)
 %{web_dir}/monitor
 %{web_dir}/stage
-%{web_base}/factoryRRDBrowse.html
+#%{web_base}/factoryRRDBrowse.html
 
 %files httpd
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-hardening.conf
