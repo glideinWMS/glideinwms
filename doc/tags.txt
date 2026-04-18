@@ -1,3 +1,17 @@
+v3_10_18
+	Added GlideinOverloadEnabled to the activity logs for monitoring purposes (PR#629, Issue#569)
+	Added custom scripts timeout option (GLIDEIN_CUSTOM_SCRIPTS_TIMEOUT, defaults to 600s) and cscripttrace option in GLIDEIN_DEBUG_OPTIONS to print the trace if they are shell scripts (PR#651)
+	gettarballs.py now has an improved management of default tarballs (PR#627)
+	Print triggered limits in Glidein requests in glideinFrontendElement (PR#653)
+	Updated release script to the new OSG server and Git
+	Added new startup scripts to prepare for better systemd compliance
+	Bug fix: Fixed ownership of the /var/lib/gwms-factory in RPM package (PR#637)
+	Bug fix: Fixing inconsistent use of string and bytes types breaking job monitoring (PR#650, Issue#649, Issue#646)
+	Bug fix: Improved cvmfs_helper_funcs.sh to be faster and have consistent names (PR#651)
+	Bug fix: OSG_autoconf, handle missing pilot entries gracefully in merge_yaml (PR#655, Issue#654)
+	Bug fix: OSG_autoconf, fix missing GPU count for whole-node GPU entries. (PR#657, Issue#656)
+	NOTE: Custom scripts execution times out after 600s and scripts are killed with SIGTERM
+
 v3_10_17
 	Recognize EL/CentOS 10 worker nodes to select the correct HTCondor tarball (PR#600)
 	Prevented memory spikes during Factory reconfiguration by copying Condor tarballs instead of loading them into memory (PR#602, Issue#601)

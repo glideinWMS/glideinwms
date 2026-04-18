@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.10.18 \[2026-04-09\]
+## v3.10.18 \[2026-04-17\]
 
 Fixes on job monitoring and added custom scripts timeout
 
@@ -33,6 +33,7 @@ Fixes on job monitoring and added custom scripts timeout
 ### Testing / Development
 
 -   Updated release script to the new OSG server and Git
+-   Added new startup scripts to prepare for better systemd compliance
 
 ### Known Issues
 
