@@ -1,20 +1,28 @@
 #!/bin/bash
-# TODO: Obsolete file not used any more - double check and remove
-# condor   This is the glideinWMS factory startup script
+# This is the glideinWMS factory startup script
 # chkconfig: 35 90 30
 # description: Starts and stops a glideinWMS factory
+# This version is not using the init.d function and modernizing the start/stop for systemd
 
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
 # Emulate function library.
 success() {
-    echo -en "\\033[60G[\033[32mOK\033[0m]"
+    if [[ "$1" = "-n" ]]; then
+        echo -en "\\033[60G[\033[32mOK\033[0m]"
+    else
+        echo -e "\\033[60G[\033[32mOK\033[0m]"
+    fi
     return 0
 }
 
 failure() {
-    echo -en "\\033[60G[\033[31mFAILED\033[0m]"
+    if [[ "$1" = "-n" ]]; then
+        echo -en "\\033[60G[\033[31mFAILED\033[0m]"
+    else
+        echo -e "\\033[60G[\033[31mFAILED\033[0m]"
+    fi
     return 1
 }
 
@@ -54,6 +62,7 @@ RET_NOT_CONFIGURED=6
 RET_NOT_RUNNING=7
 RET_NOT_35_READY=150
 
+
 [ -f /etc/sysconfig/gwms-factory ] && . /etc/sysconfig/gwms-factory
 
 # Variables substituted during the file creation (by cgWCreate.py)
@@ -68,7 +77,9 @@ RPM_INSTALL=%(rpm_install)s
 SCRIPT_NAME="`readlink -f $0`"
 #alt: SCRIPT_NAME="$(cd "$(dirname "$0")" 2>/dev/null && pwd)/$(basename "$0")"
 if [ -z "$RPM_INSTALL" ]; then
-    if [ "$SCRIPT_NAME" = "/etc/init.d/gwms-factory" ]; then
+    if [[ "$SCRIPT_NAME" = "/etc/init.d/gwms-factory" ]]; then
+        RPM_INSTALL=True
+    elif [[ "$SCRIPT_NAME" = "/var/lib/gwms-factory/work-dir/factory_startup" ]] && [[ -e "/etc/gwms-factory/glideinWMS.xml" ]]; then
         RPM_INSTALL=True
     else
         RPM_INSTALL=False
@@ -76,11 +87,10 @@ if [ -z "$RPM_INSTALL" ]; then
 fi
 SCRIPT_NAME="`basename $0`"
 
-
 if [ "$RPM_INSTALL" = "True" ]; then
     . /etc/rc.d/init.d/functions
     # RPM installation (defaults and binaries)
-    LOG_FILE_STARTUP=/var/log/gwms-factory/server/factory/startup.log
+    LOG_FILE_STARTUP=/dev/null
     DEFAULT_WRITEBACK=no
     BIN_DIR=/usr/sbin/
     TOOLS_DIR=/usr/bin/
@@ -93,7 +103,7 @@ if [ "$RPM_INSTALL" = "True" ]; then
     factory_dir=/var/lib/gwms-factory/work-dir
     glideinWMS_dir="$factory_dir"
     def_factory_config=/etc/gwms-factory/glideinWMS.xml
-    FACTORY_CONFIG=/etc/gwms-factory/glideinWMS.xml
+    FACTORY_CONFIG="$def_factory_config"
 else
     # TAR installation  (defaults and binaries)
     LOG_FILE_STARTUP=/dev/null
@@ -114,13 +124,12 @@ check_installed () {
     fi
     echo -n "The Factory is not installed correctly"
     failure
-    echo
     exit $RET_NOT_INSTALLED
 }
 
 check_configured () {
     # check if some files created during the configuration (upgrade/reconfig) exist
-    if [ -x "$factory_dir/update_proxy.py" ]; then
+    if [ -x "$factory_dir/glidein_startup.sh" ]; then
         if [ -r "$factory_dir/glidein.descript" ]; then
             return 0
         fi
@@ -129,7 +138,6 @@ check_configured () {
         echo -n "The Factory is not configured correctly: try to run upgrade"
     fi
     failure
-    echo
     exit $RET_NOT_CONFIGURED
 }
 
@@ -163,13 +171,13 @@ get_user() {
 }
 
 # Check that factory user is the owner of the config file
-THIS_USER="`get_user`"
-THIS_ID=`id -u $THIS_USER`
+THIS_USER="$(get_user)"
+THIS_ID=$(id -u $THIS_USER)
 # should check actually the config file in the working directory
 # Double percent %% needed for template substitution
-FILE_OWNER=`stat -c%%u "$def_factory_config"`
+FILE_OWNER=$(stat -c%%u "$def_factory_config")
 if [ $THIS_ID -eq 0 ]; then
-    if [ `id -u $FACTORY_USER` -ne $FILE_OWNER ]; then
+    if [ $(id -u $FACTORY_USER) -ne $FILE_OWNER ]; then
         echo "The Factory user ($FACTORY_USER) must own the configuration file ($def_factory_config).
 Use the correct user or edit FACTORY_USER in $0"
         failure
@@ -193,6 +201,7 @@ fi
 
 invoke_as_factory() {
     # parameters are the user and the command to invoke
+    # using external variables $FACTORY_USER, $SU_COMMAND and $FILE_OWNER
     local user_to_use=$FACTORY_USER
     local user_id=$(id -u $(get_user))
     if [ $user_id -eq 0 ]; then
@@ -220,14 +229,16 @@ help_usage() {
     if [ "$RPM_INSTALL" = "True" ]; then
         # upgrade does not make sense for RPM because the RPM upgrade will take care of it
     #             echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
-        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}
+        echo "Usage: $SCRIPT_NAME [-i] {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}
+    Without '-i' the RPM version invocation will remain in the foreground also for start
     $SCRIPT_NAME reconfig [NEW_XML_CONFIG_FILE] [-fix_rrd] [update_default_cfg] [{yes|no}] [-comment COMMENT] [-force_delete]
     $SCRIPT_NAME {down|up} -entry factory|entries|ENTRY_NAME [-delay DELAY] [-frontend SEC_NAME] [-security SEC_CLASS|All] [-comment COMMENT]
     $SCRIPT_NAME infosysdown [-delay DELAY] [-frontend SEC_NAME] [-security SEC_CLASS|All] [-comment COMMENT]
     $SCRIPT_NAME statusdown -entry factory|entries|ENTRY_NAME [-delay DELAY]
 "
     else
-        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}
+        echo "Usage: $SCRIPT_NAME [-i] {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}
+    Without '-i' the RPM version invocation will remain in the foreground also for start
     $SCRIPT_NAME upgrade [NEW_XML_CONFIG_FILE]
     $SCRIPT_NAME reconfig [NEW_XML_CONFIG_FILE] [-fix_rrd] [update_default_cfg] [{yes|no}] [-comment COMMENT] [-force_delete]
     $SCRIPT_NAME {down|up} -entry factory|entries|ENTRY_NAME [-delay DELAY] [-frontend SEC_NAME|All] [-security SEC_CLASS|All] [-comment COMMENT]
@@ -247,72 +258,61 @@ start() {
     check_configured
     echo -n "Starting GlideinWMS Factory $id_str: "
 
-    "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null
-    MYRETVAL=$?
-    if [ $MYRETVAL -eq 0 ]; then
+    if "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null; then
         # already running, so nothing to be done
         echo -n "Already running "
         success
-        RETVAL=$?
-        echo
-        return $RETVAL
+        popd 1>/dev/null
+        return
     fi
 
-    if [ "$RPM_INSTALL" = "True" ]; then
+    if [[ "$RPM_INSTALL" = "True" && -z "$MANUAL_INVOKE" ]]; then
+        # Foreground invocation
         # forcing daemon to continue, the factory will check the pidfile
-        daemon --user $FACTORY_USER --force --pidfile="$factory_dir/lock/glideinWMS.lock" -2 "${FACTORY_START} $factory_dir 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
+        # daemon --user $FACTORY_USER --force --pidfile="$factory_dir/lock/glideinWMS.lock" -2 "${FACTORY_START} $factory_dir 2>/dev/null 1>&2 </dev/null &"
+        "${FACTORY_START}" "$factory_dir"
     else
+        # Background invocation as factory user
         invoke_as_factory "nice -2 \"${FACTORY_START}\" \"$factory_dir\" 2>/dev/null 1>&2 </dev/null &"
+
+        for i in {1..15}; do  # Use seq if a variable is needed: $(seq 1 $END)
+            # Returns 0 if running
+            if "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null; then
+                break
+            fi
+            sleep 1
+        done
+        "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null && success || failure
+        RETVAL=$?
     fi
 
-    for i in {1..15}; do  # Use seq if a variable is needed: $(seq 1 $END)
-        # Returns 0 if running
-        "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
-        if [ $? -eq 0 ]; then
-            RETVAL=0
-            break
-        fi
-        sleep 1
-    done
-    "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null && success || failure
-    RETVAL=$?
     popd 1>/dev/null
-    echo
+    return $RETVAL
 }
 
 stop() {
     check_installed
     echo -n "Shutting down GlideinWMS Factory $id_str: "
 
-    "$FACTORY_CHECK" "$factory_dir" 2>/dev/null 1>&2 </dev/null
-    MYRETVAL=$?
-    if [ $MYRETVAL -ne 0 ]; then
+    if ! "$FACTORY_CHECK" "$factory_dir" 2>/dev/null 1>&2 </dev/null; then
         # not running, so nothing to be done
         echo -n "Not running. "
         success
-        RETVAL=$?
-        echo
-        return $RETVAL
+        return
     fi
 
-    invoke_as_factory "\"$FACTORY_STOP\" -f \"$factory_dir\" 2>/dev/null 1>&2 </dev/null"
-    MYRETVAL=$?
-
-    if [ $MYRETVAL -ne 0 ]; then
+    if ! invoke_as_factory "\"$FACTORY_STOP\" -f \"$factory_dir\" 2>/dev/null 1>&2 </dev/null"; then
         echo -n "Invocation failed "
         failure
-        RETVAL=$?
-        echo
-        return $RETVAL
+        return 1
     fi
 
     # check that it has actually stopped
     # can take some time
     for i in {1..30}; do  # Use seq if a variable is needed: $(seq 1 $END)
         # Returns 0 if running, 1 if not
-        "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
-        if [ $? -ne 0 ]; then
-            RETVAL=0
+        if ! "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null; then
+            # RETVAL=0
             break
         fi
         sleep 1
@@ -320,18 +320,17 @@ stop() {
 
     "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null && failure || success
     RETVAL=$?
-    echo
+    return $RETVAL
 }
 
 restart() {
-    stop
-    if [ $RETVAL -ne 0 ]; then
+    # stop successful or already stopped
+    if ! stop; then
         # Waiting 30 sec for the shutdown to complete
         echo "Waiting for the GlideinWMS Factory to shutdown" 2>&1
         for i in {1..60}; do  # Use seq if a variable is needed: $(seq 1 $END)
             # Returns 0 if running, 1 if not
-            "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
-            if [ $? -ne 0 ]; then
+            if ! "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null; then
                 RETVAL=0
                 break
             fi
@@ -339,7 +338,7 @@ restart() {
             echo -n "."
         done
         echo
-        if [ $RETVAL -ne 0 ]; then
+        if [[ $RETVAL -ne 0 ]]; then
             echo "Failed to shutdown the GlidinWMS Factory. Please check."
             exit $RETVAL
         else
@@ -356,101 +355,102 @@ reconfig() {
     #  1 generic error (also start failed)
     check_installed
     shift
-    if [ -f "$1" ]; then
-        echo "Using factory config file arg: $1"
-        cfg_loc=$1
-        shift
-    else
-        echo "Using default factory config file: $def_factory_config"
-        cfg_loc=$def_factory_config
-    fi
-        update_def_cfg_option=
-        update_def_cfg=no
-        writeback=$DEFAULT_WRITEBACK
-        force_delete=""
-        fix_rrd=""
-        comment_option=""
 
-        while (( "$#" )); do
+    #"$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
+    #notrun=$?
+    if ! "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null; then
+
+	    if [[ -f "$1" ]]; then
+            echo "Using factory config file arg: $1"
+            cfg_loc=$1
+            shift
+	    else
+            echo "Using default factory config file: $def_factory_config"
+            cfg_loc=$def_factory_config
+	    fi
+
+	    local update_def_cfg_option=
+	    local update_def_cfg=no
+	    local writeback=$DEFAULT_WRITEBACK
+	    local force_delete=""
+	    local fix_rrd=""
+	    local comment_option=""
+
+	    while (( "$#" )); do
             var=$1
             case "$var" in
-            yes | no) writeback="$var"
-                ;;
-            "-force_delete") force_delete="-force_delete"
-                ;;
-            "-fix_rrd") fix_rrd="-fix_rrd"
-                ;;
-            update_default_cfg) update_def_cfg=yes
-                if [ "$RPM_INSTALL" = "True" ]; then
-                    echo "update_def_cfg is not a valid option for RPM installations"
+		        yes | no) writeback="$var"
+                    ;;
+		        "-force_delete") force_delete="-force_delete"
+                    ;;
+		        "-fix_rrd") fix_rrd="-fix_rrd"
+                    ;;
+		        update_default_cfg) update_def_cfg=yes
+                    if [ "$RPM_INSTALL" = "True" ]; then
+			            echo "update_def_cfg is not a valid option for RPM installations"
+			            help_usage
+			            exit 2
+                    fi
+                    ;;
+		        "-comment") comment_option="-comment \\\"$2\\\""
+                    shift
+                    ;;
+		        *)  echo "Unknown argument passed: $var"
+                    # echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
                     help_usage
-                    exit 2
-                fi
-                ;;
-            "-comment") comment_option="-comment \\\"$2\\\""
-                shift
-                ;;
-            *)  echo "Unknown argument passed: $var"
-                # echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
-                help_usage
-                exit 1
-                ;;
+                    exit 1
+                    ;;
             esac
             shift
-        done
-        if [ -n "$GLIDEIN_WRITEBACK" ]; then
+	    done
+	    if [[ -n "$GLIDEIN_WRITEBACK" ]]; then
             writeback="$GLIDEIN_WRITEBACK"
-        fi
+	    fi
 
-        "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
-        notrun=$?
-        if [ $notrun -eq 0 ]; then
-            stop
-            if [ $RETVAL -ne 0 ] && [ $RETVAL -ne 2 ]; then
-                echo "Failed to shutdown the GlidinWMS Factory. Please check."
-                exit $RETVAL
-            fi
-        fi
-
-        echo "Reconfiguring the factory"
-        pushd $factory_dir 1>/dev/null
-        if [ "$RPM_INSTALL" = "True" ]; then
+	    echo "Reconfiguring the factory... "
+	    pushd $factory_dir 1>/dev/null
+	    if [[ "$RPM_INSTALL" = "True" ]]; then
             extra_options=
-        else
+	    else
             extra_options=" $force_name_option -update_def_cfg $update_def_cfg"
-        fi
-        invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" -update_scripts no -xml \"$cfg_loc\" -writeback $writeback $fix_rrd $force_delete $comment_option"
-        # RPM su -s /bin/bash $FACTORY_USER -c "reconfig_glidein -update_scripts no -xml $factory_config -writeback $writeback $fix_rrd $force_delete"
-        reconfig_failed=$?
-        popd 1>/dev/null
+	    fi
+	    invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" -update_scripts no -xml \"$cfg_loc\" -writeback $writeback $fix_rrd $force_delete $comment_option"
+
+	    reconfig_failed=$?
+	    popd 1>/dev/null
         echo -n "Factory reconfiguration... "
-        test $reconfig_failed -eq 0 && success || failure
-        # To return the correct exit code (RET_NOT_CONFIGURED instead of 1)
-        [ $? -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
-        echo
-        if [ $notrun -eq 0 ]; then
-            if [ $reconfig_failed -ne 0 ];then
-                echo ".. starting factory with old configuration file"
-            fi
-            start
-            # At the end RETVAL needs to be set to the value to return
-            # start is changing the value of RETVAL (0-succeded, !0-failed)
-            # reconfig_failed is the reconfiguration result: 0-succeded, !0-failed
-            #  If start failed, then RETVAL=1 (generic error)
-            #  If start succeeded but reconfig failed RETVAL=6 (RET_NOT_CONFIGURED: bad or missing configuration)
-            #  If start succeeded and reconfig succeeded, then return 0
-            if [ $RETVAL -eq 0 ]; then
-                [ $reconfig_failed -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
-            else
-                RETVAL=1
-            fi
+	    if [[ "$reconfig_failed" -eq 0 ]]; then
+	        success
+	        RETVAL=0
+        else
+            failure
+            # To return the correct exit code (RET_NOT_CONFIGURED instead of 1)
+            RETVAL=$RET_NOT_CONFIGURED
         fi
+	    return $RETVAL
+    else
+        # Factory running, we can proceed only without options
+        if [[ $# -eq 0 ]]; then
+            echo 'Factory is running. Invoking reconfig command without stopping the service'
+            killpid=`awk '/PID/ {print $2}' $factory_dir/lock/glideinWMS.lock`
+            kill -1 $killpid
+            return
+        else
+            echo 'Aborting. As Factory is currently running, you can only reload the configuration (default reconfig).'
+            echo 'You have to stop the service manually, invoke reconfig with arguments and then start the service again.'
+            return 1
+        fi
+    fi
 }
 
 upgrade() {
     # see reconfig for return values and logic explanation
     check_installed
     shift
+
+    if ! "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null; then
+
+        local cfg_loc
         if [ -f "$1" ]; then
            echo "Using factory config file arg: $1"
            cfg_loc=$1
@@ -460,19 +460,9 @@ upgrade() {
            cfg_loc=$def_factory_config
         fi
 
-        "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
-        notrun=$?
-        if [ $notrun -eq 0 ]; then
-          stop
-          if [ $RETVAL -ne 0 ] && [ $RETVAL -ne 2 ]; then
-            echo "Failed to shutdown the GlidinWMS Factory. Please check."
-            exit $RETVAL
-          fi
-        fi
-
-        writeback=$DEFAULT_WRITEBACK
-        force_delete=""
-        fix_rrd=""
+        local writeback=$DEFAULT_WRITEBACK
+        local force_delete=""
+        local fix_rrd=""
         for var in "$@"
         do
             case "$var" in
@@ -498,29 +488,27 @@ upgrade() {
             extra_options=" $force_delete"
         fi
         invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" $force_name_option -writeback yes -update_scripts yes -xml \"$cfg_loc\" -fix_rrd $extra_options"
-        # su -s /bin/bash $FACTORY_USER -c "reconfig_glidein -update_scripts yes -xml $factory_config -writeback $writeback $fix_rrd $force_delete"
 
         reconfig_failed=$?
         popd 1>/dev/null
         echo -n "Upgrading the factory"
-        test $reconfig_failed -eq 0 && success || failure
-        [ $? -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
-        echo
-        if [ $notrun -eq 0 ]; then
-          if [ $reconfig_failed -ne 0 ];then
-            echo ".. starting factory with old configuration file"
-          fi
-          start
-          if [ $RETVAL -eq 0 ]; then
-            [ $reconfig_failed -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
-          else
-            RETVAL=1
-          fi
+        if [[ $reconfig_failed -eq 0 ]]; then
+            success
+            RETVAL=0
+        else
+            failure
+            RETVAL=$RET_NOT_CONFIGURED
         fi
+        return $RETVAL
+    else
+        echo 'Aborting. upgrade can not be processed because the Factory is running.'
+        echo 'You have to stop the service manually, invoke upgrade (with arguments if any) and then start the service again.'
+        return 1
+    fi
 }
 
 downtime() {
-    if [ -z "$3" ]; then
+    if [[ -z "$3" ]]; then
         #echo $"Usage: factory_startup $1 -entry 'factory'|'entries'|entry_name [-delay delay] [-frontend sec_name] [-security sec_class|\'All\'] [-comment comment]"
         #RPM: echo $"Usage: factory_startup $1 -entry 'factory'|'entries'|entry_name [-delay delay] [-frontend sec_name|'All'] [-security sec_class|'All'] [-comment comment]"
         help_usage
@@ -537,8 +525,28 @@ downtime() {
 
     "$FACTORY_DOWNTIMES" -cmd $1 -dir "$factory_dir" "$@" </dev/null && success || failure
     RETVAL=$?
-    echo
+    return $RETVAL
 }
+
+
+systemd_reload(){
+
+    if ps $1 | grep glideFactory > /dev/null 2>&1 ; then
+       echo "Reload of GWMS Factory Service triggers factory reconfig, PID is $1"
+       /bin/kill -HUP $1
+    elif ps $1 | grep reconfig_glidein > /dev/null 2>&1 ; then
+       echo "a previous Reload of GWMS Factory Service has not completed. No factory reconfig will be performed"
+    else
+       echo "Cannot detect a running factory. Will not reload or reconfig"
+    fi
+
+}
+
+MANUAL_INVOKE=
+if [[ "$1" = "-i" ]]; then
+    MANUAL_INVOKE=true
+    shift
+fi
 
 case $1 in
     start)
@@ -588,6 +596,13 @@ case $1 in
         fi
         "$FACTORY_DOWNTIMES" -cmd check -dir "$factory_dir" "$@"
         RETVAL=$?
+        ;;
+    reload)
+        if [ "$2" != "" ]; then
+            systemd_reload $2
+        else
+           echo "MUST SUPPLY A PID WITH THIS ARGUMENT"
+        fi
         ;;
     *)
         help_usage
