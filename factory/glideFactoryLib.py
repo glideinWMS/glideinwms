@@ -5,7 +5,6 @@
 and provides support for glidein sanitizing.
 """
 
-
 import base64
 import glob
 import os

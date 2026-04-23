@@ -1666,7 +1666,7 @@ class MultiAdvertizeWork:
                 if credential_el.project_id:
                     glidein_params_to_encrypt["ProjectId"] = str(credential_el.project_id)
 
-                (req_idle, req_max_run) = credential_el.get_usage_details()
+                req_idle, req_max_run = credential_el.get_usage_details()
                 logSupport.log.debug(
                     "Advertizing credential %s with (%d idle, %d max run) for request %s"
                     % (credential_el.filename, req_idle, req_max_run, params_obj.request_name)

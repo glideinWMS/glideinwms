@@ -6,7 +6,6 @@
 Common functions for cvWParamDict (Frontend/client) and cgWParamDict (Factory)
 """
 
-
 import os.path
 
 from glideinwms.lib.util import is_true
@@ -204,7 +203,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
                 file_type = "exec:s"
             else:
                 if not user_file.type.startswith("run"):
-                    raise RuntimeError("An executable file type must start with 'run': $s" % user_file)
+                    raise RuntimeError("An executable file type must start with 'run': %s" % user_file)
         dicts[file_list_idx].add_from_file(
             relfname,
             cWDictFile.FileDictFile.make_val_tuple(

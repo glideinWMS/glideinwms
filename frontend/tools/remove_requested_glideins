@@ -52,7 +52,7 @@ def parse_args(argv):
         help="Remove only excess glideins (default: remove all of them)",
     )
     argparser.add_option("-q", "--quiet", dest="quiet", action="store_true", help="Quiet mode")
-    (options, other_args) = argparser.parse_args(argv[1:])
+    options, other_args = argparser.parse_args(argv[1:])
 
     if options.work_dir is None:
         raise ValueError("FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting")

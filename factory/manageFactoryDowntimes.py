@@ -10,7 +10,6 @@ Usage:
   manageFactoryDowntimes -help   For more detailed information
 """
 
-
 import os
 import sys
 import time

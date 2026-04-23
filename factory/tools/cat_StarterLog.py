@@ -9,7 +9,6 @@ Usage:
    cat_StarterLog.py [-monitor]|[-slot <slotname>] <logname>
 """
 
-
 import os.path
 import sys
 

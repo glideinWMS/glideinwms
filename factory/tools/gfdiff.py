@@ -5,7 +5,6 @@
 
 """This script allows to compare two different entries in the GlideinWMS Factory."""
 
-
 import argparse
 import difflib
 import re

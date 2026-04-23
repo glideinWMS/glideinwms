@@ -12,7 +12,6 @@ Author:
     Marco Mascheroni, marco.mascheroni@cern.ch
 """
 
-
 import copy
 import unittest
 

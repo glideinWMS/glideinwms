@@ -5,7 +5,6 @@
 configuration generation helper tools.
 """
 
-
 import collections
 import os
 

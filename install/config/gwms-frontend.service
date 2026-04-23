@@ -3,6 +3,7 @@ Description=GWMS Frontend Service
 Documentation="https://glideinwms.fnal.gov/doc.prd/frontend/index.html"
 
 [Service]
+# TODO: migrate to simple type using the new templates
 Type=forking
 ExecStart=/usr/sbin/gwms-frontend start
 ExecStop=/usr/sbin/gwms-frontend stop

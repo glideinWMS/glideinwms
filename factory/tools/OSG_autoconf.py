@@ -5,7 +5,6 @@
 
 """Allows to retrieve information from the OSG collector and generate the factory XML file."""
 
-
 import argparse
 import copy
 import logging

@@ -13,7 +13,6 @@ Author:
     Dennis Box dbox@fnal.gov
 """
 
-
 import unittest
 
 import xmlrunner

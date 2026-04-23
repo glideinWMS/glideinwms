@@ -3,17 +3,21 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+## v3.10.18 \[2026-04-17\]
 
-Changes since the last release
+Added custom scripts timeout, fixed job monitoring and few other bugs.
 
 ### New features / functionalities
 
 -   Added GlideinOverloadEnabled to the activity logs for monitoring purposes (PR #629, Issue #569)
+-   Added configurable fallback mechanism for Web proxy availability (PR #648, Issue #521)
+-   Added custom scripts timeout option (GLIDEIN_CUSTOM_SCRIPTS_TIMEOUT, defaults to 600s) and cscripttrace option in GLIDEIN_DEBUG_OPTIONS to print the trace if they are shell scripts (PR #651)
+-   Print triggered limits in Glidein requests in glideinFrontendElement (PR #653)
 
 ### Changed defaults / behaviours
 
--   gettarballs.py now has an improved management of default tarballs
+-   gettarballs.py now has an improved management of default tarballs (PR #627)
+-   Custom scripts execution times out after 600s and scripts are killed with SIGTERM followed by SIGKILL (PR #651)
 
 ### Deprecated / removed options and commands
 
@@ -22,8 +26,18 @@ Changes since the last release
 ### Bug Fixes
 
 -   Fixed ownership of the /var/lib/gwms-factory in RPM package (PR #637)
+-   Fixed heredoc with custom scripts header to detect the correct shell (PR #643, Issue #641)
+-   Fixed HTCondor slot resources specifications by adding comma separator (PR #644, Issue #638)
+-   Migrating glidein_status tool from Python 2 to Python 3 (PR #647, Issue #422)
+-   Fixing inconsistent use of string and bytes types breaking job monitoring (PR #650, Issue #649, Issue #646)
+-   Improved cvmfs_helper_funcs.sh to be faster and have consistent names (PR #651)
+-   OSG_autoconf, handle missing pilot entries gracefully in merge_yaml (PR #655, Issue #654)
+-   OSG_autoconf, fix missing GPU count for whole-node GPU entries. (PR #657, Issue #656)
 
 ### Testing / Development
+
+-   Updated release script to the new OSG server and Git (PR #660)
+-   Added new startup scripts to prepare for better systemd compliance (PR #660)
 
 ### Known Issues
 

@@ -32,7 +32,7 @@ def main(argv):
         "-n", "--no-pilots", dest="nopilots", action="store_true", help="Do not include pilot DNs in mapfile"
     )
     argparser.add_option("-q", "--quiet", dest="quiet", action="store_true", help="Minimize startup messages")
-    (options, other_args) = argparser.parse_args(argv[1:])
+    options, other_args = argparser.parse_args(argv[1:])
 
     feconfig.load_frontend_config(options)
     feconfig.set_environment(wpilots=(not options.nopilots))

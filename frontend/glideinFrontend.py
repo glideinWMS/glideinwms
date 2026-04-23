@@ -15,7 +15,6 @@ Args:
     work_dir (str): The working directory for the Frontend.
 """
 
-
 import fcntl
 import os
 import shutil

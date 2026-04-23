@@ -3,7 +3,6 @@
 
 """Keep all the constants used in the glideinWMS"""
 
-
 import string
 import time
 

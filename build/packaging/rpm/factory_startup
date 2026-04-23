@@ -1,4 +1,5 @@
 #!/bin/bash
+# TODO: Obsolete file not used any more - double check and remove
 # condor   This is the glideinWMS factory startup script
 # chkconfig: 35 90 30
 # description: Starts and stops a glideinWMS factory

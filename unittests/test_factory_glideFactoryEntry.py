@@ -12,7 +12,6 @@ Author:
     Dennis Box, dbox@fnal.gov
 """
 
-
 import os
 import unittest
 

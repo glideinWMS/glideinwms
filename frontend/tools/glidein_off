@@ -256,7 +256,7 @@ def main(argv):
         default="10",
     )
     argparser.add_option("-q", "--quiet", dest="quiet", action="store_true", help="Minimize startup messages")
-    (options, other_args) = argparser.parse_args(args)
+    options, other_args = argparser.parse_args(args)
     glidein_constr = build_glidein_constraint(options, other_args)
 
     fedescript = feconfig.load_frontend_config(options)

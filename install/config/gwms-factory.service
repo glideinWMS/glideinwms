@@ -5,6 +5,7 @@ After=condor.service
 Documentation="https://glideinwms.fnal.gov/doc.prd/factory/index.html"
 
 [Service]
+# TODO: migrate to simple type using the new templates
 Type=forking
 ExecStart=/usr/sbin/gwms-factory start
 ExecStop=/usr/sbin/gwms-factory stop

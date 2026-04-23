@@ -5,7 +5,6 @@
 
 """Unit tests for glideinwms/lib/condorExe.py"""
 
-
 import os
 import sys
 import unittest

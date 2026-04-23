@@ -6,7 +6,6 @@
 # Code and configuration files contributed by Brian Lin, OSG Software
 """Automatic renewal of proxies necessary for a glideinWMS frontend"""
 
-
 import configparser
 import os
 import pwd

@@ -19,7 +19,6 @@ Command line arguments:
        It may change between Factory reconfigurations.
 """
 
-
 import os
 import os.path
 import pickle
