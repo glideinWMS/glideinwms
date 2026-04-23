@@ -4,7 +4,7 @@
 # Disable shebang mangling (see GHI#436)
 %undefine __brp_mangle_shebangs
 
-# There is no debud package, disable auto-detect
+# There is no debug package, disable auto-detect
 %define  debug_package %{nil}
 
 # How to build tar file

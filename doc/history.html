@@ -148,6 +148,10 @@ SPDX-License-Identifier: Apache-2.0
                 purposes (PR#629, Issue#569)
               </li>
               <li>
+                Added configurable fallback mechanism for Web proxy availability
+                (PR#648, Issue#521)
+              </li>
+              <li>
                 Added custom scripts timeout option
                 (GLIDEIN_CUSTOM_SCRIPTS_TIMEOUT, defaults to 600s) and
                 cscripttrace option in GLIDEIN_DEBUG_OPTIONS to print the trace
@@ -161,14 +165,28 @@ SPDX-License-Identifier: Apache-2.0
                 Print triggered limits in Glidein requests in
                 glideinFrontendElement (PR#653)
               </li>
-              <li>Updated release script to the new OSG server and Git</li>
+              <li>
+                Updated release script to the new OSG server and Git (PR#660)
+              </li>
               <li>
                 Added new startup scripts to prepare for better systemd
-                compliance
+                compliance (PR#660)
               </li>
               <li>
                 Bug fix: Fixed ownership of the /var/lib/gwms-factory in RPM
                 package (PR#637)
+              </li>
+              <li>
+                Bug fix: Fixed heredoc with custom scripts header to detect the
+                correct shell (PR#643, Issue#641)
+              </li>
+              <li>
+                Bug fix: Fixed HTCondor slot resources specifications by adding
+                comma separator (PR#644, Issue#638)
+              </li>
+              <li>
+                Bug fix: Migrating glidein_status tool from Python 2 to Python 3
+                (PR#647, Issue#422)
               </li>
               <li>
                 Bug fix: Fixing inconsistent use of string and bytes types
@@ -188,7 +206,7 @@ SPDX-License-Identifier: Apache-2.0
               </li>
               <li>
                 NOTE: Custom scripts execution times out after 600s and scripts
-                are killed with SIGTERM
+                are killed with SIGTERM followed by SIGKILL
               </li>
             </ul>
           </li>

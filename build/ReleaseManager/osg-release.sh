@@ -30,7 +30,7 @@ fi
 # On August 2024 OSG switched to osg-sw-submit.chtc.wisc.edu. moria and library.cs.wisc.edu are not working any more
 #osg_buildmachine="osg-sw-submit.chtc.wisc.edu"
 # On March 22 2025 the build host has been moved to osg-sw-submit-old
-# On February 2026 migration got Git and osgsw-ap.chtc.wisc.edu. Kerberos no more needed.
+# On February 2026 migration to Git and osgsw-ap.chtc.wisc.edu. Kerberos no more needed.
 osg_buildmachine="osgsw-ap.chtc.wisc.edu"
 osg_uploaddir="/osgsw/upstream/glideinwms/$gwms_tag"
 
