@@ -2650,8 +2650,8 @@ def get_submit_environment_v3_11(
                 else:
                     log.warning("No grid proxy found in the security credentials")
 
-                exe_env.append("IMAGE_ID=%s" % submit_credentials.parameters[ParameterName.VM_ID])
-                exe_env.append("INSTANCE_TYPE=%s" % submit_credentials.parameters[ParameterName.VM_TYPE])
+                exe_env.append("IMAGE_ID=%s" % submit_credentials.parameters[ParameterName.VM_ID].value)
+                exe_env.append("INSTANCE_TYPE=%s" % submit_credentials.parameters[ParameterName.VM_TYPE].value)
                 if grid_type == "ec2":
                     key_pair = submit_credentials.security_credentials.find(
                         cred_type=CredentialPairType.KEY_PAIR, purpose=CredentialPurpose.REQUEST
@@ -2776,9 +2776,9 @@ email_logs = False
             if supports_project_id:
                 # Append project id to the rsl
                 glidein_rsl = "{}(project={})".format(
-                    glidein_rsl, submit_credentials.parameters[ParameterName.PROJECT_ID]
+                    glidein_rsl, submit_credentials.parameters[ParameterName.PROJECT_ID].value
                 )
-                exe_env.append("GLIDEIN_PROJECT_ID=%s" % submit_credentials.parameters[ParameterName.PROJECT_ID])
+                exe_env.append("GLIDEIN_PROJECT_ID=%s" % submit_credentials.parameters[ParameterName.PROJECT_ID].value)
 
             exe_env.append("GLIDEIN_RSL=%s" % glidein_rsl)
 
