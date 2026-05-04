@@ -3,6 +3,29 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+
+Changes since the last release
+
+### New features / functionalities
+
+-   item one of the list
+-   item N
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   Fix incorrect Arch requirement for ARM pilots (Issue #661, PR #662)
+
+### Testing / Development
+
+### Known Issues
+
 ## v3.10.18 \[2026-04-17\]
 
 Added custom scripts timeout, fixed job monitoring and few other bugs.
