@@ -27,21 +27,22 @@
 
 %global frontend_xml frontend.xml
 %global factory_xml glideinWMS.xml
-%global frontend_base_dir %{_localstatedir}/lib/gwms-frontend
-%global web_dir %{frontend_base_dir}/web-area
-%global web_base %{frontend_base_dir}/web-base
-%global frontend_dir %{frontend_base_dir}/vofrontend
-%global frontend_cred_dir %{frontend_base_dir}/cred.d
+%global frontend_base %{_localstatedir}/lib/gwms-frontend
+%global web_dir %{frontend_base}/web-area
+%global web_base %{frontend_base}/web-base
+%global frontend_dir %{frontend_base}/vofrontend
+%global frontend_cred_dir %{frontend_base}/cred.d
 %global frontend_key_dir %{frontend_cred_dir}/keys.d
 %global frontend_token_dir %{frontend_cred_dir}/tokens.d
 %global frontend_passwd_dir %{frontend_cred_dir}/passwords.d
-%global frontend_cache_dir %{frontend_base_dir}/cache
-%global factory_web_dir %{_localstatedir}/lib/gwms-factory/web-area
-%global factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
-%global factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
-%global factory_condor_dir %{_localstatedir}/lib/gwms-factory/condor
+%global frontend_cache_dir %{frontend_base}/cache
+%global factory_base %{_localstatedir}/lib/gwms-factory
+%global factory_web_dir %{factory_base}/web-area
+%global factory_web_base %{factory_base}/web-base
+%global factory_dir %{factory_base}/work-dir
+%global factory_condor_dir %{factory_base}/condor
 %global logserver_dir %{_localstatedir}/lib/gwms-logserver
-%global logserver_web_dir %{_localstatedir}/lib/gwms-logserver/web-area
+%global logserver_web_dir %{logserver_dir}/web-area
 %global systemddir %{_prefix}/lib/systemd/system
 # /usr/bin/systemctl would not work with the emulation in /usr/local/bin/systemctl used in Workspaces (containers)
 %global systemctl_bin systemctl
@@ -348,7 +349,6 @@ rm -rf $RPM_BUILD_ROOT
 # From http://fedoraproject.org/wiki/Packaging:Python
 # Assuming python3_sitelib and python3_sitearch are defined, not supporting RHEL < 7 or old FC
 
-
 #Change src_dir in reconfig_Frontend
 sed -i "s/WEB_BASE_DIR *=.*/WEB_BASE_DIR = \"\/var\/lib\/gwms-frontend\/web-base\"/" creation/reconfig_frontend
 sed -i "s/STARTUP_DIR *=.*/STARTUP_DIR = \"\/var\/lib\/gwms-frontend\/web-base\"/" creation/reconfig_frontend
@@ -438,6 +438,8 @@ rm -rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/logserver
 # after that, we dont package these, so deleting them here
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/factory_initd_startup_template_sl7
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template_sl7
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/factory_initd_startup_template_new
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template_new
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/gwms-renew-proxies.cron
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/gwms-renew-proxies.init
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/templates/gwms-renew-proxies.service
@@ -454,8 +456,8 @@ install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
 install -m 0755 %{SOURCE12} $RPM_BUILD_ROOT/%{_sbindir}/gwms-factory
 
 # Install the web directory
-install -d $RPM_BUILD_ROOT%{frontend_base_dir}
-install -m 0644 install/doc/var_lib_frontend_README.md $RPM_BUILD_ROOT%{frontend_base_dir}/README.md
+install -d $RPM_BUILD_ROOT%{frontend_base}
+install -m 0644 install/doc/var_lib_frontend_README.md $RPM_BUILD_ROOT%{frontend_base}/README.md
 install -d $RPM_BUILD_ROOT%{frontend_dir}
 install -m 0700 -d $RPM_BUILD_ROOT%{frontend_cred_dir}
 install -m 0700 -d $RPM_BUILD_ROOT%{frontend_key_dir}
@@ -500,9 +502,9 @@ install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory/server/factory
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory/client
 
 # Create some credential directories
-install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/client-proxies
-install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/server-credentials
-touch $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/server-credentials/jwt_secret.key
+install -d $RPM_BUILD_ROOT%{factory_base}/client-proxies
+install -d $RPM_BUILD_ROOT%{factory_base}/server-credentials
+touch $RPM_BUILD_ROOT%{factory_base}/server-credentials/jwt_secret.key
 
 # Install frontend temp dir, for all the frontend.xml.<checksum>
 install -d $RPM_BUILD_ROOT%{frontend_dir}/lock
@@ -727,7 +729,7 @@ fi
 # Add the "frontend" user and group if they do not exist
 getent group frontend >/dev/null || groupadd -r frontend
 getent passwd frontend >/dev/null || \
-       useradd -r -g frontend -d /var/lib/gwms-frontend \
+       useradd -r -g frontend -d %{frontend_base} \
 	-c "VO Frontend user" -s /sbin/nologin frontend
 # If the frontend user already exists make sure it is part of frontend and glidein group
 usermod --append --groups frontend,glidein frontend >/dev/null
@@ -739,7 +741,7 @@ getent group glidein >/dev/null || groupadd -r glidein
 # Add the "gfactory" user and group if they do not exist
 getent group gfactory >/dev/null || groupadd -r gfactory
 getent passwd gfactory >/dev/null || \
-       useradd -r -g gfactory -d /var/lib/gwms-factory \
+       useradd -r -g gfactory -d %{factory_base} \
 	-c "GlideinWMS Factory user" -s /sbin/nologin gfactory
 # If the gfactory user already exists make sure it is part of gfactory group
 usermod --append --groups gfactory gfactory >/dev/null
@@ -880,32 +882,18 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/glideFactory.py
 %attr(755,root,root) %{_sbindir}/glideFactoryEntry.py
 %attr(755,root,root) %{_sbindir}/glideFactoryEntryGroup.py
-
-%if %{?rhel}%{!?rhel:0} == 5
-%attr(755,root,root) %{_sbindir}/checkFactory.pyc
-%attr(755,root,root) %{_sbindir}/checkFactory.pyo
-%attr(755,root,root) %{_sbindir}/glideFactory.pyc
-%attr(755,root,root) %{_sbindir}/glideFactory.pyo
-%attr(755,root,root) %{_sbindir}/glideFactoryEntry.pyc
-%attr(755,root,root) %{_sbindir}/glideFactoryEntry.pyo
-%attr(755,root,root) %{_sbindir}/glideFactoryEntryGroup.pyc
-%attr(755,root,root) %{_sbindir}/glideFactoryEntryGroup.pyo
-%attr(755,root,root) %{_sbindir}/manageFactoryDowntimes.pyc
-%attr(755,root,root) %{_sbindir}/manageFactoryDowntimes.pyo
-%attr(755,root,root) %{_sbindir}/stopFactory.pyc
-%attr(755,root,root) %{_sbindir}/stopFactory.pyo
-%endif
 %attr(755,root,root) %{_sbindir}/info_glidein
 %attr(755,root,root) %{_sbindir}/manageFactoryDowntimes.py
 %attr(755,root,root) %{_sbindir}/reconfig_glidein
 %attr(755,root,root) %{_sbindir}/clone_glidein
-%attr(-, root, root) %dir %{_localstatedir}/lib/gwms-factory
-%attr(-, gfactory, gfactory) %dir %{_localstatedir}/lib/gwms-factory/client-proxies
-%attr(-, gfactory, gfactory) %dir %{_localstatedir}/lib/gwms-factory/server-credentials
-%attr(0600, gfactory, gfactory) %{_localstatedir}/lib/gwms-factory/server-credentials/jwt_secret.key
+%attr(-, gfactory, gfactory) %dir %{factory_base}
+%attr(-, gfactory, gfactory) %dir %{factory_base}/client-proxies
+%attr(-, gfactory, gfactory) %dir %{factory_base}/server-credentials
+%attr(0600, gfactory, gfactory) %{factory_base}/server-credentials/jwt_secret.key
+# NOTE: Adding dir excludes the included files
 %attr(-, gfactory, gfactory) %{factory_web_dir}
 %attr(-, gfactory, gfactory) %{factory_web_base}
-%attr(-, gfactory, gfactory) %{factory_web_base}/../creation
+%attr(-, gfactory, gfactory) %{factory_base}/creation
 %attr(-, gfactory, gfactory) %{factory_dir}
 %attr(-, gfactory, gfactory) %dir %{factory_condor_dir}
 %attr(-, gfactory, gfactory) %dir %{_localstatedir}/log/gwms-factory
@@ -999,7 +987,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.pre
 %attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.post
 %attr(-, frontend, glidein) %dir %{_sysconfdir}/gwms-frontend/plugin.d
-%attr(-, frontend, glidein) %config(noreplace) %{_sysconfdir}/gwms-frontend/plugin.d/
+%attr(-, frontend, glidein) %config(noreplace) %{_sysconfdir}/gwms-frontend/plugin.d/*
 %attr(-, frontend, glidein) %{_sysconfdir}/gwms-frontend/README.md
 %attr(0664, frontend, glidein) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gwms-frontend/frontend.xml
 # TODO: should these files be moved in the glidein package?
@@ -1036,13 +1024,13 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cvWParams.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/matchPolicy.*
 %defattr(-,root,glidein,775)
-%{web_dir}
+%dir %{web_dir}
 %{web_base}
 %{frontend_dir}
 %defattr(664,root,glidein,775)
 %{web_dir}/monitor
 %{web_dir}/stage
-%{web_base}/factoryRRDBrowse.html
+#%{web_base}/factoryRRDBrowse.html
 
 %files httpd
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-hardening.conf
@@ -1096,8 +1084,8 @@ rm -rf $RPM_BUILD_ROOT
 %files logserver
 %defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-logserver.conf
-%attr(-, root, root) %{logserver_dir}
-%attr(-, root, apache) %{logserver_web_dir}
+%attr(-, root, root) %dir %{logserver_dir}
+%attr(-, root, apache) %dir %{logserver_web_dir}
 %attr(-, apache, apache) %{logserver_web_dir}/uploads
 %attr(-, apache, apache) %{logserver_web_dir}/uploads_unauthorized
 %attr(-, apache, apache) %{logserver_web_dir}/put.php
@@ -1109,6 +1097,16 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed May 6 2026 Marco Mambelli <marcom@fnal.gov> - 3.11.4
+- Glideinwms v3.11.4
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_11_4/history.html
+- Release candidates 3.11.4-01.rc1
+
+* Fri Apr 17 2026 Marco Mambelli <marcom@fnal.gov> - 3.10.18
+- Glideinwms v3.10.18
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_10_18/history.html
+- Release candidates 3.10.18-01.rc1 to 3.10.18-04.rc4
+
 * Fri Jan 30 2026 Marco Mambelli <marcom@fnal.gov> - 3.11.3
 - Glideinwms v3.11.3
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_11_3/history.html

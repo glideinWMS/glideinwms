@@ -5,7 +5,6 @@
 
 """Unit test for glideinwms/lib/exprParser.py"""
 
-
 import ast
 import unittest
 

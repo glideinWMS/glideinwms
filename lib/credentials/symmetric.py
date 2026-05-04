@@ -7,7 +7,6 @@
 This module provides classes to represent and manage symmetric keys.
 """
 
-
 import binascii
 import os
 

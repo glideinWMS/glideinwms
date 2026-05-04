@@ -7,7 +7,6 @@
 This module contains the Generator base class and built-in generators
 """
 
-
 import inspect
 import os
 import re

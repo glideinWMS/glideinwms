@@ -306,18 +306,14 @@ def main():
         uri = "https:" + uri[5:]
     iss, adv_uri = prepare_web_dir(args.web_dir, args.group, uri, pk_str, args.client_user)
     log(f"Public key from iss: {iss} advertised at: {adv_uri}")
-    log(
-        f"""Example of XML credential configuration:
+    log(f"""Example of XML credential configuration:
 <credential absfname="SciTokenGenerator"
     context="{{'algorithm': '{key_type}', 'key_file': '{args.private_key_file}', 'key_id': '{key_id}', 'issuer': '{iss}', 'scope': 'compute.read compute.modify compute.create compute.cancel', 'type': 'scitoken'}}"
-    purpose="request" security_class="frontend" trust_domain="grid" type="generator"/>"""
-    )
+    purpose="request" security_class="frontend" trust_domain="grid" type="generator"/>""")
     if args.print_config:
-        print(
-            f"""<credential absfname="SciTokenGenerator"
+        print(f"""<credential absfname="SciTokenGenerator"
     context="{{'algorithm': '{key_type}', 'key_file': '{args.private_key_file}', 'key_id': '{key_id}', 'issuer': '{iss}', 'scope': 'compute.read compute.modify compute.create compute.cancel', 'type': 'scitoken'}}"
-    purpose="request" security_class="frontend" trust_domain="grid" type="generator"/>"""
-        )
+    purpose="request" security_class="frontend" trust_domain="grid" type="generator"/>""")
 
 
 # Script invocation

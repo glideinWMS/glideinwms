@@ -9,7 +9,6 @@ Usage:
     find_logs.py <factory> YY/MM/DD [hh:mm:ss]
 """
 
-
 import os
 import os.path
 import sys

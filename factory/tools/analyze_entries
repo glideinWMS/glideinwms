@@ -411,8 +411,8 @@ USAGE:
         "wastemill_data": "rrd_Log_Completed_WasteTime.xml",
     }
 
-    if "http" in w_dir:
-        file_dir = os.path.join(w_dir)
+    if w_dir.startswith("http:") or w_dir.startswith("https:"):
+        file_dir = w_dir
     else:
         file_dir = os.path.join(w_dir, "monitor")
         if not os.path.isdir(file_dir):
@@ -499,19 +499,13 @@ USAGE:
     ######################################################################
 
     if filter_frontend == 0:
-        print(
-            """
+        print("""
 Glidein log analysis for All Entries - %s
-"""
-            % datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S")
-        )
+""" % datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S"))
     else:
-        print(
-            """
+        print("""
 Glidein log analysis for frontend %s - %s
-"""
-            % (filter_frontend, datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S"))
-        )
+""" % (filter_frontend, datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S")))
 
     period_data = {}
     frontend_data = {}
@@ -653,13 +647,10 @@ Glidein log analysis for frontend %s - %s
     ################################################################################
 
     if filter_frontend == 0 and frontend_mode == 0:
-        print(
-            """
+        print("""
 ---------------------------------------
 ---------------------------------------
-Per Entry (all frontends) stats for the past %s hours.\n"""
-            % x
-        )
+Per Entry (all frontends) stats for the past %s hours.\n""" % x)
 
         print(LINEPRINT_HEADER)
 
@@ -687,7 +678,8 @@ Per Entry (all frontends) stats for the past %s hours.\n"""
             )
         else:
             print("No Entries with Glideins.")
-        print(totals_to_be_printed[0][1])
+        if totals_to_be_printed:
+            print(totals_to_be_printed[0][1])
         print(LINEPRINT_HEADER_DIV)
 
         if sorting == 1:
@@ -705,22 +697,16 @@ Per Entry (all frontends) stats for the past %s hours.\n"""
     ################################################################################
 
     if frontend_mode == 0:
-        print(
-            """
+        print("""
 ---------------------------------------
 ---------------------------------------
-Per Entry (per frontend) stats for the past %s hours.\n"""
-            % x
-        )
+Per Entry (per frontend) stats for the past %s hours.\n""" % x)
     else:
         units = ["Slots", "Seconds", "Hours"]
-        print(
-            """
+        print("""
 ---------------------------------------
 ---------------------------------------
-Frontend stats for the past %s hours.\n"""
-            % x
-        )
+Frontend stats for the past %s hours.\n""" % x)
         print(
             "%-25s%7s %7s %3s %7s %3s %7s %3s %7s %3s %7s %3s %4s\n"
             % (
@@ -823,8 +809,7 @@ Frontend stats for the past %s hours.\n"""
     ################################################################################
 
     if frontend_mode == 0:
-        print(
-            """\n-----------------------------------
+        print("""\n-----------------------------------
 LEGEND:
 
 K - kilseconds (*1,000 seconds)
@@ -846,12 +831,10 @@ total - total number of glideins
 Lasted      - total wallclock time
 JobsLasted  - wallclock time used to run jobs
 JobsGoodput - wallclock time used by jobs terminatig with exit code 0
-\n"""
-        )
+\n""")
 
     else:  # frontend_mode legend
-        print(
-            """\n-----------------------------------
+        print("""\n-----------------------------------
 LEGEND:
 
 K - kilseconds (*1,000 seconds)
@@ -875,8 +858,7 @@ Lasted      - total wallclock time
 JobsLasted  - wallclock time used to run jobs
 JobsGoodput - wallclock time used by jobs terminatig with exit code 0
 -------------------------------------
-        \n"""
-        )
+        \n""")
 
 
 if __name__ == "__main__":

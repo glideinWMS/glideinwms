@@ -7,35 +7,31 @@ USAGE_STR="$0 [-h] TAG USER PRINC [REPO]
 Buold the source tarball and upload it to the OSG library (now using osg-sw-submit.chtc.wisc.edu and AFS via Krb auth)
  TAG       - tag or branch ID in the Git repository (branch pointers change, use a branch name only for scratch builds)
  USER      - username on the OSG build machine
- PRINC     - Kerberos principal for the OSG AFS (If only the user is given CS.WISC.EDU is assumed as domain). Krb user may differ form the build machine user name
  REPO      - url of the Git repository (default: https://github.com/glideinWMS/glideinwms.git)
  -h --help - print this message and exit
 
-NOTE that when using this script you'll have to authenticate with the CILogon URL and insert the OSG PASSWORD (for AFS/Kerberos) and authenticate with the URL again."
+NOTE that when using this script you'll have to authenticate with the CILogon URL twice."
 
 [ "$1" = "-h" ] || [ "$1" = "--help" ] && { echo "$USAGE_STR"; exit 0; }
 
-if [ $# -lt 3 ]; then
-    echo "ERROR: Missing arguments 'tag', 'user', and 'krb_principal'"
+if [ $# -lt 2 ]; then
+    echo "ERROR: Missing arguments 'tag' and 'user'"
     echo "$USAGE_STR"
     exit 1
 fi
 
 gwms_tag=$1
 username=$2
-krb_user=$3
-echo "$krb_user" | grep -q "@" || krb_user="$krb_user@CS.WISC.EDU"
 gwms_repo="https://github.com/glideinWMS/glideinwms.git"
-if [ $# -eq 4 ]; then
-    gwms_repo=$4
+if [ $# -eq 3 ]; then
+    gwms_repo=$3
 fi
 
 # On August 2024 OSG switched to osg-sw-submit.chtc.wisc.edu. moria and library.cs.wisc.edu are not working any more
 #osg_buildmachine="osg-sw-submit.chtc.wisc.edu"
 # On March 22 2025 the build host has been moved to osg-sw-submit-old
-#osg_buildmachine="osg-sw-submit.chtc.wisc.edu"
+# On February 2026 migration to Git and osgsw-ap.chtc.wisc.edu. Kerberos no more needed.
 osg_buildmachine="osgsw-ap.chtc.wisc.edu"
-#osg_uploaddir="/p/vdt/public/html/upstream/glideinwms/$gwms_tag"
 osg_uploaddir="/osgsw/upstream/glideinwms/$gwms_tag"
 
 work_dir="/tmp/osgrelease.$$"
@@ -77,10 +73,10 @@ archive_gwms
 # Print the checksum for the source file
 echo "Tarball Created for $gwms_tag (sha1sum, file): $(sha1sum "$gwms_tar")"
 echo "Use the following to update the upstream file:"
+echo "upstream_src_line='glideinwms/$gwms_tag/glideinwms.tar.gz sha1sum=$(sha1sum "$gwms_tar" | cut -f 1 -d ' ')'"
 echo "echo 'glideinwms/$gwms_tag/glideinwms.tar.gz sha1sum=$(sha1sum "$gwms_tar" | cut -f 1 -d ' ')' > upstream/developer.tarball.source"
 
 # Upload the tarball
-# if ssh $username@$osg_buildmachine "kinit $krb_user; aklog; mkdir -p $osg_uploaddir"; then
 if ssh $username@$osg_buildmachine "mkdir -p $osg_uploaddir"; then
     if scp "$gwms_tar" "$username@$osg_buildmachine:$osg_uploaddir"; then
         echo "Tarball Uploaded to $osg_buildmachine: $osg_uploaddir"

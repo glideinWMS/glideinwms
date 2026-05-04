@@ -353,6 +353,13 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # Add this because GLIDEIN_OVERLOAD_ENABLED might be set in the frontend
         self.add("job_ad_information_attrs ", "GlideinOverloadEnabled")
 
+        arch_attr = next((ga for ga in glidein_attrs if ga["name"].upper() == "GLIDEIN_ARCH"), None)
+        if arch_attr is not None and arch_attr["value"] == "aarch64":
+            self.add(
+                "Requirements",
+                '(TARGET.Arch == "aarch64") && (TARGET.OpSys == "LINUX") && (TARGET.Disk >= RequestDisk) && (TARGET.Memory >= RequestMemory)',
+            )
+
     def populate_submit_attrs(self, submit_attrs, gridtype, attr_prefix=""):
         for submit_attr in submit_attrs:
             if (

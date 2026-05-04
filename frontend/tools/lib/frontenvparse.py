@@ -4,6 +4,7 @@
 """This module provides common functions needed to parse
 the arguments used by the frontend environment setting tools
 """
+
 import os
 
 from glideinwms.frontend import glideinFrontendConfig

@@ -14,7 +14,6 @@ Project:
    Doug Strain
 """
 
-
 import os
 
 # import sys
@@ -83,7 +82,7 @@ class TestPlugins(unittest.TestCase):
         # Create fake Credentials
         rtnlist = []
         for t in range(30):
-            (f, proxyfile) = tempfile.mkstemp()
+            f, proxyfile = tempfile.mkstemp()
             os.close(f)
             self.elementDescript.addproxy(proxyfile)
             rtnlist.append(LegacyCredential(t, proxyfile, self.elementDescript))

@@ -6,6 +6,7 @@
 """Equivalent to condor_status, but with glidein specific info"""
 
 import argparse
+import functools
 import os.path
 import sys
 import time
@@ -254,7 +255,7 @@ def main():
     data = cs.stored_data
     keys = list(data.keys())
 
-    keys.sort(machine_cmp)
+    keys.sort(key=functools.cmp_to_key(machine_cmp))
 
     counts_header = (
         "Total",
@@ -388,9 +389,9 @@ def main():
     ckeys = list(counts.keys())
 
     if summarize == "site":
-        ckeys.sort(ltotal_cmp)
+        ckeys.sort(key=functools.cmp_to_key(ltotal_cmp))
     else:  # default is entry
-        ckeys.sort(entry_cmp)
+        ckeys.sort(key=functools.cmp_to_key(entry_cmp))
 
     if len(ckeys) > 1:
         print()  # put a space before the entry names

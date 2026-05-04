@@ -5,7 +5,6 @@
 
 """Unit test of glideinwms/lib/credentials/x509.py"""
 
-
 import unittest
 
 import xmlrunner

@@ -1412,7 +1412,6 @@ MAX_STARTD_LOG          I       10000000        +                               
           </tr>
           <tr>
             <td><b>GLIDEIN_DEBUG_OPTIONS</b></td>
-
             <td>Str</td>
             <td>
               <p>
@@ -1424,6 +1423,8 @@ MAX_STARTD_LOG          I       10000000        +                               
                 usertrace - enable shell tracing (set -x) on the user job stderr
                 (at the beginning, when invoked with the container -Apptainer-
                 wrapper)<br />
+                cscripttrace - enable shell tracing (set -x) on the custom
+                scripts (at the beginning, after the download)<br />
                 nowait - shortens the Glidein wait time to 2m when it ends with
                 errors. Useful when debugging. The wait time protects against
                 black holes<br />
@@ -1434,8 +1435,19 @@ MAX_STARTD_LOG          I       10000000        +                               
             </td>
           </tr>
           <tr>
+            <td><b>GLIDEIN_CUSTOM_SCRIPTS_TIMEOUT</b></td>
+            <td>Int</td>
+            <td>
+              <p>
+                Timeout in seconds for the custom scripts executed by the
+                Glidein. The script is killed with SIGTERM after timeout seconds
+                are passed. It is not guaranteed for the script to quit given
+                the signal used. 0 means no timeout.
+              </p>
+            </td>
+          </tr>
+          <tr>
             <td><b>MODULE_USE</b></td>
-
             <td>Expr (Bool)</td>
             <td>
               <p>

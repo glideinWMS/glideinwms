@@ -12,7 +12,6 @@ Option "-force" uses a hard kill (SIGKILL) after trying a soft one (SIGTERM).
 Usage: stopFactory [-f|-force] submit_dir
 """
 
-
 import os
 import signal
 import subprocess

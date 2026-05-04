@@ -813,7 +813,7 @@ def increase_process_limit(new_limit=10000):
     Args:
         new_limit (int, optional): New process limit. Defaults to 10000.
     """
-    (soft, hard) = resource.getrlimit(resource.RLIMIT_NPROC)
+    soft, hard = resource.getrlimit(resource.RLIMIT_NPROC)
     if soft < new_limit:
         try:
             resource.setrlimit(resource.RLIMIT_NPROC, (new_limit, hard))

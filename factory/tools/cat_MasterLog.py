@@ -9,7 +9,6 @@ Usage:
     cat_MasterLog.py logname
 """
 
-
 import os.path
 import sys
 

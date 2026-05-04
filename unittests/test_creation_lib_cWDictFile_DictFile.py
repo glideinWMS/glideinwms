@@ -5,7 +5,6 @@
 
 """Unit test for DictFile object from glideinwms/creation/lib/cWDictFile.py"""
 
-
 import copy
 import os
 import unittest

@@ -7,7 +7,6 @@
 This module provides utility classes and functions for working with credentials and parameters.
 """
 
-
 from typing import Iterable, List, Mapping, Optional, Set, Union
 
 from glideinwms.lib.credentials import (

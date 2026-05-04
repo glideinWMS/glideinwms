@@ -10,7 +10,6 @@ Arguments:
    $2 = group_name
 """
 
-
 import os
 import os.path
 import sys

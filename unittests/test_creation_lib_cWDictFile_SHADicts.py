@@ -15,7 +15,6 @@ Project:
    Dennis Box dbox@fnal.gov
 """
 
-
 import copy
 import unittest
 
