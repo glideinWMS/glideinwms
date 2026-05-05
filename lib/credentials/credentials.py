@@ -769,6 +769,7 @@ def create_credential_pair(
     """
 
     credential_types = [cred_type] if cred_type else CredentialPairType
+    failed_attempts = []
     for c_type in credential_types:
         try:
             credential_class = credential_of_type(c_type)
@@ -777,12 +778,16 @@ def create_credential_pair(
                 cred_args = [param.name for param in cred_args if param.name != "self"]
                 kwargs = {key: value for key, value in locals().items() if key in cred_args and value is not None}
                 return credential_class(**kwargs)
-        except CredentialError:
-            pass
+        except CredentialError as err:
+            failed_attempts.append(err)  # Likely credential type incompatible with input
         except Exception as err:
             raise CredentialError(
                 f'Unexpected error loading credential pair: string="{string}", path="{path}", private_string="{private_string}", private_path="{private_path}"'
             ) from err
+    if failed_attempts:
+        raise CredentialError(
+            f'Could not load credential pair: string="{string}", path="{path}", private_string="{private_string}", private_path="{private_path}". {len(failed_attempts)} attempts failed with CredentialError.'
+        ) from failed_attempts[-1]
     raise CredentialError(
         f'Could not load credential pair: string="{string}", path="{path}", private_string="{private_string}", private_path="{private_path}"'
     )
