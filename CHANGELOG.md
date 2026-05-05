@@ -21,6 +21,7 @@ All M2Crypto requirements removed. Includes all changes and fixes in v3.10.18, p
 
 ### Bug Fixes
 
+-   Correct reporting of ProjectId and other credential parameters in submission (PR #665)
 -   IdTokenGenerator more robust, using the Entry name when GLIDEIN_Site is not available (PR #667)
 
 ### Testing / Development

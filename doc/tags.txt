@@ -1,3 +1,11 @@
+v3_11_4
+	All changes and fixes in v3.10.18
+	Removed remaining dependencies from M2Crypto. Cleaned up also some duplicate code and SL7 and Python 2 CI tools. (PR#636, Issue#438)
+	Added unit tests for x509.py and rsa.py. (PR#636)
+	Bug fix: Correct reporting of ProjectId and other credential parameters in submission (PR#665, Issue#664)
+	Bug fix: IdTokenGenerator more robust, using the Entry name when GLIDEIN_Site is not available (PR#667)
+	NOTE: As in 3.10.18, custom scripts execution times out after 600s and scripts are killed with SIGTERM followed by SIGKILL
+
 v3_11_3
 	Including all features and fixes of the production series up to 3.10.17 (and v3.10.18 RC1)
 	Added `make_scitoken_key` and the ability to generate and validate self-signed tokens in the Frontend (PR#623)
@@ -57,6 +65,24 @@ v3_11_0
 	Bug fix: Fixed early truncation in log files configuration and inconsistent documentation (Issue#464, PR#462, PR#463)
 	Bug fix: Removed confusing tac broken pipe messages from the Glidein stderr (PR#465)
 	Bug fix: Fixed quotes in glidein command line unpacking and replaced deprecated add_config_line commands (PR#468)
+
+v3_10_18
+	Added GlideinOverloadEnabled to the activity logs for monitoring purposes (PR#629, Issue#569)
+	Added configurable fallback mechanism for Web proxy availability (PR#648, Issue#521)
+	Added custom scripts timeout option (GLIDEIN_CUSTOM_SCRIPTS_TIMEOUT, defaults to 600s) and cscripttrace option in GLIDEIN_DEBUG_OPTIONS to print the trace if they are shell scripts (PR#651)
+	gettarballs.py now has an improved management of default tarballs (PR#627)
+	Print triggered limits in Glidein requests in glideinFrontendElement (PR#653)
+	Updated release script to the new OSG server and Git (PR#660)
+	Added new startup scripts to prepare for better systemd compliance (PR#660)
+	Bug fix: Fixed ownership of the /var/lib/gwms-factory in RPM package (PR#637)
+	Bug fix: Fixed heredoc with custom scripts header to detect the correct shell (PR#643, Issue#641)
+	Bug fix: Fixed HTCondor slot resources specifications by adding comma separator (PR#644, Issue#638)
+	Bug fix: Migrating glidein_status tool from Python 2 to Python 3 (PR#647, Issue#422)
+	Bug fix: Fixing inconsistent use of string and bytes types breaking job monitoring (PR#650, Issue#649, Issue#646)
+	Bug fix: Improved cvmfs_helper_funcs.sh to be faster and have consistent names (PR#651)
+	Bug fix: OSG_autoconf, handle missing pilot entries gracefully in merge_yaml (PR#655, Issue#654)
+	Bug fix: OSG_autoconf, fix missing GPU count for whole-node GPU entries. (PR#657, Issue#656)
+	NOTE: Custom scripts execution times out after 600s and scripts are killed with SIGTERM followed by SIGKILL
 
 v3_10_17
 	Recognize EL/CentOS 10 worker nodes to select the correct HTCondor tarball (PR#600)
