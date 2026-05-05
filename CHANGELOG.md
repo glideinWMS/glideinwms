@@ -21,6 +21,8 @@ All M2Crypto requirements removed. Includes all changes and fixes in v3.10.18, p
 
 ### Bug Fixes
 
+-   IdTokenGenerator more robust, using the Entry name when GLIDEIN_Site is not available (PR #667)
+
 ### Testing / Development
 
 ### Known Issues

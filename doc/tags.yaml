@@ -809,4 +809,5 @@ v3_11_4:
   Tarball: false
   Feature:
   Bug fix:
+    - IdTokenGenerator more robust, using the Entry name when GLIDEIN_Site is not available (PR#667)
   NOTE:
