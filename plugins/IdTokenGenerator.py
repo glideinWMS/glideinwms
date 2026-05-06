@@ -28,12 +28,13 @@ class IdTokenGenerator(CredentialGenerator):
     HOSTNAME is the fully qualified domain name of the host where the token is generated, and
     NAME is the GLIDEIN_Site attribute form the resource/entry classad and configuration in the Factory, or
     the name of the resource/entry from the classad and configuration in the Factory if GLIDEIN_Site is not specified.
-    This aims to create different subjects for different resources/entries to avoid the reuse of tokes from potentially
+    This aims to create different subjects for different resources/entries to avoid the reuse of tokens from potentially
     compromised resources.
 
     The issuer defaults to the HTCondor TRUST_DOMAIN when not specified in the context.
 
     A duration of 0 seconds means that the token will never expire. A negative value will generate expired tokens.
+    None or a missing value from the context is used to load the duration via the IDTokenLifetime attribute or use the default.
     The default duration (if not in the context or IDTokenLifetime) is 24 hours.
 
     The default password file name is the username (if not in the context or IDTokenKeyname), all uppercase.
@@ -44,10 +45,10 @@ class IdTokenGenerator(CredentialGenerator):
             {
                 "password": (str, ""),
                 "scope": (str, ""),
-                "duration": (int, 0),
+                "duration": ((int, None), None),
                 "minimum_lifetime": (int, 0),
                 "identity": (str, ""),
-                "issuer": (str, None),
+                "issuer": ((str, None), None),
             }
         )
         self.context["type"] = "idtoken"
@@ -71,9 +72,10 @@ class IdTokenGenerator(CredentialGenerator):
 
         scope = self.context["scope"] or "condor:/READ condor:/ADVERTISE_STARTD condor:/ADVERTISE_MASTER"
 
-        duration = (
-            self.context["duration"] or int(kwargs["elementDescript"].merged_data.get("IDTokenLifetime", 24)) * 3600
-        )
+        # Context validation will set duration to None if missing
+        duration = self.context["duration"]
+        if duration is None:
+            duration = int(kwargs["elementDescript"].merged_data.get("IDTokenLifetime", 24)) * 3600
 
         identity = self.context["identity"]
         if not identity:
