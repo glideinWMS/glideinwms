@@ -59,7 +59,7 @@ class GeneratorContext(dict):
 
         Example:
             context.validate({
-                "user": (str),  # Mandatory string with name
+                "user": (str),  # Mandatory string with the user's name
                 "group": (str,),  # Mandatory string with group
                 "permissions": ((list, None), []),  # Optional list with permissions, defaults to empty list if missing
                                                     # If set to None, it will stay None

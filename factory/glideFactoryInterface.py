@@ -40,7 +40,7 @@ advertiseGlobalCounter = 0
 #        pass
 
 
-# TODO: Verify the difference form glideFactoryConfig.FactoryConfig and if these can be unified
+# TODO: Verify the difference from glideFactoryConfig.FactoryConfig and if these can be unified
 class FactoryConfig:
     def __init__(self):
         """Initialize a FactoryConfig object with default values.

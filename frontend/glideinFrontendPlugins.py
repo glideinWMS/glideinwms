@@ -258,7 +258,7 @@ class CredentialsBasic(CredentialsPlugin):
 
 ###########################################################
 ### Proxy plugins are deprecated and should not be used ###
-## You should use plugins inheriting form CredentialsPlugin
+## You should use plugins inheriting from CredentialsPlugin
 ###########################################################
 
 # TODO: Some of the functionalities are no more needed with the new credentials and generators
