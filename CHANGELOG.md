@@ -3,13 +3,14 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.11.4 \[2026-05-06\]
+## v3.11.4 \[2026-05-08\]
 
 All M2Crypto requirements removed. Includes all changes and fixes in v3.10.18, plus a couple more fixes like pilot ARM submission.
 
 ### New features / functionalities
 
 -   All changes and fixes in v3.10.18
+-   Added feature flag mechanism in preparation for full cvmfsexec support (PR #625)
 -   Removed remaining dependencies from M2Crypto. Cleaned up also some duplicate code and SL7 and Python 2 CI tools. (Issue #438, PR #636)
 -   Added unit tests for x509.py and rsa.py. (PR #636)
 
@@ -21,6 +22,7 @@ All M2Crypto requirements removed. Includes all changes and fixes in v3.10.18, p
 
 ### Bug Fixes
 
+-   Correct reporting of ProjectId and other credential parameters in submission (PR #665)
 -   IdTokenGenerator more robust, using the Entry name when GLIDEIN_Site is not available (PR #667)
 
 ### Testing / Development

@@ -804,10 +804,16 @@ v3_10_18:
     - Custom scripts execution times out after 600s and scripts are killed with SIGTERM followed by SIGKILL
 
 v3_11_4:
-  Date: May 6, 2026
+  Date: May 8, 2026
   Series: Development
   Tarball: false
   Feature:
+    - All changes and fixes in v3.10.18
+    - Added feature flag mechanism in preparation for full cvmfsexec support (PR#625)
+    - Removed remaining dependencies from M2Crypto. Cleaned up also some duplicate code and SL7 and Python 2 CI tools. (PR#636, Issue#438)
+    - Added unit tests for x509.py and rsa.py. (PR#636)
   Bug fix:
+    - Correct reporting of ProjectId and other credential parameters in submission (PR#665, Issue#664)
     - IdTokenGenerator more robust, using the Entry name when GLIDEIN_Site is not available (PR#667)
   NOTE:
+    - As in 3.10.18, custom scripts execution times out after 600s and scripts are killed with SIGTERM followed by SIGKILL
