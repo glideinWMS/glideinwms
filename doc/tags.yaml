@@ -762,7 +762,7 @@ v3_11_3:
   Tarball: false
   Feature:
     - Including all features and fixes of the production series up to 3.10.17 (and v3.10.18 RC1)
-    - Added `make_scitoken_key` and the ability to generate and validate self-signed tokens in the Frontend (PR#623)
+    - Added `make_scitoken_key` and the ability to generate and validate self-signed tokens in the Frontend (PR#623, Issue#622)
     - Added configuration checks to validate Generator's context for mandatory attributes and Generator specific rules (PR#611, PR#623, PR#626)
     - Made client/Frontend directories more flexible, e.g. to have the credential library work with Decision Engine (PR#628)
     - SciTokenGenerator is stricter about the context in the configuration, requiring fields like key file and issuer and requiring an https URL for the issuer (PR#626)
