@@ -809,6 +809,7 @@ v3_11_4:
   Tarball: false
   Feature:
     - All changes and fixes in v3.10.18
+    - Added feature flag mechanism in preparation for full cvmfsexec support (PR#625)
     - Removed remaining dependencies from M2Crypto. Cleaned up also some duplicate code and SL7 and Python 2 CI tools. (PR#636, Issue#438)
     - Added unit tests for x509.py and rsa.py. (PR#636)
   Bug fix:

@@ -10,6 +10,7 @@ All M2Crypto requirements removed. Includes all changes and fixes in v3.10.18, p
 ### New features / functionalities
 
 -   All changes and fixes in v3.10.18
+-   Added feature flag mechanism in preparation for full cvmfsexec support (PR #625)
 -   Removed remaining dependencies from M2Crypto. Cleaned up also some duplicate code and SL7 and Python 2 CI tools. (Issue #438, PR #636)
 -   Added unit tests for x509.py and rsa.py. (PR #636)
 
