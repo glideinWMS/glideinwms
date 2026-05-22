@@ -31,7 +31,7 @@ jobs:
           git checkout --progress --force -B ${BRANCH} refs/remotes/origin/${BRANCH}
         id: sparse-checkout
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: "glideinwms"
       - name: RPM build action step
@@ -39,7 +39,7 @@ jobs:
         uses: ./.github/actions/build-in-docker
       - name: Archive RPM packages
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rpmpackages
           path: rpms.tar.bz2
