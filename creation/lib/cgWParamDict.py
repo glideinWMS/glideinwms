@@ -9,9 +9,16 @@ created out of the parameter object.
 import hashlib
 import os
 import os.path
+import secrets
 import shutil
+import stat
+import tarfile
+import time
+import urllib
 
 from collections import Counter
+
+import jwt
 
 from glideinwms.lib import pubCrypto, subprocessSupport
 from glideinwms.lib.util import str2bool
@@ -847,6 +854,9 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             self.enable_expansion,
         )
 
+        # create logging tokens
+        generate_log_tokens(main_dicts)
+
         # Now that we have the EntrySet fill the condor_jdl for its entries
         if isinstance(entry, factoryXmlConfig.EntrySetElement):
             for subentry in entry.get_child_list("entries"):
@@ -1673,3 +1683,139 @@ def calc_primary_monitoring_collectors(collectors):
         return None
     else:
         return ",".join(list(collector_nodes.values()))
+
+
+############################################################
+def generate_log_tokens(glidein_main_dicts):
+    """Generate JSON Web Tokens (JWT) for log server authentication.
+
+    This function generates JWT tokens used to authenticate with the remote HTTP log server.
+    Note: Tokens are generated for both enabled and disabled Entries.
+
+    Args:
+        glidein_main_dicts (glideFactoryConfig.GlideinDescript): Factory configuration's Glidein description object.
+
+    Returns:
+        None
+
+    Raises:
+        IOError: If there is an error opening, reading, or writing a file (key/token).
+    """
+    print("Generating JSON Web Tokens for authentication with log server")
+
+    # Get a list of all entries, enabled and disabled
+    # TODO: there are more reliable ways to do so, i.e. reading the xml config
+    # entries = [ed[len("entry_") :] for ed in glob.glob("entry_*") if os.path.isdir(ed)]
+    # OK to generate tokens only for enabled entries
+    entries = glidein_main_dicts["glidein"]["Entries"].split(",")
+
+    startup_dir = glidein_main_dicts["glidein"].dir
+    # Retrieve the factory secret key (manually delivered) for token generation
+    credentials_dir = os.path.realpath(os.path.join(startup_dir, "..", "server-credentials"))
+    jwt_key = os.path.join(credentials_dir, "jwt_secret.key")
+    if not os.path.exists(jwt_key) or os.path.getsize(jwt_key) == 0:
+        # Create a secret and log if it doesn't exist, otherwise needs a manual undocumented step to start factory
+        # For HS256 JWT (HMAC 256) a 32 bytes string is needed. A PEM file like the one from RSAKey() would cause
+        # jwt.exceptions.InvalidKeyError: The specified key is an asymmetric key or x509 certificate and
+        # should not be used as an HMAC secret.
+        # TODO: consider base64 encoding before saving sec_key (server code must be changed as well)
+        # TODO: add support for multiple secrets from different servers (RSA asymmetric or HMAC symmetric)
+        #       or should they provide (and refresh) tokens?
+        print(f"creating {jwt_key} - manually install this key for authenticating to external web sites")
+        log_token_key = secrets.token_bytes(32)
+        # The file system is not a safe place to store secrets, but this key is used to control access to the logserver
+        # which reside on the file system. So someone with access to this key could access the logserver as well
+        with open(jwt_key, "wb") as file:
+            file.write(log_token_key)
+        os.chmod(jwt_key, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+        # TODO: chown gfactory:apache AND chmod u:rw,g:r
+
+    try:
+        with open(jwt_key, "rb") as keyfile:
+            secret = keyfile.read()
+    except OSError:
+        print(f"Cannot find the key for JWT generation (must be manually deposited in {jwt_key}).")
+        raise
+
+    factory_name = glidein_main_dicts["glidein"]["FactoryName"]
+
+    # Issue a token for each entry-recipient pair
+    for entry in entries:
+        # Get the list of recipients
+        if "GLIDEIN_LOG_RECIPIENTS_FACTORY" in glidein_main_dicts["params"]:
+            log_recipients = glidein_main_dicts["params"]["GLIDEIN_LOG_RECIPIENTS_FACTORY"].split()
+        else:
+            log_recipients = []
+
+        curtime = int(time.time())
+
+        # Directory where to put tokens.tgz and url_dirs.desc
+        entry_dir = os.path.join(credentials_dir, "entry_" + entry)
+        # Directory where tokens are initially generated, before flushing them to tokens.tgz
+        tokens_dir = os.path.join(entry_dir, "tokens")
+
+        # Create the entry + tokens directories if they do not already exist
+        if not os.path.exists(tokens_dir):
+            try:
+                os.makedirs(tokens_dir)
+            except OSError as oe:
+                print(f"Unable to create JWT entry dir ({os.path.join(tokens_dir, entry)}): {oe.strerror}")
+                raise
+
+        # Create the url_dirs.desc file
+        open(os.path.join(entry_dir, "url_dirs.desc"), "w").close()
+
+        for recipient_url in log_recipients:
+            # Obtain a legal filename from the url, escaping "/" and other tricky symbols
+            recipient_safe_url = urllib.parse.quote(recipient_url, "")
+
+            # Generate the monitoring token
+            # TODO: in the future must include Frontend tokens as well
+            factory_token = "default.jwt"
+            token_name = factory_token
+            if not os.path.exists(os.path.join(tokens_dir, recipient_safe_url)):
+                try:
+                    os.makedirs(os.path.join(tokens_dir, recipient_safe_url))
+                except OSError as oe:
+                    print(
+                        "Unable to create JWT recipient dir (%s): %s"
+                        % (os.path.join(tokens_dir, recipient_safe_url), oe.strerror)
+                    )
+                    raise
+            token_filepath = os.path.join(tokens_dir, recipient_safe_url, token_name)
+            # Payload fields:
+            # iss->issuer,      sub->subject,       aud->audience
+            # iat->issued_at,   exp->expiration,    nbf->not_before
+            token_payload = {
+                "iss": factory_name,
+                "sub": entry,
+                "aud": recipient_safe_url,
+                "iat": curtime,
+                "exp": curtime + 604800,
+                "nbf": curtime - 300,  # To compensate for possible clock skews
+            }
+            token = jwt.encode(token_payload, secret, algorithm="HS256")
+            # TODO: PyJWT bug workaround. Remove this conversion once affected PyJWT is no more around
+            #  PyJWT in EL7 (PyJWT <2.0.0) has a bug, jwt.encode() is declaring str as return type, but it is returning bytes
+            #  https://github.com/jpadilla/pyjwt/issues/391
+            if isinstance(token, bytes):
+                token = token.decode("UTF-8")
+            try:
+                # Write the factory token
+                with open(token_filepath, "w") as tkfile:
+                    tkfile.write(token)
+                # Write to url_dirs.desc
+                with open(os.path.join(entry_dir, "url_dirs.desc"), "a") as url_dirs_desc:
+                    url_dirs_desc.write(f"{recipient_url} {recipient_safe_url}\n")
+            except OSError:
+                print("Unable to create JWT file: ")
+                raise
+
+        # Create and write tokens.tgz
+        try:
+            tokens_tgz = tarfile.open(os.path.join(entry_dir, "tokens.tgz"), "w:gz", dereference=True)
+            tokens_tgz.add(tokens_dir, arcname=os.path.basename(tokens_dir))
+        except tarfile.TarError as terr:
+            print("TarError: %s" % str(terr))
+            raise
+        tokens_tgz.close()
