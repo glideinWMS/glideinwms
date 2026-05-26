@@ -2130,6 +2130,11 @@ do
     fi
 done
 
+# At this point, all of the file except for the glidein main script have been executed.  Make any environment
+# changes we need to show up in the job here
+# 1. Need IDTOKENS_FILE to be set to the correct path of the idtokens file in the glidein
+export IDTOKENS_FILE=$(gconfig_get GLIDEIN_CONDOR_TOKEN "${glidein_config}")
+
 ##############################
 # Start the glidein main script
 gconfig_add "GLIDEIN_INITIALIZED" "1"
@@ -2139,6 +2144,7 @@ glog_write "glidein_startup.sh" "file" "${glidein_config}" "debug"
 if ! glog_send; then          # checkpoint
     echo "Failed to checkpoint Glidein Logging"
 fi
+
 echo "# --- Last Script values ---" >> "${glidein_config}"
 last_startup_time=$(date +%s)
 ((validation_time=last_startup_time-startup_time)) || true
