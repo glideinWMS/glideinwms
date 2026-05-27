@@ -1393,8 +1393,6 @@ usage() {
 #################### Execution starts here.... ######################
 #####################################################################
 
-echo "TEST MESSAGE 2!"
-
 # Variables initialized on top of the file
 
 # Command line options parsing. Storing all in global variables.
