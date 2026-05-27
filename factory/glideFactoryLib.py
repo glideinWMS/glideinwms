@@ -2141,6 +2141,37 @@ def overloadToBool(value, log=logSupport.log):
     return False
 
 
+SFAPI_RUNTIME_ENV_KEYS = (
+    "SFAPI_VENV",
+    "SFAPI_PYTHON",
+    "SFAPI_TRANSFER_MACHINE",
+)
+
+
+def append_sfapi_environment(exe_env, params, job_descript, submit_credentials):
+    resource = job_descript.data.get("SfapiResource", "perlmutter")
+    exe_env.append("SFAPI_RESOURCE=%s" % resource)
+
+    glite_dir = job_descript.data.get("SfapiGliteDir")
+    if glite_dir:
+        exe_env.append("GRID_RESOURCE_OPTIONS=--rgahp-glite %s" % glite_dir)
+    else:
+        exe_env.append("GRID_RESOURCE_OPTIONS=")
+
+    auth_file = submit_credentials.security_credentials.get("AuthFile")
+    if not auth_file:
+        raise KeyError("AuthFile")
+    exe_env.append("SFAPI_AUTH_MODE=auth_file")
+    exe_env.append("SFAPI_AUTH_FILE=%s" % auth_file)
+
+    for key in SFAPI_RUNTIME_ENV_KEYS:
+        value = params.get(key) or os.environ.get(key)
+        if value:
+            exe_env.append("%s=%s" % (key, value))
+
+    return exe_env
+
+
 def get_submit_environment(
     entry_name,
     client_name,
@@ -2313,7 +2344,15 @@ def get_submit_environment(
 
         # get my (entry) type
         grid_type = jobDescript.data["GridType"]
-        if grid_type.startswith("batch "):
+        if grid_type == "batch sfapi":
+            append_sfapi_environment(exe_env, params, jobDescript, submit_credentials)
+            glidein_proxy = submit_credentials.security_credentials.get("GlideinProxy")
+            if glidein_proxy:
+                exe_env.append("X509_USER_PROXY=%s" % glidein_proxy)
+                exe_env.append("X509_USER_PROXY_BASENAME=%s" % os.path.basename(glidein_proxy))
+            glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
+            exe_env.append("GLIDEIN_ARGUMENTS=%s" % glidein_arguments)
+        elif grid_type.startswith("batch "):
             log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
             # TODO: username, should this be only for batch or all key pair + username/password?
             try:

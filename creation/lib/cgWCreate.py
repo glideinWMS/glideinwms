@@ -198,7 +198,12 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
-        if gridtype.startswith("batch "):
+        if gridtype == "batch sfapi":
+            sfapi_resource = entry.get("sfapi_resource", "perlmutter")
+            self.add("Grid_Resource", f"batch sfapi $ENV(GRID_RESOURCE_OPTIONS) {sfapi_resource}")
+            enc_input_files.append("$ENV(X509_USER_PROXY:/dev/null)")
+            self.add_environment("X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME:/dev/null)")
+        elif gridtype.startswith("batch "):
             # For BOSCO ie gridtype 'batch *', allow means to pass VO specific
             # bosco/ssh keys
             # was: self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s" % (gridtype, gatekeeper))

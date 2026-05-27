@@ -1393,7 +1393,7 @@ usage() {
 #################### Execution starts here.... ######################
 #####################################################################
 
-echo "TEST MESSAGE!"
+echo "TEST MESSAGE 2!"
 
 # Variables initialized on top of the file
 
