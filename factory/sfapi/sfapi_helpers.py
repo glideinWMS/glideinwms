@@ -161,8 +161,50 @@ def iter_jobstate_entries(path):
             if not line or line.startswith("#"):
                 continue
             kind, payload = line.split("::", 1)
+            if kind == "meta":
+                continue
             local_path, remote_path = payload.split(":", 1)
             yield kind, local_path, remote_path
+
+
+def read_job_metadata(path):
+    metadata = {}
+    try:
+        with open(path) as jobstate:
+            for line in jobstate:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                kind, payload = line.split("::", 1)
+                if kind != "meta":
+                    continue
+                key, value = payload.split(":", 1)
+                if value:
+                    metadata[key] = value
+    except FileNotFoundError:
+        pass
+    return metadata
+
+
+def apply_job_metadata(blahp_job_id, state_dir=None):
+    try:
+        metadata = read_job_metadata(jobstate_path(blahp_job_id, state_dir=state_dir))
+    except ValueError:
+        return
+
+    env_map = {
+        "auth_mode": "SFAPI_AUTH_MODE",
+        "auth_file": "SFAPI_AUTH_FILE",
+        "resource": "SFAPI_RESOURCE",
+        "transfer_machine": "SFAPI_TRANSFER_MACHINE",
+        "venv": "SFAPI_VENV",
+        "username": "SFAPI_USERNAME",
+        "nersc_username": "NERSC_USERNAME",
+    }
+    for key, env_key in env_map.items():
+        value = metadata.get(key)
+        if value and not os.environ.get(env_key):
+            os.environ[env_key] = value
 
 
 def upload_input_file(transfer_compute, remote_path_cls, local_path, remote_dir):
@@ -231,20 +273,24 @@ def status(args):
             return 1
         return 0
 
+    apply_job_metadata(args.value)
+    job_id = bare_slurm_job_id(args.value)
     with sfapi_client(auth_required=True) as client:
         compute = client.compute(get_resource())
-        state = get_job_state(compute, args.value)
-    print("Job %s state: %s" % (args.value, state))
+        state = get_job_state(compute, job_id)
+    print("Job %s state: %s" % (job_id, state))
     return 0
 
 
 def download(args):
+    apply_job_metadata(args.blahp_job_id)
     with sfapi_client(auth_required=True) as client:
         transfer = client.compute(get_transfer_machine())
         download_job_outputs(args.blahp_job_id, transfer)
 
 
 def cancel(args):
+    apply_job_metadata(args.job_id)
     job_id = bare_slurm_job_id(args.job_id)
     with sfapi_client(auth_required=True) as client:
         compute = client.compute(get_resource())

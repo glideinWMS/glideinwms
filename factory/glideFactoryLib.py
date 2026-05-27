@@ -2145,18 +2145,14 @@ SFAPI_RUNTIME_ENV_KEYS = (
     "SFAPI_VENV",
     "SFAPI_PYTHON",
     "SFAPI_TRANSFER_MACHINE",
+    "SFAPI_USERNAME",
+    "NERSC_USERNAME",
 )
 
 
 def append_sfapi_environment(exe_env, params, job_descript, submit_credentials):
     resource = job_descript.data.get("SfapiResource", "perlmutter")
     exe_env.append("SFAPI_RESOURCE=%s" % resource)
-
-    glite_dir = job_descript.data.get("SfapiGliteDir")
-    if glite_dir:
-        exe_env.append("GRID_RESOURCE_OPTIONS=--rgahp-glite %s" % glite_dir)
-    else:
-        exe_env.append("GRID_RESOURCE_OPTIONS=")
 
     auth_file = submit_credentials.security_credentials.get("AuthFile")
     if not auth_file:

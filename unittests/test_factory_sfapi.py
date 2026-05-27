@@ -8,6 +8,7 @@
 import io
 import os
 import socket
+import subprocess
 import sys
 import tempfile
 import types
@@ -201,10 +202,28 @@ class TestSfapiSubmitFileGeneration(unittest.TestCase):
 
         submit.populate("glidein_startup.sh", "SFAPI", conf, entry)
 
-        self.assertEqual("batch sfapi $ENV(GRID_RESOURCE_OPTIONS) perlmutter", submit["Grid_Resource"])
+        self.assertEqual("batch sfapi", submit["Grid_Resource"])
         self.assertNotIn("GLIDEIN_REMOTE_USERNAME", submit["environment"])
         self.assertIn("X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME:/dev/null)", submit["environment"])
         self.assertEqual('"yes"', submit["+PrototypeAttr"])
+
+
+class TestSfapiLocalSubmitAttributes(unittest.TestCase):
+    def run_local_submit_attributes(self, extra_env):
+        script = Path(__file__).resolve().parents[1] / "factory/sfapi/sfapi_local_submit_attributes.sh"
+        env = os.environ.copy()
+        env.update(extra_env)
+        return subprocess.check_output(["bash", str(script)], env=env, text=True)
+
+    def test_accepts_bosco_style_walltime_attribute(self):
+        output = self.run_local_submit_attributes({"Walltime": "02:00:00"})
+
+        self.assertIn("#SBATCH --time=02:00:00\n", output)
+
+    def test_uppercase_walltime_still_works(self):
+        output = self.run_local_submit_attributes({"WALLTIME": "02:00:00"})
+
+        self.assertIn("#SBATCH --time=02:00:00\n", output)
 
 
 class TestSfapiFactoryEnvironment(unittest.TestCase):
@@ -241,7 +260,6 @@ class TestSfapiFactoryEnvironment(unittest.TestCase):
             )
 
         self.assertIn("SFAPI_RESOURCE=perlmutter", env)
-        self.assertIn("GRID_RESOURCE_OPTIONS=--rgahp-glite /opt/glite", env)
         self.assertIn("SFAPI_AUTH_MODE=auth_file", env)
         self.assertIn("SFAPI_AUTH_FILE=/factory/client-proxies/user_frontend/glidein_test/credential_client_sfapi", env)
         self.assertIn("SFAPI_TRANSFER_MACHINE=dtns", env)

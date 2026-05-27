@@ -6,11 +6,28 @@
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$script_dir/blah_common_submit_functions.sh"
-# shellcheck disable=SC1091
-. "$script_dir/sfapi_setup.sh" || exit 1
 
 bls_submit_args_prefix="#SBATCH"
 bls_parse_submit_options "$@"
+
+sfapi_import_blah_environment() {
+    if [ "x$bls_opt_environment" = "x" ]; then
+        return
+    fi
+
+    eval "env_array=($bls_opt_environment)"
+    for env_var in "${env_array[@]}"; do
+        case "$env_var" in
+            SFAPI_AUTH_MODE=*|SFAPI_AUTH_FILE=*|SFAPI_PYTHON=*|SFAPI_VENV=*|SFAPI_RESOURCE=*|SFAPI_TRANSFER_MACHINE=*|SFAPI_STATE_DIR=*|SFAPI_USERNAME=*|NERSC_USERNAME=*)
+                export "$env_var"
+                ;;
+        esac
+    done
+}
+
+sfapi_import_blah_environment
+# shellcheck disable=SC1091
+. "$script_dir/sfapi_setup.sh" || exit 1
 bls_setup_temp_files
 
 sfapi_add_csv() {
@@ -65,6 +82,9 @@ sfapi_emit_environment() {
         echo "# Setting the environment:"
         eval "env_array=($bls_opt_environment)"
         for env_var in "${env_array[@]}"; do
+            case "$env_var" in
+                SFAPI_*=*) continue ;;
+            esac
             echo "export \"$env_var\""
         done
     elif [ "x$bls_opt_envir" != "x" ]; then
@@ -157,6 +177,14 @@ sfapi_state_file="$SFAPI_STATE_DIR/${sfapi_date}_${sfapi_jobid}"
 
 mkdir -p "$SFAPI_STATE_DIR"
 {
+    echo "meta::auth_mode:${SFAPI_AUTH_MODE:-}"
+    echo "meta::auth_file:${SFAPI_AUTH_FILE:-}"
+    echo "meta::resource:${SFAPI_RESOURCE:-}"
+    echo "meta::transfer_machine:${SFAPI_TRANSFER_MACHINE:-}"
+    echo "meta::python:${SFAPI_PYTHON:-}"
+    echo "meta::venv:${SFAPI_VENV:-}"
+    echo "meta::username:${SFAPI_USERNAME:-}"
+    echo "meta::nersc_username:${NERSC_USERNAME:-}"
     echo "# type::<local file on submit host>:<remote file to retrieve via sfapi>"
     if [ -n "$bls_opt_stdout" ] && [ "$bls_opt_stdout" != "/dev/null" ]; then
         echo "stdout::$(sfapi_abs_path "$bls_opt_stdout"):${sfapi_remote_stdout}"

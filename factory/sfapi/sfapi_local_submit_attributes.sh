@@ -14,7 +14,7 @@ sfapi_emit_sbatch() {
 sfapi_emit_sbatch "--nodes" "${NODES:-}"
 sfapi_emit_sbatch "--ntasks" "${CORES:-}"
 sfapi_emit_sbatch "--gpus" "${GPUS:-}"
-sfapi_emit_sbatch "--time" "${WALLTIME:-}"
+sfapi_emit_sbatch "--time" "${Walltime:-${WALLTIME:-}}"
 sfapi_emit_sbatch "--mem-per-cpu" "${PER_PROCESS_MEMORY:-}"
 sfapi_emit_sbatch "--mem" "${TOTAL_MEMORY:-}"
 sfapi_emit_sbatch "--job-name" "${JOBNAME:-}"

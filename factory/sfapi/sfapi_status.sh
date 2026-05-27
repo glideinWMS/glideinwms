@@ -29,7 +29,7 @@ sfapi_state_to_blahp() {
 
 for blahp_job_id in "$@"; do
     bare_job_id="$(sfapi_bare_jobid "$blahp_job_id")"
-    status_output="$("$SFAPI_PYTHON" "$SFAPI_HELPERS_DIR/sfapi_helpers.py" status --type job --value "$bare_job_id" 2>&1)"
+    status_output="$("$SFAPI_PYTHON" "$SFAPI_HELPERS_DIR/sfapi_helpers.py" status --type job --value "$blahp_job_id" 2>&1)"
     if [ $? -ne 0 ]; then
         echo "1[BatchJobId=\"$bare_job_id\";Reason=\"$status_output\";]"
         continue
