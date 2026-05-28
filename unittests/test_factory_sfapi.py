@@ -98,6 +98,43 @@ class TestSfapiHelperPureFunctions(unittest.TestCase):
         self.assertEqual("frontend-client", client_id)
         self.assertEqual({"imported": {"kty": "RSA", "n": "abc", "e": "AQAB"}}, key)
 
+    def test_resolve_auth_without_auth_file_does_not_use_factory_defaults(self):
+        from glideinwms.factory.sfapi import sfapi_helpers
+
+        with self.assertRaisesRegex(RuntimeError, "SFAPI_AUTH_FILE"):
+            sfapi_helpers.resolve_auth({})
+
+    def test_apply_job_metadata_overrides_ambient_auth_file(self):
+        from glideinwms.factory.sfapi import sfapi_helpers
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_dir = Path(tmpdir)
+            jobstate = state_dir / "20260526_12345"
+            jobstate.write_text(
+                "meta::auth_mode:auth_file\n"
+                "meta::auth_file:/factory/client-proxies/user_frontend/credential_client_sfapi\n"
+                "meta::resource:perlmutter\n"
+                "meta::python:/opt/gwms/sfapi/bin/python\n"
+            )
+
+            with mock.patch.dict(
+                os.environ,
+                {
+                    "SFAPI_AUTH_FILE": "/factory-local/sfapi-auth.json",
+                    "SFAPI_RESOURCE": "wrong-resource",
+                },
+                clear=False,
+            ):
+                sfapi_helpers.apply_job_metadata("sfapi/20260526/12345", state_dir=str(state_dir))
+
+                self.assertEqual("auth_file", os.environ["SFAPI_AUTH_MODE"])
+                self.assertEqual(
+                    "/factory/client-proxies/user_frontend/credential_client_sfapi",
+                    os.environ["SFAPI_AUTH_FILE"],
+                )
+                self.assertEqual("perlmutter", os.environ["SFAPI_RESOURCE"])
+                self.assertEqual("/opt/gwms/sfapi/bin/python", os.environ["SFAPI_PYTHON"])
+
 
 class FakeRemoteFile:
     def __init__(self, payload):
@@ -114,12 +151,15 @@ class FakeRemoteFile:
 
 class FakeRemotePath:
     files = {}
+    return_text_for_binary = False
 
     def __init__(self, path=None, compute=None):
         self.path = path
         self.compute = compute
 
     def download(self, binary=False):
+        if binary and self.return_text_for_binary:
+            return io.StringIO(self.files[self.path].decode())
         return FakeRemoteFile(self.files[self.path]).download(binary=binary)
 
 
@@ -142,6 +182,31 @@ class TestSfapiDownload(unittest.TestCase):
                 remote_path_cls=FakeRemotePath,
                 state_dir=str(state_dir),
             )
+
+            self.assertEqual(b"pilot output\n", local_out.read_bytes())
+            self.assertFalse(jobstate.exists())
+
+    def test_download_job_outputs_accepts_text_from_binary_download(self):
+        from glideinwms.factory.sfapi import sfapi_helpers
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            state_dir = tmp / "state"
+            state_dir.mkdir()
+            jobstate = state_dir / "20260526_12345"
+            local_out = tmp / "nested" / "pilot.out"
+            jobstate.write_text("stdout::%s:/remote/pilot.out\n" % local_out)
+            FakeRemotePath.files = {"/remote/pilot.out": b"pilot output\n"}
+            FakeRemotePath.return_text_for_binary = True
+            try:
+                sfapi_helpers.download_job_outputs(
+                    "sfapi/20260526/12345",
+                    transfer_compute=object(),
+                    remote_path_cls=FakeRemotePath,
+                    state_dir=str(state_dir),
+                )
+            finally:
+                FakeRemotePath.return_text_for_binary = False
 
             self.assertEqual(b"pilot output\n", local_out.read_bytes())
             self.assertFalse(jobstate.exists())
@@ -207,6 +272,40 @@ class TestSfapiSubmitFileGeneration(unittest.TestCase):
         self.assertIn("X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME:/dev/null)", submit["environment"])
         self.assertEqual('"yes"', submit["+PrototypeAttr"])
 
+    def test_batch_sfapi_grid_resource_uses_configured_glite_dir(self):
+        install_m2crypto_stub()
+        from glideinwms.creation.lib.cgWCreate import GlideinSubmitDictFile
+
+        entry = FakeNode(
+            {
+                "auth_method": "auth_file",
+                "enabled": "True",
+                "gatekeeper": "api.nersc.gov",
+                "gridtype": "batch sfapi",
+                "sfapi_glite_dir": "/opt/glite",
+                "sfapi_resource": "perlmutter",
+                "verbosity": "std",
+                "work_dir": "/tmp",
+            },
+            children={
+                "config": FakeNode(
+                    children={
+                        "submit": FakeNode(lists={"submit_attrs": []}),
+                    }
+                )
+            },
+            lists={"attrs": []},
+        )
+        conf = FakeNode(
+            {"advertise_pilot_accounting": "False", "glidein_name": "gfactory"},
+            children={"submit": FakeNode({"base_client_log_dir": "/tmp/client-log"})},
+        )
+        submit = GlideinSubmitDictFile(tempfile.gettempdir(), "job.condor")
+
+        submit.populate("glidein_startup.sh", "SFAPI", conf, entry)
+
+        self.assertEqual("batch sfapi --rgahp-glite /opt/glite", submit["Grid_Resource"])
+
 
 class TestSfapiLocalSubmitAttributes(unittest.TestCase):
     def run_local_submit_attributes(self, extra_env):
@@ -224,6 +323,61 @@ class TestSfapiLocalSubmitAttributes(unittest.TestCase):
         output = self.run_local_submit_attributes({"WALLTIME": "02:00:00"})
 
         self.assertIn("#SBATCH --time=02:00:00\n", output)
+
+
+class TestSfapiStatusScript(unittest.TestCase):
+    def write_fake_python(self, path):
+        path.write_text(
+            "#!/bin/bash\n"
+            "if [ \"$1\" = \"-c\" ]; then exit 0; fi\n"
+            "case \"$2\" in\n"
+            "  status) echo \"Job 12345 state: ${FAKE_SFAPI_STATE}\"; exit 0 ;;\n"
+            "  download) exit 0 ;;\n"
+            "esac\n"
+            "exit 1\n"
+        )
+        path.chmod(0o755)
+
+    def run_status_script_with_state(self, state):
+        script = Path(__file__).resolve().parents[1] / "factory/sfapi/sfapi_status.sh"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            fake_python = Path(tmpdir) / "fake-python"
+            self.write_fake_python(fake_python)
+            env = os.environ.copy()
+            env["SFAPI_PYTHON"] = str(fake_python)
+            env["FAKE_SFAPI_STATE"] = state
+            return subprocess.check_output(
+                ["bash", str(script), "sfapi/20260526/12345"],
+                env=env,
+                text=True,
+            )
+
+    def test_failed_slurm_state_reports_terminal_nonzero_exit(self):
+        output = self.run_status_script_with_state("FAILED")
+
+        self.assertEqual('0[BatchJobId="12345";JobStatus=4;ExitCode=1;]\n', output)
+
+    def test_status_preloads_python_from_job_metadata_before_setup_check(self):
+        script = Path(__file__).resolve().parents[1] / "factory/sfapi/sfapi_status.sh"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            fake_python = tmp / "fake-python"
+            self.write_fake_python(fake_python)
+            state_dir = tmp / ".blah" / "sfapi_jobs"
+            state_dir.mkdir(parents=True)
+            (state_dir / "20260526_12345").write_text("meta::python:%s\n" % fake_python)
+
+            env = os.environ.copy()
+            env["SFAPI_PYTHON"] = "/bin/false"
+            env["HOME"] = str(tmp)
+            env["FAKE_SFAPI_STATE"] = "COMPLETED"
+            output = subprocess.check_output(
+                ["bash", str(script), "sfapi/20260526/12345"],
+                env=env,
+                text=True,
+            )
+
+        self.assertEqual('0[BatchJobId="12345";JobStatus=4;ExitCode=0;]\n', output)
 
 
 class TestSfapiFactoryEnvironment(unittest.TestCase):

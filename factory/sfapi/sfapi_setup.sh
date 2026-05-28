@@ -6,10 +6,71 @@
 sfapi_setup_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export SFAPI_HELPERS_DIR="${SFAPI_HELPERS_DIR:-$sfapi_setup_dir}"
 
+sfapi_setup_load_job_metadata() {
+    local blahp_job_id="$1"
+    local job_payload=""
+    local job_date=""
+    local job_id=""
+    local state_dir=""
+    local state_file=""
+    local line=""
+    local payload=""
+    local key=""
+    local value=""
+
+    if [ -z "$blahp_job_id" ]; then
+        return
+    fi
+
+    blahp_job_id="${blahp_job_id#BLAHP_JOBID_PREFIX}"
+    case "$blahp_job_id" in
+        sfapi/*/*) ;;
+        *) return ;;
+    esac
+
+    job_payload="${blahp_job_id#sfapi/}"
+    job_date="${job_payload%%/*}"
+    job_id="${job_payload#*/}"
+    if [ -z "$job_date" ] || [ -z "$job_id" ] || [ "$job_date" = "$job_id" ]; then
+        return
+    fi
+
+    state_dir="${SFAPI_STATE_DIR:-${HOME}/.blah/sfapi_jobs}"
+    state_file="$state_dir/${job_date}_${job_id}"
+    if [ ! -r "$state_file" ]; then
+        return
+    fi
+
+    while IFS= read -r line; do
+        case "$line" in
+            meta::*) ;;
+            *) continue ;;
+        esac
+        payload="${line#meta::}"
+        key="${payload%%:*}"
+        value="${payload#*:}"
+        if [ "$payload" = "$key" ] || [ -z "$value" ]; then
+            continue
+        fi
+        case "$key" in
+            auth_mode) export SFAPI_AUTH_MODE="$value" ;;
+            auth_file) export SFAPI_AUTH_FILE="$value" ;;
+            resource) export SFAPI_RESOURCE="$value" ;;
+            transfer_machine) export SFAPI_TRANSFER_MACHINE="$value" ;;
+            python) export SFAPI_PYTHON="$value" ;;
+            venv) export SFAPI_VENV="$value" ;;
+            username) export SFAPI_USERNAME="$value" ;;
+            nersc_username) export NERSC_USERNAME="$value" ;;
+        esac
+    done < "$state_file"
+}
+
 if [ -r "$sfapi_setup_dir/blah_load_config.sh" ]; then
     # shellcheck disable=SC1091
     . "$sfapi_setup_dir/blah_load_config.sh"
 fi
+
+sfapi_setup_load_job_metadata "${SFAPI_BLAHP_JOB_ID:-}"
 
 if [ -n "${SFAPI_VENV:-}" ]; then
     # shellcheck disable=SC1090

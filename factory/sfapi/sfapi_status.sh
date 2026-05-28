@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
+export SFAPI_BLAHP_JOB_ID="${1:-}"
 # shellcheck disable=SC1091
 . "$script_dir/sfapi_setup.sh" || exit 1
 
@@ -19,10 +20,17 @@ sfapi_bare_jobid() {
 
 sfapi_state_to_blahp() {
     case "$1" in
-        PENDING|CONFIGURING) echo 1 ;;
-        RUNNING|COMPLETING|STOPPED|SUSPENDED) echo 2 ;;
-        CANCELLED) echo 3 ;;
-        COMPLETED|FAILED|BOOT_FAIL|NODE_FAIL|PREEMPTED|SPECIAL_EXIT|TIMEOUT) echo 4 ;;
+        PENDING*|CONFIGURING*|REQUEUED*|RESIZING*) echo 1 ;;
+        RUNNING*|COMPLETING*|STOPPED*|SUSPENDED*) echo 2 ;;
+        CANCELLED*) echo 3 ;;
+        COMPLETED*|FAILED*|BOOT_FAIL*|DEADLINE*|NODE_FAIL*|OUT_OF_MEMORY*|PREEMPTED*|SPECIAL_EXIT*|TIMEOUT*) echo 4 ;;
+        *) echo 1 ;;
+    esac
+}
+
+sfapi_state_to_exit_code() {
+    case "$1" in
+        COMPLETED*) echo 0 ;;
         *) echo 1 ;;
     esac
 }
@@ -37,8 +45,10 @@ for blahp_job_id in "$@"; do
 
     state="${status_output##* state: }"
     blahp_status="$(sfapi_state_to_blahp "$state")"
+    exit_code=0
 
     if [ "$blahp_status" = "4" ]; then
+        exit_code="$(sfapi_state_to_exit_code "$state")"
         download_output="$("$SFAPI_PYTHON" "$SFAPI_HELPERS_DIR/sfapi_helpers.py" download "$blahp_job_id" 2>&1)"
         if [ $? -ne 0 ]; then
             echo "1[BatchJobId=\"$bare_job_id\";Reason=\"$download_output\";]"
@@ -46,5 +56,5 @@ for blahp_job_id in "$@"; do
         fi
     fi
 
-    echo "0[BatchJobId=\"$bare_job_id\";JobStatus=$blahp_status;ExitCode=0;]"
+    echo "0[BatchJobId=\"$bare_job_id\";JobStatus=$blahp_status;ExitCode=$exit_code;]"
 done

@@ -199,7 +199,11 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
         if gridtype == "batch sfapi":
-            self.add("Grid_Resource", "batch sfapi")
+            sfapi_glite_dir = entry.get("sfapi_glite_dir")
+            if sfapi_glite_dir:
+                self.add("Grid_Resource", "batch sfapi --rgahp-glite %s" % sfapi_glite_dir)
+            else:
+                self.add("Grid_Resource", "batch sfapi")
             enc_input_files.append("$ENV(X509_USER_PROXY:/dev/null)")
             self.add_environment("X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME:/dev/null)")
             self.add_environment("SFAPI_AUTH_MODE=$ENV(SFAPI_AUTH_MODE:auth_file)")

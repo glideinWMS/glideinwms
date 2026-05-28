@@ -19,8 +19,6 @@ BLAHP_JOBID_PREFIX = "BLAHP_JOBID_PREFIX"
 DEFAULT_RESOURCE = "perlmutter"
 DEFAULT_TRANSFER_MACHINE = "dtns"
 DEFAULT_STATE_DIR = "~/.blah/sfapi_jobs"
-DEFAULT_CLIENT_ID_FILE = "~/.superfacility/clientid.txt"
-DEFAULT_PRIVATE_KEY_JWK_FILE = "~/.superfacility/priv_key.jwk"
 
 
 def _read_text_file(path):
@@ -54,7 +52,9 @@ def resolve_auth(env=None):
     """Resolve SFAPI client credentials from the prototype auth interface."""
 
     env = env or os.environ
-    auth_mode = env.get("SFAPI_AUTH_MODE", "default").lower()
+    auth_mode = env.get("SFAPI_AUTH_MODE", "auth_file").lower()
+    if auth_mode in ("", "default"):
+        auth_mode = "auth_file"
 
     if auth_mode == "auth_file":
         client_id, private_key_jwk = _read_auth_bundle(_require_env(env, "SFAPI_AUTH_FILE"))
@@ -64,9 +64,6 @@ def resolve_auth(env=None):
     elif auth_mode == "file":
         client_id = _read_text_file(_require_env(env, "SFAPI_CLIENT_ID_FILE"))
         private_key_jwk = _read_text_file(_require_env(env, "SFAPI_PRIVATE_KEY_JWK_FILE"))
-    elif auth_mode in ("", "default"):
-        client_id = _read_text_file(env.get("SFAPI_CLIENT_ID_FILE", DEFAULT_CLIENT_ID_FILE))
-        private_key_jwk = _read_text_file(env.get("SFAPI_PRIVATE_KEY_JWK_FILE", DEFAULT_PRIVATE_KEY_JWK_FILE))
     else:
         raise RuntimeError("Unsupported SFAPI_AUTH_MODE=%s" % auth_mode)
 
@@ -197,13 +194,14 @@ def apply_job_metadata(blahp_job_id, state_dir=None):
         "auth_file": "SFAPI_AUTH_FILE",
         "resource": "SFAPI_RESOURCE",
         "transfer_machine": "SFAPI_TRANSFER_MACHINE",
+        "python": "SFAPI_PYTHON",
         "venv": "SFAPI_VENV",
         "username": "SFAPI_USERNAME",
         "nersc_username": "NERSC_USERNAME",
     }
     for key, env_key in env_map.items():
         value = metadata.get(key)
-        if value and not os.environ.get(env_key):
+        if value:
             os.environ[env_key] = value
 
 
@@ -223,7 +221,10 @@ def download_job_outputs(blahp_job_id, transfer_compute, remote_path_cls=None, s
         local = Path(local_path)
         local.parent.mkdir(parents=True, exist_ok=True)
         with remote_path_cls(path=remote_path, compute=transfer_compute).download(binary=True) as remote_file:
-            local.write_bytes(remote_file.read())
+            payload = remote_file.read()
+            if isinstance(payload, str):
+                payload = payload.encode()
+            local.write_bytes(payload)
     state_path.unlink()
 
 

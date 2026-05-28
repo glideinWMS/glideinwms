@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
+export SFAPI_BLAHP_JOB_ID="${1:-}"
 # shellcheck disable=SC1091
 . "$script_dir/sfapi_setup.sh" || exit 1
 
