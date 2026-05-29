@@ -64,7 +64,9 @@ class TestSfapiHelperPureFunctions(unittest.TestCase):
         from glideinwms.factory.sfapi import sfapi_helpers
 
         self.assertEqual(("20260526", "12345"), sfapi_helpers.parse_blahp_job_id("sfapi/20260526/12345"))
-        self.assertEqual(("20260526", "12345"), sfapi_helpers.parse_blahp_job_id("BLAHP_JOBID_PREFIXsfapi/20260526/12345"))
+        self.assertEqual(
+            ("20260526", "12345"), sfapi_helpers.parse_blahp_job_id("BLAHP_JOBID_PREFIXsfapi/20260526/12345")
+        )
 
     def test_resolve_auth_reads_frontend_auth_file_bundle(self):
         from glideinwms.factory.sfapi import sfapi_helpers
@@ -322,9 +324,9 @@ class TestSfapiStatusScript(unittest.TestCase):
     def write_fake_python(self, path):
         path.write_text(
             "#!/bin/bash\n"
-            "if [ \"$1\" = \"-c\" ]; then exit 0; fi\n"
-            "case \"$2\" in\n"
-            "  status) echo \"SFAPI_STATUS:12345:${FAKE_SFAPI_STATE}\"; exit 0 ;;\n"
+            'if [ "$1" = "-c" ]; then exit 0; fi\n'
+            'case "$2" in\n'
+            '  status) echo "SFAPI_STATUS:12345:${FAKE_SFAPI_STATE}"; exit 0 ;;\n'
             "  download) exit 0 ;;\n"
             "esac\n"
             "exit 1\n"
@@ -332,7 +334,7 @@ class TestSfapiStatusScript(unittest.TestCase):
         path.chmod(0o755)
 
     def write_setup_failing_python(self, path):
-        path.write_text("#!/bin/bash\nif [ \"$1\" = \"-c\" ]; then exit 1; fi\nexit 1\n")
+        path.write_text('#!/bin/bash\nif [ "$1" = "-c" ]; then exit 1; fi\nexit 1\n')
         path.chmod(0o755)
 
     def run_status_script_with_state(self, state):

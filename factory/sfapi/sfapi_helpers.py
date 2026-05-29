@@ -98,7 +98,12 @@ def get_transfer_machine():
 
 
 def get_username():
-    return os.environ.get("SFAPI_USERNAME") or os.environ.get("NERSC_USERNAME") or os.environ.get("USER") or getpass.getuser()
+    return (
+        os.environ.get("SFAPI_USERNAME")
+        or os.environ.get("NERSC_USERNAME")
+        or os.environ.get("USER")
+        or getpass.getuser()
+    )
 
 
 def get_state_dir(state_dir=None):
