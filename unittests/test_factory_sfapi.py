@@ -420,12 +420,9 @@ class TestSfapiHelperStatus(unittest.TestCase):
 
         args = types.SimpleNamespace(type="job", value="sfapi/20260526/12345")
         stdout = io.StringIO()
-        with (
-            mock.patch.object(sfapi_helpers, "apply_job_metadata"),
-            mock.patch.object(sfapi_helpers, "sfapi_client", return_value=FakeClient()),
-            mock.patch.object(sfapi_helpers, "get_job_state", return_value="RUNNING"),
-            redirect_stdout(stdout),
-        ):
+        with mock.patch.object(sfapi_helpers, "apply_job_metadata"), mock.patch.object(
+            sfapi_helpers, "sfapi_client", return_value=FakeClient()
+        ), mock.patch.object(sfapi_helpers, "get_job_state", return_value="RUNNING"), redirect_stdout(stdout):
             retcode = sfapi_helpers.status(args)
 
         self.assertEqual(0, retcode)
