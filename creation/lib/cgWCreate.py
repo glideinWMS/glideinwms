@@ -265,6 +265,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             )
 
         self.populate_submit_attrs(submit_attrs, gridtype)
+        self.populate_gridtype_diagnostics(gridtype)
         self.populate_glidein_classad(proxy_url)
 
         # Leave jobs in the condor queue for 12 hours if they are completed.
@@ -386,6 +387,12 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 #  to avoid error w/ f-string (fixed in Py 3.12) - check that formatter is not changing things
                 # self.add(f'{attr_prefix}{submit_attr["name"]}', submit_attr["value"])
                 self.add("{}{}".format(attr_prefix, submit_attr["name"]), submit_attr["value"])
+
+    def populate_gridtype_diagnostics(self, gridtype):
+        if gridtype == "batch sfapi":
+            self.add("+GlideinGridType", '"%s"' % gridtype)
+            self.add("+GlideinSFAPIResource", '"$ENV(SFAPI_RESOURCE:perlmutter)"')
+            self.add("+GlideinSFAPITransferMachine", '"$ENV(SFAPI_TRANSFER_MACHINE:dtns)"')
 
     def populate_condorc_grid(self):
         self.add("+TransferOutput", '""')

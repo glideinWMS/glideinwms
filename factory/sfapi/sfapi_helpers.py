@@ -279,7 +279,7 @@ def status(args):
     with sfapi_client(auth_required=True) as client:
         compute = client.compute(get_resource())
         state = get_job_state(compute, job_id)
-    print("Job %s state: %s" % (job_id, state))
+    print("SFAPI_STATUS:%s:%s" % (job_id, state))
     return 0
 
 

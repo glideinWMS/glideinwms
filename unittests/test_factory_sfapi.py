@@ -14,6 +14,7 @@ import tempfile
 import types
 import unittest
 
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest import mock
 
@@ -234,35 +235,46 @@ class FakeNode:
         return self.lists.get(key, [])
 
 
+def make_sfapi_entry(**overrides):
+    attrs = {
+        "auth_method": "auth_file",
+        "enabled": "True",
+        "gatekeeper": "api.nersc.gov",
+        "gridtype": "batch sfapi",
+        "sfapi_resource": "perlmutter",
+        "verbosity": "std",
+        "work_dir": "/tmp",
+    }
+    attrs.update(overrides)
+    return FakeNode(
+        attrs,
+        children={
+            "config": FakeNode(
+                children={
+                    "submit": FakeNode(lists={"submit_attrs": []}),
+                }
+            )
+        },
+        lists={"attrs": []},
+    )
+
+
+def make_factory_conf():
+    return FakeNode(
+        {"advertise_pilot_accounting": "False", "glidein_name": "gfactory"},
+        children={"submit": FakeNode({"base_client_log_dir": "/tmp/client-log"})},
+    )
+
+
 class TestSfapiSubmitFileGeneration(unittest.TestCase):
-    def test_batch_sfapi_grid_resource_skips_bosco_username(self):
+    def test_batch_sfapi_submit_file_uses_sfapi_resource_without_bosco_assumptions(self):
         install_m2crypto_stub()
         from glideinwms.creation.lib.cgWCreate import GlideinSubmitDictFile
 
         submit_attrs = [FakeNode({"name": "+PrototypeAttr", "value": '"yes"'})]
-        entry = FakeNode(
-            {
-                "auth_method": "auth_file",
-                "enabled": "True",
-                "gatekeeper": "api.nersc.gov",
-                "gridtype": "batch sfapi",
-                "sfapi_resource": "perlmutter",
-                "verbosity": "std",
-                "work_dir": "/tmp",
-            },
-            children={
-                "config": FakeNode(
-                    children={
-                        "submit": FakeNode(lists={"submit_attrs": submit_attrs}),
-                    }
-                )
-            },
-            lists={"attrs": []},
-        )
-        conf = FakeNode(
-            {"advertise_pilot_accounting": "False", "glidein_name": "gfactory"},
-            children={"submit": FakeNode({"base_client_log_dir": "/tmp/client-log"})},
-        )
+        entry = make_sfapi_entry()
+        entry.get_child("config").get_child("submit").lists["submit_attrs"] = submit_attrs
+        conf = make_factory_conf()
         submit = GlideinSubmitDictFile(tempfile.gettempdir(), "job.condor")
 
         submit.populate("glidein_startup.sh", "SFAPI", conf, entry)
@@ -271,35 +283,16 @@ class TestSfapiSubmitFileGeneration(unittest.TestCase):
         self.assertNotIn("GLIDEIN_REMOTE_USERNAME", submit["environment"])
         self.assertIn("X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME:/dev/null)", submit["environment"])
         self.assertEqual('"yes"', submit["+PrototypeAttr"])
+        self.assertEqual('"batch sfapi"', submit["+GlideinGridType"])
+        self.assertEqual('"$ENV(SFAPI_RESOURCE:perlmutter)"', submit["+GlideinSFAPIResource"])
+        self.assertEqual('"$ENV(SFAPI_TRANSFER_MACHINE:dtns)"', submit["+GlideinSFAPITransferMachine"])
 
     def test_batch_sfapi_grid_resource_uses_configured_glite_dir(self):
         install_m2crypto_stub()
         from glideinwms.creation.lib.cgWCreate import GlideinSubmitDictFile
 
-        entry = FakeNode(
-            {
-                "auth_method": "auth_file",
-                "enabled": "True",
-                "gatekeeper": "api.nersc.gov",
-                "gridtype": "batch sfapi",
-                "sfapi_glite_dir": "/opt/glite",
-                "sfapi_resource": "perlmutter",
-                "verbosity": "std",
-                "work_dir": "/tmp",
-            },
-            children={
-                "config": FakeNode(
-                    children={
-                        "submit": FakeNode(lists={"submit_attrs": []}),
-                    }
-                )
-            },
-            lists={"attrs": []},
-        )
-        conf = FakeNode(
-            {"advertise_pilot_accounting": "False", "glidein_name": "gfactory"},
-            children={"submit": FakeNode({"base_client_log_dir": "/tmp/client-log"})},
-        )
+        entry = make_sfapi_entry(sfapi_glite_dir="/opt/glite")
+        conf = make_factory_conf()
         submit = GlideinSubmitDictFile(tempfile.gettempdir(), "job.condor")
 
         submit.populate("glidein_startup.sh", "SFAPI", conf, entry)
@@ -331,11 +324,15 @@ class TestSfapiStatusScript(unittest.TestCase):
             "#!/bin/bash\n"
             "if [ \"$1\" = \"-c\" ]; then exit 0; fi\n"
             "case \"$2\" in\n"
-            "  status) echo \"Job 12345 state: ${FAKE_SFAPI_STATE}\"; exit 0 ;;\n"
+            "  status) echo \"SFAPI_STATUS:12345:${FAKE_SFAPI_STATE}\"; exit 0 ;;\n"
             "  download) exit 0 ;;\n"
             "esac\n"
             "exit 1\n"
         )
+        path.chmod(0o755)
+
+    def write_setup_failing_python(self, path):
+        path.write_text("#!/bin/bash\nif [ \"$1\" = \"-c\" ]; then exit 1; fi\nexit 1\n")
         path.chmod(0o755)
 
     def run_status_script_with_state(self, state):
@@ -378,6 +375,59 @@ class TestSfapiStatusScript(unittest.TestCase):
             )
 
         self.assertEqual('0[BatchJobId="12345";JobStatus=4;ExitCode=0;]\n', output)
+
+    def test_setup_failure_reports_blahp_errors_for_status_and_cancel(self):
+        status_script = Path(__file__).resolve().parents[1] / "factory/sfapi/sfapi_status.sh"
+        cancel_script = Path(__file__).resolve().parents[1] / "factory/sfapi/sfapi_cancel.sh"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            fake_python = Path(tmpdir) / "fake-python"
+            self.write_setup_failing_python(fake_python)
+            env = os.environ.copy()
+            env["SFAPI_PYTHON"] = str(fake_python)
+
+            status_output = subprocess.check_output(
+                ["bash", str(status_script), "sfapi/20260526/12345"],
+                env=env,
+                text=True,
+            )
+            cancel_output = subprocess.check_output(
+                ["bash", str(cancel_script), "sfapi/20260526/12345"],
+                env=env,
+                text=True,
+            )
+
+        self.assertIn('1[BatchJobId="12345";Reason="SFAPI setup error:', status_output)
+        self.assertIn("sfapi_client is not importable", status_output)
+        self.assertIn(" 1 SFAPI\\ setup\\ error:", cancel_output)
+        self.assertIn("sfapi_client\\ is\\ not\\ importable", cancel_output)
+
+
+class TestSfapiHelperStatus(unittest.TestCase):
+    def test_job_status_prints_structured_output_for_wrapper(self):
+        from glideinwms.factory.sfapi import sfapi_helpers
+
+        class FakeClient:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def compute(self, resource):
+                return object()
+
+        args = types.SimpleNamespace(type="job", value="sfapi/20260526/12345")
+        stdout = io.StringIO()
+        with (
+            mock.patch.object(sfapi_helpers, "apply_job_metadata"),
+            mock.patch.object(sfapi_helpers, "sfapi_client", return_value=FakeClient()),
+            mock.patch.object(sfapi_helpers, "get_job_state", return_value="RUNNING"),
+            redirect_stdout(stdout),
+        ):
+            retcode = sfapi_helpers.status(args)
+
+        self.assertEqual(0, retcode)
+        self.assertEqual("SFAPI_STATUS:12345:RUNNING\n", stdout.getvalue())
 
 
 class TestSfapiFactoryEnvironment(unittest.TestCase):
