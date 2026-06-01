@@ -48,6 +48,13 @@ def create_condor_tar_fd(condor_base_dir):
             "lib/condor",
             "lib/libgetpwnam.so",
         ]
+        condor_opt_libs_map = {
+            "lib64/condor/condor_ssh_to_job_sshd_config_template": "lib/condor_ssh_to_job_sshd_config_template",
+            "lib64/condor/libgetpwnam.so": "lib/libgetpwnam.so",
+        }
+        condor_opt_libs += list(condor_opt_libs_map)
+        condor_realpath_arcnames = set(condor_opt_libs_map.values())
+
         condor_opt_libexecs = [
             "libexec/condor_shared_port",
             "libexec/condor_ssh_to_job_sshd_setup",
@@ -66,6 +73,7 @@ def create_condor_tar_fd(condor_base_dir):
         condor_bins_map = {}
         condor_opt_libexecs_rpm = []
 
+        condor_bins_map.update(condor_opt_libs_map)
         for libexec in condor_opt_libexecs:
             libexec_rpm = libexec.replace("libexec", "libexec/condor")
             condor_opt_libexecs_rpm.append(libexec_rpm)
@@ -84,9 +92,12 @@ def create_condor_tar_fd(condor_base_dir):
         dlls = get_condor_dlls(condor_base_dir, condor_bins + condor_opt_bins + condor_opt_libexecs)
 
         # Get list of all the files & directories that exist
+        condor_bin_arcnames = set(condor_bins)
         for f in condor_opt_bins + condor_opt_libs + condor_opt_libexecs + dlls:
-            if os.path.exists(os.path.join(condor_base_dir, f)):
+            arcname = condor_bins_map.get(f, f)
+            if os.path.exists(os.path.join(condor_base_dir, f)) and arcname not in condor_bin_arcnames:
                 condor_bins.append(f)
+                condor_bin_arcnames.add(arcname)
 
         # tar
         fd = io.BytesIO()
@@ -95,7 +106,11 @@ def create_condor_tar_fd(condor_base_dir):
 
         tf = tarfile.open("dummy.tgz", "w:gz", fd)
         for f in condor_bins:
-            tf.add(os.path.join(condor_base_dir, f), condor_bins_map.get(f, f))
+            fname = os.path.join(condor_base_dir, f)
+            arcname = condor_bins_map.get(f, f)
+            if arcname in condor_realpath_arcnames:
+                fname = os.path.realpath(fname)
+            tf.add(fname, arcname)
         tf.close()
         # rewind the file to the beginning
         fd.seek(0)
