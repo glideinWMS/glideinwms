@@ -83,12 +83,33 @@ is_true_config_value() {
     esac
 }
 
+is_false_config_value() {
+    case "$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | tr -d "[:space:]'\"")" in
+        0|false|no) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 classad_quote() {
     local value="$1"
     value=${value//$'\n'/ }
     value=${value//\\/\\\\}
     value=${value//\"/\\\"}
     printf '"%s"' "$value"
+}
+
+append_htcondor_bind_values() {
+    local current="$1"
+    local value="$2"
+
+    value=${value//,/ }
+    if [[ -z "$value" ]]; then
+        printf "%s" "$current"
+    elif [[ -z "$current" ]]; then
+        printf "%s" "$value"
+    else
+        printf "%s %s" "$current" "$value"
+    fi
 }
 
 image_allowed_by_restrictions() {
@@ -236,6 +257,67 @@ build_htcondor_singularity_image_expr() {
     printf 'ifThenElse(!isUndefined(TARGET.SingularityImage) && TARGET.SingularityImage =!= "", TARGET.SingularityImage, %s)' "$expr"
 }
 
+build_htcondor_singularity_bind_expr() {
+    local bindpath="$1"
+    local bindpath_default="$2"
+    local bind_cvmfs="$3"
+    local cvmfs_mount_dir="$4"
+    local default_binds="/hadoop,/ceph,/hdfs,/lizard,/mnt/hadoop,/mnt/hdfs,/etc/hosts,/etc/localtime"
+    local binds=""
+    local cvmfs_bind
+
+    binds=$(append_htcondor_bind_values "$binds" "$bindpath")
+    binds=$(append_htcondor_bind_values "$binds" "$bindpath_default")
+    binds=$(append_htcondor_bind_values "$binds" "$default_binds")
+
+    if ! is_false_config_value "$bind_cvmfs"; then
+        if [[ -n "$cvmfs_mount_dir" && "$cvmfs_mount_dir" != "/cvmfs" ]]; then
+            cvmfs_bind="${cvmfs_mount_dir}:/cvmfs"
+        else
+            cvmfs_bind="/cvmfs"
+        fi
+        binds=$(append_htcondor_bind_values "$binds" "$cvmfs_bind")
+    fi
+
+    printf "%s" "$binds"
+}
+
+has_configured_htcondor_singularity_image() {
+    local images_dict="$1"
+    local setup_image="$2"
+    local image_restrictions="${3:-cvmfs}"
+    local entry_required_os="${4:-any}"
+    local item
+    local key
+    local value
+    local -a items
+    local old_ifs
+
+    if [[ -n "$setup_image" ]]; then
+        return 0
+    fi
+
+    old_ifs="$IFS"
+    IFS=,
+    read -ra items <<< "$images_dict"
+    IFS="$old_ifs"
+    for item in "${items[@]}"; do
+        if [[ "$item" != *:* ]]; then
+            continue
+        fi
+        key="${item%%:*}"
+        value="${item#*:}"
+        if [[ -z "$key" || -z "$value" ]]; then
+            continue
+        fi
+        if entry_allows_platform "$entry_required_os" "$key" && image_allowed_by_restrictions "$value" "$image_restrictions"; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
 # Read the knobs coming from the frontend configuration for blackhole detection (GLIDEIN_BLACKHOLE_NUMJOBS and GLIDEIN_BLACKHOLE_RATE)
 glidein_blackhole_numjobs=$(gconfig_get GLIDEIN_BLACKHOLE_NUMJOBS "$config_file")
 glidein_blackhole_rate=$(gconfig_get GLIDEIN_BLACKHOLE_RATE "$config_file")
@@ -326,12 +408,6 @@ if is_true_config_value "$(gconfig_get GLIDEIN_SINGULARITY_USE_HTCONDOR "$config
     gwms_singularity_use_htcondor=1
 fi
 
-cat >> "$condor_job_wrapper" <<EOF
-GWMS_SINGULARITY_USE_HTCONDOR=$gwms_singularity_use_htcondor
-export GWMS_SINGULARITY_USE_HTCONDOR
-
-EOF
-
 for fname in $(cat "$wrapper_list");
 do
     cat "$fname" >> "$condor_job_wrapper"
@@ -343,21 +419,47 @@ if [[ "$gwms_singularity_use_htcondor" = "1" ]]; then
     gwms_htcondor_singularity_default_image=$(gconfig_get GWMS_SINGULARITY_IMAGE "$config_file")
     gwms_htcondor_singularity_image_restrictions=$(gconfig_get SINGULARITY_IMAGE_RESTRICTIONS "$config_file")
     gwms_htcondor_entry_required_os=$(gconfig_get GLIDEIN_REQUIRED_OS "$config_file")
+    gwms_htcondor_singularity_bind_expr=$(build_htcondor_singularity_bind_expr \
+        "$(gconfig_get GLIDEIN_SINGULARITY_BINDPATH "$config_file")" \
+        "$(gconfig_get GLIDEIN_SINGULARITY_BINDPATH_DEFAULT "$config_file")" \
+        "$(gconfig_get GWMS_SINGULARITY_BIND_CVMFS "$config_file")" \
+        "$(gconfig_get CVMFS_MOUNT_DIR "$config_file")")
+    gwms_htcondor_singularity_extra_args=$(gconfig_get GLIDEIN_SINGULARITY_OPTS "$config_file")
     gwms_htcondor_singularity_image_expr=$(build_htcondor_singularity_image_expr \
         "$gwms_htcondor_singularity_images_dict" \
         "$gwms_htcondor_singularity_default_image" \
         "$gwms_htcondor_singularity_image_restrictions" \
         "$gwms_htcondor_entry_required_os")
+    if ! has_configured_htcondor_singularity_image \
+        "$gwms_htcondor_singularity_images_dict" \
+        "$gwms_htcondor_singularity_default_image" \
+        "$gwms_htcondor_singularity_image_restrictions" \
+        "$gwms_htcondor_entry_required_os"; then
+        echo "WARNING: GLIDEIN_SINGULARITY_USE_HTCONDOR is enabled but no configured Singularity image survived selection; jobs without +SingularityImage will run without Singularity." 1>&2
+    fi
+    if [[ -n "$(gconfig_get GLIDEIN_CONTAINER_ENV "$config_file")" || -n "$(gconfig_get GLIDEIN_CONTAINER_ENV_CLEARLIST "$config_file")" ]]; then
+        echo "WARNING: GLIDEIN_CONTAINER_ENV or GLIDEIN_CONTAINER_ENV_CLEARLIST is set but GLIDEIN_SINGULARITY_USE_HTCONDOR does not translate GWMS container environment policies into HTCondor Singularity configuration." 1>&2
+    fi
     cat >> "$CONDOR_CONFIG" <<EOF
-# Run Singularity jobs through HTCondor so condor_ssh_to_job can attach.
+# Run Singularity jobs through HTCondor so condor_ssh_to_job uses HTCondor's native namespace attach path.
 GWMS_HTCONDOR_SINGULARITY_IMAGE = $gwms_htcondor_singularity_image_expr
 SINGULARITY_JOB = \$(GWMS_HTCONDOR_SINGULARITY_IMAGE) =!= ""
 SINGULARITY_IMAGE_EXPR = \$(GWMS_HTCONDOR_SINGULARITY_IMAGE)
 SINGULARITY_TARGET_DIR = /srv
+MOUNT_UNDER_SCRATCH = /tmp,/var/tmp
 SINGULARITY = $htcondor_singularity_path
+SINGULARITY_USE_LAUNCHER = True
+# condor_ssh_to_job enters the live container through HTCondor's
+# condor_docker_enter/condor_nsenter path. Unprivileged glideins cannot attach
+# to a Singularity-created PID namespace, so keep the job in the glidein PID
+# namespace in this mode.
+SINGULARITY_USE_PID_NAMESPACES = False
 EOF
-    if is_true_config_value "$(gconfig_get SINGULARITY_DISABLE_PID_NAMESPACES "$config_file")"; then
-        echo "SINGULARITY_USE_PID_NAMESPACES = False" >> "$CONDOR_CONFIG"
+    if [[ -n "$gwms_htcondor_singularity_bind_expr" ]]; then
+        echo "SINGULARITY_BIND_EXPR = $(classad_quote "$gwms_htcondor_singularity_bind_expr")" >> "$CONDOR_CONFIG"
+    fi
+    if [[ -n "$gwms_htcondor_singularity_extra_args" ]]; then
+        echo "SINGULARITY_EXTRA_ARGUMENTS = $(classad_quote "$gwms_htcondor_singularity_extra_args")" >> "$CONDOR_CONFIG"
     fi
 else
     echo "USER_JOB_WRAPPER = \$(LOCAL_DIR)/$condor_job_wrapper" >> "$CONDOR_CONFIG"

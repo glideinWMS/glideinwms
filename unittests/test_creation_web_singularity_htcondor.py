@@ -64,6 +64,30 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
                 self.assertEqual(b"libgetpwnam\n", tar.extractfile(lib_members[0]).read())
                 self.assertIn("libexec/condor_ssh_to_job_sshd_setup", tar.getnames())
 
+    def test_condor_tarball_rejects_ssh_to_job_symlink_outside_condor_base(self):
+        cgWCreate = self.import_cgWCreate()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            outside = tmp / "outside"
+            condor_base = tmp / "condor"
+            for dirname in ("sbin", "lib", "lib64/condor", "libexec/condor"):
+                (condor_base / dirname).mkdir(parents=True, exist_ok=True)
+            for exe in ("condor_master", "condor_startd", "condor_starter"):
+                path = condor_base / "sbin" / exe
+                path.write_text("#!/bin/sh\nexit 0\n")
+                path.chmod(0o755)
+            setup = condor_base / "libexec/condor/condor_ssh_to_job_sshd_setup"
+            setup.write_text("#!/bin/sh\nexit 0\n")
+            setup.chmod(0o755)
+            outside.write_text("external library\n")
+            (condor_base / "lib/libgetpwnam.so").symlink_to(outside)
+
+            with self.assertRaises(RuntimeError) as ctx:
+                cgWCreate.create_condor_tar_fd(str(condor_base))
+
+            self.assertIn("resolves outside", str(ctx.exception))
+
     def test_condor_startup_writes_htcondor_singularity_config_from_flag(self):
         tmp = self.run_condor_startup_advertise_only(
             htcondor_managed=True,
@@ -71,7 +95,6 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
             gwms_singularity_image="/cvmfs/example/default.sif",
         )
         condor_config = (tmp / "condor_config").read_text()
-        condor_job_wrapper = (tmp / "condor_job_wrapper.sh").read_text()
 
         self.assertIn("USER_JOB_WRAPPER =", condor_config)
         self.assertNotIn("USER_JOB_WRAPPER = $(LOCAL_DIR)/condor_job_wrapper.sh", condor_config)
@@ -86,10 +109,83 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
         self.assertIn('SINGULARITY_JOB = $(GWMS_HTCONDOR_SINGULARITY_IMAGE) =!= ""', condor_config)
         self.assertIn("SINGULARITY_IMAGE_EXPR = $(GWMS_HTCONDOR_SINGULARITY_IMAGE)", condor_config)
         self.assertIn("SINGULARITY_TARGET_DIR = /srv", condor_config)
-        self.assertNotIn("SINGULARITY_USE_PID_NAMESPACES", condor_config)
+        self.assertIn("MOUNT_UNDER_SCRATCH = /tmp,/var/tmp", condor_config)
+        self.assertIn("SINGULARITY_USE_LAUNCHER = True", condor_config)
         self.assertNotIn("SINGULARITY_IS_SETUID", condor_config)
         self.assertIn("SINGULARITY = /opt/apptainer/bin/apptainer", condor_config)
-        self.assertIn("GWMS_SINGULARITY_USE_HTCONDOR=1", condor_job_wrapper)
+
+    def test_condor_startup_leaves_native_ssh_to_job_shell_setup_in_place(self):
+        condor_dir = self.make_condor_dir_with_ssh_to_job_shell_setup()
+        tmp = self.run_condor_startup_advertise_only(htcondor_managed=True, condor_dir=condor_dir)
+        shell_setup = condor_dir / "libexec/condor_ssh_to_job_shell_setup"
+        original = condor_dir / "libexec/condor_ssh_to_job_shell_setup.gwms-orig"
+
+        self.assertFalse(original.exists())
+        self.assertIn("ORIGINAL_SHELL_SETUP", shell_setup.read_text())
+        self.assertNotIn("GWMS_SINGULARITY_USE_HTCONDOR", (tmp / "condor_job_wrapper.sh").read_text())
+
+    def test_condor_startup_maps_bind_paths_and_extra_args_to_htcondor(self):
+        tmp = self.run_condor_startup_advertise_only(
+            htcondor_managed=True,
+            bindpath="/scratch:/srv/scratch,/data",
+            bindpath_default="/project",
+            bind_cvmfs=False,
+            cvmfs_mount_dir="/cvmfs",
+            singularity_opts="--no-home --fakeroot",
+        )
+        condor_config = (tmp / "condor_config").read_text()
+
+        self.assertIn(
+            "SINGULARITY_BIND_EXPR = "
+            "\"/scratch:/srv/scratch /data /project /hadoop /ceph /hdfs /lizard /mnt/hadoop "
+            "/mnt/hdfs /etc/hosts /etc/localtime\"",
+            condor_config,
+        )
+        self.assertNotIn(" /cvmfs", condor_config)
+        self.assertIn('SINGULARITY_EXTRA_ARGUMENTS = "--no-home --fakeroot"', condor_config)
+
+    def test_condor_startup_uses_cvmfs_mount_dir_in_bind_expr(self):
+        tmp = self.run_condor_startup_advertise_only(
+            htcondor_managed=True,
+            cvmfs_mount_dir="/custom/cvmfs",
+        )
+        condor_config = (tmp / "condor_config").read_text()
+
+        self.assertIn("/custom/cvmfs:/cvmfs", condor_config)
+
+    def test_condor_startup_disables_pid_namespaces_in_htcondor_mode_for_ssh_to_job(self):
+        tmp = self.run_condor_startup_advertise_only(htcondor_managed=True)
+        condor_config = (tmp / "condor_config").read_text()
+
+        self.assertIn("SINGULARITY_USE_PID_NAMESPACES = False", condor_config)
+
+    def test_condor_startup_warns_when_no_configured_image_survives_filtering(self):
+        tmp = self.run_condor_startup_advertise_only(
+            htcondor_managed=True,
+            singularity_images_dict="default:docker://example/default",
+            image_restrictions="cvmfs",
+        )
+        condor_config = (tmp / "condor_config").read_text()
+        stderr = (tmp / "condor_startup.stderr").read_text()
+
+        self.assertIn(
+            "GWMS_HTCONDOR_SINGULARITY_IMAGE = ifThenElse(!isUndefined(TARGET.SingularityImage)",
+            condor_config,
+        )
+        self.assertNotIn("docker://example/default", condor_config)
+        self.assertIn("WARNING: GLIDEIN_SINGULARITY_USE_HTCONDOR is enabled", stderr)
+        self.assertIn("jobs without +SingularityImage will run without Singularity", stderr)
+
+    def test_condor_startup_warns_when_container_env_policy_is_not_translated(self):
+        tmp = self.run_condor_startup_advertise_only(
+            htcondor_managed=True,
+            container_env="BEARER_TOKEN_FILE,SCITOKEN_FILE",
+            container_env_clearlist="BEARER_TOKEN_FILE,SCITOKEN_FILE",
+        )
+        stderr = (tmp / "condor_startup.stderr").read_text()
+
+        self.assertIn("WARNING: GLIDEIN_CONTAINER_ENV or GLIDEIN_CONTAINER_ENV_CLEARLIST is set", stderr)
+        self.assertIn("does not translate GWMS container environment policies", stderr)
 
     def test_condor_startup_filters_disallowed_remote_default_image(self):
         tmp = self.run_condor_startup_advertise_only(
@@ -121,12 +217,6 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
             condor_config,
         )
 
-    def test_condor_startup_respects_disabled_pid_namespaces(self):
-        tmp = self.run_condor_startup_advertise_only(htcondor_managed=True, disable_pid_namespaces=True)
-        condor_config = (tmp / "condor_config").read_text()
-
-        self.assertIn("SINGULARITY_USE_PID_NAMESPACES = False", condor_config)
-
     def test_condor_startup_does_not_enable_htcondor_singularity_without_binary(self):
         tmp = self.run_condor_startup_advertise_only(htcondor_managed=True, singularity_path="")
         condor_config = (tmp / "condor_config").read_text()
@@ -136,7 +226,7 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
         self.assertNotIn("SINGULARITY_IMAGE_EXPR = $(GWMS_HTCONDOR_SINGULARITY_IMAGE)", condor_config)
         self.assertNotIn("SINGULARITY_TARGET_DIR = /srv", condor_config)
         self.assertNotIn("SINGULARITY = ", condor_config)
-        self.assertIn("GWMS_SINGULARITY_USE_HTCONDOR=0", condor_job_wrapper)
+        self.assertNotIn("GWMS_SINGULARITY_USE_HTCONDOR", condor_job_wrapper)
 
     def test_condor_startup_does_not_enable_htcondor_singularity_by_default(self):
         tmp = self.run_condor_startup_advertise_only(htcondor_managed=False)
@@ -147,10 +237,13 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
         self.assertNotIn("SINGULARITY_IMAGE_EXPR = TARGET.SingularityImage", condor_config)
         self.assertNotIn("SINGULARITY_TARGET_DIR = /srv", condor_config)
         self.assertIn("USER_JOB_WRAPPER = $(LOCAL_DIR)/condor_job_wrapper.sh", condor_config)
-        self.assertIn("GWMS_SINGULARITY_USE_HTCONDOR=0", condor_job_wrapper)
+        self.assertNotIn("GWMS_SINGULARITY_USE_HTCONDOR", condor_job_wrapper)
 
     def test_htcondor_singularity_flag_is_registered_as_config_attribute(self):
-        self.assertIn("GLIDEIN_SINGULARITY_USE_HTCONDOR", CONFIG_ATTRIBUTES.read_text())
+        config_attributes = CONFIG_ATTRIBUTES.read_text()
+
+        self.assertIn("GLIDEIN_SINGULARITY_USE_HTCONDOR", config_attributes)
+        self.assertNotIn("GLIDEIN_SINGULARITY_SSH_REENTER", config_attributes)
 
     def test_singularity_setup_does_not_require_empty_default_image(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -229,12 +322,19 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
     def run_condor_startup_advertise_only(
         self,
         htcondor_managed,
-        disable_pid_namespaces=False,
         singularity_images_dict="",
         gwms_singularity_image="",
         singularity_path="/opt/apptainer/bin/apptainer",
         image_restrictions="cvmfs",
         glidein_required_os="",
+        condor_dir=None,
+        bindpath="",
+        bindpath_default="",
+        bind_cvmfs=None,
+        cvmfs_mount_dir="",
+        singularity_opts="",
+        container_env="",
+        container_env_clearlist="",
     ):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
@@ -289,6 +389,22 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
             "GLIDEIN_Expose_X509 false",
             "X509_EXPIRE 4102444800",
         ]
+        if condor_dir:
+            config_lines.append("CONDOR_DIR %s" % condor_dir)
+        if bindpath:
+            config_lines.append("GLIDEIN_SINGULARITY_BINDPATH %s" % bindpath)
+        if bindpath_default:
+            config_lines.append("GLIDEIN_SINGULARITY_BINDPATH_DEFAULT %s" % bindpath_default)
+        if bind_cvmfs is not None:
+            config_lines.append("GWMS_SINGULARITY_BIND_CVMFS %s" % ("1" if bind_cvmfs else "0"))
+        if cvmfs_mount_dir:
+            config_lines.append("CVMFS_MOUNT_DIR %s" % cvmfs_mount_dir)
+        if singularity_opts:
+            config_lines.append("GLIDEIN_SINGULARITY_OPTS %s" % singularity_opts)
+        if container_env:
+            config_lines.append("GLIDEIN_CONTAINER_ENV %s" % container_env)
+        if container_env_clearlist:
+            config_lines.append("GLIDEIN_CONTAINER_ENV_CLEARLIST %s" % container_env_clearlist)
         if singularity_path:
             config_lines.append("SINGULARITY_PATH %s" % singularity_path)
         if image_restrictions:
@@ -297,8 +413,6 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
             config_lines.append("GLIDEIN_REQUIRED_OS %s" % glidein_required_os)
         if htcondor_managed:
             config_lines.append("GLIDEIN_SINGULARITY_USE_HTCONDOR 'True'")
-        if disable_pid_namespaces:
-            config_lines.append("SINGULARITY_DISABLE_PID_NAMESPACES 1")
         if singularity_images_dict:
             config_lines.append("SINGULARITY_IMAGES_DICT %s" % singularity_images_dict)
         if gwms_singularity_image:
@@ -314,7 +428,19 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
             stderr=subprocess.PIPE,
             text=True,
         )
+        (tmp / "condor_startup.stdout").write_text(result.stdout)
+        (tmp / "condor_startup.stderr").write_text(result.stderr)
         self.assertEqual(0, result.returncode, "stdout:\n%s\nstderr:\n%s" % (result.stdout, result.stderr))
+        return tmp
+
+    def make_condor_dir_with_ssh_to_job_shell_setup(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        (tmp / "bin").mkdir()
+        (tmp / "libexec").mkdir()
+        shell_setup = tmp / "libexec/condor_ssh_to_job_shell_setup"
+        shell_setup.write_text("#!/bin/sh\necho ORIGINAL_SHELL_SETUP\n")
+        shell_setup.chmod(0o755)
         return tmp
 
     def import_cgWCreate(self):

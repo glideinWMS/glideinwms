@@ -2128,6 +2128,34 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
           </li>
           <li>
             <p style="margin-bottom: 0in">
+              GLIDEIN_SINGULARITY_USE_HTCONDOR can be set to True to make
+              HTCondor launch Singularity/Apptainer payload jobs directly. This
+              is an opt-in mode intended to let condor_ssh_to_job use
+              HTCondor's native namespace attach path for container debugging.
+              In this mode the Glidein writes HTCondor's SINGULARITY_JOB,
+              SINGULARITY_IMAGE_EXPR, SINGULARITY_TARGET_DIR,
+              SINGULARITY_BIND_EXPR, SINGULARITY_EXTRA_ARGUMENTS, and
+              MOUNT_UNDER_SCRATCH configuration. It maps
+              GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT,
+              GWMS_SINGULARITY_BIND_CVMFS, and GLIDEIN_SINGULARITY_OPTS. This
+              mode writes SINGULARITY_USE_PID_NAMESPACES = False because
+              HTCondor's native condor_ssh_to_job attach path uses
+              condor_docker_enter and condor_nsenter to enter the running job
+              namespaces, and unprivileged glideins cannot attach to a
+              Singularity-created PID namespace. The execute environment must
+              still allow HTCondor's condor_nsenter helper to enter the
+              remaining container namespaces. The GWMS Singularity job wrapper is
+              not run in this mode, so GLIDEIN_CONTAINER_ENV and
+              GLIDEIN_CONTAINER_ENV_CLEARLIST are not translated into HTCondor
+              configuration. Sites that rely on those policies should configure
+              equivalent HTCondor job environment handling, such as
+              STARTER_JOB_ENVIRONMENT or submit-file Environment, and
+              SINGULARITY_EXTRA_ARGUMENTS for Singularity/Apptainer options such
+              as --cleanenv or --env-file.
+            </p>
+          </li>
+          <li>
+            <p style="margin-bottom: 0in">
               The use of Singularity is negotiated according to the table below,
               using GLIDEIN_SINGULARITY_REQUIRE (from the Factory) and
               GLIDEIN_Singularity_Use (from the Frontend), resulting in DISABLE
