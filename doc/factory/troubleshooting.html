@@ -695,11 +695,16 @@ SPDX-License-Identifier: Apache-2.0
         </blockquote>
         <p>
           The working directory should normally be /srv, and /etc/os-release
-          should match the payload image. Command-mode ssh-to-job invocations can
-          run before HTCondor's interactive shell setup enters the container, so
-          use the interactive form when checking namespace attach. If the job
-          runs without a container, check the glidein stderr for a warning that
-          no configured image survived selection and jobs without
+          should match the payload image. Interactive ssh-to-job should enter
+          the container namespace. Command-mode ssh-to-job requires HTCondor
+          helper binaries that pass SSH_ORIGINAL_COMMAND through
+          condor_docker_enter; older helpers execute the command on the host
+          instead of inside the container, producing host-side output without any
+          error indicating the bypass. Use the interactive form for validation
+          unless the Condor tarball is known to include command-mode container
+          attach support. If the job runs without a container, check the glidein
+          stderr for a warning that no configured image survived selection and
+          jobs without
           +SingularityImage will run without Singularity. Also check the
           StarterLog for HTCondor messages indicating whether it is running the
           job via Singularity.

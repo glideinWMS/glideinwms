@@ -2130,8 +2130,11 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
             <p style="margin-bottom: 0in">
               GLIDEIN_SINGULARITY_USE_HTCONDOR can be set to True to make
               HTCondor launch Singularity/Apptainer payload jobs directly. This
-              is an opt-in mode intended to let condor_ssh_to_job use
-              HTCondor's native namespace attach path for container debugging.
+              is an opt-in mode intended to let interactive condor_ssh_to_job
+              use HTCondor's native namespace attach path for container
+              debugging. Command-mode condor_ssh_to_job requires HTCondor
+              helpers that forward SSH_ORIGINAL_COMMAND through
+              condor_docker_enter; see the troubleshooting section for details.
               In this mode the Glidein writes HTCondor's SINGULARITY_JOB,
               SINGULARITY_IMAGE_EXPR, SINGULARITY_TARGET_DIR,
               SINGULARITY_BIND_EXPR, SINGULARITY_EXTRA_ARGUMENTS, and
@@ -2139,7 +2142,7 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
               GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT,
               GWMS_SINGULARITY_BIND_CVMFS, and GLIDEIN_SINGULARITY_OPTS. This
               mode writes SINGULARITY_USE_PID_NAMESPACES = False because
-              HTCondor's native condor_ssh_to_job attach path uses
+              HTCondor's native interactive condor_ssh_to_job attach path uses
               condor_docker_enter and condor_nsenter to enter the running job
               namespaces, and unprivileged glideins cannot attach to a
               Singularity-created PID namespace. The execute environment must

@@ -3121,7 +3121,10 @@ SPDX-License-Identifier: Apache-2.0
               <li>
                 Added GLIDEIN_SINGULARITY_USE_HTCONDOR to let HTCondor launch
                 Singularity jobs and use native condor_ssh_to_job namespace
-                attach for container debugging (Issue#672)
+                attach for interactive container debugging. Command-mode
+                condor_ssh_to_job &lt;job&gt; &lt;cmd&gt; requires HTCondor helpers that
+                forward SSH_ORIGINAL_COMMAND through condor_docker_enter; older
+                bundled helpers run the command on the host. (Issue#672)
               </li>
               <li>
                 Bug fix: Correct reporting of ProjectId and other credential
@@ -3143,10 +3146,10 @@ SPDX-License-Identifier: Apache-2.0
                 are not translated; sites needing equivalent policies should use
                 HTCondor job environment controls and
                 SINGULARITY_EXTRA_ARGUMENTS. This mode disables Singularity PID
-                namespaces so HTCondor's native condor_ssh_to_job attach path can
-                enter the running job container, but the execute environment must
-                still permit HTCondor's condor_nsenter helper to enter the
-                remaining container namespaces.
+                namespaces so HTCondor's native interactive condor_ssh_to_job
+                attach path can enter the running job container, but the execute
+                environment must still permit HTCondor's condor_nsenter helper
+                to enter the remaining container namespaces.
               </li>
             </ul>
           </li>

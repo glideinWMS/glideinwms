@@ -441,7 +441,8 @@ if [[ "$gwms_singularity_use_htcondor" = "1" ]]; then
         echo "WARNING: GLIDEIN_CONTAINER_ENV or GLIDEIN_CONTAINER_ENV_CLEARLIST is set but GLIDEIN_SINGULARITY_USE_HTCONDOR does not translate GWMS container environment policies into HTCondor Singularity configuration." 1>&2
     fi
     cat >> "$CONDOR_CONFIG" <<EOF
-# Run Singularity jobs through HTCondor so condor_ssh_to_job uses HTCondor's native namespace attach path.
+# Run Singularity jobs through HTCondor so interactive condor_ssh_to_job can
+# use HTCondor's native namespace attach path.
 GWMS_HTCONDOR_SINGULARITY_IMAGE = $gwms_htcondor_singularity_image_expr
 SINGULARITY_JOB = \$(GWMS_HTCONDOR_SINGULARITY_IMAGE) =!= ""
 SINGULARITY_IMAGE_EXPR = \$(GWMS_HTCONDOR_SINGULARITY_IMAGE)
@@ -449,7 +450,7 @@ SINGULARITY_TARGET_DIR = /srv
 MOUNT_UNDER_SCRATCH = /tmp,/var/tmp
 SINGULARITY = $htcondor_singularity_path
 SINGULARITY_USE_LAUNCHER = True
-# condor_ssh_to_job enters the live container through HTCondor's
+# Interactive condor_ssh_to_job enters the live container through HTCondor's
 # condor_docker_enter/condor_nsenter path. Unprivileged glideins cannot attach
 # to a Singularity-created PID namespace, so keep the job in the glidein PID
 # namespace in this mode.

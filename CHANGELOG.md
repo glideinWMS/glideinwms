@@ -13,11 +13,11 @@ All M2Crypto requirements removed. Includes all changes and fixes in v3.10.18, p
 -   Added feature flag mechanism in preparation for full cvmfsexec support (PR #625)
 -   Removed remaining dependencies from M2Crypto. Cleaned up also some duplicate code and SL7 and Python 2 CI tools. (Issue #438, PR #636)
 -   Added unit tests for x509.py and rsa.py. (PR #636)
--   Added `GLIDEIN_SINGULARITY_USE_HTCONDOR` to let HTCondor launch Singularity jobs and use native `condor_ssh_to_job` namespace attach for container debugging (Issue #672)
+-   Added `GLIDEIN_SINGULARITY_USE_HTCONDOR` to let HTCondor launch Singularity jobs and use native `condor_ssh_to_job` namespace attach for interactive container debugging. Command-mode `condor_ssh_to_job <job> <cmd>` requires HTCondor helpers that forward `SSH_ORIGINAL_COMMAND` through `condor_docker_enter`; older bundled helpers run the command on the host. (Issue #672)
 
 ### Changed defaults / behaviours
 
--   `GLIDEIN_SINGULARITY_USE_HTCONDOR` is opt-in and bypasses the GWMS Singularity job wrapper. Bind paths and `GLIDEIN_SINGULARITY_OPTS` are mapped to HTCondor configuration, but `GLIDEIN_CONTAINER_ENV` and `GLIDEIN_CONTAINER_ENV_CLEARLIST` are not translated; sites needing equivalent policies should use HTCondor job environment controls and `SINGULARITY_EXTRA_ARGUMENTS`. This mode disables Singularity PID namespaces for HTCondor's native `condor_ssh_to_job` attach path, but the execute environment must still permit `condor_nsenter` to enter the remaining container namespaces.
+-   `GLIDEIN_SINGULARITY_USE_HTCONDOR` is opt-in and bypasses the GWMS Singularity job wrapper. Bind paths and `GLIDEIN_SINGULARITY_OPTS` are mapped to HTCondor configuration, but `GLIDEIN_CONTAINER_ENV` and `GLIDEIN_CONTAINER_ENV_CLEARLIST` are not translated; sites needing equivalent policies should use HTCondor job environment controls and `SINGULARITY_EXTRA_ARGUMENTS`. This mode disables Singularity PID namespaces for HTCondor's native interactive `condor_ssh_to_job` attach path, but the execute environment must still permit `condor_nsenter` to enter the remaining container namespaces.
 
 ### Deprecated / removed options and commands
 
