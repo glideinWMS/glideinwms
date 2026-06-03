@@ -13,10 +13,9 @@ import unittest
 
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-CONDOR_STARTUP = REPO_ROOT / "creation/web_base/condor_startup.sh"
-SINGULARITY_SETUP = REPO_ROOT / "creation/web_base/singularity_setup.sh"
-CONFIG_ATTRIBUTES = REPO_ROOT / "creation/lib/config_attributes.txt"
+CONDOR_STARTUP = Path("../creation/web_base/condor_startup.sh").resolve()
+SINGULARITY_SETUP = Path("../creation/web_base/singularity_setup.sh").resolve()
+CONFIG_ATTRIBUTES = Path("../creation/lib/config_attributes.txt").resolve()
 
 
 class TestHtcondorManagedSingularity(unittest.TestCase):
