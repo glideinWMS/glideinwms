@@ -9,27 +9,14 @@ Unit test of glideinwms/creation/lib/cgWCreate.py
 
 import tarfile
 import tempfile
-import types
 import unittest
-import sys
-import importlib
 
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-UNITTEST_DIR = Path(__file__).resolve().parent
-if "glideinwms" not in sys.modules:
-    glideinwms_pkg = types.ModuleType("glideinwms")
-    glideinwms_pkg.__path__ = [str(REPO_ROOT)]
-    sys.modules["glideinwms"] = glideinwms_pkg
+from glideinwms.creation.lib.cgWCreate import GlideinSubmitDictFile, create_condor_tar_fd
+from glideinwms.creation.lib.factoryXmlConfig import parse
 
-cgWCreate = importlib.import_module("glideinwms.creation.lib.cgWCreate")
-factoryXmlConfig = importlib.import_module("glideinwms.creation.lib.factoryXmlConfig")
-GlideinSubmitDictFile = cgWCreate.GlideinSubmitDictFile
-create_condor_tar_fd = cgWCreate.create_condor_tar_fd
-parse = factoryXmlConfig.parse
-
-XML = str(UNITTEST_DIR / "fixtures/factory/glideinWMS.xml")
+XML = "fixtures/factory/glideinWMS.xml"
 
 
 # pylint: disable=maybe-no-member
@@ -44,7 +31,7 @@ class TestGlideinSubmitDictFile(unittest.TestCase):
             if self.entry_name == entr.getName():
                 self.entry = entr
 
-        self.gsdf = GlideinSubmitDictFile(str(UNITTEST_DIR / "fixtures/factory/work-dir"), self.entry_name)
+        self.gsdf = GlideinSubmitDictFile("fixtures/factory/work-dir", self.entry_name)
 
     def test_populate(self):
         self.gsdf.populate("an_exe", self.entry_name, self.conf, self.entry)
