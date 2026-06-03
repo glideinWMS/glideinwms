@@ -703,11 +703,16 @@ SPDX-License-Identifier: Apache-2.0
           error indicating the bypass. Use the interactive form for validation
           unless the Condor tarball is known to include command-mode container
           attach support. If the job runs without a container, check the glidein
-          stderr for a warning that no configured image survived selection and
-          jobs without
+          stderr for a warning that no default Singularity image was selected by
+          setup and jobs without
           +SingularityImage will run without Singularity. Also check the
           StarterLog for HTCondor messages indicating whether it is running the
-          job via Singularity.
+          job via Singularity. In HTCondor mode, jobs that set
+          +SingularityImage = &quot;...&quot; get their requested image; otherwise the
+          entry's setup-selected default image is used. Per-job per-platform
+          routing through SINGULARITY_IMAGES_DICT is not currently supported in
+          HTCondor mode; sites that need it should continue to use the GWMS
+          wrapper path.
         </p>
         <p>
           The Condor tarball used by the Factory must include the ssh-to-job

@@ -112,163 +112,16 @@ append_htcondor_bind_values() {
     fi
 }
 
-image_allowed_by_restrictions() {
-    local image="$1"
-    local restrictions="${2:-cvmfs}"
-
-    if [[ -z "$image" ]]; then
-        return 1
-    fi
-
-    if [[ ",${restrictions}," = *",cvmfs,"* ]]; then
-        case "$image" in
-            /cvmfs/*|file:/cvmfs/*|file:///cvmfs/*) ;;
-            *) return 1 ;;
-        esac
-    fi
-
-    case "$image" in
-        *://*)
-            case "$image" in
-                file://*) ;;
-                *)
-                    [[ ",${restrictions}," = *",remote,"* ]] || return 1
-                    ;;
-            esac
-            ;;
-    esac
-
-    return 0
-}
-
-list_contains_item() {
-    local list="$1"
-    local wanted="$2"
-    local item
-    local old_ifs
-
-    old_ifs="$IFS"
-    IFS=,
-    for item in $list; do
-        if [[ "$item" = "$wanted" ]]; then
-            IFS="$old_ifs"
-            return 0
-        fi
-    done
-    IFS="$old_ifs"
-    return 1
-}
-
-entry_allows_platform() {
-    local entry_required_os="${1:-any}"
-    local platform="$2"
-
-    [[ "$entry_required_os" = "any" ]] && return 0
-    list_contains_item "$entry_required_os" "$platform"
-}
-
-select_htcondor_singularity_image_for_platforms() {
-    local platform_list="${1:-any}"
-    local images_dict="$2"
-    local setup_image="$3"
-    local image_restrictions="${4:-cvmfs}"
-    local item
-    local key
-    local platform
-    local value
-    local -a items
-    local old_ifs
-
-    if [[ "$platform_list" = "any" ]]; then
-        if [[ -n "$setup_image" ]]; then
-            printf "%s" "$setup_image"
-            return 0
-        fi
-        return 1
-    fi
-
-    old_ifs="$IFS"
-    IFS=,
-    read -ra items <<< "$images_dict"
-    for platform in $platform_list; do
-        for item in "${items[@]}"; do
-            if [[ "$item" != *:* ]]; then
-                continue
-            fi
-            key="${item%%:*}"
-            value="${item#*:}"
-            if [[ "$key" = "$platform" ]] && image_allowed_by_restrictions "$value" "$image_restrictions"; then
-                IFS="$old_ifs"
-                printf "%s" "$value"
-                return 0
-            fi
-        done
-    done
-    IFS="$old_ifs"
-    return 1
-}
-
-build_htcondor_singularity_image_expr() {
-    local images_dict="$1"
-    local setup_image="$2"
-    local image_restrictions="${3:-cvmfs}"
-    local entry_required_os="${4:-any}"
-    local default_image
-    local expr
-    local item
-    local key
-    local value
-    local -a items
-    local old_ifs
-
-    default_image=$(select_htcondor_singularity_image_for_platforms \
-        "$entry_required_os" \
-        "$images_dict" \
-        "$setup_image" \
-        "$image_restrictions")
-
-    expr='""'
-    old_ifs="$IFS"
-    IFS=,
-    read -ra items <<< "$images_dict"
-    IFS="$old_ifs"
-    for item in "${items[@]}"; do
-        if [[ "$item" != *:* ]]; then
-            continue
-        fi
-        key="${item%%:*}"
-        value="${item#*:}"
-        if [[ -z "$key" || -z "$value" ]]; then
-            continue
-        fi
-        if ! entry_allows_platform "$entry_required_os" "$key"; then
-            continue
-        fi
-        if ! image_allowed_by_restrictions "$value" "$image_restrictions"; then
-            continue
-        fi
-        expr="ifThenElse(!isUndefined(TARGET.REQUIRED_OS) && TARGET.REQUIRED_OS =?= $(classad_quote "$key"), $(classad_quote "$value"), $expr)"
-    done
-
-    if [[ -n "$default_image" ]]; then
-        expr="ifThenElse(isUndefined(TARGET.REQUIRED_OS) || TARGET.REQUIRED_OS =?= \"\" || TARGET.REQUIRED_OS =?= \"any\", $(classad_quote "$default_image"), $expr)"
-    fi
-
-    printf 'ifThenElse(!isUndefined(TARGET.SingularityImage) && TARGET.SingularityImage =!= "", TARGET.SingularityImage, %s)' "$expr"
-}
-
 build_htcondor_singularity_bind_expr() {
     local bindpath="$1"
     local bindpath_default="$2"
     local bind_cvmfs="$3"
     local cvmfs_mount_dir="$4"
-    local default_binds="/hadoop,/ceph,/hdfs,/lizard,/mnt/hadoop,/mnt/hdfs,/etc/hosts,/etc/localtime"
     local binds=""
     local cvmfs_bind
 
     binds=$(append_htcondor_bind_values "$binds" "$bindpath")
     binds=$(append_htcondor_bind_values "$binds" "$bindpath_default")
-    binds=$(append_htcondor_bind_values "$binds" "$default_binds")
 
     if ! is_false_config_value "$bind_cvmfs"; then
         if [[ -n "$cvmfs_mount_dir" && "$cvmfs_mount_dir" != "/cvmfs" ]]; then
@@ -280,42 +133,6 @@ build_htcondor_singularity_bind_expr() {
     fi
 
     printf "%s" "$binds"
-}
-
-has_configured_htcondor_singularity_image() {
-    local images_dict="$1"
-    local setup_image="$2"
-    local image_restrictions="${3:-cvmfs}"
-    local entry_required_os="${4:-any}"
-    local item
-    local key
-    local value
-    local -a items
-    local old_ifs
-
-    if [[ -n "$setup_image" ]]; then
-        return 0
-    fi
-
-    old_ifs="$IFS"
-    IFS=,
-    read -ra items <<< "$images_dict"
-    IFS="$old_ifs"
-    for item in "${items[@]}"; do
-        if [[ "$item" != *:* ]]; then
-            continue
-        fi
-        key="${item%%:*}"
-        value="${item#*:}"
-        if [[ -z "$key" || -z "$value" ]]; then
-            continue
-        fi
-        if entry_allows_platform "$entry_required_os" "$key" && image_allowed_by_restrictions "$value" "$image_restrictions"; then
-            return 0
-        fi
-    done
-
-    return 1
 }
 
 # Read the knobs coming from the frontend configuration for blackhole detection (GLIDEIN_BLACKHOLE_NUMJOBS and GLIDEIN_BLACKHOLE_RATE)
@@ -415,27 +232,15 @@ done
 
 if [[ "$gwms_singularity_use_htcondor" = "1" ]]; then
     echo "USER_JOB_WRAPPER =" >> "$CONDOR_CONFIG"
-    gwms_htcondor_singularity_images_dict=$(gconfig_get SINGULARITY_IMAGES_DICT "$config_file")
-    gwms_htcondor_singularity_default_image=$(gconfig_get GWMS_SINGULARITY_IMAGE "$config_file")
-    gwms_htcondor_singularity_image_restrictions=$(gconfig_get SINGULARITY_IMAGE_RESTRICTIONS "$config_file")
-    gwms_htcondor_entry_required_os=$(gconfig_get GLIDEIN_REQUIRED_OS "$config_file")
+    gwms_default_image=$(gconfig_get GWMS_SINGULARITY_IMAGE "$config_file")
     gwms_htcondor_singularity_bind_expr=$(build_htcondor_singularity_bind_expr \
         "$(gconfig_get GLIDEIN_SINGULARITY_BINDPATH "$config_file")" \
         "$(gconfig_get GLIDEIN_SINGULARITY_BINDPATH_DEFAULT "$config_file")" \
         "$(gconfig_get GWMS_SINGULARITY_BIND_CVMFS "$config_file")" \
         "$(gconfig_get CVMFS_MOUNT_DIR "$config_file")")
     gwms_htcondor_singularity_extra_args=$(gconfig_get GLIDEIN_SINGULARITY_OPTS "$config_file")
-    gwms_htcondor_singularity_image_expr=$(build_htcondor_singularity_image_expr \
-        "$gwms_htcondor_singularity_images_dict" \
-        "$gwms_htcondor_singularity_default_image" \
-        "$gwms_htcondor_singularity_image_restrictions" \
-        "$gwms_htcondor_entry_required_os")
-    if ! has_configured_htcondor_singularity_image \
-        "$gwms_htcondor_singularity_images_dict" \
-        "$gwms_htcondor_singularity_default_image" \
-        "$gwms_htcondor_singularity_image_restrictions" \
-        "$gwms_htcondor_entry_required_os"; then
-        echo "WARNING: GLIDEIN_SINGULARITY_USE_HTCONDOR is enabled but no configured Singularity image survived selection; jobs without +SingularityImage will run without Singularity." 1>&2
+    if [[ -z "$gwms_default_image" ]]; then
+        echo "WARNING: GLIDEIN_SINGULARITY_USE_HTCONDOR is enabled but no default Singularity image was selected by setup; jobs without +SingularityImage will run without Singularity." 1>&2
     fi
     if [[ -n "$(gconfig_get GLIDEIN_CONTAINER_ENV "$config_file")" || -n "$(gconfig_get GLIDEIN_CONTAINER_ENV_CLEARLIST "$config_file")" ]]; then
         echo "WARNING: GLIDEIN_CONTAINER_ENV or GLIDEIN_CONTAINER_ENV_CLEARLIST is set but GLIDEIN_SINGULARITY_USE_HTCONDOR does not translate GWMS container environment policies into HTCondor Singularity configuration." 1>&2
@@ -443,9 +248,9 @@ if [[ "$gwms_singularity_use_htcondor" = "1" ]]; then
     cat >> "$CONDOR_CONFIG" <<EOF
 # Run Singularity jobs through HTCondor so interactive condor_ssh_to_job can
 # use HTCondor's native namespace attach path.
-GWMS_HTCONDOR_SINGULARITY_IMAGE = $gwms_htcondor_singularity_image_expr
-SINGULARITY_JOB = \$(GWMS_HTCONDOR_SINGULARITY_IMAGE) =!= ""
-SINGULARITY_IMAGE_EXPR = \$(GWMS_HTCONDOR_SINGULARITY_IMAGE)
+GWMS_DEFAULT_SINGULARITY_IMAGE = $(classad_quote "$gwms_default_image")
+SINGULARITY_IMAGE_EXPR = ifThenElse(!isUndefined(TARGET.SingularityImage) && TARGET.SingularityImage =!= "", TARGET.SingularityImage, \$(GWMS_DEFAULT_SINGULARITY_IMAGE))
+SINGULARITY_JOB = \$(SINGULARITY_IMAGE_EXPR) =!= ""
 SINGULARITY_TARGET_DIR = /srv
 MOUNT_UNDER_SCRATCH = /tmp,/var/tmp
 SINGULARITY = $htcondor_singularity_path

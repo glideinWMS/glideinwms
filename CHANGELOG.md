@@ -17,7 +17,7 @@ All M2Crypto requirements removed. Includes all changes and fixes in v3.10.18, p
 
 ### Changed defaults / behaviours
 
--   `GLIDEIN_SINGULARITY_USE_HTCONDOR` is opt-in and bypasses the GWMS Singularity job wrapper. Bind paths and `GLIDEIN_SINGULARITY_OPTS` are mapped to HTCondor configuration, but `GLIDEIN_CONTAINER_ENV` and `GLIDEIN_CONTAINER_ENV_CLEARLIST` are not translated; sites needing equivalent policies should use HTCondor job environment controls and `SINGULARITY_EXTRA_ARGUMENTS`. This mode disables Singularity PID namespaces for HTCondor's native interactive `condor_ssh_to_job` attach path, but the execute environment must still permit `condor_nsenter` to enter the remaining container namespaces.
+-   `GLIDEIN_SINGULARITY_USE_HTCONDOR` is opt-in and bypasses the GWMS Singularity job wrapper. Jobs that set `+SingularityImage = "..."` get their requested image; otherwise the entry's setup-selected default image is used. Per-job per-platform routing through `SINGULARITY_IMAGES_DICT` is not currently supported in HTCondor mode; sites that need it should continue to use the GWMS wrapper path. Bind paths and `GLIDEIN_SINGULARITY_OPTS` are mapped to HTCondor configuration, but `GLIDEIN_CONTAINER_ENV` and `GLIDEIN_CONTAINER_ENV_CLEARLIST` are not translated; sites needing equivalent policies should use HTCondor job environment controls and `SINGULARITY_EXTRA_ARGUMENTS`. This mode disables Singularity PID namespaces for HTCondor's native interactive `condor_ssh_to_job` attach path, but the execute environment must still permit `condor_nsenter` to enter the remaining container namespaces.
 
 ### Deprecated / removed options and commands
 

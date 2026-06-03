@@ -3140,7 +3140,12 @@ SPDX-License-Identifier: Apache-2.0
               </li>
               <li>
                 NOTE-FACTORY: GLIDEIN_SINGULARITY_USE_HTCONDOR is opt-in and
-                bypasses the GWMS Singularity job wrapper. Bind paths and
+                bypasses the GWMS Singularity job wrapper. Jobs that set
+                +SingularityImage = &quot;...&quot; get their requested image; otherwise
+                the entry's setup-selected default image is used. Per-job
+                per-platform routing through SINGULARITY_IMAGES_DICT is not
+                currently supported in HTCondor mode; sites that need it should
+                continue to use the GWMS wrapper path. Bind paths and
                 GLIDEIN_SINGULARITY_OPTS are mapped to HTCondor configuration,
                 but GLIDEIN_CONTAINER_ENV and GLIDEIN_CONTAINER_ENV_CLEARLIST
                 are not translated; sites needing equivalent policies should use
