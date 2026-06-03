@@ -43,6 +43,7 @@ class TestGlideinSubmitDictFile(unittest.TestCase):
         except RuntimeError:
             pass
 
+
 # pylint: enable=maybe-no-member
 
 if __name__ == "__main__":
