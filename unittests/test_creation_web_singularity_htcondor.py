@@ -43,18 +43,7 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
         self.assertIn("SINGULARITY_USE_LAUNCHER = True", condor_config)
         self.assertIn("SINGULARITY_USE_PID_NAMESPACES = False", condor_config)
         self.assertIn("/custom/cvmfs:/cvmfs", condor_config)
-        self.assertNotIn("SINGULARITY_IS_SETUID", condor_config)
         self.assertIn("SINGULARITY = /opt/apptainer/bin/apptainer", condor_config)
-
-    def test_condor_startup_leaves_native_ssh_to_job_shell_setup_in_place(self):
-        condor_dir = self.make_condor_dir_with_ssh_to_job_shell_setup()
-        tmp = self.run_condor_startup_advertise_only(htcondor_managed=True, condor_dir=condor_dir)
-        shell_setup = condor_dir / "libexec/condor_ssh_to_job_shell_setup"
-        original = condor_dir / "libexec/condor_ssh_to_job_shell_setup.gwms-orig"
-
-        self.assertFalse(original.exists())
-        self.assertIn("ORIGINAL_SHELL_SETUP", shell_setup.read_text())
-        self.assertNotIn("GWMS_SINGULARITY_USE_HTCONDOR", (tmp / "condor_job_wrapper.sh").read_text())
 
     def test_condor_startup_maps_bind_paths_and_extra_args_to_htcondor(self):
         tmp = self.run_condor_startup_advertise_only(
@@ -112,7 +101,6 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
         config_attributes = CONFIG_ATTRIBUTES.read_text()
 
         self.assertIn("GLIDEIN_SINGULARITY_USE_HTCONDOR", config_attributes)
-        self.assertNotIn("GLIDEIN_SINGULARITY_SSH_REENTER", config_attributes)
 
     def test_singularity_setup_does_not_require_empty_default_image(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -193,7 +181,6 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
         htcondor_managed,
         gwms_singularity_image="",
         singularity_path="/opt/apptainer/bin/apptainer",
-        condor_dir=None,
         bindpath="",
         bindpath_default="",
         bind_cvmfs=None,
@@ -255,8 +242,6 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
             "GLIDEIN_Expose_X509 false",
             "X509_EXPIRE 4102444800",
         ]
-        if condor_dir:
-            config_lines.append("CONDOR_DIR %s" % condor_dir)
         if bindpath:
             config_lines.append("GLIDEIN_SINGULARITY_BINDPATH %s" % bindpath)
         if bindpath_default:
@@ -291,16 +276,6 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
         (tmp / "condor_startup.stdout").write_text(result.stdout)
         (tmp / "condor_startup.stderr").write_text(result.stderr)
         self.assertEqual(0, result.returncode, "stdout:\n%s\nstderr:\n%s" % (result.stdout, result.stderr))
-        return tmp
-
-    def make_condor_dir_with_ssh_to_job_shell_setup(self):
-        tmp = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, tmp)
-        (tmp / "bin").mkdir()
-        (tmp / "libexec").mkdir()
-        shell_setup = tmp / "libexec/condor_ssh_to_job_shell_setup"
-        shell_setup.write_text("#!/bin/sh\necho ORIGINAL_SHELL_SETUP\n")
-        shell_setup.chmod(0o755)
         return tmp
 
 if __name__ == "__main__":
