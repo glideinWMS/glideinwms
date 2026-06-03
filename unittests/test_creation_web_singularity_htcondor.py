@@ -31,7 +31,7 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
         self.assertNotIn("USER_JOB_WRAPPER = $(LOCAL_DIR)/condor_job_wrapper.sh", condor_config)
         self.assertIn('GWMS_DEFAULT_SINGULARITY_IMAGE = "/cvmfs/example/default.sif"', condor_config)
         self.assertIn(
-            'SINGULARITY_IMAGE_EXPR = ifThenElse(!isUndefined(TARGET.SingularityImage) '
+            "SINGULARITY_IMAGE_EXPR = ifThenElse(!isUndefined(TARGET.SingularityImage) "
             '&& TARGET.SingularityImage =!= "", TARGET.SingularityImage, $(GWMS_DEFAULT_SINGULARITY_IMAGE))',
             condor_config,
         )
@@ -277,6 +277,7 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
         (tmp / "condor_startup.stderr").write_text(result.stderr)
         self.assertEqual(0, result.returncode, "stdout:\n%s\nstderr:\n%s" % (result.stdout, result.stderr))
         return tmp
+
 
 if __name__ == "__main__":
     unittest.main()
