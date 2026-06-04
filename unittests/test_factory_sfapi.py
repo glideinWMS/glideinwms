@@ -299,7 +299,7 @@ class TestSfapiSubmitFileGeneration(unittest.TestCase):
 
         submit.populate("glidein_startup.sh", "SFAPI", conf, entry)
 
-        self.assertEqual("batch sfapi --rgahp-glite /opt/glite", submit["Grid_Resource"])
+        self.assertEqual("batch sfapi --rgahp-glite /opt/glite api.nersc.gov", submit["Grid_Resource"])
 
 
 class TestSfapiLocalSubmitAttributes(unittest.TestCase):
@@ -471,6 +471,78 @@ class TestSfapiFactoryEnvironment(unittest.TestCase):
         self.assertFalse(any(item.startswith("SFAPI_CLIENT_ID_FILE=") for item in env))
         self.assertFalse(any(item.startswith("SFAPI_PRIVATE_KEY_JWK_FILE=") for item in env))
         self.assertFalse(any(item.startswith("GLIDEIN_REMOTE_USERNAME=") for item in env))
+
+    def test_v3_11_submit_environment_includes_sfapi_auth_file(self):
+        install_m2crypto_stub()
+        socket.gethostbyname_ex = lambda name: (name, [], ["127.0.0.1"])
+        from glideinwms.factory import glideFactoryLib
+        from glideinwms.lib.credentials import CredentialDict, CredentialPurpose
+        from glideinwms.lib.credentials.text import TextCredential
+
+        auth_file = TextCredential(string=b"{}", purpose=CredentialPurpose.REQUEST)
+        auth_file.path = "/factory/client-proxies/user_frontend/glidein_test/credential_client_sfapi"
+        security_credentials = CredentialDict()
+        security_credentials.add(auth_file, "auth_file")
+        submit_credentials = types.SimpleNamespace(
+            username="frontend",
+            security_class="frontend",
+            id="credential-id",
+            security_credentials=security_credentials,
+            identity_credentials=CredentialDict(),
+            parameters={},
+        )
+
+        glidein_descript = types.SimpleNamespace(
+            data={
+                "GlideinName": "gfactory_instance",
+                "FactoryName": "gfactory_service",
+                "WebURL": "http://factory/stage",
+            }
+        )
+        job_descript = types.SimpleNamespace(
+            data={
+                "GridType": "batch sfapi",
+                "Schedd": "factory.example.org",
+                "Verbosity": "std",
+                "StartupDir": "AUTO",
+                "SubmitSlotsLayout": "fixed",
+                "SfapiResource": "perlmutter",
+            }
+        )
+        job_attributes = types.SimpleNamespace(data={})
+        signatures = types.SimpleNamespace(
+            data={
+                "main_descript": "description.cfg",
+                "main_sign": "main-sign",
+                "entry_entry_descript": "description.entry.cfg",
+                "entry_entry_sign": "entry-sign",
+            }
+        )
+
+        with mock.patch.object(glideFactoryLib.glideFactoryConfig, "GlideinDescript", return_value=glidein_descript), mock.patch.object(
+            glideFactoryLib.glideFactoryConfig, "JobDescript", return_value=job_descript
+        ), mock.patch.object(glideFactoryLib.glideFactoryConfig, "JobAttributes", return_value=job_attributes), mock.patch.object(
+            glideFactoryLib.glideFactoryConfig, "SignatureFile", return_value=signatures
+        ), mock.patch.object(
+            glideFactoryLib.timeConversion, "get_time_in_format", return_value="20260603"
+        ):
+            env = glideFactoryLib.get_submit_environment_v3_11(
+                "entry",
+                "frontend-workspace.main",
+                submit_credentials,
+                None,
+                {"SFAPI_TRANSFER_MACHINE": "dtns"},
+                1200,
+                log=types.SimpleNamespace(debug=lambda *args: None, warning=lambda *args: None, exception=lambda *args: None),
+            )
+
+        self.assertIn("SFAPI_RESOURCE=perlmutter", env)
+        self.assertIn("SFAPI_AUTH_MODE=auth_file", env)
+        self.assertIn(
+            "SFAPI_AUTH_FILE=/factory/client-proxies/user_frontend/glidein_test/credential_client_sfapi",
+            env,
+        )
+        self.assertIn("SFAPI_TRANSFER_MACHINE=dtns", env)
 
 
 if __name__ == "__main__":

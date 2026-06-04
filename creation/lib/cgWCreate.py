@@ -200,19 +200,25 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("Universe", "grid")
         if gridtype == "batch sfapi":
             sfapi_glite_dir = entry.get("sfapi_glite_dir")
+            sfapi_attrs = {attr["name"]: attr["value"] for attr in entry.get_child_list("attrs")}
+            sfapi_resource = entry.get("sfapi_resource", "perlmutter")
+            sfapi_transfer_machine = sfapi_attrs.get("SFAPI_TRANSFER_MACHINE", "dtns")
+            sfapi_python = sfapi_attrs.get("SFAPI_PYTHON", "python3")
+            sfapi_venv = sfapi_attrs.get("SFAPI_VENV", "")
+            sfapi_username = sfapi_attrs.get("SFAPI_USERNAME") or sfapi_attrs.get("NERSC_USERNAME", "")
             if sfapi_glite_dir:
-                self.add("Grid_Resource", "batch sfapi --rgahp-glite %s" % sfapi_glite_dir)
+                self.add("Grid_Resource", "batch sfapi --rgahp-glite %s %s" % (sfapi_glite_dir, gatekeeper))
             else:
                 self.add("Grid_Resource", "batch sfapi")
             enc_input_files.append("$ENV(X509_USER_PROXY:/dev/null)")
             self.add_environment("X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME:/dev/null)")
-            self.add_environment("SFAPI_AUTH_MODE=$ENV(SFAPI_AUTH_MODE:auth_file)")
+            self.add_environment("SFAPI_AUTH_MODE=auth_file")
             self.add_environment("SFAPI_AUTH_FILE=$ENV(SFAPI_AUTH_FILE:)")
-            self.add_environment("SFAPI_RESOURCE=$ENV(SFAPI_RESOURCE:perlmutter)")
-            self.add_environment("SFAPI_TRANSFER_MACHINE=$ENV(SFAPI_TRANSFER_MACHINE:dtns)")
-            self.add_environment("SFAPI_PYTHON=$ENV(SFAPI_PYTHON:python3)")
-            self.add_environment("SFAPI_VENV=$ENV(SFAPI_VENV:)")
-            self.add_environment("SFAPI_USERNAME=$ENV(SFAPI_USERNAME:)")
+            self.add_environment("SFAPI_RESOURCE=%s" % sfapi_resource)
+            self.add_environment("SFAPI_TRANSFER_MACHINE=%s" % sfapi_transfer_machine)
+            self.add_environment("SFAPI_PYTHON=%s" % sfapi_python)
+            self.add_environment("SFAPI_VENV=%s" % sfapi_venv)
+            self.add_environment("SFAPI_USERNAME=%s" % sfapi_username)
         elif gridtype.startswith("batch "):
             # For BOSCO ie gridtype 'batch *', allow means to pass VO specific
             # bosco/ssh keys

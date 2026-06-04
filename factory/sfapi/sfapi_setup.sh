@@ -65,6 +65,21 @@ sfapi_setup_load_job_metadata() {
     done < "$state_file"
 }
 
+sfapi_setup_find_auth_file() {
+    local auth_file
+
+    if [ -n "${SFAPI_AUTH_FILE:-}" ]; then
+        return
+    fi
+
+    for auth_file in /var/lib/gwms-factory/client-proxies/*/*/credential_request_*.txt; do
+        if [ -r "$auth_file" ]; then
+            SFAPI_AUTH_FILE="$auth_file"
+            return
+        fi
+    done
+}
+
 if [ -r "$sfapi_setup_dir/blah_load_config.sh" ]; then
     # shellcheck disable=SC1091
     . "$sfapi_setup_dir/blah_load_config.sh"
@@ -72,9 +87,17 @@ fi
 
 sfapi_setup_load_job_metadata "${SFAPI_BLAHP_JOB_ID:-}"
 
+if [ -z "${SFAPI_VENV:-}" ] && [ -x /opt/gwms/sfapi-venv/bin/python ]; then
+    SFAPI_VENV=/opt/gwms/sfapi-venv
+fi
+
 if [ -n "${SFAPI_VENV:-}" ]; then
     # shellcheck disable=SC1090
     . "$SFAPI_VENV/bin/activate"
+fi
+
+if [ -z "${SFAPI_PYTHON:-}" ] && [ -n "${SFAPI_VENV:-}" ] && [ -x "$SFAPI_VENV/bin/python" ]; then
+    SFAPI_PYTHON="$SFAPI_VENV/bin/python"
 fi
 
 : "${SFAPI_PYTHON:=python3}"
@@ -82,7 +105,9 @@ fi
 : "${SFAPI_TRANSFER_MACHINE:=dtns}"
 : "${SFAPI_STATE_DIR:=${HOME}/.blah/sfapi_jobs}"
 
-export SFAPI_PYTHON SFAPI_RESOURCE SFAPI_TRANSFER_MACHINE SFAPI_STATE_DIR SFAPI_AUTH_MODE SFAPI_AUTH_FILE SFAPI_USERNAME NERSC_USERNAME
+sfapi_setup_find_auth_file
+
+export SFAPI_PYTHON SFAPI_RESOURCE SFAPI_TRANSFER_MACHINE SFAPI_STATE_DIR SFAPI_AUTH_MODE SFAPI_AUTH_FILE SFAPI_USERNAME NERSC_USERNAME SFAPI_ACCOUNT SFAPI_PROJECT SFAPI_QOS SFAPI_CONSTRAINT
 
 if ! "$SFAPI_PYTHON" -c "import sfapi_client" >/dev/null 2>&1; then
     echo "SFAPI setup error: sfapi_client is not importable with $SFAPI_PYTHON" >&2
