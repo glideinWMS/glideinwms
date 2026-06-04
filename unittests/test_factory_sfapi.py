@@ -519,9 +519,13 @@ class TestSfapiFactoryEnvironment(unittest.TestCase):
             }
         )
 
-        with mock.patch.object(glideFactoryLib.glideFactoryConfig, "GlideinDescript", return_value=glidein_descript), mock.patch.object(
+        with mock.patch.object(
+            glideFactoryLib.glideFactoryConfig, "GlideinDescript", return_value=glidein_descript
+        ), mock.patch.object(
             glideFactoryLib.glideFactoryConfig, "JobDescript", return_value=job_descript
-        ), mock.patch.object(glideFactoryLib.glideFactoryConfig, "JobAttributes", return_value=job_attributes), mock.patch.object(
+        ), mock.patch.object(
+            glideFactoryLib.glideFactoryConfig, "JobAttributes", return_value=job_attributes
+        ), mock.patch.object(
             glideFactoryLib.glideFactoryConfig, "SignatureFile", return_value=signatures
         ), mock.patch.object(
             glideFactoryLib.timeConversion, "get_time_in_format", return_value="20260603"
@@ -533,7 +537,9 @@ class TestSfapiFactoryEnvironment(unittest.TestCase):
                 None,
                 {"SFAPI_TRANSFER_MACHINE": "dtns"},
                 1200,
-                log=types.SimpleNamespace(debug=lambda *args: None, warning=lambda *args: None, exception=lambda *args: None),
+                log=types.SimpleNamespace(
+                    debug=lambda *args: None, warning=lambda *args: None, exception=lambda *args: None
+                ),
             )
 
         self.assertIn("SFAPI_RESOURCE=perlmutter", env)
