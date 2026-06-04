@@ -432,7 +432,6 @@ class TestSfapiHelperStatus(unittest.TestCase):
 class TestSfapiFactoryEnvironment(unittest.TestCase):
     def test_append_sfapi_environment_uses_frontend_auth_file_credential(self):
         install_m2crypto_stub()
-        socket.gethostbyname_ex = lambda name: (name, [], ["127.0.0.1"])
         from glideinwms.factory import glideFactoryLib
 
         job_descript = types.SimpleNamespace(data={"SfapiResource": "perlmutter", "SfapiGliteDir": "/opt/glite"})
@@ -450,17 +449,18 @@ class TestSfapiFactoryEnvironment(unittest.TestCase):
             },
             clear=False,
         ):
-            env = glideFactoryLib.append_sfapi_environment(
-                [],
-                {
-                    "SFAPI_AUTH_MODE": "env",
-                    "SFAPI_CLIENT_ID": "factory-local-client",
-                    "SFAPI_PRIVATE_KEY_JWK": "factory-local-key",
-                    "SFAPI_TRANSFER_MACHINE": "dtns",
-                },
-                job_descript,
-                submit_credentials,
-            )
+            with mock.patch.object(socket, "gethostbyname_ex", return_value=("localhost", [], ["127.0.0.1"])):
+                env = glideFactoryLib.append_sfapi_environment(
+                    [],
+                    {
+                        "SFAPI_AUTH_MODE": "env",
+                        "SFAPI_CLIENT_ID": "factory-local-client",
+                        "SFAPI_PRIVATE_KEY_JWK": "factory-local-key",
+                        "SFAPI_TRANSFER_MACHINE": "dtns",
+                    },
+                    job_descript,
+                    submit_credentials,
+                )
 
         self.assertIn("SFAPI_RESOURCE=perlmutter", env)
         self.assertIn("SFAPI_AUTH_MODE=auth_file", env)
@@ -474,7 +474,6 @@ class TestSfapiFactoryEnvironment(unittest.TestCase):
 
     def test_v3_11_submit_environment_includes_sfapi_auth_file(self):
         install_m2crypto_stub()
-        socket.gethostbyname_ex = lambda name: (name, [], ["127.0.0.1"])
         from glideinwms.factory import glideFactoryLib
         from glideinwms.lib.credentials import CredentialDict, CredentialPurpose
         from glideinwms.lib.credentials.text import TextCredential
@@ -530,17 +529,18 @@ class TestSfapiFactoryEnvironment(unittest.TestCase):
         ), mock.patch.object(
             glideFactoryLib.timeConversion, "get_time_in_format", return_value="20260603"
         ):
-            env = glideFactoryLib.get_submit_environment_v3_11(
-                "entry",
-                "frontend-workspace.main",
-                submit_credentials,
-                None,
-                {"SFAPI_TRANSFER_MACHINE": "dtns"},
-                1200,
-                log=types.SimpleNamespace(
-                    debug=lambda *args: None, warning=lambda *args: None, exception=lambda *args: None
-                ),
-            )
+            with mock.patch.object(socket, "gethostbyname_ex", return_value=("localhost", [], ["127.0.0.1"])):
+                env = glideFactoryLib.get_submit_environment_v3_11(
+                    "entry",
+                    "frontend-workspace.main",
+                    submit_credentials,
+                    None,
+                    {"SFAPI_TRANSFER_MACHINE": "dtns"},
+                    1200,
+                    log=types.SimpleNamespace(
+                        debug=lambda *args: None, warning=lambda *args: None, exception=lambda *args: None
+                    ),
+                )
 
         self.assertIn("SFAPI_RESOURCE=perlmutter", env)
         self.assertIn("SFAPI_AUTH_MODE=auth_file", env)
