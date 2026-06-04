@@ -7,7 +7,7 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 export SFAPI_BLAHP_JOB_ID="${1:-}"
 
 sfapi_cancel_escape() {
-    echo "$1" | sed "s/ /\\\\\\ /g"
+    printf '%s\n' "$1" | sed "s/ /\\\\\\ /g"
 }
 
 sfapi_emit_cancel_failure() {

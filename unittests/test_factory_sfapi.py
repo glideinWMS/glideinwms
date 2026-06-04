@@ -80,26 +80,27 @@ class TestSfapiHelperPureFunctions(unittest.TestCase):
                 return {"imported": data}
 
         jose.JsonWebKey = FakeJsonWebKey
-        sys.modules["authlib"] = authlib
-        sys.modules["authlib.jose"] = jose
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            auth_file = Path(tmpdir) / "sfapi-auth.json"
-            auth_file.write_text(
-                '{"client_id": "frontend-client", "private_key_jwk": {"kty": "RSA", "n": "abc", "e": "AQAB"}}'
-            )
+        with mock.patch.dict(sys.modules, {"authlib": authlib, "authlib.jose": jose}):
+            with tempfile.TemporaryDirectory() as tmpdir:
+                auth_file = Path(tmpdir) / "sfapi-auth.json"
+                auth_file.write_text(
+                    '{"client_id": "frontend-client", "private_key_jwk": {"kty": "RSA", "n": "abc", "e": "AQAB"}}'
+                )
 
-            client_id, key = sfapi_helpers.resolve_auth(
-                {
-                    "SFAPI_AUTH_MODE": "auth_file",
-                    "SFAPI_AUTH_FILE": str(auth_file),
-                    "SFAPI_CLIENT_ID_FILE": "/factory/local/clientid",
-                    "SFAPI_PRIVATE_KEY_JWK_FILE": "/factory/local/key.jwk",
-                }
-            )
+                client_id, key = sfapi_helpers.resolve_auth(
+                    {
+                        "SFAPI_AUTH_MODE": "auth_file",
+                        "SFAPI_AUTH_FILE": str(auth_file),
+                        "SFAPI_CLIENT_ID_FILE": "/factory/local/clientid",
+                        "SFAPI_PRIVATE_KEY_JWK_FILE": "/factory/local/key.jwk",
+                    }
+                )
 
         self.assertEqual("frontend-client", client_id)
         self.assertEqual({"imported": {"kty": "RSA", "n": "abc", "e": "AQAB"}}, key)
+        self.assertNotIn("authlib", sys.modules)
+        self.assertNotIn("authlib.jose", sys.modules)
 
     def test_resolve_auth_without_auth_file_does_not_use_factory_defaults(self):
         from glideinwms.factory.sfapi import sfapi_helpers
@@ -318,6 +319,18 @@ class TestSfapiLocalSubmitAttributes(unittest.TestCase):
         output = self.run_local_submit_attributes({"WALLTIME": "02:00:00"})
 
         self.assertIn("#SBATCH --time=02:00:00\n", output)
+
+
+class TestSfapiShellSafety(unittest.TestCase):
+    def test_submit_script_does_not_use_eval_to_parse_environment(self):
+        script = Path(__file__).resolve().parents[1] / "factory/sfapi/sfapi_submit.sh"
+
+        self.assertNotIn("eval ", script.read_text())
+
+    def test_cancel_escape_uses_printf_for_arbitrary_text(self):
+        script = Path(__file__).resolve().parents[1] / "factory/sfapi/sfapi_cancel.sh"
+
+        self.assertIn("printf '%s\\n' \"$1\"", script.read_text())
 
 
 class TestSfapiStatusScript(unittest.TestCase):

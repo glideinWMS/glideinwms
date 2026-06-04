@@ -10,11 +10,47 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 bls_submit_args_prefix="#SBATCH"
 bls_parse_submit_options "$@"
 
-sfapi_import_blah_environment() {
-    local env_payload="${bls_opt_environment:-}"
-    if [ "x$env_payload" = "x" ]; then
-        env_payload="${bls_opt_envir:-}"
+sfapi_environment_payload() {
+    if [ -n "${bls_opt_environment:-}" ]; then
+        printf '%s\n' "$bls_opt_environment"
+    elif [ -n "${bls_opt_envir:-}" ]; then
+        printf '%s\n' "$bls_opt_envir"
     fi
+}
+
+sfapi_split_environment() {
+    printf '%s\n' "$1" | sed 's/\\ /\n/g; s/;/\n/g'
+}
+
+sfapi_valid_env_name() {
+    case "$1" in
+        ""|[0-9]*|*[!A-Za-z0-9_]*)
+            return 1
+            ;;
+    esac
+    return 0
+}
+
+sfapi_shell_quote() {
+    printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
+}
+
+sfapi_should_import_env() {
+    case "$1" in
+        SFAPI_AUTH_MODE|SFAPI_AUTH_FILE|SFAPI_PYTHON|SFAPI_VENV|SFAPI_RESOURCE|SFAPI_TRANSFER_MACHINE)
+            return 0
+            ;;
+        SFAPI_STATE_DIR|SFAPI_USERNAME|NERSC_USERNAME|SFAPI_ACCOUNT|SFAPI_PROJECT|SFAPI_QOS|SFAPI_CONSTRAINT)
+            return 0
+            ;;
+    esac
+    return 1
+}
+
+sfapi_import_blah_environment() {
+    local env_payload
+    local env_name
+    env_payload="$(sfapi_environment_payload)"
     if [ "x$env_payload" = "x" ]; then
         return
     fi
@@ -23,13 +59,12 @@ sfapi_import_blah_environment() {
         env_line="${env_line//\\/}"
         env_line="${env_line#;}"
         for env_var in $env_line; do
-            case "$env_var" in
-                SFAPI_AUTH_MODE=*|SFAPI_AUTH_FILE=*|SFAPI_PYTHON=*|SFAPI_VENV=*|SFAPI_RESOURCE=*|SFAPI_TRANSFER_MACHINE=*|SFAPI_STATE_DIR=*|SFAPI_USERNAME=*|NERSC_USERNAME=*|SFAPI_ACCOUNT=*|SFAPI_PROJECT=*|SFAPI_QOS=*|SFAPI_CONSTRAINT=*)
-                    export "$env_var"
-                    ;;
-            esac
+            env_name="${env_var%%=*}"
+            if sfapi_should_import_env "$env_name"; then
+                export "$env_var"
+            fi
         done
-    done < <(printf '%s\n' "$env_payload" | sed 's/\\ /\n/g; s/;/\n/g')
+    done < <(sfapi_split_environment "$env_payload")
 }
 
 sfapi_import_blah_environment
@@ -84,20 +119,32 @@ sfapi_add_file_list() {
 }
 
 sfapi_emit_environment() {
-    if [ "x$bls_opt_environment" != "x" ]; then
+    local env_payload
+    local env_name
+    local env_value
+    local env_var
+
+    env_payload="$(sfapi_environment_payload)"
+    if [ "x$env_payload" != "x" ]; then
         echo ""
         echo "# Setting the environment:"
-        eval "env_array=($bls_opt_environment)"
-        for env_var in "${env_array[@]}"; do
-            case "$env_var" in
-                SFAPI_*=*) continue ;;
-            esac
-            echo "export \"$env_var\""
-        done
-    elif [ "x$bls_opt_envir" != "x" ]; then
-        echo ""
-        echo "# Setting the environment:"
-        echo "$(echo ";$bls_opt_envir" | sed -e 's/;[^=]*;/;/g' -e 's/;[^=]*$//g' | sed -e 's/;\([^=]*\)=\([^;]*\)/;export \1="\2"/g' | awk 'BEGIN { RS = ";" } ; { print $0 }')"
+        while IFS= read -r env_line; do
+            env_line="${env_line//\\/}"
+            env_line="${env_line#;}"
+            for env_var in $env_line; do
+                case "$env_var" in
+                    SFAPI_*=*) continue ;;
+                    *=*) ;;
+                    *) continue ;;
+                esac
+                env_name="${env_var%%=*}"
+                env_value="${env_var#*=}"
+                if ! sfapi_valid_env_name "$env_name"; then
+                    continue
+                fi
+                printf 'export %s=%s\n' "$env_name" "$(sfapi_shell_quote "$env_value")"
+            done
+        done < <(sfapi_split_environment "$env_payload")
     fi
 }
 
