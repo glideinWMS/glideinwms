@@ -78,6 +78,13 @@ warn_raw() {
     echo "$@" 1>&2
 }
 
+is_true_value() {
+    case "$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | tr -d "[:space:]'\"")" in
+        1|true|yes) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 
 ################################################################################
 #
@@ -174,25 +181,33 @@ info_dbg "$GWMS_THIS_SCRIPT, in $(pwd), list: $(ls -al)"
 if [[ -z "$GWMS_SINGULARITY_REEXEC" ]]; then
     # Outside Singularity - Run this only on the 1st invocation
     info_dbg "GWMS singularity wrapper, first invocation"
-    # Set up environment to know if Singularity is enabled and so we can execute Singularity
-    # In the Glidein/setup: use the current environment or glidein_config, not the HTCondor ClassAd (condor not started yet)
-    setup_from_environment
 
-    # Check if singularity is disabled or enabled
-    # This script could run when singularity is optional and not wanted
-    # So should not fail but exec w/o running Singularity
-
-    if [[ "$HAS_SINGULARITY" = "1"  &&  -n "$GWMS_SINGULARITY_PATH" ]]; then
-        # Will run w/ Singularity - prepare for it
-        info_dbg "GWMS singularity wrapper, decided to use singularity ($HAS_SINGULARITY, $GWMS_SINGULARITY_PATH). Proceeding w/ tests and setup."
-        # If a repo CVMFS_REPOS_LIST is not available exit with 1
-        cvmfs_test_and_open "$CVMFS_REPOS_LIST" exit_wrapper
-        # Re-invoke this script in singularity
-        singularity_prepare_and_invoke "$@"
-        # If we arrive here, then something failed in Singularity but is OK to continue w/o
+    if is_true_value "$GLIDEIN_SINGULARITY_USE_HTCONDOR"; then
+        # HTCondor is managing the container launch. Skip only the wrapper's
+        # Singularity launch step, then run in-container setup if a container exists.
+        info_dbg "GWMS singularity wrapper, using HTCondor-managed Singularity."
+        singularity_htcondor_setup_inside
     else
-        # First execution, no Singularity.
-        info_dbg "GWMS singularity wrapper, first invocation, not using singularity ($HAS_SINGULARITY, $GWMS_SINGULARITY_PATH)"
+        # Set up environment to know if Singularity is enabled and so we can execute Singularity
+        # In the Glidein/setup: use the current environment or glidein_config, not the HTCondor ClassAd (condor not started yet)
+        setup_from_environment
+
+        # Check if singularity is disabled or enabled
+        # This script could run when singularity is optional and not wanted
+        # So should not fail but exec w/o running Singularity
+
+        if [[ "$HAS_SINGULARITY" = "1"  &&  -n "$GWMS_SINGULARITY_PATH" ]]; then
+            # Will run w/ Singularity - prepare for it
+            info_dbg "GWMS singularity wrapper, decided to use singularity ($HAS_SINGULARITY, $GWMS_SINGULARITY_PATH). Proceeding w/ tests and setup."
+            # If a repo CVMFS_REPOS_LIST is not available exit with 1
+            cvmfs_test_and_open "$CVMFS_REPOS_LIST" exit_wrapper
+            # Re-invoke this script in singularity
+            singularity_prepare_and_invoke "$@"
+            # If we arrive here, then something failed in Singularity but is OK to continue w/o
+        else
+            # First execution, no Singularity.
+            info_dbg "GWMS singularity wrapper, first invocation, not using singularity ($HAS_SINGULARITY, $GWMS_SINGULARITY_PATH)"
+        fi
     fi
 
 else
