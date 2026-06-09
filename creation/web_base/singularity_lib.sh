@@ -375,6 +375,13 @@ singularity_htcondor_classad_quote() {
     printf '"%s"' "$value"
 }
 
+singularity_htcondor_is_true_value() {
+    case "$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | tr -d "[:space:]'\"")" in
+        1|true|yes) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 singularity_htcondor_is_false_value() {
     case "$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | tr -d "[:space:]'\"")" in
         0|false|no) return 0 ;;

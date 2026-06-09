@@ -172,34 +172,41 @@ if [[ -z "$GWMS_SINGULARITY_REEXEC" ]]; then
 
     info_dbg "GWMS singularity wrapper, first invocation"
 
-    # Set up environment to know if Singularity is enabled and so we can execute Singularity
-    setup_classad_variables
+    if singularity_htcondor_is_true_value "$GLIDEIN_SINGULARITY_USE_HTCONDOR"; then
+        # HTCondor has already launched the container. Keep the GWMS wrapper's
+        # in-container setup, but do not invoke Singularity/Apptainer again.
+        info_dbg "GWMS singularity wrapper, using HTCondor-managed Singularity."
+        singularity_htcondor_setup_inside
+    else
+        # Set up environment to know if Singularity is enabled and so we can execute Singularity
+        setup_classad_variables
 
-    # Check if singularity is disabled or enabled
-    # This script could run when singularity is optional and not wanted
-    # So should not fail but exec w/o running Singularity
+        # Check if singularity is disabled or enabled
+        # This script could run when singularity is optional and not wanted
+        # So should not fail but exec w/o running Singularity
 
-    if [[ "$HAS_SINGULARITY" = "1" && -n "$GWMS_SINGULARITY_PATH" ]]; then
-        #############################################################################
-        #
-        # Will run w/ Singularity - prepare for it
-        # From here on the script assumes it has to run w/ Singularity
-        #
-        info_dbg "Decided to use singularity ($HAS_SINGULARITY, $GWMS_SINGULARITY_PATH). Proceeding w/ tests and setup."
+        if [[ "$HAS_SINGULARITY" = "1" && -n "$GWMS_SINGULARITY_PATH" ]]; then
+            #############################################################################
+            #
+            # Will run w/ Singularity - prepare for it
+            # From here on the script assumes it has to run w/ Singularity
+            #
+            info_dbg "Decided to use singularity ($HAS_SINGULARITY, $GWMS_SINGULARITY_PATH). Proceeding w/ tests and setup."
 
-        # We make sure that every cvmfs repository that users specify in CVMFSReposList is available,
-        # otherwise this script exits with 1
-        cvmfs_test_and_open "$CVMFS_REPOS_LIST" exit_wrapper
+            # We make sure that every cvmfs repository that users specify in CVMFSReposList is available,
+            # otherwise this script exits with 1
+            cvmfs_test_and_open "$CVMFS_REPOS_LIST" exit_wrapper
 
-        # Removed local prepare_and_invoke_singularity in favor of singularity_lib.sh
-        # function singularity_prepare_and_invoke (was: CodeRM1)
-        singularity_prepare_and_invoke "${@}"
+            # Removed local prepare_and_invoke_singularity in favor of singularity_lib.sh
+            # function singularity_prepare_and_invoke (was: CodeRM1)
+            singularity_prepare_and_invoke "${@}"
 
-        # If we arrive here, then something failed in Singularity but is OK to continue w/o
+            # If we arrive here, then something failed in Singularity but is OK to continue w/o
 
-    else #if [ "x$HAS_SINGULARITY" = "x1" -a "xSINGULARITY_PATH" != "x" ];
-        # First execution, no Singularity.
-        info_dbg "GWMS singularity wrapper, first invocation, not using singularity ($HAS_SINGULARITY, $GWMS_SINGULARITY_PATH)"
+        else #if [ "x$HAS_SINGULARITY" = "x1" -a "xSINGULARITY_PATH" != "x" ];
+            # First execution, no Singularity.
+            info_dbg "GWMS singularity wrapper, first invocation, not using singularity ($HAS_SINGULARITY, $GWMS_SINGULARITY_PATH)"
+        fi
     fi
 
 else

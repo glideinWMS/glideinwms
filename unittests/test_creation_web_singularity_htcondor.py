@@ -17,6 +17,7 @@ CONDOR_STARTUP = Path("../creation/web_base/condor_startup.sh").resolve()
 SINGULARITY_SETUP = Path("../creation/web_base/singularity_setup.sh").resolve()
 SINGULARITY_LIB = Path("../creation/web_base/singularity_lib.sh").resolve()
 SINGULARITY_WRAPPER = Path("../creation/web_base/singularity_wrapper.sh").resolve()
+DEFAULT_SINGULARITY_WRAPPER = Path("../creation/web_base/frontend/default_singularity_wrapper.sh").resolve()
 CONFIG_ATTRIBUTES = Path("../creation/lib/config_attributes.txt").resolve()
 
 
@@ -133,6 +134,12 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
         self.assertEqual(
             ["setup_classad_variables", "gwms_process_scripts", "payload"],
             self.run_singularity_wrapper_htcondor_mode(in_container=False),
+        )
+
+    def test_default_singularity_wrapper_htcondor_mode_skips_reexec_and_runs_inside_setup(self):
+        self.assertEqual(
+            ["singularity_htcondor_setup_inside", "setup_classad_variables", "singularity_setup_inside", "gwms_process_scripts"],
+            self.run_default_singularity_wrapper_htcondor_mode(in_container=True),
         )
 
     def test_condor_startup_falls_back_without_flag_or_binary(self):
@@ -440,6 +447,80 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
 
         result = subprocess.run(
             ["bash", str(wrapper), str(payload), str(config), "main"],
+            cwd=str(tmp),
+            check=False,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+        self.assertEqual(0, result.returncode, "stdout:\n%s\nstderr:\n%s" % (result.stdout, result.stderr))
+        return calls.read_text().splitlines()
+
+    def run_default_singularity_wrapper_htcondor_mode(self, in_container):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        wrapper = tmp / "default_singularity_wrapper.sh"
+        calls = tmp / "calls.log"
+        main = tmp / "main"
+        main.mkdir()
+        gwms_dir = tmp / "gwms"
+        gwms_dir.mkdir()
+        (gwms_dir / "bin").mkdir()
+        shutil.copy(DEFAULT_SINGULARITY_WRAPPER, wrapper)
+        wrapper.chmod(0o755)
+        (main / "singularity_lib.sh").write_text(textwrap.dedent("""\
+                info_dbg() { :; }
+                warn() { echo "$*" >&2; }
+                warn_raw() { echo "$*" >&2; }
+                setup_classad_variables() {
+                    echo setup_classad_variables >> "$CALLS"
+                    HAS_SINGULARITY=1
+                    GWMS_SINGULARITY_PATH=/usr/bin/apptainer
+                }
+                cvmfs_test_and_open() { :; }
+                singularity_check() {
+                    if [ -n "$SINGULARITY_CONTAINER" ]; then
+                        echo yes
+                        return 0
+                    fi
+                    return 1
+                }
+                singularity_prepare_and_invoke() {
+                    echo singularity_prepare_and_invoke >> "$CALLS"
+                    exit 42
+                }
+                singularity_htcondor_is_true_value() {
+                    case "$1" in
+                        1|true|True|TRUE|yes|Yes|YES) return 0 ;;
+                        *) return 1 ;;
+                    esac
+                }
+                singularity_htcondor_setup_inside() {
+                    echo singularity_htcondor_setup_inside >> "$CALLS"
+                    setup_classad_variables
+                    if singularity_check >/dev/null; then
+                        echo singularity_setup_inside >> "$CALLS"
+                    fi
+                }
+                singularity_setup_inside() { echo singularity_setup_inside >> "$CALLS"; }
+                gwms_process_scripts() { echo gwms_process_scripts >> "$CALLS"; }
+                """))
+        payload = tmp / "payload.sh"
+        payload.write_text("#!/bin/sh\nexit 0\n")
+        payload.chmod(0o755)
+
+        env = {
+            "CALLS": str(calls),
+            "GLIDEIN_SINGULARITY_USE_HTCONDOR": "1",
+            "GWMS_DIR": str(gwms_dir),
+        }
+        if in_container:
+            env["SINGULARITY_CONTAINER"] = "/cvmfs/example/default.sif"
+
+        result = subprocess.run(
+            ["bash", str(wrapper), str(payload)],
             cwd=str(tmp),
             check=False,
             env=env,
