@@ -11,10 +11,18 @@ sfapi_emit_sbatch() {
     fi
 }
 
+sfapi_walltime() {
+    if [ -n "${Walltime:-${WALLTIME:-}}" ]; then
+        printf '%s\n' "${Walltime:-${WALLTIME:-}}"
+    elif [ -n "${maxWallTime:-}" ]; then
+        printf '%s\n' "$maxWallTime"
+    fi
+}
+
 sfapi_emit_sbatch "--nodes" "${NODES:-}"
 sfapi_emit_sbatch "--ntasks" "${CORES:-}"
 sfapi_emit_sbatch "--gpus" "${GPUS:-}"
-sfapi_emit_sbatch "--time" "${Walltime:-${WALLTIME:-}}"
+sfapi_emit_sbatch "--time" "$(sfapi_walltime)"
 sfapi_emit_sbatch "--mem-per-cpu" "${PER_PROCESS_MEMORY:-}"
 sfapi_emit_sbatch "--mem" "${TOTAL_MEMORY:-}"
 sfapi_emit_sbatch "--job-name" "${JOBNAME:-}"

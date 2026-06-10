@@ -383,7 +383,18 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             )
 
     def populate_submit_attrs(self, submit_attrs, gridtype, attr_prefix=""):
+        batch_runtime = None
+        has_batch_runtime = False
         for submit_attr in submit_attrs:
+            attr_name = submit_attr["name"]
+            if attr_name == "batch_runtime":
+                has_batch_runtime = True
+            elif gridtype == "batch sfapi" and attr_name == "+maxWallTime":
+                try:
+                    batch_runtime = int(str(submit_attr["value"]).strip("'\"")) * 60
+                except ValueError:
+                    batch_runtime = None
+
             if (
                 submit_attr.get("all_grid_types", "False") == "True"
                 or gridtype.startswith("batch ")
@@ -392,7 +403,10 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 # TODO: If switching to f-string, must use different quotes in the following line
                 #  to avoid error w/ f-string (fixed in Py 3.12) - check that formatter is not changing things
                 # self.add(f'{attr_prefix}{submit_attr["name"]}', submit_attr["value"])
-                self.add("{}{}".format(attr_prefix, submit_attr["name"]), submit_attr["value"])
+                self.add("{}{}".format(attr_prefix, attr_name), submit_attr["value"])
+
+        if gridtype == "batch sfapi" and batch_runtime is not None and not has_batch_runtime:
+            self.add("batch_runtime", str(batch_runtime))
 
     def populate_gridtype_diagnostics(self, gridtype):
         if gridtype == "batch sfapi":

@@ -302,6 +302,21 @@ class TestSfapiSubmitFileGeneration(unittest.TestCase):
 
         self.assertEqual("batch sfapi --rgahp-glite /opt/glite api.nersc.gov", submit["Grid_Resource"])
 
+    def test_batch_sfapi_max_walltime_sets_batch_runtime(self):
+        install_m2crypto_stub()
+        from glideinwms.creation.lib.cgWCreate import GlideinSubmitDictFile
+
+        submit_attrs = [FakeNode({"name": "+maxWallTime", "value": "120"})]
+        entry = make_sfapi_entry()
+        entry.get_child("config").get_child("submit").lists["submit_attrs"] = submit_attrs
+        conf = make_factory_conf()
+        submit = GlideinSubmitDictFile(tempfile.gettempdir(), "job.condor")
+
+        submit.populate("glidein_startup.sh", "SFAPI", conf, entry)
+
+        self.assertEqual("120", submit["+maxWallTime"])
+        self.assertEqual("7200", submit["batch_runtime"])
+
 
 class TestSfapiLocalSubmitAttributes(unittest.TestCase):
     def run_local_submit_attributes(self, extra_env):
@@ -320,6 +335,17 @@ class TestSfapiLocalSubmitAttributes(unittest.TestCase):
 
         self.assertIn("#SBATCH --time=02:00:00\n", output)
 
+    def test_accepts_condor_max_walltime_attribute(self):
+        output = self.run_local_submit_attributes({"maxWallTime": "120"})
+
+        self.assertIn("#SBATCH --time=120\n", output)
+
+    def test_bosco_walltime_overrides_max_walltime(self):
+        output = self.run_local_submit_attributes({"Walltime": "02:00:00", "maxWallTime": "120"})
+
+        self.assertIn("#SBATCH --time=02:00:00\n", output)
+        self.assertNotIn("#SBATCH --time=120\n", output)
+
 
 class TestSfapiShellSafety(unittest.TestCase):
     def test_submit_script_does_not_use_eval_to_parse_environment(self):
@@ -331,6 +357,13 @@ class TestSfapiShellSafety(unittest.TestCase):
         script = Path(__file__).resolve().parents[1] / "factory/sfapi/sfapi_cancel.sh"
 
         self.assertIn("printf '%s\\n' \"$1\"", script.read_text())
+
+    def test_setup_x509_protects_copied_idtokens(self):
+        script = Path(__file__).resolve().parents[1] / "creation/web_base/setup_x509.sh"
+        text = script.read_text()
+
+        self.assertIn('safe_copy_and_protect "$tok" "$token_dest"', text)
+        self.assertIn('safe_copy_and_protect "$i" "$to_dir/$i"', text)
 
 
 class TestSfapiStatusScript(unittest.TestCase):
