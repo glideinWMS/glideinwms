@@ -78,13 +78,6 @@ warn_raw() {
     echo "$@" 1>&2
 }
 
-is_true_value() {
-    case "$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | tr -d "[:space:]'\"")" in
-        1|true|yes) return 0 ;;
-        *) return 1 ;;
-    esac
-}
-
 
 ################################################################################
 #
@@ -182,7 +175,7 @@ if [[ -z "$GWMS_SINGULARITY_REEXEC" ]]; then
     # Outside Singularity - Run this only on the 1st invocation
     info_dbg "GWMS singularity wrapper, first invocation"
 
-    if is_true_value "$GLIDEIN_SINGULARITY_USE_HTCONDOR"; then
+    if singularity_is_true_value "$GLIDEIN_SINGULARITY_USE_HTCONDOR"; then
         # HTCondor is managing the container launch. Skip only the wrapper's
         # Singularity launch step, then run in-container setup if a container exists.
         info_dbg "GWMS singularity wrapper, using HTCondor-managed Singularity."

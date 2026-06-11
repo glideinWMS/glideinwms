@@ -375,21 +375,21 @@ singularity_htcondor_classad_quote() {
     printf '"%s"' "$value"
 }
 
-singularity_htcondor_is_true_value() {
+singularity_is_true_value() {
     case "$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | tr -d "[:space:]'\"")" in
         1|true|yes) return 0 ;;
         *) return 1 ;;
     esac
 }
 
-singularity_htcondor_is_false_value() {
+singularity_is_false_value() {
     case "$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | tr -d "[:space:]'\"")" in
         0|false|no) return 0 ;;
         *) return 1 ;;
     esac
 }
 
-singularity_htcondor_list_contains_item() {
+singularity_list_contains_item() {
     # Return true if a comma-separated config list allows an item. Empty and
     # "any" both mean unrestricted, matching the wrapper's REQUIRED_OS policy.
     local list="${1:-any}"
@@ -449,7 +449,7 @@ singularity_htcondor_image_expr() {
         [[ ",$seen_platforms," = *",$platform,"* ]] && continue
         seen_platforms="${seen_platforms:+$seen_platforms,}$platform"
         image=$(dict_get_val htcondor_images_dict_tmp "$platform")
-        singularity_htcondor_list_contains_item "$entry_required_os" "$platform" || continue
+        singularity_list_contains_item "$entry_required_os" "$platform" || continue
         singularity_htcondor_image_allowed_by_restrictions "$image" "$image_restrictions" || continue
         expression_platforms="${platform}${expression_platforms:+,$expression_platforms}"
     done
@@ -2122,11 +2122,6 @@ singularity_default_platform_order() {
 }
 
 
-singularity_get_required_os_platforms() {
-    list_get_intersection "${1:-any}" "${2:-any}"
-}
-
-
 singularity_select_launch_image() {
     local desired_os="$1"
     local image_restrictions="$2"
@@ -2211,7 +2206,7 @@ singularity_prepare_and_invoke() {
         # Use OS matching to determine default; otherwise, set to the global default.
         #  # Correct some legacy names? What if they are used in the dictionary?
         #  REQUIRED_OS="`echo ",$REQUIRED_OS," | sed "s/,el7,/,rhel7,/;s/,el6,/,rhel6,/;s/,+/,/g;s/^,//;s/,$//"`"
-        DESIRED_OS=$(singularity_get_required_os_platforms "${GLIDEIN_REQUIRED_OS:-any}" "${REQUIRED_OS:-any}")
+        DESIRED_OS=$(list_get_intersection "${GLIDEIN_REQUIRED_OS:-any}" "${REQUIRED_OS:-any}")
         if [[ -z "$DESIRED_OS" ]]; then
             msg="ERROR   VO (or job) REQUIRED_OS and Entry GLIDEIN_REQUIRED_OS have no intersection. Cannot select a Singularity image."
             singularity_exit_or_fallback "$msg" 1

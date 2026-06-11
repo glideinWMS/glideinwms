@@ -172,7 +172,7 @@ if [[ -z "$GWMS_SINGULARITY_REEXEC" ]]; then
 
     info_dbg "GWMS singularity wrapper, first invocation"
 
-    if singularity_htcondor_is_true_value "$GLIDEIN_SINGULARITY_USE_HTCONDOR"; then
+    if singularity_is_true_value "$GLIDEIN_SINGULARITY_USE_HTCONDOR"; then
         # HTCondor has already launched the container. Keep the GWMS wrapper's
         # in-container setup, but do not invoke Singularity/Apptainer again.
         info_dbg "GWMS singularity wrapper, using HTCondor-managed Singularity."

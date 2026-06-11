@@ -76,6 +76,8 @@ add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$config_file" | cu
 . "$add_config_line_source"
 error_gen=$(gconfig_get ERROR_GEN_PATH "$config_file")
 
+# Local copy of singularity_lib.sh's singularity_is_true_value: it gates whether
+# singularity_lib.sh gets sourced at all, so it cannot come from the lib itself.
 is_true_config_value() {
     case "$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | tr -d "[:space:]'\"")" in
         1|true|yes) return 0 ;;
@@ -203,7 +205,7 @@ done
 if [[ "$gwms_singularity_use_htcondor" = "1" ]]; then
     gwms_default_image=$(gconfig_get GWMS_SINGULARITY_IMAGE "$config_file")
     gwms_bind_cvmfs=$(gconfig_get GWMS_SINGULARITY_BIND_CVMFS "$config_file")
-    if singularity_htcondor_is_false_value "$gwms_bind_cvmfs"; then
+    if singularity_is_false_value "$gwms_bind_cvmfs"; then
         GWMS_SINGULARITY_BIND_CVMFS=0
     else
         GWMS_SINGULARITY_BIND_CVMFS=1

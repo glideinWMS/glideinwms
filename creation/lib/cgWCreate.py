@@ -48,6 +48,9 @@ def create_condor_tar_fd(condor_base_dir):
             "lib/condor",
             "lib/libgetpwnam.so",
         ]
+        # RPM-layout lib files whose source path may be a symlink: register here
+        # (not directly in condor_bins_map) so the archive entry gets symlink
+        # resolution with the escape guard before tarring.
         condor_opt_libs_map = {
             "lib64/condor/condor_ssh_to_job_sshd_config_template": "lib/condor_ssh_to_job_sshd_config_template",
             "lib64/condor/libgetpwnam.so": "lib/libgetpwnam.so",
@@ -72,10 +75,9 @@ def create_condor_tar_fd(condor_base_dir):
 
         # for RPM installations, add libexec/condor as libexec into the
         # tarball instead
-        condor_bins_map = {}
+        condor_bins_map = dict(condor_opt_libs_map)
         condor_opt_libexecs_rpm = []
 
-        condor_bins_map.update(condor_opt_libs_map)
         for libexec in condor_opt_libexecs:
             libexec_rpm = libexec.replace("libexec", "libexec/condor")
             condor_opt_libexecs_rpm.append(libexec_rpm)

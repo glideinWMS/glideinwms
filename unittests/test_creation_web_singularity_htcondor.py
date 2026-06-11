@@ -138,7 +138,12 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
 
     def test_default_singularity_wrapper_htcondor_mode_skips_reexec_and_runs_inside_setup(self):
         self.assertEqual(
-            ["singularity_htcondor_setup_inside", "setup_classad_variables", "singularity_setup_inside", "gwms_process_scripts"],
+            [
+                "singularity_htcondor_setup_inside",
+                "setup_classad_variables",
+                "singularity_setup_inside",
+                "gwms_process_scripts",
+            ],
             self.run_default_singularity_wrapper_htcondor_mode(in_container=True),
         )
 
@@ -420,6 +425,12 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
                     echo singularity_prepare_and_invoke >> "$CALLS"
                     exit 42
                 }
+                singularity_is_true_value() {
+                    case "$1" in
+                        1|true|True|TRUE|yes|Yes|YES) return 0 ;;
+                        *) return 1 ;;
+                    esac
+                }
                 singularity_htcondor_setup_inside() {
                     echo setup_classad_variables >> "$CALLS"
                     if [ -n "$SINGULARITY_CONTAINER" ]; then
@@ -491,7 +502,7 @@ class TestHtcondorManagedSingularity(unittest.TestCase):
                     echo singularity_prepare_and_invoke >> "$CALLS"
                     exit 42
                 }
-                singularity_htcondor_is_true_value() {
+                singularity_is_true_value() {
                     case "$1" in
                         1|true|True|TRUE|yes|Yes|YES) return 0 ;;
                         *) return 1 ;;
