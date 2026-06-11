@@ -33,7 +33,7 @@ def _require_env(env, key):
 
 
 def _import_jwk(jwk_data):
-    from authlib.jose import JsonWebKey
+    from authlib.jose import JsonWebKey  # pylint: disable=import-error
 
     if isinstance(jwk_data, str):
         jwk_data = json.loads(jwk_data)
@@ -71,7 +71,7 @@ def resolve_auth(env=None):
 
 
 def make_client(auth_required=True):
-    from sfapi_client import Client
+    from sfapi_client import Client  # pylint: disable=import-error
 
     if not auth_required:
         return Client()
@@ -219,7 +219,7 @@ def upload_input_file(transfer_compute, remote_path_cls, local_path, remote_dir)
 
 def download_job_outputs(blahp_job_id, transfer_compute, remote_path_cls=None, state_dir=None):
     if remote_path_cls is None:
-        from sfapi_client._sync.paths import RemotePath as remote_path_cls
+        from sfapi_client._sync.paths import RemotePath as remote_path_cls  # pylint: disable=import-error
 
     state_path = jobstate_path(blahp_job_id, state_dir=state_dir)
     for _kind, local_path, remote_path in iter_jobstate_entries(state_path):
@@ -234,7 +234,7 @@ def download_job_outputs(blahp_job_id, transfer_compute, remote_path_cls=None, s
 
 
 def submit(args):
-    from sfapi_client._sync.paths import RemotePath
+    from sfapi_client._sync.paths import RemotePath  # pylint: disable=import-error
 
     job_name = Path(args.job_name).name
     remote_dir = build_remote_workdir(job_name)
@@ -256,7 +256,7 @@ def submit(args):
 
 
 def get_job_state(compute, job_id):
-    from sfapi_client._jobs import JobCommand
+    from sfapi_client._jobs import JobCommand  # pylint: disable=import-error
 
     for command in (JobCommand.squeue, JobCommand.sacct):
         try:

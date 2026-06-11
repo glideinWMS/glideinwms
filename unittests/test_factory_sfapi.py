@@ -19,27 +19,6 @@ from pathlib import Path
 from unittest import mock
 
 
-def install_m2crypto_stub():
-    """Allow importing Factory modules on systems without M2Crypto."""
-
-    if "M2Crypto" in sys.modules:
-        return
-
-    m2crypto = types.ModuleType("M2Crypto")
-    for submodule in ("BIO", "Err", "EVP", "RSA", "Rand", "X509"):
-        module = types.ModuleType("M2Crypto.%s" % submodule)
-        setattr(m2crypto, submodule, module)
-        sys.modules["M2Crypto.%s" % submodule] = module
-
-    m2crypto.RSA.no_padding = 0
-    m2crypto.RSA.pkcs1_padding = 1
-    m2crypto.RSA.pkcs1_oaep_padding = 2
-    m2crypto.RSA.sslv23_padding = 3
-    m2crypto.RSA.RSAError = Exception
-    m2crypto.BIO.BIOError = Exception
-    sys.modules["M2Crypto"] = m2crypto
-
-
 class TestSfapiHelperPureFunctions(unittest.TestCase):
     def test_remote_workdir_uses_pscratch_user_bucket(self):
         from glideinwms.factory.sfapi import sfapi_helpers
@@ -271,7 +250,6 @@ def make_factory_conf():
 
 class TestSfapiSubmitFileGeneration(unittest.TestCase):
     def test_batch_sfapi_submit_file_uses_sfapi_resource_without_bosco_assumptions(self):
-        install_m2crypto_stub()
         from glideinwms.creation.lib.cgWCreate import GlideinSubmitDictFile
 
         submit_attrs = [FakeNode({"name": "+PrototypeAttr", "value": '"yes"'})]
@@ -291,7 +269,6 @@ class TestSfapiSubmitFileGeneration(unittest.TestCase):
         self.assertEqual('"$ENV(SFAPI_TRANSFER_MACHINE:dtns)"', submit["+GlideinSFAPITransferMachine"])
 
     def test_batch_sfapi_grid_resource_uses_configured_glite_dir(self):
-        install_m2crypto_stub()
         from glideinwms.creation.lib.cgWCreate import GlideinSubmitDictFile
 
         entry = make_sfapi_entry(sfapi_glite_dir="/opt/glite")
@@ -303,7 +280,6 @@ class TestSfapiSubmitFileGeneration(unittest.TestCase):
         self.assertEqual("batch sfapi --rgahp-glite /opt/glite api.nersc.gov", submit["Grid_Resource"])
 
     def test_batch_sfapi_max_walltime_sets_batch_runtime(self):
-        install_m2crypto_stub()
         from glideinwms.creation.lib.cgWCreate import GlideinSubmitDictFile
 
         submit_attrs = [FakeNode({"name": "+maxWallTime", "value": "120"})]
@@ -477,7 +453,6 @@ class TestSfapiHelperStatus(unittest.TestCase):
 
 class TestSfapiFactoryEnvironment(unittest.TestCase):
     def test_append_sfapi_environment_uses_frontend_auth_file_credential(self):
-        install_m2crypto_stub()
         from glideinwms.factory import glideFactoryLib
 
         job_descript = types.SimpleNamespace(data={"SfapiResource": "perlmutter", "SfapiGliteDir": "/opt/glite"})
@@ -519,7 +494,6 @@ class TestSfapiFactoryEnvironment(unittest.TestCase):
         self.assertFalse(any(item.startswith("GLIDEIN_REMOTE_USERNAME=") for item in env))
 
     def test_v3_11_submit_environment_includes_sfapi_auth_file(self):
-        install_m2crypto_stub()
         from glideinwms.factory import glideFactoryLib
         from glideinwms.lib.credentials import CredentialDict, CredentialPurpose
         from glideinwms.lib.credentials.text import TextCredential
