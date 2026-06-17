@@ -3,8 +3,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-USAGE_STR="$0 [-h] TAG USER PRINC [REPO]
-Buold the source tarball and upload it to the OSG library (now using osg-sw-submit.chtc.wisc.edu and AFS via Krb auth)
+USAGE_STR="$0 [-h] TAG USER [REPO]
+Build the source tarball and upload it to the OSG library (now using osg-sw-submit.chtc.wisc.edu and AFS via Krb auth)
  TAG       - tag or branch ID in the Git repository (branch pointers change, use a branch name only for scratch builds)
  USER      - username on the OSG build machine
  REPO      - url of the Git repository (default: https://github.com/glideinWMS/glideinwms.git)
