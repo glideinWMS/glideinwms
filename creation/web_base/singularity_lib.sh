@@ -1070,20 +1070,22 @@ cvmfs_test_and_open() {
     #  CVMFS_MOUNT_DIR
     # Used in wrapper, must be busybox compatible
     info_dbg "Testing CVMFS Repos List = $1"
-    holdfd=3
+    local holdfd=3
     local cvmfs_mount=/cvmfs
+    local expanded_path
     cvmfs_set_mount_dir
     [[ -n "$CVMFS_MOUNT_DIR" ]] && cvmfs_mount="${CVMFS_MOUNT_DIR%/}"
     local IFS=,  # "\t\t\""
     if [[ -n "$1" ]]; then
         # Test and keep open each CVMFS repo
         for x in $1; do  # Spaces in file name are OK, separator is comma
-            if eval "exec ${holdfd}<${cvmfs_mount}/\"$x\""; then
-                echo "\"${cvmfs_mount}/$x\" exists and available"
+            print -v expanded_path '%q' "$x"  # Protecting against Arbitrary Code Execution (Path Traversal not a problem)
+            if eval "exec ${holdfd}<${cvmfs_mount}/'$expanded_path'"; then
+                echo "\"${cvmfs_mount}/$expanded_path\" exists and available"
                 # shellcheck disable=SC2219  # for busybox compatibility
                 let "holdfd=holdfd+1"
             else
-                echo "\"${cvmfs_mount}/$x\" NOT available"
+                echo "\"${cvmfs_mount}/$expanded_path\" NOT available"
                 # [ -n "$2" ] && { $2 } || { echo 1; }
                 [[ -n "$2" ]] && $2 || exit 1
             fi
