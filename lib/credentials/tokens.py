@@ -7,6 +7,8 @@
 This module provides classes to represent and manage tokens.
 """
 
+import json
+
 from datetime import datetime
 from typing import Mapping, Optional, Union
 
@@ -106,6 +108,49 @@ class SciToken(Token):
 
     cred_type = CredentialType.SCITOKEN
     extension = "scitoken"
+
+
+class GlobusComputeToken(Token):
+    """Represents a Globus Compute access-token credential.
+
+    Globus Auth access tokens are opaque, not JWTs, so the expiration is carried
+    explicitly in the stored JSON (access_token plus expires_at_seconds) rather
+    than decoded from a payload.
+    """
+
+    cred_type = CredentialType.GLOBUS_COMPUTE_TOKEN
+    extension = "globuscompute"
+
+    @property
+    def access_token(self) -> Optional[str]:
+        """Globus Auth access token."""
+        return self._payload.get("access_token") if self._payload else None
+
+    @property
+    def expiration_time(self) -> Optional[datetime]:
+        expires_at = self._payload.get("expires_at_seconds") if self._payload else None
+        return datetime.fromtimestamp(expires_at) if expires_at else None
+
+    @property
+    def _id_attribute(self) -> Optional[str]:
+        return self._payload.get("resource_server") if self._payload else None
+
+    @staticmethod
+    def decode(string: Union[str, bytes]) -> Mapping:
+        if isinstance(string, bytes):
+            string = string.decode()
+        return json.loads(string)
+
+    def invalid_reason(self) -> Optional[str]:
+        if not self._payload or not self._payload.get("access_token"):
+            return "Globus Compute token not initialized."
+        if self.expiration_time is None:
+            return "Globus Compute token missing expiration."
+        if datetime.now() > self.expiration_time:
+            return "Globus Compute token expired."
+        if (self.expiration_time - datetime.now()).total_seconds() < self.minimum_lifetime:
+            return "Globus Compute token lifetime too short."
+        return None
 
 
 class IdToken(Token):

@@ -198,7 +198,22 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
-        if gridtype.startswith("batch "):
+        if gridtype == "batch globuscompute":
+            self.add("Grid_Resource", "batch globuscompute")
+            self.add("+GlideinGridType", '"%s"' % gridtype)
+            self.add("+GlideinGlobusComputeEndpoint", '"$ENV(GLOBUS_COMPUTE_ENDPOINT:)"')
+            self.add("+GlideinGlobusComputeFunction", '"$ENV(GLOBUS_COMPUTE_FUNCTION:)"')
+            for env_key in (
+                "GLOBUS_COMPUTE_ENDPOINT",
+                "GLOBUS_COMPUTE_FUNCTION",
+                "GLOBUS_COMPUTE_AUTH_FILE",
+                "GLOBUS_COMPUTE_GLITE_DIR",
+                "GLOBUS_COMPUTE_PYTHON",
+                "GLOBUS_COMPUTE_USER_DIR",
+                "GLOBUS_COMPUTE_STATE_DIR",
+            ):
+                self.add_environment("%s=$ENV(%s:)" % (env_key, env_key))
+        elif gridtype.startswith("batch "):
             # For BOSCO ie gridtype 'batch *', allow means to pass VO specific
             # bosco/ssh keys
             # was: self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s" % (gridtype, gatekeeper))
