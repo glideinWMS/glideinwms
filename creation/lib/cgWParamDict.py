@@ -1352,8 +1352,7 @@ def validate_globus_compute_entry(entry):
     missing = [key for key in required_keys if not str(entry.get(key, "")).strip()]
     if missing:
         raise RuntimeError(
-            "batch globuscompute entry %s is missing required setting(s): %s"
-            % (entry["name"], ", ".join(missing))
+            "batch globuscompute entry %s is missing required setting(s): %s" % (entry["name"], ", ".join(missing))
         )
 
 

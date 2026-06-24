@@ -5,28 +5,29 @@
 
 """Unit tests for the Globus Compute factory submission scaffold."""
 
-import unittest
-import socket
-import tempfile
-import subprocess
-import os
-import time
-import contextlib
-import io
 import base64
+import contextlib
 import hashlib
+import io
 import json
+import os
+import socket
+import subprocess
 import sys
+import tempfile
+import time
+import unittest
+
 from pathlib import Path
 from unittest import mock
 
 from glideinwms.creation.lib.cgWCreate import GlideinSubmitDictFile
 from glideinwms.creation.lib.cgWParamDict import populate_job_descript
-from glideinwms.creation.lib.factoryXmlConfig import parse
 from glideinwms.creation.lib.cWDictFile import DictFile
+from glideinwms.creation.lib.factoryXmlConfig import parse
+from glideinwms.factory.glideFactoryLib import get_submit_environment, get_submit_environment_v3_11  # noqa: E402
 
 socket.gethostbyname_ex = mock.Mock(return_value=("localhost", [], ["127.0.0.1"]))
-from glideinwms.factory.glideFactoryLib import get_submit_environment, get_submit_environment_v3_11  # noqa: E402
 
 TEST_DIR = Path(__file__).resolve().parent
 XML = str(TEST_DIR / "fixtures/factory/glideinWMS.xml")
@@ -273,9 +274,7 @@ class TestGlobusComputeSubmitEnvironment(unittest.TestCase):
         submit_credentials.username = "frontend_user"
         submit_credentials.security_class = "frontend_sec_class"
         submit_credentials.id = "credential_id"
-        submit_credentials.security_credentials = TextRequestCredentialCollection(
-            "/secure/frontend/globus-tokens.json"
-        )
+        submit_credentials.security_credentials = TextRequestCredentialCollection("/secure/frontend/globus-tokens.json")
         submit_credentials.identity_credentials = empty_credentials
 
         job_descript, job_attributes, glidein_descript, signatures = self._make_job_config()
@@ -573,9 +572,7 @@ class TestGlobusComputeHelpers(unittest.TestCase):
                 RuntimeError("remote control function returned invalid payload")
             )
         )
-        self.assertFalse(
-            globus_compute_helpers.is_repairable_function_error(TaskExecutionFailed("function not found"))
-        )
+        self.assertFalse(globus_compute_helpers.is_repairable_function_error(TaskExecutionFailed("function not found")))
 
     def _write_state(self, helpers, tmpdir):
         tmp = Path(tmpdir)
@@ -695,9 +692,7 @@ class TestGlobusComputeHelpers(unittest.TestCase):
 
         fake_client = mock.Mock()
         with tempfile.TemporaryDirectory() as tmpdir:
-            rc = globus_compute_helpers.cancel_job(
-                "globuscompute/20260616/gone", client=fake_client, state_dir=tmpdir
-            )
+            rc = globus_compute_helpers.cancel_job("globuscompute/20260616/gone", client=fake_client, state_dir=tmpdir)
             self.assertEqual(0, rc)
             fake_client.run.assert_not_called()
 
@@ -1756,8 +1751,7 @@ class TestGlobusComputeShellEntryPoints(unittest.TestCase):
             factory_credential_subdir = factory_credential_dir / "user_frontend" / "glidein_gfactory_instance"
             factory_credential_subdir.mkdir(parents=True)
             factory_credential = factory_credential_subdir / (
-                "credential_callback_IdTokenGenerator_ABC"
-                ".globuscompute-smoke.idtoken.idtoken"
+                "credential_callback_IdTokenGenerator_ABC" ".globuscompute-smoke.idtoken.idtoken"
             )
             factory_credential.write_text("factory idtoken\n", encoding="utf-8")
             output_file = tmp / "result.txt"
@@ -1768,18 +1762,18 @@ class TestGlobusComputeShellEntryPoints(unittest.TestCase):
                 "  bls_opt_job_name='unit-job'\n"
                 f"  bls_opt_cmd='{command}'\n"
                 "  bls_arguments='-entry globuscompute-smoke --flag two_words'\n"
-                "  bls_opt_environment='\"GLOBUS_COMPUTE_ENDPOINT=endpoint-uuid\""
-                " \"GLOBUS_COMPUTE_FUNCTION=function-uuid\"'\n"
+                '  bls_opt_environment=\'"GLOBUS_COMPUTE_ENDPOINT=endpoint-uuid"'
+                ' "GLOBUS_COMPUTE_FUNCTION=function-uuid"\'\n'
                 f"  bls_opt_workdir='{tmp}'\n"
                 f"  bls_opt_stdin='{input_file}'\n"
                 f"  bls_opt_stdout='{tmp / 'stdout.txt'}'\n"
                 f"  bls_opt_stderr='{tmp / 'stderr.txt'}'\n"
                 "}\n"
                 "bls_setup_all_files() {\n"
-                "  if [ -z \"${bls_opt_temp_dir:-}\" ]; then echo missing temp dir >&2; return 1; fi\n"
-                "  if [ ! -d \"$bls_opt_temp_dir\" ] || [ ! -w \"$bls_opt_temp_dir\" ];"
+                '  if [ -z "${bls_opt_temp_dir:-}" ]; then echo missing temp dir >&2; return 1; fi\n'
+                '  if [ ! -d "$bls_opt_temp_dir" ] || [ ! -w "$bls_opt_temp_dir" ];'
                 " then echo bad temp dir >&2; return 1; fi\n"
-                "  if [[ \"$bls_opt_workdir\" != */ ]]; then \"$bls_opt_workdir=${bls_opt_workdir}/\"; fi\n"
+                '  if [[ "$bls_opt_workdir" != */ ]]; then "$bls_opt_workdir=${bls_opt_workdir}/"; fi\n'
                 "  bls_inputsand_counter=0\n"
                 "  let bls_inputsand_counter++\n"
                 f"  bls_inputsand_local_0='{input_file}'\n"
@@ -1788,8 +1782,8 @@ class TestGlobusComputeShellEntryPoints(unittest.TestCase):
                 "  bls_inputcopy_counter=1\n"
                 f"  bls_outputsand_local_0='{output_file}'\n"
                 "  bls_outputsand_counter=1\n"
-                "  bls_arguments=\"$bls_arguments < \\\"$bls_opt_stdin\\\""
-                " > \\\"$bls_opt_stdout\\\" 2> \\\"$bls_opt_stderr\\\"\"\n"
+                '  bls_arguments="$bls_arguments < \\"$bls_opt_stdin\\"'
+                ' > \\"$bls_opt_stdout\\" 2> \\"$bls_opt_stderr\\""\n'
                 "}\n",
                 encoding="utf-8",
             )
@@ -1801,7 +1795,7 @@ class TestGlobusComputeShellEntryPoints(unittest.TestCase):
                 "prev=''\n"
                 'for arg in "$@"; do\n'
                 '  if [ "$prev" = "--script" ]; then cp "$arg" "$FAKE_SCRIPT_COPY"; fi\n'
-                "  prev=\"$arg\"\n"
+                '  prev="$arg"\n'
                 "done\n"
                 'printf "%s\\n" "$@" > "$FAKE_PYTHON_ARGS"\n'
                 'echo "BLAHP_JOBID_PREFIXglobuscompute/20260616/task-123"\n',
@@ -1843,7 +1837,7 @@ class TestGlobusComputeShellEntryPoints(unittest.TestCase):
         self.assertIn(str(output_file), helper_args)
         self.assertIn("export GLIDEIN_ARGUMENTS=", generated_script)
         self.assertIn("umask 077\n", generated_script)
-        self.assertIn("replace(b\"umask 0022\", b\"umask 0077\", 1)", generated_script)
+        self.assertIn('replace(b"umask 0022", b"umask 0077", 1)', generated_script)
         self.assertIn("./pilot.sh -entry globuscompute-smoke --flag two_words < ./input.txt", generated_script)
         self.assertNotIn("\\<", generated_script)
         self.assertNotIn("\\>", generated_script)

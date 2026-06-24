@@ -28,6 +28,7 @@ def run_globus_compute_payload(payload: dict) -> dict:
     import socket
     import subprocess
     import sys
+
     from pathlib import Path
 
     op = payload.get("op", "launch")
@@ -93,7 +94,7 @@ def run_globus_compute_payload(payload: dict) -> dict:
         wrapper = (
             "#!/bin/bash\n"
             'cd "$(dirname "$0")" || exit 127\n'
-            '/bin/bash payload.sh > .stdout 2> .stderr\n'
+            "/bin/bash payload.sh > .stdout 2> .stderr\n"
             "echo $? > .ec\n"
         )
         (workdir / "run.sh").write_text(wrapper, encoding="utf-8")

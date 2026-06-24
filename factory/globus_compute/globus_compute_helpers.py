@@ -16,10 +16,11 @@ import os
 import re
 import time
 import uuid
-from dataclasses import asdict, dataclass
+
 from pathlib import Path
 from typing import Any
 
+from dataclasses import asdict, dataclass
 
 BLAHP_JOB_PREFIX = "BLAHP_JOBID_PREFIX"
 GLOBUS_COMPUTE_JOB_PREFIX = "globuscompute"
@@ -51,7 +52,7 @@ def _state_root(state_dir: str | Path | None = None) -> Path:
 def parse_blahp_job_id(blahp_job_id: str) -> tuple[str, str]:
     job_id = blahp_job_id
     if job_id.startswith(BLAHP_JOB_PREFIX):
-        job_id = job_id[len(BLAHP_JOB_PREFIX):]
+        job_id = job_id[len(BLAHP_JOB_PREFIX) :]
 
     parts = job_id.split("/", 2)
     if len(parts) != 3 or parts[0] != GLOBUS_COMPUTE_JOB_PREFIX or not parts[1] or not parts[2]:
@@ -183,9 +184,7 @@ def launch_glidein(
     launch_payload["glidein_id"] = glidein_id
     if base_dir:
         launch_payload["base_dir"] = base_dir
-    run_control_op(
-        client, endpoint_id=endpoint_id, function_id=function_id, payload=launch_payload, timeout=timeout
-    )
+    run_control_op(client, endpoint_id=endpoint_id, function_id=function_id, payload=launch_payload, timeout=timeout)
     state = GlobusComputeJobState(
         submit_date=submit_date,
         glidein_id=glidein_id,
