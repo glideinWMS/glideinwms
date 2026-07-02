@@ -6,12 +6,54 @@
 # This script generates cvmfsexec distributions for various cvmfs configurations
 # and supported machine types, as supported by the open-source cvmfsexec utility.
 
+## \brief Get all the machine types supported by cvmfsexec utility.
+## \param No parameters.
+## \returnval 0 if the supported machine types were obtained and cleanup of the temporary directory was successful, 1 if the supported machine types were obtained but cleanup of the temporary directory failed.
+# Check with Marco: is the return value necessary? since I'm not using the return value anywhere to determine the next course of action
+get_supported_machine_types() {
+    # checkout the latest version of cvmfsexec, as a snapshot, into a temporary location and fetch the most up-to-date list of supported platforms
+    temp_loc=$(mktemp -d)
+    if [[ ! -d "$temp_loc" ]]; then
+        error_handler "Failed to create temporary directory while listing supported platforms."
+        exit 1
+    fi
+    curl -sL "$CVMFSEXEC_ARCHIVE" | tar -xz -C $temp_loc --strip-components=1
+    supported_types=$("$temp_loc"/makedist -m xxx 2>&1 | grep -v "not supported" | tail -n +3)
+    echo "$supported_types"     # printing the supported platforms...
+
+    # after listing the supported types, clean up the temporary location that was created
+    if [[ -n "$temp_loc" && -d "$temp_loc" ]]; then
+        rm -rf "$temp_loc"
+        return 0
+    else
+        error_handler "Something went wrong while cleaning up!"
+        return 1
+    fi
+}
+
+## \brief Set the default list of machine types that is supported by this script.
+## \param No parameters.
+## \returnval No return value.
+set_default_machine_types() {
+    # first, get the machine types supported by the cvmfsexec utility
+    machine_types=$(get_supported_machine_types)
+    # then, process the output to have a comma-separated list of machine types
+    # converting the multi-line output to single line string
+    machine_types=${machine_types//$'\n'/ }
+    # trimming leading/trailing spaces in the single line string
+    machine_types=$(echo "$machine_types" | awk '$1=$1')
+    # replacing spaces with commas
+    machine_types=${machine_types// /,}
+    echo "$machine_types"
+}
+
 # Hardcoded variables
-CVMFSEXEC_REPO="https://www.github.com/cvmfs/cvmfsexec.git"
+# using the recommended URL format for legacy/custom repositories with master branch
+CVMFSEXEC_ARCHIVE="https://github.com/cvmfs/cvmfsexec/archive/master.tar.gz"
 DEFAULT_WORK_DIR="/var/lib/gwms-factory/work-dir"
-# TODO: periodically add rhel, suse and other derivatives as supported by cvmfsexec
+# TODO: periodically verify DEFAULT_MACHINE_TYPES to ensure rhel, suse and other derivatives as supported by cvmfsexec are included in the list
 # NOTE: Although rhel9-x86_64 is supported, el7 tools might not work with el9 files (as suggested by Dave Dykstra) as of July 03, 2023
-DEFAULT_MACHINE_TYPES="rhel9-x86_64,rhel8-x86_64,rhel7-x86_64,suse15-x86_64,rhel8-aarch64,rhel8-ppc64le"
+DEFAULT_MACHINE_TYPES=$(set_default_machine_types)
 
 usage() {
 cat << EOF
@@ -29,7 +71,7 @@ or a comma-separated list of values from the options {osg|egi|default}.
 PLATFORMS_LIST (optional): indicates machine types (platform- and architecture-based)
 for which distributions is to be built. Can be empty, a single value or a
 comma-separated list of values from the options {rhel9-x86_64|rhel8-x86_64|rhel7-x86_64|suse15-x86_64|rhel8-aarch64|rhel8-ppc64le}.
-Use '$0 --list-platforms' for the updated list of all available platforms.
+Use '$0 --list-platforms' for the most up-to-date list of all available platforms.
 EOF
 }
 
@@ -43,12 +85,12 @@ ensure_directory_exists() {
 }
 
 build_cvmfsexec_distros() {
-	local cvmfs_src mach_type curr_ver latest_ver
+    local cvmfs_src mach_type curr_ver latest_ver
     local cvmfs_configurations supported_machine_types
     local cvmfsexec_tarballs="$work_dir"/cvmfsexec/tarballs
-	local cvmfsexec_temp="$work_dir"/cvmfsexec/cvmfsexec.tmp
-	local cvmfsexec_latest="$cvmfsexec_temp"/latest
-	local cvmfsexec_distros="$cvmfsexec_temp"/distros
+    local cvmfsexec_temp="$work_dir"/cvmfsexec/cvmfsexec.tmp
+    local cvmfsexec_latest="$cvmfsexec_temp"/latest
+    local cvmfsexec_distros="$cvmfsexec_temp"/distros
     local work_dir="$1"
     cvmfs_configurations_list="$2"
     supported_machine_types_list="$3"
@@ -78,7 +120,7 @@ build_cvmfsexec_distros() {
 	# download the cvmfsexec repository contents as a compressed tarball and extract its contents
 	# before extracting contents, make sure the `latest` directory for cvmfsexec exists
 	ensure_directory_exists "$cvmfsexec_latest"
-	curl -sL https://github.com/cvmfs/cvmfsexec/archive/master.tar.gz | tar -xz -C "$cvmfsexec_latest" --strip-components=1
+	curl -sL "$CVMFSEXEC_ARCHIVE" | tar -xz -C "$cvmfsexec_latest" --strip-components=1
 	# cvmfsexec exits with 0, so the output should be checked as well
 	if ! latest_ver=$("$cvmfsexec_latest"/cvmfsexec -v) || [[ -z "$latest_ver" ]]; then
 	    echo "Failed to run the downloaded cvmfsexec" >&2
@@ -173,9 +215,8 @@ if [[ $1 == "-h" || $1 == "--help" ]]; then
 fi
 
 if [[ $1 == "--list-platforms" ]]; then
-    # checkout the latest version of cvmfsexec into a temp location
-    git clone $CVMFSEXEC_REPO /tmp &> /dev/null
-    echo "Functionality not implemented!"
+    echo "Supported platforms are:"
+    get_supported_machine_types
     exit 0
 fi
 
@@ -203,8 +244,8 @@ fi
 
 # after confirming that the remaining number of arguments to be either 1 or 2
 re_sources="^((osg|egi|default),)*(osg|egi|default),?$"
-# TODO: update the regex for other machine types upon checking with `makedist -h` periodically
-re_mtypes="^((rhel(7|8|9)|suse15)(-(x86_64|aarch64|ppc64le),?))+$"
+# TODO: update the regex for other/newly supported machine types upon verifying DEFAULT_MACHINE_TYPES or, alternatively, `makedist -h`
+re_mtypes="^((rhel(7|8|9|10)|suse15)(-(x86_64|aarch64|ppc64le),?))+$"
 # check whether the first argument is sources (strict ordering followed)
 if ! [[ "$1" =~ $re_sources ]]; then
 	error_handler "Invalid source(s) provided (comma-separated list with osg|egi|default), not '$1'"
@@ -216,7 +257,7 @@ elif [[ "$2" =~ $re_mtypes ]]; then
 	machine_types=$2
 else
 	# handle if there were typos in the arguments passed
-	error_handler "Invalid platform provided. Must be empty or comma-separated list with (rhel9-x86_64|rhel8-x86_64|rhel7-x86_64|suse15-x86_64|rhel8-aarch64|rhel8-ppc64le), not '$2'"
+	error_handler "Invalid platform provided. Must be empty or comma-separated list with (${DEFAULT_MACHINE_TYPES//,/|}), not '$2'"
 fi
 
 echo "(Re)Building of cvmfsexec distributions enabled!"
