@@ -55,6 +55,9 @@ DEFAULT_WORK_DIR="/var/lib/gwms-factory/work-dir"
 # NOTE: Although rhel9-x86_64 is supported, el7 tools might not work with el9 files (as suggested by Dave Dykstra) as of July 03, 2023
 DEFAULT_MACHINE_TYPES=$(set_default_machine_types)
 
+## \brief Prints usage information for this script to the standard output.
+## \param No parameters.
+## \returnval No return value.
 usage() {
 cat << EOF
 Usage:
@@ -75,6 +78,9 @@ Use '$0 --list-platforms' for the most up-to-date list of all available platform
 EOF
 }
 
+## \brief Checks whether the directory exists or not and proceeds to use the directory if it exists or creates one if the directory does not exist.
+## \param 1 parameter: directory which needs to be checked if existent.
+## \returnval No return value.
 ensure_directory_exists() {
 	# if the directory does not exist (create one) or exists (proceed to reuse)
 	if ! mkdir -p "$1" || ! chmod 755 "$1" ; then
@@ -84,6 +90,9 @@ ensure_directory_exists() {
 	fi
 }
 
+## \brief Build cvmfsexec distributions for different sources and platforms.
+## \param 3 parameters: (1) the work directory, (2) one or more CVMFS configuration sources, and (3) one of more machine types supported by cvmfsexec.
+## \returnval No return value.
 build_cvmfsexec_distros() {
     local cvmfs_src mach_type curr_ver latest_ver
     local cvmfs_configurations supported_machine_types
@@ -198,6 +207,9 @@ build_cvmfsexec_distros() {
 	echo "Took $(($(date +%s)-start)) seconds to create $successful_builds cvmfsexec distribution(s)"
 }
 
+## \brief Prints ERROR level messages to the standard output along with the usage information for this script.
+## \param 1 parameter: string containing the error message to be printed.
+## \returnval No return value.
 error_handler() {
 	echo "ERROR: $1"
 	usage
