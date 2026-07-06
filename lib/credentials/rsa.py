@@ -16,7 +16,7 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
-from cryptography.hazmat.primitives.asymmetric.types import PRIVATE_KEY_TYPES, PUBLIC_KEY_TYPES
+from cryptography.hazmat.primitives.asymmetric.types import PrivateKeyTypes, PublicKeyTypes
 
 from glideinwms.lib.credentials import Credential, CredentialError, CredentialPair, CredentialPairType, CredentialType
 from glideinwms.lib.credentials.symmetric import SymmetricKey
@@ -25,7 +25,7 @@ from glideinwms.lib.defaults import force_bytes
 DEFAULT_PASSWORD = b"default"
 
 
-class RSAPublicKey(Credential[PUBLIC_KEY_TYPES]):
+class RSAPublicKey(Credential[PublicKeyTypes]):
     """Represents an RSA public key credential.
 
     Attributes:
@@ -50,7 +50,7 @@ class RSAPublicKey(Credential[PUBLIC_KEY_TYPES]):
         return self.string
 
     @staticmethod
-    def decode(string: Union[str, bytes]) -> PUBLIC_KEY_TYPES:
+    def decode(string: Union[str, bytes]) -> PublicKeyTypes:
         string = force_bytes(string)
         if string.startswith(b"ssh-rsa"):
             return serialization.load_ssh_public_key(string, backend=default_backend())
@@ -156,7 +156,7 @@ class RSAPublicKey(Credential[PUBLIC_KEY_TYPES]):
         return self.verify(data, binascii.a2b_hex(signature))
 
 
-class RSAPrivateKey(Credential[PRIVATE_KEY_TYPES]):
+class RSAPrivateKey(Credential[PrivateKeyTypes]):
     """Represents an RSA private key credential.
 
     Attributes:
@@ -200,7 +200,7 @@ class RSAPrivateKey(Credential[PRIVATE_KEY_TYPES]):
         return "RSA" if self._payload else None
 
     @staticmethod
-    def decode(string: Union[str, bytes]) -> PRIVATE_KEY_TYPES:
+    def decode(string: Union[str, bytes]) -> PrivateKeyTypes:
         string = force_bytes(string)
         if string.startswith(b"-----BEGIN OPENSSH PRIVATE KEY-----"):
             return serialization.load_ssh_private_key(string, password=None, backend=default_backend())
