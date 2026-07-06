@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from typing import Optional, Union
 
 from cryptography import x509
-from cryptography.hazmat.primitives.asymmetric.types import CERTIFICATE_PUBLIC_KEY_TYPES
+from cryptography.hazmat.primitives.asymmetric.types import CertificatePublicKeyTypes
 
 from glideinwms.lib.credentials import Credential, CredentialPair, CredentialPairType, CredentialType
 from glideinwms.lib.defaults import force_bytes
@@ -24,7 +24,7 @@ class X509Cert(Credential[x509.Certificate]):
         cred_type (CredentialType): The type of the credential.
         extension (str): The file extension for the credential.
         subject (Optional[str]): The subject (aka Distinguished Name (DN)) of the certificate.
-        pub_key (Optional[CERTIFICATE_PUBLIC_KEY_TYPES]): The public key of the certificate.
+        pub_key (Optional[CertificatePublicKeyTypes]): The public key of the certificate.
         not_before_time (Optional[datetime]): The not-before time of the certificate.
         not_after_time (Optional[datetime]): The not-after time of the certificate.
     """
@@ -38,7 +38,7 @@ class X509Cert(Credential[x509.Certificate]):
         return "/" + "/".join(self._payload.subject.rfc4514_string().split(",")[::-1]) if self._payload else None
 
     @property
-    def pub_key(self) -> Optional[CERTIFICATE_PUBLIC_KEY_TYPES]:
+    def pub_key(self) -> Optional[CertificatePublicKeyTypes]:
         """X.509 public key."""
         return self._payload.public_key() if self._payload else None
 
