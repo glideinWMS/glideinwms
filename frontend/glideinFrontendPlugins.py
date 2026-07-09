@@ -30,7 +30,7 @@ from glideinwms.lib.credentials import (
 
 ################################################################################
 #                                                                              #
-####    Proxy plugins                                                       ####
+####    Proxy plugins    - OLD definition                                   ####
 #                                                                              #
 # All plugins implement the following interface:                               #
 #   __init_(config_dir,proxy_list)                                             #
@@ -55,11 +55,40 @@ from glideinwms.lib.credentials import (
 #     trust_domain will limit the returned credentials to a particular domain  #
 #                                                                              #
 ################################################################################
+# TODO: the new and old plugin interfaces are different and incompatible
+#   The old ones are not inheriting from CredentialsPlugin, are independent classes
+#   The interface is only specified in the comment above
 
 
 # TODO: Add type annotations to this class
 class CredentialsPlugin(ABC):
-    """Base class for all credential plugins"""
+    """Base class for all credential plugins
+
+    All plugins implement the following interface:
+    `__init__(config_dir, security_bundle)`
+      Constructor, config_dir may be used for internal config/cache files
+    `get_required_job_attributes()`
+      Return the list of required condor_q attributes
+    `get_required_classad_attributes()`
+      Return the list of required condor_status attributes
+    `update_usermap(condorq_dict, condorq_dict_types, status_dict, status_dict_types)`
+      Update usermap.  This is called once per iteration
+    `get_credentials(credential_type=None, trust_domain=None, credential_purpose=None, snapshot: Optional[str])`
+      Return a list of credentials that match the input criteria
+      This is called in two places, once in globals to return all credentials
+      and once when advertising actual requests.
+      If called multiple times, it is guaranteed that if the index is the same,
+      the credential/proxy is (logically) the same.
+      `credential_purpose` will filter the returned credentials to a particular purpose
+      `credential_type` will filter the returned credentials to a particular type
+      `trust_domain` will filter the returned credentials to a particular domain
+    `get_parameters(self, snapshot: Optional[str] = None) -> Mapping[ParameterName, Parameter]`
+      Return a list of parameters.
+    `get_request_credentials(self, snapshot: Optional[str] = None) -> List[RequestCredential]`
+      Return a list of credentials for requests.
+    `assign_work(self, req_creds: Iterable[RequestCredential], params_obj: AdvertiseParams, auth_set: AuthenticationSet)`
+      Determine the Glideins for each credential.
+    """
 
     def __init__(self, config_dir: str, security_bundle: SecurityBundle):
         self.security_bundle = security_bundle
@@ -77,7 +106,7 @@ class CredentialsPlugin(ABC):
         return self.security_bundle.parameters
 
     def get_required_job_attributes(self):
-        """what job attributes are used by this plugin
+        """what job (condor_q) attributes are used by this plugin
 
         Returns:
             list: used job attributes, none
@@ -85,10 +114,10 @@ class CredentialsPlugin(ABC):
         return []
 
     def get_required_classad_attributes(self):
-        """what glidein attributes are used by this plugin
+        """what Glidein (condor_status) attributes are used by this plugin
 
         Returns:
-            list: used glidein attributes, none
+            list: used Glidein attributes, none
         """
         return []
 
@@ -146,7 +175,7 @@ class CredentialsPlugin(ABC):
         pass
 
     @abstractmethod
-    def get_request_credentials(self) -> List[RequestCredential]:
+    def get_request_credentials(self, snapshot: Optional[str] = None) -> List[RequestCredential]:
         pass
 
     @abstractmethod
@@ -228,13 +257,16 @@ class CredentialsBasic(CredentialsPlugin):
             params_dict[param.name] = param
         return params_dict
 
-    def get_request_credentials(self) -> List[RequestCredential]:
+    def get_request_credentials(self, snapshot: Optional[str] = None) -> List[RequestCredential]:
         """Get the request credentials
+
+        Args:
+            snapshot (str, optional): get credentials from a dynamic snapshot if available
 
         Returns:
             list: list of request credentials
         """
-        req_creds = self.get_credentials(credential_purpose=CredentialPurpose.REQUEST)
+        req_creds = self.get_credentials(credential_purpose=CredentialPurpose.REQUEST, snapshot=snapshot)
         req_creds = [RequestCredential(cred) for cred in req_creds]
         return req_creds
 
