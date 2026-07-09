@@ -1211,7 +1211,7 @@ class MultiAdvertiseWork:
         return count
 
     def renew_and_load_credentials(self):
-        """Get the list of proxies, invoke the `renew()` scripts if any, and read the credentials in memory.
+        """Get the list of credentials, invoke the `renew()` scripts if any, and read the credentials in memory.
 
         Modifies the self.request_credentials variable.
         """
@@ -1230,7 +1230,7 @@ class MultiAdvertiseWork:
         return nr_credentials
 
     def initialize_advertise_batch(self, adname_prefix="gfi_ad_batch"):
-        """Initialize the variables that are used for batch avertisement
+        """Initialize the variables that are used for batch advertisement
 
         Args:
             adname_prefix (str, optional): The adname prefix to use. Defaults to "gfi_ad_batch".
@@ -1243,8 +1243,8 @@ class MultiAdvertiseWork:
         return classadSupport.generate_classad_filename(prefix=adname_prefix)
 
     def do_advertise_batch(self, filename_dict, remove_files=True):
-        """
-        Advertise the classad files in the dictionary provided
+        """Advertise the classad files in the dictionary provided
+
          The keys are the factory names, while the elements are lists of files
         Safe to run in parallel, guaranteed to not modify the self object state.
         """
@@ -1252,8 +1252,8 @@ class MultiAdvertiseWork:
             self.do_advertise_batch_one(factory_pool, filename_dict[factory_pool], remove_files)
 
     def do_advertise_batch_one(self, factory_pool, filename_arr, remove_files=True):
-        """
-        Advertise to a Factory the ClassAd files provided
+        """Advertise to a Factory the ClassAd files provided
+
         Safe to run in parallel, guaranteed to not modify the self object state.
         """
         # Advertise all the files
@@ -1269,8 +1269,8 @@ class MultiAdvertiseWork:
         return tuple(set(self.global_pool).union(set(self.factory_queue.keys())))
 
     def do_global_advertise(self, adname=None, create_files_only=False, reset_unique_id=True):
-        """
-        Advertise globals with credentials
+        """Advertise globals with credentials
+
         Returns a dictionary of files that still need to be advertised.
           The key is the factory pool, while the element is a list of file names
         Expects that the credentials have been already loaded.
@@ -1286,8 +1286,8 @@ class MultiAdvertiseWork:
         return unpublished_files
 
     def do_global_advertise_one(self, factory_pool, adname=None, create_files_only=False, reset_unique_id=True):
-        """
-        Advertise globals with credentials to one factory
+        """Advertise globals with credentials to one factory
+
         Returns the list of files that still need to be advertised.
         Expects that the credentials have been already loaded.
         """
@@ -1318,11 +1318,9 @@ class MultiAdvertiseWork:
         return []  # no files left to be advertised
 
     def createGlobalAdvertiseWorkFile(self, factory_pool):
-        """
-        Create the advertise file for globals with credentials
-        Expects the object variables
-         adname and x509_proxies_data
-        to be set.
+        """Create the advertise file for globals with credentials
+
+        Expects the object variables, adname and x509_proxies_data to be set.
         """
         global advertiseGCGCounter
 
@@ -1504,11 +1502,9 @@ class MultiAdvertiseWork:
         return values[0]
 
     def createAdvertiseWorkFile(self, factory_pool, params_obj, key_obj=None, file_id_cache=None):
-        """
-        Create the advertise file
-        Expects the object variables
-          adname, unique_id and x509_proxies_data
-        to be set.
+        """Create the advertise file
+
+        Expects the object variables, adname, unique_id and x509_proxies_data to be set.
         """
 
         cred_filename_arr = []
