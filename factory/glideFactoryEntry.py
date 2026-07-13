@@ -8,8 +8,10 @@
 Model and behavior of a Factory Entry (an element describing a resource).
 """
 
-import copy
 import os
+os.environ["PROMETHEUS_MULTIPROC_DIR"] = "/tmp/glideinwms_metrics"
+
+import copy
 import os.path
 import signal
 import sys
