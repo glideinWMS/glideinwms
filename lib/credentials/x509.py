@@ -11,10 +11,17 @@ from datetime import datetime, timezone
 from typing import Optional, Union
 
 from cryptography import x509
-from cryptography.hazmat.primitives.asymmetric.types import CertificatePublicKeyTypes
 
 from glideinwms.lib.credentials import Credential, CredentialPair, CredentialPairType, CredentialType
 from glideinwms.lib.defaults import force_bytes
+
+try:
+    from cryptography.hazmat.primitives.asymmetric.types import CertificatePublicKeyTypes
+except ImportError:
+    # TODO: remove try-except once cryptography>=v40. EL9 RPM has v36
+    from cryptography.hazmat.primitives.asymmetric.types import CERTIFICATE_PUBLIC_KEY_TYPES
+
+    CertificatePublicKeyTypes = CERTIFICATE_PUBLIC_KEY_TYPES
 
 
 class X509Cert(Credential[x509.Certificate]):

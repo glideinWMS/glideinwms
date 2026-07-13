@@ -16,11 +16,20 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
-from cryptography.hazmat.primitives.asymmetric.types import PrivateKeyTypes, PublicKeyTypes
 
 from glideinwms.lib.credentials import Credential, CredentialError, CredentialPair, CredentialPairType, CredentialType
 from glideinwms.lib.credentials.symmetric import SymmetricKey
 from glideinwms.lib.defaults import force_bytes
+
+try:
+    from cryptography.hazmat.primitives.asymmetric.types import PrivateKeyTypes, PublicKeyTypes
+except ImportError:
+    # TODO: remove try-except once cryptography>=v40. EL9 RPM has v36
+    from cryptography.hazmat.primitives.asymmetric.types import PRIVATE_KEY_TYPES, PUBLIC_KEY_TYPES
+
+    PrivateKeyTypes = PRIVATE_KEY_TYPES
+    PublicKeyTypes = PUBLIC_KEY_TYPES
+
 
 DEFAULT_PASSWORD = b"default"
 
