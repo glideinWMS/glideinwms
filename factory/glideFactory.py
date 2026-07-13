@@ -281,7 +281,7 @@ def clean_exit(children):
         # exponentially increase, up to 5 secs
         sleep_time = sleep_time * 2
         if sleep_time > 5:
-            sleep_time = 6 #changed from 5 to 6
+            sleep_time = 5
 
         logSupport.log.info("Checking dying EntryGroups %s" % list(children.keys()))
         dead_entries = []
