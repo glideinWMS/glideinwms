@@ -1442,7 +1442,16 @@ MAX_STARTD_LOG          I       10000000        +                               
                 Timeout in seconds for the custom scripts executed by the
                 Glidein. The script is killed with SIGTERM after timeout seconds
                 are passed. It is not guaranteed for the script to quit given
-                the signal used. 0 means no timeout.
+                the signal used. Default value is 0, which translates to no
+                timeout.<br /><br />
+
+                This variable allows the timeout value used by the Glidein
+                startup script to be configured. By default, the script uses the
+                hardcoded GWMS_CUSTOM_SCRIPTS_TIMEOUT value. When
+                GLIDEIN_CUSTOM_SCRIPTS_TIMEOUT is defined in the configuration,
+                its value is used to evaluate and set
+                GWMS_CUSTOM_SCRIPTS_TIMEOUT at runtime, overriding the default
+                hardcoded value. <b>Must be a parameter.</b>
               </p>
             </td>
           </tr>

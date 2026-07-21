@@ -37,7 +37,7 @@ GWMS_MULTIUSER_GLIDEIN=
 # This should never happen only when using GlExec. Not in Singularity, not w/o sudo mechanisms.
 # Comment the following line if GlExec or similar will not be used
 #GWMS_MULTIUSER_GLIDEIN=true
-GWMS_CUSTOM_SCRIPTS_TIMEOUT=600
+GWMS_CUSTOM_SCRIPTS_TIMEOUT=0
 # Default GWMS log server
 GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
 

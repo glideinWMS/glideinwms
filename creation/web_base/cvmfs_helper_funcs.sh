@@ -16,7 +16,7 @@
 #LOGFILE="cvmfs_all.log"
 #exec &> $LOGFILE
 
-# Using run_with_timeout from glidein_paths.source sourced in glidein_startup.sh
+# Can use run_with_timeout from glidein_paths.source sourced in glidein_startup.sh to enable watchdog timer for sites where glidein enters a hanging state during pre-requisite system checks for on-demand CVMFS setup.
 
 variables_reset() {
 	# DESCRIPTION: This function lists and initializes the common variables
@@ -106,7 +106,9 @@ detect_local_cvmfs() {
 	CVMFS_ROOT="/cvmfs"
 	repo_name=oasis.opensciencegrid.org
 	# Second check...
-	if [[ -f "$CVMFS_ROOT/$repo_name"/.cvmfsdirtab || "$(run_with_timeout -s KILL 120 ls -A "$CVMFS_ROOT/$repo_name")" ]] &>/dev/null
+    # uncomment the following line instead to enable the use of watchdog timer
+    # if [[ -f "$CVMFS_ROOT/$repo_name"/.cvmfsdirtab || "$(run_with_timeout -s KILL 0 ls -A "$CVMFS_ROOT/$repo_name")" ]] &>/dev/null
+	if [[ -f "$CVMFS_ROOT/$repo_name"/.cvmfsdirtab || "$(ls -A "$CVMFS_ROOT/$repo_name")" ]] &>/dev/null
 	then
 		loginfo "Validating CVMFS with ${repo_name}..."
 		true
@@ -177,7 +179,9 @@ perform_system_check() {
     unshare -U true &>/dev/null
     GWMS_IS_UNPRIV_USERNS_ENABLED=$?
 
-    run_with_timeout -s KILL 120 check_fuse_installed
+    # uncomment the following line to enable the use of watchdog timer
+    # run_with_timeout -s KILL 0 check_fuse_installed
+    check_fuse_installed
     GWMS_IS_FUSE_INSTALLED=$?
 
     if [[ $GWMS_OS_VERSION_MAJOR -ge 9 ]]; then
