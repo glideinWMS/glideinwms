@@ -27,12 +27,12 @@ robust_realpath() {
     fi
 }
 
-run_with_timeout () {
+run_with_timeout() {
     # run_with_timeout [-s SIGNAL] [TIMEOUT] command, options and arguments (order is important)
     # if $1=-s, $2 signal to use to kill after timeout (otherwise the next will be $1)
     # $3 timeout (if numeric, otherwise the next is $1/$3)
     # $4 - command and arguments
-    local timeout=10
+    local timeout=0
     local sig=TERM
     if [[ $1 = "-s" ]]; then sig=$2; shift 2; fi
     if [[ $1 =~ ^[0-9]+$ ]]; then timeout=$1; shift; fi

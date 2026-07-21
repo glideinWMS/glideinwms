@@ -14,6 +14,8 @@ Changes since the last release
 
 ### Changed defaults / behaviours
 
+-   Changed the default value for custom scripts timeout to 0 seconds. This also changes the default behavior for the execution of custom scripts to not time out; from timing out after 600s to not using a timeout value. When custom scripts timeout value is non-zero, the behavior remains unchanged, i.e. after timing out, scripts are killed with SIGTERM followed by SIGKILL (PR #688)
+
 ### Deprecated / removed options and commands
 
 ### Security Related Fixes
