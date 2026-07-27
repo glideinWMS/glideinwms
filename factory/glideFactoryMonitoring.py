@@ -11,8 +11,9 @@ import pickle
 import re
 import time
 
-from glideinwms.lib import cleanupSupport, logSupport, rrdSupport, timeConversion, util, xmlFormat
 from prometheus_client import Counter, Gauge
+
+from glideinwms.lib import cleanupSupport, logSupport, rrdSupport, timeConversion, util, xmlFormat
 
 # protect against import-order issues
 os.environ["PROMETHEUS_MULTIPROC_DIR"] = "/tmp/glideinwms_metrics"
@@ -34,7 +35,10 @@ RRD_LIST = (
 ############################################################
 
 # Counter to track total number of completed jobs per client
-glidein_jobs_completed_total = Counter('glidein_jobs_completed_total', 'Total number of completed glidein jobs', ['client'])
+glidein_jobs_completed_total = Counter(
+    "glidein_jobs_completed_total", "Total number of completed glidein jobs", ["client"]
+)
+
 
 class MonitoringConfig:
     """Configuration for monitoring the glidein factory.
@@ -116,7 +120,7 @@ class MonitoringConfig:
             return  # nothing to do
         job_ids.sort()
 
-        #increase counter by number of newly completed jobs
+        # increase counter by number of newly completed jobs
         glidein_jobs_completed_total.labels(client=client_name).inc(len(job_ids))
 
         relative_fname = "completed_jobs_%s.log" % time.strftime("%Y%m%d", time.localtime(now))
@@ -326,7 +330,7 @@ class MonitoringConfig:
 #######################################################################################################################
 
 # Gauge to track current number of idle jobs per client
-glidein_jobs_idle = Gauge('glidein_jobs_idle', 'Current number of idle jobs', ['client'])
+glidein_jobs_idle = Gauge("glidein_jobs_idle", "Current number of idle jobs", ["client"])
 
 
 # TODO: ['Downtime'] is added to the self.data[client_name] dictionary only if logRequest is called before logSchedd, logClientMonitor
