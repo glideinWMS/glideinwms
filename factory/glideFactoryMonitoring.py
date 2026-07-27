@@ -12,6 +12,10 @@ import re
 import time
 
 from glideinwms.lib import cleanupSupport, logSupport, rrdSupport, timeConversion, util, xmlFormat
+from prometheus_client import Counter, Gauge
+
+# protect against import-order issues
+os.environ["PROMETHEUS_MULTIPROC_DIR"] = "/tmp/glideinwms_metrics"
 
 # list of rrd files that each site has
 RRD_LIST = (
@@ -26,9 +30,11 @@ RRD_LIST = (
 ############################################################
 #
 # Configuration
-#
+# Prometheus Counters for MonitoringConfig
 ############################################################
 
+# Counter to track total number of completed jobs per client
+glidein_jobs_completed_total = Counter('glidein_jobs_completed_total', 'Total number of completed glidein jobs', ['client'])
 
 class MonitoringConfig:
     """Configuration for monitoring the glidein factory.
@@ -109,6 +115,9 @@ class MonitoringConfig:
         if len(job_ids) == 0:
             return  # nothing to do
         job_ids.sort()
+
+        #increase counter by number of newly completed jobs
+        glidein_jobs_completed_total.labels(client=client_name).inc(len(job_ids))
 
         relative_fname = "completed_jobs_%s.log" % time.strftime("%Y%m%d", time.localtime(now))
         fname = os.path.join(self.log_dir, relative_fname)
@@ -313,8 +322,11 @@ class MonitoringConfig:
 #  condorQStats
 #
 #  This class handles the data obtained from condor_q
-#
+# Prometheus Counters for condorQStats
 #######################################################################################################################
+
+# Gauge to track current number of idle jobs per client
+glidein_jobs_idle = Gauge('glidein_jobs_idle', 'Current number of idle jobs', ['client'])
 
 
 # TODO: ['Downtime'] is added to the self.data[client_name] dictionary only if logRequest is called before logSchedd, logClientMonitor
@@ -402,6 +414,10 @@ class condorQStats:
             el = {}
             t_el["Status"] = el
         self.aggregateStates(qc_status, el)
+
+        # update gauge with current number of idle jobs
+        idle_count = el.get("Idle", 0)
+        glidein_jobs_idle.labels(client=client_name).set(idle_count)
 
         # And now aggregate states by submit file
         if "StatusEntries" in t_el:
