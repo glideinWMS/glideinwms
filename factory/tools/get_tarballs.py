@@ -22,7 +22,7 @@ This is a sample configuration file:
 
 DESTINATION_DIR: "/var/lib/gwms-factory/condor/"
 TARBALL_BASE_URL: "https://research.cs.wisc.edu/htcondor/tarball/"
-DEFAULT_TARBALL_VERSION: "9.0.16"
+DEFAULT_TARBALL_VERSION: [ "9.0.16", "10.0.14" ]
 CONDOR_TARBALL_LIST:
    - MAJOR_VERSION: "9.0"
      WHITELIST: [ "9.0.7", "9.0.16", "latest" ]
@@ -255,7 +255,7 @@ class TarballManager(HTMLParser):
         except KeyError:
             return None
 
-    def generate_xml(self, os_map, arch_map, whitelist, blacklist, default_tarball_version):
+    def generate_xml(self, os_map, arch_map, whitelist, blacklist, default_tarball_versions):
         """Generate an XML snippet for the tarball configuration.
 
         The XML snippet is intended for inclusion in the <condor_tarballs> section of the glideinWMS.xml file.
@@ -268,8 +268,8 @@ class TarballManager(HTMLParser):
             whitelist (list): List of versions to include. If non-empty, only these versions are used.
                 Can be "latest" to download the latest version.
             blacklist (list): List of versions to exclude.
-            default_tarball_version (str): The default tarball versions. ",default" will be added to the
-                version attribute in the XML if the version processed equals default_tarball_version.
+            default_tarball_versions (list): Ordered list of default tarball versions. ",default" will be
+                added to the version attribute in the XML for the first matching value in the list.
 
         Returns:
             str: An XML snippet containing multiple <condor_tarball> elements.
@@ -291,9 +291,11 @@ class TarballManager(HTMLParser):
             if sversion == latest_version:
                 major, minor, _ = sversion.split(".")
                 version += "," + major + ".0.x" if minor == "0" else "," + major + ".x"
-            if default_tarball_version in version.split(","):
-                self.default_found = True
-                version += ",default"
+            for default_tarball_version in default_tarball_versions:
+                if default_tarball_version in version.split(","):
+                    self.default_found = True
+                    version += ",default"
+                    break
             out += xml_snippet.format(arch=arch_map[arch], os=os_map[opsystem], dest_file=dest_file, version=version)
         return out
 
@@ -336,20 +338,25 @@ class Config(UserDict):
             major_dict["WHITELIST"].sort(key=StrictVersion)
             major_dict["BLACKLIST"].sort(key=StrictVersion)
 
-        default_tarball = self.get("DEFAULT_TARBALL_VERSION")
+        default_tarballs = self.get("DEFAULT_TARBALL_VERSION")
 
-        if default_tarball is None:
+        if default_tarballs is None:
             raise ConfigError("You need to specify DEFAULT_TARBALL_VERSION")
 
-        # Backward compatibility: single-element list => string
-        if isinstance(default_tarball, list) and len(default_tarball) == 1:
-            default_tarball = default_tarball[0]
-            self["DEFAULT_TARBALL_VERSION"] = default_tarball
+        # Backward compatibility: allow a single string in configuration
+        if isinstance(default_tarballs, str):
+            default_tarballs = [default_tarballs]
 
-        if not isinstance(default_tarball, str):
-            raise ConfigError("ERROR: DEFAULT_TARBALL_VERSION must be a string " "(e.g. '23.0.3', '23.0.x', or '23.x')")
+        if not isinstance(default_tarballs, list) or not default_tarballs:
+            raise ConfigError(
+                "ERROR: DEFAULT_TARBALL_VERSION must be a non-empty string or list of strings "
+                "(e.g. '23.0.3' or ['23.0.3', '24.0.22'])"
+            )
 
-        if default_tarball == "latest":
+        if not all(isinstance(default_tarball, str) for default_tarball in default_tarballs):
+            raise ConfigError("ERROR: DEFAULT_TARBALL_VERSION list entries must all be strings")
+
+        if "latest" in default_tarballs:
             raise ConfigError(
                 "ERROR: DEFAULT_TARBALL_VERSION='latest' is not supported.\n"
                 "       Use an explicit version (e.g. '23.0.3') or an alias "
@@ -361,13 +368,16 @@ class Config(UserDict):
         #   - aliases:        23.x, 23.0.x
         version_re = re.compile(r"^\d+\.\d+(?:\.\d+)?(?:\.x)?$")
 
-        if not version_re.match(default_tarball):
-            raise ConfigError(
-                f"ERROR: Invalid DEFAULT_TARBALL_VERSION='{default_tarball}'.\n"
-                "       Allowed values are:\n"
-                "         - exact versions (e.g. '23.0.3')\n"
-                "         - aliases (e.g. '23.0.x' or '23.x')"
-            )
+        for default_tarball in default_tarballs:
+            if not version_re.match(default_tarball):
+                raise ConfigError(
+                    f"ERROR: Invalid DEFAULT_TARBALL_VERSION='{default_tarball}'.\n"
+                    "       Allowed values are:\n"
+                    "         - exact versions (e.g. '23.0.3')\n"
+                    "         - aliases (e.g. '23.0.x' or '23.x')"
+                )
+
+        self["DEFAULT_TARBALL_VERSION"] = default_tarballs
 
 
 def save_xml(dest_xml_file, xml):
@@ -494,7 +504,7 @@ def main():
         return 6
 
     release_url = config["TARBALL_BASE_URL"]
-    default_tarball_version = config["DEFAULT_TARBALL_VERSION"]
+    default_tarball_versions = config["DEFAULT_TARBALL_VERSION"]
 
     default_found = False
     xml = ""
@@ -530,14 +540,14 @@ def main():
                 config["ARCH_MAP"],
                 major_dict["WHITELIST"],
                 major_dict["BLACKLIST"],
-                default_tarball_version,
+                default_tarball_versions,
             )
             default_found |= manager.default_found
 
     if config.get("XML_OUT") is not None:
         if not default_found:
             print(
-                f"WARNING: You specified {default_tarball_version} as default tarball version, but that was not downloaded. This might result in an invalid xml file"
+                f"WARNING: None of the configured DEFAULT_TARBALL_VERSION values {default_tarball_versions} were downloaded. This might result in an invalid xml file"
             )
         try:
             save_xml(config["XML_OUT"], xml)
