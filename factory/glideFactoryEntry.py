@@ -24,6 +24,7 @@ from glideinwms.factory import glideFactoryLib, glideFactoryLogParser, glideFact
 from glideinwms.lib import classadSupport, cleanupSupport, defaults, glideinWMSVersion, logSupport, token_util, util
 from glideinwms.lib.util import chmod
 
+# protect against import-order issues
 os.environ["PROMETHEUS_MULTIPROC_DIR"] = "/tmp/glideinwms_metrics"
 
 
