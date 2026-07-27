@@ -107,7 +107,7 @@ SPDX-License-Identifier: Apache-2.0
           <li><a href="#config">Configuration</a></li>
           <li><a href="#options">Options</a></li>
           <li><a href="#exec">Sample Execution</a></li>
-          <li><a href="#xml">Sample Generated XML ile</a></li>
+          <li><a href="#xml">Sample Generated XML File</a></li>
         </ol>
       </div>
       <div class="related">
@@ -122,16 +122,16 @@ SPDX-License-Identifier: Apache-2.0
       <div class="section">
         <h2><a name="desc"></a>Description</h2>
         <p>
-          The <i>get_tarball</i> script is a Python script that downloads
+          The <i>get_tarballs</i> script is a Python script that downloads
           HTCondor tarballs from the official HTCondor website.
           <br />
           The tarballs are downloaded by looking at the URL set using
           <b>TARBALL_BASE_URL</b> in the configuration file. The files are
           downloaded and stored in the <b>DESTINATION_DIR</b> directory.
-          Checkusm are verified after a file is downloaded. If a file already
-          exist, or if its checksum is wrong or missing, the file is skipped.
+          Checksums are verified after a file is downloaded. If a file already
+          exists, or if its checksum is wrong or missing, the file is skipped.
           <br />
-          A list of major condor version has to be specified using
+          A list of major Condor versions has to be specified using
           <b>CONDOR_TARBALL_LIST</b>. Each major version has to be a directory
           <a href="https://research.cs.wisc.edu/htcondor/tarball/">here</a>
           (assuming this is the link set in the configuration). For each major
@@ -145,7 +145,7 @@ SPDX-License-Identifier: Apache-2.0
           <i
             >TARBALL_BASE_URL/MAJOR_VERSION/WHITELIST[i]/release/FILENAME_LIST[j]</i
           >, for example:
-          <a
+          <a href="https://research.cs.wisc.edu/htcondor/tarball/23.0/23.0.0/release/condor-23.0.0-x86_64_CentOS7-stripped.tar.gz"
             >https://research.cs.wisc.edu/htcondor/tarball/23.0/23.0.0/release/condor-23.0.0-x86_64_CentOS7-stripped.tar.gz</a
           >
           <br />
@@ -158,7 +158,7 @@ SPDX-License-Identifier: Apache-2.0
           architecture in the tarball filename has to be translated in the xml
           corresponding fields.
           <br />
-          <i>get_tarball</i> is a standalone script and does not require any
+          <i>get_tarballs</i> is a standalone script and does not require any
           glideinWMS dependency or installation.
         </p>
         <h2><a name="exit"></a>Exit Codes</h2>
@@ -192,7 +192,7 @@ SPDX-License-Identifier: Apache-2.0
           <li>
             Place a configuration file named
             <strong>get_tarballs.yaml</strong> in the same directory as
-            <strong>get_tarball.py</strong>.
+            <strong>get_tarballs.py</strong>.
           </li>
         </ul>
         <p>Sample Configuration File:</p>
@@ -219,13 +219,13 @@ ARCH_MAP: { "x86_64": "default", "ppc64le": "ppc64le", "aarch64": "aarch64" }
 XML_OUT: "/etc/gwms-factory/config.d/01-condor-tarballs.xml"
 </pre
         >
-  <p>
-    <strong>DEFAULT_TARBALL_VERSION behavior:</strong>
-    You can provide either a single string (for backward compatibility)
-    or a list of strings. Internally, the value is handled as an ordered
-    list and matching stops at the first entry that applies to each
-    generated tarball version string.
-  </p>
+        <p>
+          <strong>DEFAULT_TARBALL_VERSION behavior:</strong>
+          You can provide either a single string (for backward compatibility)
+          or a list of strings. Internally, the value is handled as an ordered
+          list and matching stops at the first entry that applies to each
+          generated tarball version string.
+        </p>
         <h2><a name="options"></a>Options</h2>
         <p>The script supports the following options:</p>
         <ul>
