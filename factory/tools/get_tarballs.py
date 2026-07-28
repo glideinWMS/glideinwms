@@ -255,7 +255,7 @@ class TarballManager(HTMLParser):
         except KeyError:
             return None
 
-    def generate_xml(self, os_map, arch_map, whitelist, blacklist, default_tarball_versions):
+    def generate_xml(self, os_map, arch_map, whitelist, blacklist, default_tarball_versions, assigned_defaults=None):
         """Generate an XML snippet for the tarball configuration.
 
         The XML snippet is intended for inclusion in the <condor_tarballs> section of the glideinWMS.xml file.
@@ -270,6 +270,9 @@ class TarballManager(HTMLParser):
             blacklist (list): List of versions to exclude.
             default_tarball_versions (list): Ordered list of default tarball versions. ",default" will be
                 added to the version attribute in the XML for the first matching value in the list.
+            assigned_defaults (set, optional): Set of (arch, opsystem) tuples already tagged as default.
+                If provided, each OS/arch pair will get at most one ",default" entry across all generated
+                XML snippets.
 
         Returns:
             str: An XML snippet containing multiple <condor_tarball> elements.
@@ -291,11 +294,15 @@ class TarballManager(HTMLParser):
             if sversion == latest_version:
                 major, minor, _ = sversion.split(".")
                 version += "," + major + ".0.x" if minor == "0" else "," + major + ".x"
-            for default_tarball_version in default_tarball_versions:
-                if default_tarball_version in version.split(","):
-                    self.default_found = True
-                    version += ",default"
-                    break
+            arch_os = (arch, opsystem)
+            if assigned_defaults is None or arch_os not in assigned_defaults:
+                for default_tarball_version in default_tarball_versions:
+                    if default_tarball_version in version.split(","):
+                        self.default_found = True
+                        version += ",default"
+                        if assigned_defaults is not None:
+                            assigned_defaults.add(arch_os)
+                        break
             out += xml_snippet.format(arch=arch_map[arch], os=os_map[opsystem], dest_file=dest_file, version=version)
         return out
 
@@ -507,6 +514,7 @@ def main():
     default_tarball_versions = config["DEFAULT_TARBALL_VERSION"]
 
     default_found = False
+    assigned_defaults = set()
     xml = ""
 
     if args.checklatest is True:
@@ -541,6 +549,7 @@ def main():
                 major_dict["WHITELIST"],
                 major_dict["BLACKLIST"],
                 default_tarball_versions,
+                assigned_defaults,
             )
             default_found |= manager.default_found
 
