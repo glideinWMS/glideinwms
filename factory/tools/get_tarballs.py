@@ -373,7 +373,8 @@ class Config(UserDict):
         # Accept:
         #   - exact versions: 23.0, 23.0.3
         #   - aliases:        23.x, 23.0.x
-        version_re = re.compile(r"^\d+\.\d+(?:\.\d+)?(?:\.x)?$")
+        # Reject malformed values like 23.0.3.x.
+        version_re = re.compile(r"^\d+\.(?:x|\d+(?:\.\d+|\.x)?)$")
 
         for default_tarball in default_tarballs:
             if not version_re.match(default_tarball):
