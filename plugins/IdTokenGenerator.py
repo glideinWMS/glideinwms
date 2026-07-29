@@ -79,11 +79,22 @@ class IdTokenGenerator(CredentialGenerator):
 
         identity = self.context["identity"]
         if not identity:
+            glidein_el = kwargs.get("glidein_el")
+            kwargs_keys = sorted(kwargs.keys())
+            glidein_el_keys = sorted(glidein_el.keys()) if isinstance(glidein_el, dict) else None
             try:
-                identity = f"{kwargs['glidein_el']['attrs']['GLIDEIN_Site']}@{socket.gethostname()}"
-            except KeyError:
-                # GLIDEIN_Site is not mandatory, the name is
-                identity = f"{kwargs['glidein_el']['name']}@{socket.gethostname()}"
+                # GLIDEIN_Site is optional. Fall back to EntryName, then legacy top-level name.
+                attrs = glidein_el["attrs"]
+                identity_name = attrs.get("GLIDEIN_Site") or attrs.get("EntryName") or glidein_el.get("name")
+                if not identity_name:
+                    raise KeyError("GLIDEIN_Site/EntryName/name")
+                identity = f"{identity_name}@{socket.gethostname()}"
+            except Exception as err:
+                raise RuntimeError(
+                    "Unable to determine IDTOKEN identity from kwargs['glidein_el']. "
+                    f"Received kwargs keys={kwargs_keys}, "
+                    f"glidein_el keys={glidein_el_keys}, glidein_el={glidein_el!r}"
+                ) from err
 
         minimum_lifetime = self.context["minimum_lifetime"] or 0
 
