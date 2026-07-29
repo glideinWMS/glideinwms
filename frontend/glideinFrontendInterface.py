@@ -1411,14 +1411,16 @@ class MultiAdvertiseWork:
                 cred_id = cred.id
             except Exception:  # credential may be uninitialized or invalid
                 cred_id = "<unavailable>"
+            invalid_reason = cred.invalid_reason()
             details.append(
-                "id={id},path={path},type={typ},trust_domain={trust},purpose={purpose},valid={valid},advertise={advertise}".format(
+                "id={id},path={path},type={typ},trust_domain={trust},purpose={purpose},valid={valid},invalid_reason={reason},advertise={advertise}".format(
                     id=cred_id,
                     path=cred.path,
                     typ=cred.cred_type,
                     trust=cred.trust_domain,
                     purpose=cred.purpose,
                     valid=cred.valid,
+                    reason=invalid_reason,
                     advertise=getattr(req_cred, "advertise", None),
                 )
             )
@@ -1467,9 +1469,10 @@ class MultiAdvertiseWork:
                 req_name = params_obj.request_name
                 factory_trust, factory_auth = self.factory_constraint.get(req_name, ("<unknown>", "<unknown>"))
                 logSupport.log.warning(
-                    "No security credentials match for factory pool %s, not advertising request;"
-                    " if this is not intentional, check for typos frontend's credential "
-                    "trust_domain and type, vs factory's pool trust_domain and auth_method" % factory_pool
+                    "No usable security credentials for factory pool %s, not advertising request;"
+                    " this may be a trust_domain/type mismatch, or invalid credentials (e.g. expired token/proxy)."
+                    " Check frontend credential trust_domain/type and credential validity against factory trust_domain/auth_method"
+                    % factory_pool
                 )
                 logSupport.log.warning(
                     "Credential debug for request '%s': required trust_domain=%s auth_method=%s; loaded request credentials: %s"
