@@ -1399,6 +1399,31 @@ class MultiAdvertiseWork:
             )
         return unpublished_files
 
+    def _request_credentials_debug_summary(self):
+        """Return a concise summary of loaded request credentials for troubleshooting."""
+        if not self.request_credentials:
+            return "none"
+
+        details = []
+        for req_cred in self.request_credentials:
+            cred = req_cred.credential
+            try:
+                cred_id = cred.id
+            except Exception:  # credential may be uninitialized or invalid
+                cred_id = "<unavailable>"
+            details.append(
+                "id={id},type={typ},trust_domain={trust},purpose={purpose},valid={valid},advertise={advertise}".format(
+                    id=cred_id,
+                    typ=cred.cred_type,
+                    trust=cred.trust_domain,
+                    purpose=cred.purpose,
+                    valid=cred.valid,
+                    advertise=getattr(req_cred, "advertise", None),
+                )
+            )
+
+        return "; ".join(details)
+
     def do_advertise_one(
         self, factory_pool, file_id_cache=None, adname=None, create_files_only=False, reset_unique_id=True
     ):
@@ -1438,10 +1463,16 @@ class MultiAdvertiseWork:
                         filename_arr.append(f)
             except NoCredentialException:
                 filename_arr = []  # don't try to advertise
+                req_name = params_obj.request_name
+                factory_trust, factory_auth = self.factory_constraint.get(req_name, ("<unknown>", "<unknown>"))
                 logSupport.log.warning(
                     "No security credentials match for factory pool %s, not advertising request;"
                     " if this is not intentional, check for typos frontend's credential "
                     "trust_domain and type, vs factory's pool trust_domain and auth_method" % factory_pool
+                )
+                logSupport.log.warning(
+                    "Credential debug for request '%s': required trust_domain=%s auth_method=%s; loaded request credentials: %s"
+                    % (req_name, factory_trust, factory_auth, self._request_credentials_debug_summary())
                 )
             except condorExe.ExeError:
                 filename_arr = []  # don't try to advertise
