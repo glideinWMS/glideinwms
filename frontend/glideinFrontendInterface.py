@@ -1412,8 +1412,9 @@ class MultiAdvertiseWork:
             except Exception:  # credential may be uninitialized or invalid
                 cred_id = "<unavailable>"
             details.append(
-                "id={id},type={typ},trust_domain={trust},purpose={purpose},valid={valid},advertise={advertise}".format(
+                "id={id},path={path},type={typ},trust_domain={trust},purpose={purpose},valid={valid},advertise={advertise}".format(
                     id=cred_id,
+                    path=cred.path,
                     typ=cred.cred_type,
                     trust=cred.trust_domain,
                     purpose=cred.purpose,
