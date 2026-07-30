@@ -129,6 +129,37 @@ def spawn_group(work_dir, group_name, action):
 
 
 ############################################################
+def _format_child_stream(group_name, stream_name, payload, max_lines=120, max_chars=20000):
+    """Format child stream output for readable logs.
+
+    Decodes bytes, keeps multiline formatting, and truncates very long output.
+    """
+    if not payload:
+        return None
+
+    if isinstance(payload, bytes):
+        text = payload.decode("utf-8", errors="replace")
+    else:
+        text = str(payload)
+
+    text = text.strip()
+    if not text:
+        return None
+
+    if len(text) > max_chars:
+        text = text[:max_chars] + "\n... output truncated ..."
+
+    lines = text.splitlines()
+    if len(lines) > max_lines:
+        omitted = len(lines) - max_lines
+        lines = lines[:max_lines]
+        lines.append(f"... {omitted} additional lines omitted ...")
+
+    formatted = "\n".join(f"  {line}" for line in lines)
+    return f"[{group_name}] {stream_name}:\n{formatted}"
+
+
+############################################################
 def poll_group_process(group_name, child):
     """Poll the status of a group's subprocess.
 
@@ -142,15 +173,17 @@ def poll_group_process(group_name, child):
     # Empty stdout and stderr
     try:
         tempOut = child.stdout.read()
-        if tempOut:
-            logSupport.log.info(f"[{group_name}]: {tempOut}")
+        message = _format_child_stream(group_name, "STDOUT", tempOut)
+        if message:
+            logSupport.log.info(message)
     except OSError:
         pass  # Ignore errors
 
     try:
         tempErr = child.stderr.read()
-        if tempErr:
-            logSupport.log.warning(f"[{group_name}]: {tempErr}")
+        message = _format_child_stream(group_name, "STDERR", tempErr)
+        if message:
+            logSupport.log.warning(message)
     except OSError:
         pass  # Ignore errors
 
