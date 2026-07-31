@@ -13,7 +13,6 @@ import time
 
 from prometheus_client import Counter, Gauge, Histogram, Summary
 
-
 # protect against import-order issues
 os.environ["PROMETHEUS_MULTIPROC_DIR"] = "/tmp/glideinwms_metrics"
 
