@@ -76,7 +76,7 @@ class TestGetTarballs(unittest.TestCase):
         }
 
     def _write_config(self, config_path, cfg):
-        yaml_text = f'''DESTINATION_DIR: "{cfg["DESTINATION_DIR"]}"
+        yaml_text = f"""DESTINATION_DIR: "{cfg["DESTINATION_DIR"]}"
 TARBALL_BASE_URL: "{cfg["TARBALL_BASE_URL"]}"
 DEFAULT_TARBALL_VERSION: ["23.0.28", "24.0.22"]
 CONDOR_TARBALL_LIST:
@@ -93,7 +93,7 @@ OS_MAP:
 ARCH_MAP:
   x86_64: "default"
 XML_OUT: "{cfg["XML_OUT"]}"
-'''
+"""
         with open(config_path, "w") as fh:
             fh.write(yaml_text)
 
@@ -168,7 +168,9 @@ XML_OUT: "{cfg["XML_OUT"]}"
                     fh.write(payload)
                 return (filename, None)
 
-            with mock.patch.object(get_tarballs, "parse_opts", return_value=Namespace(verbose=False, checklatest=False)):
+            with mock.patch.object(
+                get_tarballs, "parse_opts", return_value=Namespace(verbose=False, checklatest=False)
+            ):
                 with mock.patch.object(get_tarballs.request, "urlopen", side_effect=fake_urlopen):
                     with mock.patch.object(get_tarballs.request, "urlretrieve", side_effect=fake_urlretrieve):
                         rc = get_tarballs.main()
