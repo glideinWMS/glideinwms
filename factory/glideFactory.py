@@ -24,12 +24,16 @@ import json
 import math
 import os
 import resource
+import shutil
 import signal
 import subprocess
 import sys
 import time
 
 from M2Crypto.RSA import RSAError
+
+# exposing the data - gideon
+from prometheus_client import CollectorRegistry, multiprocess, start_http_server
 
 from glideinwms.factory import (
     glideFactoryConfig,
@@ -44,6 +48,17 @@ from glideinwms.factory import (
 )
 from glideinwms.lib import cleanupSupport, condorMonitor, glideinWMSVersion, logSupport, util
 from glideinwms.lib.condorMonitor import CondorQEdit, QueryError
+
+metrics_dir = "/tmp/glideinwms_metrics"
+os.environ["PROMETHEUS_MULTIPROC_DIR"] = metrics_dir
+
+# Wipe the directory to destroy stale .db files
+if os.path.exists(metrics_dir):
+    shutil.rmtree(metrics_dir)
+
+# Create a fresh, empty directory
+os.makedirs(metrics_dir)
+
 
 FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 
@@ -893,6 +908,9 @@ def hupsignal(signr, frame):
 
 
 if __name__ == "__main__":
+    registry = CollectorRegistry()
+    multiprocess.MultiProcessCollector(registry)
+    start_http_server(5000, addr="0.0.0.0", registry=registry)  # exposing metrics via the http metrics server
     if os.getsid(os.getpid()) != os.getpgrp():
         os.setpgid(0, 0)
     signal.signal(signal.SIGTERM, termsignal)

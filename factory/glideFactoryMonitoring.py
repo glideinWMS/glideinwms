@@ -11,7 +11,10 @@ import pickle
 import re
 import time
 
-from glideinwms.lib import cleanupSupport, logSupport, rrdSupport, timeConversion, util, xmlFormat
+from prometheus_client import Counter, Gauge, Histogram, Summary
+
+# protect against import-order issues
+os.environ["PROMETHEUS_MULTIPROC_DIR"] = "/tmp/glideinwms_metrics"
 
 # list of rrd files that each site has
 RRD_LIST = (
@@ -26,8 +29,60 @@ RRD_LIST = (
 ############################################################
 #
 # Configuration
-#
+# Prometheus Metrics for MonitoringConfig
 ############################################################
+
+# Track total number of completed jobs per client
+glidein_jobs_completed_total = Counter(
+    "glidein_jobs_completed_total", "Total number of completed glidein jobs", ["client"]
+)
+
+# Track Glideins completed but HTCondor failed to start them - Counter
+glidein_condor_startup_failures_total = Counter(
+    "glidein_condor_startup_failures_total",
+    "Total number of completed glideins where HTCondor failed to start",
+    ["client"],
+)
+
+# Total cumulative goodput time in seconds delivered by completed glideins
+glidein_job_goodput_seconds_total = Counter(
+    "glidein_job_goodput_seconds_total",
+    "Total cumulative goodput time in seconds delivered by completed glideins",
+    ["client"],
+)
+
+
+# Define standard Histogram time buckets in seconds (1m, 5m, 15m, 30m, 1h, 2h, 4h, 8h, 12h, 24h)
+duration_buckets = (60, 300, 900, 1800, 3600, 7200, 14400, 28800, 43200, 86400, float("inf"))
+
+# Measure the total lifespan of the glidein from start to finish
+glidein_duration_seconds = Histogram(
+    "glidein_duration_seconds",
+    "Distribution of total glidein lifecycle durations",
+    ["client"],
+    buckets=duration_buckets,
+)
+
+# Measure the time HTCondor actually spent successfully running inside theat glidein
+glidein_condor_duration_seconds = Histogram(
+    "glidein_condor_duration_seconds",
+    "Distribution of HTCondor runtime inside the glideins",
+    ["client"],
+    buckets=duration_buckets,
+)
+
+
+# Number of user jobs that run inside a glidein
+glidein_user_jobs_per_glidein = Summary(
+    "glidein_user_jobs_per_glidein", "Summary of the number of user payloads/jobs executed per glidein", ["client"]
+)
+
+# Combined duration of all those jobs in a glidein
+glidein_user_jobs_duration_seconds = Summary(
+    "glidein_user_jobs_duration_seconds",
+    "Summary of the total combined duration of all user jobs within a glidein",
+    ["client"],
+)
 
 
 class MonitoringConfig:
@@ -110,11 +165,42 @@ class MonitoringConfig:
             return  # nothing to do
         job_ids.sort()
 
+        # increase by number of newly completed jobs - Counter
+        glidein_jobs_completed_total.labels(client=client_name).inc(len(job_ids))
+
         relative_fname = "completed_jobs_%s.log" % time.strftime("%Y%m%d", time.localtime(now))
         fname = os.path.join(self.log_dir, relative_fname)
         with open(fname, "a") as fd:
             for job_id in job_ids:
                 el = entered_dict[job_id]
+
+                # If condor never started, increment the failure counter by 1 - Counter
+                if not el.get("condor_started"):
+                    glidein_condor_startup_failures_total.labels(client=client_name).inc()
+
+                # Increment cumulative goodput by the amount of goodput seconds this job achieved - Counter
+                goodput_time = el.get("jobs_duration", {}).get("goodput", 0)
+                if goodput_time > 0:
+                    glidein_job_goodput_seconds_total.labels(client=client_name).inc(goodput_time)
+
+                # Observe the total glidein duration - Histogram
+                total_duration = el.get("duration", 0)
+                if total_duration > 0:
+                    glidein_duration_seconds.labels(client=client_name).observe(total_duration)
+
+                # Observe the HTCondor duration - Histogram
+                condor_duration = el.get("condor_duration", 0)
+                if condor_duration > 0:
+                    glidein_condor_duration_seconds.labels(client=client_name).observe(condor_duration)
+
+                # Summarize the number of user jobs executed in this glidein - Summary
+                jobsnr = el.get("jobsnr", 0)
+                glidein_user_jobs_per_glidein.labels(client=client_name).observe(jobsnr)
+
+                # Summarize the total duration of those user jobs - Summary
+                jobs_total_duration = el.get("jobs_duration", {}).get("total", 0)
+                glidein_user_jobs_duration_seconds.labels(client=client_name).observe(jobs_total_duration)
+
                 username = el["username"]
                 username = username.split(":")[0]
                 jobs_duration = el["jobs_duration"]
@@ -313,8 +399,17 @@ class MonitoringConfig:
 #  condorQStats
 #
 #  This class handles the data obtained from condor_q
-#
+#  Prometheus Metrics for condorQStats
 #######################################################################################################################
+
+# Track current number of idle jobs per client
+glidein_jobs_idle = Gauge("glidein_jobs_idle", "Current number of idle jobs", ["client"])
+
+# Track current number of running jobs per client
+glidein_jobs_running = Gauge("glidein_jobs_running", "Current number of running jobs", ["client"])
+
+# Track current number of held jobs per client
+glidein_jobs_held = Gauge("glidein_jobs_held", "Current number of held jobs", ["client"])
 
 
 # TODO: ['Downtime'] is added to the self.data[client_name] dictionary only if logRequest is called before logSchedd, logClientMonitor
@@ -402,6 +497,18 @@ class condorQStats:
             el = {}
             t_el["Status"] = el
         self.aggregateStates(qc_status, el)
+
+        # update Gauge with current number of idle jobs
+        idle_count = el.get("Idle", 0)
+        glidein_jobs_idle.labels(client=client_name).set(idle_count)
+
+        # update Gauge with current number of running jobs
+        running_count = el.get("Running", 0)
+        glidein_jobs_running.labels(client=client_name).set(running_count)
+
+        # update Gauge with current number of held jobs
+        held_count = el.get("Held", 0)
+        glidein_jobs_held.labels(client=client_name).set(held_count)
 
         # And now aggregate states by submit file
         if "StatusEntries" in t_el:
