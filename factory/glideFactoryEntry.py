@@ -16,6 +16,8 @@ import sys
 import tempfile
 import traceback
 
+from prometheus_client import Counter
+
 from glideinwms.factory import glideFactoryConfig, glideFactoryCredentials, glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryInterface as gfi
 from glideinwms.factory import glideFactoryLib, glideFactoryLogParser, glideFactoryMonitoring
@@ -1657,6 +1659,10 @@ def unit_work_v3(
 ###############################################################################
 
 
+# Counter Metric Created - Total number of glideins submitted
+glideins_submitted_total = Counter("glideins_submitted_total", "Number of glideins submitted per entry", ["entry"])
+
+
 def perform_work_v3(
     entry,
     condorQ,
@@ -1746,6 +1752,8 @@ def perform_work_v3(
     if nr_submitted > 0:
         entry.log.info("Submitted %s glideins" % nr_submitted)
         # We submitted something
+        # counter metric added below
+        glideins_submitted_total.labels(entry=entry.name).inc(nr_submitted)
         return 1
 
     return 0
