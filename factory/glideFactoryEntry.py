@@ -1662,7 +1662,7 @@ def unit_work_v3(
 ###############################################################################
 
 
-# Counter Metric Created - Total number of glideins submitted
+# creating a metric to capture the number of submitted glideins
 glideins_submitted_total = Counter("glideins_submitted_total", "Number of glideins submitted per entry", ["entry"])
 
 

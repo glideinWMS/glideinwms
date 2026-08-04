@@ -32,8 +32,8 @@ import time
 
 from M2Crypto.RSA import RSAError
 
-# exposing the data - gideon
-from prometheus_client import CollectorRegistry, multiprocess, start_http_server
+from http.server import HTTPServer
+from prometheus_client import MetricsHandler, CollectorRegistry, multiprocess
 
 from glideinwms.factory import (
     glideFactoryConfig,
@@ -910,7 +910,10 @@ def hupsignal(signr, frame):
 if __name__ == "__main__":
     registry = CollectorRegistry()
     multiprocess.MultiProcessCollector(registry)
-    start_http_server(5000, addr="0.0.0.0", registry=registry)  # exposing metrics via the http metrics server
+    #start_http_server(5000, addr="0.0.0.0", registry=registry)  # exposing metrics via the http metrics server
+    server_address = ('', 5000)
+    httpd = HTTPServer(server_address, MetricsHandler)
+    httpd.serve_forever()
     if os.getsid(os.getpid()) != os.getpgrp():
         os.setpgid(0, 0)
     signal.signal(signal.SIGTERM, termsignal)

@@ -305,6 +305,10 @@ Requires: python36-requests
 Requires: python36-jwt
 %endif
 Requires: python3-rrdtool
+# TODO: check if pip is to be included in the list of requirements 
+# since in my testbed environment pip was not found installed
+# also if this needs to be owned by gfactory:gfactory user/group
+Requires: prometheus-client >= 0.10.0
 Requires(post): systemd
 Requires(post): /usr/sbin/useradd
 Requires(post): /usr/sbin/usermod
