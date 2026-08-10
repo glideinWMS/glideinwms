@@ -1411,15 +1411,23 @@ class MultiAdvertiseWork:
                 cred_id = cred.id
             except Exception:  # credential may be uninitialized or invalid
                 cred_id = "<unavailable>"
-            invalid_reason = cred.invalid_reason()
+
+            # Keep this helper exception-safe: it must never mask NoCredentialException.
+            try:
+                invalid_reason = cred.invalid_reason()
+                valid = invalid_reason in (None, "")
+            except Exception as err:
+                invalid_reason = f"<error: {err}>"
+                valid = "<unavailable>"
+
             details.append(
                 "id={id},path={path},type={typ},trust_domain={trust},purpose={purpose},valid={valid},invalid_reason={reason},advertise={advertise}".format(
                     id=cred_id,
-                    path=cred.path,
-                    typ=cred.cred_type,
-                    trust=cred.trust_domain,
-                    purpose=cred.purpose,
-                    valid=cred.valid,
+                    path=getattr(cred, "path", "<unavailable>"),
+                    typ=getattr(cred, "cred_type", "<unavailable>"),
+                    trust=getattr(cred, "trust_domain", "<unavailable>"),
+                    purpose=getattr(cred, "purpose", "<unavailable>"),
+                    valid=valid,
                     reason=invalid_reason,
                     advertise=getattr(req_cred, "advertise", None),
                 )
