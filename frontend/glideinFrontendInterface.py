@@ -1474,7 +1474,7 @@ class MultiAdvertiseWork:
                     " Check frontend credential trust_domain/type and credential validity against factory trust_domain/auth_method"
                     % factory_pool
                 )
-                logSupport.log.warning(
+                logSupport.log.debug(
                     "Credential debug for request '%s': required trust_domain=%s auth_method=%s; loaded request credentials: %s"
                     % (req_name, factory_trust, factory_auth, self._request_credentials_debug_summary())
                 )
