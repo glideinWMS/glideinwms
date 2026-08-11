@@ -26,6 +26,9 @@ Changes since the last release
 
 ### Known Issues
 
+-   Factory monitoring does not report existing pilots after entry `auth_method` changes from `grid_proxy` to `scitoken` and `CONTINUE_IF_NO_PROXY` knob is unset (Issue #681)
+-   Running 3.10.x Frontend continues to request Glideins even when unable to create IDTOKENS, resulting in Glideins failing at startup (Issue #679, PR #680)
+
 ## v3.10.18 \[2026-04-17\]
 
 Added custom scripts timeout, fixed job monitoring and few other bugs.
