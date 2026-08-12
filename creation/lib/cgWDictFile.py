@@ -174,6 +174,7 @@ class CondorJDLDictFile(cWDictFile.DictFile):
 
     def add_environment(self, val):
         """Add a variable definition to the "environment" key in the CondorJDLDictFile.
+        This is the environment that HTCondor sets up before starting the Glidein.
         Defines a new "environment" entry if not there,
         appends to the existing environment if there.
         The whole environment value is enclosed in double quotes (")
