@@ -22,6 +22,7 @@ Changes since the last release
 
 -   Python Cryptography changed some type names spelling. Added import statements to be compatible with both old and new spellings (PR #683, PR #687)
 -   Fixed `populate_group_security` in the configuration management to work with the new credentials and to handle correctly proxy ID lists for X509 DN extraction (PR #640)
+-   Fixed bug in IdTokenGenerator introduced in PR #667 (PR #702)
 
 ### Testing / Development
 

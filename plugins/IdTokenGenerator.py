@@ -79,11 +79,18 @@ class IdTokenGenerator(CredentialGenerator):
 
         identity = self.context["identity"]
         if not identity:
+            # Prefer optional "GLIDEIN_Site", otherwise use "EntryName" (always there, added from the Entry name)
             try:
                 identity = f"{kwargs['glidein_el']['attrs']['GLIDEIN_Site']}@{socket.gethostname()}"
             except KeyError:
-                # GLIDEIN_Site is not mandatory, the name is
-                identity = f"{kwargs['glidein_el']['name']}@{socket.gethostname()}"
+                try:
+                    # If there is an exception here, this should propagate and crash the execution
+                    identity = f"{kwargs['glidein_el']['attrs']['EntryName']}@{socket.gethostname()}"
+                except Exception as err:
+                    raise RuntimeError(
+                        "Unable to determine Entry identity in IdToken generation due to malformed"
+                        " glidefactory ClassAd or bad generator invocation."
+                    ) from err
 
         minimum_lifetime = self.context["minimum_lifetime"] or 0
 
