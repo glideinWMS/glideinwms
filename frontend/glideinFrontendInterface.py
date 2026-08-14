@@ -308,9 +308,26 @@ def findGlideinClientMonitoring(factory_pool, factory_identity, my_name, additio
     return format_condor_dict(data)
 
 
+# TODO: This function deletes some elements form the input, then it makes a copy possibly not to delete those
+#  elements form the sub-dictionaries. This seems inconsistent. Check if input can be freely modified.
 def format_condor_dict(data):
-    """
-    Formats the data from the condor call.
+    """Formats the data from the condor call in a new dictionary.
+
+    It strips the names in frontendConfig.condor_reserved_names in the base and sub-dictionaries.
+    The stripping from `data` modifies the input parameter itself.
+    Then it splits the ClassAd attributes in 3 sub-dictionaries:
+    - the ones starting with frontendConfig.glidein_param_prefix are in `["params"]`
+    - the ones starting with frontendConfig.glidein_monitor_prefix are in `["monitor"]`
+    - all the others in `["attrs"]
+    The sub-dictionaries returned are a copy of the input sub-dictionaries.
+    Note that it is not a deepcopy because the components are not modified.
+
+    Args:
+        data (dict): The glidefactory ClassAd data returned from condor status
+
+    Returns:
+        dict: A formatted dictionary of the Entry data. It has 3 sub-dictionaries: params, monitor, and attrs.
+
     """
 
     reserved_names = frontendConfig.condor_reserved_names
