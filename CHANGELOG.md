@@ -9,9 +9,6 @@ Changes since the last release
 
 ### New features / functionalities
 
--   item one of the list
--   item N
-
 ### Changed defaults / behaviours
 
 ### Deprecated / removed options and commands
@@ -21,6 +18,8 @@ Changes since the last release
 ### Bug Fixes
 
 -   Fix incorrect Arch requirement for ARM pilots (Issue #661, PR #662)
+-   Sanitize cvmfs repos list to protect against Arbitrary Code Execution attack (PR #678)
+-   Retrieve GLIDEIN_SINGULARITY_BINDPATH from glidein_config instead of the environment so it is not ignored (Issue #703, PR #704)
 
 ### Testing / Development
 

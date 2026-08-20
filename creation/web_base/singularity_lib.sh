@@ -1202,14 +1202,17 @@ singularity_get_binds() {
     local retv=  # default controlled from outside ($2)
     local checks=$1
 
-    # Get singularity binds from GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT,
+    # Get singularity binds from glidein_config (GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT),
     # invoker adds default /cvmfs (via $2),
     # add overrides, and remove non existing src (checks=e) - if src is not existing Singularity will error (not run)
-
-    info_dbg "Singularity binds: OVERRIDE:$3, BINDPATH:$GLIDEIN_SINGULARITY_BINDPATH, BINDPATH_DEFAULT:$GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, DEFAULT:$2, CHECKS($checks)"
+    local singularity_bindpath
+    local singularity_bindpath_default
+    singularity_bindpath=$(gwms_from_config GLIDEIN_SINGULARITY_BINDPATH)
+    singularity_bindpath_default=$(gwms_from_config GLIDEIN_SINGULARITY_BINDPATH_DEFAULT)
+    info_dbg "Singularity binds: OVERRIDE:$3, BINDPATH:$singularity_bindpath, BINDPATH_DEFAULT:$singularity_bindpath_default, DEFAULT:$2, CHECKS($checks)"
     [[ -n "$3" ]] && retv="${retv}$3,"
-    [[ -n "$GLIDEIN_SINGULARITY_BINDPATH" ]] && retv="${retv}$GLIDEIN_SINGULARITY_BINDPATH,"
-    [[ -n "$GLIDEIN_SINGULARITY_BINDPATH_DEFAULT" ]] && retv="${retv}$GLIDEIN_SINGULARITY_BINDPATH_DEFAULT,"
+    [[ -n "$singularity_bindpath" ]] && retv="${retv}$singularity_bindpath,"
+    [[ -n "$singularity_bindpath_default" ]] && retv="${retv}$singularity_bindpath_default,"
     [[ -n "$2" ]] && retv="${retv}$2"
 
     # Check all mount points
