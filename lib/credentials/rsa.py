@@ -232,6 +232,8 @@ class RSAPrivateKey(Credential[PrivateKeyTypes]):
         """
         string = force_bytes(string)
         password = force_bytes(secret)
+        # For debugging, add try around return value evaluation and enhance error message:
+        #   e.args = (f"{original_message} (string-start: {string[0:100]}, secret: {password}/{secret})",)
         if string.startswith(b"-----BEGIN OPENSSH PRIVATE KEY-----"):
             return serialization.load_ssh_private_key(string, password=password, backend=default_backend())
         return serialization.load_pem_private_key(
