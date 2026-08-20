@@ -9,9 +9,6 @@ Changes since the last release
 
 ### New features / functionalities
 
--   item one of the list
--   item N
-
 ### Changed defaults / behaviours
 
 -   Changed the default value for custom scripts timeout to 0 seconds. This also changes the default behavior for the execution of custom scripts to not time out; from timing out after 600s to not using a timeout value. When custom scripts timeout value is non-zero, the behavior remains unchanged, i.e. after timing out, scripts are killed with SIGTERM followed by SIGKILL (PR #688)
@@ -23,6 +20,8 @@ Changes since the last release
 ### Bug Fixes
 
 -   Fix incorrect Arch requirement for ARM pilots (Issue #661, PR #662)
+-   Sanitize cvmfs repos list to protect against Arbitrary Code Execution attack (PR #678)
+-   Retrieve GLIDEIN_SINGULARITY_BINDPATH from glidein_config instead of the environment so it is not ignored (Issue #703, PR #704)
 
 ### Testing / Development
 
