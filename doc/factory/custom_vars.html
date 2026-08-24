@@ -108,9 +108,6 @@ SPDX-License-Identifier: Apache-2.0
           <li><a href="#singularity_vars">Singularity variables </a></li>
           <li><a href="#cvmfs_vars">CVMFS variables </a></li>
           <li>
-            <a href="#cvmfs_vars">CVMFS variables </a>
-          </li>
-          <li>
             <a href="#cpuscalculation">Set and discover available CPUs</a>
           </li>
           <li><a href="#lifetime">Lifetime of a glidein</a></li>
@@ -2869,7 +2866,7 @@ MAX_STARTD_LOG          I       10000000        +                               
       <div class="section">
         <h2><a name="cvmfs_vars"></a>On-demand CVMFS Provisioning</h2>
         <p>
-          GlideinWMS factory includes the capability to mount and unmount CVMFS
+          GlideinWMS Factory includes the capability to mount and unmount CVMFS
           on demand, i.e. for sites that do not have a native installation of
           CVMFS available. <b>cvmfs_setup.sh</b> and <b>cvmfs_umount.sh</b> are
           the main scripts used for mounting and unmounting CVMFS. A couple of
@@ -2891,7 +2888,7 @@ MAX_STARTD_LOG          I       10000000        +                               
         </p>
         <p>
           The table below describes the attributes that can be configured for
-          use with the Glidein to allow CVMFS to be provisioned on-demand. These
+          use with the Glidein to allow CVMFS to be provisioned on demand. These
           attributes are configured at the Glidein level so that it applies to
           all the entries that are defined in the Factory's configuration file.
         </p>
@@ -2954,9 +2951,8 @@ MAX_STARTD_LOG          I       10000000        +                               
                 Not set by default. This attribute, in conjunction with
                 GLIDEIN_USE_CVMFS (defined in the Frontend), specifies the
                 site/factory policy to be used when provisioning CVMFS. This
-                also helps in determining the behavior of the Glidein behavior
-                in case failures are encountered during the provisioning of
-                CVMFS.
+                also helps in determining the behavior of the Glidein in case
+                failures are encountered during the provisioning of CVMFS.
               </p>
               <p>
                 This configuration attribute takes one of the following three
@@ -3015,7 +3011,7 @@ MAX_STARTD_LOG          I       10000000        +                               
         </table>
         <br />
         <p>
-          Following is a matrix summarizing the combination of requirements that
+          The following table summarizes the combination of requirements that
           allow different modes of <i>cvmfsexec</i>. For more technical details
           on how unprivileged user namespaces and FUSE dictate the mode of
           cvmfsexec that will be used, please refer to cvmfsexec documentation
@@ -3023,48 +3019,23 @@ MAX_STARTD_LOG          I       10000000        +                               
         </p>
         <table class="requirements">
           <tr class="head">
-            <td><b>GLIDEIN_USE_CVMFS</b></td>
-            <td><b>GLIDEIN_CVMFS_REQUIRE</b></td>
-            <td><b>Unprivileged user namespaces?</b></td>
-            <td><b>FUSE/FUSE3 installed?</b></td>
-            <td><b>cvmfsexec mode used</b></td>
-            <td><b>Utility used?</b></td>
+            <td><b>Is unprivileged user namespaces supported?</b></td>
+            <td><b>Is unprivileged user namespaces enabled?</b></td>
+            <td><b>Is FUSE/FUSE3 installed?</b></td>
+            <td>
+              <b><i>cvmfsexec</i> mode used</b>
+            </td>
+            <td><b>Mounting utility</b></td>
           </tr>
           <tr>
-            <td>0</td>
-            <td>NEVER|PREFERRED|OPTIONAL|REQUIRED</td>
-            <td>N/A</td>
-            <td>N/A</td>
-            <td>N/A</td>
-            <td>N/A</td>
-          </tr>
-          <tr>
-            <td>1</td>
-            <td>NEVER</td>
-            <td>N/A</td>
-            <td>N/A</td>
-            <td>N/A</td>
-            <td>N/A</td>
-          </tr>
-          <tr>
-            <td rowspan="2">1</td>
-            <td rowspan="2">PREFERRED|OPTIONAL</td>
-            <td>no</td>
+            <td rowspan="4">yes</td>
+            <td rowspan="2">yes</td>
             <td>yes</td>
-            <td>1</td>
-            <td>mountrepo</td>
-          </tr>
-          <tr>
-            <td>yes</td>
-            <td>N/A</td>
             <td>3</td>
             <td>cvmfsexec</td>
           </tr>
           <tr>
-            <td rowspan="3">1</td>
-            <td rowspan="3">REQUIRED</td>
-            <td>yes</td>
-            <td>N/A</td>
+            <td>no</td>
             <td>3</td>
             <td>cvmfsexec</td>
           </tr>
@@ -3078,6 +3049,79 @@ MAX_STARTD_LOG          I       10000000        +                               
             <td>no</td>
             <td>-</td>
             <td>-</td>
+          </tr>
+          <tr>
+            <td rowspan="4">no</td>
+            <td rowspan="2">yes</td>
+            <td>yes</td>
+            <td>1</td>
+            <td>mountrepo</td>
+          </tr>
+          <tr>
+            <td>no</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td rowspan="2">no</td>
+            <td>yes</td>
+            <td>1</td>
+            <td>mountrepo</td>
+          </tr>
+          <tr>
+            <td>no</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+        </table>
+        <br />
+        <p>
+          The following matrix defines the policy driving the behavior of
+          Glideins when mounting CVMFS on demand.
+        </p>
+        <table class="requirements">
+          <tr class="head">
+            <td><b>GLIDEIN_USE_CVMFS</b></td>
+            <td><b>GLIDEIN_CVMFS_REQUIRE</b></td>
+            <td><b>Glidein behavior</b></td>
+          </tr>
+          <tr>
+            <td>0</td>
+            <td rowspan="2">NEVER</td>
+            <td>
+              Glidein will not attempt to provision CVMFS as GLIDEIN_USE_CVMFS
+              indicates that the job does not want CVMFS
+            </td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>
+              Glidein will not attempt to provision CVMFS on sites that are
+              matched
+            </td>
+          </tr>
+          <tr>
+            <td>0</td>
+            <td rowspan="2">PREFERRED</td>
+            <td rowspan="2">
+              Glidein will attempt to provision CVMFS on demand. If mounting
+              fails, Glidein setup will warn about the failure and continue
+              without CVMFS.
+            </td>
+          </tr>
+          <tr>
+            <td>1</td>
+          </tr>
+          <tr>
+            <td>0</td>
+            <td rowspan="2">REQUIRED</td>
+            <td rowspan="2">
+              Glidein will attempt to provision CVMFS on demand. Glidein setup
+              fails if unable to mount CVMFS
+            </td>
+          </tr>
+          <tr>
+            <td>1</td>
           </tr>
         </table>
         <br /><br />
