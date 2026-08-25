@@ -2134,8 +2134,6 @@ done
 # changes we need to show up in the job here
 # 1. Need IDTOKENS_FILE to be set to the correct path of the idtokens file in the glidein
 export IDTOKENS_FILE=$(gconfig_get GLIDEIN_CONDOR_TOKEN "${glidein_config}")
-# 2. At this point, JOB_TOKENS points at a file that's not accessible from the glidein, so just unset it.
-unset JOB_TOKENS
 
 ##############################
 # Start the glidein main script
