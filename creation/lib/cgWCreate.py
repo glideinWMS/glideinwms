@@ -185,9 +185,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 enc_input_files.append(token_tgz_file)
                 token_list.append(token_tgz_file)
 
-        if token_list:
-            self.add_environment("JOB_TOKENS='" + ",".join(token_list) + "'")
-
         # Get the list of log recipients specified from the Factory for this entry
         factory_recipients = get_factory_log_recipients(entry)
         frontend_recipients = []  # TODO: change when adding support for LOG_RECIPIENTS_CLIENT
