@@ -2144,7 +2144,6 @@ glog_write "glidein_startup.sh" "file" "${glidein_config}" "debug"
 if ! glog_send; then          # checkpoint
     echo "Failed to checkpoint Glidein Logging"
 fi
-
 echo "# --- Last Script values ---" >> "${glidein_config}"
 last_startup_time=$(date +%s)
 ((validation_time=last_startup_time-startup_time)) || true
