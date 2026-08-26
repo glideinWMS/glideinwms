@@ -5,7 +5,11 @@
 
 # IMPORTANT
 # These functions use the variable $glidein_config
-# gconfig_add() (and gconfig_add_unsafe and gconfig_add_safe) all require $glidein_config, otherwise they exit
+# gconfig_add() (and gconfig_add_unsafe, gconfig_add_safe and gconfig_add_multi) all require $glidein_config, otherwise they exit
+# gconfig_add_multi() adds many "key value" lines (read from stdin, one per line) in a single
+#  read-modify-write pass, instead of one full glidein_config rewrite per call like gconfig_add().
+#  Use it instead of looping over gconfig_add() when adding more than a few lines at once
+#  (e.g. merging in a constants file), especially on slow/networked filesystems.
 # gconfig_get() takes an optional file name as second parameter.  $glidein_config is used if that is not provided.
 #  The function exits if neither are provided/defined
 # gconfig_trim() is quitting (return 1) if $glidein_config is not defined
@@ -156,6 +160,78 @@ gconfig_add() {
 
 # alias add_config_line=gconfig_add  # This is not working w/ bats
 add_config_line(){ gconfig_add "$@"; }
+
+##################################################
+# Add many lines to the config file in a single read-modify-write pass.
+# gconfig_add() does a grep + cp + grep + mv of the WHOLE glidein_config
+# file for every single call. That is fine for a handful of ad-hoc
+# additions, but calling it once per line in a loop (e.g. to merge in a
+# constants file) makes the total cost grow with both the number of
+# lines added AND the size of glidein_config, and each of those file
+# operations is a full round trip on network/shared filesystems (e.g.
+# NFS-backed worker node scratch), which can turn a few hundred
+# constants into a multi-minute (or script-timeout-triggering) operation.
+# gconfig_add_multi() does the equivalent of gconfig_add() for a whole
+# batch of lines, but only copies/rewrites glidein_config ONCE.
+# Input: lines to add are read from stdin, one per line, each formatted
+#   as "var_name var_value..." (i.e. what gconfig_add's "$@" would have
+#   been). If the same var_name appears more than once, only the last
+#   occurrence (within stdin, and vs. any pre-existing value) is kept,
+#   matching glidein_config's "last line for a key wins" convention.
+# Uses global variable glidein_config
+gconfig_add_multi() {
+    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfig_add_multi. Forcing exit."; exit 1; }
+    local tmp_lines="${glidein_config}.$$.lines.tmp"
+    cat > "${tmp_lines}"
+    if [[ ! -s "${tmp_lines}" ]]; then
+        # Nothing to add
+        rm -f "${tmp_lines}"
+        return 0
+    fi
+    # Add the values also to a log that will help troubleshoot problems (one dd for the whole batch)
+    sed 's/^/MUL'"$$"' /' "${tmp_lines}" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${glidein_config}.history"
+    # Keep only the last occurrence of each key within the batch itself
+    local tmp_dedup="${glidein_config}.$$.dedup.tmp"
+    $TAC "${tmp_lines}" | awk '!x[$1]++' | $TAC > "${tmp_dedup}"
+    mv "${tmp_dedup}" "${tmp_lines}"
+    # Build an extended-regex pattern file (one "^key " pattern per line) to strip
+    # any pre-existing occurrences of these keys from glidein_config in one grep pass
+    local tmp_keys="${glidein_config}.$$.keys.tmp"
+    cut -d ' ' -f 1 "${tmp_lines}" | sed -e 's/^/^/' -e 's/$/ /' > "${tmp_keys}"
+    local tmp_config1="${glidein_config}.$$.1.tmp"
+    local tmp_config2="${glidein_config}.$$.2.tmp"
+    if ! cp -p "${glidein_config}" "${tmp_config1}"; then
+        # Fallback to cp and chmod for file systems that do not support "-p" (e.g.: ACL not available)
+        warn "Trying cp/chown combination since cp -p failed"
+        local permissions
+        permissions=$(stat -c "%a" "${glidein_config}")
+        if ! cp "${glidein_config}" "${tmp_config1}"; then
+            warn "Error writing ${tmp_config1}"
+            rm -f "${tmp_config1}" "${tmp_lines}" "${tmp_keys}"
+            exit 1
+        fi
+        if ! chmod "$permissions" "${tmp_config1}"; then
+            warn "File copied but original file permissions cannot be set. Continuing"
+        fi
+    fi
+    local ec=0
+    # OR needed to avoid set -e problems when the file is empty
+    grep -vE -f "${tmp_keys}" "${tmp_config1}" > "${tmp_config2}" || ec=$?
+    if [[ "$ec" -gt 1 ]]; then
+        warn "Error writing ${tmp_config2} with grep"
+        rm -f "${tmp_config1}" "${tmp_config2}" "${tmp_lines}" "${tmp_keys}"
+        exit 1
+    fi
+    rm -f "${tmp_config1}" "${tmp_keys}"
+    cat "${tmp_lines}" >> "${tmp_config2}"
+    rm -f "${tmp_lines}"
+    if ! mv "${tmp_config2}" "${glidein_config}"; then
+        warn "Error renaming processed ${tmp_config2} into ${glidein_config}"
+        exit 1
+    fi
+}
+
+add_config_lines_multi() { gconfig_add_multi; }
 
 # Unsafe version, should be used only when sequentiality is guaranteed,
 # add_config_line... are the only writing functions, and only one call at the time happen.

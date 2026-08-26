@@ -48,6 +48,15 @@ nr_lines=0
 if [ -n "$consts_file" ]; then
     echo "# --- Provided $dir_id constants  ---" >> "$glidein_config"
     # merge constants
+    # Collect all the "var_name var_value" lines first and add them to glidein_config
+    # in a single gconfig_add_multi() pass at the end, instead of one gconfig_add() call
+    # (a full glidein_config copy+grep+rename) per constant. That per-line approach is
+    # fine for a handful of values, but its cost grows with both the number of constants
+    # and the size of glidein_config, and each file operation is a full round trip on
+    # network/shared worker-node scratch filesystems -- enough at some sites to make
+    # this script run past the custom-script timeout. See glideinwms issue with
+    # cat_consts.sh timing out on NFS-backed OSG_WN_TMP.
+    consts_lines=""
     while read line
     do
         # disable globbing but keep the splitting in $line
@@ -56,9 +65,13 @@ if [ -n "$consts_file" ]; then
 	# var_name keeps lines w/ no separator
 	var_name="`echo "$line" | cut -f 1 | sed -e 's/[[:space:]]*$//'`"
 	var_value="`echo "$line" | cut -s -f 2- | sed -e 's/[[:space:]]*$//'`"
-        ( set -f; gconfig_add $var_name "$var_value" )
+        consts_lines="${consts_lines}$( set -f; echo $var_name "$var_value" )
+"
         let ++nr_lines
     done < "$consts_file"
+    if [ -n "$consts_lines" ]; then
+        printf '%s' "$consts_lines" | gconfig_add_multi
+    fi
     echo "# --- End $dir_id constants       ---" >> "$glidein_config"
 fi
 
