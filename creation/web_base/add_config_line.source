@@ -181,7 +181,7 @@ add_config_line(){ gconfig_add "$@"; }
 # Uses global variable glidein_config
 gconfig_add_multi() {
     [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfig_add_multi. Forcing exit."; exit 1; }
-    local tmp_lines="${glidein_config}.$$.lines.tmp"
+    local tmp_lines="${glidein_config}.$$.newlines.tmp"
     cat > "${tmp_lines}"
     if [[ ! -s "${tmp_lines}" ]]; then
         # Nothing to add
@@ -191,12 +191,12 @@ gconfig_add_multi() {
     # Add the values also to a log that will help troubleshoot problems (one dd for the whole batch)
     sed 's/^/MUL'"$$"' /' "${tmp_lines}" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${glidein_config}.history"
     # Keep only the last occurrence of each key within the batch itself
-    local tmp_dedup="${glidein_config}.$$.dedup.tmp"
+    local tmp_dedup="${glidein_config}.$$.newlinesdedup.tmp"
     $TAC "${tmp_lines}" | awk '!x[$1]++' | $TAC > "${tmp_dedup}"
     mv "${tmp_dedup}" "${tmp_lines}"
     # Build an extended-regex pattern file (one "^key " pattern per line) to strip
     # any pre-existing occurrences of these keys from glidein_config in one grep pass
-    local tmp_keys="${glidein_config}.$$.keys.tmp"
+    local tmp_keys="${glidein_config}.$$.newlineskeys.tmp"
     cut -d ' ' -f 1 "${tmp_lines}" | sed -e 's/^/^/' -e 's/$/ /' > "${tmp_keys}"
     local tmp_config1="${glidein_config}.$$.1.tmp"
     local tmp_config2="${glidein_config}.$$.2.tmp"
@@ -230,8 +230,6 @@ gconfig_add_multi() {
         exit 1
     fi
 }
-
-add_config_lines_multi() { gconfig_add_multi; }
 
 # Unsafe version, should be used only when sequentiality is guaranteed,
 # add_config_line... are the only writing functions, and only one call at the time happen.
