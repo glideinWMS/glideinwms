@@ -69,7 +69,7 @@ if [ -n "$consts_file" ]; then
 "
         let ++nr_lines
     done < "$consts_file"
-    # TODO: given multiline input, this could be optimized without parsing the file with somethig like:
+    # TODO: given multiline input, this could be optimized without parsing the file with something like:
     #   grep -v "^#" "$consts_file" | sed -E -e 's/^[[:blank:]]*//' -e 's/[[:blank:]]+/ /' -e 's/[[:blank:]]*$//'
     #   This file needs also a general update and revision (e.g. bash optimizations)
     if [ -n "$consts_lines" ]; then
