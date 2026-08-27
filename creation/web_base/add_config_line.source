@@ -18,10 +18,19 @@
 
 # Constants
 # glidein_config is a key-value file
+# comment lines starting with "# " are ignored but preserved
 # each line is a key (case sensitive ID name), a space, and a value (rest of the line)
 # if there are multiple lines w/ the same key, the last one counts
-# each line can be max 4K
-GWSM_CONFIG_LINE_MAX=4k
+# Assuming Linux, each line can be max 4K
+# POSIX guarantees atomic appends for echo/print as long as smaller than the buffer (4K on Linux, 1K on Mac/BSD/Windows)
+# For atomic append (P):
+# GWMS_CONFIG_LINE_MAX=4k  # Not used anymore
+#  Was `echo "$@" | bs=$GWMS_CONFIG_LINE_MAX 2>/dev/null >> "${file}"` but dd is not needed (not improving atomicity)
+#  Using `echo "$@" >> "${file}"` (echo is bash built-in)
+#  For multiline was `sed 's/^/MUL'"$$"' /' "${tmp_lines}" | dd bs=$GWMS_CONFIG_LINE_MAX 2>/dev/null >> "${file}"
+#  Using `sed 's/^/MUL'"$$"' /' "${tmp_lines}" >> "${file}"
+#  Alt `awk -v p="MUL $$ " '$0=p $0' >> "${glidein_config}.history"`
+
 # Number of seconds before forcing unlock if the owner process is not there
 UNLOCK_TIMEOUT=60
 # Fails to acquire the lock after attempting for N seconds
@@ -86,6 +95,7 @@ gconfig_get_trim() {
 gconfig_get() {
     local config_file=${2:-$glidein_config}
     [[ -z "${config_file}" ]] && { warn "Error: glidein_config not provided and glidein_config variable not defined. Forcing exit."; exit 1; }
+    [[ "$1" = "#" ]] && { warn "Error: '#' is used for comments, gconfig_get key must be different"; exit 1; }
     [[ -n "$3" && ! "$3" = \-* ]] && { warn "Error: gconfig_get 3rd parameter must start with '-' Forcing exit."; exit 1; }
     [[ -r "$config_file" ]] || { true; return; }
     # Redirected tac stderr to /dev/null to avoid "tac: write error: Broken pipe" message when grep closes early the pipe after the result is found
@@ -103,7 +113,7 @@ gconfig_log_add() {
     local log_name
     log_name=$(gconfig_log_name "$1")
     shift
-    echo "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${log_name}"
+    echo "$@" >> "${log_name}"
 }
 
 ###################################
@@ -117,43 +127,51 @@ gconfig_log_add() {
 # 1. use flock, see add_config_line_safe(), may have problems on NFS
 # 2. use a DB or some gatekeeping process
 # 3. use a separate file per entry (see https://github.com/damphat/kv-bash/blob/master/kv-bash)
+# $1    - key of the parameter
+# $2... - value of the parameter.
+#         Parameters are flattened if not quoted, if there are blanks they are separated by single space
 gconfig_add() {
-    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfog_add. Forcing exit."; exit 1; }
+    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfig_add. Forcing exit."; exit 1; }
     # Add the value also to a log that will help troubleshoot problems
-    echo "REG$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${glidein_config}.history"
-    if ! grep -q "^${*}$" "${glidein_config}"; then
-        # Copy the glidein config so it doesn't get modified while we grep out the old value
-        local tmp_config1="${glidein_config}.$$.1.tmp"
-        local tmp_config2="${glidein_config}.$$.2.tmp"
-        local ec=0
-        if ! cp -p "${glidein_config}" "${tmp_config1}"; then
-            # Fallback to cp and chmod for file systems that do not support "-p" (e.g.: ACL not available)
-            warn "Trying cp/chown combination since cp -p failed"
-            permissions=$(stat -c "%a" "${glidein_config}")
-            if ! cp "${glidein_config}" "${tmp_config1}"; then
-                warn "Error writing ${tmp_config1}"
+    echo "REG$$" "$@" >> "${glidein_config}.history"
+    if [[ "$1" = "#" ]]; then
+        # Handling comment lines, added as they are (spacing may vary)
+        echo "$@" >> "${glidein_config}"
+    else
+        if ! grep -q "^${*}$" "${glidein_config}"; then
+            # Copy the glidein config so it doesn't get modified while we grep out the old value
+            local tmp_config1="${glidein_config}.$$.1.tmp"
+            local tmp_config2="${glidein_config}.$$.2.tmp"
+            local ec=0
+            if ! cp -p "${glidein_config}" "${tmp_config1}"; then
+                # Fallback to cp and chmod for file systems that do not support "-p" (e.g.: ACL not available)
+                warn "Trying cp/chown combination since cp -p failed"
+                permissions=$(stat -c "%a" "${glidein_config}")
+                if ! cp "${glidein_config}" "${tmp_config1}"; then
+                    warn "Error writing ${tmp_config1}"
+                    rm -f "${tmp_config1}"
+                    exit 1
+                fi
+                if ! chmod "$permissions" "${tmp_config1}"; then
+                    warn "File copied but original file permissions cannot be set. Continuing"
+                fi
+            fi
+            # OR needed to avoid set -e problems when the file is empty
+            grep -v "^$1 " "${tmp_config1}" > "${tmp_config2}" || ec=$?
+            if [[ "$ec" -gt 1 ]]; then
+                # 1 only lines to remove (0 matches), >1 error
+                warn "Error writing ${tmp_config2} with grep"
                 rm -f "${tmp_config1}"
+                rm -f "${tmp_config2}"
                 exit 1
             fi
-            if ! chmod "$permissions" "${tmp_config1}"; then
-                warn "File copied but original file permissions cannot be set. Continuing"
-            fi
-        fi
-        # OR needed to avoid set -e problems when the file is empty
-        grep -v "^$1 " "${tmp_config1}" > "${tmp_config2}" || ec=$?
-        if [[ "$ec" -gt 1 ]]; then
-            # 1 only lines to remove (0 matches), >1 error
-            warn "Error writing ${tmp_config2} with grep"
             rm -f "${tmp_config1}"
-            rm -f "${tmp_config2}"
-            exit 1
-        fi
-        rm -f "${tmp_config1}"
-        # NOTE that parameters are flattened if not quoted, if there are blanks they are separated by single space
-        echo "$@" >> "${tmp_config2}"
-        if ! mv "${tmp_config2}" "${glidein_config}"; then
-            warn "Error renaming processed ${tmp_config1} into ${glidein_config}"
-            exit 1
+            # NOTE that parameters are flattened if not quoted, if there are blanks they are separated by single space
+            echo "$@" >> "${tmp_config2}"
+            if ! mv "${tmp_config2}" "${glidein_config}"; then
+                warn "Error renaming processed ${tmp_config1} into ${glidein_config}"
+                exit 1
+            fi
         fi
     fi
 }
@@ -163,21 +181,19 @@ add_config_line(){ gconfig_add "$@"; }
 
 ##################################################
 # Add many lines to the config file in a single read-modify-write pass.
-# gconfig_add() does a grep + cp + grep + mv of the WHOLE glidein_config
-# file for every single call. That is fine for a handful of ad-hoc
-# additions, but calling it once per line in a loop (e.g. to merge in a
-# constants file) makes the total cost grow with both the number of
-# lines added AND the size of glidein_config, and each of those file
-# operations is a full round trip on network/shared filesystems (e.g.
-# NFS-backed worker node scratch), which can turn a few hundred
-# constants into a multi-minute (or script-timeout-triggering) operation.
-# gconfig_add_multi() does the equivalent of gconfig_add() for a whole
-# batch of lines, but only copies/rewrites glidein_config ONCE.
-# Input: lines to add are read from stdin, one per line, each formatted
-#   as "var_name var_value..." (i.e. what gconfig_add's "$@" would have
-#   been). If the same var_name appears more than once, only the last
-#   occurrence (within stdin, and vs. any pre-existing value) is kept,
-#   matching glidein_config's "last line for a key wins" convention.
+# gconfig_add() does a grep + cp + grep + mv of the WHOLE glidein_config file for every single call.
+# That is fine for a handful of ad-hoc additions, but calling it once per line in a loop (e.g. to merge in a
+# constants file) makes the total cost grow with both the number of lines added AND the size of glidein_config,
+# and each of those file operations is a full round trip on network/shared filesystems (e.g. NFS-backed worker
+# node scratch), which can turn a few hundred constants into a multi-minute (or script-timeout-triggering)
+# operation.
+# gconfig_add_multi() does the equivalent of gconfig_add() for a whole batch of lines, but only copies/rewrites
+# glidein_config ONCE.
+#
+# Input: lines to add are read from stdin, one per line, each formatted as "var_name var_value..."
+#   (i.e. what gconfig_add's "$@" would have been). If the same var_name appears more than once, only the last
+#   occurrence (within stdin, and vs. any pre-existing value) is kept, matching glidein_config's
+#   "last line for a key wins" convention.
 # Uses global variable glidein_config
 gconfig_add_multi() {
     [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfig_add_multi. Forcing exit."; exit 1; }
@@ -189,15 +205,14 @@ gconfig_add_multi() {
         return 0
     fi
     # Add the values also to a log that will help troubleshoot problems (one dd for the whole batch)
-    sed 's/^/MUL'"$$"' /' "${tmp_lines}" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${glidein_config}.history"
+    sed 's/^/MUL'"$$"' /' "${tmp_lines}" >> "${glidein_config}.history"
     # Keep only the last occurrence of each key within the batch itself
-    local tmp_dedup="${glidein_config}.$$.newlinesdedup.tmp"
-    $TAC "${tmp_lines}" | awk '!x[$1]++' | $TAC > "${tmp_dedup}"
-    mv "${tmp_dedup}" "${tmp_lines}"
-    # Build an extended-regex pattern file (one "^key " pattern per line) to strip
+    # And build an extended-regex pattern file (one "^key " pattern per line) to strip
     # any pre-existing occurrences of these keys from glidein_config in one grep pass
     local tmp_keys="${glidein_config}.$$.newlineskeys.tmp"
-    cut -d ' ' -f 1 "${tmp_lines}" | sed -e 's/^/^/' -e 's/$/ /' > "${tmp_keys}"
+    local tmp_dedup="${glidein_config}.$$.newlinesdedup.tmp"
+    $TAC "${tmp_lines}" | awk -v out="${tmp_keys}" '$1 == "#" {print; next} !x[$1]++ {print "^" $1 " " > out; print}' | $TAC > "${tmp_dedup}"
+    mv "${tmp_dedup}" "${tmp_lines}"
     local tmp_config1="${glidein_config}.$$.1.tmp"
     local tmp_config2="${glidein_config}.$$.2.tmp"
     if ! cp -p "${glidein_config}" "${tmp_config1}"; then
@@ -235,23 +250,27 @@ gconfig_add_multi() {
 # add_config_line... are the only writing functions, and only one call at the time happen.
 # Read may happen in parallel
 gconfig_add_unsafe() {
-    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfog_add. Forcing exit."; exit 1; }
+    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfig_add. Forcing exit."; exit 1; }
     # Add the value also to a log that will help troubleshoot problems
-    echo "UNS$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${glidein_config}.history"
-    if ! grep -q "^${*}$" "${glidein_config}"; then
-        local config_tmp="${glidein_config}.old"
-        rm -f "${config_tmp}"  #just in case one was there
-        grep -v "^$1 " "${glidein_config}" > "${config_tmp}"
-        if [[ $? -gt 1 ]]; then
-            warn "Error creating ${config_tmp} via grep"
-            rm -f "${config_tmp}"
-            exit 1
-        fi
-        # NOTE that parameters are flattened if not quoted, if there are blanks they are separated by single space
-        echo "$@" >> "${config_tmp}"
-        if ! mv "${config_tmp}" "${glidein_config}"; then
-            warn "Error renaming temporary ${config_tmp} into ${glidein_config}"
-            exit 1
+    echo "UNS$$" "$@" >> "${glidein_config}.history"
+    if [[ "$1" = "#" ]]; then
+        echo "$@" >> "${glidein_config}"
+    else
+        if ! grep -q "^${*}$" "${glidein_config}"; then
+            local config_tmp="${glidein_config}.old"
+            rm -f "${config_tmp}"  #just in case one was there
+            grep -v "^$1 " "${glidein_config}" > "${config_tmp}"
+            if [[ $? -gt 1 ]]; then
+                warn "Error creating ${config_tmp} via grep"
+                rm -f "${config_tmp}"
+                exit 1
+            fi
+            # NOTE that parameters are flattened if not quoted, if there are blanks they are separated by single space
+            echo "$@" >> "${config_tmp}"
+            if ! mv "${config_tmp}" "${glidein_config}"; then
+                warn "Error renaming temporary ${config_tmp} into ${glidein_config}"
+                exit 1
+            fi
         fi
     fi
 }
@@ -264,9 +283,12 @@ gconfig_trim() {
     [[ -z "${config_file}" ]] && { warn "Warning: glidein_config not provided and glidein_config variable not defined. Skipping gconfig_trim"; return 1; }
     local config_tmp1="$config_file.$$.1.tmp"
     local config_tmp2="$config_file.$$.2.tmp"
-    cp "$config_file" "$config_tmp1"
-    $TAC "$config_tmp1" | sort -u -t' ' -k1,1 >  "$config_tmp2"
-    mv "$config_tmp2" "$config_file"
+    cp -f "$config_file" "$config_tmp1"
+    # Old behavior inconsistent with safe version. Remove comments and sort keys.
+    # grep -v "^# " "$config_tmp1" | $TAC | sort -u -t' ' -k1,1 >  "$config_tmp2"
+    $TAC "$config_tmp1" | awk '$1 == "#" || !x[$1]++' | $TAC > "$config_tmp2"
+    rm -f "$config_tmp1"
+    mv -f "$config_tmp2" "$config_file"
 }
 
 # NFS spec has two operations that are guaranteed to be atomic: symlink and rename.
@@ -275,7 +297,7 @@ gconfig_trim() {
 unlock_file() {
     local file="$1"
     if [[ -f "${file}.lock" ]]; then
-        rm "${file}.pid"
+        rm -f "${file}.pid"
         mv "${file}.lock" "${file}.deleteme"
         rm -f "${file}.deleteme"
         return 0
@@ -337,9 +359,9 @@ lock_file() {
 #        ) 200>"${glidein_config}".lock
 
 gconfig_add_safe() {
-    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfog_add. Forcing exit."; exit 1; }
+    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfig_add. Forcing exit."; exit 1; }
     # Add the value also to a log that will help troubleshoot problems (calling add_config_line, duplicate)
-    echo "DUPSAF$$" "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${glidein_config}.history"
+    echo "DUPSAF$$" "$@" >> "${glidein_config}.history"
     if ! grep -q "^${*}$" "${glidein_config}"; then
         # when fd is closed the lock process is terminated, unlock can be forced, no need to trap and remove the file
         (
@@ -356,6 +378,24 @@ gconfig_add_safe() {
 
 add_config_line_safe() { gconfig_add_safe "$@"; }
 
+gconfig_add_multi_safe() {
+    [[ -z "${glidein_config}" ]] && { warn "Error: glidein_config variable not defined. Required by gconfig_add_multi. Forcing exit."; exit 1; }
+    # Add the value also to a log that will help troubleshoot problems (calling add_config_line, duplicate)
+    echo "DUPSAF$$ gconfig_add_multi_safe follows" >> "${glidein_config}.history"
+    if ! grep -q "^${*}$" "${glidein_config}"; then
+        # when fd is closed the lock process is terminated, unlock can be forced, no need to trap and remove the file
+        (
+        if lock_file "${glidein_config}"; then
+            gconfig_add_multi "$@"
+            unlock_file "${glidein_config}"
+        else
+            warn "Failed to add: $*"
+            exit 1
+        fi
+        )
+    fi
+}
+
 gconfig_trim_safe() {
     local config_file=${1:-$glidein_config}
     [[ -z "${config_file}" ]] && { warn "Warning: glidein_config not provided and not defined. Skipping gconfig_trim"; return 1; }
@@ -363,9 +403,9 @@ gconfig_trim_safe() {
     # when fd is closed the lock process is terminated, unlock can be forced, no need to trap and remove the file
     (
         if lock_file "${config_file}"; then
-            $TAC "$config_file" | awk '!x[$1]++' > "$config_tmp1"
+            $TAC "$config_file" | awk '$1 == "#" || !x[$1]++' > "$config_tmp1"
             $TAC "$config_tmp1" > "$config_file"
-            rm "$config_tmp1"
+            rm -f "$config_tmp1"
             unlock_file "${config_file}"
         else
             warn "Failed to trim $config_file"
@@ -387,6 +427,6 @@ add_condor_vars_line() {
         exit 1
     fi
     grep -v "^$id\b" "${condor_vars_file}.old" > "${condor_vars_file}"
-    echo "$@" | dd bs=$GWSM_CONFIG_LINE_MAX 2>/dev/null >> "${condor_vars_file}"
+    echo "$@" >> "${condor_vars_file}"
     rm -f "${condor_vars_file}.old"
 }
