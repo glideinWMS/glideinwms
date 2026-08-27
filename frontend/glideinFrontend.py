@@ -129,33 +129,17 @@ def spawn_group(work_dir, group_name, action):
 
 
 ############################################################
-def _format_child_stream(group_name, stream_name, payload, max_lines=120, max_chars=20000):
-    """Format child stream output for readable logs.
-
-    Decodes bytes, keeps multiline formatting, and truncates very long output.
-    """
+def _format_child_stream(group_name, stream_name, payload):
+    """Decode and format child process stream output for readable logs."""
     if not payload:
         return None
 
-    if isinstance(payload, bytes):
-        text = payload.decode("utf-8", errors="replace")
-    else:
-        text = str(payload)
-
+    text = payload.decode("utf-8", errors="replace") if isinstance(payload, bytes) else str(payload)
     text = text.strip()
     if not text:
         return None
 
-    if len(text) > max_chars:
-        text = text[:max_chars] + "\n... output truncated ..."
-
-    lines = text.splitlines()
-    if len(lines) > max_lines:
-        omitted = len(lines) - max_lines
-        lines = lines[:max_lines]
-        lines.append(f"... {omitted} additional lines omitted ...")
-
-    formatted = "\n".join(f"  {line}" for line in lines)
+    formatted = "\n".join(f"  {line}" for line in text.splitlines())
     return f"[{group_name}] {stream_name}:\n{formatted}"
 
 
