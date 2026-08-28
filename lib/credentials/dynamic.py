@@ -17,6 +17,23 @@ from glideinwms.lib.generators import load_generator
 class DynamicCredential(Credential[Generator]):
     """Represents a dynamic credential used for generating credentials at runtime.
 
+    There can be multiple generated credentials within the same dynamic credential.
+    Each dynamic credential object has only one generated credential,
+    but it can generate and store into cache and load from cache multiple credentials.
+    See `CredentialGenerator` and `CachedGenerator` for cache behavior (snapshot definition and
+    use via `dynamic_cache_file()`).
+    E.g. When generating per Entry IDTOKENs each dynamic credential object contains only one IDTOKEN, but the
+    same generator and context can be used to generate/refresh multiple IDTOKENs, each a different snapshot,
+    each cached on a different file. Different snapshots have different IDs, but the same snapshot when refreshed
+    maintains the same ID.
+    - different IDTOKENs are created using different attributes (e.g. Entry name) in `generate()`.
+      A snapshot is defined and used
+    - different IDTOKENs are accessed via snapshot (same attributes)
+
+    Dynamic credentials have no `secret` because this is used by load (from file or string) and dynamic credentials
+    use generators.  If needed a secret can be added in the context.
+    TODO: evaluate if a secret should be always added and maybe encoded credentials become a special case of dynamic credentials
+
     Attributes:
         cred_type (CredentialType): The type of the credential.
         path (str): The path of the credential file.
@@ -54,6 +71,8 @@ class DynamicCredential(Credential[Generator]):
         self._generated_credential: Optional[Credential] = None
         self.path = path
         self.purpose = purpose
+        # TODO: Evaluate if access to generated credentials trust_domain is needed
+        #  Using @property and @trust_domain.setter
         self.trust_domain = trust_domain
         self.security_class = security_class
         self.creation_script = creation_script
@@ -65,10 +84,51 @@ class DynamicCredential(Credential[Generator]):
             self.load(string, path, context)
 
     def __getattr__(self, attr: str) -> Any:
+        """Return the generated credential attribute when not available in the generator (DynamicCredential)
+
+        Args:
+            attr (str): The name of the generated credential attribute.
+
+        Returns:
+            Any: Attribute's value
+
+        Raises:
+            AttributeError: if the credential has not been generated or the attribute is not available
+        """
+        if self._generated_credential is None:
+            raise AttributeError(
+                f"'{self.__class__.__name__}' credential not generated. No attribute '{attr}'"
+            ) from None
         try:
             return getattr(self._generated_credential, attr)
         except Exception:
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attr}'") from None
+
+    def __repr__(self) -> str:
+        """Protecting representation for DynamicCredential, it may not have some attributes if not initialized"""
+        if self._generated_credential is None:
+            return f"{self.__class__.__name__}(<credential not generated>, string={self.string!r}, path={self.path!r}, secret=<not available>, purpose={self.purpose!r}, trust_domain={self.trust_domain!r}, security_class={self.security_class!r})"
+        return f"{self.__class__.__name__}(generated={self._generated_credential.__class__.__name__},string={self.string!r}, path={self.path!r}, secret={self.secret!r}, purpose={self.purpose!r}, trust_domain={self.trust_domain!r}, security_class={self.security_class!r})"
+
+    def debug_str(self) -> str:
+        """Return a string representation of the dynamic credential for debugging.
+
+        This method is safe from exception, so it may be used in error messages without the risk to mask exceptions.
+        This method is also safe for logging, no secure content (string or secret) is printed.
+        For dynamic credentials it adds the generated credential class, if already generated.
+
+        Returns:
+            str: The string representation of the credential, including ID and validity but excluding
+                string and secret (safe for logging).
+        """
+        if self._generated_credential is None:
+            generated = "<not generated>"
+        else:
+            generated = self._generated_credential.__class__.__name__
+        return "{parent},generated={gen}".format(
+            parent=super().debug_str(),
+            gen=generated,
+        )
 
     @property
     def _id_attribute(self) -> Optional[str]:
@@ -81,7 +141,6 @@ class DynamicCredential(Credential[Generator]):
     @property
     def context(self) -> Optional[Mapping]:
         """The context of the generator."""
-
         return self._context
 
     # TODO: Could there be confusion between secret and context?
@@ -135,7 +194,7 @@ class DynamicCredential(Credential[Generator]):
 
     def copy(self) -> Credential:
         if not self._generated_credential:
-            raise CredentialError("Credential not generated.")
+            raise CredentialError("Cannot copy. Credential not generated.")
         return self._generated_credential.copy()
 
     def save_to_file(
@@ -147,7 +206,23 @@ class DynamicCredential(Credential[Generator]):
         data_pattern: Optional[bytes] = None,
         overwrite: bool = True,
         continue_if_no_path=False,
+        add_newline: bool = False,
     ) -> None:
+        """Save to a file the generated credential, by invoking its method.
+
+        Args:
+            path (Optional[str]): The path to the file where the credential will be saved.
+            permissions (int): The permissions to set for the saved file. Default is 0o600.
+            backup (bool): Whether to create a backup of the existing file. Default is False.
+            compress (bool): Whether to compress the credential before saving. Default is False.
+            data_pattern (Optional[bytes]): A pattern to format the credential data before saving. Default is None.
+            overwrite (bool): Whether to overwrite the existing file if it already exists. Default is True.
+            continue_if_no_path (bool): If True, silently return without saving a file if no path is specified. Default is False.
+            add_newline (bool): Whether to add a newline at the end of the saved file. Default is False.
+
+        Raises:
+            CredentialError: If the credential is not generated/initialized or if there is an error saving the credential.
+        """
         if not self._generated_credential:
             raise CredentialError("Could not save. Credential not generated.")
         self._generated_credential.save_to_file(
@@ -158,6 +233,7 @@ class DynamicCredential(Credential[Generator]):
             data_pattern=data_pattern,
             overwrite=overwrite,
             continue_if_no_path=continue_if_no_path,
+            add_newline=add_newline,
         )
 
     def invalid_reason(self) -> Optional[str]:
