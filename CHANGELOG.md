@@ -11,6 +11,7 @@ This release includes all features and fixes in 3.10.19
 
 -   Added framework support for encrypted credentials and implemented for RSA keys and key pairs (PR #640)
 -   Added snapshot to `get_request_credentials()` in credential plugins to allow for targeted dynamic request credentials (PR #640)
+-   Added new `debug_str()` method, new log messages, and improved docstrings to help with credentials logging and troubleshooting (PR #706)
 -   Improved generators context validation and generators code documentation (PR #711, PR #720)
 -   Added the keyword "any_trust_domain" to use a credential no matter the trust_domain in the Factory configuration (PR #721)
 -   Improved IdTokenGenerator so it can be used for custom callback credentials for all Factory Entries (PR #721)
@@ -26,11 +27,12 @@ This release includes all features and fixes in 3.10.19
 -   Python Cryptography changed some type names spelling. Added import statements to be compatible with both old and new spellings (PR #683, PR #687)
 -   Fixed `populate_group_security` in the configuration management to work with the new credentials and to handle correctly proxy ID lists for X509 DN extraction (PR #640)
 -   Fixed bug in IdTokenGenerator introduced in PR #667 (PR #702)
+-   Fixed crashes and misleading Frontend warnings when credentials are invalid (e.g. expired tokens) (Issue #695, PR #706)
 -   Fixed all generators plugins to validate context also at reconfig time (PR #711)
 -   Fixed `GLIDEIN_OVERLOAD_ENABLED` handling in factory for 3.11 frontends (Issue #713, PR #714)
 -   Select callback credentials with the correct trust_domain and improved credential selection to use the trust_domain as optional constraint (PR #721)
 -   Fixed redundant file extension for credentials cached in the Factory (Issue #685, PR #723, PR #729)
--   Standardized all token read/writes to add a newline character (`\n`) when writing token files, and strip `\n` when reading token files (Issue #639, PR #716, PR #722)
+-   Standardized all token read/writes to add a newline character (`\n`) when writing token files, and strip `\n` when reading token files (Issue #639, PR #716, PR #722, PR ##706)
 
 ### Testing / Development
 

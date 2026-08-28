@@ -492,6 +492,7 @@ class ElementMergedDescript:
         frontend_data (dict): The frontend configuration data loaded from the `FrontendDescript` class.
         element_data (dict): The element configuration data for the specified group loaded from the `ElementDescript` class.
         group_name (str): The name of the group being configured.
+        merged_data (dict): The combined group and global configuration data. Added by `self._merge()` invoked during initialization.
     """
 
     def __init__(self, base_dir, group_name):
