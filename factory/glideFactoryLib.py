@@ -40,6 +40,10 @@ from glideinwms.lib.defaults import BINARY_ENCODING
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 
+class GlobusComputeSubmitEnvironmentError(RuntimeError):
+    """Error that must abort batch globuscompute submit environment setup."""
+
+
 ############################################################
 #
 # Configuration
@@ -2313,7 +2317,28 @@ def get_submit_environment(
 
         # get my (entry) type
         grid_type = jobDescript.data["GridType"]
-        if grid_type.startswith("batch "):
+        if grid_type == "batch globuscompute":
+            exe_env.append("GLOBUS_COMPUTE_ENDPOINT=%s" % jobDescript.data["GlobusComputeEndpoint"])
+            if "GlobusComputeFunction" in jobDescript.data:
+                exe_env.append("GLOBUS_COMPUTE_FUNCTION=%s" % jobDescript.data["GlobusComputeFunction"])
+            auth_file = submit_credentials.security_credentials.get("AuthFile")
+            if not auth_file:
+                raise GlobusComputeSubmitEnvironmentError(
+                    "batch globuscompute requires an AuthFile delegated Globus Compute credential"
+                )
+            exe_env.append("GLOBUS_COMPUTE_AUTH_FILE=%s" % auth_file)
+            if "GlobusComputeGliteDir" in jobDescript.data:
+                exe_env.append("GLOBUS_COMPUTE_GLITE_DIR=%s" % jobDescript.data["GlobusComputeGliteDir"])
+            for descript_key, env_key in (
+                ("GlobusComputePython", "GLOBUS_COMPUTE_PYTHON"),
+                ("GlobusComputeUserDir", "GLOBUS_COMPUTE_USER_DIR"),
+                ("GlobusComputeStateDir", "GLOBUS_COMPUTE_STATE_DIR"),
+            ):
+                if jobDescript.data.get(descript_key):
+                    exe_env.append("%s=%s" % (env_key, jobDescript.data[descript_key]))
+            glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
+            exe_env.append("GLIDEIN_ARGUMENTS=%s" % glidein_arguments)
+        elif grid_type.startswith("batch "):
             log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
             # TODO: username, should this be only for batch or all key pair + username/password?
             try:
@@ -2453,6 +2478,8 @@ email_logs = False
             exe_env.append("GLIDEIN_RSL=%s" % glidein_rsl)
 
         return exe_env
+    except GlobusComputeSubmitEnvironmentError:
+        raise
     except Exception as e:
         msg = "Error setting up submission environment: %s" % str(e)
         log.debug(msg)
@@ -2602,7 +2629,30 @@ def get_submit_environment_v3_11(
 
         # get my (entry) type
         grid_type = jobDescript.data["GridType"]
-        if grid_type.startswith("batch "):
+        if grid_type == "batch globuscompute":
+            exe_env.append("GLOBUS_COMPUTE_ENDPOINT=%s" % jobDescript.data["GlobusComputeEndpoint"])
+            if "GlobusComputeFunction" in jobDescript.data:
+                exe_env.append("GLOBUS_COMPUTE_FUNCTION=%s" % jobDescript.data["GlobusComputeFunction"])
+            auth_file = submit_credentials.security_credentials.find(
+                cred_type=CredentialType.TEXT, purpose=CredentialPurpose.REQUEST
+            )
+            if not auth_file:
+                raise GlobusComputeSubmitEnvironmentError(
+                    "batch globuscompute requires a TEXT request credential for delegated auth"
+                )
+            exe_env.append("GLOBUS_COMPUTE_AUTH_FILE=%s" % cred_path(auth_file[-1]))
+            if "GlobusComputeGliteDir" in jobDescript.data:
+                exe_env.append("GLOBUS_COMPUTE_GLITE_DIR=%s" % jobDescript.data["GlobusComputeGliteDir"])
+            for descript_key, env_key in (
+                ("GlobusComputePython", "GLOBUS_COMPUTE_PYTHON"),
+                ("GlobusComputeUserDir", "GLOBUS_COMPUTE_USER_DIR"),
+                ("GlobusComputeStateDir", "GLOBUS_COMPUTE_STATE_DIR"),
+            ):
+                if jobDescript.data.get(descript_key):
+                    exe_env.append("%s=%s" % (env_key, jobDescript.data[descript_key]))
+            glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
+            exe_env.append("GLIDEIN_ARGUMENTS=%s" % glidein_arguments)
+        elif grid_type.startswith("batch "):
             log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
             # TODO: username, should this be only for batch or all key pair + username/password?
             try:
@@ -2788,6 +2838,8 @@ email_logs = False
             exe_env.append("GLIDEIN_RSL=%s" % glidein_rsl)
 
         return exe_env
+    except GlobusComputeSubmitEnvironmentError:
+        raise
     except Exception as e:
         msg = "Error setting up submission environment: %s" % str(e)
         log.debug(msg)
