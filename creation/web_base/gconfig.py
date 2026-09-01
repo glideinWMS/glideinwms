@@ -109,9 +109,11 @@ class GlideinConfig:
         """Parse a line from the glidien_config file
 
         `#` are comments
+        values of blank and empty values are ok, empty lines or empty keys (nothing or blank characters
+        before the first space) are discarded.
         blank characters after the first space (including at the end of the line) are part of the value
         using lstrip(), and values of blanks are rejected
-        the shell format is more rigid, spaces also on the left are not tolerated, blank values are returned
+        blank values are returned
 
         Args:
             line (str): line to parse.
@@ -123,7 +125,7 @@ class GlideinConfig:
         if line.startswith("#"):
             return None
         info = line.split(" ", 1)
-        if len(info) != 2 or info[1].strip() == "":
+        if len(info) != 2 or info[0].strip() == "":
             return None
         return info
 
@@ -191,14 +193,18 @@ class GlideinConfig:
         try:
             with open(self.file_name) as fd:
                 outlines = []
-                linestart = "%s " % key
-                for line in fd.readlines():
-                    if not line.startswith(linestart):
-                        outlines.append(line)
+                if key == "#":
+                    # Adding comment
+                    outlines = fd.readlines()
+                else:
+                    linestart = "%s " % key
+                    for line in fd.readlines():
+                        if not line.startswith(linestart):
+                            outlines.append(line)
                 outlines.append("%s %s\n" % (key, value))
             # conf_dir, conf_file = os.path.split(self.file_name)
             # with tempfile.NamedTemporaryFile(dir=conf_dir, prefix=conf_file, delete=False) as tempfd:
-            with open(tmp_fname) as temp_fd:
+            with open(tmp_fname, "w") as temp_fd:
                 temp_fd.writelines([line.encode(BINARY_ENCODING) for line in outlines])
                 temp_fd.flush()
                 os.fsync(temp_fd.fileno())
@@ -210,18 +216,77 @@ class GlideinConfig:
                 os.unlink(tmp_fname)
             except OSError:
                 pass
-            self._log("Unable write %s to the glidein configuration file %s" % (key, self.file_name))
+            msg = "Unable to write %s to the glidein configuration file %s" % (key, self.file_name)
+            self._log(msg)
             if self.exit_on_exception:
                 sys.exit(1)
             else:
-                raise GlideinConfigException(
-                    "Unable write %s to the glidein configuration file %s" % (key, self.file_name)
-                )
+                raise GlideinConfigException(msg)
         self._log("Set glidein config value of %s to %s." % (key, value))
 
     def add_safe(self, key, value):
         # TODO: add implementation w/ NFS safe lock mechanism like in shell
         self.add(key, value)
+
+    def add_multi(self, lines):
+        """Add multiple key-value pairs to glidein_config in one go to limit file operations
+
+        Args:
+            lines (list): list of lines with key-value pairs or comments
+        """
+        if lines is None:
+            self._log("Invalid glidein configuration specified key-values list, it is None.")
+            return
+
+        # Load all inputs eliminating duplicates (last value wins) and preserving comments
+        input_lines = []
+        input_keys = []
+        for full_line in reversed(lines):
+            line = full_line.strip()
+            if line.startswith("# "):
+                input_lines.append("%s\n" % line)
+                continue
+            key = line.split(" ", 1)[0]  # safe also for empty lines
+            if key:
+                if key not in input_keys:
+                    input_keys.append(key)
+                    input_lines.append("%s\n" % line)
+        input_lines.reverse()
+        # Update glidein_config removing updated keys and appending all new values and comments
+        tmp_fname = "%s.%s.tmp" % (self.file_name, os.getpid())  # same temp name structure as shell scripts
+        try:
+            outlines = []
+            with open(self.file_name) as fd:
+                for line in fd.readlines():
+                    linekey = line.split(" ", 1)[0]
+                    if linekey not in input_keys:
+                        outlines.append(line)
+            outlines.extend(input_lines)
+            # conf_dir, conf_file = os.path.split(self.file_name)
+            # with tempfile.NamedTemporaryFile(dir=conf_dir, prefix=conf_file, delete=False) as tempfd:
+            with open(tmp_fname, "w") as temp_fd:
+                temp_fd.writelines([line.encode(BINARY_ENCODING) for line in outlines])
+                temp_fd.flush()
+                os.fsync(temp_fd.fileno())
+            os.rename(tmp_fname, self.file_name)  # if only Py3.3+ os.replace(tmp_fname, self.file_name)
+        except Exception:
+            # Make sure the temp file is deleted
+            # Python 3.8+   my_file.unlink(missing_ok=True)
+            try:
+                os.unlink(tmp_fname)
+            except OSError:
+                pass
+            msg = "Unable to write %i lines to the glidein configuration file %s" % (len(input_lines), self.file_name)
+            self._log(msg)
+            if self.exit_on_exception:
+                sys.exit(1)
+            else:
+                raise GlideinConfigException(msg)
+        self._log("Added updates to glidein config: %s." % (input_lines,))
+
+    def add_multi_safe(self, lines):
+        # TODO: add implementation w/ NFS safe lock mechanism like in shell
+        self.add_multi(lines)
 
 
 def gconfig_reload(fname=None):
@@ -253,6 +318,41 @@ def add_config_line(key, value, fname=None):
 
 def gconfig_add_safe(key, value, fname=None):
     return GlideinConfig.get_config(fname, cached=True).add_safe(key, value)
+
+
+def gconfig_add_multi(lines, fname=None):
+    """Add multiple attributes to glidein_config
+
+    Args:
+        lines (list|str): list of lines with key-value pairs or comments
+            or path of a file with the lines to add
+            or single line to add
+        fname (str): path of the glidein_config file. Defaults to None.
+            The file name is retrieved from the environment variable or
+            assumed to be "./glidein_config" (see the GlideinConfig constructor).
+    """
+    if not isinstance(lines, list):
+        # Trying to consider lines a path and read from the file
+        try:
+            with open(lines, "r") as fd:
+                lines = fd.readlines()
+        except OSError:
+            # Or pass a list with lines as single element
+            lines = [str(lines)]
+    return GlideinConfig.get_config(fname, cached=True).add_multi(lines)
+
+
+def gconfig_add_multi_safe(lines, fname=None):
+    # TODO: revise when adding add_multi_safe
+    if not isinstance(lines, list):
+        # Trying to consider lines a path and read from the file
+        try:
+            with open(lines, "r") as fd:
+                lines = fd.readlines()
+        except OSError:
+            # Or pass a list with lines as single element
+            lines = [str(lines)]
+    return GlideinConfig.get_config(fname, cached=True).add_multi_safe(lines)
 
 
 # NFS safe file locking. TODO: implement for add_safe, see shell version in add_config_line.source
@@ -313,7 +413,7 @@ def add_condor_config_var(name, value, kind="C", publish=True, condor_name=None,
     vars_dir, vars_file = os.path.split(fname)
     tempfd = tempfile.NamedTemporaryFile(dir=vars_dir, prefix=vars_file, delete=False)
     try:
-        with open(fname) as fd:
+        with open(fname, "w") as fd:
             for line in fd:
                 if line.startswith("%s " % name):
                     continue
@@ -437,7 +537,15 @@ def status_report(name, success, error_msg=None, error_detail=None, parameters=N
 
 
 def main():
-    valid_commands = ["get", "add", "add_safe", "add_config_line", "add_condor_config_var"]
+    valid_commands = [
+        "get",
+        "add",
+        "add_safe",
+        "add_config_line",
+        "add_multi",
+        "add_multi_safe",
+        "add_condor_config_var",
+    ]
     # Check if invoked by glidein_startup.sh at setup
     if sys.argv[1] not in valid_commands and os.path.exists(sys.argv[1]):
         # assuming that the script was called with glidien_config as parameter if it is a file and there is error_gen
@@ -454,6 +562,8 @@ def main():
         "  add key value [glidein_config_file_name]\n"
         "  add_safe key value [glidein_config_file_name]\n"
         "  add_config_line key value [glidein_config_file_name] (same as add)\n"
+        "  add_multi new_lines_file_name [glidein_config_file_name]\n"
+        "  add_multi_safe new_lines_file_name [glidein_config_file_name]\n"
         "  add_condor_config_var name value [kind=C] [publish=True] [condor_name] [verbose=True] [glidein_config_file_name]"
     )
     # Handle command line arguments
@@ -476,6 +586,10 @@ def main():
             gconfig_add(*_complete_args(2, function_args, [None, None, None]))
         elif args.command == "add_safe":
             gconfig_add_safe(*_complete_args(2, function_args, [None, None, None]))
+        elif args.command == "add_multi":
+            gconfig_add_multi(*_complete_args(1, function_args, [None, None]))
+        elif args.command == "add_multi_safe":
+            gconfig_add_multi_safe(*_complete_args(1, function_args, [None, None]))
         elif args.command == "add_condor_config_var":
             add_condor_config_var(*_complete_args(2, function_args, [None, None, "C", True, None, True, None]))
         else:
