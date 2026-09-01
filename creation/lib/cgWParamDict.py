@@ -1803,7 +1803,7 @@ def generate_log_tokens(glidein_main_dicts):
             try:
                 # Write the factory token
                 with open(token_filepath, "w") as tkfile:
-                    tkfile.write(token)
+                    tkfile.write(f"{token}\n")
                 # Write to url_dirs.desc
                 with open(os.path.join(entry_dir, "url_dirs.desc"), "a") as url_dirs_desc:
                     url_dirs_desc.write(f"{recipient_url} {recipient_safe_url}\n")
