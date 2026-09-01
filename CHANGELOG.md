@@ -12,7 +12,7 @@ Changes since the last release
 -   Made check_proxy.sh more robust and verbose (PR #680)
 -   Added support for ordered default version list in get_tarballs (Issue #691, PR #692)
 -   Require selected defaults mapping in get_tarballs (Issue #699, PR #700)
--   Added gconfig_add_multi and switched cat_consts to add lines in batches (PR #707)
+-   Added gconfig_add_multi in glidein_config functions and switched cat_consts.sh to add lines in batches (PR #707, PR #708, PR #710)
 
 ### Changed defaults / behaviours
 
@@ -29,6 +29,7 @@ Changes since the last release
 -   Fix incorrect Arch requirement for ARM pilots (Issue #661, PR #662)
 -   Change IDTOKENS_FILE to point to path in glidein and unset JOB_TOKENS (Issue #281, PR #690)
 -   Retrieve GLIDEIN_SINGULARITY_BINDPATH from glidein_config instead of the environment so it is not ignored (Issue #703, PR #704)
+-   Fixed handling of comment lines in glidein_config (PR #708, PR #710)
 
 ### Testing / Development
 
