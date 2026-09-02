@@ -42,18 +42,39 @@ class Token(Credential[Mapping]):
 
     @property
     def issue_time(self) -> Optional[datetime]:
-        """Token issue time."""
-        return datetime.fromtimestamp(self._payload.get("iat", None)) if self._payload else None
+        """Token issue time. None if the token is undefined or the claim not defined"""
+        if not self._payload:
+            return None
+        try:
+            return datetime.fromtimestamp(self._payload["iat"])
+        except (KeyError, TypeError, ValueError, OverflowError, OSError):
+            # KeyError if the claim is not defined in the token
+            # The other 4 errors are for invalid values or OS misconfigurations (from datetime.fromtimestamp)
+            return None
 
     @property
     def not_before_time(self) -> Optional[datetime]:
-        """Token not-before time."""
-        return datetime.fromtimestamp(self._payload.get("nbf", None)) if self._payload else None
+        """Token not-before time. None if the token is undefined or the claim not defined"""
+        if not self._payload:
+            return None
+        try:
+            return datetime.fromtimestamp(self._payload["nbf"])
+        except (KeyError, TypeError, ValueError, OverflowError, OSError):
+            # KeyError if the claim is not defined in the token
+            # The other 4 errors are for invalid values or OS misconfigurations (from datetime.fromtimestamp)
+            return None
 
     @property
     def expiration_time(self) -> Optional[datetime]:
-        """Token expiration time."""
-        return datetime.fromtimestamp(self._payload.get("exp", None)) if self._payload else None
+        """Token expiration time. None if the token is undefined or the claim not defined"""
+        if not self._payload:
+            return None
+        try:
+            return datetime.fromtimestamp(self._payload["exp"])
+        except (KeyError, TypeError, ValueError, OverflowError, OSError):
+            # KeyError if the claim is not defined in the token
+            # The other 4 errors are for invalid values or OS misconfigurations (from datetime.fromtimestamp)
+            return None
 
     @property
     def _id_attribute(self) -> Optional[str]:
@@ -80,9 +101,9 @@ class Token(Credential[Mapping]):
 
         Following are the reasons for an invalid token:
         1. Token was not initialized
-        2. Token is not yet valid
-        3. Expired token
-        4. Lifetime of the token is too short.
+        2. Token is not yet valid (if not_before_time is provided)
+        3. Expired token (if expiration_time is provided)
+        4. Lifetime of the token is too short (if expiration_time is provided).
 
         Note: This function checks only the validity of the credential but does not perform verification of the credential.
 
@@ -91,12 +112,13 @@ class Token(Credential[Mapping]):
         """
         if not self._payload:
             return "Token not initialized."
-        if datetime.now() < self.not_before_time:
+        if self.not_before_time is not None and datetime.now() < self.not_before_time:
             return "Token not yet valid."
-        if datetime.now() > self.expiration_time:
-            return "Token expired."
-        if (self.expiration_time - datetime.now()).total_seconds() < self.minimum_lifetime:
-            return "Token lifetime too short."
+        if self.expiration_time is not None:
+            if datetime.now() > self.expiration_time:
+                return "Token expired."
+            if (self.expiration_time - datetime.now()).total_seconds() < self.minimum_lifetime:
+                return "Token lifetime too short."
         return None  # no reason for invalidity found, so credential is valid
 
 
