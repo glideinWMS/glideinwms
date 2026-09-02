@@ -33,4 +33,14 @@ class CredentialGenerator(CachedGenerator[Credential]):
         return create_credential(path=cache_file, cred_type=cred_type)
 
     def validate_cache(self, cached_value) -> bool:
+        """The cached credential can be reused if it is valid, otherwise a new one must be generated
+
+        This affects the behavior of the `generate()` method of the CredentialGenerator
+
+        Args:
+            cached_value (Credential): The credential to be validated
+
+        Returns:
+            bool: True if the credential is valid and can be used, False otherwise
+        """
         return cached_value.valid
