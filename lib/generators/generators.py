@@ -38,6 +38,54 @@ class GeneratorContextError(GeneratorError):
 class GeneratorContext(dict):
     """Context for a generator"""
 
+    @staticmethod
+    def force_value(
+        key: Any, value: Any, is_optional: bool = True, string_to_lower: bool = False
+    ) -> Callable[[dict], List[str]]:
+        """Return a context check function that fails if the context item referred by `key` has a value other than `value`
+
+        Args:
+            key (Any): The key if to check for
+            value (Any): The required value
+            is_optional (bool, optional): Whether the context item referred by `key` is optional (i.e. can miss
+                in the context). Defaults to True.
+            string_to_lower (bool, optional): If True, the context value is considered a string and converted to
+                lowercase. Defaults to False.
+
+        Returns:
+            Callable[[dict], List[str]]: Returns a context check function
+        """
+
+        def check(context: dict) -> List[str]:
+            """If the key `key` is present in the context, it must have value `value`.
+
+            Args:
+                context (dict): generator context
+
+            Returns:
+                list: list of errors encountered. Empty if all OK.
+            """
+            try:
+                context_value = context[key]
+            except KeyError:
+                if is_optional:
+                    return []
+                return [f"'{key}' is required in the context: {context}"]
+            try:
+                if string_to_lower:
+                    context_value = context_value.lower()
+            except AttributeError:
+                return [f"'{key}' in the context is expected to be a string: {context}"]
+            if context_value != value:
+                if not is_optional:
+                    return [f"'{key}' must be '{value}', not '{context[key]}'. Set it to '{value}' in the context."]
+                return [
+                    f"'{key}', if present, must be '{value}', not '{context[key]}'. Remove it from the context or set it to '{value}'."
+                ]
+            return []
+
+        return check
+
     def validate(
         self,
         valid_attributes: Mapping[str, Tuple[Union[Type, Tuple[Type]], Any]],
@@ -65,7 +113,7 @@ class GeneratorContext(dict):
                                                     # If set to None, it will stay None
             })
         """
-
+        results = []
         for attr, attr_validation in valid_attributes.items():
             if attr not in self:
                 try:
@@ -76,24 +124,31 @@ class GeneratorContext(dict):
             else:
                 # Values in context validation are not validated to allow None also when not in the type list
                 try:
+                    # This will match: "name": (str,) OR "name": ((str), "") OR "name": ((str, None), "")
                     attr_types = attr_validation[0]
                 except (TypeError, IndexError):
+                    # This will match: "name": (str) OR "name": str
                     attr_types = attr_validation
                 if not isinstance(attr_types, tuple):
                     attr_types = (attr_types,)
                 if self[attr] is None and None in attr_types:
                     continue
                 if not isinstance(self[attr], tuple(attr_type for attr_type in attr_types if attr_type is not None)):
-                    attr_types = tuple(attr_type.__name__ for attr_type in attr_types)
-                    raise GeneratorContextError(
+                    attr_types = tuple(
+                        attr_type.__name__ if attr_type is not None else "NoneType" for attr_type in attr_types
+                    )
+                    results.append(
                         f"Invalid type for attribute '{attr}': "
                         f"expected one of '{attr_types}', got '{type(self[attr]).__name__}'"
                     )
+        if results:
+            raise GeneratorContextError("; ".join(results))
+        # Make sure the types validation passes before a complex validation is attempted
         if checks is not None:
             try:
                 results = checks(self)
             except Exception as e:
-                raise GeneratorContextError("Context checks evaluation failed") from e
+                raise GeneratorContextError(f"Context checks evaluation failed: {e}") from e
             if results:
                 raise GeneratorContextError(f"Context checks failed with the following errors: {results}")
 
@@ -103,6 +158,9 @@ class Generator(ABC, Generic[T]):
 
     # Dictionary used to validate the context: specify required and default values
     # See GeneratorContext.validate() for  CONTEXT_VALIDATION format specifications
+    # This must be defined in the child classes (instead of passing a dictionary to GeneratorContext.validate())
+    # so both the configuration (via generator_context_errors()) and run-time (via GeneratorContext.validate())
+    # checks are performed.
     CONTEXT_VALIDATION = {}
 
     def __init__(self, context: Optional[Mapping] = None, instance_id: Optional[str] = None):
@@ -121,7 +179,10 @@ class Generator(ABC, Generic[T]):
     def context_checks(context: dict) -> List[str]:
         """Checks that the context is valid.
 
-        This is passed to `GeneratorContext.validate()`
+        This is passed to `GeneratorContext.validate()`, used for run-time checks,
+        and is used to validate the configuration at reconfig time via `generator_context_errors()`.
+        Child classes should override this method and not pass a function only to `GeneratorContext.validate()`,
+        so both the configuration and run-time checks are performed.
 
         Args:
             context (dict): Generator context
@@ -254,8 +315,7 @@ class CachedGenerator(Generator[T]):
 
     @abstractmethod
     def save_to_cache(self, cache_file: str, generated_value: T):
-        """
-        Save an item to the cache
+        """Save an item to the cache
 
         Args:
             cache_file (str): the cache file name
@@ -264,8 +324,7 @@ class CachedGenerator(Generator[T]):
 
     @abstractmethod
     def load_from_cache(self, cache_file: str) -> Optional[T]:
-        """
-        Load an item from the cache
+        """Load an item from the cache
 
         Args:
             cache_file (str): the cache file name
@@ -276,8 +335,11 @@ class CachedGenerator(Generator[T]):
 
     @abstractmethod
     def validate_cache(self, cached_value: T) -> bool:
-        """
-        Validate the cache
+        """Validate the cache
+
+        This affects the outcome of `generate()`
+        If the cache is valid, the cached_value can be used, otherwise a new value must be generated,
+        stored in the cache file, and made available for use.
 
         Args:
             cached_value (T): the cached item
@@ -292,7 +354,7 @@ class CachedGenerator(Generator[T]):
     ) -> Optional[str]:
         """Generate a cache discriminator string based on the provided discriminator and runtime arguments.
         This method constructs a string that uniquely identifies the cache entry based on the provided
-        discriminator values and the attributes of the glidein element.
+        discriminator values and the attributes of the Glidein element.
 
         Args:
             discriminator_list (Union[str, list[str]]): a string or a list of strings that specify the discriminator values
@@ -365,6 +427,7 @@ def generator_context_errors(module: str, context: Optional[Mapping] = None, rai
 
     Return an empty string if no errors.
     Otherwise, return a string with the validation error or raise an exception if `raise_exception` is True.
+    This function is used to validate a client configuration.
 
     Args:
         module (str): module that exports a generator

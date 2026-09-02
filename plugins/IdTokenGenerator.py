@@ -12,8 +12,8 @@ import os
 import socket
 
 from glideinwms.lib import defaults
-from glideinwms.lib.credentials import create_credential, credential_type_from_string
-from glideinwms.lib.generators import export_generator
+from glideinwms.lib.credentials import create_credential, CredentialType
+from glideinwms.lib.generators import export_generator, GeneratorContext
 from glideinwms.lib.generators.credential_generator import CredentialGenerator
 from glideinwms.lib.token_util import create_and_sign_token
 
@@ -33,25 +33,53 @@ class IdTokenGenerator(CredentialGenerator):
 
     The issuer defaults to the HTCondor TRUST_DOMAIN when not specified in the context.
 
+    The duration and minimum_lifetime are expressed in seconds.
     A duration of 0 seconds means that the token will never expire. A negative value will generate expired tokens.
     None or a missing value from the context is used to load the duration via the IDTokenLifetime attribute or use the default.
-    The default duration (if not in the context or IDTokenLifetime) is 24 hours.
+    The default duration (if not in the context as 'duration' or IDTokenLifetime) is 24 hours.
+    The default minimum_lifetime is 0 seconds, meaning that the token is valid until its expiration.
+    Set a minimum_lifetime to force token renewal before its expiration.
 
-    The default password file name is the username (if not in the context or IDTokenKeyname), all uppercase.
+    The default file name with the password to sign the IDTOKEN is the username (if not in the context as 'password'
+    or IDTokenKeyname), all uppercase.
+
+    IDTokenLifetime and/or IDTokenKeyname, if present, are in the security section of the client configuration.
     """
 
+    CONTEXT_VALIDATION = {
+        "password": (str, ""),
+        "scope": (str, ""),
+        "duration": ((int, None), None),
+        "minimum_lifetime": (int, 0),
+        "identity": (str, ""),
+        "issuer": ((str, None), None),
+    }
+
+    # @staticmethod
+    # def context_checks(context: dict) -> List[str]:
+    #     """Checks that the IDTOKEN context is valid.
+    #
+    #     Args:
+    #         context (dict): IDTOKEN context
+    #
+    #     Returns:
+    #         list: list of errors encountered. Empty if all OK.
+    #     """
+    #     value = str(CredentialType.IDTOKEN)
+    #     try:
+    #         if context["type"].lower() != value:
+    #             return [f"'type', if present, must be '{value}', not '{context['type']}'. Remove it from the context or set it to '{value}'."]
+    #     except KeyError:
+    #         pass  # It is OK if type is missing form the context
+    #     return []
+
+    context_checks = staticmethod(
+        GeneratorContext.force_value("type", str(CredentialType.IDTOKEN), string_to_lower=True)
+    )
+
     def _setup(self):
-        self.context.validate(
-            {
-                "password": (str, ""),
-                "scope": (str, ""),
-                "duration": ((int, None), None),
-                "minimum_lifetime": (int, 0),
-                "identity": (str, ""),
-                "issuer": ((str, None), None),
-            }
-        )
-        self.context["type"] = "idtoken"
+        self.context.validate(self.CONTEXT_VALIDATION, self.context_checks)
+        self.context["type"] = str(CredentialType.IDTOKEN)  # Adding type speeds up loading from file and string
 
     def _generate(self, **kwargs):
         """Generate an IDTOKEN token.
@@ -107,7 +135,7 @@ class IdTokenGenerator(CredentialGenerator):
         return create_credential(
             string=idtoken_str,
             minimum_lifetime=minimum_lifetime,
-            cred_type=credential_type_from_string(self.context["type"]),
+            cred_type=CredentialType.IDTOKEN,  # Ignoring the value in context because it is hardcoded to IDTOKEN
         )
 
 

@@ -53,25 +53,34 @@ class SciTokenGenerator(CredentialGenerator):
 
     @staticmethod
     def context_checks(context: dict) -> List[str]:
-        """Checks that the context is valid.
+        """Checks that the SciToken context is valid.
 
         Args:
-            context (dict): scitoken context
+            context (dict): SciToken context
 
         Returns:
             list: list of errors encountered. Empty if all OK.
         """
+        err_list = []
         try:
             if context["issuer"].startswith("http://"):
-                return [f'Issuer URL must use https. http will fail token verification: {context["issuer"]}']
+                err_list = [f'Issuer URL must use https. http will fail token verification: {context["issuer"]}']
         except (TypeError, KeyError):
-            return [f"'issuer' is required in the context: {context}"]
-        return []
+            err_list = [f"'issuer' is required in the context: {context}"]
+        expected_type = str(CredentialType.SCITOKEN)
+        try:
+            if context["type"].lower() != expected_type:
+                err_list.append(
+                    "'type', if present, must be '{expected_type}', not '{context['type']}'. Remove it from the context or set it to '{expected_type}'."
+                )
+        except KeyError:
+            pass  # It is OK if type is missing form the context
+        return err_list
 
     def _setup(self):
         self.context.validate(self.CONTEXT_VALIDATION, self.context_checks)
 
-        self.context["type"] = "scitoken"
+        self.context["type"] = str(CredentialType.SCITOKEN)  # Adding type speeds up loading from file and string
 
         self.key_pass = self.context["key_pass"].encode() or None
 

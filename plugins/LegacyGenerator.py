@@ -14,8 +14,10 @@ from glideinwms.lib.util import import_module
 class LegacyGenerator(Generator[Any]):
     """Generator that implements support to the legacy callout interface."""
 
+    CONTEXT_VALIDATION = {"callout": (str, None)}
+
     def _setup(self):
-        self.context.validate({"callout": (str, None)})
+        self.context.validate(self.CONTEXT_VALIDATION)
 
         self.callout = import_module(self.context["callout"])
         if not hasattr(self.callout, "get_credential"):
