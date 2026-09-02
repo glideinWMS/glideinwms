@@ -11,6 +11,7 @@ Changes since the last release
 
 -   Added framework support for encrypted credentials and implemented for RSA keys and key pairs (PR #640)
 -   Added snapshot to `get_request_credentials()` in credential plugins to allow for targeted dynamic request credentials (PR #640)
+-   Improved generators context validation and generators code documentation (PR #711)
 
 ### Changed defaults / behaviours
 
@@ -23,6 +24,7 @@ Changes since the last release
 -   Python Cryptography changed some type names spelling. Added import statements to be compatible with both old and new spellings (PR #683, PR #687)
 -   Fixed `populate_group_security` in the configuration management to work with the new credentials and to handle correctly proxy ID lists for X509 DN extraction (PR #640)
 -   Fixed bug in IdTokenGenerator introduced in PR #667 (PR #702)
+-   Fixed all generators plugins to validate context also at reconfig time (PR #711)
 
 ### Testing / Development
 

@@ -16,8 +16,10 @@ from glideinwms.lib.generators import export_generator, Generator
 class RoundRobinGenerator(Generator[Any]):
     """Round-robin generator"""
 
+    CONTEXT_VALIDATION = {"items": (list, None)}
+
     def _setup(self):
-        self.context.validate({"items": (list, None)})
+        self.context.validate(self.CONTEXT_VALIDATION)
         self.items_cycle = cycle(self.context["items"])
 
     def _generate(self, **kwargs) -> Any:
