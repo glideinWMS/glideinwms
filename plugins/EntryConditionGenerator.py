@@ -7,9 +7,9 @@
 It is a Generator that can be used by credentials or parameters depending on Entry elements.
 """
 
-from typing import Any
+from typing import Any, List
 
-from glideinwms.lib.generators import export_generator, Generator, GeneratorError
+from glideinwms.lib.generators import export_generator, Generator
 
 
 # TODO: Add CHANGELOG and documentation once the 3.11 documentation is updated
@@ -29,10 +29,12 @@ class EntryConditionGenerator(Generator[Any]):
       - default: Output when the attribute is not in the dictionary or list. Defaults to None
 
     Attributes:
+        CONTEXT_VALIDATION (dict): context attributes validation and default values
         DISCRIMINATOR_VALUES (list): valid values for the discriminator in the context
-        ENTRY_MAPPING (dict):
+        ENTRY_MAPPING (dict): discriminator names to Entry attributes mapping
     """
 
+    CONTEXT_VALIDATION = {"discriminator": (str, "name")}
     DISCRIMINATOR_VALUES = ["name", "gatekeeper", "factory", "factory.name", "trust_domain"]
     ENTRY_MAPPING = {
         "name": "EntryName",
@@ -41,30 +43,46 @@ class EntryConditionGenerator(Generator[Any]):
         "trust_domain": "GLIDEIN_TrustDomain",
     }
 
-    def _setup(self):
-        if "list" not in self.context and "dict" not in self.context:
-            raise GeneratorError(
-                "list and dict not found in context for EntryConditionGenerator. At least one is required"
+    @staticmethod
+    def context_checks(context: dict) -> List[str]:
+        """Checks that the EntryConditionGenerator context is valid.
+
+        Args:
+            context (dict): EntryConditionGenerator context
+
+        Returns:
+            list: list of errors encountered. Empty if all OK.
+        """
+        if "list" not in context and "dict" not in context:
+            return [
+                f"Both 'list' and 'dict' not found in context for EntryConditionGenerator. At least one is required: {context}"
+            ]
+        err_list = []
+        discriminator = context["discriminator"]
+        if discriminator not in EntryConditionGenerator.DISCRIMINATOR_VALUES:
+            err_list = [
+                f"invalid discriminator '{discriminator}' in context for EntryConditionGenerator."
+                f" Must be in {EntryConditionGenerator.DISCRIMINATOR_VALUES}"
+            ]
+        discriminator_list = context.get("list", [])
+        if not isinstance(discriminator_list, list):
+            err_list.append("invalid list in context for EntryConditionGenerator.")
+        if discriminator_list and context.get("list_output") is None:
+            err_list.append(
+                "invalid context for EntryConditionGenerator. You must specify list_output if you have a list."
             )
-        # Assigning defaults and updating with context
-        self.discriminator = self.context.get("discriminator", "name")
+        if not isinstance(context.get("dict", {}), dict):
+            err_list.append("invalid dict in context for EntryConditionGenerator.")
+        return err_list
+
+    def _setup(self):
+        self.context.validate(self.CONTEXT_VALIDATION, self.context_checks)
+        # Assigning defaults and updating with already validated context
+        self.discriminator = self.context["discriminator"]
         self.discriminator_list = self.context.get("list", [])
         self.discriminator_dict = self.context.get("dict", {})
         self.true_value = self.context.get("list_output")
         self.false_value = self.context.get("default")
-        if self.discriminator not in self.DISCRIMINATOR_VALUES:
-            raise GeneratorError(
-                "invalid discriminator in context for EntryConditionGenerator."
-                f" Must be in {self.DISCRIMINATOR_VALUES}"
-            )
-        if not isinstance(self.discriminator_list, list):
-            raise GeneratorError("invalid list in context for EntryConditionGenerator.")
-        if self.discriminator_list and self.true_value is None:
-            raise GeneratorError(
-                "invalid context for EntryConditionGenerator. You must specify list_output if you have a list."
-            )
-        if not isinstance(self.discriminator_dict, dict):
-            raise GeneratorError("invalid dict in context for EntryConditionGenerator.")
 
     def _generate(self, **kwargs) -> Any:
         """Generate the Entry-determined value.

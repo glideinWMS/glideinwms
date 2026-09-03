@@ -130,6 +130,7 @@ class DynamicCredential(Credential[Generator]):
             self.cred_type = CredentialType.from_string(context.get("type"))
 
     def load_from_file(self, path: str, context: Optional[Mapping] = None) -> None:
+        # TODO: check that fall-back to load_from_string is OK and no file loading is used for dynamic and no self.path is used
         self.load_from_string(path, context)
 
     def copy(self) -> Credential:
