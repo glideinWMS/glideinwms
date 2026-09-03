@@ -211,6 +211,9 @@ print_os_info () {
     # INPUT(S): None
     # RETURN(S): Prints a message containing OS and kernel details
 
+    # make sure that perform_system_check has run
+    [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
+
     loginfo "Found $GWMS_OS_NAME [$GWMS_OS_DISTRO] ${GWMS_OS_VERSION_FULL}-${GWMS_OS_KRNL_ARCH} with kernel $GWMS_OS_KRNL_NUM-$GWMS_OS_KRNL_PATCH_NUM"
 }
 
@@ -287,10 +290,11 @@ mount_cvmfs_repos () {
     # using an array to unpack the names of additional CVMFS repositories
     # from the colon-delimited string
     repos=($(echo $additional_repos | tr ":" "\n"))
-    loginfo "Mounting additional CVMFS repositories..."
+    loginfo "Now Mounting additional CVMFS repositories..."
     # mount every repository in the array
     for repo in "${repos[@]}"
     do
+        loginfo "Mounting $repo..."
         [[ $cvmfsexec_mode -eq 1 ]] && "$glidein_cvmfsexec_dir"/.cvmfsexec/mountrepo "$repo"
         [[ $cvmfsexec_mode -eq 3 || $cvmfsexec_mode -eq 2 ]] && $CVMFSMOUNT "$repo"
     done
@@ -388,7 +392,7 @@ has_fuse() {
     #	-> status of FUSE configuration (no, yes, error) to stdout
 
     # make sure that perform_system_check has run
-    [[ -n "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
+    [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
 
     # determine which cvmfsexec utilities can be used by checking availability of fuse, fusermount and user being in fuse group...
     if [[ "${GWMS_IS_FUSE_INSTALLED}" -ne 0 ]]; then
