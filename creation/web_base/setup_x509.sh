@@ -49,6 +49,7 @@ cred_setup() {
 # Now passed as parameter. Was using X509_USER_PROXY_ORIG X509_USER_PROXY GLIDEIN_CONDOR_TOKEN_ORIG GLIDEIN_CONDOR_TOKEN
 refresh_credentials() {
     local proxy_from="$1" token_from="$3" proxy_to="$2" token_to="$4" refreshed=
+    local token_dest
     # If either X509_USER_PROXY_ORIG or GLIDEIN_CONDOR_TOKEN_ORIG
     # are  set it means the script has run at least once
 
@@ -70,7 +71,9 @@ refresh_credentials() {
         if [[ -d "${from_dir}" && -d "${to_dir}" ]]; then
             for tok in "${from_dir}"/*.idtoken; do
                 [[ -e "$tok" ]] || continue  # protect against nullglob (no match)
-                cp "${tok}" "${to_dir}" && refreshed="True"
+                token_dest="${to_dir}/$(basename "$tok")"
+                chmod 600 "$token_dest" 2>/dev/null || true
+                safe_copy_and_protect "$tok" "$token_dest" >/dev/null && refreshed="True"
             done
         else
             ERROR="Token variables defined but no directories ($([[ ! -d "${from_dir}" ]] && echo "${from_dir}")"\
@@ -315,7 +318,7 @@ copy_idtokens() {
     fi
     for i in *.idtoken; do
         [[ -e "$i" ]] || continue  # protect against nullglob (no match)
-        if cp "$i" "$to_dir/$i"; then
+        if safe_copy_and_protect "$i" "$to_dir/$i" >/dev/null; then
             if [[ "$i" == ce_*.idtoken ]]; then
                 warn "Copied CE collector token '${i}' to '${to_dir}/'"
                 (( cred_cecoll_ctr++ ))

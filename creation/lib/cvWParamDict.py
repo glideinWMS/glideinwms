@@ -1435,7 +1435,7 @@ def populate_group_security(client_security, params, sub_params, group_name):
 
     # NOTE: Subjects/DNs not available for generated credentials at reconfig time
     pilot_dns = []
-    exclude_from_pilot_dns = ["SCITOKEN", "IDTOKEN", "GENERATOR"]
+    exclude_from_pilot_dns = ["SCITOKEN", "IDTOKEN", "GENERATOR", "AUTH_FILE"]
     for credentials in (params.security.credentials, sub_params.security.credentials):
         if is_true(params.groups[group_name].enabled):
             for pel in credentials:

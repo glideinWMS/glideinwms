@@ -2141,6 +2141,39 @@ def overloadToBool(value, log=logSupport.log):
     return False
 
 
+SFAPI_RUNTIME_ENV_KEYS = (
+    "SFAPI_VENV",
+    "SFAPI_PYTHON",
+    "SFAPI_TRANSFER_MACHINE",
+    "SFAPI_USERNAME",
+    "NERSC_USERNAME",
+)
+
+
+def append_sfapi_environment(exe_env, params, job_descript, submit_credentials):
+    resource = job_descript.data.get("SfapiResource", "perlmutter")
+    exe_env.append("SFAPI_RESOURCE=%s" % resource)
+
+    auth_file = submit_credentials.security_credentials.get("AuthFile")
+    if not auth_file:
+        auth_file_creds = submit_credentials.security_credentials.find(
+            cred_type=CredentialType.TEXT, purpose=CredentialPurpose.REQUEST
+        )
+        if auth_file_creds:
+            auth_file = cred_path(auth_file_creds[-1])
+    if not auth_file:
+        raise KeyError("AuthFile")
+    exe_env.append("SFAPI_AUTH_MODE=auth_file")
+    exe_env.append("SFAPI_AUTH_FILE=%s" % auth_file)
+
+    for key in SFAPI_RUNTIME_ENV_KEYS:
+        value = params.get(key) or os.environ.get(key)
+        if value:
+            exe_env.append("%s=%s" % (key, value))
+
+    return exe_env
+
+
 def get_submit_environment(
     entry_name,
     client_name,
@@ -2313,7 +2346,15 @@ def get_submit_environment(
 
         # get my (entry) type
         grid_type = jobDescript.data["GridType"]
-        if grid_type.startswith("batch "):
+        if grid_type == "batch sfapi":
+            append_sfapi_environment(exe_env, params, jobDescript, submit_credentials)
+            glidein_proxy = submit_credentials.security_credentials.get("GlideinProxy")
+            if glidein_proxy:
+                exe_env.append("X509_USER_PROXY=%s" % glidein_proxy)
+                exe_env.append("X509_USER_PROXY_BASENAME=%s" % os.path.basename(glidein_proxy))
+            glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
+            exe_env.append("GLIDEIN_ARGUMENTS=%s" % glidein_arguments)
+        elif grid_type.startswith("batch "):
             log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
             # TODO: username, should this be only for batch or all key pair + username/password?
             try:
@@ -2602,8 +2643,23 @@ def get_submit_environment_v3_11(
 
         # get my (entry) type
         grid_type = jobDescript.data["GridType"]
-        if grid_type.startswith("batch "):
-            log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
+        if grid_type == "batch sfapi":
+            append_sfapi_environment(exe_env, params, jobDescript, submit_credentials)
+            glidein_proxy = submit_credentials.security_credentials.find(
+                cred_type=CredentialType.X509_CERT, purpose=CredentialPurpose.CALLBACK
+            )
+            if glidein_proxy:
+                exe_env.append("X509_USER_PROXY=%s" % cred_path(glidein_proxy[-1]))
+                exe_env.append("X509_USER_PROXY_BASENAME=%s" % os.path.basename(cred_path(glidein_proxy[-1])))
+            else:
+                log.warning("No grid proxy found in the security credentials")
+            glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
+            exe_env.append("GLIDEIN_ARGUMENTS=%s" % glidein_arguments)
+        elif grid_type.startswith("batch "):
+            log.debug(
+                "submit_credentials.security_credentials keys: %s"
+                % list(submit_credentials.security_credentials.keys())
+            )
             # TODO: username, should this be only for batch or all key pair + username/password?
             try:
                 # is always there and not empty for batch (is optional w/ Key pair or Username/password
