@@ -12,6 +12,8 @@ This release includes all features and fixes in 3.10.19
 -   Added framework support for encrypted credentials and implemented for RSA keys and key pairs (PR #640)
 -   Added snapshot to `get_request_credentials()` in credential plugins to allow for targeted dynamic request credentials (PR #640)
 -   Improved generators context validation and generators code documentation (PR #711, PR #720)
+-   Added the keyword "any_trust_domain" to use a credential no matter the trust_domain in the Factory configuration (PR #721)
+-   Improved IdTokenGenerator so it can be used for custom callback credentials for all Factory Entries (PR #721)
 
 ### Changed defaults / behaviours
 
@@ -26,6 +28,7 @@ This release includes all features and fixes in 3.10.19
 -   Fixed bug in IdTokenGenerator introduced in PR #667 (PR #702)
 -   Fixed all generators plugins to validate context also at reconfig time (PR #711)
 -   Fixed `GLIDEIN_OVERLOAD_ENABLED` handling in factory for 3.11 frontends (Issue #713, PR #714)
+-   Select callback credentials with the correct trust_domain and improved credential selection to use the trust_domain as optional constraint (PR #721)
 -   Fixed redundant file extension for credentials cached in the Factory (Issue #685, PR #723)
 
 ### Testing / Development

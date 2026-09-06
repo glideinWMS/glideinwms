@@ -84,7 +84,7 @@ class CredentialsPlugin(ABC):
       `trust_domain` will filter the returned credentials to a particular domain
     `get_parameters(self, snapshot: Optional[str] = None) -> Mapping[ParameterName, Parameter]`
       Return a list of parameters.
-    `get_request_credentials(self, snapshot: Optional[str] = None) -> List[RequestCredential]`
+    `get_request_credentials(self, trust_domain: Optional[str] = None, snapshot: Optional[str] = None) -> List[RequestCredential]`
       Return a list of credentials for requests.
     `assign_work(self, req_creds: Iterable[RequestCredential], params_obj: AdvertiseParams, auth_set: AuthenticationSet)`
       Determine the Glideins for each credential.
@@ -168,6 +168,21 @@ class CredentialsPlugin(ABC):
     def get_credentials(
         self, credential_type=None, trust_domain=None, credential_purpose=None, snapshot: Optional[str] = None
     ) -> List[Credential]:
+        """Get the credentials, optionally restricting the selection with type, purpose, trust_domain, and snapshot
+
+        If the credential trust_domain is "any_trust_domain", then the credential will always be returned, no matter
+        the requested trust_domain, otherwise the strings must match.
+        The credential types must match with a supported auth_metod.
+
+        Args:
+            credential_type (CredentialType, List(CredentialType)): the credential type must match if one or more are provided
+            trust_domain (str, optional): trust domain to match if provided.
+            credential_purpose (CredentialPurpose, List(CredentialPurpose)): the credential purposes must match if one or more are provided
+            snapshot (str, optional): get credentials from a dynamic snapshot if available
+
+        Returns:
+            list: list of credentials
+        """
         pass
 
     @abstractmethod
@@ -175,7 +190,18 @@ class CredentialsPlugin(ABC):
         pass
 
     @abstractmethod
-    def get_request_credentials(self, snapshot: Optional[str] = None) -> List[RequestCredential]:
+    def get_request_credentials(
+        self, trust_domain: Optional[str] = None, snapshot: Optional[str] = None
+    ) -> List[RequestCredential]:
+        """Get the request credentials
+
+        Args:
+            trust_domain (str, optional): trust domain to match if provided.
+            snapshot (str, optional): get credentials from a dynamic snapshot if available
+
+        Returns:
+            list: list of request credentials
+        """
         pass
 
     @abstractmethod
@@ -210,26 +236,28 @@ class CredentialsBasic(CredentialsPlugin):
         credential_purpose: Optional[Union[CredentialPurpose, List[CredentialPurpose]]] = None,
         snapshot: Optional[str] = None,
     ) -> List[Credential]:
-        """Get the credentials, given the condor_q and condor_status data
+        """Get the credentials, optionally restricting the selection with type, purpose, trust_domain, and snapshot
+
+        If the credential trust_domain is "any_trust_domain", then the credential will always be returned, no matter
+        the requested trust_domain, otherwise the strings must match.
+        The credential types must match with a supported auth_metod.
 
         Args:
-            credential_type (CredentialType, List(CredentialType)): optional credential type to match with a supported auth_metod
-            trust_domain (str): optional trust domain
-            credential_purpose (CredentialPurpose, List(CredentialPurpose)): optional credential purpose
+            credential_type (CredentialType, List(CredentialType)): the credential type must match if one or more are provided
+            trust_domain (str, optional): trust domain to match if provided.
+            credential_purpose (CredentialPurpose, List(CredentialPurpose)): the credential purposes must match if one or more are provided
             snapshot (str, optional): get credentials from a dynamic snapshot if available
 
         Returns:
             list: list of credentials
         """
-
         if credential_type and not isinstance(credential_type, list):
             credential_type = [credential_type]
         if credential_purpose and not isinstance(credential_purpose, list):
             credential_purpose = [credential_purpose]
-
         cred_list = []
         for cred in self.cred_list:
-            if trust_domain and cred.trust_domain != trust_domain:
+            if trust_domain and cred.trust_domain != trust_domain and cred.trust_domain != "any_trust_domain":
                 continue
             if credential_type and cred.cred_type not in credential_type:
                 continue
@@ -257,16 +285,21 @@ class CredentialsBasic(CredentialsPlugin):
             params_dict[param.name] = param
         return params_dict
 
-    def get_request_credentials(self, snapshot: Optional[str] = None) -> List[RequestCredential]:
+    def get_request_credentials(
+        self, trust_domain: Optional[str] = None, snapshot: Optional[str] = None
+    ) -> List[RequestCredential]:
         """Get the request credentials
 
         Args:
+            trust_domain (str, optional): trust domain to match if provided.
             snapshot (str, optional): get credentials from a dynamic snapshot if available
 
         Returns:
             list: list of request credentials
         """
-        req_creds = self.get_credentials(credential_purpose=CredentialPurpose.REQUEST, snapshot=snapshot)
+        req_creds = self.get_credentials(
+            trust_domain=trust_domain, credential_purpose=CredentialPurpose.REQUEST, snapshot=snapshot
+        )
         req_creds = [RequestCredential(cred) for cred in req_creds]
         return req_creds
 
