@@ -26,8 +26,8 @@ class IdTokenGenerator(CredentialGenerator):
 
     The token identity (sub) is the `identity` from the context, if provided, or NAME@HOSTNAME, where
     HOSTNAME is the fully qualified domain name of the host where the token is generated, and
-    NAME is the GLIDEIN_Site attribute form the resource/entry classad and configuration in the Factory, or
-    the name of the resource/entry from the classad and configuration in the Factory if GLIDEIN_Site is not specified.
+    NAME is the GLIDEIN_Site attribute form the resource/entry ClassAd and configuration in the Factory, or
+    the name of the resource/entry from the ClassAd and configuration in the Factory if GLIDEIN_Site is not specified.
     This aims to create different subjects for different resources/entries to avoid the reuse of tokens from potentially
     compromised resources.
 
@@ -44,6 +44,10 @@ class IdTokenGenerator(CredentialGenerator):
     or IDTokenKeyname), all uppercase.
 
     IDTokenLifetime and/or IDTokenKeyname, if present, are in the security section of the client configuration.
+
+    The context match_trust_domain defaults to False. If True, the credential trust_domain will match the trust_domain
+    attribute form the resource/entry ClassAd and configuration in the Factory. This allows a single generator
+    specification to be used also for entries with different trust domains.
     """
 
     CONTEXT_VALIDATION = {
@@ -53,25 +57,8 @@ class IdTokenGenerator(CredentialGenerator):
         "minimum_lifetime": (int, 0),
         "identity": (str, ""),
         "issuer": ((str, None), None),
+        "match_trust_domain": (bool, False),
     }
-
-    # @staticmethod
-    # def context_checks(context: dict) -> List[str]:
-    #     """Checks that the IDTOKEN context is valid.
-    #
-    #     Args:
-    #         context (dict): IDTOKEN context
-    #
-    #     Returns:
-    #         list: list of errors encountered. Empty if all OK.
-    #     """
-    #     value = str(CredentialType.IDTOKEN)
-    #     try:
-    #         if context["type"].lower() != value:
-    #             return [f"'type', if present, must be '{value}', not '{context['type']}'. Remove it from the context or set it to '{value}'."]
-    #     except KeyError:
-    #         pass  # It is OK if type is missing form the context
-    #     return []
 
     context_checks = staticmethod(
         GeneratorContext.force_value("type", str(CredentialType.IDTOKEN), string_to_lower=True)
@@ -116,9 +103,25 @@ class IdTokenGenerator(CredentialGenerator):
                     identity = f"{kwargs['glidein_el']['attrs']['EntryName']}@{socket.gethostname()}"
                 except Exception as err:
                     raise RuntimeError(
-                        "Unable to determine Entry identity in IdToken generation due to malformed"
+                        "Both GLIDEIN_Site and EntryName are not available."
+                        " Unable to determine Entry identity in IdToken generation due to malformed"
                         " glidefactory ClassAd or bad generator invocation."
                     ) from err
+
+        # TODO: the trust_domain seems to work fine, returning the one in the configuration or the configuration default
+        #  but should be investigated more where this happens and how to return a different one at generation.
+        #  Especially if different snapshots can have different trust_domains or should be the same.
+        #  Currently match_trust_domain seem not to work correctly
+        trust_domain = None
+        if self.context["match_trust_domain"]:
+            try:
+                trust_domain = kwargs["glidein_el"]["attrs"].get("GLIDEIN_TrustDomain", "grid")
+                # auth_method = glidein_el["attrs"].get("GLIDEIN_SupportedAuthenticationMethod", "grid_proxy")
+            except KeyError as err:
+                raise RuntimeError(
+                    "Requesting trust_domain match in context but trust_domain is not available"
+                    " due to malformed glidefactory ClassAd or bad generator invocation."
+                ) from err
 
         minimum_lifetime = self.context["minimum_lifetime"] or 0
 
@@ -127,6 +130,7 @@ class IdTokenGenerator(CredentialGenerator):
             scope=scope,
             duration=duration,
             identity=identity,
+            issuer=self.context["issuer"],  # If None, create_and_sign_token will default to HTCondor TRUST_DOMAIN
         )
 
         if minimum_lifetime <= 0:
@@ -136,6 +140,7 @@ class IdTokenGenerator(CredentialGenerator):
             string=idtoken_str,
             minimum_lifetime=minimum_lifetime,
             cred_type=CredentialType.IDTOKEN,  # Ignoring the value in context because it is hardcoded to IDTOKEN
+            trust_domain=trust_domain,
         )
 
 

@@ -870,11 +870,14 @@ class glideinFrontendElement:
             # classad. Monitoring info in frontend and factory shows
             # aggregated info considering all the credentials
 
-            trust_domain = glidein_el["attrs"].get("GLIDEIN_TrustDomain", "Grid")
+            trust_domain = glidein_el["attrs"].get("GLIDEIN_TrustDomain", "grid")
             auth_method = glidein_el["attrs"].get("GLIDEIN_SupportedAuthenticationMethod", "grid_proxy")
 
             # add callback credential generator if needed
-            callback_creds = self.credentials_plugin.get_credentials(credential_purpose=CredentialPurpose.CALLBACK)
+            # TODO: should match also the snapshot? To check in the credential matching improvement PR
+            callback_creds = self.credentials_plugin.get_credentials(
+                credential_purpose=CredentialPurpose.CALLBACK, trust_domain=trust_domain
+            )
             if not callback_creds:
                 logSupport.log.debug("Custom callback credential not provided. Using default.")
                 if not os.path.exists(defaults.token_dir):
