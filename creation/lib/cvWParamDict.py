@@ -1023,15 +1023,13 @@ def validate_schedds(main_list, group_list):
 
     if "ALL" in main_items or "ALL" in group_items:
         if main_items != ["ALL"] or group_items:
-            raise RuntimeError(
-                f"""It seems you want to use the '<scheddDN="ALL" fullname="ALL">' feature.
+            raise RuntimeError(f"""It seems you want to use the '<scheddDN="ALL" fullname="ALL">' feature.
 In order to do so, you need to define it in the global schedd configuration,
 and all the schedds in the frontend groups must be empty.
 
 Found:
   global configuration: '{main_list}'
-  group configuration:  '{group_list}'"""
-            )
+  group configuration:  '{group_list}'""")
 
 
 def apply_multicore_policy(descript_dict):
