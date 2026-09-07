@@ -55,7 +55,6 @@ from glideinwms.factory.glideFactoryLib import (
     days2sec,
     env_list2dict,
     FactoryConfig,
-    get_submit_environment,
     get_submit_environment_v3_11,
     getCondorQCredentialList,
     getCondorQData,
