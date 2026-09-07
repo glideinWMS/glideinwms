@@ -693,6 +693,7 @@ class TestGetSubmitEnvironment(unittest.TestCase):
         }
 
         mock_creds = mock.MagicMock()
+        mock_creds.auth_set.supports.return_value = False
         mock_creds.security_credentials.find.return_value = None
         mock_creds.identity_credentials.find.return_value = None
         mock_creds.identity_credentials.values.return_value = []
