@@ -55,6 +55,8 @@ from glideinwms.factory.glideFactoryLib import (
     days2sec,
     env_list2dict,
     FactoryConfig,
+    get_submit_environment,
+    get_submit_environment_v3_11,
     getCondorQCredentialList,
     getCondorQData,
     getCondorStatusData,
@@ -65,6 +67,7 @@ from glideinwms.factory.glideFactoryLib import (
     getQStatusStale,
     hrs2sec,
     isGlideinUnrecoverable,
+    overloadToBool,
     secClass2Name,
     set_condor_integrity_checks,
     which,
@@ -651,22 +654,67 @@ class TestInSubmitEnvironment(unittest.TestCase):
         assert False
 
 
+class TestOverloadToBool(unittest.TestCase):
+    def test_overload_to_bool(self):
+        self.assertTrue(overloadToBool(True))
+        self.assertFalse(overloadToBool(False))
+        self.assertTrue(overloadToBool("true"))
+        self.assertTrue(overloadToBool("TRUE"))
+        self.assertFalse(overloadToBool("false"))
+        self.assertFalse(overloadToBool("FALSE"))
+        self.assertIn(overloadToBool("66%"), [True, False])
+
+
 class TestGetSubmitEnvironment(unittest.TestCase):
-    @unittest.skip("for now")
-    def test_get_submit_environment(self):
-        # self.assertEqual(
-        #     expected,
-        #     get_submit_environment(
-        #         entry_name,
-        #         client_name,
-        #         submit_credentials,
-        #         client_web,
-        #         params,
-        #         idle_lifetime,
-        #         log,
-        #         factoryConfig))
-        # assert False # TODO: implement your test here
-        assert False
+    @mock.patch("glideinwms.factory.glideFactoryConfig.SignatureFile")
+    @mock.patch("glideinwms.factory.glideFactoryConfig.JobAttributes")
+    @mock.patch("glideinwms.factory.glideFactoryConfig.JobDescript")
+    @mock.patch("glideinwms.factory.glideFactoryConfig.GlideinDescript")
+    def test_get_submit_environment_v3_11_overload(
+        self, mock_glideinDescript, mock_jobDescript, mock_jobAttributes, mock_signatures
+    ):
+        mock_glideinDescript.return_value.data = {
+            "GlideinName": "gname",
+            "FactoryName": "fname",
+            "WebURL": "http://web.url",
+        }
+        mock_jobDescript.return_value.data = {
+            "Schedd": "schedd",
+            "Verbosity": "info",
+            "StartupDir": "/tmp",
+            "SubmitSlotsLayout": "partitionable",
+            "GridType": "condor",
+        }
+        mock_jobAttributes.return_value.data = {}
+        mock_signatures.return_value.data = {
+            "main_descript": "main_d",
+            "main_sign": "main_s",
+            "entry_entry1_descript": "entry_d",
+            "entry_entry1_sign": "entry_s",
+        }
+
+        mock_creds = mock.MagicMock()
+        mock_creds.security_credentials.find.return_value = None
+        mock_creds.identity_credentials.find.return_value = None
+        mock_creds.identity_credentials.values.return_value = []
+        mock_creds.security_class = "sec_class"
+        mock_creds.username = "user"
+        mock_creds.id = "cred_id"
+
+        params = {"GLIDEIN_OVERLOAD_ENABLED": "true"}
+        env = get_submit_environment_v3_11(
+            "entry1",
+            "client1",
+            mock_creds,
+            None,
+            params,
+            1200,
+            log=FakeLogger(),
+        )
+
+        self.assertIn("GLIDEIN_OVERLOAD_ENABLED=True", env)
+        self.assertEqual(params["GLIDEIN_OVERLOAD_ENABLED"], "True")
+        self.assertIn("GLIDEIN_PARAM_GLIDEIN_OVERLOAD_ENABLED=True", env)
 
 
 class TestIsGlideinWithinHeldLimits(unittest.TestCase):
