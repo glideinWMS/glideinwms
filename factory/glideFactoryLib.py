@@ -2479,6 +2479,24 @@ def get_submit_environment_v3_11(
         jobAttributes = glideFactoryConfig.JobAttributes(entry_name)
         signatures = glideFactoryConfig.SignatureFile()
 
+        # For documentation
+        # CAVEAT #1: Overloading choice is applied on a "submission cycle base"
+        # CAVEAT #2: cgWCreate will only add "job_ad_information_attrs=GlideinOverloadEnabled" at reconfigure looking at the Factory
+        #            Frontend values will be ignored :(
+        # If it is const="False" in the factory, then jobAttributes will return None, and we get the param
+        # The param will either be the frontend value, or the factory one
+        # If const="True" then we'll just get the jobAttributes and ignore the params
+        glidein_overloaded_bool = False
+        glidein_overloaded = jobAttributes.data.get("GLIDEIN_OVERLOAD_ENABLED", False) or params.get(
+            "GLIDEIN_OVERLOAD_ENABLED", False
+        )
+        if glidein_overloaded:
+            glidein_overloaded_bool = overloadToBool(glidein_overloaded, log)
+            # Keeping it for convenience until we know for sure new OVERLOAD works in prod
+            # log.debug(f"OVERLOAD evaluated to: {glidein_overloaded_bool}")
+            # Overwriting the param with the "collapsed" boolean (66% => True/False)
+            params["GLIDEIN_OVERLOAD_ENABLED"] = str(glidein_overloaded_bool)
+
         exe_env = ["GLIDEIN_ENTRY_NAME=%s" % entry_name]
         scitoken = submit_credentials.security_credentials.find(
             cred_type=CredentialType.SCITOKEN, purpose=CredentialPurpose.REQUEST
@@ -2501,6 +2519,10 @@ def get_submit_environment_v3_11(
                 if cred_path(cred.private_credential):
                     id_cred_paths.append(cred_path(cred.private_credential))
         exe_env.append(f"IDENTITY_CREDENTIALS={','.join(id_cred_paths)}")
+
+        # This is used to set the "+GlideinOverloadEnabled" param in the condor jdl
+        # This is the attribute that goes in the activity log and it is used for monitoring.
+        exe_env.append("GLIDEIN_OVERLOAD_ENABLED=%s" % glidein_overloaded_bool)
 
         # The parameter list to be added to the arguments for glidein_startup.sh
         params_str = ""
