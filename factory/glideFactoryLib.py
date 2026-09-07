@@ -2521,7 +2521,7 @@ def get_submit_environment_v3_11(
         exe_env.append(f"IDENTITY_CREDENTIALS={','.join(id_cred_paths)}")
 
         # This is used to set the "+GlideinOverloadEnabled" param in the condor jdl
-        # This is the attribute that goes in the activity log and it used for monitoring.
+        # This is the attribute that goes in the activity log and it is used for monitoring.
         exe_env.append("GLIDEIN_OVERLOAD_ENABLED=%s" % glidein_overloaded_bool)
 
         # The parameter list to be added to the arguments for glidein_startup.sh
