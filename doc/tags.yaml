@@ -817,3 +817,18 @@ v3_11_4:
     - IdTokenGenerator more robust, using the Entry name when GLIDEIN_Site is not available (PR#667)
   NOTE:
     - As in 3.10.18, custom scripts execution times out after 600s and scripts are killed with SIGTERM followed by SIGKILL
+
+v3_11_5:
+  Date: September 9, 2026
+  Series: Development
+  Tarball: false
+  Feature:
+    - Added framework support for encrypted credentials and implemented for RSA keys and key pairs (PR#640)
+    - Added snapshot to `get_request_credentials()` in credential plugins to allow for targeted dynamic request credentials (PR#640)
+    - Improved generators context validation and generators code documentation (PR#711)
+  Bug fix:
+    - Python Cryptography changed some type names spelling. Added import statements to be compatible with both old and new spellings (PR#683, PR#687)
+    - Fixed `populate_group_security` in the configuration management to work with the new credentials and to handle correctly proxy ID lists for X509 DN extraction (PR#640)
+    - Fixed bug in IdTokenGenerator introduced in PR#667 (PR#702)
+    - Fixed all generators plugins to validate context also at reconfig time (PR#711)
+    - Fixed `GLIDEIN_OVERLOAD_ENABLED` handling in factory for 3.11 frontends (Issue#713, PR#714)
