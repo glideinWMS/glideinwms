@@ -1380,6 +1380,10 @@ def populate_job_descript(
         job_descript_dict.add("GlobusRSL", entry["rsl"])
     if "bosco_dir" in entry:
         job_descript_dict.add("BoscoDir", entry["bosco_dir"])
+    if "sfapi_resource" in entry:
+        job_descript_dict.add("SfapiResource", entry["sfapi_resource"])
+    if "sfapi_glite_dir" in entry:
+        job_descript_dict.add("SfapiGliteDir", entry["sfapi_glite_dir"])
     job_descript_dict.add("Schedd", schedd)
     job_descript_dict.add("StartupDir", entry["work_dir"])
     if "proxy_url" in entry:

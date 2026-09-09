@@ -231,6 +231,18 @@ class GlideinParams(cWParams.CommonParams):
             "BOSCO directory on the (remote) resource submit host",
             None,
         )
+        self.entry_defaults["sfapi_resource"] = (
+            "perlmutter",
+            "sfapi_resource",
+            "NERSC SFAPI compute resource name",
+            None,
+        )
+        self.entry_defaults["sfapi_glite_dir"] = (
+            None,
+            "sfapi_glite_dir",
+            "Path to the BLAHP glite directory containing sfapi scripts",
+            None,
+        )
         self.entry_defaults["schedd_name"] = (
             None,
             "ScheddName",
