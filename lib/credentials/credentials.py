@@ -40,6 +40,7 @@ class CredentialType(enum.Enum):
     TOKEN = "token"
     SCITOKEN = "scitoken"
     IDTOKEN = "idtoken"
+    GLOBUS_COMPUTE_TOKEN = "globus_compute_token"
     X509_CERT = "x509_cert"
     RSA_PUBLIC_KEY = "rsa_public_key"
     RSA_PRIVATE_KEY = "rsa_private_key"
