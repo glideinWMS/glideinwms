@@ -367,6 +367,102 @@ list_get_intersection() {
     echo "${intersection%,}"
 }
 
+singularity_htcondor_classad_quote() {
+    # Quote a string for use as a literal value in an HTCondor ClassAd expression.
+    # Newlines are flattened because HTCondor config values are line-oriented.
+    local value="$1"
+    value=$(printf "%s" "$value" | tr '\n' ' ' | sed 's/\\/\\\\/g; s/"/\\"/g')
+    printf '"%s"' "$value"
+}
+
+singularity_is_true_value() {
+    case "$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | tr -d "[:space:]'\"")" in
+        1|true|yes) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+singularity_is_false_value() {
+    case "$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | tr -d "[:space:]'\"")" in
+        0|false|no) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+singularity_list_contains_item() {
+    # Return true if a comma-separated config list allows an item. Empty and
+    # "any" both mean unrestricted, matching the wrapper's REQUIRED_OS policy.
+    local list="${1:-any}"
+    local item="$2"
+
+    [[ -z "$item" ]] && return 1
+    [[ -z "$list" || "$list" = "any" ]] && return 0
+    [[ ",$list," = *",$item,"* ]]
+}
+
+singularity_htcondor_image_allowed_by_restrictions() {
+    local image="$1"
+    local restrictions="$2"
+
+    [[ -z "$image" ]] && return 1
+    if [[ ",${restrictions}," = *",cvmfs,"* ]] && ! cvmfs_path_in_cvmfs "$image"; then
+        return 1
+    fi
+    return 0
+}
+
+singularity_htcondor_required_os_condition() {
+    local platform="$1"
+
+    printf '(!isUndefined(TARGET.REQUIRED_OS) && TARGET.REQUIRED_OS =!= "" && TARGET.REQUIRED_OS =!= "any" && stringListMember(%s, TARGET.REQUIRED_OS, ","))' \
+        "$(singularity_htcondor_classad_quote "$platform")"
+}
+
+singularity_htcondor_image_expr() {
+    # Build the native HTCondor Singularity image expression from the same image
+    # dictionary policy used by the GWMS wrapper. Job +SingularityImage wins;
+    # otherwise a job REQUIRED_OS match chooses from SINGULARITY_IMAGES_DICT,
+    # then falls back to the setup-selected GWMS_SINGULARITY_IMAGE.
+    local default_image="$1"
+    local images_dict="$2"
+    local entry_required_os="${3:-any}"
+    local image_restrictions="$4"
+    local fallback_expr='$(GWMS_DEFAULT_SINGULARITY_IMAGE)'
+    local image_expr platform image old_ifs platform_order seen_platforms expression_platforms
+
+    local htcondor_images_dict_tmp="$images_dict"
+    if [[ -z "$default_image" ]]; then
+        image=$(dict_get_val htcondor_images_dict_tmp default)
+        if [[ -n "$image" ]] && singularity_htcondor_image_allowed_by_restrictions "$image" "$image_restrictions"; then
+            fallback_expr=$(singularity_htcondor_classad_quote "$image")
+        else
+            fallback_expr='""'
+        fi
+    fi
+    image_expr="$fallback_expr"
+
+    platform_order="$(singularity_default_platform_order),$(dict_get_keys htcondor_images_dict_tmp)"
+    old_ifs="$IFS"
+    IFS=,
+    for platform in $platform_order; do
+        [[ -z "$platform" || "$platform" = "default" || "$platform" = "testimage" ]] && continue
+        [[ ",$seen_platforms," = *",$platform,"* ]] && continue
+        seen_platforms="${seen_platforms:+$seen_platforms,}$platform"
+        image=$(dict_get_val htcondor_images_dict_tmp "$platform")
+        singularity_list_contains_item "$entry_required_os" "$platform" || continue
+        singularity_htcondor_image_allowed_by_restrictions "$image" "$image_restrictions" || continue
+        expression_platforms="${platform}${expression_platforms:+,$expression_platforms}"
+    done
+
+    for platform in $expression_platforms; do
+        image=$(dict_get_val htcondor_images_dict_tmp "$platform")
+        image_expr="ifThenElse($(singularity_htcondor_required_os_condition "$platform"), $(singularity_htcondor_classad_quote "$image"), $image_expr)"
+    done
+    IFS="$old_ifs"
+
+    printf 'ifThenElse(!isUndefined(TARGET.SingularityImage) && TARGET.SingularityImage =!= "", TARGET.SingularityImage, %s)' "$image_expr"
+}
+
 
 #######################################
 #
@@ -2021,6 +2117,63 @@ singularity_verify_image() {
 }
 
 
+singularity_default_platform_order() {
+    echo "default,rhel9,rhel8,rhel7,rhel6"
+}
+
+
+singularity_select_launch_image() {
+    local desired_os="$1"
+    local image_restrictions="$2"
+
+    if [[ "$desired_os" = any ]]; then
+        singularity_get_image "$(singularity_default_platform_order)" "${image_restrictions:+$image_restrictions,}any"
+    else
+        singularity_get_image "$desired_os" "$image_restrictions"
+    fi
+}
+
+
+singularity_set_launch_defaults() {
+    # Shared launch policy used by the normal GWMS wrapper launch path and by
+    # HTCondor-managed Singularity config generation.
+    if [[ -n "$GLIDEIN_Tmp_Dir" && -e "$GLIDEIN_Tmp_Dir" ]]; then
+        if mkdir "$GLIDEIN_Tmp_Dir/singularity-work.$$"; then
+            export SINGULARITY_WORKDIR="$GLIDEIN_Tmp_Dir/singularity-work.$$"
+            export APPTAINER_WORKDIR="$GLIDEIN_Tmp_Dir/singularity-work.$$"
+        else
+            warn "Unable to set SINGULARITY_WORKDIR/APPTAINER_WORKDIR to $GLIDEIN_Tmp_Dir/singularity-work.$$. Leaving it undefined."
+        fi
+    fi
+
+    GWMS_SINGULARITY_EXTRA_OPTS="$GLIDEIN_SINGULARITY_OPTS"
+
+    # Binding different mounts. Runtime wrapper launch filters missing sources
+    # before invoking Singularity; HTCondor mode receives the same policy as
+    # static config and relies on site defaults being valid.
+    GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="/hadoop,/ceph,/hdfs,/lizard,/mnt/hadoop,/mnt/hdfs,/etc/hosts,/etc/localtime"
+
+    if [[ "$GWMS_SINGULARITY_BIND_CVMFS" = "1" ]]; then
+        if [[ -n "$CVMFS_MOUNT_DIR" ]]; then
+            GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS=$(dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS "${CVMFS_MOUNT_DIR}:/cvmfs")
+        else
+            GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS=$(dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /cvmfs)
+        fi
+    fi
+
+    if [[ "$OSG_MACHINE_GPUS" -gt 0 || "$GPU_USE" = "1" ]]; then
+        if [[ -e /etc/OpenCL/vendors ]]; then
+            GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS=$(dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /etc/OpenCL/vendors /etc/OpenCL/vendors)
+        fi
+        GWMS_SINGULARITY_EXTRA_OPTS="$GWMS_SINGULARITY_EXTRA_OPTS --nv"
+    fi
+    info_dbg "bind-path default (cvmfs:$GWMS_SINGULARITY_BIND_CVMFS, hostlib:$([ -n "$HOST_LIBS" ] && echo 1), ocl:$([ -e /etc/OpenCL/vendors ] && echo 1)): $GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS"
+
+    export GWMS_SINGULARITY_EXTRA_OPTS
+    export GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS
+}
+
+
 # TODO: VO tests should be before (if contributing to image choice, ...) and inside (if they need to know the image, ...)
 # WAS: prepare_and_invoke_singularity () {
 singularity_prepare_and_invoke() {
@@ -2059,12 +2212,7 @@ singularity_prepare_and_invoke() {
             singularity_exit_or_fallback "$msg" 1
             return
         fi
-        if [[ "$DESIRED_OS" = any ]]; then
-            # Prefer the platforms default,rhel9,rhel8,rhel7,rhel6, otherwise pick the first one available
-            GWMS_SINGULARITY_IMAGE=$(singularity_get_image default,rhel9,rhel8,rhel7,rhel6 ${GWMS_SINGULARITY_IMAGE_RESTRICTIONS:+$GWMS_SINGULARITY_IMAGE_RESTRICTIONS,}any)
-        else
-            GWMS_SINGULARITY_IMAGE=$(singularity_get_image "$DESIRED_OS" "$GWMS_SINGULARITY_IMAGE_RESTRICTIONS")
-        fi
+        GWMS_SINGULARITY_IMAGE=$(singularity_select_launch_image "$DESIRED_OS" "$GWMS_SINGULARITY_IMAGE_RESTRICTIONS")
     fi
 
     # At this point, GWMS_SINGULARITY_IMAGE is still empty, something is wrong
@@ -2123,41 +2271,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     info_dbg "using image $GWMS_SINGULARITY_IMAGE_HUMAN ($GWMS_SINGULARITY_IMAGE)"
     # Singularity image is OK, continue w/ other init
 
-    # set up the env to make sure Singularity uses the glidein dir for exported /tmp, /var/tmp
-    if [[ -n "$GLIDEIN_Tmp_Dir" && -e "$GLIDEIN_Tmp_Dir" ]]; then
-        if mkdir "$GLIDEIN_Tmp_Dir/singularity-work.$$"; then
-            export SINGULARITY_WORKDIR="$GLIDEIN_Tmp_Dir/singularity-work.$$"
-            export APPTAINER_WORKDIR="$GLIDEIN_Tmp_Dir/singularity-work.$$"
-        else
-            warn "Unable to set SINGULARITY_WORKDIR/APPTAINER_WORKDIR to $GLIDEIN_Tmp_Dir/singularity-work.$$. Leaving it undefined."
-        fi
-    fi
-
-    GWMS_SINGULARITY_EXTRA_OPTS="$GLIDEIN_SINGULARITY_OPTS"
-
-    # Binding different mounts (they will be removed if not existent on the host)
-    # This is a dictionary in string w/ singularity mount options ("src1[:dst1[:opt1]][,src2[:dst2[:opt2]]]*"
-    # OSG: checks also in image, may not work if not expanded. And Singularity will not fail if missing, only give a warning
-    #  if [ -e $MNTPOINT/. -a -e $OSG_SINGULARITY_IMAGE/$MNTPOINT ]; then
-    GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="/hadoop,/ceph,/hdfs,/lizard,/mnt/hadoop,/mnt/hdfs,/etc/hosts,/etc/localtime"
-
-    # CVMFS access inside container (default, but optional)
-    if [[ "$GWMS_SINGULARITY_BIND_CVMFS" = "1" ]]; then
-        if [[ -n "$CVMFS_MOUNT_DIR" ]]; then
-            GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS=$(dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS "${CVMFS_MOUNT_DIR}:/cvmfs")
-        else
-            GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS=$(dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /cvmfs)
-        fi
-    fi
-
-    # GPUs - bind outside OpenCL directory if available, and add --nv flag
-    if [[ "$OSG_MACHINE_GPUS" -gt 0 || "$GPU_USE" = "1" ]]; then
-        if [[ -e /etc/OpenCL/vendors ]]; then
-            GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS=$(dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /etc/OpenCL/vendors /etc/OpenCL/vendors)
-        fi
-        GWMS_SINGULARITY_EXTRA_OPTS="$GWMS_SINGULARITY_EXTRA_OPTS --nv"
-    fi
-    info_dbg "bind-path default (cvmfs:$GWMS_SINGULARITY_BIND_CVMFS, hostlib:$([ -n "$HOST_LIBS" ] && echo 1), ocl:$([ -e /etc/OpenCL/vendors ] && echo 1)): $GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS"
+    singularity_set_launch_defaults
 
     # We want to bind $PWD to /srv within the container - however, in order
     # to do that, we have to make sure everything we need is in $PWD, most
@@ -2420,6 +2534,29 @@ setup_classad_variables() {
     if [[ "x$GWMS_SINGULARITY_AUTOLOAD" != "x$HAS_SINGULARITY" ]]; then
         warn "Using +SingularityAutoLoad is no longer allowed to change Singularity use. Ignoring."
         export GWMS_SINGULARITY_AUTOLOAD=${HAS_SINGULARITY}
+    fi
+}
+
+
+singularity_htcondor_setup_inside() {
+    # HTCondor has already launched the container. Set up the same ClassAd-driven
+    # environment and in-container path rewrites that the normal re-exec path uses,
+    # but do not invoke Singularity/Apptainer again.
+    setup_classad_variables
+    if singularity_check >/dev/null; then
+        export GWMS_SINGULARITY_REEXEC=1
+        [[ -z "$GWMS_SINGULARITY_OUTSIDE_PWD" ]] && export GWMS_SINGULARITY_OUTSIDE_PWD="${_CONDOR_JOB_IWD:-$PWD}"
+        if [[ -z "$GWMS_SINGULARITY_OUTSIDE_PWD_LIST" ]]; then
+            GWMS_SINGULARITY_OUTSIDE_PWD_LIST="$(singularity_make_outside_pwd_list \
+                "${GWMS_SINGULARITY_OUTSIDE_PWD_LIST}" "${GWMS_SINGULARITY_OUTSIDE_PWD}" \
+                "${_CONDOR_SCRATCH_DIR}" "${PWD}" "$(robust_realpath "${PWD}")")"
+            export GWMS_SINGULARITY_OUTSIDE_PWD_LIST
+        fi
+        [[ -d /srv ]] && cd /srv || warn "GWMS singularity wrapper, unable to cd in /srv"
+        export HOME=/srv
+        singularity_setup_inside
+    else
+        info_dbg "GWMS singularity wrapper, HTCondor did not launch a Singularity container for this job."
     fi
 }
 
