@@ -3,9 +3,10 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.10.19 \[2026-09-dd\]
+## v3.10.19 \[2026-09-08\]
 
-Changes since the last release
+This release adds a few bug fixes, especially to the Glideins.
+The custom scripts timeout now must be enabled explicitly, no more 10 minutes timeout by default.
 
 ### New features / functionalities
 
@@ -35,8 +36,8 @@ Changes since the last release
 
 ### Known Issues
 
--   Factory monitoring does not report existing pilots after entry `auth_method` changes from `grid_proxy` to `scitoken` and `CONTINUE_IF_NO_PROXY` knob is unset (Issue #681)
--   Running 3.10.x Frontend continues to request Glideins even when unable to create IDTOKENS, resulting in Glideins failing at startup (Issue #679, PR #680)
+-   Factory monitoring does not report existing pilots after a reconfig when entry `auth_method` changes from `grid_proxy` to `scitoken` and `CONTINUE_IF_NO_PROXY` knob is unset (Issue #681)
+-   A running 3.10.x Frontend continues to request Glideins even when unable to create IDTOKENS, resulting in Glideins failing at startup (Issue #679, PR #680)
 
 ## v3.10.18 \[2026-04-17\]
 
@@ -44,8 +45,8 @@ Added custom scripts timeout, fixed job monitoring and few other bugs.
 
 ### New features / functionalities
 
--   Added GlideinOverloadEnabled to the activity logs for monitoring purposes (PR #629, Issue #569)
--   Added configurable fallback mechanism for Web proxy availability (PR #648, Issue #521)
+-   Added GlideinOverloadEnabled to the activity logs for monitoring purposes (Issue #569, PR #629)
+-   Added configurable fallback mechanism for Web proxy availability (Issue #521, PR #648)
 -   Added custom scripts timeout option (GLIDEIN_CUSTOM_SCRIPTS_TIMEOUT, defaults to 600s) and cscripttrace option in GLIDEIN_DEBUG_OPTIONS to print the trace if they are shell scripts (PR #651)
 -   Print triggered limits in Glidein requests in glideinFrontendElement (PR #653)
 
@@ -61,13 +62,13 @@ Added custom scripts timeout, fixed job monitoring and few other bugs.
 ### Bug Fixes
 
 -   Fixed ownership of the /var/lib/gwms-factory in RPM package (PR #637)
--   Fixed heredoc with custom scripts header to detect the correct shell (PR #643, Issue #641)
--   Fixed HTCondor slot resources specifications by adding comma separator (PR #644, Issue #638)
--   Migrating glidein_status tool from Python 2 to Python 3 (PR #647, Issue #422)
--   Fixing inconsistent use of string and bytes types breaking job monitoring (PR #650, Issue #649, Issue #646)
+-   Fixed heredoc with custom scripts header to detect the correct shell (Issue #641, PR #643)
+-   Fixed HTCondor slot resources specifications by adding comma separator (Issue #638, PR #644)
+-   Migrating glidein_status tool from Python 2 to Python 3 (Issue #422, PR #647)
+-   Fixing inconsistent use of string and bytes types breaking job monitoring (Issue #646, Issue #649, PR #650)
 -   Improved cvmfs_helper_funcs.sh to be faster and have consistent names (PR #651)
--   OSG_autoconf, handle missing pilot entries gracefully in merge_yaml (PR #655, Issue #654)
--   OSG_autoconf, fix missing GPU count for whole-node GPU entries. (PR #657, Issue #656)
+-   OSG_autoconf, handle missing pilot entries gracefully in merge_yaml (Issue #654, PR #655)
+-   OSG_autoconf, fix missing GPU count for whole-node GPU entries. (Issue #656, PR #657)
 
 ### Testing / Development
 
@@ -83,13 +84,13 @@ Added support for HTCondor v2 Python bindings, updated Factory monitoring of cli
 ### New features / functionalities
 
 -   Recognize EL/CentOS 10 worker nodes to select the correct HTCondor tarball (PR #600)
--   Factory monitoring now showing Client Requested Idle Glideins; only keeping track of Factory adjusted Idle (PR# #606, Issue #520)
+-   Factory monitoring now showing Client Requested Idle Glideins; only keeping track of Factory adjusted Idle (Issue #520, PR# #606)
 -   Added support for HTCondor Python bindings v2. If available, v1 is still preferred (PR #608)
 
 ### Changed defaults / behaviours
 
--   Prevented memory spikes during factory reconfiguration by copying Condor tarballs instead of loading them into memory (PR #602, Issue #601)
--   Reuse Condor tarballs across reconfigurations by generating hash-based filenames from file metadata instead of timestamps (PR #604, Issue #603)
+-   Prevented memory spikes during factory reconfiguration by copying Condor tarballs instead of loading them into memory (Issue #601, PR #602)
+-   Reuse Condor tarballs across reconfigurations by generating hash-based filenames from file metadata instead of timestamps (Issue #603, PR #604)
 -   Removed ownership and HTCondor checks connected to GWMS 3.5 migration (PR #608)
 -   Added a reconfig/upgrade warning when user job wrapper scripts require more than sh or contain an exec statement (Issue #584, PR #610, PR #618)
 -   Added a word checker to warn about misspelling of attributes in the configuration files. It will run only if the Jellyfish Python library is installed (PR #616)
@@ -285,9 +286,9 @@ Check the changed defaults, including SINGULARITY_IMAGE_REQUIRED, APPTAINER_TEST
 
 -   Protect processing of custom scripts in glidein_startup.sh against stdin interference (PR #498, Issue #500)
 -   Some config files used in the RPM package, including the httpd ones, were obsolete and not the version in the source tree. (PR #492, PR #502)
--   Host IP is now searched in blacklist also when the host command is missing (PR #499, Issue #493)
+-   Host IP is now searched in blacklist also when the host command is missing (Issue #493, PR #499)
 -   Added missing HTCondor requirements in spec file (PR #502)
--   Unset CONDOR_INHERIT before condor startup to avoid any conflict in the condor configurations (PR #503, Issue #274)
+-   Unset CONDOR_INHERIT before condor startup to avoid any conflict in the condor configurations (Issue #274, PR #503)
 
 ### Testing / Development
 

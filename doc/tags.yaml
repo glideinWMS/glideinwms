@@ -681,9 +681,9 @@ v3_10_17:
   Tarball: false
   Feature:
     - Recognize EL/CentOS 10 worker nodes to select the correct HTCondor tarball (PR#600)
-    - Prevented memory spikes during Factory reconfiguration by copying Condor tarballs instead of loading them into memory (PR#602, Issue#601)
-    - Reuse Condor tarballs across reconfigurations by generating hash-based filenames from file metadata instead of timestamps (PR#604, Issue#603)
-    - Factory monitoring now showing Client Requested Idle Glideins; only keeping track of Factory adjusted Idle (PR#606, Issue#520)
+    - Prevented memory spikes during Factory reconfiguration by copying Condor tarballs instead of loading them into memory (Issue#601, PR#602)
+    - Reuse Condor tarballs across reconfigurations by generating hash-based filenames from file metadata instead of timestamps (Issue#603, PR#604)
+    - Factory monitoring now showing Client Requested Idle Glideins; only keeping track of Factory adjusted Idle (Issue#520, PR#606)
     - Added support for HTCondor Python bindings v2. If available, v1 is still preferred (PR#608)
     - Removed ownership and HTCondor checks connected to GWMS 3.5 migration (PR#608)
     - Added a reconfig/upgrade warning when user job wrapper scripts require more than sh or contain an exec statement (Issue#584, PR#610, PR#618)
@@ -702,8 +702,8 @@ v3_10_18:
   Series: Stable
   Tarball: false
   Feature:
-    - Added GlideinOverloadEnabled to the activity logs for monitoring purposes (PR#629, Issue#569)
-    - Added configurable fallback mechanism for Web proxy availability (PR#648, Issue#521)
+    - Added GlideinOverloadEnabled to the activity logs for monitoring purposes (Issue#569, PR#629)
+    - Added configurable fallback mechanism for Web proxy availability (Issue#521, PR#648)
     - Added custom scripts timeout option (GLIDEIN_CUSTOM_SCRIPTS_TIMEOUT, defaults to 600s) and cscripttrace option in GLIDEIN_DEBUG_OPTIONS to print the trace if they are shell scripts (PR#651)
     - gettarballs.py now has an improved management of default tarballs (PR#627)
     - Print triggered limits in Glidein requests in glideinFrontendElement (PR#653)
@@ -711,12 +711,31 @@ v3_10_18:
     - Added new startup scripts to prepare for better systemd compliance (PR#660)
   Bug fix:
     - Fixed ownership of the /var/lib/gwms-factory in RPM package (PR#637)
-    - Fixed heredoc with custom scripts header to detect the correct shell (PR#643, Issue#641)
-    - Fixed HTCondor slot resources specifications by adding comma separator (PR#644, Issue#638)
-    - Migrating glidein_status tool from Python 2 to Python 3 (PR#647, Issue#422)
-    - Fixing inconsistent use of string and bytes types breaking job monitoring (PR#650, Issue#649, Issue#646)
+    - Fixed heredoc with custom scripts header to detect the correct shell (Issue#641, PR#643)
+    - Fixed HTCondor slot resources specifications by adding comma separator (Issue#638, PR#644)
+    - Migrating glidein_status tool from Python 2 to Python 3 (Issue#422, PR#647)
+    - Fixing inconsistent use of string and bytes types breaking job monitoring (Issue#646, Issue#649, PR#650)
     - Improved cvmfs_helper_funcs.sh to be faster and have consistent names (PR#651)
-    - OSG_autoconf, handle missing pilot entries gracefully in merge_yaml (PR#655, Issue#654)
-    - OSG_autoconf, fix missing GPU count for whole-node GPU entries. (PR#657, Issue#656)
+    - OSG_autoconf, handle missing pilot entries gracefully in merge_yaml (Issue#654, PR#655)
+    - OSG_autoconf, fix missing GPU count for whole-node GPU entries. (Issue#656, PR#657)
   NOTE:
     - Custom scripts execution times out after 600s and scripts are killed with SIGTERM followed by SIGKILL
+
+v3_10_19:
+  Date: September 8, 2026
+  Series: Stable
+  Tarball: false
+  Feature:
+    - Made check_proxy.sh more robust and verbose (PR#680)
+    - Added support for ordered default version list in get_tarballs (Issue#691, PR#692)
+    - Require selected defaults mapping in get_tarballs (Issue#699, PR#700)
+    - Added gconfig_add_multi in glidein_config functions and switched cat_consts.sh to add lines in batches (PR#707, PR#708, PR#710)
+  Bug fix:
+    - Sanitize CVMFS repos list to protect against Arbitrary Code Execution attack (PR#678)
+    - Fix incorrect Arch requirement for ARM pilots (Issue#661, PR#662)
+    - Change IDTOKENS_FILE to point to path in glidein and unset JOB_TOKENS (Issue#281, PR#690)
+    - Retrieve GLIDEIN_SINGULARITY_BINDPATH from glidein_config instead of the environment so it is not ignored (Issue#703, PR#704)
+    - Fixed handling of comment lines in glidein_config (PR#708, PR#710)
+  NOTE:
+    - Factory monitoring does not report existing pilots after reconfig when entry `auth_method` changes from `grid_proxy` to `scitoken` and `CONTINUE_IF_NO_PROXY` knob is unset (Issue#681)
+    - A running 3.10.x Frontend continues to request Glideins even when unable to create IDTOKENS, resulting in Glideins failing at startup (Issue#679, PR#680)
