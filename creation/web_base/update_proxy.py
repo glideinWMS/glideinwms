@@ -122,6 +122,7 @@ def main():
                 with open(idtokens_file) as idtf:
                     for line in idtf.readlines():
                         idtoken_data += line
+            idtoken_data.strip()
             compressed_credential = compress_credential(credential_data)
             update_credential(fname_compressed, f"{idtoken_data}####glidein_credentials={compressed_credential}")
             # in branch_v3_2 after migration_3_1 WAS: update_credential(fname_compressed, compressed_credential)
