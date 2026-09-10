@@ -107,10 +107,10 @@ _glog_init_tokens() {
         local vofe_token_name="TODO"    # TODO: get the name of the frontend + group
         if [ -f "tokens/${recip_dir}/${vofe_token_name}" ]; then
             # Use the token signed by the frontend
-            tokens_arr["${recip}"]=$(cat tokens/${recip_dir}/${vofe_token_name}.jwt)
+            tokens_arr["${recip}"]=$(tr -d '[:space:]' < "tokens/${recip_dir}/${vofe_token_name}.jwt")
         elif [ -f "tokens/${recip_dir}/default.jwt" ]; then
             # Use the token signed by the factory
-            tokens_arr["${recip}"]=$(cat tokens/"${recip_dir}"/default.jwt)
+            tokens_arr["${recip}"]=$(tr -d '[:space:]' < "tokens/${recip_dir}/default.jwt")
         else
             warn "_glog_init_tokens: could not find any valid token for ${recip}"
             # TODO: maybe fail only for this recipient, still serving the others?
