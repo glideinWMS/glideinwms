@@ -1162,6 +1162,7 @@ def unit_work_v3(
     condortoken_file = os.path.join(submit_credentials.cred_dir, condortokenbase)
     condortoken_data = decrypted_params.get(condortoken)
     if condortoken_data:
+        condortoken_data = f"{condortoken_data.strip()}\n"
         fd, tmpnm = tempfile.mkstemp(dir=submit_credentials.cred_dir)
         try:
             entry.log.info(f"frontend_token supplied, writing to {condortoken_file}")

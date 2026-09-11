@@ -87,7 +87,7 @@ else:
     try:
         # Write the token to a text file
         with open(token_filepath, "w") as tkfile:
-            tkfile.write(token)
+            tkfile.write(f"{token}\n")
         log(f"Token for {args.log_url} ({urllib.parse.quote(args.log_url, '')}) written to {token_filepath}")
     except OSError:
         log(f"ERROR: Unable to create JWT file: {token_filepath}")

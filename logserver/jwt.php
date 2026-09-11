@@ -35,7 +35,7 @@ if ($debug) {
 
 $key = trim(file_get_contents($secretKeyFile)) ?: $defaultSecretKey;
 if (! $key) {
-    exit("JWT key is not set. Aborting.")
+    exit("JWT key is not set. Aborting.");
 }
 
 $payload = [
@@ -50,7 +50,7 @@ echo "Encoding/decoding payload using key: <$key>\n";
 if ($argc>1) {
     if ($argc==2) {
         echo "Decoding token in $argv[1]\n";
-        $jwt = file_get_contents($argv[1]);
+        $jwt = trim(file_get_contents($argv[1]));
         print_r($jwt);
         $decoded = JWT::decode($jwt, new Key($key, 'HS256'));
         print_r($decoded);
@@ -61,8 +61,8 @@ if ($argc>1) {
         $jwt = JWT::encode($payload_array, $key, 'HS256');
         print_r($jwt);
         echo "Saving token to $argv[2]\n";
-        file_put_contents($argv[2], $jwt);
-        $decoded = JWT::decode($jwt, new Key($key, 'HS256'));
+        file_put_contents($argv[2], $jwt . "\n");
+        $decoded = JWT::decode(trim($jwt), new Key($key, 'HS256'));
         print_r($decoded);
     }
 } else {
