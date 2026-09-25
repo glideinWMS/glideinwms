@@ -210,7 +210,39 @@ class Credential(ABC, Generic[T]):
             self.load(string, path, secret)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(string={self.string!r}, path={self.path!r}, purpose={self.purpose!r}, trust_domain={self.trust_domain!r}, security_class={self.security_class!r})"
+        return f"{self.__class__.__name__}(string={self.string!r}, path={self.path!r}, secret={self.secret!r}, purpose={self.purpose!r}, trust_domain={self.trust_domain!r}, security_class={self.security_class!r})"
+
+    def debug_str(self) -> str:
+        """Returns a string representation of the credential for debugging.
+
+        This method is safe from exception, so it may be used in error messages without the risk to mask exceptions.
+        This method is also safe for logging, no secure content is printed.
+
+        Returns:
+            str: The string representation of the credential, including ID and validity but excluding class,
+                string and secret (safe for logging).
+        """
+        try:
+            cred_id = self.id
+        except CredentialError:
+            cred_id = "<credential not initialized>"
+        try:
+            invalid_reason = self.invalid_reason()
+            valid = self.valid
+        except Exception as err:
+            # invalid_reason() may be complex, protecting against possible bugs raising exceptions
+            invalid_reason = f"<error: {err}>"
+            valid = False
+        return "id={id},class={cla},path={path},type={typ},trust_domain={trust},purpose={purpose},valid={valid},invalid_reason={reason}".format(
+            id=cred_id,
+            cla=self.__class__.__name__,
+            path=getattr(self, "path", "<unavailable>"),
+            typ=getattr(self, "cred_type", "<unavailable>"),
+            trust=getattr(self, "trust_domain", "<unavailable>"),
+            purpose=getattr(self, "purpose", "<unavailable>"),
+            valid=valid,
+            reason=invalid_reason,
+        )
 
     def __str__(self) -> str:
         return self.string.decode() if self.string else ""
@@ -332,6 +364,8 @@ class Credential(ABC, Generic[T]):
     @abstractmethod
     def invalid_reason(self) -> Optional[str]:
         """Checks the validity of the credential and returns the reason why the credential is invalid.
+
+        This method should be safe. If an exception is raised, the credential code has a bug to fix.
 
         Returns:
             str or None: The reason why the credential is invalid. None if the credential is valid.
@@ -710,6 +744,18 @@ class RequestCredential:
 
     def get_usage_details(self):
         return self.req_idle, self.req_max_run
+
+    def debug_str(self) -> str:
+        """Returns a string representation of the request credential for debugging.
+
+        This method is safe from exception, so it may be used in error messages without the risk to mask exceptions.
+        This method is also safe for logging, no secure content is printed.
+
+        Returns:
+            str: The string representation of the request credential, including debug representation of the credential
+        """
+        cred = self.credential._debug_str() if self.credential else "<undefined credential>"
+        return f"{cred},advertise={self.advertise}"
 
 
 def credential_type_from_string(string: str) -> Union[CredentialType, CredentialPairType]:

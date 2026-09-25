@@ -28,7 +28,9 @@ from glideinwms.lib.credentials import (
 
 
 class SecurityBundle:
-    """Represents a security bundle used for submitting jobs.
+    """Represents a security bundle with credentials and parameters used for submitting jobs.
+
+    This is coming from the client (Frontend) and is forwarded to the Factory
 
     Attributes:
         credentials (CredentialDict): The credentials in the security bundle.
@@ -60,10 +62,13 @@ class SecurityBundle:
         self.parameters.add(parameter)
 
     def load_from_element(self, element_descript):
-        """Load the security bundle from an element descriptor.
+        """Load the security bundle from a client (Frontend) Element descriptor (group+global configuration).
 
         Args:
-            element_descript (ElementDescriptor): The element descriptor to load from.
+            element_descript (dict): The Frontend element and global configuration to load the credentials from.
+                As in glideinFrontendConfig.ElementMergedDescript.merged_data.
+                The credentials absfnames (path or generator class) are stored in the "Proxies" list.
+                Everything else is stored in dictionaries (one per attribute) keyed by absfname
         """
 
         for path in element_descript["Proxies"]:
@@ -88,6 +93,7 @@ class SecurityBundle:
                     context=context,
                 )
             else:
+                # Assuming CredentialPair
                 cred_key = element_descript["ProxyKeyFiles"].get(path, None)
                 credential = create_credential_pair(
                     path=path,
@@ -115,6 +121,13 @@ class SecurityBundle:
         return f"SecurityBundle(credentials={self.credentials}, parameters={self.parameters})"
 
     def __str__(self):
+        """Return a comma separated string with all the credentials and parameters types.
+
+        The format is "<cred_type>" and "<param_name>(<param_type>)"
+
+        Returns:
+            str: A comma separated string with all the credentials and parameters types
+        """
         cred_types = [f"{cred.cred_type:s}" for cred in self.credentials.values()]
         cred_types += [f"{param.name:s}({param.param_type:s})" for param in self.parameters.values()]
         return f"[{','.join(cred_types)}]"
