@@ -11,6 +11,7 @@ doc/api/code
 doc/api/html
 .ruff_cache
 .tox
+uv.lock
 unittests/unittests-reports/
 
 # Big files workaround

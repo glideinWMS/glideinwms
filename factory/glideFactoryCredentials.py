@@ -17,7 +17,7 @@ import re
 import shutil
 
 from glideinwms.lib import condorMonitor, logSupport
-from glideinwms.lib.credentials import CredentialPairType
+from glideinwms.lib.credentials import CredentialPairType, CredentialType
 from glideinwms.lib.defaults import force_bytes
 from glideinwms.lib.util import is_str_safe
 
@@ -454,7 +454,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name,
 
         elif "auth_file" in auth_set:
             # Validate auth_file is passed
-            if "AuthFile" not in params:
+            if "AuthFile" not in params and CredentialType.TEXT not in cred_types:
                 # auth_file is required, cannot service request
                 raise CredentialError(
                     f"Client '{client_int_name}' did not specify the auth_file in the request, this is required by entry {entry_name}, skipping"
