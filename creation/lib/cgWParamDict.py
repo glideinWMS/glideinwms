@@ -1340,6 +1340,22 @@ def populate_factory_descript(
     glidein_dict.add("ProcessLogs", str(proc_logs))
 
 
+def validate_globus_compute_entry(entry):
+    """Validate required batch globuscompute entry settings."""
+    if entry["gridtype"] != "batch globuscompute":
+        return
+
+    required_keys = (
+        "globus_compute_endpoint",
+        "globus_compute_glite_dir",
+    )
+    missing = [key for key in required_keys if not str(entry.get(key, "")).strip()]
+    if missing:
+        raise RuntimeError(
+            "batch globuscompute entry %s is missing required setting(s): %s" % (entry["name"], ", ".join(missing))
+        )
+
+
 #######################
 def populate_job_descript(
     work_dir, job_descript_dict, num_factories, sub_name, entry, schedd, attrs_dict, enable_expansion
@@ -1363,6 +1379,8 @@ def populate_job_descript(
 
     down_fname = os.path.join(work_dir, "glideinWMS.downtimes")
 
+    validate_globus_compute_entry(entry)
+
     config = entry.get_child("config")
     max_jobs = config.get_child("max_jobs")
     num_factories = int(max_jobs.get("num_factories", num_factories))  # prefer entry settings
@@ -1380,6 +1398,18 @@ def populate_job_descript(
         job_descript_dict.add("GlobusRSL", entry["rsl"])
     if "bosco_dir" in entry:
         job_descript_dict.add("BoscoDir", entry["bosco_dir"])
+    if "globus_compute_endpoint" in entry:
+        job_descript_dict.add("GlobusComputeEndpoint", entry["globus_compute_endpoint"])
+    if str(entry.get("globus_compute_function", "")).strip():
+        job_descript_dict.add("GlobusComputeFunction", entry["globus_compute_function"])
+    if "globus_compute_glite_dir" in entry:
+        job_descript_dict.add("GlobusComputeGliteDir", entry["globus_compute_glite_dir"])
+    if "globus_compute_python" in entry:
+        job_descript_dict.add("GlobusComputePython", entry["globus_compute_python"])
+    if "globus_compute_user_dir" in entry:
+        job_descript_dict.add("GlobusComputeUserDir", entry["globus_compute_user_dir"])
+    if "globus_compute_state_dir" in entry:
+        job_descript_dict.add("GlobusComputeStateDir", entry["globus_compute_state_dir"])
     job_descript_dict.add("Schedd", schedd)
     job_descript_dict.add("StartupDir", entry["work_dir"])
     if "proxy_url" in entry:

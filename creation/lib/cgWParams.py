@@ -231,6 +231,42 @@ class GlideinParams(cWParams.CommonParams):
             "BOSCO directory on the (remote) resource submit host",
             None,
         )
+        self.entry_defaults["globus_compute_endpoint"] = (
+            None,
+            "globus_compute_endpoint",
+            "Globus Compute endpoint UUID",
+            None,
+        )
+        self.entry_defaults["globus_compute_function"] = (
+            None,
+            "globus_compute_function",
+            "Globus Compute function UUID or name used to run the glidein",
+            None,
+        )
+        self.entry_defaults["globus_compute_glite_dir"] = (
+            None,
+            "globus_compute_glite_dir",
+            "Path to the BLAHP glite directory containing Globus Compute scripts",
+            None,
+        )
+        self.entry_defaults["globus_compute_python"] = (
+            None,
+            "globus_compute_python",
+            "Path to the factory-side Python interpreter with globus-compute-sdk",
+            None,
+        )
+        self.entry_defaults["globus_compute_user_dir"] = (
+            None,
+            "globus_compute_user_dir",
+            "Path to the factory-side Globus Compute user token directory",
+            None,
+        )
+        self.entry_defaults["globus_compute_state_dir"] = (
+            None,
+            "globus_compute_state_dir",
+            "Path to the factory-side Globus Compute BLAHP state directory",
+            None,
+        )
         self.entry_defaults["schedd_name"] = (
             None,
             "ScheddName",
