@@ -62,7 +62,7 @@ if ($argc>1) {
         print_r($jwt);
         echo "Saving token to $argv[2]\n";
         file_put_contents($argv[2], $jwt . "\n");
-        $decoded = JWT::decode(trim($jwt), new Key($key, 'HS256'));
+        $decoded = JWT::decode($jwt, new Key($key, 'HS256'));
         print_r($decoded);
     }
 } else {
