@@ -30,6 +30,7 @@ Changes since the last release
 -   Change IDTOKENS_FILE to point to path in glidein and unset JOB_TOKENS (Issue #281, PR #690)
 -   Retrieve GLIDEIN_SINGULARITY_BINDPATH from glidein_config instead of the environment so it is not ignored (Issue #703, PR #704)
 -   Fixed handling of comment lines in glidein_config (PR #708, PR #710)
+-   Fixed environment setting in Factory entry submit_attrs (PR #717)
 
 ### Testing / Development
 
