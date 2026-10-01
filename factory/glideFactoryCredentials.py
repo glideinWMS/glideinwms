@@ -169,6 +169,7 @@ def update_credential_file(username, client_id, credential_data, request_clientn
         with open(fname_mapped_idtoken) as idtf:
             for line in idtf.readlines():
                 idtoken_data += line
+            idtoken_data.strip()
         safe_update(
             fname_compressed, b"%s####glidein_credentials=%s" % (force_bytes(idtoken_data), compressed_credential)
         )
