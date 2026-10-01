@@ -13,6 +13,7 @@ Changes since the last release
 -   Added support for ordered default version list in get_tarballs (Issue #691, PR #692)
 -   Require selected defaults mapping in get_tarballs (Issue #699, PR #700)
 -   Added gconfig_add_multi in glidein_config functions and switched cat_consts.sh to add lines in batches (PR #707, PR #708, PR #710)
+-   Added ability to source a custom script instead of executing it in a subshell (PR #718)
 
 ### Changed defaults / behaviours
 

@@ -1238,8 +1238,10 @@ fetch_file_base() {
             "${main_dir}"/error_augment.sh -init
             START=$(date +%s)
             # Redirecting stdin (< /dev/null or :|) to avoid interactions with this calling script. Closing may cause errors
-            if [[ "${ffb_file_type}" = "exec:s" ]]; then
+            if [[ "${ffb_file_type}" = "exec:c" ]]; then
                 "${main_dir}/singularity_wrapper.sh" "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
+            elif [[ "${ffb_file_type}" = "exec:s" ]]; then
+                . "${ffb_outname}" glidein_config "${ffb_id}"
             else
                 run_wrapper "$custom_scripts_options" "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
                 # "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
