@@ -732,9 +732,12 @@ v3_10_19:
     - Require selected defaults mapping in get_tarballs (Issue#699, PR#700)
     - Added gconfig_add_multi in glidein_config functions and switched cat_consts.sh to add lines in batches (PR#707, PR#708, PR#710)
     - Added ability to source a custom script instead of executing it in a subshell (PR#718)
+    - Updated GitHub actions and restricted permissions (PR#673)
+    - Reverting pre-commit to maintain compatibility with Python 3.9 (PR#676)
   Bug fix:
     - Sanitize CVMFS repos list to protect against Arbitrary Code Execution attack (PR#678)
     - Fix incorrect Arch requirement for ARM pilots (Issue#661, PR#662)
+    - Early generation of logging tokens to enable custom Glidein logging (Issue#668, PR#675)
     - Change IDTOKENS_FILE to point to path in glidein and unset JOB_TOKENS (Issue#281, PR#690)
     - Retrieve GLIDEIN_SINGULARITY_BINDPATH from glidein_config instead of the environment so it is not ignored (Issue#703, PR#704)
     - Fixed handling of comment lines in glidein_config (PR#708, PR#710)

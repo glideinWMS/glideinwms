@@ -30,12 +30,16 @@ The custom scripts timeout now must be enabled explicitly, no more 10 minutes ti
 
 -   Fix incorrect Arch requirement for ARM pilots (Issue #661, PR #662)
 -   Change IDTOKENS_FILE to point to path in glidein and unset JOB_TOKENS (Issue #281, PR #690)
+-   Early generation of logging tokens to enable custom Glidein logging (Issue #668, PR #675)
 -   Retrieve GLIDEIN_SINGULARITY_BINDPATH from glidein_config instead of the environment so it is not ignored (Issue #703, PR #704)
 -   Fixed handling of comment lines in glidein_config (PR #708, PR #710)
 -   Standardize reading/writing of tokens to remove/add newline characters (PR #716)
 -   Fixed environment setting in Factory entry submit_attrs (PR #717)
 
 ### Testing / Development
+
+-   Updated GitHub actions and restricted permissions (PR #673)
+-   Reverting pre-commit to maintain compatibility with Python 3.9 (PR #676)
 
 ### Known Issues
 
