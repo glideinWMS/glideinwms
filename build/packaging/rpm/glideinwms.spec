@@ -387,6 +387,7 @@ install -d $RPM_BUILD_ROOT%{python3_sitelib}
 cp -r ../glideinwms $RPM_BUILD_ROOT%{python3_sitelib}
 
 # Some of the files are not needed by RPM
+rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/dashboards
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/bigfiles
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/install
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/doc
@@ -1097,6 +1098,16 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Fri Oct 2 2026 Marco Mambelli <marcom@fnal.gov> - 3.11.5
+- Glideinwms v3.11.5
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_11_5/history.html
+- Release candidates 3.11.5-01.rc1
+
+* Thu Oct 1 2026 Marco Mambelli <marcom@fnal.gov> - 3.10.19
+- Glideinwms v3.10.19
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_10_19/history.html
+- Release candidates 3.10.19-01.rc1
+
 * Fri May 8 2026 Marco Mambelli <marcom@fnal.gov> - 3.11.4
 - Glideinwms v3.11.4
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_11_4/history.html

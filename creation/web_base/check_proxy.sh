@@ -30,44 +30,52 @@ export GLIDEIN_CONDOR_TOKEN
 #if an IDTOKEN is available, continue.  Else exit
 exit_if_no_token() {
     if [ !  -e "$GLIDEIN_CONDOR_TOKEN" ]; then
+        echo "check_proxy.sh: idtoken '$GLIDEIN_CONDOR_TOKEN' does not exist, failing"
         exit $1
     fi
-    echo "check_proxy.sh" "found" "$GLIDEIN_CONDOR_TOKEN" "..so..continuing"
+    echo "check_proxy.sh: no X509 proxy, but found idtoken '$GLIDEIN_CONDOR_TOKEN' ...continuing"
 }
 
+# Convert time from date in the PEM certificate/proxy to seconds from epoch
+# Compatible w/ BSD/Mac
+# 1. time to convert in date format (e.g. Mar 25 18:17:52 2021 GMT)
+get_epoch_seconds() {
+    local res
+    if ! res=$(date +%s -d "$1" 2>/dev/null); then
+        # For BSD or Mac OS X
+        if ! res=$(date  -j -f "%a %b %d %T %Y %Z" "$1" +"%s" 2>/dev/null); then
+            echo "Unable to convert '$1' to seconds from epoch" >&2
+        fi
+    fi
+    echo "$res"
+}
 
+# Get proxy remaining lifetime using openssl
+# 1. cert pathname
+# 2. time to compare in epoch format (optional)
+# Out: remaining seconds
 openssl_get_x509_timeleft() {
-    # $1 cert pathname
-    if [ ! -r "$1" ]; then
+    local cert_pathname="$1"
+    local output start_date end_date start_epoch end_epoch epoch_now seconds_to_expire
+    if [ ! -r "$cert_pathname" ]; then
         return 1
     fi
-    cert_pathname=$1
-    output=$(openssl x509 -noout -subject -dates -in $cert_pathname 2>/dev/null)
-    [ $? -eq 0 ] || return 1
-
-    start_date=$(echo $output | sed 's/.*notBefore=\(.*\).*not.*/\1/g')
-    end_date=$(echo $output | sed 's/.*notAfter=\(.*\)$/\1/g')
-
-    # For OS X: date  -j -f "%b %d %T %Y %Z" "$start_date" +"%s"
-    start_epoch=$(date +%s -d "$start_date")
-    end_epoch=$(date +%s -d "$end_date")
-
-    if [ "x$2" = "x" ]; then
-        epoch_now=$(date +%s)
-    else
-        epoch_now=$2
-    fi
-
+    # Extract dates
+    output=$(openssl x509 -noout -subject -dates -in "$cert_pathname" 2>/dev/null) || return 2
+    start_date=$(echo $output | sed 's/.*notBefore=\(.*\).*not.*/\1/g')  # intentional word splitting to remove newline
+    end_date=$(echo $output | sed 's/.*notAfter=\(.*\)$/\1/g')  # intentional word splitting to remove newline
+    start_epoch=$(get_epoch_seconds "$start_date")
+    end_epoch=$(get_epoch_seconds "$end_date")
+    epoch_now=${2:-$(date +%s)}
+    # Check validity
     if [ "$start_epoch" -gt "$epoch_now" ]; then
-        echo "Certificate for $1 is not yet valid" >&2
+        echo "Certificate '$1' is not yet valid" >&2
         seconds_to_expire=0
     else
-        seconds_to_expire=$(($end_epoch - $epoch_now))
+        seconds_to_expire=$((end_epoch - epoch_now))
     fi
-
     echo $seconds_to_expire
 }
-
 
 # returns the expiration time of the proxy
 # return value in RETVAL
@@ -105,7 +113,10 @@ get_x509_expiration() {
         RETVAL=$(/usr/bin/expr $now + $l)
     else
         #echo "Could not obtain -timeleft" 1>&2
-        STR="Could not obtain -timeleft from grid-proxy-info/voms-proxy-info/openssl"
+        STR="Could not obtain -timeleft from grid-proxy-info/voms-proxy-info/openssl (ec:$ret)"
+        if [ ! -r "$X509_USER_PROXY" ]; then
+            STR+="Proxy file '$X509_USER_PROXY' not readable."
+        fi
         "$error_gen" -error "check_proxy.sh" "WN_Resource" "$STR" "command" "$CMD"
         exit_if_no_token 1
     fi
@@ -127,6 +138,5 @@ get_x509_expiration() {
 get_x509_expiration
 X509_EXPIRE="$RETVAL"
 
-"$error_gen" -ok "check_proxy.sh" "proxy" "$X509_USER_PROXY" "proxy_expire" "$(date --date=@"$X509_EXPIRE" +%Y-%m-%dT%H:%M:%S%:z)" "cert_dir" "$X509_CERT_DIR"
-
+"$error_gen" -ok "check_proxy.sh" "proxy" "$X509_USER_PROXY" "proxy_expire" "$(date --date=@"$X509_EXPIRE" +%Y-%m-%dT%H:%M:%S%:z)" "cert_dir" "$X509_CERT_DIR" "token" "$GLIDEIN_CONDOR_TOKEN"
 exit 0

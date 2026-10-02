@@ -5,6 +5,7 @@ name: Issue labeler
 on:
   issues:
     types: opened
+permissions: {}
 
 jobs:
   label_issues_using_regex:

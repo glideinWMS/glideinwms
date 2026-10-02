@@ -184,9 +184,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 enc_input_files.append(token_tgz_file)
                 token_list.append(token_tgz_file)
 
-        if token_list:
-            self.add_environment("JOB_TOKENS='" + ",".join(token_list) + "'")
-
         # Get the list of log recipients specified from the Factory for this entry
         factory_recipients = get_factory_log_recipients(entry)
         frontend_recipients = []  # TODO: change when adding support for LOG_RECIPIENTS_CLIENT
@@ -367,10 +364,13 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 or gridtype.startswith("batch ")
                 or gridtype in ("condor", "gce", "ec2", "arc")
             ):
-                # TODO: If switching to f-string, must use different quotes in the following line
-                #  to avoid error w/ f-string (fixed in Py 3.12) - check that formatter is not changing things
-                # self.add(f'{attr_prefix}{submit_attr["name"]}', submit_attr["value"])
-                self.add("{}{}".format(attr_prefix, submit_attr["name"]), submit_attr["value"])
+                if submit_attr["name"] == "environment":
+                    self.add_environment(submit_attr["value"])
+                else:
+                    # TODO: If switching to f-string, must use different quotes in the following line
+                    #  to avoid error w/ f-string (fixed in Py 3.12) - check that formatter is not changing things
+                    # self.add(f'{attr_prefix}{submit_attr["name"]}', submit_attr["value"])
+                    self.add("{}{}".format(attr_prefix, submit_attr["name"]), submit_attr["value"])
 
     def populate_condorc_grid(self):
         self.add("+TransferOutput", '""')

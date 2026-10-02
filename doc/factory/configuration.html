@@ -25,7 +25,7 @@ SPDX-License-Identifier: Apache-2.0
   <body lang="en-US" dir="ltr">
     <h1>
       <a href="index.html">GlideinWMS</a>
-      <span>The Glidein-based Workflow Management System</span>
+      <span>The Glidein-based Workload Management System</span>
     </h1>
     <ul class="breadcrumbs">
       <li><a href="../index.html">Home</a></li>
@@ -2828,13 +2828,15 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</pre
               <p>
                 File type, must be one of the valid types (regular, run, source,
                 config, wrapper, untar). Can have qualifiers depending on the
-                type after a colon (":"). Valid qualifier for <i>run</i> is
-                "singularity" causes setup scripts to run in Singularity. Valid
-                qualifier for <i>config</i> is "condor", for HTCondor
-                configuration files. Currently, <i>type</i> is ignored for non
-                executables and non config files. The only values used are
-                "run", "run:singularity", "config", or "config:condor". Default
-                is "regular".
+                type after a colon (":"). Valid qualifier for <i>run</i> are
+                "source", causes the script to be sourced instead of executed in
+                subshell; "container" (or "singularity" or "apptainer"), causes
+                setup scripts to run in Apptainer/Singularity. Valid qualifier
+                for <i>config</i> is "condor", for HTCondor configuration files.
+                Currently, <i>type</i> is ignored for non executables and non
+                config files. The only values used are "run", "run:source",
+                "run:container" or "run:singularity" or "run:apptainer",
+                "config", or "config:condor". Default is "regular".
               </p>
             </td>
           </tr>

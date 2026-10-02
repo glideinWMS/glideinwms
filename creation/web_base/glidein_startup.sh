@@ -37,7 +37,7 @@ GWMS_MULTIUSER_GLIDEIN=
 # This should never happen only when using GlExec. Not in Singularity, not w/o sudo mechanisms.
 # Comment the following line if GlExec or similar will not be used
 #GWMS_MULTIUSER_GLIDEIN=true
-GWMS_CUSTOM_SCRIPTS_TIMEOUT=600
+GWMS_CUSTOM_SCRIPTS_TIMEOUT=0
 # Default GWMS log server
 GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
 
@@ -1238,8 +1238,10 @@ fetch_file_base() {
             "${main_dir}"/error_augment.sh -init
             START=$(date +%s)
             # Redirecting stdin (< /dev/null or :|) to avoid interactions with this calling script. Closing may cause errors
-            if [[ "${ffb_file_type}" = "exec:s" ]]; then
+            if [[ "${ffb_file_type}" = "exec:c" ]]; then
                 "${main_dir}/singularity_wrapper.sh" "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
+            elif [[ "${ffb_file_type}" = "exec:s" ]]; then
+                . "${ffb_outname}" glidein_config "${ffb_id}"
             else
                 run_wrapper "$custom_scripts_options" "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
                 # "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
@@ -2129,6 +2131,11 @@ do
         [[ -e "${gs_id_work_dir}/setup_prejob.sh" ]] && { cp "${gs_id_work_dir}/setup_prejob.sh" "$gwms_exec_dir"/prejob/ ; chmod a-x "$gwms_exec_dir"/prejob/setup_prejob.sh ; }
     fi
 done
+
+# At this point, all of the file except for the glidein main script have been executed.  Make any environment
+# changes we need to show up in the job here
+# 1. Need IDTOKENS_FILE to be set to the correct path of the idtokens file in the glidein
+export IDTOKENS_FILE=$(gconfig_get GLIDEIN_CONDOR_TOKEN "${glidein_config}")
 
 ##############################
 # Start the glidein main script

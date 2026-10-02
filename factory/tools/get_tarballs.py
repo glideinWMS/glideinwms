@@ -22,7 +22,7 @@ This is a sample configuration file:
 
 DESTINATION_DIR: "/var/lib/gwms-factory/condor/"
 TARBALL_BASE_URL: "https://research.cs.wisc.edu/htcondor/tarball/"
-DEFAULT_TARBALL_VERSION: "9.0.16"
+DEFAULT_TARBALL_VERSION: [ "9.0.16", "10.0.14" ]
 CONDOR_TARBALL_LIST:
    - MAJOR_VERSION: "9.0"
      WHITELIST: [ "9.0.7", "9.0.16", "latest" ]
@@ -255,7 +255,25 @@ class TarballManager(HTMLParser):
         except KeyError:
             return None
 
-    def generate_xml(self, os_map, arch_map, whitelist, blacklist, default_tarball_version):
+    def _latest_version_for_selection(self, whitelist, blacklist):
+        """Return the latest version for this manager and selection filters."""
+        if whitelist != []:
+            return sorted(whitelist, key=StrictVersion)[-1]
+        versions = list(set(self.releases) - set(blacklist))
+        return sorted(versions, key=StrictVersion)[-1]
+
+    @staticmethod
+    def _tarball_metadata(dest_file, latest_version):
+        """Return (arch, opsystem, version_string_without_default) for one tarball."""
+        _, sversion, os_arch, _ = os.path.basename(dest_file).split("-")
+        arch, opsystem = os_arch.rsplit("_", 1)
+        version = sversion
+        if sversion == latest_version:
+            major, minor, _ = sversion.split(".")
+            version += "," + major + ".0.x" if minor == "0" else "," + major + ".x"
+        return arch, opsystem, version
+
+    def generate_xml(self, os_map, arch_map, whitelist, blacklist, selected_defaults):
         """Generate an XML snippet for the tarball configuration.
 
         The XML snippet is intended for inclusion in the <condor_tarballs> section of the glideinWMS.xml file.
@@ -268,34 +286,56 @@ class TarballManager(HTMLParser):
             whitelist (list): List of versions to include. If non-empty, only these versions are used.
                 Can be "latest" to download the latest version.
             blacklist (list): List of versions to exclude.
-            default_tarball_version (str): The default tarball versions. ",default" will be added to the
-                version attribute in the XML if the version processed equals default_tarball_version.
+            selected_defaults (dict): Mapping from (arch, opsystem) tuple to selected default token.
+                Only tarballs matching that token for the given OS/arch pair will get ",default".
 
         Returns:
             str: An XML snippet containing multiple <condor_tarball> elements.
         """
         xml_snippet = '      <condor_tarball arch="{arch}" os="{os}" tar_file="{dest_file}" version="{version}"/>\n'
 
-        if whitelist != []:
-            latest_version = sorted(whitelist, key=StrictVersion)[-1]
-        else:
-            versions = list(set(self.releases) - set(blacklist))
-            latest_version = sorted(versions, key=StrictVersion)[-1]
+        latest_version = self._latest_version_for_selection(whitelist, blacklist)
 
         out = ""
         self.default_found = False
         for dest_file in self.downloaded_files:
-            _, sversion, os_arch, _ = os.path.basename(dest_file).split("-")
-            arch, opsystem = os_arch.rsplit("_", 1)
-            version = sversion  # sversion = "split" version
-            if sversion == latest_version:
-                major, minor, _ = sversion.split(".")
-                version += "," + major + ".0.x" if minor == "0" else "," + major + ".x"
-            if default_tarball_version in version.split(","):
+            arch, opsystem, version = self._tarball_metadata(dest_file, latest_version)
+            selected_default = selected_defaults.get((arch, opsystem))
+            if selected_default and selected_default in version.split(","):
                 self.default_found = True
                 version += ",default"
             out += xml_snippet.format(arch=arch_map[arch], os=os_map[opsystem], dest_file=dest_file, version=version)
         return out
+
+
+def pick_default_tokens(manager_entries, default_tarball_versions):
+    """Pick one default token per (arch, opsystem) using global priority order.
+
+    Args:
+        manager_entries (list): List of tuples (manager, whitelist, blacklist).
+        default_tarball_versions (list): Ordered default priority list.
+
+    Returns:
+        dict: Mapping (arch, opsystem) -> selected default token.
+    """
+    selected_defaults = {}
+    selected_rank = {}
+
+    for manager, whitelist, blacklist in manager_entries:
+        latest_version = manager._latest_version_for_selection(whitelist, blacklist)
+        for dest_file in manager.downloaded_files:
+            arch, opsystem, version = manager._tarball_metadata(dest_file, latest_version)
+            key = (arch, opsystem)
+            tokens = set(version.split(","))
+
+            for rank, default_token in enumerate(default_tarball_versions):
+                if default_token in tokens:
+                    if key not in selected_rank or rank < selected_rank[key]:
+                        selected_rank[key] = rank
+                        selected_defaults[key] = default_token
+                    break
+
+    return selected_defaults
 
 
 class Config(UserDict):
@@ -336,20 +376,25 @@ class Config(UserDict):
             major_dict["WHITELIST"].sort(key=StrictVersion)
             major_dict["BLACKLIST"].sort(key=StrictVersion)
 
-        default_tarball = self.get("DEFAULT_TARBALL_VERSION")
+        default_tarballs = self.get("DEFAULT_TARBALL_VERSION")
 
-        if default_tarball is None:
+        if default_tarballs is None:
             raise ConfigError("You need to specify DEFAULT_TARBALL_VERSION")
 
-        # Backward compatibility: single-element list => string
-        if isinstance(default_tarball, list) and len(default_tarball) == 1:
-            default_tarball = default_tarball[0]
-            self["DEFAULT_TARBALL_VERSION"] = default_tarball
+        # Backward compatibility: allow a single string in configuration
+        if isinstance(default_tarballs, str):
+            default_tarballs = [default_tarballs]
 
-        if not isinstance(default_tarball, str):
-            raise ConfigError("ERROR: DEFAULT_TARBALL_VERSION must be a string " "(e.g. '23.0.3', '23.0.x', or '23.x')")
+        if not isinstance(default_tarballs, list) or not default_tarballs:
+            raise ConfigError(
+                "ERROR: DEFAULT_TARBALL_VERSION must be a non-empty string or list of strings "
+                "(e.g. '23.0.3' or ['23.0.3', '24.0.22'])"
+            )
 
-        if default_tarball == "latest":
+        if not all(isinstance(default_tarball, str) for default_tarball in default_tarballs):
+            raise ConfigError("ERROR: DEFAULT_TARBALL_VERSION list entries must all be strings")
+
+        if "latest" in default_tarballs:
             raise ConfigError(
                 "ERROR: DEFAULT_TARBALL_VERSION='latest' is not supported.\n"
                 "       Use an explicit version (e.g. '23.0.3') or an alias "
@@ -359,15 +404,19 @@ class Config(UserDict):
         # Accept:
         #   - exact versions: 23.0, 23.0.3
         #   - aliases:        23.x, 23.0.x
-        version_re = re.compile(r"^\d+\.\d+(?:\.\d+)?(?:\.x)?$")
+        # Reject malformed values like 23.0.3.x.
+        version_re = re.compile(r"^\d+\.(?:x|\d+(?:\.\d+|\.x)?)$")
 
-        if not version_re.match(default_tarball):
-            raise ConfigError(
-                f"ERROR: Invalid DEFAULT_TARBALL_VERSION='{default_tarball}'.\n"
-                "       Allowed values are:\n"
-                "         - exact versions (e.g. '23.0.3')\n"
-                "         - aliases (e.g. '23.0.x' or '23.x')"
-            )
+        for default_tarball in default_tarballs:
+            if not version_re.match(default_tarball):
+                raise ConfigError(
+                    f"ERROR: Invalid DEFAULT_TARBALL_VERSION='{default_tarball}'.\n"
+                    "       Allowed values are:\n"
+                    "         - exact versions (e.g. '23.0.3')\n"
+                    "         - aliases (e.g. '23.0.x' or '23.x')"
+                )
+
+        self["DEFAULT_TARBALL_VERSION"] = default_tarballs
 
 
 def save_xml(dest_xml_file, xml):
@@ -494,10 +543,11 @@ def main():
         return 6
 
     release_url = config["TARBALL_BASE_URL"]
-    default_tarball_version = config["DEFAULT_TARBALL_VERSION"]
+    default_tarball_versions = config["DEFAULT_TARBALL_VERSION"]
 
     default_found = False
     xml = ""
+    manager_entries = []
 
     if args.checklatest is True:
         return checklatest(config, args.verbose)
@@ -524,20 +574,26 @@ def main():
             to_download = sorted(set(manager.releases) - set(major_dict["BLACKLIST"]), key=StrictVersion)
             for version in to_download:
                 manager.download_tarballs(version)
-        if config.get("XML_OUT") is not None:
+
+        manager_entries.append((manager, major_dict["WHITELIST"], major_dict["BLACKLIST"]))
+
+    if config.get("XML_OUT") is not None:
+        selected_defaults = pick_default_tokens(manager_entries, default_tarball_versions)
+
+        for manager, whitelist, blacklist in manager_entries:
             xml += manager.generate_xml(
                 config["OS_MAP"],
                 config["ARCH_MAP"],
-                major_dict["WHITELIST"],
-                major_dict["BLACKLIST"],
-                default_tarball_version,
+                whitelist,
+                blacklist,
+                selected_defaults,
             )
             default_found |= manager.default_found
 
     if config.get("XML_OUT") is not None:
         if not default_found:
             print(
-                f"WARNING: You specified {default_tarball_version} as default tarball version, but that was not downloaded. This might result in an invalid xml file"
+                f"WARNING: None of the configured DEFAULT_TARBALL_VERSION values {default_tarball_versions} were downloaded. This might result in an invalid xml file"
             )
         try:
             save_xml(config["XML_OUT"], xml)
