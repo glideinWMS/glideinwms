@@ -3,9 +3,9 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.10.19 \[2026-09-dd\]
+## v3.10.19 \[2026-10-01\]
 
-Changes since the last release
+Includes a few bug fixes and improvements, especially to the Glidein.
 
 ### New features / functionalities
 
@@ -31,6 +31,7 @@ Changes since the last release
 -   Change IDTOKENS_FILE to point to path in glidein and unset JOB_TOKENS (Issue #281, PR #690)
 -   Retrieve GLIDEIN_SINGULARITY_BINDPATH from glidein_config instead of the environment so it is not ignored (Issue #703, PR #704)
 -   Fixed handling of comment lines in glidein_config (PR #708, PR #710)
+-   Standardize reading/writing of tokens to remove/add newline characters (PR #716)
 -   Fixed environment setting in Factory entry submit_attrs (PR #717)
 
 ### Testing / Development
