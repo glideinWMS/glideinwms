@@ -11,7 +11,7 @@ This release includes all features and fixes in 3.10.19
 
 -   Added framework support for encrypted credentials and implemented for RSA keys and key pairs (PR #640)
 -   Added snapshot to `get_request_credentials()` in credential plugins to allow for targeted dynamic request credentials (PR #640)
--   Improved generators context validation and generators code documentation (PR #711)
+-   Improved generators context validation and generators code documentation (PR #711, PR #720)
 
 ### Changed defaults / behaviours
 

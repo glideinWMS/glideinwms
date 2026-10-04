@@ -7,7 +7,7 @@
 This module provides utility classes and functions for working with credentials and parameters.
 """
 
-from typing import Iterable, List, Mapping, Optional, Set, Union
+from typing import Iterable, List, Optional, Set, Union
 
 from glideinwms.lib.credentials import (
     create_credential,
@@ -25,6 +25,7 @@ from glideinwms.lib.credentials import (
     ParameterName,
     ParameterType,
 )
+from glideinwms.lib.generators.generators import load_context
 
 
 class SecurityBundle:
@@ -372,24 +373,6 @@ class AuthenticationMethod:
             if not selected:
                 return None
         return AuthenticationSet(auth_set)
-
-
-def load_context(context: str) -> Optional[Mapping]:
-    """Load a context from a string.
-
-    Args:
-        context (str): The context string.
-
-    Returns:
-        Mapping: The context as a mapping.
-    """
-
-    try:
-        context = eval(context)  # pylint: disable=eval-used
-        assert isinstance(context, Mapping)
-        return context
-    except Exception:  # pylint: disable=bare-except
-        return None
 
 
 def cred_path(cred: Optional[Union[Credential, str]]) -> Optional[str]:

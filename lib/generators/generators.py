@@ -165,6 +165,9 @@ class Generator(ABC, Generic[T]):
 
     def __init__(self, context: Optional[Mapping] = None, instance_id: Optional[str] = None):
         self.snapshots = {}
+        if context is None:
+            # validation will crash if context is None
+            context = {}
         self.context = GeneratorContext(context)
         self.instance_id = instance_id or hash_nc(f"{time.time()}", 8)
         self.setup()
@@ -422,7 +425,37 @@ def load_bare_generator(module: str) -> str:
     return module_name
 
 
-def generator_context_errors(module: str, context: Optional[Mapping] = None, raise_exception=True) -> str:
+def load_context(context: str) -> Optional[Mapping]:
+    """Load a context from a string.
+
+    Used to load the context from the configuration.
+    This function is masking some errors in the evaluation of the context.
+    - forgetting to quote a key would result in NameError
+    - None or using a string instead of a dictionary gives AssertionError
+    The first returns CredentialError, the second no exception and None as context value.
+
+    Args:
+        context (str): The context string.
+
+    Returns:
+        Mapping: The context as a mapping.
+
+    Raises:
+        GeneratorContextError: When the context evaluation fails due to NameError
+    """
+
+    try:
+        context = eval(context)  # pylint: disable=eval-used
+        assert isinstance(context, Mapping)
+        return context
+    except NameError as e:
+        # This may happen when there is an undefined variable (e.g. unquoted key in context)
+        raise GeneratorContextError(f"Error evaluating the context (did you quote the keys?): {e}")
+    except Exception:  # pylint: disable=bare-except
+        return None
+
+
+def generator_context_errors(module: str, context: Optional[Union[str, Mapping]] = None, raise_exception=True) -> str:
     """Load a generator from a module and validate its context if provided.
 
     Return an empty string if no errors.
@@ -431,7 +464,7 @@ def generator_context_errors(module: str, context: Optional[Mapping] = None, rai
 
     Args:
         module (str): module that exports a generator
-        context (Optional[Mapping]): the context for the generator. Defaults to `None`.
+        context (Optional[Union[str, Mapping]]): the context for the generator, as dictionary or configuration string. Defaults to `None`.
         raise_exception (bool): if True, raise an exception if the context is not valid. Defaults to True.
 
     Returns:
@@ -452,6 +485,11 @@ def generator_context_errors(module: str, context: Optional[Mapping] = None, rai
         return f"Could not import the generator to validate the context: {str(e)}"
     # Validate the context
     try:
+        if isinstance(context, str):
+            # Load context from string if needed
+            context = load_context(context)
+        if context is None:
+            context = {}
         GeneratorContext(context).validate(
             _loaded_generators[module_name].CONTEXT_VALIDATION, _loaded_generators[module_name].context_checks
         )
