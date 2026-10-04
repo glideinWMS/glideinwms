@@ -9,7 +9,7 @@ from typing import List
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-from scitokens import SciToken
+from scitokens import SciToken  # https://github.com/scitokens/scitokens
 
 from glideinwms.lib import defaults
 from glideinwms.lib.credentials import create_credential, CredentialType

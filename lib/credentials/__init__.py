@@ -39,5 +39,5 @@ from .rsa import RSAKeyPair, RSAPrivateKey, RSAPublicKey
 from .symmetric import SymmetricKey
 from .text import TextCredential
 from .tokens import IdToken, SciToken, Token
-from .utils import AuthenticationMethod, AuthenticationSet, cred_path, load_context, SecurityBundle, SubmitBundle
+from .utils import AuthenticationMethod, AuthenticationSet, cred_path, SecurityBundle, SubmitBundle
 from .x509 import X509Cert, X509Pair

@@ -11,7 +11,6 @@ import shutil
 
 from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
 from glideinwms.lib.credentials import CredentialError, x509
-from glideinwms.lib.credentials.utils import load_context
 from glideinwms.lib.generators import generator_context_errors, GeneratorContextError
 from glideinwms.lib.util import str2bool
 
@@ -1102,7 +1101,7 @@ def validate_credential_generator_context(generator_module, context):
     """
     # print(f"Validating context {context} for {generator_module}")
     try:
-        generator_context_errors(generator_module, load_context(context))
+        generator_context_errors(generator_module, context)
     except GeneratorContextError as e:
         if e.__cause__ is None:
             raise RuntimeError(
