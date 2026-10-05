@@ -468,6 +468,14 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), "exec:r"),
                 os.path.join(cgWConsts.WEB_BASE_DIR, script_name),
             )
+        # adding CVMFS setup related script for post reinvocation
+        if "cvmfsexec" in self.dicts["feature_flags"]:
+            script_name = "cvmfs_setup_reexec_ff.sh"
+            self.dicts["at_file_list"].add_from_file(
+                script_name,
+                cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), "exec"),
+                os.path.join(cgWConsts.WEB_BASE_DIR, script_name),
+            )
         for script_name in at_file_list_scripts:
             self.dicts["at_file_list"].add_from_file(
                 script_name,
@@ -1207,6 +1215,17 @@ def validate_attribute(attr_name, attr_val):
                 "Invalid value for GLIDEIN_SINGULARITY_REQUIRE: %s not in REQUIRED_GWMS, NEVER, OPTIONAL, PREFERRED, REQUIRED."
                 % attr_val
             )
+    elif attr_name == "GLIDEIN_CVMFS_REQUIRE":
+        if attr_val not in ("NEVER", "PREFERRED", "REQUIRED"):
+            raise RuntimeError(
+                "Invalid value for GLIDEIN_CVMFS_REQUIRE: %s. Must be either NEVER, PREFERRED or REQUIRED." % attr_val
+            )
+    # elif attr_name == "CVMFS_SRC":
+    #         if attr_val not in ("osg", "egi", "default"):
+    #             raise RuntimeError(
+    #                 "Invalid value for CVMFS_SRC: %s. Must be either 'osg', 'egi' or 'default'."
+    #                 % attr_val
+    #             )
 
 
 def add_attr_unparsed_real(attr, dicts):
