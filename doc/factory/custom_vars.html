@@ -2926,11 +2926,15 @@ MAX_STARTD_LOG          I       10000000        +                               
             <td>Frontend</td>
             <td>
               <p>
-                Not set by default. This attribute controls whether the user/job
-                requires CVMFS. Possible values are 0 or 1. A value of 0
-                indicates that the job does not need to use CVMFS during its
-                execution on the compute element. A value of 1 indicates that
-                the job needs to use CVMFS when it runs on the compute element.
+                This attribute controls whether the user/job requires CVMFS.
+                <b>Possible values are 0 or 1</b>. This attribute defaults to 0
+                when not defined explicitly.
+              </p>
+              <p>
+                A value of 0 indicates that user jobs do not require CVMFS
+                during its execution on the Compute Element. <br />
+                In contrast, a value of 1 indicates that user jobs require CVMFS
+                when they execute on the Compute Element.
               </p>
             </td>
           </tr>
@@ -2941,12 +2945,14 @@ MAX_STARTD_LOG          I       10000000        +                               
             <td>Factory</td>
             <td>
               <p>
-                Not set by default. This attribute controls the origin (source)
-                from which to download the CVMFS configuration repository from.
+                This attribute controls the origin (source) from which to
+                download the CVMFS configuration repository from. This attribute
+                is not set/used by default, unless explicitly defined. <br />
                 Possible values are: <br />
-                osg - configuration for <i>cvmfs-config-osg</i><br />
-                egi - configuration for <i>cvmfs-config-egi</i><br />
-                default - configuration for <i>cvmfs-config-default</i><br />
+                <b>osg</b> - configuration for <i>cvmfs-config-osg</i><br />
+                <b>egi</b> - configuration for <i>cvmfs-config-egi</i><br />
+                <b>default</b> - configuration for <i>cvmfs-config-default</i
+                ><br />
               </p>
             </td>
           </tr>
@@ -2957,11 +2963,12 @@ MAX_STARTD_LOG          I       10000000        +                               
             <td>Factory</td>
             <td>
               <p>
-                Not set by default. This attribute, in conjunction with
-                GLIDEIN_USE_CVMFS (defined in the Frontend), specifies the
-                site/factory policy to be used when provisioning CVMFS. This
-                also helps in determining the behavior of the Glidein in case
-                failures are encountered during the provisioning of CVMFS.
+                This attribute, in conjunction with GLIDEIN_USE_CVMFS (defined
+                in the Frontend), specifies the site/factory requirement for
+                CVMFS and also helps in determining the behavior of the Glidein
+                in case failures are encountered during the provisioning of
+                CVMFS. This attribute defaults to PREFERRED when not defined
+                explicitly.
               </p>
               <p>
                 This configuration attribute takes one of the following three
@@ -2969,52 +2976,98 @@ MAX_STARTD_LOG          I       10000000        +                               
               </p>
               <ul>
                 <li>
-                  REQUIRED - if unable to mount CVMFS on demand, report an error
-                  and abort the Glidein setup
+                  <b>REQUIRED</b> - The site requires CVMFS (there might be a
+                  need to provision containers or run some custom script) if
+                  unable to mount CVMFS on demand, report an error and abort the
+                  Glidein setup
                 </li>
                 <li>
-                  PREFERRED - if unable to mount CVMFS on demand, report a
-                  warning and continue with the Glidein setup normally
+                  <b>PREFERRED</b> - The site prefers CVMFS (but not required)
+                  if unable to mount CVMFS on demand, report a warning and
+                  continue with the Glidein setup normally
                 </li>
                 <li>
-                  NEVER - do not even attempt to mount CVMFS on demand even if
-                  the user job requests via GLIDEIN_USE_CVMFS
+                  <b>NEVER</b> - The site does not require CVMFS. do not even
+                  attempt to mount CVMFS on demand even if the user job requests
+                  via GLIDEIN_USE_CVMFS
                 </li>
               </ul>
               <p>
-                Assuming that CVMFS is not found natively, the policy driving
-                Glidein behavior is as follows:
+                If CVMFS is found natively, then jobs will use locally available
+                CVMFS. When CVMFS is not found natively, the frontend and
+                factory requirements are looked at in combination to determine
+                the resulting behavior of the Glidein.
               </p>
-              <ul>
-                <li>when GLIDEIN_USE_CVMFS is 1:</li>
-                <ul>
-                  <li>
-                    GLIDEIN_CVMFS_REQUIRE is NEVER: Glidein will not match sites
-                    (and therefore, not provision CVMFS on those sites).
-                  </li>
-                  <li>
-                    GLIDEIN_CVMFS_REQUIRE is REQUIRED|PREFERRED: Glidein will
-                    try to provision CVMFS if not found natively. Glidein will
-                    fail when unable to provision CVMFS irrespective of
-                    GLIDEIN_CVMFS_REQUIRE value.
-                  </li>
-                </ul>
-                <li>when GLIDEIN_USE_CVMFS is 0:</li>
-                <ul>
-                  <li>
-                    GLIDEIN_CVMFS_REQUIRE is NEVER: does not matter as
-                    GLIEIN_USE_CVMFS says that the job does not want CVMFS.
-                  </li>
-                  <li>
-                    GLIDEIN_CVMFS_REQUIRE is REQUIRED|PREFERRED: Glidein will
-                    try to provision CVMFS if not found natively. Glidein will
-                    fail when unable to provision CVMFS <b>only</b> when
-                    GLIDEIN_CVMFS_REQUIRE is REQUIRED. Otherwise, Glidein will
-                    continue without CVMFS (when GLIDEIN_CVMFS_REQUIRE is
-                    PREFERRED).
-                  </li>
-                </ul>
-              </ul>
+            </td>
+          </tr>
+        </table>
+        <br />
+        <p>
+          The following table illustrates the policy driving the behavior of
+          Glideins when mounting CVMFS on demand.
+        </p>
+        <table class="requirements">
+          <tr class="head">
+            <td><b>GLIDEIN_USE_CVMFS</b></td>
+            <td><b>GLIDEIN_CVMFS_REQUIRE</b></td>
+            <td><b>Combination result</b></td>
+            <td><b>Glidein behavior</b></td>
+          </tr>
+          <tr>
+            <td rowspan="3">0</td>
+            <td>PREFERRED</td>
+            <td>PREFERRED</td>
+            <td>
+              User jobs do not require CVMFS but can still run if CVMFS is
+              available.<br />Glidein will attempt to mount CVMFS on demand and
+              in case of failure during the mounting of CVMFS, it warns about
+              the failure and the Glidein continues.
+            </td>
+          </tr>
+          <tr>
+            <td>REQUIRED</td>
+            <td>REQUIRED</td>
+            <td>
+              User jobs do not require CVMFS, however, the site strictly
+              requires CVMFS, so Glidein will attempt to mount CVMFS on
+              demand.<br />
+              Any failure during the mounting of CVMFS throws an error and the
+              Glidein aborts.
+            </td>
+          </tr>
+          <tr>
+            <td>NEVER</td>
+            <td>NEVER</td>
+            <td>
+              User jobs (as well as the site) do not require CVMFS, so Glidein
+              will not attempt to mount CVMFS on demand. <br />Glidein prints a
+              message about not mounting CVMFS and the Glidein continues.
+            </td>
+          </tr>
+          <tr>
+            <td rowspan="3">1</td>
+            <td>PREFERRED</td>
+            <td rowspan="2">REQUIRED</td>
+            <td rowspan="2">
+              User jobs require CVMFS, so Glidein will attempt to mount CVMFS on
+              demand. <br />Any failure during the provisioning of CVMFS throws
+              an error, the Glidein setup aborts and as a result, user jobs will
+              fail if CVMFS is not there.
+            </td>
+          </tr>
+          <tr>
+            <td>REQUIRED</td>
+          </tr>
+          <tr>
+            <td>NEVER</td>
+            <td>FAIL</td>
+            <td>
+              Glidein does not attempt to mount CVMFS at all and directly aborts
+              since user jobs require CVMFS.<br />
+              Typically, the Frontend will not match Glideins to sites when this
+              particular combination of requirements is encountered. If
+              incorrect matching occurs, failure is detected and handled during
+              Glidein startup.
             </td>
           </tr>
         </table>
@@ -3056,8 +3109,8 @@ MAX_STARTD_LOG          I       10000000        +                               
           </tr>
           <tr>
             <td>no</td>
-            <td>-</td>
-            <td>-</td>
+            <td>none</td>
+            <td>n/a</td>
           </tr>
           <tr>
             <td rowspan="4">no</td>
@@ -3068,8 +3121,8 @@ MAX_STARTD_LOG          I       10000000        +                               
           </tr>
           <tr>
             <td>no</td>
-            <td>-</td>
-            <td>-</td>
+            <td>none</td>
+            <td>n/a</td>
           </tr>
           <tr>
             <td rowspan="2">no</td>
@@ -3079,58 +3132,8 @@ MAX_STARTD_LOG          I       10000000        +                               
           </tr>
           <tr>
             <td>no</td>
-            <td>-</td>
-            <td>-</td>
-          </tr>
-        </table>
-        <br />
-        <p>
-          The following matrix defines the policy driving the behavior of
-          Glideins when mounting CVMFS on demand.
-        </p>
-        <table class="requirements">
-          <tr class="head">
-            <td><b>GLIDEIN_USE_CVMFS</b></td>
-            <td><b>GLIDEIN_CVMFS_REQUIRE</b></td>
-            <td><b>Glidein behavior</b></td>
-          </tr>
-          <tr>
-            <td>0</td>
-            <td rowspan="2">NEVER</td>
-            <td>
-              Glidein will not attempt to provision CVMFS as GLIDEIN_USE_CVMFS
-              indicates that the job does not want CVMFS
-            </td>
-          </tr>
-          <tr>
-            <td>1</td>
-            <td>
-              Glidein will not attempt to provision CVMFS on sites that are
-              matched
-            </td>
-          </tr>
-          <tr>
-            <td>0</td>
-            <td rowspan="2">PREFERRED</td>
-            <td rowspan="2">
-              Glidein will attempt to provision CVMFS on demand. If mounting
-              fails, Glidein setup will warn about the failure and continue
-              without CVMFS.
-            </td>
-          </tr>
-          <tr>
-            <td>1</td>
-          </tr>
-          <tr>
-            <td>0</td>
-            <td rowspan="2">REQUIRED</td>
-            <td rowspan="2">
-              Glidein will attempt to provision CVMFS on demand. Glidein setup
-              fails if unable to mount CVMFS
-            </td>
-          </tr>
-          <tr>
-            <td>1</td>
+            <td>none</td>
+            <td>n/a</td>
           </tr>
         </table>
         <br /><br />

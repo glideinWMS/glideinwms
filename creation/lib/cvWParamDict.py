@@ -602,6 +602,9 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                     allow_overwrite=True,
                 )
 
+        # apply policy for CVMFS provisioning
+        apply_cvmfs_policy(self.dicts["group_descript"], sub_params, params)
+
         # populate security data
         populate_main_security(self.client_security, params)
         populate_group_security(self.client_security, params, sub_params, self.sub_name)
@@ -789,6 +792,13 @@ def validate_attribute(attr_name, attr_val):
                 "Invalid value for GLIDEIN_Singularity_Use: %s not in DISABLE_GWMS, NEVER, OPTIONAL, PREFERRED, REQUIRED."
                 % attr_val
             )
+    elif attr_name == "GLIDEIN_USE_CVMFS":
+        if not isinstance(attr_val, int):
+            raise RuntimeError(f"Type mismatch for GLIDEIN_USE_CVMFS: Expected int. Actual {type(attr_val)}.")
+        if attr_val not in (0, 1):
+            raise RuntimeError(
+                f"Value {attr_val} invalid for GLIDEIN_USE_CVMFS: has to be either 1 (use CVMFS on demand) or 0 (do not use CVMFS on demand)."
+            )
 
 
 def add_attr_unparsed_real(attr_name, params, dicts):
@@ -930,6 +940,37 @@ def populate_group_descript(work_dir, group_descript_dict, sub_name, sub_params)
 #####################################################
 # Populate values common to frontend and group dicts
 MATCH_ATTR_CONV = {"string": "s", "int": "i", "real": "r", "bool": "b"}
+
+
+def apply_cvmfs_policy(descript_dict, sub_params, params):
+    glidein_use_cvmfs = None
+    query_expr = descript_dict["FactoryQueryExpr"]
+    match_expr = descript_dict["MatchExpr"]
+    ma_arr = []
+    match_attrs = None
+
+    # Consider GLIDEIN_USE_CVMFS from group level, else global
+    if "GLIDEIN_USE_CVMFS" in sub_params.attrs:
+        glidein_use_cvmfs = sub_params.attrs["GLIDEIN_USE_CVMFS"]["value"]
+    elif "GLIDEIN_Singularity_Use" in params.attrs:
+        glidein_use_cvmfs = params.attrs["GLIDEIN_USE_CVMFS"]["value"]
+
+    if glidein_use_cvmfs:
+        descript_dict.add("GLIDEIN_USE_CVMFS", glidein_use_cvmfs)
+
+        if (
+            glidein_use_cvmfs == "1"
+        ):  # do not match sites where jobs request use of CVMFS but site(s) do not require CVMFS
+            query_expr = '(%s) && (GLIDEIN_CVMFS_REQUIRE=!="NEVER")' % query_expr
+            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_CVMFS_REQUIRE", "NEVER") != "NEVER")' % match_expr
+            ma_arr.append(("GLIDEIN_CVMFS_REQUIRE", "s"))
+
+        if ma_arr:
+            match_attrs = eval(descript_dict["FactoryMatchAttrs"]) + ma_arr
+            descript_dict.add("FactoryMatchAttrs", repr(match_attrs), allow_overwrite=True)
+
+        descript_dict.add("FactoryQueryExpr", query_expr, allow_overwrite=True)
+        descript_dict.add("MatchExpr", match_expr, allow_overwrite=True)
 
 
 def apply_group_singularity_policy(descript_dict, sub_params, params):
