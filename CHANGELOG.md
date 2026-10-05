@@ -15,6 +15,8 @@ This release includes all features and fixes in 3.10.19
 -   Improved generators context validation and generators code documentation (PR #711, PR #720)
 -   Added the keyword "any_trust_domain" to use a credential no matter the trust_domain in the Factory configuration (PR #721)
 -   Improved IdTokenGenerator so it can be used for custom callback credentials for all Factory Entries (PR #721)
+-   Added full cvmfsexec support and refactoring of glidein for glidein reinvocation (PR #631)
+    -   Specifically, support for mode 3 of cvmfsexec has been introduced. Existing support for use of cvmfsexec in mode 1 has been improved along with better error handling.
 
 ### Changed defaults / behaviours
 
