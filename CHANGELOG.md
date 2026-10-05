@@ -12,6 +12,8 @@ This release includes all features and fixes in 3.10.19
 -   Added framework support for encrypted credentials and implemented for RSA keys and key pairs (PR #640)
 -   Added snapshot to `get_request_credentials()` in credential plugins to allow for targeted dynamic request credentials (PR #640)
 -   Improved generators context validation and generators code documentation (PR #711)
+-   Added full cvmfsexec support and refactoring of glidein for glidein reinvocation (PR #631)
+    -   Specifically, support for mode 3 of cvmfsexec has been introduced. Existing support for use of cvmfsexec in mode 1 has been improved along with better error handling.
 
 ### Changed defaults / behaviours
 

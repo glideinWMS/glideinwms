@@ -2127,37 +2127,13 @@ if [[ -n "$gwms_cvmfs_reexec" && "$gwms_cvmfs_reexec" == "yes" ]]; then
         last_script=$(printenv GWMS_LAST_SCRIPT | sed "s/ //g")
         check_signature=$(printenv GWMS_CHECK_SIGNATURE | sed "s/ //g")
         startup_time=$(printenv GWMS_STARTUP_TIME | sed "s/ //g")
-        cvmfs_config_repo=$(printenv GLIDEIN_CVMFS_CONFIG_REPO | sed "s/ //g")
-        cvmfs_add_repos=$(printenv GLIDEIN_CVMFS_REPOS | sed "s/ //g")
-        gwms_cvmfsexec_mode=$(printenv GWMS_CVMFSEXEC_MODE | sed "s/ //g")
         client_repository_url=$(printenv GWMS_CLIENT_REPOSITORY_URL | sed "s/ //g")
         client_repository_group_url=$(printenv GWMS_CLIENT_REPOSITORY_GROUP_URL | sed "s/ //g")
         wrapper_list=$(printenv GWMS_WRAPPER_LIST | sed "s/ //g")
         gwms_exec_dir=$(printenv GWMS_EXEC_DIR | sed "s/ //g")
     fi
 
-    # import add_config_line function
-    add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
-    # shellcheck source=./add_config_line.source
-    . "$add_config_line_source"
-
-    # re-sourcing the helper script inside of cvmfsexec environment
-    . "$work_dir"/cvmfs_helper_funcs_ff.sh
-    mount_cvmfs_repos $gwms_cvmfsexec_mode $cvmfs_config_repo $cvmfs_add_repos
-    if [[ $? -ne 0 ]]; then
-        glidein_cvmfs_require=$(gconfig_get GLIDEIN_CVMFS_REQUIRE "$glidein_config")
-        glidein_cvmfs_require=${glidein_cvmfs_require,,}
-        # if exit status is non-zero, i.e something went wrong during mounting
-        if [[ "${glidein_cvmfs_require}" == "required" ]]; then
-            # if mount CVMFS is not successful, report an error and exit with failure exit code
-            logerror "Unable to mount CVMFS on worker node; aborting glidein setup (CVMFS ${glidein_cvmfs_require})"
-            exit 1
-        fi
-        # if cvmfs_required is set to preferred and mount CVMFS is not successful, report a warning/error in the logs and continue with glidein startup
-        logwarn "Unable to mount CVMFS on worker node; continuing without CVMFS (CVMFS ${glidein_cvmfs_require})"
-    fi
-
-    # re-source all the scripts as it'd have been done during the first invocation of this script
+    # re-source all the scripts as it would have been done during the first invocation of this script
     extract_all_data
 
     glog_setup "${glidein_config}"
