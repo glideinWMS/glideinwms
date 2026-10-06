@@ -77,8 +77,7 @@ def print_help():
     This function outputs a detailed help message explaining how to use the
     script and what options are available.
     """
-    print(
-        """\
+    print("""\
 Usage: entry_ls [OPTIONS] ENTRY USER DATE
 where DATE is of the form YYYYMMDD
 
@@ -95,8 +94,7 @@ the following OPTIONS.
 
 Requires the env variable GLIDEIN_FACTORY_DIR to be set to the
 gwms factory instance location (or to be run in that directory)
-"""
-    )
+""")
 
 
 if __name__ == "__main__":
