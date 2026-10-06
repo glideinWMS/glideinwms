@@ -464,6 +464,7 @@ class Credential(ABC, Generic[T]):
         data_pattern: Optional[bytes] = None,
         overwrite: bool = True,
         continue_if_no_path: bool = False,
+        add_newline: bool = False,
     ) -> None:
         """Save the credential to a file.
 
@@ -475,6 +476,7 @@ class Credential(ABC, Generic[T]):
             data_pattern (Optional[bytes]): A pattern to format the credential data before saving. Default is None.
             overwrite (bool): Whether to overwrite the existing file if it already exists. Default is True.
             continue_if_no_path (bool): If True, silently return without saving a file if no path is specified. Default is False.
+            add_newline (bool): Whether to add a newline at the end of the saved file. Default is False.
 
         Raises:
             CredentialError: If the credential is not initialized or if there is an error saving the credential.
@@ -497,6 +499,9 @@ class Credential(ABC, Generic[T]):
             text = compress_credential(text)
         if data_pattern:
             text = data_pattern % text
+        if add_newline:
+            _newline = b"\n" if isinstance(text, bytes) else "\n"
+            text += _newline
 
         try:
             # NOTE: NamedTemporaryFile is created in private mode by default (0600)
