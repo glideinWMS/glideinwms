@@ -26,6 +26,7 @@ This release includes all features and fixes in 3.10.19
 -   Fixed bug in IdTokenGenerator introduced in PR #667 (PR #702)
 -   Fixed all generators plugins to validate context also at reconfig time (PR #711)
 -   Fixed `GLIDEIN_OVERLOAD_ENABLED` handling in factory for 3.11 frontends (Issue #713, PR #714)
+-   Fixed redundant file extension for credentials cached in the Factory (Issue #685, PR #723)
 
 ### Testing / Development
 
