@@ -907,7 +907,7 @@ def standard_path(cred: Credential) -> str:
     if not filename:
         raise CredentialError("Credential path is not a file")
 
-    filename = f"credential_{cred.purpose_alias}_{filename}.{cred.extension}"
+    filename = f"credential_{cred.purpose_alias}_{filename}"
     path = os.path.join(os.path.dirname(cred.path), filename)
 
     return path
