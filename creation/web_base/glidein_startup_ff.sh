@@ -48,6 +48,7 @@ GWMS_MULTIUSER_GLIDEIN=
 # This should never happen only when using GlExec. Not in Singularity, not w/o sudo mechanisms.
 # Comment the following line if GlExec or similar will not be used
 #GWMS_MULTIUSER_GLIDEIN=true
+GWMS_CUSTOM_SCRIPTS_TIMEOUT=0
 # Default GWMS log server
 GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
 
@@ -619,12 +620,16 @@ params_decode() {
 }
 
 # Put parameters into the config file and build PARAM_LIST (comma separated list of parameters)
+# 1: parameter name (no spaces allowed)
+# 2: encoded parameter value
+# ... multiple couples are expected one after the other (like stored in $params)
+# Assumes default glidein_config file and echos PARAM_LIST
 params2file() {
     local param_list=""
 
     while [ $# -gt 0 ]
     do
-        # Note: using $() we escape blackslash with \\ like above. Using backticks would require \\\
+        # Note: using $() we escape backslash with \\ like above. Using backticks would require \\\
         pfval=$(params_decode "$2")
         if ! gconfig_add "$1" "${pfval}"; then
             glidein_exit 1
@@ -843,6 +848,29 @@ add_config_file() {
         # return or glidein_exit?
         return 1
     fi
+}
+
+test_proxy_availability() {
+    # Return 1 if the URL retrieval via HTTP proxy is failing,
+    # 0 otherwise (success or `wget` and `curl` not available)
+    local proxy_url_test=$1
+    local test_file=$2
+
+    # check whether wget or curl is available for use
+    if wget --version > /dev/null 2>&1; then
+        # wget found, use wget for the test
+        if ! wget -qO /dev/null -e use_proxy=yes -e http_proxy="$proxy_url_test" "${test_file}" 2>&1; then
+            return 1
+        fi
+    elif curl --version > /dev/null 2>&1; then
+        # curl found, use curl for the test
+        if ! curl -so /dev/null --proxy "$proxy_url_test" "$test_file" 2>&1; then
+            return 1
+        fi
+    else
+        echo "Neither wget nor curl command found. Skipping proxy availability test." 1>&2
+    fi
+    # implied return of exit status 0
 }
 
 #####################
@@ -1194,6 +1222,11 @@ fetch_file_base() {
     fi
 
     # if executable, execute
+    local custom_scripts_options
+    if [[ ",${GLIDEIN_DEBUG_OPTIONS}," = *,cscripttrace,* ]]; then
+        custom_scripts_options="d"
+    fi
+    custom_scripts_options="$custom_scripts_options$GWMS_CUSTOM_SCRIPTS_TIMEOUT"
     if [[ "${ffb_file_type}" = "exec" || "${ffb_file_type}" = "exec:"* ]]; then
         if ! chmod u+x "${ffb_outname}"; then
             warn "Error making '${ffb_outname}' executable"
@@ -1207,7 +1240,7 @@ fetch_file_base() {
             cp "${ffb_outname}" "$gwms_exec_dir/cleanup/${ffb_target_fname}"
             chmod a+x "${gwms_exec_dir}/cleanup/${ffb_target_fname}"
         else
-            echo "Executing (flags:${ffb_file_type#exec}) ${ffb_outname}"
+            echo "Executing (flags:${ffb_file_type#exec}, options:$custom_scripts_options) ${ffb_outname}"
             # have to do it here, as this will be run before any other script
             chmod u+rx "${main_dir}"/error_augment.sh
 
@@ -1216,12 +1249,13 @@ fetch_file_base() {
             "${main_dir}"/error_augment.sh -init
             START=$(date +%s)
             # Redirecting stdin (< /dev/null or :|) to avoid interactions with this calling script. Closing may cause errors
-            if [[ "${ffb_file_type}" = "exec:s" ]]; then
+            if [[ "${ffb_file_type}" = "exec:c" ]]; then
                 "${main_dir}/singularity_wrapper.sh" "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
-            elif [[ "${ffb_file_type}" = "exec:r" ]]; then
+            elif [[ "${ffb_file_type}" = "exec:s" ]]; then
                 . "${ffb_outname}" glidein_config "${ffb_id}"
             else
-                "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
+                run_wrapper "$custom_scripts_options" "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
+                # "${ffb_outname}" glidein_config "${ffb_id}" < /dev/null
             fi
             ret=$?
             END=$(date +%s)
@@ -1229,6 +1263,8 @@ fetch_file_base() {
             "${main_dir}"/error_augment.sh -concat
             if [ ${ret} -ne 0 ]; then
                 echo "=== Validation error in ${ffb_outname} ===" 1>&2
+                # ret>128 when killed by signal (likely ret 137)
+                [[ ${ret} -lt 128 ]] || echo "Command ${ffb_outname} killed by timeout ($GWMS_CUSTOM_SCRIPTS_TIMEOUT s)" 1>&2
                 warn "Error running '${ffb_outname}'"
                 < otrx_output.xml awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2
                 return 1
@@ -1432,10 +1468,15 @@ glide_local_tmp_dir_created=0
 ################
 # Parse and verify arguments
 
-# allow some parameters to change arguments
-# multiglidein GLIDEIN_MULTIGLIDEIN -> multi_glidein
+# Decode some parameters and allow some parameters to change arguments
+# export will make them available in the custom scripts without need of gconfig_get
+# multiglidein GLIDEIN_MULTIGLIDEIN -> multi_glidein  , assume number, no param_decode needed
 tmp_par=$(params_get_simple GLIDEIN_MULTIGLIDEIN "${params}")
 [ -n "${tmp_par}" ] &&  multi_glidein=${tmp_par}
+GLIDEIN_DEBUG_OPTIONS=$(params_decode "$(params_get_simple GLIDEIN_DEBUG_OPTIONS "${params}")")
+export GLIDEIN_DEBUG_OPTIONS
+glidein_cs_timeout=$(params_decode "$(params_get_simple GLIDEIN_CUSTOM_SCRIPTS_TIMEOUT "${params}")")
+[[ -n "$glidein_cs_timeout" ]] && GWMS_CUSTOM_SCRIPTS_TIMEOUT="$glidein_cs_timeout"
 
 case "${operation_mode}" in
     nodebug)
@@ -1493,6 +1534,14 @@ if [ "${proxy_url}" = "OSG" ]; then
         warn "OSG_SQUID_LOCATION undefined, not using any Squid URL" 1>&2
     else
         proxy_url="$(echo "${OSG_SQUID_LOCATION}" | awk -F ':' '{if ($2 =="") {print $1 ":3128"} else {print $0}}')"
+    fi
+fi
+
+# testing proxy availability now...
+if [[ -n "${proxy_url}" && "${proxy_url}" != "None" ]]; then
+    if ! test_proxy_availability "${proxy_url}" "${repository_url}/glidein_startup.sh"; then
+        echo "Resetting the HTTP proxy. The configured one ($proxy_url) seems unavailable!" 1>&2
+        proxy_url="None"
     fi
 fi
 
@@ -1669,8 +1718,6 @@ if [ -z "${GLOBUS_PATH}" ]; then
 fi
 
 [ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
-
-num_gct=0
 
 
 ########################################
@@ -1853,7 +1900,7 @@ glidein_config="${PWD}/glidein_config"
 if ! echo > "${glidein_config}"; then
     early_glidein_failure "Could not create '${glidein_config}'"
 fi
-export GWMS_GLIDEIN_CONFIG=${glidein_config}     # for glidein reinvocation
+export GWMS_GLIDEIN_CONFIG=${glidein_config}
 if ! {
     echo "# --- glidein_startup vals ---"
     echo "GLIDEIN_UUID ${glidein_uuid}"
@@ -1917,8 +1964,12 @@ fi
 export GLIDEIN_Name="${glidein_name}"
 export GLIDEIN_UUID="${glidein_uuid}"
 
+# Save $params (-param... command line arguments) to glidein_config
 # shellcheck disable=SC2086
 params2file ${params}
+
+# Values in glidein_config need to be loaded explicitly to have variables in glidein_startup.sh or exported to be
+# available also in custom scripts
 
 ############################################
 # Setup logging
@@ -2127,25 +2178,13 @@ if [[ -n "$gwms_cvmfs_reexec" && "$gwms_cvmfs_reexec" == "yes" ]]; then
         last_script=$(printenv GWMS_LAST_SCRIPT | sed "s/ //g")
         check_signature=$(printenv GWMS_CHECK_SIGNATURE | sed "s/ //g")
         startup_time=$(printenv GWMS_STARTUP_TIME | sed "s/ //g")
-        cvmfs_config_repo=$(printenv GLIDEIN_CVMFS_CONFIG_REPO | sed "s/ //g")
-        cvmfs_add_repos=$(printenv GLIDEIN_CVMFS_REPOS | sed "s/ //g")
-        gwms_cvmfsexec_mode=$(printenv GWMS_CVMFSEXEC_MODE | sed "s/ //g")
         client_repository_url=$(printenv GWMS_CLIENT_REPOSITORY_URL | sed "s/ //g")
         client_repository_group_url=$(printenv GWMS_CLIENT_REPOSITORY_GROUP_URL | sed "s/ //g")
         wrapper_list=$(printenv GWMS_WRAPPER_LIST | sed "s/ //g")
         gwms_exec_dir=$(printenv GWMS_EXEC_DIR | sed "s/ //g")
     fi
 
-    # import add_config_line function
-    add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
-    # shellcheck source=./add_config_line.source
-    . "$add_config_line_source"
-
-    # re-sourcing the helper script inside of cvmfsexec environment
-    . "$work_dir"/cvmfs_helper_funcs.sh
-    mount_cvmfs_repos $gwms_cvmfsexec_mode $cvmfs_config_repo $cvmfs_add_repos
-
-    # re-source all the scripts as it'd have been done during the first invocation of this script
+    # re-source all the scripts as it would have been done during the first invocation of this script
     extract_all_data
 
     glog_setup "${glidein_config}"
@@ -2224,6 +2263,11 @@ do
         [[ -e "${gs_id_work_dir}/setup_prejob.sh" ]] && { cp "${gs_id_work_dir}/setup_prejob.sh" "$gwms_exec_dir"/prejob/ ; chmod a-x "$gwms_exec_dir"/prejob/setup_prejob.sh ; }
     fi
 done
+
+# At this point, all of the file except for the glidein main script have been executed.  Make any environment
+# changes we need to show up in the job here
+# 1. Need IDTOKENS_FILE to be set to the correct path of the idtokens file in the glidein
+export IDTOKENS_FILE=$(gconfig_get GLIDEIN_CONDOR_TOKEN "${glidein_config}")
 
 ##############################
 # Start the glidein main script
