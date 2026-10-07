@@ -952,7 +952,7 @@ def apply_cvmfs_policy(descript_dict, sub_params, params):
     # Consider GLIDEIN_USE_CVMFS from group level, else global
     if "GLIDEIN_USE_CVMFS" in sub_params.attrs:
         glidein_use_cvmfs = sub_params.attrs["GLIDEIN_USE_CVMFS"]["value"]
-    elif "GLIDEIN_Singularity_Use" in params.attrs:
+    elif "GLIDEIN_USE_CVMFS" in params.attrs:
         glidein_use_cvmfs = params.attrs["GLIDEIN_USE_CVMFS"]["value"]
 
     if glidein_use_cvmfs:
