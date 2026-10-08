@@ -99,6 +99,44 @@ class Token(Credential[Mapping]):
             return "Token lifetime too short."
         return None  # no reason for invalidity found, so credential is valid
 
+    def save_to_file(
+        self,
+        path: Optional[str] = None,
+        permissions: int = 0o600,
+        backup: bool = False,
+        compress: bool = False,
+        data_pattern: Optional[bytes] = None,
+        overwrite: bool = True,
+        continue_if_no_path: bool = False,
+        add_newline: bool = True,
+    ) -> None:
+        """Save the Token to a file. This method does exactly the same as the `save_to_file` method of the parent Credential class,
+        except that it defaults to adding a newline at the end of the saved file.
+
+        Args:
+            path (Optional[str]): The path to the file where the Token will be saved.
+            permissions (int): The permissions to set for the saved file. Default is 0o600.
+            backup (bool): Whether to create a backup of the existing file. Default is False.
+            compress (bool): Whether to compress the Token before saving. Default is False.
+            data_pattern (Optional[bytes]): A pattern to format the Token data before saving. Default is None.
+            overwrite (bool): Whether to overwrite the existing file if it already exists. Default is True.
+            continue_if_no_path (bool): If True, silently return without saving a file if no path is specified. Default is False.
+            add_newline (bool): Whether to add a newline at the end of the saved file. Default is True.
+
+        Raises:
+            CredentialError: If the credential is not initialized or if there is an error saving the credential.
+        """
+        super().save_to_file(
+            path=path,
+            permissions=permissions,
+            backup=backup,
+            compress=compress,
+            data_pattern=data_pattern,
+            overwrite=overwrite,
+            continue_if_no_path=continue_if_no_path,
+            add_newline=add_newline,
+        )
+
 
 class SciToken(Token):
     """Represents a SciToken credential.
