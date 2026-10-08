@@ -27,6 +27,7 @@ This release includes all features and fixes in 3.10.19
 -   Fixed all generators plugins to validate context also at reconfig time (PR #711)
 -   Fixed `GLIDEIN_OVERLOAD_ENABLED` handling in factory for 3.11 frontends (Issue #713, PR #714)
 -   Fixed redundant file extension for credentials cached in the Factory (Issue #685, PR #723)
+-   Standardized all token read/writes to add a newline character (`\n`) when writing token files, and strip `\n` when reading token files (Issue #639, PR #716, PR #722)
 
 ### Testing / Development
 
