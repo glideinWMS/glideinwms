@@ -868,6 +868,13 @@ SPDX-License-Identifier: Apache-2.0
               </i>
             </p>
             <p>
+              The <i>trust_domain</i> attribute must match the one in the
+              Factory configuration. The special keyword "any_trust_domain" will
+              match any trust domain in the Factory configuration; it is
+              convenient for payload or callback credentials, e.g. when defining
+              a custom IdTokenGenerator in the configuration.
+            </p>
+            <p>
               Pool index length and list allows the admin to configure a list of
               credentials without having to list each one of them. The files
               must all be identical except for the numbers at the end. The index
