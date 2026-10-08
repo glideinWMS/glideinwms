@@ -23,6 +23,8 @@ from glideinwms.lib import (
 from glideinwms.lib.credentials import AuthenticationMethod, CredentialPurpose, SymmetricKey, x509
 from glideinwms.lib.util import hash_nc
 
+# from glideinwms.tools.wmsXMLView import entry_name  - commented because unused
+
 ############################################################
 #
 # Configuration
@@ -1165,7 +1167,7 @@ class MultiAdvertiseWork:
             glidein_params (dict, optional): The parameters associated with the Glidein. Defaults to an empty dictionary.
             glidein_monitors (dict, optional): The monitoring parameters for the Glidein. Defaults to an empty dictionary.
             glidein_monitors_per_cred (dict, optional): Monitoring parameters for each credential. Defaults to an empty dictionary.
-            key_obj (FactoryKeys4Advertise, optional): The key object used for advertising the Glidein. Defaults to None.
+            key_obj (FactoryKeys4Advertise, optional): The key object used for encryption when advertising the Glidein. Defaults to None.
             glidein_params_to_encrypt (dict, optional): The parameters to encrypt. Defaults to None.
             security_name (str, optional): The security name associated with the request. Defaults to None.
             remove_excess_str (str, optional): The strategy for handling excess Glideins. Defaults to None.
@@ -1419,13 +1421,25 @@ class MultiAdvertiseWork:
     def do_advertise_one(
         self, factory_pool, file_id_cache=None, adname=None, create_files_only=False, reset_unique_id=True
     ):
-        """
-        Do the advertising of requests for one factory
+        """Do the advertising of requests for one Factory
+
+        Consider the requests for one Factory.
+        Create the ClassAd files for the requests via createAdvertiseWorkFile, handle the exceptions if needed,
+        remove the requests from the queue, advertise via HTCondor if desired.
+
         Returns the list of files that still need to be advertised.
         Expects that the credentials have already been loaded.
+
+        Args:
+            factory_pool (str): The factory pool to use
+            file_id_cache (CredentialCache, optional): A CredentialCache. Defaults to None.
+            adname (str, optional): The name of the ClassAd file name. Defaults to None (generated in the function)
+            create_files_only (bool, optional): Skip the HTCondor advertising if True. Defaults to False
+            reset_unique_id (bool, optional): If True, reset the unique_id to 1. Defaults to True
+
+        Returns:
+            list: list of files that still need to be advertised.
         """
-        # the different indentation is due to code refactoring
-        # this way the diff was minimized
         if factory_pool not in list(self.factory_queue.keys()):
             # nothing to be done, prevent failure
             return []
@@ -1445,6 +1459,7 @@ class MultiAdvertiseWork:
         if frontendConfig.advertise_use_multi:
             filename_arr.append(self.adname)
         for el in self.factory_queue[factory_pool]:
+            # Loop through the requests for this Factory (list of tuples AdvertiseParams, FactoryKeys4Advertise)
             params_obj, key_obj = el
             try:
                 filename_arr_el = self.createAdvertiseWorkFile(
@@ -1456,9 +1471,31 @@ class MultiAdvertiseWork:
             except NoCredentialException:
                 filename_arr = []  # don't try to advertise
                 logSupport.log.warning(
-                    "No security credentials match for factory pool %s, not advertising request;"
-                    " if this is not intentional, check for typos frontend's credential "
-                    "trust_domain and type, vs factory's pool trust_domain and auth_method" % factory_pool
+                    f"No usable security credentials for factory pool {factory_pool}, not advertising request;"
+                    " this may be a trust_domain/type mismatch, or invalid credentials (e.g. expired token/proxy), or missing parameter."
+                    " Check frontend credentials trust_domain/type against factory trust_domain/auth_method and credentials validity"
+                )
+                # TODO: cred, the credential in request_credentials (debug_str) did not specify the snapshot (entry), so the message may be incomplete
+                #   what happens if no snapshot is specified in the credential?
+                request_credentials_debug_summary = (
+                    ";".join([i.debug_str() for i in self.request_credentials]) or "<no credentials>"
+                )
+                req_name = params_obj.request_name
+                factory_trust, factory_auth = self.factory_constraint.get(req_name, ("<unknown>", "<unknown>"))
+                logSupport.log.debug(
+                    "Credential debug for request '%s': required trust_domain=%s auth_method=%s; loaded request credentials: %s"
+                    % (req_name, factory_trust, factory_auth, request_credentials_debug_summary)
+                )
+                entry_name = params_obj.glidein_name.split("@")[0]
+                snapshots_list = ";".join(
+                    [
+                        self.descript_obj.credentials_plugin.get_credential(i.credenial.id, entry_name).debug_str()
+                        for i in self.request_credentials
+                    ]
+                )
+                logSupport.log.debug(
+                    "Credential debug for request '%s': entry=%s, required trust_domain=%s auth_method=%s; loaded request credential snapshots: %s"
+                    % (req_name, entry_name, factory_trust, factory_auth, snapshots_list)
                 )
             except condorExe.ExeError:
                 filename_arr = []  # don't try to advertise
@@ -1519,12 +1556,26 @@ class MultiAdvertiseWork:
         logSupport.log.debug(f"Found {prefix} = {values[0]} from file {filename}")
         return values[0]
 
+    # TODO: verify that createAdvertiseWorkFile is correct. Names and function content seem to have inconsistencies
     def createAdvertiseWorkFile(self, factory_pool, params_obj, key_obj=None, file_id_cache=None):
-        """Create the advertise file
+        """Create the advertise (ClassAd) file
 
         Expects the object variables, adname, unique_id and x509_proxies_data to be set.
-        """
 
+        Args:
+            factory_pool (str): The factory pool to advertise (name used only when logging errors)
+            params_obj (AdvertiseParams): The parameters to advertise (from the queue of factory_pool)
+            key_obj (FactoryKeys4Advertise, optional): The key object used for advertising the Glidein.
+                Defaults to None. If missing, the parameters to encrypt cannot be encrypted and are missing.
+            file_id_cache (dict): Not used
+
+        Returns:
+            list: list of ClassAd files which include credentials among other things
+
+        Raises:
+            NoCredentialException: if there are no request credentials at all or if none of these match
+                the Factory Entry requirements
+        """
         cred_filename_arr = []
 
         logSupport.log.debug("In create Advertise work")
@@ -1540,10 +1591,34 @@ class MultiAdvertiseWork:
         auth_set = factory_auth.match(self.descript_obj.credentials_plugin.security_bundle)
         if not auth_set:
             logSupport.log.debug(
-                f'The available credentials do not match the requirements of factory pool {factory_pool} entry "{params_obj.request_name}". Not advertising request. '
-                f"Available credentials: {str(self.descript_obj.credentials_plugin.security_bundle)} "
+                f'The available and valid credentials do not match the requirements of factory pool {factory_pool} entry "{params_obj.request_name}". Not advertising request. '
+                f"Available valid credentials and parameters: {str(self.descript_obj.credentials_plugin.security_bundle)} "
                 f"Required credentials: {str(factory_auth)}"
             )
+
+            # TODO: cred, the credential in request_credentials (debug_str) did not specify the snapshot (entry), so the message may be incomplete
+            #   what happens if no snapshot is specified in the credential?
+            request_credentials_debug_summary = (
+                ";".join([i.debug_str() for i in self.request_credentials]) or "<no credentials>"
+            )
+            req_name = params_obj.request_name
+            factory_trust, factory_auth = self.factory_constraint.get(req_name, ("<unknown>", "<unknown>"))
+            logSupport.log.debug(
+                "Credential debug for request '%s': required trust_domain=%s auth_method=%s; loaded request credentials: %s"
+                % (req_name, factory_trust, factory_auth, request_credentials_debug_summary)
+            )
+            entry_name = params_obj.glidein_name.split("@")[0]
+            snapshots_list = ";".join(
+                [
+                    self.descript_obj.credentials_plugin.get_credential(i.credenial.id, entry_name).debug_str()
+                    for i in self.request_credentials
+                ]
+            )
+            logSupport.log.debug(
+                "Credential debug for request '%s': entry=%s, required trust_domain=%s auth_method=%s; loaded request credential snapshots: %s"
+                % (req_name, entry_name, factory_trust, factory_auth, snapshots_list)
+            )
+
             raise NoCredentialException
         params_obj.glidein_params_to_encrypt["AuthSet"] = pickle.dumps(auth_set)
 
@@ -1699,6 +1774,9 @@ class MultiAdvertiseWork:
                 # TODO: Should we revert the changes done to advertiseGCCounter[classad_name]?
 
             cred_filename_arr.append(fname)
+
+            # TODO: Confusing multiple elements: fname is a ClassAd file that can contain multiple credentials
+            #       cred_filename_arr is an array of ad files which include credentials among other things
 
             logSupport.log.debug(
                 f"Advertising credential {cred.path} "  # type: ignore[attr-defined]

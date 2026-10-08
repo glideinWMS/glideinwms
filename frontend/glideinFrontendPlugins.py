@@ -833,7 +833,15 @@ def createCredentialList(elementDescript):
 
 
 def createRequestBundle(elementDescript):
-    """Creates a list of Credentials for a proxy plugin"""
+    """Creates a list of Credentials for a proxy plugin
+
+    Args:
+        elementDescript (dict): The combined group+global Frontend configuration
+            as stored in glideinFrontendConfig.ElementMergedDescript.merged_data
+
+    Returns:
+        SecurityBundle: the combined list of Credentials
+    """
     security_bundle = SecurityBundle()
     security_bundle.load_from_element(elementDescript)
     return security_bundle
