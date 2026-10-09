@@ -818,21 +818,6 @@ v3_11_4:
   NOTE:
     - As in 3.10.18, custom scripts execution times out after 600s and scripts are killed with SIGTERM followed by SIGKILL
 
-v3_11_5:
-  Date: September 9, 2026
-  Series: Development
-  Tarball: false
-  Feature:
-    - Added framework support for encrypted credentials and implemented for RSA keys and key pairs (PR#640)
-    - Added snapshot to `get_request_credentials()` in credential plugins to allow for targeted dynamic request credentials (PR#640)
-    - Improved generators context validation and generators code documentation (PR#711)
-  Bug fix:
-    - Python Cryptography changed some type names spelling. Added import statements to be compatible with both old and new spellings (PR#683, PR#687)
-    - Fixed `populate_group_security` in the configuration management to work with the new credentials and to handle correctly proxy ID lists for X509 DN extraction (PR#640)
-    - Fixed bug in IdTokenGenerator introduced in PR#667 (PR#702)
-    - Fixed all generators plugins to validate context also at reconfig time (PR#711)
-    - Fixed `GLIDEIN_OVERLOAD_ENABLED` handling in factory for 3.11 frontends (Issue#713, PR#714)
-
 v3_10_19:
   Date: October 1, 2026
   Series: Stable
@@ -859,3 +844,19 @@ v3_10_19:
     - Changed the default value for custom scripts timeout to 0 seconds. This also changes the default behavior for the execution of custom scripts to not time out; from timing out after 600s to not using a timeout value. When custom scripts timeout value is non-zero, the behavior remains unchanged, i.e. after timing out, scripts are killed with SIGTERM followed by SIGKILL.
     - Factory monitoring does not report existing pilots after reconfig when entry `auth_method` changes from `grid_proxy` to `scitoken` and `CONTINUE_IF_NO_PROXY` knob is unset (Issue#681)
     - A running 3.10.x Frontend continues to request Glideins even when unable to create IDTOKENS, resulting in Glideins failing at startup (Issue#679, PR#680)
+
+v3_11_5:
+  Date: October 8, 2026
+  Series: Development
+  Tarball: false
+  Feature:
+    - Added framework support for encrypted credentials and implemented for RSA keys and key pairs (PR#640)
+    - Added snapshot to `get_request_credentials()` in credential plugins to allow for targeted dynamic request credentials (PR#640)
+    - Improved generators context validation and generators code documentation (PR#711, PR#720)
+  Bug fix:
+    - Python Cryptography changed some type names spelling. Added import statements to be compatible with both old and new spellings (PR#683, PR#687)
+    - Fixed `populate_group_security` in the configuration management to work with the new credentials and to handle correctly proxy ID lists for X509 DN extraction (PR#640)
+    - Fixed bug in IdTokenGenerator introduced in PR#667 (PR#702)
+    - Fixed all generators plugins to validate context also at reconfig time (PR#711)
+    - Fixed `GLIDEIN_OVERLOAD_ENABLED` handling in factory for 3.11 frontends (Issue#713, PR#714)
+    - Fixed redundant file extension for credentials cached in the Factory (Issue#685, PR#723)
