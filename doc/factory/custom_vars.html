@@ -105,7 +105,9 @@ SPDX-License-Identifier: Apache-2.0
           <li><a href="#vars">Variables used</a></li>
           <li><a href="#admin_vars">Admin variables</a></li>
           <li><a href="#dyn_vars">Dynamic variables </a></li>
-          <li><a href="#singularity_vars">Singularity variables </a></li>
+          <li>
+            <a href="#singularity_vars">Apptainer/Singularity variables </a>
+          </li>
           <li><a href="#cvmfs_vars">CVMFS variables </a></li>
           <li>
             <a href="#cpuscalculation">Set and discover available CPUs</a>
@@ -2899,8 +2901,9 @@ MAX_STARTD_LOG          I       10000000        +                               
           The table below describes attributes that can be configured for use
           with the Glidein to allow CVMFS to be provisioned on demand. These
           attributes can be configured either at the global level (applies to
-          all the defined/active entries) or at the entry level (only applies to
-          a particular entry) in the Factory's configuration file.
+          all the defined/active entries) or at the entry/group level (only
+          applies to a particular entry/group) in the Factory's/Frontend's
+          configuration file.
         </p>
         <table class="attributes">
           <tr class="head">
@@ -2923,13 +2926,13 @@ MAX_STARTD_LOG          I       10000000        +                               
           <tr>
             <td><b>GLIDEIN_USE_CVMFS</b></td>
             <td>Int</td>
-            <td></td>
+            <td>0</td>
             <td>Frontend</td>
             <td>
               <p>
-                This attribute controls whether the user/job requires CVMFS.
-                <b>Possible values are 0 or 1</b>. This attribute defaults to 0
-                when not defined explicitly.
+                This attribute communicates whether the user job is expected to
+                require CVMFS. <b>Possible values are 0 or 1</b>. This attribute
+                defaults to 0.
               </p>
               <p>
                 A value of 0 indicates that user jobs do not require CVMFS
@@ -2960,16 +2963,18 @@ MAX_STARTD_LOG          I       10000000        +                               
           <tr>
             <td><b>GLIDEIN_CVMFS_REQUIRE</b></td>
             <td>String</td>
-            <td></td>
+            <td>PREFERRED</td>
             <td>Factory</td>
             <td>
               <p>
-                This attribute, in conjunction with GLIDEIN_USE_CVMFS (defined
-                in the Frontend), specifies the site/factory requirement for
-                CVMFS and also helps in determining the behavior of the Glidein
-                in case failures are encountered during the provisioning of
-                CVMFS. This attribute defaults to PREFERRED when not defined
-                explicitly.
+                This attribute specifies the site/factory requirement for CVMFS
+                and, in conjunction with GLIDEIN_USE_CVMFS defined in the
+                Frontend, also determines CVMFS provisioning and the behavior of
+                the Glidein in case the provisioning fails. <br />
+                The Frontend and Factory attributes are considered only if CVMFS
+                is not found natively, otherwise the locally available CVMFS is
+                used and no provisioning is triggered. <br />
+                This attribute defaults to PREFERRED.
               </p>
               <p>
                 This configuration attribute takes one of the following three
@@ -2978,27 +2983,21 @@ MAX_STARTD_LOG          I       10000000        +                               
               <ul>
                 <li>
                   <b>REQUIRED</b> - The site requires CVMFS (there might be a
-                  need to provision containers or run some custom script) if
+                  need to provision containers or run some custom script); if
                   unable to mount CVMFS on demand, report an error and abort the
                   Glidein setup
                 </li>
                 <li>
-                  <b>PREFERRED</b> - The site prefers CVMFS (but not required)
+                  <b>PREFERRED</b> - The site prefers CVMFS (but not required);
                   if unable to mount CVMFS on demand, report a warning and
                   continue with the Glidein setup normally
                 </li>
                 <li>
-                  <b>NEVER</b> - The site does not require CVMFS. do not even
+                  <b>NEVER</b> - The site does not require CVMFS; do not even
                   attempt to mount CVMFS on demand even if the user job requests
                   via GLIDEIN_USE_CVMFS
                 </li>
               </ul>
-              <p>
-                If CVMFS is found natively, then jobs will use locally available
-                CVMFS. When CVMFS is not found natively, the frontend and
-                factory requirements are considered in combination to determine
-                the resulting behavior of the Glidein.
-              </p>
             </td>
           </tr>
         </table>

@@ -61,7 +61,7 @@ variables_reset() {
 
 
 loginfo() {
-    # Prints informational messages to STDERR along with hostname and date/time.
+    # Prints informational messages to STDERR along with date/time.
     #
     # INPUT(S): String containing the message
     # RETURN(S): Prints message to STDERR
@@ -70,7 +70,7 @@ loginfo() {
 }
 
 logdebug() {
-    # Prints debug messages to STDERR along with hostname and date/time.
+    # Prints debug messages to STDERR along with date/time.
     #
     # INPUT(S): String containing the message
     # RETURN(S): Prints message to STDERR
@@ -80,7 +80,7 @@ logdebug() {
 
 
 logwarn(){
-    # Prints warning messages to STDERR along with hostname and date/time.
+    # Prints warning messages to STDERR along with date/time.
     #
     # INPUT(S): String containing the message
     # RETURN(S): Prints message to STDERR
@@ -90,7 +90,7 @@ logwarn(){
 
 
 logerror() {
-    # Prints error messages to STDERR along with hostname and date/time.
+    # Prints error messages to STDERR along with date/time.
     #
     # INPUT(S): String containing the message
     # RETURN(S): Prints message to STDERR
