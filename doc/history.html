@@ -3190,6 +3190,56 @@ SPDX-License-Identifier: Apache-2.0
           <!-- starting 3.7 generated via tags.yaml -->
           <!-- start development -->
           <li>
+            <a id="v3_11_5"><b>v3_11_5</b></a> released on October 8, 2026 (<a
+              href="http://glideinwms.fnal.gov/doc.v3_11_5/index.html"
+              >Manual</a
+            >,
+            <a href="http://glideinwms.fnal.gov/doc.v3_11_5/install.html"
+              >Installation instructions</a
+            >)<br />
+            <ul>
+              <li>
+                Added framework support for encrypted credentials and
+                implemented for RSA keys and key pairs (PR#640)
+              </li>
+              <li>
+                Added snapshot to `get_request_credentials()` in credential
+                plugins to allow for targeted dynamic request credentials
+                (PR#640)
+              </li>
+              <li>
+                Improved generators context validation and generators code
+                documentation (PR#711, PR#720)
+              </li>
+              <li>
+                Bug fix: Python Cryptography changed some type names spelling.
+                Added import statements to be compatible with both old and new
+                spellings (PR#683, PR#687)
+              </li>
+              <li>
+                Bug fix: Fixed `populate_group_security` in the configuration
+                management to work with the new credentials and to handle
+                correctly proxy ID lists for X509 DN extraction (PR#640)
+              </li>
+              <li>
+                Bug fix: Fixed bug in IdTokenGenerator introduced in PR#667
+                (PR#702)
+              </li>
+              <li>
+                Bug fix: Fixed all generators plugins to validate context also
+                at reconfig time (PR#711)
+              </li>
+              <li>
+                Bug fix: Fixed `GLIDEIN_OVERLOAD_ENABLED` handling in factory
+                for 3.11 frontends (Issue#713, PR#714)
+              </li>
+              <li>
+                Bug fix: Fixed redundant file extension for credentials cached
+                in the Factory (Issue#685, PR#723)
+              </li>
+            </ul>
+          </li>
+          <li>
             <a id="v3_11_4"><b>v3_11_4</b></a> released on May 8, 2026 (<a
               href="http://glideinwms.fnal.gov/doc.v3_11_4/index.html"
               >Manual</a
@@ -3238,7 +3288,7 @@ SPDX-License-Identifier: Apache-2.0
               </li>
               <li>
                 Added `make_scitoken_key` and the ability to generate and
-                validate self-signed tokens in the Frontend (PR#623)
+                validate self-signed tokens in the Frontend (PR#623, Issue#622)
               </li>
               <li>
                 Added configuration checks to validate Generator's context for
