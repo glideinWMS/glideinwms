@@ -5,7 +5,8 @@ SPDX-License-Identifier: Apache-2.0
 
 ## v3.11.5 \[2026-10-08\]
 
-This release includes all features and fixes in 3.10.19
+This release includes all features and fixes in 3.10.19, including the timeout not defaulting any more to 10 min.
+This release also adds bug fixes and improvements, mostly yo to the credentials configuration and handling.
 
 ### New features / functionalities
 
