@@ -10,8 +10,7 @@ import copy
 import os
 import time
 
-from glideinwms.lib import symCrypto  # pubCrypto was removed because unused
-from glideinwms.lib import (
+from glideinwms.lib import (  # pubCrypto was removed because unused
     classadSupport,
     condorExe,
     condorManager,
@@ -19,6 +18,7 @@ from glideinwms.lib import (
     defaults,
     glideinWMSVersion,
     logSupport,
+    symCrypto,
     token_util,
     x509Support,
 )

@@ -313,13 +313,10 @@ def release2html(v, tags):
         # from http://glideinwms.fnal.gov/ to http://glideinwms.fnal.gov/old/
         # New releases do not include tarballs for now and they would be named all lowercase, glideinwms_%s.tgz
         tar_string = ',<a href="http://glideinwms.fnal.gov/glideinwms_%s.tgz">Tarball</a>' % tags["Name"]
-    tmp = (
-        """<li>
+    tmp = """<li>
   <a id="{Name}"><b>{Name}</b></a> released on {Date} (<a href="http://glideinwms.fnal.gov/doc.{Name}/index.html">Manual</a>,
   <a href="http://glideinwms.fnal.gov/doc.{Name}/install.html">Installation instructions</a>%s)<br>
-    <ul>"""
-        % tar_string
-    )
+    <ul>""" % tar_string
     lines = [tmp.format(**tags)]
     for i in tags.get(FEATURE, []):
         lines.append("    <li>%s</li>" % i)
@@ -333,11 +330,9 @@ def release2html(v, tags):
         if k not in PROCESSED_TAGS:
             for i in tags[k]:
                 lines.append(f"    <li>{k}: {i}</li>")
-    lines.append(
-        """    </ul>
+    lines.append("""    </ul>
 </li>
-"""
-    )
+""")
     return "\n".join(lines)
 
 
