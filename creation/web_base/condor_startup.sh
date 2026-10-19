@@ -76,6 +76,15 @@ add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$config_file" | cu
 . "$add_config_line_source"
 error_gen=$(gconfig_get ERROR_GEN_PATH "$config_file")
 
+# Local copy of singularity_lib.sh's singularity_is_true_value: it gates whether
+# singularity_lib.sh gets sourced at all, so it cannot come from the lib itself.
+is_true_config_value() {
+    case "$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | tr -d "[:space:]'\"")" in
+        1|true|yes) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 # Read the knobs coming from the frontend configuration for blackhole detection (GLIDEIN_BLACKHOLE_NUMJOBS and GLIDEIN_BLACKHOLE_RATE)
 glidein_blackhole_numjobs=$(gconfig_get GLIDEIN_BLACKHOLE_NUMJOBS "$config_file")
 glidein_blackhole_rate=$(gconfig_get GLIDEIN_BLACKHOLE_RATE "$config_file")
@@ -128,6 +137,7 @@ if [[ "$print_debug" -ne 0 ]]; then
 fi
 
 main_stage_dir=$(gconfig_get GLIDEIN_WORK_DIR "$config_file")
+glidein_config="$config_file"
 
 description_file=$(gconfig_get DESCRIPTION_FILE "$config_file")
 
@@ -160,11 +170,89 @@ fi
 
 EOF
 
+htcondor_singularity_path=$(gconfig_get SINGULARITY_PATH "$config_file")
+gwms_singularity_use_htcondor=0
+if is_true_config_value "$(gconfig_get GLIDEIN_SINGULARITY_USE_HTCONDOR "$config_file")" && [[ -n "$htcondor_singularity_path" ]]; then
+    gwms_singularity_use_htcondor=1
+fi
+
+if [[ "$gwms_singularity_use_htcondor" = "1" ]]; then
+    singularity_lib_source="${main_stage_dir}/singularity_lib.sh"
+    if [[ -e "$singularity_lib_source" ]]; then
+        GWMS_THIS_SCRIPT="${GWMS_THIS_SCRIPT:-$0}"
+        # shellcheck source=singularity_lib.sh
+        . "$singularity_lib_source"
+    else
+        echo "WARNING: GLIDEIN_SINGULARITY_USE_HTCONDOR is enabled but $singularity_lib_source is not available; using the GWMS wrapper launch path." 1>&2
+        gwms_singularity_use_htcondor=0
+    fi
+fi
+
+if [[ "$gwms_singularity_use_htcondor" = "1" ]]; then
+    cat >> "$condor_job_wrapper" <<"EOF"
+# HTCondor manages Singularity/Apptainer launch. Let the GWMS wrapper run
+# without launching another container.
+export GLIDEIN_SINGULARITY_USE_HTCONDOR=1
+
+EOF
+fi
+
 for fname in $(cat "$wrapper_list");
 do
     cat "$fname" >> "$condor_job_wrapper"
 done
 
+if [[ "$gwms_singularity_use_htcondor" = "1" ]]; then
+    gwms_default_image=$(gconfig_get GWMS_SINGULARITY_IMAGE "$config_file")
+    gwms_bind_cvmfs=$(gconfig_get GWMS_SINGULARITY_BIND_CVMFS "$config_file")
+    if singularity_is_false_value "$gwms_bind_cvmfs"; then
+        GWMS_SINGULARITY_BIND_CVMFS=0
+    else
+        GWMS_SINGULARITY_BIND_CVMFS=1
+    fi
+    GLIDEIN_SINGULARITY_OPTS=$(gconfig_get GLIDEIN_SINGULARITY_OPTS "$config_file")
+    GLIDEIN_SINGULARITY_BINDPATH=$(gconfig_get GLIDEIN_SINGULARITY_BINDPATH "$config_file")
+    GLIDEIN_SINGULARITY_BINDPATH_DEFAULT=$(gconfig_get GLIDEIN_SINGULARITY_BINDPATH_DEFAULT "$config_file")
+    CVMFS_MOUNT_DIR=$(gconfig_get CVMFS_MOUNT_DIR "$config_file")
+    GPU_USE=$(gconfig_get GPU_USE "$config_file")
+    OSG_MACHINE_GPUS=$(gconfig_get GPUs "$config_file")
+    singularity_set_launch_defaults
+    gwms_htcondor_singularity_image_expr=$(singularity_htcondor_image_expr \
+        "$gwms_default_image" \
+        "$(gconfig_get SINGULARITY_IMAGES_DICT "$config_file")" \
+        "$(gconfig_get GLIDEIN_REQUIRED_OS "$config_file")" \
+        "$(gconfig_get SINGULARITY_IMAGE_RESTRICTIONS "$config_file")")
+    gwms_htcondor_singularity_bind_expr=$(singularity_get_binds e "$GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS" | tr ',' ' ')
+    gwms_htcondor_singularity_extra_args="$GWMS_SINGULARITY_EXTRA_OPTS"
+    if [[ -z "$gwms_default_image" ]]; then
+        echo "WARNING: GLIDEIN_SINGULARITY_USE_HTCONDOR is enabled but no default Singularity image was selected by setup; jobs without +SingularityImage will run without Singularity." 1>&2
+    fi
+    if [[ -n "$(gconfig_get GLIDEIN_CONTAINER_ENV "$config_file")" || -n "$(gconfig_get GLIDEIN_CONTAINER_ENV_CLEARLIST "$config_file")" ]]; then
+        echo "WARNING: GLIDEIN_CONTAINER_ENV or GLIDEIN_CONTAINER_ENV_CLEARLIST is set but GLIDEIN_SINGULARITY_USE_HTCONDOR does not translate GWMS container launch environment policies into HTCondor Singularity configuration." 1>&2
+    fi
+    cat >> "$CONDOR_CONFIG" <<EOF
+# Run Singularity jobs through HTCondor so interactive condor_ssh_to_job can
+# use HTCondor's native namespace attach path.
+GWMS_DEFAULT_SINGULARITY_IMAGE = $(singularity_htcondor_classad_quote "$gwms_default_image")
+SINGULARITY_IMAGE_EXPR = $gwms_htcondor_singularity_image_expr
+SINGULARITY_JOB = \$(SINGULARITY_IMAGE_EXPR) =!= ""
+SINGULARITY_TARGET_DIR = /srv
+MOUNT_UNDER_SCRATCH = /tmp,/var/tmp
+SINGULARITY = $htcondor_singularity_path
+SINGULARITY_USE_LAUNCHER = True
+# Interactive condor_ssh_to_job enters the live container through HTCondor's
+# condor_docker_enter/condor_nsenter path. Unprivileged glideins cannot attach
+# to a Singularity-created PID namespace, so keep the job in the glidein PID
+# namespace in this mode.
+SINGULARITY_USE_PID_NAMESPACES = False
+EOF
+    if [[ -n "$gwms_htcondor_singularity_bind_expr" ]]; then
+        echo "SINGULARITY_BIND_EXPR = $(singularity_htcondor_classad_quote "$gwms_htcondor_singularity_bind_expr")" >> "$CONDOR_CONFIG"
+    fi
+    if [[ -n "$gwms_htcondor_singularity_extra_args" ]]; then
+        echo "SINGULARITY_EXTRA_ARGUMENTS = $(singularity_htcondor_classad_quote "$gwms_htcondor_singularity_extra_args")" >> "$CONDOR_CONFIG"
+    fi
+fi
 
 echo "USER_JOB_WRAPPER = \$(LOCAL_DIR)/$condor_job_wrapper" >> "$CONDOR_CONFIG"
 

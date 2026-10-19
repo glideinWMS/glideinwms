@@ -48,6 +48,18 @@ def create_condor_tar_fd(condor_base_dir):
             "lib/condor",
             "lib/libgetpwnam.so",
         ]
+        # RPM-layout lib files whose source path may be a symlink: register here
+        # (not directly in condor_bins_map) so the archive entry gets symlink
+        # resolution with the escape guard before tarring.
+        condor_opt_libs_map = {
+            "lib64/condor/condor_ssh_to_job_sshd_config_template": "lib/condor_ssh_to_job_sshd_config_template",
+            "lib64/condor/libgetpwnam.so": "lib/libgetpwnam.so",
+        }
+        # Try both legacy and RPM paths. Later entries that map to an existing
+        # archive name are skipped below, so each archive path is included once.
+        condor_opt_libs += list(condor_opt_libs_map)
+        condor_realpath_arcnames = set(condor_opt_libs_map.values())
+
         condor_opt_libexecs = [
             "libexec/condor_shared_port",
             "libexec/condor_ssh_to_job_sshd_setup",
@@ -63,7 +75,7 @@ def create_condor_tar_fd(condor_base_dir):
 
         # for RPM installations, add libexec/condor as libexec into the
         # tarball instead
-        condor_bins_map = {}
+        condor_bins_map = dict(condor_opt_libs_map)
         condor_opt_libexecs_rpm = []
 
         for libexec in condor_opt_libexecs:
@@ -84,18 +96,29 @@ def create_condor_tar_fd(condor_base_dir):
         dlls = get_condor_dlls(condor_base_dir, condor_bins + condor_opt_bins + condor_opt_libexecs)
 
         # Get list of all the files & directories that exist
+        condor_bin_arcnames = set(condor_bins)
         for f in condor_opt_bins + condor_opt_libs + condor_opt_libexecs + dlls:
-            if os.path.exists(os.path.join(condor_base_dir, f)):
+            arcname = condor_bins_map.get(f, f)
+            if os.path.exists(os.path.join(condor_base_dir, f)) and arcname not in condor_bin_arcnames:
                 condor_bins.append(f)
+                condor_bin_arcnames.add(arcname)
 
         # tar
         fd = io.BytesIO()
         # TODO #23166: Use context managers[with statement] when python 3
         # once we get rid of SL6 and tarballs
 
+        real_condor_base_dir = os.path.realpath(condor_base_dir)
         tf = tarfile.open("dummy.tgz", "w:gz", fd)
         for f in condor_bins:
-            tf.add(os.path.join(condor_base_dir, f), condor_bins_map.get(f, f))
+            fname = os.path.join(condor_base_dir, f)
+            arcname = condor_bins_map.get(f, f)
+            if arcname in condor_realpath_arcnames:
+                real_fname = os.path.realpath(fname)
+                if os.path.commonpath([real_condor_base_dir, real_fname]) != real_condor_base_dir:
+                    raise RuntimeError("%s resolves outside %s" % (fname, condor_base_dir))
+                fname = real_fname
+            tf.add(fname, arcname)
         tf.close()
         # rewind the file to the beginning
         fd.seek(0)
