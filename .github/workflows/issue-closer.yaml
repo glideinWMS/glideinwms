@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+# GitHub closes automatically issues when a PR fixes them and is merged to the default branch (master in GWMS)
+# This workflow expands the behavior to close the issues also when merging to any "branch_v..." branch,
+# the release branches
+# Thanks to Gemini for the suggestions
+
+name: Auto Close Issue on Release Branches Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - "branch_v*" # GWMS release branches are master (default branch) and all starting with "branch_v"
+
+jobs:
+  close_issue:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close linked issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Reads the PR body for closing keywords like "Closes #123"
+            const body = context.payload.pull_request.body;
+            const match = body ? body.match(/((?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+(?:issue\s+)?#(\d+))/i) : null;
+
+            if (match) {
+              const issueNumber = match[2]; // Extracts the digits representing the issue number
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                state: 'closed'
+              });
+              console.log(`Successfully closed issue #${issueNumber}`);
+            } else {
+              console.log('No closing keyword found in PR description.');
+            }
