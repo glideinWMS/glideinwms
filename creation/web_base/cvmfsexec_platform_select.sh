@@ -47,7 +47,7 @@ if [[ ! $cvmfs_src =~ ^(osg|egi|default)$ ]]; then
     exit 1
 fi
 
-# TODO: is it possible to reuse cvmfs_helper_funcs.sh by sourcing it during the execution of this file????
+# TODO: is it possible to reuse cvmfs_helper_funcs_ff.sh by sourcing it during the execution of this file????
 if [[ -f "/etc/redhat-release" ]]; then
     os_distro=rhel
 else

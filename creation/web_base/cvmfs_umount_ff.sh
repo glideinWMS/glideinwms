@@ -11,7 +11,7 @@
 #	If CVMFS is not found to be mounted, then an appropriate message will be displayed.
 #
 # Dependencies:
-#	cvmfs_helper_funcs.sh
+#	cvmfs_helper_funcs_ff.sh
 #
 
 glidein_config=$1

@@ -360,10 +360,11 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             add_submit_attr_unparsed(attr, self.dicts, "main", "main")
 
         ## Add helper script for on-demand cvmfs provisioning
-        cvmfs_helper = "cvmfs_helper_funcs.sh"
-        # check feature flag to decide on the version of `cvmfs_helper_funcs.sh` to be used. if feature flag for cvmfsexec is enabled, `cvmfs_helper_funcs_ff.sh` should be used. if feature flag for cvmfsexec is disabled/not defined, `cvmfs_helper_funcs.sh` should be used
-        if "cvmfsexec" in self.dicts["feature_flags"]:
-            cvmfs_helper = "cvmfs_helper_funcs_ff.sh"
+        # cvmfs_helper = "cvmfs_helper_funcs.sh"
+        # # check feature flag to decide on the version of `cvmfs_helper_funcs.sh` to be used. if feature flag for cvmfsexec is enabled, `cvmfs_helper_funcs_ff.sh` should be used. if feature flag for cvmfsexec is disabled/not defined, `cvmfs_helper_funcs.sh` should be used
+        # if "cvmfsexec" in self.dicts["feature_flags"]:
+        #     cvmfs_helper = "cvmfs_helper_funcs_ff.sh"
+        cvmfs_helper = "cvmfs_helper_funcs_ff.sh"
         self.dicts["file_list"].add_from_file(
             cvmfs_helper,
             cWDictFile.FileDictFile.make_val_tuple(
@@ -439,24 +440,6 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                     self.dicts["consts"].add(cvmfsexec_cond_name, "0", allow_overwrite=False)
         else:
             print("...No sources specified. Building/Rebuilding of cvmfsexec distributions disabled!")
-            # TODO: This check could be done in the XML, checking if the entries are consistent in the current version
-            # fetch the on-demand cvmfs provisioning feature setting
-            # if on-demand CVMFS not used at the global level; ignore and continue
-            ondemand_cvmfs = self.dicts["attrs"].get("GLIDEIN_USE_CVMFS", 0)
-            # check if on demand cvmfs provisioning is requested/enabled
-            if ondemand_cvmfs != 0:
-                # check the dir containing cvmfsexec distros to see if they were built previously
-                if os.path.exists(os.path.join(self.work_dir, "cvmfsexec/tarballs")) and os.listdir(
-                    os.path.join(self.work_dir, "cvmfsexec/tarballs")
-                ):
-                    # cvmfsexec distros were found from a previous factory reconfig
-                    print(f"...Found cvmfsexec distributions in {os.path.join(self.work_dir)}")
-                    print("......RECOMMENDED: Rebuild distributions using the latest version of cvmfsexec.")
-                else:
-                    # can be overridden at the entry level, so ignore and [entry supersedes global setting]
-                    print(
-                        "...cvmfsexec distributions unavailable but on-demand CVMFS requested via GLIDEIN_USE_CVMFS; Continuing..."
-                    )
 
         # add additional system scripts
         # check feature flag to decide on the version of cvmfs_setup.sh to be used. if feature flag for cvmfsexec is enabled, `cvmfs_setup_ff.sh` should be used. if feature flag for cvmfsexec is disabled/not defined, `cvmfs_setup.sh` should be used
@@ -773,30 +756,15 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         # initialize an empty dictionary to capture all the feature flags defined in the global configuration
         feature_flags = {}
+        # main_dicts_ff = [ (i['name'], i.get_val()) for i in main_dicts['feature_flags'] ]
+        # print(f"MYDEBUG: main_dicts['feature_flags'] = {main_dicts_ff}")
         # check if the attribute is a feature flag
         for attr in self.conf.get_child_list("attrs"):
+            print(f"MYDEBUG: attr = {attr['name']}, {attr.get_val()}")
             if attr["name"].startswith("GLIDEIN_FEATURE_") and attr.get_val() != "False":
                 attr_name = attr["name"].split("_", 2)[2].lower()
-                # converting the attribute value to lowercase since it is a string (not bool)
                 feature_flags[attr_name] = attr.get_val()
-
-        # TODO: This check could be done in the XML, checking if the entries are consistent in the current version
-        # fetch the on-demand cvmfs provisioning feature setting
-        # if on-demand CVMFS not used by entry, ignore and continue
-        ondemand_cvmfs = self.dicts["attrs"].get("GLIDEIN_USE_CVMFS", 0)
-        if ondemand_cvmfs != 0:
-            # check the dir containing cvmfsexec distros to see if they were built previously
-            if os.path.exists(os.path.join(self.work_dir, "../cvmfsexec/tarballs")) and os.listdir(
-                os.path.join(self.work_dir, "../cvmfsexec/tarballs")
-            ):
-                # cvmfsexec distros were found from a previous factory reconfig
-                print(f"...Found cvmfsexec distributions in {os.path.dirname(os.path.join(self.work_dir))}")
-                print("......RECOMMENDED: Rebuild distributions using the latest version of cvmfsexec.")
-            else:
-                print(
-                    "...cvmfsexec distributions unavailable but on-demand CVMFS is requested via GLIDEIN_USE_CVMFS; Aborting!"
-                )
-                exit(1)
+        print(f"MYDEBUG: feature_flags = {feature_flags}")
 
         # put standard attributes into config file
         # override anything the user set
@@ -1003,6 +971,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
                 # only count it against us if new entry is active
                 if eval(entry["enabled"]):
                     schedd_counts[schedd] += 1
+            validate_cvmfsexec_requirement(entry, self.main_dicts["attrs"], self.work_dir, self.active_sub_list)
             self.sub_dicts[entry_name].populate(entry, schedd, self.main_dicts.dicts)
             # MM5345 self.sub_dicts[entry_name].populate(self.main_dicts.dicts, other)
 
@@ -1219,6 +1188,11 @@ def validate_attribute(attr_name, attr_val):
         if attr_val not in ("NEVER", "PREFERRED", "REQUIRED"):
             raise RuntimeError(
                 "Invalid value for GLIDEIN_CVMFS_REQUIRE: %s. Must be either NEVER, PREFERRED or REQUIRED." % attr_val
+            )
+    elif attr_name == "GLIDEIN_FEATURE_CVMFSEXEC":
+        if attr_val not in ("True", "False"):
+            raise RuntimeError(
+                "Invalid value for GLIDEIN_FEATURE_CVMFSEXEC: %s. Must be either True or False." % attr_val
             )
     # elif attr_name == "CVMFS_SRC":
     #         if attr_val not in ("osg", "egi", "default"):
@@ -1859,3 +1833,47 @@ def generate_log_tokens(glidein_main_dicts):
             print("TarError: %s" % str(terr))
             raise
         tokens_tgz.close()
+
+
+def validate_cvmfsexec_requirement(entry, global_attrs, work_dir, active_entries):
+    """
+    Validate the global versus local (entry-level) Factory configuration attribute for CVMFS provisioning. Additionally checks whether the cvmfsexec distributions are available for the Glidein to use when required.
+
+    Note: when an attribute (aka config knob) is defined both at the global and local level (either Factory entry or Frontend group), the local one takes precedence.
+
+    Args:
+        entry (factoryXmlConfig.EntryElement): The Entry configuration.
+        global_attrs (cWDictFile.ReprDictFile): The attributes in the main dictionary.
+        work_dir (str): The work directory location of the Glidein.
+        active_entries (list): List of entries identified as active by the Factory.
+
+    """
+    attr_cvmfs_require = None
+
+    # check if the attribute is defined in the global config of Factory
+    if "GLIDEIN_CVMFS_REQUIRE" in global_attrs.keys:
+        attr_cvmfs_require = global_attrs["GLIDEIN_CVMFS_REQUIRE"]
+
+    # next, check if the same attribute is defined in the entry (local) config of Factory
+    entry_attrs = [(i["name"], i.get_val()) for i in entry.get_child_list("attrs")]
+    for entry_attr in entry_attrs:
+        if "GLIDEIN_CVMFS_REQUIRE" == entry_attr[0]:
+            attr_cvmfs_require = entry_attr[1]
+
+    # GLIDEIN_CVMFS_REQUIRE can take either 'NEVER', 'PREFERRED' or 'REQUIRED'
+    if attr_cvmfs_require not in ["PREFERRED", "REQUIRED"]:
+        # need not check the directory containing cvmfsexec distros to ensure if they were built previously
+        return
+
+    # when not 'NEVER', check the dir containing cvmfsexec distros to see if they were built previously
+    distros_dir = os.path.join(work_dir, "cvmfsexec/tarballs")
+    if entry.getName() in active_entries:
+        print(f"...Entry {entry.getName()}")
+        if not os.path.exists(distros_dir) or not os.listdir(distros_dir):
+            print(
+                f"......On-demand CVMFS is requested (GLIDEIN_CVMFS_REQUIRE := {attr_cvmfs_require}) but cvmfsexec distributions unavailable; aborting!"
+            )
+            exit(1)
+        # cvmfsexec distros were found from a previous factory reconfig
+        print(f"......Found cvmfsexec distributions in {distros_dir}")
+        print("......RECOMMENDED: Rebuild distributions using the latest version of cvmfsexec.")

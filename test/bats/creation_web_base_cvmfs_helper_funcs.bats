@@ -22,17 +22,17 @@ setup() {
     has_fuse() { echo "yes"; }
 
     run determine_cvmfsexec_mode_usage
-    [[ $output == "3" ]] || false
+    [[ ${lines[2]} == "2" ]] || false
     [ $status -eq 0 ]
 
     has_fuse() { echo "no"; }
     run determine_cvmfsexec_mode_usage
-    [[ $output == "3" ]] || false
+    [[ ${lines[2]} == "2" ]] || false
     [ $status -eq 0 ]
 
     has_fuse() { echo "error"; }
     run determine_cvmfsexec_mode_usage
-    [[ $output == "3" ]] || false
+    [[ ${lines[2]} == "2" ]] || false
     [ $status -eq 0 ]
 }
 
@@ -42,17 +42,17 @@ setup() {
     has_unpriv_userns() { echo "disabled"; }
     has_fuse() { echo "yes"; }
     run determine_cvmfsexec_mode_usage
-    [[ $output == "1" ]] || false
+    [[ ${lines[2]} == "1" ]] || false
     [ $status -eq 0 ]
 
     has_fuse() { echo "no"; }
     run determine_cvmfsexec_mode_usage
-    [[ ${lines[1]} == "0" ]] || false
+    [[ ${lines[3]} == "0" ]] || false
     [ $status -eq 1 ]
 
     has_fuse() { echo "error"; }
     run determine_cvmfsexec_mode_usage
-    [[ ${lines[1]} == "0" ]] || false
+    [[ ${lines[3]} == "0" ]] || false
     [ $status -eq 1 ]
 }
 
@@ -62,17 +62,17 @@ setup() {
     has_unpriv_userns() { echo "unavailable"; }
     has_fuse() { echo "yes"; }
     run determine_cvmfsexec_mode_usage
-    [[ $output == "1" ]] || false
+    [[ ${lines[2]} == "1" ]] || false
     [ $status -eq 0 ]
 
     has_fuse() { echo "no"; }
     run determine_cvmfsexec_mode_usage
-    [[ ${lines[1]} == "0" ]] || false
+    [[ ${lines[3]} == "0" ]] || false
     [ $status -eq 1 ]
 
     has_fuse() { echo "error"; }
     run determine_cvmfsexec_mode_usage
-    [[ ${lines[1]} == "0" ]] || false
+    [[ ${lines[3]} == "0" ]] || false
     [ $status -eq 1 ]
 }
 
@@ -82,17 +82,17 @@ setup() {
     has_unpriv_userns() { echo "error"; }
     has_fuse() { echo "yes"; }
     run determine_cvmfsexec_mode_usage
-    [[ $output == "1" ]] || false
+    [[ ${lines[2]} == "1" ]] || false
     [ $status -eq 0 ]
 
     has_fuse() { echo "no"; }
     run determine_cvmfsexec_mode_usage
-    [[ ${lines[1]} == "0" ]] || false
+    [[ ${lines[3]} == "0" ]] || false
     [ $status -eq 1 ]
 
     has_fuse() { echo "error"; }
     run determine_cvmfsexec_mode_usage
-    [[ ${lines[1]} == "0" ]] || false
+    [[ ${lines[3]} == "0" ]] || false
     [ $status -eq 1 ]
 }
 
@@ -281,11 +281,11 @@ setup() {
 # unit test for print_os_info function
 @test "Test printing of operating system information" {
     perform_system_check() {
-       GWMS_OS_NAME="testOS"; GWMS_OS_DISTRO="testDistro"; GWMS_OS_VERSION_FULL="testVersion"; GWMS_OS_KRNL_ARCH="testKArch"; GWMS_OS_KRNL_NUM="testKNum"; GWMS_OS_KRNL_PATCH_NUM="testKPatch";
+       GWMS_OS_NAME="testOS"; GWMS_OS_DISTRO="testDistro"; GWMS_OS_VERSION_FULL="testVersion"; GWMS_OS_KRNL_ARCH="testKArch"; GWMS_OS_KRNL_VERSION="testKVer"; GWMS_OS_KRNL_RELEASE="testKRel";
     }
     run print_os_info
     [[ "$output" =~ "Found testOS [testDistro] testVersion" ]]
-    [[ "$output" =~ "testVersion-testKArch with kernel testKNum-testKPatch" ]]
+    [[ "$output" =~ "testVersion-testKArch with kernel testKVer-testKRel" ]]
 }
 
 # unit test for log_all_system_info function
@@ -293,7 +293,7 @@ setup() {
     perform_system_check() {
        GWMS_OS_NAME="testOS"; GWMS_OS_DISTRO="testDistro"; GWMS_OS_VERSION_FULL="testVersion";
 
-       GWMS_OS_KRNL_VER="testKVer"; GWMS_OS_KRNL_MAJOR_REV="testKMajorRev"; GWMS_OS_KRNL_MINOR_REV="testKMinorRev"; GWMS_OS_KRNL_ARCH="testKArch"; GWMS_OS_KRNL_NUM="testKNum"; GWMS_OS_KRNL_PATCH_NUM="testKPatch";
+       GWMS_OS_KRNL_VERSION="testKVer"; GWMS_OS_KRNL_VER_MAJOR="testKMajorRev"; GWMS_OS_KRNL_VER_MINOR="testKMinorRev"; GWMS_OS_KRNL_ARCH="testKArch"; GWMS_OS_KRNL_VER_PATCH="testKPatch"; GWMS_OS_KRNL_RELEASE="testKRel";
 
        GWMS_IS_UNPRIV_USERNS_SUPPORTED=1; GWMS_IS_UNPRIV_USERNS_ENABLED=1; GWMS_IS_FUSE_INSTALLED=0; GWMS_IS_FUSERMOUNT=0; GWMS_IS_USR_IN_FUSE_GRP=1; GWMS_SYSTEM_CHECK=yes
     }
@@ -302,7 +302,7 @@ setup() {
     [[ ${#lines[@]} -eq 19 ]] # checking for total number of lines in the output
     [[ ${lines[2]} =~ "INFO: Worker node details" ]]
     [[ ${lines[5]} =~ "INFO: Operating system name: testOS" ]]
-    [[ ${lines[8]} =~ "INFO: Kernel version: testKVer" ]]
+    [[ ${lines[8]} =~ "INFO: Kernel major version: testKMajorRev" ]]
     [[ ${lines[13]} =~ "INFO: Unprivileged user namespaces supported: no" ]]
     [[ ${lines[14]} =~ "INFO: Unprivileged user namespaces enabled: no" ]]
     [[ ${lines[15]} =~ "INFO: FUSE installed: yes" ]]

@@ -942,10 +942,10 @@ MATCH_ATTR_CONV = {"string": "s", "int": "i", "real": "r", "bool": "b"}
 
 
 def apply_cvmfs_policy(descript_dict, sub_params, params):
-    glidein_use_cvmfs = None
+    glidein_use_cvmfs = "0"
     query_expr = descript_dict["FactoryQueryExpr"]
     match_expr = descript_dict["MatchExpr"]
-    ma_arr = []
+    ma_arr = None
     match_attrs = None
 
     # Consider GLIDEIN_USE_CVMFS from group level, else global
@@ -954,22 +954,19 @@ def apply_cvmfs_policy(descript_dict, sub_params, params):
     elif "GLIDEIN_USE_CVMFS" in params.attrs:
         glidein_use_cvmfs = params.attrs["GLIDEIN_USE_CVMFS"]["value"]
 
-    if glidein_use_cvmfs:
-        descript_dict.add("GLIDEIN_USE_CVMFS", glidein_use_cvmfs)
+    descript_dict.add("GLIDEIN_USE_CVMFS", glidein_use_cvmfs)
 
-        if (
-            glidein_use_cvmfs == "1"
-        ):  # do not match sites where jobs request use of CVMFS but site(s) do not require CVMFS
-            query_expr = '(%s) && (GLIDEIN_CVMFS_REQUIRE=!="NEVER")' % query_expr
-            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_CVMFS_REQUIRE", "NEVER") != "NEVER")' % match_expr
-            ma_arr.append(("GLIDEIN_CVMFS_REQUIRE", "s"))
+    if glidein_use_cvmfs == "1":  # do not match sites where jobs request use of CVMFS but site(s) do not require CVMFS
+        query_expr = '(%s) && (GLIDEIN_CVMFS_REQUIRE=!="NEVER")' % query_expr
+        match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_CVMFS_REQUIRE", "NEVER") != "NEVER")' % match_expr
+        ma_arr = [("GLIDEIN_CVMFS_REQUIRE", "s")]
 
-        if ma_arr:
-            match_attrs = eval(descript_dict["FactoryMatchAttrs"]) + ma_arr
-            descript_dict.add("FactoryMatchAttrs", repr(match_attrs), allow_overwrite=True)
+    if ma_arr is not None:
+        match_attrs = eval(descript_dict["FactoryMatchAttrs"]) + ma_arr
+        descript_dict.add("FactoryMatchAttrs", repr(match_attrs), allow_overwrite=True)
 
-        descript_dict.add("FactoryQueryExpr", query_expr, allow_overwrite=True)
-        descript_dict.add("MatchExpr", match_expr, allow_overwrite=True)
+    descript_dict.add("FactoryQueryExpr", query_expr, allow_overwrite=True)
+    descript_dict.add("MatchExpr", match_expr, allow_overwrite=True)
 
 
 def apply_group_singularity_policy(descript_dict, sub_params, params):

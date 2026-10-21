@@ -19,13 +19,19 @@
 #LOGFILE="cvmfs_all.log"
 #exec &> $LOGFILE
 
+# Can use run_with_timeout from glidein_paths.source sourced in glidein_startup.sh to enable watchdog timer for sites where glidein enters a hanging state during pre-requisite system checks for on-demand CVMFS setup.
+
 variables_reset() {
-    # Initializes the common variables to empty strings. These variables also become available to scripts that import functions defined in this script.
+    # DESCRIPTION: Initializes the common variables to empty strings.
+    # These variables also become available to scripts that import functions
+    # defined in this script.
+    #
+    # Note: All of the variables in here are initialized to an empty string,
+    # where empty means not evaluated. The set of `GWMS_IS_*` variables when evaluated can either be 1 (false/no) or 0 (true/yes)
     #
     # INPUT(S): None
     # RETURN(S): Variables initialized to empty strings
 
-    # all of the variables in here are initialized to an empty string, where empty means not evaluated
     # this variable indicates whether the perform_system_check function has been run; when evaluated value would be 'yes', otherwise remains empty
     GWMS_SYSTEM_CHECK=
 
@@ -36,21 +42,20 @@ variables_reset() {
     GWMS_OS_VERSION_MAJOR=
     GWMS_OS_VERSION_MINOR=
     GWMS_OS_KRNL_ARCH=
-    GWMS_OS_KRNL_NUM=
-    GWMS_OS_KRNL_VER=
-    GWMS_OS_KRNL_MAJOR_REV=
-    GWMS_OS_KRNL_MINOR_REV=
-    GWMS_OS_KRNL_PATCH_NUM=
+    GWMS_OS_KRNL_VERSION=
+    GWMS_OS_KRNL_VER_MAJOR=
+    GWMS_OS_KRNL_VER_MINOR=
+    GWMS_OS_KRNL_VER_PATCH=
+    GWMS_OS_KRNL_RELEASE=
 
-    # the following variables are also initialized to an empty string; when evaluated can take on values 1 (meaning false/no) or 0 (meaning true/yes)
     # indicates whether CVMFS is locally mounted on the worker node (CE)
     GWMS_IS_CVMFS_LOCAL_MNT=
-    # to indicate the status of on-demand mounting of CVMFS by the glidein after evaluating the worker node (CE)
+    # indicates the status of on-demand mounting of CVMFS by the Glidein after evaluating the worker node (CE)
     GWMS_IS_CVMFS=
 
     # indicates if unpriv userns is available (or supported); not if it is enabled
     GWMS_IS_UNPRIV_USERNS_SUPPORTED=
-    # indicates if unpriv userns is enabled (and available)
+    # indicates if unpriv userns is enabled
     GWMS_IS_UNPRIV_USERNS_ENABLED=
 
     # following variables store FUSE-related information
@@ -61,7 +66,7 @@ variables_reset() {
 
 
 loginfo() {
-    # Prints informational messages to STDERR along with date/time.
+    # DESCRIPTION: Prints informational messages to STDERR along with date/time.
     #
     # INPUT(S): String containing the message
     # RETURN(S): Prints message to STDERR
@@ -70,7 +75,7 @@ loginfo() {
 }
 
 logdebug() {
-    # Prints debug messages to STDERR along with date/time.
+    # DESCRIPTION: Prints debug messages to STDERR along with date/time.
     #
     # INPUT(S): String containing the message
     # RETURN(S): Prints message to STDERR
@@ -80,7 +85,7 @@ logdebug() {
 
 
 logwarn(){
-    # Prints warning messages to STDERR along with date/time.
+    # DESCRIPTION: Prints warning messages to STDERR along with date/time.
     #
     # INPUT(S): String containing the message
     # RETURN(S): Prints message to STDERR
@@ -90,7 +95,7 @@ logwarn(){
 
 
 logerror() {
-    # Prints error messages to STDERR along with date/time.
+    # DESCRIPTION: Prints error messages to STDERR along with date/time.
     #
     # INPUT(S): String containing the message
     # RETURN(S): Prints message to STDERR
@@ -100,7 +105,8 @@ logerror() {
 
 
 print_exit_status () {
-    # Prints an appropriate message to the console to indicate what the exit status means.
+    # DESCRIPTION: Prints an appropriate message to the console to
+    # indicate what the exit status means.
     #
     # INPUT(S): Number (exit status of a previously run command)
     # RETURN(S): Prints "yes" or "no" to indicate the result of the command
@@ -110,7 +116,9 @@ print_exit_status () {
 
 
 detect_local_cvmfs() {
-    # Detects whether CVMFS is natively (aka locally) available on the worker node. The result is stored in a common variable, i.e GWMS_IS_CVMFS_LOCAL_MNT, and can be used downstream.
+    # DESCRIPTION: Detects whether CVMFS is natively (or, locally) available
+    # on the worker node. The result is stored in a common variable,
+    # i.e GWMS_IS_CVMFS_LOCAL_MNT, and can be used downstream.
     #
     # INPUT(S): None
     # RETURN(S): None
@@ -118,7 +126,9 @@ detect_local_cvmfs() {
     local CVMFS_ROOT="/cvmfs"
     local repo_name=oasis.opensciencegrid.org
     GWMS_IS_CVMFS_LOCAL_MNT=0
-    if [[ -f $CVMFS_ROOT/$repo_name/.cvmfsdirtab || "$(ls -A $CVMFS_ROOT/$repo_name)" ]] &>/dev/null
+    # uncomment the following line instead to enable the use of watchdog timer
+    # if [[ -f "$CVMFS_ROOT/$repo_name"/.cvmfsdirtab || "$(run_with_timeout -s KILL 0 ls -A "$CVMFS_ROOT/$repo_name")" ]] &>/dev/null
+    if [[ -f "$CVMFS_ROOT/$repo_name"/.cvmfsdirtab || "$(ls -A "$CVMFS_ROOT/$repo_name")" ]] &>/dev/null
     then
         loginfo "Validating CVMFS with ${repo_name}..."
     else
@@ -130,8 +140,19 @@ detect_local_cvmfs() {
 }
 
 
+check_fuse_installed() {
+    if [[ $GWMS_OS_VERSION_MAJOR -ge 9 ]]; then
+        dnf list installed fuse3 &>/dev/null
+    else
+        yum list installed fuse &>/dev/null
+    fi
+}
+
+
 perform_system_check() {
-    # Performs required system checks (such as operating system and kernel info, unprivileged user namespaces, FUSE status) and stores the results in the common variables for later use.
+    # DESCRIPTION: Performs required system checks (such as operating
+    # system and kernel info, unprivileged user namespaces, FUSE status)
+    # and stores the results in common variables for later use.
     #
     # INPUT(S): None
     # RETURN(S):
@@ -142,15 +163,14 @@ perform_system_check() {
     # 	-> assigns "yes" to GWMS_SYSTEM_CHECK to indicate this function
     # 	has been run.
 
-    # reset all variables used in this script's namespace before executing the rest of the script
-    # variables_reset
+    # make sure that the common variables used in this script's namespace has been reset before executing this function
+    [[ -n "${GWMS_SYSTEM_CHECK}" ]] && variables_reset
 
     local max_user_namespaces
     if [[ -f '/etc/redhat-release' ]]; then
         # rhel derivative; use /etc/redhat-release to fetch the release information
         # NOTE: using /etc/redhat-release over /etc/os-release as it is more consistent to rely on
         GWMS_OS_DISTRO="rhel"
-        # GWMS_OS_DISTRO="non-rhel"
         #GWMS_OS_VERSION_FULL=$(cat /etc/redhat-release | cut -d " " -f 3)
     else
         # not a rhel derivative; use /etc/os-release instead [fallback option]
@@ -161,15 +181,25 @@ perform_system_check() {
     # source the os-release file to access the variables defined
     . /etc/os-release
     GWMS_OS_VERSION_FULL=$VERSION_ID
-    GWMS_OS_VERSION_MAJOR=$(echo "$GWMS_OS_VERSION_FULL" | awk -F'.' '{print $1}')
-    GWMS_OS_VERSION_MINOR=$(echo "$GWMS_OS_VERSION_FULL" | awk -F'.' '{print $2}')
+    GWMS_OS_VERSION_MAJOR=${GWMS_OS_VERSION_FULL%%.*}
+    GWMS_OS_VERSION_MINOR=${GWMS_OS_VERSION_FULL#*.}
+    GWMS_OS_VERSION_MINOR=${GWMS_OS_VERSION_MINOR%%.*}  # Needed to cut eventual patch version number
     GWMS_OS_NAME=${NAME,,}
     GWMS_OS_KRNL_ARCH=$(arch)
-    GWMS_OS_KRNL_NUM=$(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " )
-    GWMS_OS_KRNL_VER=$(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " | awk -F'.' '{print $1}')
-    GWMS_OS_KRNL_MAJOR_REV=$(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " | awk -F'.' '{print $2}')
-    GWMS_OS_KRNL_MINOR_REV=$(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " | awk -F'.' '{print $3}')
-    GWMS_OS_KRNL_PATCH_NUM=$(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 2 -d " ")
+    local uname_full
+    uname_full=$(uname -r) # e.g. 5.14.0-570.12.1.el9_6.x86_64
+    GWMS_OS_KRNL_VERSION=${uname_full%%-*}  # $(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " )
+    GWMS_OS_KRNL_VER_MAJOR=${GWMS_OS_KRNL_VERSION%%.*}  # $(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " | awk -F'.' '{print $1}')
+    GWMS_OS_KRNL_VER_MINOR=${GWMS_OS_KRNL_VERSION%.*}  # $(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " | awk -F'.' '{print $2}')
+    GWMS_OS_KRNL_VER_MINOR=${GWMS_OS_KRNL_VER_MINOR#*.}
+    GWMS_OS_KRNL_VER_PATCH=${GWMS_OS_KRNL_VERSION##*.}  # $(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 1 -d " " | awk -F'.' '{print $3}')
+    GWMS_OS_KRNL_RELEASE=${uname_full#*-} # $(uname -r | awk -F'-' '{split($2,a,"."); print $1,a[1]}' | cut -f 2 -d " ")
+    GWMS_OS_KRNL_RELEASE=${GWMS_OS_KRNL_RELEASE%%.*}
+
+    #df -h | grep /cvmfs &>/dev/null
+	#GWMS_IS_CVMFS_MNT=$?
+	# call function to detect local CVMFS only if the GWMS_IS_CVMFS_LOCAL_MNT variable is not set; if the variable is not empty, do nothing
+    [[ -z "${GWMS_IS_CVMFS_LOCAL_MNT}" ]] && detect_local_cvmfs || :
 
     max_user_namespaces=$(cat /proc/sys/user/max_user_namespaces)
     [[ $max_user_namespaces -gt 0 ]] && true || false
@@ -178,28 +208,19 @@ perform_system_check() {
     unshare -U true &>/dev/null
     GWMS_IS_UNPRIV_USERNS_ENABLED=$?
 
-    case $GWMS_OS_VERSION_MAJOR in
-        8|9)
-	    dnf list installed fuse3 &>/dev/null
-	    GWMS_IS_FUSE_INSTALLED=$?
+    # uncomment the following line to enable the use of watchdog timer
+    # run_with_timeout -s KILL 0 check_fuse_installed
+    check_fuse_installed
+    GWMS_IS_FUSE_INSTALLED=$?
 
-	    fusermount3 -V &>/dev/null
-	    GWMS_IS_FUSERMOUNT=$?
-	    ;;
-        7)
-	    yum list installed fuse &>/dev/null
-	    GWMS_IS_FUSE_INSTALLED=$?
+    if [[ $GWMS_OS_VERSION_MAJOR -ge 9 ]]; then
+        fusermount3 -V &>/dev/null
+    else
+        fusermount -V &>/dev/null
+    fi
+    GWMS_IS_FUSERMOUNT=$?
 
-	    fusermount -V &>/dev/null
-	    GWMS_IS_FUSERMOUNT=$?
-	    ;;
-        *)
-	    echo "Unrecognized operating system version"
-	    return 1
-	    ;;
-    esac
-
-    getent group fuse | grep $USER &>/dev/null
+    getent group fuse | grep "$USER" &>/dev/null
     GWMS_IS_USR_IN_FUSE_GRP=$?
 
     # set the variable indicating this function has been run
@@ -208,7 +229,7 @@ perform_system_check() {
 
 
 print_os_info () {
-    # Prints operating system and kernel information to STDOUT.
+    # DESCRIPTION: Prints operating system and kernel information to STDERR.
     #
     # INPUT(S): None
     # RETURN(S): Prints a message containing OS and kernel details
@@ -216,12 +237,16 @@ print_os_info () {
     # make sure that perform_system_check has run
     [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
 
-    loginfo "Found $GWMS_OS_NAME [$GWMS_OS_DISTRO] ${GWMS_OS_VERSION_FULL}-${GWMS_OS_KRNL_ARCH} with kernel $GWMS_OS_KRNL_NUM-$GWMS_OS_KRNL_PATCH_NUM"
+    loginfo "Found $GWMS_OS_NAME [$GWMS_OS_DISTRO] ${GWMS_OS_VERSION_FULL}-${GWMS_OS_KRNL_ARCH} with kernel $GWMS_OS_KRNL_VERSION-$GWMS_OS_KRNL_RELEASE"
 }
 
 
 log_all_system_info () {
-    # Prints all the necessary system information stored in common and result variables (see perform_system_check function) for easy debugging. This has been done as collecting information about the worker node can be useful for troubleshooting and gathering stats about what is out there.
+    # DESCRIPTION: Prints all the necessary system information stored in common
+    # and result variables (see perform_system_check function) for easy
+    # debugging. This has been done as collecting information about the worker
+    # node can be useful for troubleshooting and gathering stats about what is
+    # out there.
     #
     # INPUT(S): None
     # RETURN(S): Prints user-friendly messages to STDOUT
@@ -236,10 +261,10 @@ log_all_system_info () {
     loginfo "Operating system name: $GWMS_OS_NAME"
     loginfo "Operating system version: $GWMS_OS_VERSION_FULL"
     loginfo "Kernel architecture: $GWMS_OS_KRNL_ARCH"
-    loginfo "Kernel version: $GWMS_OS_KRNL_VER"
-    loginfo "Kernel major revision: $GWMS_OS_KRNL_MAJOR_REV"
-    loginfo "Kernel minor revision: $GWMS_OS_KRNL_MINOR_REV"
-    loginfo "Kernel patch number: $GWMS_OS_KRNL_PATCH_NUM"
+    loginfo "Kernel major version: $GWMS_OS_KRNL_VER_MAJOR"
+    loginfo "Kernel minor version: $GWMS_OS_KRNL_VER_MINOR"
+    loginfo "Kernel patch revision: $GWMS_OS_KRNL_VER_PATCH"
+    loginfo "Kernel release number: $GWMS_OS_KRNL_RELEASE"
 
     loginfo "CVMFS locally installed: $(print_exit_status $GWMS_IS_CVMFS_LOCAL_MNT)"
     loginfo "Unprivileged user namespaces supported: $(print_exit_status $GWMS_IS_UNPRIV_USERNS_SUPPORTED)"
@@ -252,12 +277,14 @@ log_all_system_info () {
 
 
 mount_cvmfs_repos () {
-    # Mounts all the required and additional CVMFS repositories that would be needed for user jobs.
+    # DESCRIPTION: Mounts all the required and additional CVMFS repositories
+    # that would be needed for user jobs.
     #
     # INPUT(S):
     #    1. cvmfsexec mode (integer)
     #    2. CVMFS configuration repository (string)
     #    3. Additional CVMFS repositories (colon-delimited string)
+    #
     # RETURN(S): Mounts the defined repositories on the worker node filesystem
     local cvmfsexec_mode=$1
     local config_repository=$2
@@ -265,7 +292,7 @@ mount_cvmfs_repos () {
     local config_repo_mntd num_repos_mntd total_num_repos
 
     # at this point in the execution flow, it would have been determined that cvmfs is not locally available
-    # this implies no repositories should have been mounted. However, only config repo will be mounted if in mode 1 or mode 3 by this point
+    # this implies no repositories should have been mounted. However, only config repo will be mounted if in mode 3 by this point.
 
     # finding filesystems via `findmnt` command outputs SOURCE as one of the columns which indicates the source device
     # when using mode 3, SOURCE is "cvmfs2" while mode 1 has SOURCE as "/dev/fuse" and across both modes, filesystem type (FSTYPE) is "fuse"
@@ -323,8 +350,9 @@ mount_cvmfs_repos () {
 
 
 get_mount_point() {
-    # Obtain the mount point information regarding where CVMFS is mounted on demand (when mounted). By default, CVMFS when mounted is at '/cvmfs'.
-    # Otherwise, CVMFS will be mounted at <glidein_work_dir>/.cvmfsexec/dist/cvmfs
+    # Obtain the mount point information regarding where CVMFS is mounted on
+    # demand (when mounted). By default, CVMFS when mounted is at '/cvmfs'.
+    # Otherwise, will be mounted at <glidein_work_dir>/.cvmfsexec/dist/cvmfs
     #
     # INPUT(S): None
     # RETURN(S): None
@@ -342,7 +370,9 @@ get_mount_point() {
 
 
 has_unpriv_userns() {
-    # Checks the status of unprivileged user namespaces being supported and enabled on the worker node.
+    # DESCRIPTION: Checks the status of unprivileged user namespaces being
+    # supported and enabled on the worker node. This is a pre-requisite before
+    # evaluating whether CVMFS can be mounted on the filesystem.
     #
     # INPUT(S): None
     # RETURN(S):
@@ -383,7 +413,13 @@ has_unpriv_userns() {
 
 
 has_fuse() {
-    # Check the status of FUSE configuration being available on the worker node.
+    # DESCRIPTION: Check the status of FUSE configuration being available on
+    # the worker node. This is a pre-requisite before evaluating whether CVMFS
+    # can be mounted on the filesystem.
+    #
+    # FUSE Documentation references:
+    # https://www.kernel.org/doc/html/latest/filesystems/fuse.html
+    # https://en.wikipedia.org/wiki/Filesystem_in_Userspace
     #
     # INPUT(S): None
     # RETURN(S):
@@ -449,12 +485,16 @@ has_fuse() {
 
 
 determine_cvmfsexec_mode_usage() {
-    # Determine the cvmfsexec mode that will be applicable based on the worker node specifications, including the status of unprivileged user namespaces and FUSE configuration.
+    # DESCRIPTION: Determine the cvmfsexec mode that will be applicable based
+    # on the worker node specifications, including the status of unprivileged
+    # user namespaces and FUSE configuration.
     #
     # INPUT(S): None
     # RETURN(S):
-    #	-> true (0) if it is determined that one of the three cvmfsexec modes can be used, false otherwise
-    #	-> an integer indicating the mode of cvmfsexec that will be possible (0, 1, 2, 3) to stdout
+    #	-> true (0) if it is determined that one of the three cvmfsexec modes
+    # can be used, false otherwise
+    #	-> an integer indicating the mode of cvmfsexec that will be possible
+    # (0, 1, 2, 3) to stdout
 
     # make sure that perform_system_check has run
     [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
@@ -508,7 +548,9 @@ determine_cvmfsexec_mode_usage() {
 
 
 setup_cvmfsexec_use() {
-    # Performs the necessary setup prior to using cvmfsexec, if possible. If cvmfsexec can be used in either of the three modes, the specific mode information is written to the glidein configuration file.
+    # DESCRIPTION: Performs the necessary setup prior to using cvmfsexec, if
+    # possible. If cvmfsexec can be used in either of the three modes, the
+    # specific mode information is written to the glidein configuration file.
     #
     # INPUT(S): None
     # RETURN(S): an integer depicting the cvmfsexec mode that is applicable for the worker node.
@@ -530,7 +572,8 @@ setup_cvmfsexec_use() {
 
 
 prepare_for_cvmfs_mount () {
-    # Prepare the necessary items and keep them ready/accessible right before mounting CVMFS on demand.
+    # DESCRIPTION: Prepare the necessary items and keep them ready/accessible
+    # right before mounting CVMFS on demand.
     #
     # INPUT(S): None
     # RETURN(S): None
@@ -598,15 +641,19 @@ prepare_for_cvmfs_mount () {
 
 
 perform_cvmfs_mount () {
-    # Wrapper for performing mounting of CVMFS on demand depending on a few factors.
+    # DESCRIPTION: Wrapper for performing mounting of CVMFS on demand depending
+    # on a few factors.
     #
     # INPUT(S): an integer denoting the selected cvmfsexec mode
     # RETURN(S): to stdout one of the following values:
     #	-> true (0) if CVMFS was mounted successfully without any errors
     #	-> false (1) if CVMFS was not mounted successfully due to errors
-    #   -> false (2) if CVMFS was not mounted because the OS distribution found on the worker node is not rhel-based (only RHEL distros are supported as of now).
+    #   -> false (2) if CVMFS was not mounted because the OS distribution found
+    # on the worker node is not rhel-based (only RHEL distros are supported as
+    # of now).
 
     local mode=$1
+    echo "MYDEBUG: inside perform_cvmfs_mount method in cvmfs_helper_funcs_ff.sh"
     # if not previously performed, assess the worker node based on its existing system configurations and perform next steps to mount CVMFS
     [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
 
@@ -635,6 +682,39 @@ perform_cvmfs_mount () {
 }
 
 
+evaluate_worker_node_config () {
+    # DESCRIPTION: This function evaluates the worker using FUSE and
+    # unpriv. userns configurations to determine whether CVMFS can be
+    # mounted using mountrepo utility.
+    #
+    # INPUT(S): None
+    # RETURN(S): string message whether CVMFS can be mounted
+
+    # perform checks on the worker node that will be used to assess whether CVMFS can be mounted or not
+    [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
+
+    # print/display all information pertaining to system checks performed previously (facilitates easy troubleshooting)
+    log_all_system_info
+
+    # collect info about FUSE configuration on the worker node
+    fuse_config_status=$(has_fuse)
+    # check fuse related configurations in the system (worker node)
+    if [[ "$fuse_config_status" == "yes" ]]; then
+        # success;
+        loginfo "CVMFS can be mounted and unmounted on the worker node using mountrepo/umountrepo utility"
+        return 0
+    elif [[ "$fuse_config_status" == "no" ]]; then
+        # failure;
+        logerror "CVMFS cannot be mounted on the worker node using mountrepo utility"
+        return 1
+    elif [[ "$fuse_config_status" == "error" ]]; then
+        # inconsistent system configurations detected in the worker node
+        logerror "Detected inconsistent configurations on the worker node. mountrepo utility cannot be used!!"
+        return 1
+    fi
+}
+
+
 ############################################################
 #
 # Main
@@ -650,6 +730,10 @@ _main() {
     add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-)
     # shellcheck source=./add_config_line.source
     . "$add_config_line_source"
+
+    # Should be already sourced from glidein_startup.sh
+    # shellcheck source=./glidein_paths.source
+    [[ -n "$GWMS_glidein_paths_source" ]] || . "$(gconfig_get GLIDEIN_PATHS_SOURCE)"
 
     # adding system information about unprivileged user namespaces to the glidein classad
     gconfig_add "HAS_UNPRIVILEGED_USER_NAMESPACES" "$(has_unpriv_userns)"
