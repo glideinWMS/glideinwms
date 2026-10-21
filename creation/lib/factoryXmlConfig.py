@@ -199,7 +199,9 @@ class CvmfsexecDistroElement(xmlConfig.DictElement):
     def setPlatforms(self):
         # TODO: periodically add rhel, suse and other derivatives as supported by cvmfsexec
         # NOTE: Although rhel9-x86_64 is supported, el7 tools might not work with el9 files (as suggested by Dave Dykstra) as of July 03, 2023
-        self["platforms"] = "rhel9-x86_64,rhel8-x86_64,rhel7-x86_64,suse15-x86_64,rhel8-aarch64,rhel8-ppc64le"
+        self["platforms"] = (
+            "rhel10-x86_64,rhel9-x86_64,rhel8-x86_64,rhel7-x86_64,suse15-x86_64,rhel8-aarch64,rhel9-aarch64,suse15-aarch64,rhel8-ppc64le,rhel9-ppc64le"
+        )
 
 
 xmlConfig.register_tag_classes({"cvmfsexec_distro": CvmfsexecDistroElement})
