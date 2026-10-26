@@ -16,9 +16,15 @@ import sys
 import tempfile
 import traceback
 
-from glideinwms.factory import glideFactoryConfig, glideFactoryCredentials, glideFactoryDowntimeLib
+from glideinwms.factory import (
+    glideFactoryConfig,
+    glideFactoryCredentials,
+    glideFactoryDowntimeLib,
+    glideFactoryLib,
+    glideFactoryLogParser,
+    glideFactoryMonitoring,
+)
 from glideinwms.factory import glideFactoryInterface as gfi
-from glideinwms.factory import glideFactoryLib, glideFactoryLogParser, glideFactoryMonitoring
 from glideinwms.lib import classadSupport, cleanupSupport, defaults, glideinWMSVersion, logSupport, token_util, util
 from glideinwms.lib.util import chmod
 
