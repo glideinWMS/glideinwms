@@ -330,19 +330,13 @@ USAGE:
     ######################################################################
 
     if filter_frontend == 0:
-        print(
-            """
+        print("""
 Status Attributes (Clients) analysis for All Entries - %s
-"""
-            % datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S")
-        )
+""" % datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S"))
     else:
-        print(
-            """
+        print("""
 Status Attributes (Clients) analysis for %s - %s
-"""
-            % (filter_frontend, datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S"))
-        )
+""" % (filter_frontend, datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S")))
 
     period_data = {}
     frontend_data = {}
@@ -447,23 +441,17 @@ RunDiff (Running-ClientRegistered): %s
     period = int(x) * 3600
 
     if filter_frontend == 0 and frontend_mode == 0:
-        print(
-            """
+        print("""
 ---------------------------------------
 ---------------------------------------
-Per Entry (all frontends) stats for the past %s hours.\n"""
-            % x
-        )
+Per Entry (all frontends) stats for the past %s hours.\n""" % x)
         list_print("", zero_supp, entry_data_all_frontends[period], sorting, attr_list, sort_attribute, 1)
 
     if frontend_mode == 0:
-        print(
-            """
+        print("""
 ---------------------------------------
 ---------------------------------------
-Per Entry (per frontend) stats for the past %s hours.\n"""
-            % x
-        )
+Per Entry (per frontend) stats for the past %s hours.\n""" % x)
 
     if frontend_mode == 0:
         for frontend, entries in data[period].items():
@@ -472,21 +460,17 @@ Per Entry (per frontend) stats for the past %s hours.\n"""
     else:  # print frontend like entries, and omit entries
         units = ["Slots", "Seconds", "Hours"]
         divs = [period, 1.0, 3600.0]
-        print(
-            """
+        print("""
 ---------------------------------------
 ---------------------------------------
-Frontend stats for the past %s hours, units = %s.\n"""
-            % (x, units[frontend_mode - 1])
-        )
+Frontend stats for the past %s hours, units = %s.\n""" % (x, units[frontend_mode - 1]))
         list_print("", zero_supp, frontend_data[period], sorting, attr_list, sort_attribute, divs[frontend_mode - 1])
 
     ################################################################################
     #    Print Key
     ################################################################################
 
-    print(
-        """-----------------------------------
+    print("""-----------------------------------
 LEGEND:
 
 K = x   1,000
@@ -503,8 +487,7 @@ RunDiff - StatusRunning - ClientRegistered (ClientGlideTotal)
 %UM - Percent Unmatched (Unmatched/Registered)
 %RD - Percent RunDiff over Running (RunDiff/StatusRunning)
 -------------------------------------
-        \n"""
-    )
+        \n""")
 
 
 if __name__ == "__main__":
