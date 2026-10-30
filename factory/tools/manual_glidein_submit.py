@@ -133,7 +133,7 @@ def get_reqname(collector, fe_name, group_name, entry_name):
     Raises:
         SystemExit: If no matching frontend request is found.
     """
-    constraint = 'MyType=="glideclient" && regexp("^{}@.*$", AuthenticatedIdentity) && regexp("^{}@.*$", ReqName) && GroupName=="{}" && GlideinEncParamSubmitProxy isnt undefined'.format(
+    constraint = 'MyType=="glideclient" && regexp("^{}@.*$", AuthenticatedIdentity) && regexp("^{}@.*$", ReqName) && GroupName=="{}" && (GlideinEncParamSubmitProxy isnt undefined || GlideinEncParamScitokenId isnt undefined)'.format(
         fe_name,
         entry_name,
         group_name,
@@ -209,7 +209,13 @@ def main():
         security_class = sym_key_obj.decrypt_hex(ad_gc["GlideinEncParamSecurityClass"]).decode(
             "utf8"
         )  # GlideinSecurityClass
-        proxyid = sym_key_obj.decrypt_hex(ad_gc["GlideinEncParamSubmitProxy"]).decode("utf8")
+        # Use the request's Proxy as the credential by default. If it's not available, fallback to use the ScitokenId
+        proxyid = None
+        if "GlideinEncParamSubmitProxy" in ad_gc:
+            proxyid = sym_key_obj.decrypt_hex(ad_gc["GlideinEncParamSubmitProxy"]).decode("utf8")
+            credential_id = proxyid
+        else:
+            credential_id = sym_key_obj.decrypt_hex(ad_gc["GlideinEncParamScitokenId"]).decode("utf8")
         user_name = frontend_descript.get_username(frontend_sec_name, security_class)
 
         # Prepare some values that ends up in the Arguments classad
@@ -236,21 +242,25 @@ def main():
 
         # Create the submit_credentials object
         credentials = SubmitCredentials(user_name, security_class)
-        credentials.id = proxyid
+        credentials.id = credential_id
         credentials.cred_dir = conf.get_client_proxy_dirs()[user_name]
-        credfname = "{}_{}".format(ad_gc["ClientName"], proxyid)
-        if not credentials.add_security_credential("SubmitProxy", credfname):
-            fname = os.path.join(credentials.cred_dir, "credential_%s" % credfname)
-            logging.info(
-                (
-                    "Problems getting credential file using credentials.add_security_credential."
-                    " Check file %s permissions"
-                ),
-                fname,
-            )
+        if proxyid is not None:
+            credfname = "{}_{}".format(ad_gc["ClientName"], proxyid)
+            if not credentials.add_security_credential("SubmitProxy", credfname):
+                fname = os.path.join(credentials.cred_dir, "credential_%s" % credfname)
+                logging.info(
+                    (
+                        "Problems getting credential file using credentials.add_security_credential."
+                        " Check file %s permissions"
+                    ),
+                    fname,
+                )
         scitoken = "credential_{}_{}.scitoken".format(ad_gc["ClientName"], entry_name)
         scitoken_file = os.path.join(credentials.cred_dir, scitoken)
         if not os.path.exists(scitoken_file):
+            if proxyid is None:
+                logging.error("No SubmitProxy in the request and cannot find scitoken file %s" % scitoken_file)
+                return 1
             logging.warning("Cannot find scitoken file %s" % scitoken_file)
         elif not credentials.add_identity_credential("frontend_scitoken", scitoken_file):
             logging.warning(
