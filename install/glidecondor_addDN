@@ -23,8 +23,7 @@ class ArgError(RuntimeError):
 
 
 def usage():
-    print(
-        """Usage:
+    print("""Usage:
  glidecondor_addDN [options] [-daemon comment] DN|certfile user
     - Add a single DN
 or
@@ -38,8 +37,7 @@ where [options] is any of the following:
  -allow-others   - allow for previously defined DNs
  -allow-alterate - allow to use alternate config files (e.g. condor_config.local)
  -m <fname>      - Use this file as the mapfile, instead of the standard one
- -d <fname>      - Use this file as the DNS config file, instead of the standard one"""
-    )
+ -d <fname>      - Use this file as the DNS config file, instead of the standard one""")
     return
 
 
