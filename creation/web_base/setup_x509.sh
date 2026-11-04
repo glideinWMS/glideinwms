@@ -316,6 +316,8 @@ copy_idtokens() {
     for i in *.idtoken; do
         [[ -e "$i" ]] || continue  # protect against nullglob (no match)
         if cp "$i" "$to_dir/$i"; then
+            # only the owner can only read (or go-rwx)
+            chmod 400 "$to_dir/$i"
             if [[ "$i" == ce_*.idtoken ]]; then
                 warn "Copied CE collector token '${i}' to '${to_dir}/'"
                 (( cred_cecoll_ctr++ ))
