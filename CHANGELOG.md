@@ -13,10 +13,12 @@ This release includes all features and fixes in 3.10.19
 -   Added snapshot to `get_request_credentials()` in credential plugins to allow for targeted dynamic request credentials (PR #640)
 -   Added new `debug_str()` method, new log messages, and improved docstrings to help with credentials logging and troubleshooting (PR #706)
 -   Improved generators context validation and generators code documentation (PR #711, PR #720)
--   Added the keyword "any_trust_domain" to use a credential no matter the trust_domain in the Factory configuration (PR #721)
+-   Added the keyword "any" (initially "any_trust_domain") to use a credential no matter the trust_domain in the Factory configuration (PR #721, PR #734)
 -   Improved IdTokenGenerator so it can be used for custom callback credentials for all Factory Entries (PR #721)
 
 ### Changed defaults / behaviours
+
+-   A credential trust_domain value "any" (case-insensitive) will match any requested trust domain
 
 ### Deprecated / removed options and commands
 
@@ -33,6 +35,7 @@ This release includes all features and fixes in 3.10.19
 -   Select callback credentials with the correct trust_domain and improved credential selection to use the trust_domain as optional constraint (PR #721)
 -   Fixed redundant file extension for credentials cached in the Factory (Issue #685, PR #723, PR #729)
 -   Standardized all token read/writes to add a newline character (`\n`) when writing token files, and strip `\n` when reading token files (Issue #639, PR #716, PR #722, PR ##706)
+-   Fixed request credentials match that was not considering the trust_domain (PR #734)
 
 ### Testing / Development
 

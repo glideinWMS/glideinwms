@@ -157,6 +157,30 @@ class CredentialPurpose(enum.Enum):
         return f"{self.__class__.__name__}.{self.name}"
 
 
+def match_trust_domain(first: Union[str, None], second: Union[str, None]) -> bool:
+    """Two trust domain match if they have the same value or any of the two is "any".
+
+    Trust domains are case-insensitive.
+    This function is normally used for filtering. For consistency with GWMS <=3.10,
+    and undefined or None value means not to filter for trust domain, so the match is True.
+    Trust domains normally come from configuration, so they are initialized to a string.
+    "grid" is the default value in the configuration.
+    No default in this match function, both parameters must be provided.
+
+    Args:
+        first (str): The first trust domain.
+        second (str): The second trust domain.
+
+    Returns:
+        bool: True if the trust domains match
+    """
+    if first is None or second is None:
+        return True
+    first = first.lower()
+    second = second.lower()
+    return first == "any" or second == "any" or first == second
+
+
 class Credential(ABC, Generic[T]):
     """Represents a credential used for authentication or authorization purposes.
 
@@ -683,7 +707,7 @@ class CredentialDict(dict):
 
         Args:
             credential (Credential): The credential object to add.
-            id (str, optional): The ID to use as the key in the dictionary.
+            credential_id (str, optional): The ID to use as the key in the dictionary.
                 If not provided, the credential's ID will be used.
         """
         if not isinstance(credential, Credential):
