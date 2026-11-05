@@ -14,7 +14,7 @@
 #	will be displayed.
 #
 # Dependencies:
-#	cvmfs_helper_funcs.sh
+#	cvmfs_helper_funcs_ff.sh
 #
 # Author:
 #       Namratha Urs
@@ -48,8 +48,8 @@ work_dir=$(gconfig_get GLIDEIN_WORK_DIR "$glidein_config")
 # $PWD=/tmp/glide_xxx and every path is referenced with respect to $PWD
 
 # source the helper script
-# TODO: Is this file somewhere in the source tree? use: # shellcheck source=./cvmfs_helper_funcs.sh
-. $work_dir/cvmfs_helper_funcs.sh
+# TODO: Is this file somewhere in the source tree? use: # shellcheck source=./cvmfs_helper_funcs_ff.sh
+. $work_dir/cvmfs_helper_funcs_ff.sh
 
 # get the cvmfsexec directory location
 glidein_cvmfsexec_dir=$(gconfig_get CVMFSEXEC_DIR "$glidein_config")
@@ -61,12 +61,17 @@ glidein_cvmfsexec_dir=$(gconfig_get CVMFSEXEC_DIR "$glidein_config")
 loginfo "..."
 loginfo  "Start log for unmounting CVMFS"
 
-# check if CVMFS is locally mounted on the worker node
 detect_local_cvmfs
-
-if [[ $GWMS_IS_CVMFS_MNT -eq 0 ]]; then
+if [[ $GWMS_IS_CVMFS_LOCAL_MNT -eq 0 ]]; then
     # CVMFS is mounted locally in the filesystem; DO NOT UNMOUNT!
     loginfo "Skipping unmounting of CVMFS as it already is locally provisioned in the node!"
+    "$error_gen" -ok "$(basename $0)" "umnt_msg2" "CVMFS is locally mounted on the node; skipping cleanup."
+    exit 0
+fi
+
+cvmfs_ondemand=$(gconfig_get GWMS_IS_CVMFS "$glidein_config")
+if [[ "$cvmfs_ondemand" == "no" ]]; then
+    loginfo "CVMFS was not mounted on demand; skipping cleanup"
     "$error_gen" -ok "$(basename $0)" "umnt_msg2" "CVMFS is locally mounted on the node; skipping cleanup."
     exit 0
 fi
@@ -86,7 +91,7 @@ cat /proc/$$/mounts | grep /dev/fuse &> /dev/null && logerror "One or more CVMFS
 
 "$error_gen" -ok "$(basename $0)" "umnt_msg3" "Glidein-based CVMFS unmount was successful."
 # returning 0 to indicate the unmount process was successful
-true
+exit 0
 
 ########################################################################################################
 # End: main program

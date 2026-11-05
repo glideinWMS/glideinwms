@@ -7,11 +7,44 @@ is_cvmfs_locally_mounted() {
     # checking if CVMFS is natively available
     variables_reset
     detect_local_cvmfs
+    gconfig_add GWMS_IS_CVMFS_LOCAL_MNT $GWMS_IS_CVMFS_LOCAL_MNT
     if [[ $GWMS_IS_CVMFS_LOCAL_MNT -eq 0 ]]; then
         # if it is so...
         return 0
     fi
     return 1
+}
+
+combine_requirements() {
+    frontend_req=$1
+    factory_req=$2
+    # combine the Frontend and Factory requirements for using CVMFS
+    res=FAIL
+    case $frontend_req in
+        0)
+            if [[ "$factory_req" = "NEVER" || "$factory_req" = "PREFERRED" ]]; then
+                res_str="VO does not mandate the use of CVMFS"
+                [[ "$factory_req" = "NEVER" ]] && res=NEVER || res=PREFERRED
+                echo "$res,$res_str"
+                return 0
+            fi
+            res_str="Factory requires glidein to use CVMFS. VO is against."
+            res=REQUIRED
+            ;;
+        1)
+            if [[ "$factory_req" = "NEVER" ]]; then
+                res_str="VO mandates the use of CVMFS but site requires not to use it"
+                echo "FAIL,$res_str"
+                return 1
+            fi
+            res_str="VO mandates the use of CVMFS."
+            res=REQUIRED
+            ;;
+    esac
+
+    # Return RESULT value and explanation
+    echo "$res,$res_str"
+    return 0
 }
 
 ################################## main #################################
@@ -27,84 +60,86 @@ add_config_line_source=$(grep -m1 '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" |
 # get the glidein work directory location from glidein_config file
 [[ -e "$glidein_config" ]] && error_gen=$(gconfig_get ERROR_GEN_PATH "$glidein_config")
 
-[[ -e "$glidein_config" ]] && work_dir=$(gconfig_get GLIDEIN_WORK_DIR "$1")
+echo "$(date) Starting cvmfs_setup_ff.sh. Importing cvmfs_helper_funcs_ff.sh."
+
+[[ -e "$glidein_config" ]] && work_dir=$(gconfig_get GLIDEIN_WORK_DIR "$glidein_config")
 # shellcheck source=./cvmfs_helper_funcs_ff.sh
 . "$work_dir"/cvmfs_helper_funcs_ff.sh
 
-# get the use_cvmfs attribute value; passed as one of the frontend attributes
-use_cvmfs=$(gconfig_get GLIDEIN_USE_CVMFS "$1")
+# get the Frontend requirement for CVMFS
+use_cvmfs=$(gconfig_get GLIDEIN_USE_CVMFS "$glidein_config")
 if [[ -z $use_cvmfs ]]; then
-    loginfo "CVMFS not requested (GLIDEIN_USE_CVMFS not used); skipping CVMFS setup."
-    "$error_gen" -ok "$(basename $0)" "mnt_msg1" "CVMFS not requested; skipping setup."
-    exit 0
-elif ! [[ $use_cvmfs =~ ^[0-1]$ ]]; then
-    # TODO: add this check at the xml level maybe?
-    logerror "Invalid attribute value: GLIDEIN_USE_CVMFS = ${use_cvmfs}"
-    "$error_gen" -error "$(basename $0)" "mnt_msg2" "Invalid attribute value: GLIDEIN_USE_CVMFS = ${use_cvmfs}"
-    exit 1
+    loginfo "GLIDEIN_USE_CVMFS not configured. Defaulting to false (0)."
+    use_cvmfs=0
 fi
 
-# get the CVMFS requirement setting; passed as one of the factory attributes
-glidein_cvmfs_require=$(gconfig_get GLIDEIN_CVMFS_REQUIRE "$glidein_config")
-glidein_cvmfs_require=${glidein_cvmfs_require,,}
-# check whether glidein_cvmfs_require value is valid
-# TODO: add this check at the xml level perhaps?
-if ! [[ "${glidein_cvmfs_require}" =~ ^(required|preferred|never)$ ]]; then
-    logerror "Invalid attribute value: GLIDEIN_CVMFS_REQUIRE = ${glidein_cvmfs_require}"
-    "$error_gen" -error "$(basename $0)" "mnt_msg3" "Invalid attribute value: GLIDEIN_CVMFS_REQUIRE = ${glidein_cvmfs_require}"
-    exit 1
+# get the Factory requirement for CVMFS
+require_cvmfs=$(gconfig_get GLIDEIN_CVMFS_REQUIRE "$glidein_config")
+if [[ -z $require_cvmfs ]]; then
+    loginfo "GLIDEIN_CVMFS_REQUIRE not configured. Defaulting to PREFERRED."
+    require_cvmfs="PREFERRED"
 fi
+# uncomment the following if need to convert to lowercase
+# require_cvmfs=${require_cvmfs,,}
 
-if [[ $use_cvmfs -ne 1 ]]; then
-    if ! [[ "${glidein_cvmfs_require}" =~ ^(required|preferred)$ ]]; then
-        loginfo "GLIDEIN_USE_CVMFS: $use_cvmfs, GLIDEIN_CVMFS_REQUIRE: $glidein_cvmfs_require; skipping related setup."
-        "$error_gen" -ok "$(basename $0)" "mnt_msg4" "CVMFS not used. Skipping related setup."
-        exit 0
-    fi
-else
-    # use_cvmfs is set to true, then do the following
-    if [[ "${glidein_cvmfs_require}" == "never" ]]; then
-        loginfo "CVMFS to be used (GLIDEIN_USE_CVMFS: $use_cvmfs) but GLIDEIN_CVMFS_REQUIRE set to $glidein_cvmfs_require; skipping related setup."
-        "$error_gen" -ok "$(basename $0)" "mnt_msg5" "CVMFS to be used but GLIDEIN_CVMFS_REQUIRE set to ${glidein_cvmfs_require}"
-        exit 0
-    fi
-fi
+loginfo "Factory's desire to use CVMFS: $require_cvmfs"
+loginfo "VO's desire to use CVMFS:      $use_cvmfs"
+gwms_cvmfs=$(combine_requirements $use_cvmfs $require_cvmfs)
+gwms_cvmfs_ec=$?
+gwms_cvmfs_status="${gwms_cvmfs%%,*}"
+gwms_cvmfs_str="${gwms_cvmfs#*,}"
+logdebug "Combining VO ($use_cvmfs) and Entry ($require_cvmfs) requirements: $gwms_cvmfs_ec, $gwms_cvmfs_status, $gwms_cvmfs_str"
+gconfig_add GWMS_CVMFS_STATUS $gwms_cvmfs_status
 
-# following block runs attempting to add CVMFS when either:
-# 1. use_cvmfs is false (0) and glidein_cvmfs_require is required|preferred (OR)
-# 2. use_cvmfs is true (1)
+case "${gwms_cvmfs_status}" in
+    FAIL)
+        "$error_gen" -error "$(basename $0)" "combined_requirement" "${gwms_cvmfs_str}"
+        return 1
+        ;;
+    NEVER)
+        # No attempt to mount CVMFS
+        loginfo "Not mounting CVMFS; continuing without CVMFS."
+        return 0
+        ;;
+    PREFERRED|REQUIRED)
+        # OK to continue mounting CVMFS
+        ;;
+esac
+
+# Using CVMFS. After this point $gwms_cvmfs_status is PREFERRED|REQUIRED, all other would have returned to the caller (i.e. glidein_startup.sh)
+
+# first, check whether a native installation of CVMFS is available...
 if is_cvmfs_locally_mounted; then
-    loginfo "CVMFS found locally; skipping CVMFS setup via cvmfsexec."
-    loginfo "Continuing to execute the rest of the glidein setup..."
-    "$error_gen" -ok "$(basename $0)" "mnt_msg6" "CVMFS is natively available on the node; skipping setup using cvmfsexec utilities."
-    exit 0
+    loginfo "CVMFS found locally; using native CVMFS"
+    "$error_gen" -ok "$(basename $0)" "mnt_msg1" "CVMFS natively available on the node; not using cvmfsexec utilities."
+    return 0
 fi
-# if native CVMFS not there, do the following
+
+# if native installation not available, use cvmfsexec to mount CVMFS on demand
 loginfo "Starting on-demand CVMFS setup..."
 # make sure that perform_system_check has run
 [[ -z "${GWMS_SYSTEM_CHECK}" ]] && perform_system_check
 cvmfsexec_mode=$(setup_cvmfsexec_use)
 if ! [[ $cvmfsexec_mode =~ ^[1-3]$ ]]; then
-    logwarn "cvmfsexec cannot be used in any of the three modes"
-    if [[ $use_cvmfs -eq 1 || "${glidein_cvmfs_require}" == "required" ]]; then
-        # when (1) use_cvmfs is true (1), or (2) use_cvmfs is false (0) and glidein_cvmfs_require is set to required
-        logerror "GLIDEIN_USE_CVMFS set to $use_cvmfs but GLIDEIN_CVMFS_REQUIRE is $glidein_cvmfs_require; aborting glidein setup."
-        "$error_gen" -error "$(basename $0)" "mnt_msg7" "cvmfsexec cannot be used, therefore aborting (GLIDEIN_USE_CVMFS: $use_cvmfs, GLIDEIN_CVMFS_REQUIRE: $glidein_cvmfs_require)"
-        exit 1
+    loginfo "cvmfsexec cannot be used in any of the three modes"
+    if [[ "$gwms_cvmfs_status" = "REQUIRED" ]]; then
+        logerror "Cannot mount CVMFS as cvmfsexec utilities cannot be used; aborting glidein setup."
+        "$error_gen" -error "$(basename $0)" "mnt_msg2" "CVMFS cannot be mounted because cvmfsexec utilities cannot be used, aborting glidein startup (CVMFS $gwms_cvmfs_status)."
+        return 1
+    else
+        # when gwms_cvmfs_status is preferred => user jobs do not require CVMFS but the site prefers CVMFS (not required)
+        logwarn "Cannot mount CVMFS as cvmfsexec utilities cannot be used; continuing without CVMFS."
+        "$error_gen" -ok "$(basename $0)" "mnt_msg3" "CVMFS cannot be mounted because cvmfsexec utilities cannot be used, continuing glidein startup(CVMFS $gwms_cvmfs_status)."
+        return 0
     fi
-    # when use_cvmfs is 0 and glidein_cvmfs_require is set to preferred, just warn the user
-    logwarn "GLIDEIN_USE_CVMFS set to $use_cvmfs and GLIDEIN_CVMFS_REQUIRE is $glidein_cvmfs_require; continuing glidein setup (without CVMFS)..."
-    "$error_gen" -ok "$(basename $0)" "mnt_msg8" "cvmfsexec cannot be used but still continuing (GLIDEIN_USE_CVMFS: $use_cvmfs, GLIDEIN_CVMFS_REQUIRE: $glidein_cvmfs_require)"
-    exit 0
 fi
 
-loginfo "GLIDEIN_USE_CVMFS: $use_cvmfs, GLIDEIN_CVMFS_REQUIRE: $glidein_cvmfs_require"
 loginfo "cvmfsexec mode $cvmfsexec_mode is being used..."
-# the following is run if cvmfsexec cannot be used in mode 3/2
-perform_cvmfs_mount $cvmfsexec_mode $glidein_cvmfs_require
-if [[ $? -eq 0 ]]; then
-    # the following is run if cvmfsexec can be used in mode 3/2
+perform_cvmfs_mount $cvmfsexec_mode $gwms_cvmfs_status
+ret_val=$?
+if [[ $ret_val -eq 0 ]]; then
     if [[ $cvmfsexec_mode -eq 3 || $cvmfsexec_mode -eq 2 ]]; then
+        # the following is run if cvmfsexec can be used in mode 3/2
         # before exiting out of this block, do two things...
         # one, set a variable indicating this script has been executed once
         gwms_cvmfs_reexec="yes"
@@ -131,30 +166,30 @@ if [[ $? -eq 0 ]]; then
     # exporting the variables as an environment variable for use in glidein reinvocation
     export GWMS_CVMFS_REEXEC=$gwms_cvmfs_reexec
     export GWMS_CVMFSEXEC_MODE=$cvmfsexec_mode
-    loginfo "Proceeding to complete the remainder of glidein setup..."
-    "$error_gen" -ok "$(basename $0)" "mnt_msg10" "CVMFS mounted successfully and is now available."
-    exit 0
-elif [[ $? -eq 1 ]]; then
-    # if exit status is 1
-    if [[ "${glidein_cvmfs_require}" == "required" ]]; then
-        # if mount CVMFS is not successful, report an error and exit with failure exit code
-        logerror "Unable to mount CVMFS on worker node; aborting glidein setup (CVMFS ${glidein_cvmfs_require})"
-        "$error_gen" -error "$(basename $0)" "WN_Resource" "CVMFS required but unable to mount CVMFS on the worker node."
-        exit 1
+    loginfo "CVMFS mounted successfully and is now available."
+    "$error_gen" -ok "$(basename $0)" "mnt_msg4" "CVMFS successfully mounted and available."
+    return 0
+elif [[ $ret_val -eq 1 ]]; then
+    # if return value is 1 (something went wrong during perform_cvmfs_mount)
+    if [[ "${gwms_cvmfs_status}" == "REQUIRED" ]]; then
+        # if mount CVMFS is not successful, report an error and return with failure exit code
+        logerror "Unable to mount CVMFS on worker node; aborting glidein setup (CVMFS ${gwms_cvmfs_status})"
+        "$error_gen" -error "$(basename $0)" "WN_Resource" "CVMFS required but unable to mount CVMFS on the worker node (CVMFS ${gwms_cvmfs_status})."
+        return 1
     fi
-    # if cvmfs_required is set to preferred and mount CVMFS is not successful, report a warning/error in the logs and continue with glidein startup
-    logwarn "Unable to mount CVMFS on worker node; continuing without CVMFS (CVMFS ${glidein_cvmfs_require})"
-    "$error_gen" -ok "$(basename $0)" "WN_Resource" "CVMFS preferred but could not be mounted. Continuing without CVMFS."
-    exit 0
+    # if gwms_cvmfs_status is set to preferred and mount CVMFS is not successful, report a warning/error in the logs and continue with glidein startup
+    logwarn "Unable to mount CVMFS on worker node; continuing without CVMFS (CVMFS ${gwms_cvmfs_status})"
+    "$error_gen" -ok "$(basename $0)" "WN_Resource" "CVMFS preferred but could not be mounted. Continuing without CVMFS (CVMFS ${gwms_cvmfs_status})."
+    return 0
 else
-    # if exit status is 2
-    if [[ $glidein_cvmfs_require == "required" ]]; then
-        logerror "Non-RHEL OS found but not supported; aborting glidein setup! (CVMFS ${glidein_cvmfs_require})"
-        "$error_gen" -error "$(basename $0)" "mnt_msg13" "Non-RHEL OS found but not supported; aborting glidein startup"
-        exit 1
+    # if return value is 2
+    if [[ "$gwms_cvmfs_status" == "REQUIRED" ]]; then
+        logerror "Non-RHEL OS found but not supported; aborting glidein setup! (CVMFS ${gwms_cvmfs_status})"
+        "$error_gen" -error "$(basename $0)" "mnt_msg13" "Non-RHEL OS found but not supported; aborting glidein startup (CVMFS ${gwms_cvmfs_status})."
+        return 1
     fi
     # if CVMFS is not required, display operating system information and a user-friendly message
-    loginfo "Found non-RHEL OS which is not supported; continuing without CVMFS (CVMFS ${glidein_cvmfs_require})"
-    "$error_gen" -ok "$(basename $0)" "mnt_msg14" "Non-RHEL OS found but not supported; continuing without CVMFS setup"
-    exit 0
+    logwarn "Found non-RHEL OS which is not supported; continuing without CVMFS (CVMFS ${gwms_cvmfs_status})"
+    "$error_gen" -ok "$(basename $0)" "mnt_msg14" "Non-RHEL OS found but not supported; continuing without CVMFS (CVMFS ${gwms_cvmfs_status})."
+    return 0
 fi

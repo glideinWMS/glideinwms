@@ -1,3 +1,6 @@
 VAR1 test
 ERROR_GEN_PATH /bin/echo
 ADD_CONFIG_LINE_SOURCE fixtures/add_config_line.source
+CONDOR_VARS_FILE fixtures/condor_vars
+CVMFSEXEC_DIR fixtures/cvmfsexec
+CVMFS_SRC default

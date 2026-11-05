@@ -13,6 +13,7 @@ import xmlrunner
 
 from glideinwms.creation.lib import xslt
 from glideinwms.creation.lib.cvWParamDict import (
+    apply_cvmfs_policy,
     apply_group_singularity_policy,
     apply_multicore_policy,
     derive_and_validate_match,
@@ -76,6 +77,10 @@ class TestFrontendMainDicts(unittest.TestCase):
     @unittest.skip("hmm")
     def test_apply_group_singularity_policy(self):
         apply_group_singularity_policy(self.fed.dicts["group_descript"], self.sub_params, self.params)
+
+    @unittest.skip("hmm")
+    def test_apply_cvmfs_policy(self):
+        apply_cvmfs_policy(self.fed.dicts["group_descript"], self.sub_params, self.params)
 
     @unittest.skip("hmm")
     def test_apply_multicore_policy(self):
