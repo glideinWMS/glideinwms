@@ -19,6 +19,7 @@ from glideinwms.lib.credentials import (
     CredentialError,
     CredentialPairType,
     CredentialType,
+    match_trust_domain,
     Parameter,
     ParameterDict,
     ParameterError,
@@ -76,7 +77,7 @@ class SecurityBundle:
             cred_type = credential_type_from_string(element_descript["ProxyTypes"].get(path))
             purpose = element_descript["CredentialPurposes"].get(path)
             secret = element_descript["CredentialSecrets"].get(path, None)
-            trust_domain = element_descript["ProxyTrustDomains"].get(path, "None")
+            trust_domain = element_descript["ProxyTrustDomains"].get(path, None)
             security_class = element_descript["ProxySecurityClasses"].get(path, "grid")
             creation_script = element_descript["CredentialCreationScripts"].get(path, None)
             minimum_lifetime = element_descript["CredentialMinimumLifetime"].get(path, None)
@@ -304,7 +305,22 @@ class AuthenticationSet:
 
 
 class AuthenticationMethod:
-    """Represents an authentication method used for authenticating users."""
+    """Represents an authentication method used for authenticating users.
+
+    It is a collection of credential types or parameter names that are used when submitting Glideins to a resource (Entry).
+    It is the `auth_method` attribute in the Factory Entry configuration.
+
+    It is a list of authentication groups (lists of credential types or parameter names)
+    As string, it is a semicolon-separated list of credential groups (comma-separated lists of credential types or parameter names)
+    To be able to submit Glideins to the Entry at least one matching credential/parameter for each credentials group
+    must be available in the credentials bundle (the credentials and parameters defined in the client)
+
+    It must be used to specify all request credentials and parameters. It can be used to specify also payload
+    credentials (if required). No need to add the callback credential.
+    The first credential is used as request credential determining the Glidein submission.
+
+    E.g. "scitoken, grid_proxy; project_id" will match a bundle that must have scitoken or grid_proxy and project_id
+    """
 
     def __init__(self, auth_method: str):
         """Initialize the Credentials object.
@@ -359,11 +375,22 @@ class AuthenticationMethod:
                     raise CredentialError(f"Unknown authentication requirement: {option}")
                 self._requirements.append(options)
 
-    def match(self, security_bundle: SecurityBundle) -> Optional[AuthenticationSet]:
+    def match(self, security_bundle: SecurityBundle, trust_domain: Optional[str] = None) -> Optional[AuthenticationSet]:
         """Matches the authentication method to a security bundle and returns the authentication set if the requirements are met.
+
+        The authentication method is a list of authentication groups (list of credential types and parameter names).
+        The security bundle is a list of credentials or parameters.
+        There is a match when for each authentication group there is at least one valid credential or parameter in
+        the bundle matching the type or name. If the trust domain is provided, only the credentials in the bundle
+        matching the trust domain are considered for the match.
+
+        Note that using as parameter name the same string as a credential (or credential pair) type name will
+        cause troubles in the match. The authentication method will consider the credential type and ignore the
+        parameter name. The match though may happen with both.
 
         Args:
             security_bundle (SecurityBundle): The security bundle to match.
+            trust_domain (str, optional): The trust domain to match, if provided.
 
         Returns:
             Optional[AuthenticationSet]: The authentication set if the security bundle matches the requirements, otherwise None.
@@ -373,7 +400,16 @@ class AuthenticationMethod:
             return AuthenticationSet([])
 
         auth_set = []
-        sec_items = {credential.cred_type for credential in security_bundle.credentials.values() if credential.valid}
+        if trust_domain is not None:
+            sec_items = {
+                credential.cred_type
+                for credential in security_bundle.credentials.values()
+                if credential.valid and match_trust_domain(credential.trust_domain, trust_domain)
+            }
+        else:
+            sec_items = {
+                credential.cred_type for credential in security_bundle.credentials.values() if credential.valid
+            }
         sec_items.update(security_bundle.parameters.keys())
         for group in self._requirements:
             # At least one group option must be in sec_items (select the first one)

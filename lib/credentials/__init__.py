@@ -6,6 +6,7 @@
 # flake8: noqa: F401
 
 from .credentials import (
+    ANY_TRUST_DOMAIN,
     compress_credential,
     create_credential,
     create_credential_pair,
@@ -18,6 +19,7 @@ from .credentials import (
     CredentialPairType,
     CredentialPurpose,
     CredentialType,
+    match_trust_domain,
     RequestCredential,
     standard_path,
 )

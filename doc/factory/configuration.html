@@ -1159,7 +1159,10 @@ SPDX-License-Identifier: Apache-2.0
                 entries for two different clouds with the authentication method
                 of "key-pair". This shows allows the Frontend to map a key pair
                 to a particular cloud. Or in BOSCO you can use it to select the
-                key to use with a specific cluster.
+                key to use with a specific cluster. A credential can be used
+                with this entry if the trust domain matches (case-insensitive
+                string matching) or either trust domains (credential or entry)
+                are set to the string "any".
               </li>
               <li>
                 <div class="xml">
