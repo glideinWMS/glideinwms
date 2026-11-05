@@ -18,6 +18,7 @@ from .credentials import (
     CredentialPairType,
     CredentialPurpose,
     CredentialType,
+    match_trust_domain,
     RequestCredential,
     standard_path,
 )

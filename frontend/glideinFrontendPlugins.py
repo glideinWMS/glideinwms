@@ -22,6 +22,7 @@ from glideinwms.lib.credentials import (
     CredentialType,
     DynamicCredential,
     DynamicParameter,
+    match_trust_domain,
     Parameter,
     ParameterName,
     RequestCredential,
@@ -170,9 +171,9 @@ class CredentialsPlugin(ABC):
     ) -> List[Credential]:
         """Get the credentials, optionally restricting the selection with type, purpose, trust_domain, and snapshot
 
-        If the credential trust_domain is "any_trust_domain", then the credential will always be returned, no matter
-        the requested trust_domain, otherwise the strings must match.
-        The credential types must match with a supported auth_metod.
+        If the credential trust_domain is "any" (case-insensitive), then the credential will always be returned,
+        no matter the requested trust_domain, otherwise the strings must match.
+        The credential types must match with a supported auth_method.
 
         Args:
             credential_type (CredentialType, List(CredentialType)): the credential type must match if one or more are provided
@@ -238,9 +239,9 @@ class CredentialsBasic(CredentialsPlugin):
     ) -> List[Credential]:
         """Get the credentials, optionally restricting the selection with type, purpose, trust_domain, and snapshot
 
-        If the credential trust_domain is "any_trust_domain", then the credential will always be returned, no matter
-        the requested trust_domain, otherwise the strings must match.
-        The credential types must match with a supported auth_metod.
+        When filtering by trust domain, if the credential trust_domain is "any", then the credential will always
+        be returned, no matter the requested trust_domain, otherwise the strings must match.
+        The credential types must match with a supported auth_method.
 
         Args:
             credential_type (CredentialType, List(CredentialType)): the credential type must match if one or more are provided
@@ -257,7 +258,7 @@ class CredentialsBasic(CredentialsPlugin):
             credential_purpose = [credential_purpose]
         cred_list = []
         for cred in self.cred_list:
-            if trust_domain and cred.trust_domain != trust_domain and cred.trust_domain != "any_trust_domain":
+            if trust_domain and not match_trust_domain(cred.trust_domain, trust_domain):
                 continue
             if credential_type and cred.cred_type not in credential_type:
                 continue
@@ -352,7 +353,11 @@ class ProxyFirst:
     # get the proxies, given the condor_q and condor_status data
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         for cred in self.cred_list:
-            if (trust_domain is not None) and (hasattr(cred, "trust_domain")) and (cred.trust_domain != trust_domain):
+            if (
+                (trust_domain is not None)
+                and (hasattr(cred, "trust_domain"))
+                and not match_trust_domain(cred.trust_domain, trust_domain)
+            ):
                 continue
             if (
                 (credential_type is not None)
@@ -399,7 +404,7 @@ class ProxyAll:
 
         Args:
             params_obj: optional parameters to be used in job splitting
-            credential_type (str): optional credential type to match with a supported auth_metod
+            credential_type (str): optional credential type to match with a supported auth_method
             trust_domain (str): optional trust domain
 
         Returns:
@@ -407,7 +412,11 @@ class ProxyAll:
         """
         rtnlist = []
         for cred in self.cred_list:
-            if (trust_domain is not None) and (hasattr(cred, "trust_domain")) and (cred.trust_domain != trust_domain):
+            if (
+                (trust_domain is not None)
+                and (hasattr(cred, "trust_domain"))
+                and not match_trust_domain(cred.trust_domain, trust_domain)
+            ):
                 continue
             if (
                 (credential_type is not None)
@@ -462,7 +471,11 @@ class ProxyUserCardinality:
     def get_proxies_from_cardinality(self, nr_requested_proxies, credential_type=None, trust_domain=None):
         rtnlist = []
         for cred in self.cred_list:
-            if (trust_domain is not None) and (hasattr(cred, "trust_domain")) and (cred.trust_domain != trust_domain):
+            if (
+                (trust_domain is not None)
+                and (hasattr(cred, "trust_domain"))
+                and not match_trust_domain(cred.trust_domain, trust_domain)
+            ):
                 continue
             if (
                 (credential_type is not None)
@@ -516,7 +529,11 @@ class ProxyProjectName:
         # Determine a base credential to use; we'll copy this and alter the project ID.
         base_cred = None
         for cred in self.proxy_list:
-            if (trust_domain is not None) and (hasattr(cred, "trust_domain")) and (cred.trust_domain != trust_domain):
+            if (
+                (trust_domain is not None)
+                and (hasattr(cred, "trust_domain"))
+                and not match_trust_domain(cred.trust_domain, trust_domain)
+            ):
                 continue
             if (
                 (credential_type is not None)
@@ -588,7 +605,11 @@ class ProxyUserRR:
         rtnlist = []
         num_cred = 0
         for cred in self.config_data["proxy_list"]:
-            if (trust_domain is not None) and (hasattr(cred, "trust_domain")) and (cred.trust_domain != trust_domain):
+            if (
+                (trust_domain is not None)
+                and (hasattr(cred, "trust_domain"))
+                and not match_trust_domain(cred.trust_domain, trust_domain)
+            ):
                 continue
             if (
                 (credential_type is not None)
@@ -718,7 +739,7 @@ class ProxyUserMapWRecycling:
                     if (
                         (trust_domain is not None)
                         and (hasattr(cred, "trust_domain"))
-                        and (cred.trust_domain != trust_domain)
+                        and not match_trust_domain(cred.trust_domain, trust_domain)
                     ):
                         continue
                     if (

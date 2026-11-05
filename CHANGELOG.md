@@ -13,7 +13,7 @@ This release includes all features and fixes in 3.10.20.rc1 (3.10.19 and a coupl
 -   Added snapshot to `get_request_credentials()` in credential plugins to allow for targeted dynamic request credentials (PR #640)
 -   Added new `debug_str()` method, new log messages, and improved docstrings to help with credentials logging and troubleshooting (PR #706)
 -   Improved generators context validation and generators code documentation (PR #711, PR #720)
--   Added the keyword "any_trust_domain" to use a credential no matter the trust_domain in the Factory configuration (PR #721)
+-   Added the keyword "any" (initially "any_trust_domain") to use a credential no matter the trust_domain in the Factory configuration (PR #721, PR #734)
 -   Improved IdTokenGenerator so it can be used for custom callback credentials for all Factory Entries (PR #721)
 -   Added full cvmfsexec support and refactored Glidein for Glidein reinvocation (PR #631)
     -   Specifically, support for modes 2 and 3 of cvmfsexec has been added. Existing support for use of cvmfsexec in mode 1 has been improved along with better error handling.
@@ -23,6 +23,8 @@ This release includes all features and fixes in 3.10.20.rc1 (3.10.19 and a coupl
         3. `CVMFS_SRC` remains unchanged and continues to be defined as a Factory attribute.
 
 ### Changed defaults / behaviours
+
+-   A credential trust_domain value "any" (case-insensitive) will match any requested trust domain
 
 ### Deprecated / removed options and commands
 
@@ -41,6 +43,7 @@ This release includes all features and fixes in 3.10.20.rc1 (3.10.19 and a coupl
 -   Standardized all token read/writes to add a newline character (`\n`) when writing token files, and strip `\n` when reading token files (Issue #639, PR #716, PR #722, PR ##706)
 -   setup_x509.sh fixes token permissions to work around an HTCondor bug in IRI API (from production)
 -   Handle scitoken entries in manual_glidein_submit (Issue #239, PR #732 - from production)
+-   Fixed request credentials match that was not considering the trust_domain (Issue #709, Issue #728, PR #734)
 -   Fixed the generation of the credentials for custom Glidein logging to speed up reconfig and consider entry configuration (Issue #736, PR #737)
 
 ### Testing / Development
