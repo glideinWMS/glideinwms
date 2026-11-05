@@ -869,10 +869,10 @@ SPDX-License-Identifier: Apache-2.0
             </p>
             <p>
               The <i>trust_domain</i> attribute must match the one in the
-              Factory configuration. The special keyword "any_trust_domain" will
-              match any trust domain in the Factory configuration; it is
-              convenient for payload or callback credentials, e.g. when defining
-              a custom IdTokenGenerator in the configuration.
+              Factory configuration. The special keyword "any" will match any
+              trust domain in the Factory configuration; it is convenient for
+              payload or callback credentials, e.g. when defining a custom
+              IdTokenGenerator in the configuration.
             </p>
             <p>
               Pool index length and list allows the admin to configure a list of
@@ -886,9 +886,11 @@ SPDX-License-Identifier: Apache-2.0
               Security class determines what user the credential is associated
               with on the Factory side. The trust domain determines which
               entries this credential will be used on. The credential will only
-              be submitted to sites that match this trust domain. Coordinate
-              with your Factory operator in order to properly determine these
-              values.
+              be submitted to sites that match this trust domain
+              (case-insensitive string comparison) or set their trust domain to
+              "any". Not setting the trust domain o setting it to "any" will
+              match any site. Coordinate with your Factory operator in order to
+              properly determine these values.
               <br /><br />
               The attribute <i>pilotabsfname</i> is required for non-grid types.
               This specifies a proxy (distinct from the credentials used to
