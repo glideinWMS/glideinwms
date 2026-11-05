@@ -20,7 +20,7 @@ from glideinwms.lib import (
     glideinWMSVersion,
     logSupport,
 )
-from glideinwms.lib.credentials import AuthenticationMethod, CredentialPurpose, SymmetricKey, x509
+from glideinwms.lib.credentials import AuthenticationMethod, CredentialPurpose, match_trust_domain, SymmetricKey, x509
 from glideinwms.lib.util import hash_nc
 
 # from glideinwms.tools.wmsXMLView import entry_name  - commented because unused
@@ -1588,7 +1588,8 @@ class MultiAdvertiseWork:
         # Determine required credentials for the entry
         factory_trust, factory_auth = self.factory_constraint[params_obj.request_name]
         factory_auth = AuthenticationMethod(factory_auth)
-        auth_set = factory_auth.match(self.descript_obj.credentials_plugin.security_bundle)
+        # Preliminary check to see if a match is possible, credentials are not retrieved/generated so no need for snapshot
+        auth_set = factory_auth.match(self.descript_obj.credentials_plugin.security_bundle, factory_trust)
         if not auth_set:
             logSupport.log.debug(
                 f'The available and valid credentials do not match the requirements of factory pool {factory_pool} entry "{params_obj.request_name}". Not advertising request. '
@@ -1610,7 +1611,7 @@ class MultiAdvertiseWork:
             entry_name = params_obj.glidein_name.split("@")[0]
             snapshots_list = ";".join(
                 [
-                    self.descript_obj.credentials_plugin.get_credential(i.credenial.id, entry_name).debug_str()
+                    self.descript_obj.credentials_plugin.get_credential(i.credential.id, entry_name).debug_str()
                     for i in self.request_credentials
                 ]
             )
@@ -1651,6 +1652,16 @@ class MultiAdvertiseWork:
         ]
         params_obj.glidein_params_to_encrypt["SecurityParameters"] = pickle.dumps(security_params)
 
+        # TODO: the evaluation of the credentials happens multiple times, all within this function
+        #  - at the beginning with factory_auth.match to see if there are valid credentials or the work request should be skipped
+        #  - here with credentials_plugin.assign_work to split the work if there are multiple credentials
+        #  - in the for loop below for the final inclusion in the ClassAd
+        #  All times Entry requirements (auth_method/type and trust_domain) and credential's validity are considered
+        #  This may result in inconsistencies and bugs - probably the flow should be changed
+        #  self.request_credentials contains all the request credentials
+        #  Credentials validity could change over time (does it matter?)
+        #  All snapshots of a credential generator have the same type and trust_domain (for now)
+
         # Assign work to the credentials per the plugin policy
         self.descript_obj.credentials_plugin.assign_work(self.request_credentials, params_obj, auth_set)
 
@@ -1659,7 +1670,7 @@ class MultiAdvertiseWork:
             if not request_cred.advertise:
                 logSupport.log.debug(f"Skipping credential with 'advertise' set to False. ({cred.id})")
                 continue  # We already determined it cannot be used
-            if (cred.trust_domain != factory_trust) and (factory_trust != "Any"):
+            if not match_trust_domain(cred.trust_domain, factory_trust):
                 logSupport.log.warning(
                     f"Skipping credential with trust_domain {cred.trust_domain}. "
                     f"Factory requires {factory_trust}. ({cred.id})"
@@ -1672,7 +1683,7 @@ class MultiAdvertiseWork:
                 and request_cred.req_max_run == 0
                 and params_obj.glidein_monitors_per_cred[cred.id]["GlideinsTotal"] == 0
             ):
-                logSupport.log.debug(f"Skipping credential with no work assigned or active glideins. ({cred.id})")
+                logSupport.log.debug(f"Skipping credential with no work assigned or active Glideins. ({cred.id})")
                 continue  # Skip credentials with no work assigned or active glideins
 
             classad_name = f"{cred.id}_{params_obj.request_name}@{self.descript_obj.my_name}"
