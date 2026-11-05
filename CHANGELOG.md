@@ -3,6 +3,30 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
+## Changes Since Last Release OR vX.Y.Z \[yyyy-mm-dd\]
+
+Changes since the last release
+
+### New features / functionalities
+
+-   item one of the list
+-   item N
+
+### Changed defaults / behaviours
+
+### Deprecated / removed options and commands
+
+### Security Related Fixes
+
+### Bug Fixes
+
+-   setup_x509.sh fixes token permissions to work around an HTCondor bug in IRI API
+-   Handle scitoken entries in manual_glidein_submit (Issue #239, PR #732)
+
+### Testing / Development
+
+### Known Issues
+
 ## v3.10.19 \[2026-10-01\]
 
 This release adds a few bug fixes, especially to the Glideins.
