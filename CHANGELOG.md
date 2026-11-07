@@ -41,6 +41,7 @@ This release includes all features and fixes in 3.10.20.rc1 (3.10.19 and a coupl
 -   Standardized all token read/writes to add a newline character (`\n`) when writing token files, and strip `\n` when reading token files (Issue #639, PR #716, PR #722, PR ##706)
 -   setup_x509.sh fixes token permissions to work around an HTCondor bug in IRI API (from production)
 -   Handle scitoken entries in manual_glidein_submit (Issue #239, PR #732 - from production)
+-   Fixed the generation of the credentials for custom Glidein logging to speed up reconfig and consider entry configuration (Issue #736, PR #737)
 
 ### Testing / Development
 

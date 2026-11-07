@@ -760,11 +760,11 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         # print(f"MYDEBUG: main_dicts['feature_flags'] = {main_dicts_ff}")
         # check if the attribute is a feature flag
         for attr in self.conf.get_child_list("attrs"):
-            print(f"MYDEBUG: attr = {attr['name']}, {attr.get_val()}")
+            # print(f"MYDEBUG: attr = {attr['name']}, {attr.get_val()}")
             if attr["name"].startswith("GLIDEIN_FEATURE_") and attr.get_val() != "False":
                 attr_name = attr["name"].split("_", 2)[2].lower()
                 feature_flags[attr_name] = attr.get_val()
-        print(f"MYDEBUG: feature_flags = {feature_flags}")
+        # print(f"MYDEBUG: feature_flags = {feature_flags}")
 
         # put standard attributes into config file
         # override anything the user set
@@ -850,9 +850,6 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         startup_file = cgWConsts.STARTUP_FILE
         if "cvmfsexec" in main_dicts["feature_flags"]:
             startup_file = cgWConsts.STARTUP_FILE_FF
-
-        # create logging tokens
-        generate_log_tokens(main_dicts)
 
         # Now that we have the EntrySet fill the condor_jdl for its entries
         if isinstance(entry, factoryXmlConfig.EntrySetElement):
@@ -975,14 +972,16 @@ class glideinDicts(cgWDictFile.glideinDicts):
             self.sub_dicts[entry_name].populate(entry, schedd, self.main_dicts.dicts)
             # MM5345 self.sub_dicts[entry_name].populate(self.main_dicts.dicts, other)
 
+        # Controls or steps on the whole dictionary that must wait until all sub-dictionaries have been populated
+        generate_log_tokens(self.main_dicts.dicts, self.sub_dicts)  # create logging tokens
         validate_condor_tarball_attrs(self.conf)
 
     # reuse as much of the other as possible
     def reuse(self, other):  # other must be of the same class
-        """
+        """Reuse as much of the other as possible
 
         Args:
-            other:
+            other (glideinDicts):
 
         Returns:
 
@@ -1700,7 +1699,7 @@ def calc_primary_monitoring_collectors(collectors):
 
 
 ############################################################
-def generate_log_tokens(glidein_main_dicts):
+def generate_log_tokens(glidein_main_dicts, glidein_entries_dicts):
     """Generate JSON Web Tokens (JWT) for log server authentication.
 
     This function generates JWT tokens used to authenticate with the remote HTTP log server.
@@ -1715,8 +1714,6 @@ def generate_log_tokens(glidein_main_dicts):
     Raises:
         IOError: If there is an error opening, reading, or writing a file (key/token).
     """
-    print("Generating JSON Web Tokens for authentication with log server")
-
     # Get a list of all entries, enabled and disabled
     # TODO: there are more reliable ways to do so, i.e. reading the xml config
     # entries = [ed[len("entry_") :] for ed in glob.glob("entry_*") if os.path.isdir(ed)]
@@ -1753,11 +1750,20 @@ def generate_log_tokens(glidein_main_dicts):
 
     factory_name = glidein_main_dicts["glidein"]["FactoryName"]
 
+    main_log_recipients = glidein_main_dicts["params"].get("GLIDEIN_LOG_RECIPIENTS_FACTORY", "")
+
     # Issue a token for each entry-recipient pair
+    token_ctr = 0
     for entry in entries:
         # Get the list of recipients
-        if "GLIDEIN_LOG_RECIPIENTS_FACTORY" in glidein_main_dicts["params"]:
-            log_recipients = glidein_main_dicts["params"]["GLIDEIN_LOG_RECIPIENTS_FACTORY"].split()
+        log_recipients_str = (
+            main_log_recipients
+            + " "
+            + glidein_entries_dicts[entry].dicts["params"].get("GLIDEIN_LOG_RECIPIENTS_FACTORY", "")
+        )
+        log_recipients_str = log_recipients_str.strip()
+        if log_recipients_str:
+            log_recipients = log_recipients_str.split()
         else:
             log_recipients = []
 
@@ -1778,6 +1784,12 @@ def generate_log_tokens(glidein_main_dicts):
 
         # Create the url_dirs.desc file
         open(os.path.join(entry_dir, "url_dirs.desc"), "w").close()
+
+        # If there are no log servers, create an empty tar file placeholder and return
+        if not log_recipients:
+            open(os.path.join(entry_dir, "tokens.tgz"), "w").close()
+            # print(f"...No log server for {entry}. 0 JSON Web Tokens generated")
+            continue
 
         for recipient_url in log_recipients:
             # Obtain a legal filename from the url, escaping "/" and other tricky symbols
@@ -1824,6 +1836,7 @@ def generate_log_tokens(glidein_main_dicts):
             except OSError:
                 print("Unable to create JWT file: ")
                 raise
+            token_ctr += 1
 
         # Create and write tokens.tgz
         try:
@@ -1833,6 +1846,7 @@ def generate_log_tokens(glidein_main_dicts):
             print("TarError: %s" % str(terr))
             raise
         tokens_tgz.close()
+    print(f"...Generated {token_ctr} JSON Web Tokens for authentication with log server")
 
 
 def validate_cvmfsexec_requirement(entry, global_attrs, work_dir, active_entries):
