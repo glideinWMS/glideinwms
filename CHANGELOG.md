@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 ## v3.11.5 \[2026-10-dd\]
 
-This release includes all features and fixes in 3.10.19
+This release includes all features and fixes in 3.10.20.rc1 (3.10.19 and a couple more fixes)
 
 ### New features / functionalities
 
@@ -39,6 +39,8 @@ This release includes all features and fixes in 3.10.19
 -   Select callback credentials with the correct trust_domain and improved credential selection to use the trust_domain as optional constraint (PR #721)
 -   Fixed redundant file extension for credentials cached in the Factory (Issue #685, PR #723, PR #729)
 -   Standardized all token read/writes to add a newline character (`\n`) when writing token files, and strip `\n` when reading token files (Issue #639, PR #716, PR #722, PR ##706)
+-   setup_x509.sh fixes token permissions to work around an HTCondor bug in IRI API (from production)
+-   Handle scitoken entries in manual_glidein_submit (Issue #239, PR #732 - from production)
 
 ### Testing / Development
 

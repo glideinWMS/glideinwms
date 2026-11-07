@@ -133,7 +133,7 @@ def get_reqname(collector, fe_name, group_name, entry_name):
     Raises:
         SystemExit: If no matching frontend request is found.
     """
-    constraint = 'MyType=="glideclient" && regexp("^{}@.*$", AuthenticatedIdentity) && regexp("^{}@.*$", ReqName) && GroupName=="{}" && GlideinEncParamSubmitProxy isnt undefined'.format(
+    constraint = 'MyType=="glideclient" && regexp("^{}@.*$", AuthenticatedIdentity) && regexp("^{}@.*$", ReqName) && GroupName=="{}" && (GlideinEncParamSubmitProxy isnt undefined || GlideinEncParamScitokenId isnt undefined)'.format(
         fe_name,
         entry_name,
         group_name,
@@ -146,6 +146,69 @@ def get_reqname(collector, fe_name, group_name, entry_name):
         sys.exit(1)
 
     return res[0]["Name"]
+
+
+def get_submit_credentials(ad_gc, sym_key_obj, security_class, user_name, cred_dir, entry_name):
+    """Build the credentials used to submit a pilot for a glideclient request.
+
+    Args:
+        ad_gc (dict): The glideclient classad of the Frontend request.
+        sym_key_obj: The symmetric key used to decrypt the request parameters.
+        security_class (str): The security class of the request.
+        user_name (str): The user the security class maps to.
+        cred_dir (str): The directory with the credentials of the user.
+        entry_name (str): The name of the entry.
+
+    Returns:
+        SubmitCredentials: The credentials, or None if the request has no usable credential.
+    """
+    # Use the request's Proxy as the credential by default. If it's not available, fallback to use the ScitokenId
+    proxyid = None
+    if "GlideinEncParamSubmitProxy" in ad_gc:
+        proxyid = sym_key_obj.decrypt_hex(ad_gc["GlideinEncParamSubmitProxy"]).decode("utf8")
+        credential_id = proxyid
+    else:
+        credential_id = sym_key_obj.decrypt_hex(ad_gc["GlideinEncParamScitokenId"]).decode("utf8")
+
+    # Create the submit_credentials object
+    credentials = SubmitCredentials(user_name, security_class)
+    credentials.id = credential_id
+    credentials.cred_dir = cred_dir
+    if proxyid is not None:
+        credfname = "{}_{}".format(ad_gc["ClientName"], proxyid)
+        if not credentials.add_security_credential("SubmitProxy", credfname):
+            fname = os.path.join(credentials.cred_dir, "credential_%s" % credfname)
+            logging.info(
+                (
+                    "Problems getting credential file using credentials.add_security_credential."
+                    " Check file %s permissions"
+                ),
+                fname,
+            )
+    scitoken = "credential_{}_{}.scitoken".format(ad_gc["ClientName"], entry_name)
+    scitoken_file = os.path.join(credentials.cred_dir, scitoken)
+    if not os.path.exists(scitoken_file):
+        if proxyid is None:
+            logging.error("No SubmitProxy in the request and cannot find scitoken file %s" % scitoken_file)
+            return None
+        logging.warning("Cannot find scitoken file %s" % scitoken_file)
+    elif not credentials.add_identity_credential("frontend_scitoken", scitoken_file):
+        logging.warning(
+            "failed to add frontend_scitoken %s to identity credentials %s"
+            % (scitoken_file, str(credentials.identity_credentials))
+        )
+
+    condortoken = "credential_{}_{}.idtoken".format(ad_gc["ClientName"], entry_name)
+    condortoken_file = os.path.join(credentials.cred_dir, condortoken)
+    if not os.path.exists(condortoken_file):
+        logging.warning("Cannot find idtoken file %s" % condortoken_file)
+    elif not credentials.add_identity_credential("frontend_condortoken", condortoken_file):
+        logging.warning(
+            "failed to add frontend_condortoken %s to the identity credentials %s"
+            % (condortoken_file, str(credentials.identity_credentials))
+        )
+
+    return credentials
 
 
 def main():
@@ -209,7 +272,6 @@ def main():
         security_class = sym_key_obj.decrypt_hex(ad_gc["GlideinEncParamSecurityClass"]).decode(
             "utf8"
         )  # GlideinSecurityClass
-        proxyid = sym_key_obj.decrypt_hex(ad_gc["GlideinEncParamSubmitProxy"]).decode("utf8")
         user_name = frontend_descript.get_username(frontend_sec_name, security_class)
 
         # Prepare some values that ends up in the Arguments classad
@@ -234,39 +296,11 @@ def main():
             client_group_sign,
         )
 
-        # Create the submit_credentials object
-        credentials = SubmitCredentials(user_name, security_class)
-        credentials.id = proxyid
-        credentials.cred_dir = conf.get_client_proxy_dirs()[user_name]
-        credfname = "{}_{}".format(ad_gc["ClientName"], proxyid)
-        if not credentials.add_security_credential("SubmitProxy", credfname):
-            fname = os.path.join(credentials.cred_dir, "credential_%s" % credfname)
-            logging.info(
-                (
-                    "Problems getting credential file using credentials.add_security_credential."
-                    " Check file %s permissions"
-                ),
-                fname,
-            )
-        scitoken = "credential_{}_{}.scitoken".format(ad_gc["ClientName"], entry_name)
-        scitoken_file = os.path.join(credentials.cred_dir, scitoken)
-        if not os.path.exists(scitoken_file):
-            logging.warning("Cannot find scitoken file %s" % scitoken_file)
-        elif not credentials.add_identity_credential("frontend_scitoken", scitoken_file):
-            logging.warning(
-                "failed to add frontend_scitoken %s to identity credentials %s"
-                % (scitoken_file, str(credentials.identity_credentials))
-            )
-
-        condortoken = "credential_{}_{}.idtoken".format(ad_gc["ClientName"], entry_name)
-        condortoken_file = os.path.join(credentials.cred_dir, condortoken)
-        if not os.path.exists(condortoken_file):
-            logging.warning("Cannot find idtoken file %s" % condortoken_file)
-        elif not credentials.add_identity_credential("frontend_condortoken", condortoken_file):
-            logging.warning(
-                "failed to add frontend_condortoken %s to the identity credentials %s"
-                % (condortoken_file, str(credentials.identity_credentials))
-            )
+        credentials = get_submit_credentials(
+            ad_gc, sym_key_obj, security_class, user_name, conf.get_client_proxy_dirs()[user_name], entry_name
+        )
+        if credentials is None:
+            return 1
 
         # Set the arguments
         # I was using escapeParam for GLIDECLIENT_ReqNode and GLIDECLIENT_Collector but turned out it's not necessary

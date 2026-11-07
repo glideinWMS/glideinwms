@@ -17,7 +17,7 @@ frontend_vofrontend_service_frontend        Regd  Claimd Unmtchd | ReqIdle |  Jo
 ;; doc/factory/custom_vars.html
                 /cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity
 ;; factory/tools/manual_glidein_submit.py
-    constraint = 'MyType=="glideclient" && regexp("^{}@.*$", AuthenticatedIdentity) && regexp("^{}@.*$", ReqName) && GroupName=="{}" && GlideinEncParamSubmitProxy isnt undefined'.format(
+    constraint = 'MyType=="glideclient" && regexp("^{}@.*$", AuthenticatedIdentity) && regexp("^{}@.*$", ReqName) && GroupName=="{}" && (GlideinEncParamSubmitProxy isnt undefined || GlideinEncParamScitokenId isnt undefined)'.format(
 ;; factory/tools/analyze_queues
         "Unknwn",
 ;; frontend/glideinFrontendLib.py
