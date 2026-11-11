@@ -3190,6 +3190,117 @@ SPDX-License-Identifier: Apache-2.0
           <!-- starting 3.7 generated via tags.yaml -->
           <!-- start development -->
           <li>
+            <a id="v3_11_5"><b>v3_11_5</b></a> released on October 11, 2026 (<a
+              href="http://glideinwms.fnal.gov/doc.v3_11_5/index.html"
+              >Manual</a
+            >,
+            <a href="http://glideinwms.fnal.gov/doc.v3_11_5/install.html"
+              >Installation instructions</a
+            >)<br />
+            <ul>
+              <li>
+                Added framework support for encrypted credentials and
+                implemented for RSA keys and key pairs (PR#640)
+              </li>
+              <li>
+                Added snapshot to `get_request_credentials()` in credential
+                plugins to allow for targeted dynamic request credentials
+                (PR#640)
+              </li>
+              <li>
+                Added new `debug_str()` method, new log messages, and improved
+                docstrings to help with credentials logging and troubleshooting
+                (PR#706)
+              </li>
+              <li>
+                Improved generators context validation and generators code
+                documentation (PR#711, PR#720)
+              </li>
+              <li>
+                ['Added the keyword "any" (initially "any_trust_domain") to use
+                a credential no matter the trust_domain in the Factory
+                configuration (PR#721, PR#734)']
+              </li>
+              <li>
+                Improved IdTokenGenerator so it can be used for custom callback
+                credentials for all Factory Entries (PR#721)
+              </li>
+              <li>
+                Added full cvmfsexec support and refactored `glidein_startup.sh`
+                for Glidein reinvocation. Mode 2 and 3 have been added, mode 1
+                improved (PR#631)
+              </li>
+              <li>
+                Bug fix: Python Cryptography changed some type names spelling.
+                Added import statements to be compatible with both old and new
+                spellings (PR#683, PR#687)
+              </li>
+              <li>
+                Bug fix: Fixed `populate_group_security` in the configuration
+                management to work with the new credentials and to handle
+                correctly proxy ID lists for X509 DN extraction (PR#640)
+              </li>
+              <li>
+                Bug fix: Fixed bug in IdTokenGenerator introduced in PR#667
+                (PR#702)
+              </li>
+              <li>
+                Bug fix: Fixed crashes and misleading Frontend warnings when
+                credentials are invalid (e.g. expired tokens) (Issue#695,
+                PR#706)
+              </li>
+              <li>
+                Bug fix: Fixed all generators plugins to validate context also
+                at reconfig time (PR#711)
+              </li>
+              <li>
+                Bug fix: Fixed `GLIDEIN_OVERLOAD_ENABLED` handling in factory
+                for 3.11 frontends (Issue#713, PR#714)
+              </li>
+              <li>
+                Bug fix: Select callback credentials with the correct
+                trust_domain and improved credential selection to use the
+                trust_domain as optional constraint (PR#721)
+              </li>
+              <li>
+                Bug fix: Fixed redundant file extension for credentials cached
+                in the Factory (Issue#685, PR#723, PR#729)
+              </li>
+              <li>
+                Bug fix: Standardized all token read/writes to add a newline
+                character (`\n`) when writing token files, and strip `\n` when
+                reading token files (Issue#639, PR#716, PR#722, PR#706)
+              </li>
+              <li>
+                Bug fix: setup_x509.sh fixes token permissions to work around an
+                HTCondor bug in IRI API (from production)
+              </li>
+              <li>
+                Bug fix: Handle scitoken entries in manual_glidein_submit
+                (Issue#239, PR#732 - from production)
+              </li>
+              <li>
+                Bug fix: Fixed request credentials match that was not
+                considering the trust_domain (Issue#709, Issue#728, PR#734)
+              </li>
+              <li>
+                Bug fix: Fixed the generation of the credentials for custom
+                Glidein logging to speed up reconfig and consider entry
+                configuration (Issue#736, PR#737)
+              </li>
+              <li>
+                NOTE-FACTORY: Different cvmfsexec configuration knobs,
+                `GLIDEIN_CVMFS` has changed to `GLIDEIN_CVMFS_REQUIRE` and is in
+                Factory, `GLIDEIN_USE_CVMFSEXEC` is now in Frontend, not Factory
+              </li>
+              <li>
+                NOTE-FRONTEND: Different cvmfsexec configuration knobs,
+                `GLIDEIN_USE_CVMFSEXEC` has changed to `GLIDEIN_USE_CVMFS` and
+                is in the Frontend
+              </li>
+            </ul>
+          </li>
+          <li>
             <a id="v3_11_4"><b>v3_11_4</b></a> released on May 8, 2026 (<a
               href="http://glideinwms.fnal.gov/doc.v3_11_4/index.html"
               >Manual</a
@@ -3238,7 +3349,7 @@ SPDX-License-Identifier: Apache-2.0
               </li>
               <li>
                 Added `make_scitoken_key` and the ability to generate and
-                validate self-signed tokens in the Frontend (PR#623)
+                validate self-signed tokens in the Frontend (PR#623, Issue#622)
               </li>
               <li>
                 Added configuration checks to validate Generator's context for

@@ -818,21 +818,6 @@ v3_11_4:
   NOTE:
     - As in 3.10.18, custom scripts execution times out after 600s and scripts are killed with SIGTERM followed by SIGKILL
 
-v3_11_5:
-  Date: September 9, 2026
-  Series: Development
-  Tarball: false
-  Feature:
-    - Added framework support for encrypted credentials and implemented for RSA keys and key pairs (PR#640)
-    - Added snapshot to `get_request_credentials()` in credential plugins to allow for targeted dynamic request credentials (PR#640)
-    - Improved generators context validation and generators code documentation (PR#711)
-  Bug fix:
-    - Python Cryptography changed some type names spelling. Added import statements to be compatible with both old and new spellings (PR#683, PR#687)
-    - Fixed `populate_group_security` in the configuration management to work with the new credentials and to handle correctly proxy ID lists for X509 DN extraction (PR#640)
-    - Fixed bug in IdTokenGenerator introduced in PR#667 (PR#702)
-    - Fixed all generators plugins to validate context also at reconfig time (PR#711)
-    - Fixed `GLIDEIN_OVERLOAD_ENABLED` handling in factory for 3.11 frontends (Issue#713, PR#714)
-
 v3_10_19:
   Date: October 1, 2026
   Series: Stable
@@ -859,3 +844,34 @@ v3_10_19:
     - Changed the default value for custom scripts timeout to 0 seconds. This also changes the default behavior for the execution of custom scripts to not time out; from timing out after 600s to not using a timeout value. When custom scripts timeout value is non-zero, the behavior remains unchanged, i.e. after timing out, scripts are killed with SIGTERM followed by SIGKILL.
     - Factory monitoring does not report existing pilots after reconfig when entry `auth_method` changes from `grid_proxy` to `scitoken` and `CONTINUE_IF_NO_PROXY` knob is unset (Issue#681)
     - A running 3.10.x Frontend continues to request Glideins even when unable to create IDTOKENS, resulting in Glideins failing at startup (Issue#679, PR#680)
+
+v3_11_5:
+  Date: October 11, 2026
+  Series: Development
+  Tarball: false
+  Feature:
+    - Added framework support for encrypted credentials and implemented for RSA keys and key pairs (PR#640)
+    - Added snapshot to `get_request_credentials()` in credential plugins to allow for targeted dynamic request credentials (PR#640)
+    - Added new `debug_str()` method, new log messages, and improved docstrings to help with credentials logging and troubleshooting (PR#706)
+    - Improved generators context validation and generators code documentation (PR#711, PR#720)
+    - - Added the keyword "any" (initially "any_trust_domain") to use a credential no matter the trust_domain in the Factory configuration (PR#721, PR#734)
+    - Improved IdTokenGenerator so it can be used for custom callback credentials for all Factory Entries (PR#721)
+    - Added full cvmfsexec support and refactored `glidein_startup.sh` for Glidein reinvocation. Mode 2 and 3 have been added, mode 1 improved (PR#631)
+  Bug fix:
+    - Python Cryptography changed some type names spelling. Added import statements to be compatible with both old and new spellings (PR#683, PR#687)
+    - Fixed `populate_group_security` in the configuration management to work with the new credentials and to handle correctly proxy ID lists for X509 DN extraction (PR#640)
+    - Fixed bug in IdTokenGenerator introduced in PR#667 (PR#702)
+    - Fixed crashes and misleading Frontend warnings when credentials are invalid (e.g. expired tokens) (Issue#695, PR#706)
+    - Fixed all generators plugins to validate context also at reconfig time (PR#711)
+    - Fixed `GLIDEIN_OVERLOAD_ENABLED` handling in factory for 3.11 frontends (Issue#713, PR#714)
+    - Select callback credentials with the correct trust_domain and improved credential selection to use the trust_domain as optional constraint (PR#721)
+    - Fixed redundant file extension for credentials cached in the Factory (Issue#685, PR#723, PR#729)
+    - Standardized all token read/writes to add a newline character (`\n`) when writing token files, and strip `\n` when reading token files (Issue#639, PR#716, PR#722, PR#706)
+    - setup_x509.sh fixes token permissions to work around an HTCondor bug in IRI API (from production)
+    - Handle scitoken entries in manual_glidein_submit (Issue#239, PR#732 - from production)
+    - Fixed request credentials match that was not considering the trust_domain (Issue#709, Issue#728, PR#734)
+    - Fixed the generation of the credentials for custom Glidein logging to speed up reconfig and consider entry configuration (Issue#736, PR#737)
+  NOTE-FACTORY:
+    - Different cvmfsexec configuration knobs, `GLIDEIN_CVMFS` has changed to `GLIDEIN_CVMFS_REQUIRE` and is in Factory, `GLIDEIN_USE_CVMFSEXEC` is now in Frontend, not Factory
+  NOTE-FRONTEND:
+    - Different cvmfsexec configuration knobs, `GLIDEIN_USE_CVMFSEXEC` has changed to `GLIDEIN_USE_CVMFS` and is in the Frontend
