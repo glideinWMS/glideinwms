@@ -45,6 +45,7 @@ This release includes all features and fixes in 3.10.20.rc1 (3.10.19 and a coupl
 -   Handle scitoken entries in manual_glidein_submit (Issue #239, PR #732 - from production)
 -   Fixed request credentials match that was not considering the trust_domain (Issue #709, Issue #728, PR #734)
 -   Fixed the generation of the credentials for custom Glidein logging to speed up reconfig and consider entry configuration (Issue #736, PR #737)
+-   `make_scitoken_key` can now run before any reconfig/upgrade (PR #739)
 
 ### Testing / Development
 
@@ -173,7 +174,7 @@ Hardened and improved validation of the generators' configuration. This version 
 ### Changed defaults / behaviours
 
 -   get_tarballs.py now has an improved management of default tarballs (PR #627)
--   SciTokenGenerator is stricter about the context in the configuration, requiring fields like key file and issuer and requiring an https URL for the issuer (PR #626)
+-   SciTokenGenerator is stricter about the context in the configuration, requiring fields like key file and issuer and requiring a https URL for the issuer (PR #626)
 
 ### Deprecated / removed options and commands
 
