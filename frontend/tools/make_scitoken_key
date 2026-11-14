@@ -19,6 +19,7 @@ import json
 import os
 import os.path
 import pwd
+import socket
 import sys
 
 from cryptography.hazmat.backends import default_backend
@@ -93,7 +94,9 @@ def get_args() -> argparse.Namespace:
         default=None,
     )
     parser.add_argument(
-        "-u", "--web-url", help="Base URL for web server. Defaults to the /cred/scitokens URL in the Frontend."
+        "-u",
+        "--web-url",
+        help="Base URL for web server. Defaults to the /cred/scitokens URL in the Frontend web_base_url from the configuration.",
     )
     parser.add_argument(
         "-g",
@@ -285,9 +288,6 @@ def main():
         # Set verbose logging via the global variable verbose
         global verbose
         verbose = True
-    # Load the Frontend configuration to retrieve its URI
-    group = args.group or "main"
-    gfe_desc = glideinFrontendConfig.ElementMergedDescript(args.work_dir, group)
     # Calculate and verify consistency of private key
     private_key = make_key(args.private_key_file, args.ec, args.force_new_key, args.client_user)
     if isinstance(private_key, rsa.RSAPrivateKey):
@@ -300,7 +300,20 @@ def main():
         raise ValueError("Private key type mismatch. Requested EC/ES256, but loaded RSA/RS256.")
     # Calculate and publish public key
     key_id, pk_str = get_jwk_pk_string(private_key, key_type)
-    uri = args.web_url or os.path.join(os.path.dirname(gfe_desc.frontend_data["MonitoringWebURL"]), "cred", "scitokens")
+    uri = args.web_url
+    if not uri:
+        # Load the Frontend configuration to retrieve its URI (using the group main if none is specified)
+        group = args.group or "main"
+        try:
+            gfe_desc = glideinFrontendConfig.ElementMergedDescript(args.work_dir, group)
+            uri = os.path.join(os.path.dirname(gfe_desc.frontend_data["MonitoringWebURL"]), "cred", "scitokens")
+        except FileNotFoundError:
+            # /var/lib/gwms-frontend/vofrontend/frontend.descript is not there. reconfig/upgrade did not run yet
+            # Using the default RPM URI
+            uri = f"https://{socket.getfqdn()}/vofrontend/cred/scitokens"
+            sys.stderr.write(
+                f"WARNING: Frontend dictionary unavailable (reconfig did not run), using standard RPM URL: {uri}\n"
+            )
     if uri.startswith("http://"):
         # Forcing https, http is not accepted for token verification
         uri = "https:" + uri[5:]
