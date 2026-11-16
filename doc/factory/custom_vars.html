@@ -1220,6 +1220,60 @@ MAX_STARTD_LOG          I       10000000        +                               
             </td>
           </tr>
         </table>
+
+        <br />
+        <h3>Feature flag variables</h3>
+        <p>
+          Starting v3.11.4, Factory supports feature flags to toggle specific
+          features at runtime without any impact to current code behavior. Note
+          that feature flags can only be defined in the global section of the
+          Factory configuration. The following table lists possible feature
+          flags:
+        </p>
+
+        <table class="attributes">
+          <tr class="head">
+            <td>
+              <p><b>Feature Flag</b></p>
+            </td>
+            <td>
+              <p><b>Type</b></p>
+            </td>
+            <td>
+              <p><b>Default Value</b></p>
+            </td>
+            <td>
+              <p><b>Description</b></p>
+            </td>
+          </tr>
+          <tr>
+            <td><b>GLIDEIN_FEATURE_CVMFSEXEC</b></td>
+            <td>String</td>
+            <td>False</td>
+            <td>
+              <p>
+                This feature flag can be used to toggle support for all three
+                modes of cvmfsexec versus support only one mode. Can take on two
+                possible values: <b>True</b> (enabled) or
+                <b>False</b> (disabled).
+              </p>
+
+              <p>
+                If this feature flag is enabled, the Factory uses refactored
+                Glidein with support for all three modes. In contrast, if this
+                feature flag is disabled, the Factory uses regular Glidein with
+                support for only one mode.
+              </p>
+
+              <p>
+                Example:<br />
+                &lt;attr name="GLIDEIN_FEATURE_CVMFSEXEC" glidein_publish="True"
+                job_publish="False" parameter="True" type="string"
+                value="False"/&gt;
+              </p>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="section">
         <h3><a name="factory_vars"></a>Factory config xml - configuration</h3>

@@ -360,10 +360,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             add_submit_attr_unparsed(attr, self.dicts, "main", "main")
 
         ## Add helper script for on-demand cvmfs provisioning
+        # TODO: remove the current line and uncomment the following line once full cvmfsexec support becomes the new production version
         # cvmfs_helper = "cvmfs_helper_funcs.sh"
-        # # check feature flag to decide on the version of `cvmfs_helper_funcs.sh` to be used. if feature flag for cvmfsexec is enabled, `cvmfs_helper_funcs_ff.sh` should be used. if feature flag for cvmfsexec is disabled/not defined, `cvmfs_helper_funcs.sh` should be used
-        # if "cvmfsexec" in self.dicts["feature_flags"]:
-        #     cvmfs_helper = "cvmfs_helper_funcs_ff.sh"
         cvmfs_helper = "cvmfs_helper_funcs_ff.sh"
         self.dicts["file_list"].add_from_file(
             cvmfs_helper,
