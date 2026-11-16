@@ -45,6 +45,7 @@ This release includes all features and fixes in 3.10.20.rc1 (3.10.19 and a coupl
 -   Handle scitoken entries in manual_glidein_submit (Issue #239, PR #732 - from production)
 -   Fixed request credentials match that was not considering the trust_domain (Issue #709, Issue #728, PR #734)
 -   Fixed the generation of the credentials for custom Glidein logging to speed up reconfig and consider entry configuration (Issue #736, PR #737)
+-   Added missing documentation regarding support for feature flags (PR #740)
 
 ### Testing / Development
 
