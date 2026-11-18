@@ -12,6 +12,7 @@ doc/api/html
 .ruff_cache
 .tox
 unittests/unittests-reports/
+unittests/.hypothesis
 
 # Big files workaround
 bigfiles/*
