@@ -22,17 +22,17 @@ setup() {
     has_fuse() { echo "yes"; }
 
     run determine_cvmfsexec_mode_usage
-    [[ ${lines[2]} == "2" ]] || false
+    [[ ${lines[2]} == "3" ]] || false
     [ $status -eq 0 ]
 
     has_fuse() { echo "no"; }
     run determine_cvmfsexec_mode_usage
-    [[ ${lines[2]} == "2" ]] || false
+    [[ ${lines[2]} == "3" ]] || false
     [ $status -eq 0 ]
 
     has_fuse() { echo "error"; }
     run determine_cvmfsexec_mode_usage
-    [[ ${lines[2]} == "2" ]] || false
+    [[ ${lines[2]} == "3" ]] || false
     [ $status -eq 0 ]
 }
 
