@@ -1263,6 +1263,14 @@ MAX_STARTD_LOG          I       10000000        +                               
                 Glidein with support for all three modes. In contrast, if this
                 feature flag is disabled, the Factory uses regular Glidein with
                 support for only one mode.
+
+                <b>NOTE:</b> Once the feature flag is added to Factory
+                configuration, a reconfiguration will not suffice. Using this
+                feature flag requires a Factory upgrade since the feature
+                flag-driven version of custom scripts for full cvmfsexec support
+                should be staged for the refactored Glidein. Alternatively,
+                disabling the feature flag will also require a Factory upgrade
+                to use the version of custom scripts for the regular Glidein.
               </p>
 
               <p>

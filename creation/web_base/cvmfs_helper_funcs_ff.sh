@@ -513,7 +513,7 @@ determine_cvmfsexec_mode_usage() {
     # either 1. if unprivileged user namespaces are enabled (and therefore supported)
     if  [[ "${unpriv_userns_status}" == "enabled" ]]; then
         # satisfies the minimum requirement for mode 3
-        if [[ $GWMS_OS_KRNL_VER -ge 5 || $GWMS_OS_KRNL_VER -ge 4 && $GWMS_OS_KRNL_MAJOR_REV -ge 18 || $GWMS_OS_KRNL_VER -ge 3 && $GWMS_OS_KRNL_MAJOR_REV -ge 10 && $GWMS_OS_KRNL_MINOR_REV -ge 0 && $GWMS_OS_KRNL_PATCH_NUM -ge 1127 ]]; then
+        if [[ $GWMS_OS_KRNL_VER_MAJOR -ge 5 || $GWMS_OS_KRNL_VER_MAJOR -ge 4 && $GWMS_OS_KRNL_VER_MINOR -ge 18 || $GWMS_OS_KRNL_VER_MAJOR -ge 3 && $GWMS_OS_KRNL_VER_MINOR -ge 10 && $GWMS_OS_KRNL_VER_PATCH -ge 0 && $GWMS_OS_KRNL_RELEASE -ge 1127 ]]; then
             # if newer kernels >= 4.18 (RHEL8) or >= 3.10.0-1127 (RHEL 7.8), cvmfsexec can be used in mode 3
             echo 3
             return 0
