@@ -3,9 +3,10 @@ SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-## v3.11.5 \[2026-10-dd\]
+## v3.11.5 \[2026-11-21\]
 
-This release includes all features and fixes in 3.10.20.rc1 (3.10.19 and a couple more fixes)
+This release includes all features and fixes in 3.10.20.rc1 (3.10.19 and a couple more fixes).
+Full cvmfsexec support can be enabled via feature flag and includes many fixes of the new credentials support.
 
 ### New features / functionalities
 
@@ -15,7 +16,7 @@ This release includes all features and fixes in 3.10.20.rc1 (3.10.19 and a coupl
 -   Improved generators context validation and generators code documentation (PR #711, PR #720)
 -   Added the keyword "any" (initially "any_trust_domain") to use a credential no matter the trust_domain in the Factory configuration (PR #721, PR #734)
 -   Improved IdTokenGenerator so it can be used for custom callback credentials for all Factory Entries (PR #721)
--   Added full cvmfsexec support and refactored Glidein for Glidein reinvocation (PR #631)
+-   Added full cvmfsexec support and refactored `glidein_startup.sh` for Glidein reinvocation (PR #631, PR #741)
     -   Specifically, support for modes 2 and 3 of cvmfsexec has been added. Existing support for use of cvmfsexec in mode 1 has been improved along with better error handling.
     -   Note that the configuration knobs have slightly changed:
         1. `GLIDEIN_USE_CVMFSEXEC` has changed to `GLIDEIN_USE_CVMFS` and is now required to be defined as a Frontend attribute.
