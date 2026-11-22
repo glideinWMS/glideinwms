@@ -336,7 +336,9 @@ advertise CONTAINERSW_MODE "$GWMS_CONTAINERSW_MODE" "S"
 advertise GWMS_CONTAINERSW_MODE "$GWMS_CONTAINERSW_MODE" "S"
 # The dict has changed after singularity_get_image to include values from legacy variables
 advertise SINGULARITY_IMAGES_DICT "$SINGULARITY_IMAGES_DICT" "S"
-# TODO: advertise also GWMS_SINGULARITY_IMAGE ?
+if [[ -n "$GWMS_SINGULARITY_IMAGE" ]]; then
+    advertise GWMS_SINGULARITY_IMAGE "$GWMS_SINGULARITY_IMAGE" "S"
+fi
 # TODO: is GLIDEIN_REQUIRED_OS "any" published here, will it not override config setting?
 advertise GLIDEIN_REQUIRED_OS "any" "S"
 if [[ -n "$GLIDEIN_DEBUG_OUTPUT" ]]; then
