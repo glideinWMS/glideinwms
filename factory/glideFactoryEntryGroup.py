@@ -26,10 +26,9 @@ import sys
 import time
 
 from glideinwms.factory import glideFactoryConfig as gfc
-from glideinwms.factory import glideFactoryDowntimeLib, glideFactoryEntry
+from glideinwms.factory import glideFactoryDowntimeLib, glideFactoryEntry, glideFactoryPidLib
 from glideinwms.factory import glideFactoryInterface as gfi
 from glideinwms.factory import glideFactoryLib as gfl
-from glideinwms.factory import glideFactoryPidLib
 from glideinwms.lib import classadSupport, cleanupSupport, logSupport
 from glideinwms.lib.fork import fetch_fork_result_list, ForkManager, print_child_processes
 from glideinwms.lib.pidSupport import register_sighandler, unregister_sighandler
